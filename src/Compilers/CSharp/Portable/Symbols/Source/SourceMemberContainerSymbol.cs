@@ -3640,9 +3640,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
 
                 var baseToStringMethod = getBaseToStringMethod();
-                bool isBaseToStringSealed = baseToStringMethod is { IsSealed: true };
 
-                if (isBaseToStringSealed)
+                if (baseToStringMethod is { IsSealed: true })
                 {
                     if (baseToStringMethod!.ContainingModule != this.ContainingModule && !this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
                     {
