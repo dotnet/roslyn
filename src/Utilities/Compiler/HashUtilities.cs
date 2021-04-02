@@ -64,6 +64,7 @@ namespace Analyzer.Utilities
         }
 
         internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary)
+            where TKey : notnull
         {
             var hashCode = new RoslynHashCode();
             Combine(dictionary, ref hashCode);
@@ -71,6 +72,7 @@ namespace Analyzer.Utilities
         }
 
         internal static void Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary, ref RoslynHashCode hashCode)
+            where TKey : notnull
         {
             foreach (var (key, value) in dictionary)
             {
