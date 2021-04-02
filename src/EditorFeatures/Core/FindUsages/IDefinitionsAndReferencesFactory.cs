@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             return ToDefinitionItemAsync(
                 definition, solution, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
-                options: FindReferencesSearchOptions.Default, cancellationToken: cancellationToken);
+                options: FindReferencesSearchOptions.Default.With(unidirectionalHierarchyCascade: true), cancellationToken: cancellationToken);
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
