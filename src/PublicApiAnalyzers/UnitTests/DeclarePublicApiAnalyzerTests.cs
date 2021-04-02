@@ -848,8 +848,10 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             string unshippedText = "";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
+#if NETCOREAPP
                 // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
                 GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule),
+#endif
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
                 GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "GetEnumerator"),
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
@@ -867,8 +869,10 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             string unshippedText = "";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
+#if NETCOREAPP
                 // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
                 GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule),
+#endif
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
                 GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "GetEnumerator"),
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
