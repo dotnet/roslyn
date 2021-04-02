@@ -131,3 +131,15 @@ Public API file '{0}' is missing or not marked as an additional analyzer file
 |Severity|Warning|
 |CodeFix|False|
 ---
+
+## [RS0050](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Public API is marked as removed but it exists in source code
+
+Symbol '{0}' is marked as removed but it isn't deleted in source code
+
+|Item|Value|
+|-|-|
+|Category|ApiDesign|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
