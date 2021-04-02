@@ -63,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (members.Length == 1)
             {
                 var member = tag.MembersOnLine[0];
-                // var textAppended = " " + ServicesVSResources.is_inherited;
 
                 // Here we want to show a classified text with loc text,
                 // e.g. 'Bar' is inherited.
