@@ -670,6 +670,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 if (attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                                 {
                                     var obsoleteAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
+                                    if (forwardedType.IsUnboundGenericType)
+                                    {
+                                        forwardedType = forwardedType.ConstructedFrom;
+                                    }
+
                                     VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, obsoleteAttribute, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
                                 }
                             }
@@ -685,12 +690,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
-                    foreach (var nestedType in namedTypeSymbol.ConstructedFrom.GetTypeMembers())
+                    foreach (var nestedType in namedTypeSymbol.GetTypeMembers())
                     {
                         VisitForwardedTypeRecursively(nestedType, reportDiagnostic, obsoleteAttribute, typeForwardedAttributeLocation, cancellationToken);
                     }
 
-                    foreach (var member in namedTypeSymbol.ConstructedFrom.GetMembers())
+                    foreach (var member in namedTypeSymbol.GetMembers())
                     {
                         if (!(member.IsImplicitlyDeclared && member.IsDefaultConstructor()))
                         {

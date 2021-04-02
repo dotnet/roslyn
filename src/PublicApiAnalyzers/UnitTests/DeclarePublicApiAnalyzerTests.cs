@@ -853,7 +853,7 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
                 GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "GetEnumerator"),
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
-                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "IEnumerable<>"));
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "IEnumerable<T>"));
         }
 
         [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
