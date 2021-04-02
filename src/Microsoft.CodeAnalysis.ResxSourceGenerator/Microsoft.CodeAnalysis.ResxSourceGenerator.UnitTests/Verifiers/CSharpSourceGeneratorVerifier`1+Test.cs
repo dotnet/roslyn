@@ -13,22 +13,21 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
         {
             public Test()
             {
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var project = solution.GetProject(projectId)!;
-                    var parseOptions = (CSharpParseOptions)project.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    var compilationOptions = solution.GetProject(projectId).CompilationOptions;
-                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(
-                        compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
-                    solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
-
-                    return solution;
-                });
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
+
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                var compilationOptions = base.CreateCompilationOptions();
+                return compilationOptions.WithSpecificDiagnosticOptions(
+                    compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
+            }
+
+            protected override ParseOptions CreateParseOptions()
+            {
+                return ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
+            }
         }
     }
 }
