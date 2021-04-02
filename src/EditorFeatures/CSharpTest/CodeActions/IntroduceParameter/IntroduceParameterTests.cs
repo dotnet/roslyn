@@ -141,6 +141,38 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestDeclarationInForLoop()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(int a, int b)
+    {
+        var v = () =>
+        {
+            for (var y = [|a * b|]; ;) { }
+        };
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(int a, int b)
+    {
+        var v = () =>
+        {
+            for (var y = a * b; ;) { }
+        };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestExpressionCaseWithSingleMethodCallInLocalFunction()
         {
             var code =

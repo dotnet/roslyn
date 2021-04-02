@@ -2851,10 +2851,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="into_new_overload_of_0" xml:space="preserve">
     <value>into new overload of '{0}'</value>
   </data>
-  <data name="into_extracted_method_to_invoke_at_callsites" xml:space="preserve">
-    <value>into extracted method to invoke at callsites</value>
+  <data name="into_extracted_method_to_invoke_at_call_sites" xml:space="preserve">
+    <value>into extracted method to invoke at call_sites</value>
   </data>
-  <data name="and_update_callsites_directly" xml:space="preserve">
-    <value>and update callsites directly</value>
+  <data name="and_update_call_sites_directly" xml:space="preserve">
+    <value>and update call_sites directly</value>
   </data>
 </root>
