@@ -1229,5 +1229,60 @@ End Class
 ";
             await TestInRegularAndScriptAsync(code, expected, 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestConvertedTypeInExpression()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(double x, double y) 
+    {
+        int m = [|(int)(x * y);|]
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(double x, double y, int m) 
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestConvertedTypeInExpressionTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(double x, double y) 
+    {
+        int m = [|(int)(x * y);|]
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int GetM(double x, double y)
+    {
+        return (int)(x * y);
+    }
+
+    void M(double x, double y, int m) 
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
     }
 }
