@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -31,9 +30,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken))
                 .ConfigureAwait(false);
 
+            var definitionItem = await memberSymbol.ToClassifiedDefinitionItemAsync(
+                solution,
+                isPrimary: true,
+                includeHiddenLocations: false,
+                FindReferencesSearchOptions.Default,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
             return new InheritanceMarginItem(
                 lineNumber,
-                memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                definitionItem.DisplayParts,
                 memberSymbol.GetGlyph(),
                 baseSymbolItems.Concat(derivedTypeItems));
         }
@@ -44,15 +50,22 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             InheritanceRelationship inheritanceRelationship,
             CancellationToken cancellationToken)
         {
-            // Use non-classified currently because there is no good way to show
-            // colorized item in margin.
-            // Would like to switch to ToClassifiedDefinitionItemAsync() in the future
+            // Right now the targets are not shown in a classified way.
             var definition = await targetSymbol.ToNonClassifiedDefinitionItemAsync(
                 solution,
                 includeHiddenLocations: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return new InheritanceTargetItem(inheritanceRelationship, definition);
+            var containingSymbol = targetSymbol.ContainingSymbol;
+            var containingSymbolName = containingSymbol is INamespaceSymbol { IsGlobalNamespace: true }
+                ? FeaturesResources.Global_Namespace
+                : containingSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+
+            return new InheritanceTargetItem(
+                inheritanceRelationship,
+                definition,
+                targetSymbol.GetGlyph(),
+                containingSymbolName);
         }
 
         private static async Task<InheritanceMarginItem> CreateInheritanceMemberInfoForMemberAsync(
@@ -74,9 +87,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var overridingMemberItems = await overridingMembers
                 .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken)).ConfigureAwait(false);
 
+            var definitionItem = await memberSymbol.ToClassifiedDefinitionItemAsync(
+                solution,
+                isPrimary: true,
+                includeHiddenLocations: false,
+                FindReferencesSearchOptions.Default,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
             return new InheritanceMarginItem(
                 lineNumber,
-                memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+                definitionItem.DisplayParts,
                 memberSymbol.GetGlyph(),
                 implementingMemberItems.Concat(implementedMemberItems)
                     .Concat(overridenMemberItems)

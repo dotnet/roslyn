@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 .GroupBy(item => item.LineNumber);
 
             var snapshot = spanToTag.SnapshotSpan.Snapshot;
+
             foreach (var (lineNumber, membersOnTheLine) in lineToMembers)
             {
                 var membersOnTheLineArray = membersOnTheLine.ToImmutableArray();
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 // We only care about the line, so just tag the start.
                 context.AddTag(new TagSpan<InheritanceMarginTag>(
                     new SnapshotSpan(snapshot, line.Start, length: 0),
-                    new InheritanceMarginTag(membersOnTheLineArray)));
+                    new InheritanceMarginTag(document.Project.Solution.Workspace, lineNumber, membersOnTheLineArray)));
             }
         }
     }

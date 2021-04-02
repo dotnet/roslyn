@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly int LineNumber;
 
         /// <summary>
-        /// Member's display name.
+        /// Display texts for this member.
         /// </summary>
-        public readonly string DisplayName;
+        public readonly ImmutableArray<TaggedText> DisplayTexts;
 
         /// <summary>
         /// Member's glyph.
@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         public InheritanceMarginItem(
             int lineNumber,
-            string displayName,
+            ImmutableArray<TaggedText> displayTexts,
             Glyph glyph,
             ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
-            DisplayName = displayName;
+            DisplayTexts = displayTexts;
             Glyph = glyph;
             TargetItems = targetItems;
         }

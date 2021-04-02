@@ -27,6 +27,21 @@
         <target state="new">Interactive host process platform</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited">
+        <source>Multiple members are inherited</source>
+        <target state="new">Multiple members are inherited</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited_on_line_0">
+        <source>Multiple members are inherited on line {0}</source>
+        <target state="new">Multiple members are inherited on line {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_0">
+        <source>Navigate to '{0}'</source>
+        <target state="new">Navigate to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Print_a_list_of_referenced_assemblies">
         <source>Print a list of referenced assemblies.</source>
         <target state="new">Print a list of referenced assemblies.</target>
@@ -105,6 +120,16 @@
       <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
         <source>The references command is not supported in this Interactive Window implementation.</source>
         <target state="new">The references command is not supported in this Interactive Window implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_in_1">
+        <source>'{0}' in '{1}'</source>
+        <target state="new">'{0}' in '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="is_inherited">
+        <source>is inherited</source>
+        <target state="new">is inherited</target>
         <note />
       </trans-unit>
     </body>
