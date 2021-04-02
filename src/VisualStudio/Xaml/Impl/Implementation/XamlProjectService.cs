@@ -188,7 +188,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private void OnDocumentClosed(object sender, DocumentEventArgs e)
         {
-            this.OnDocumentClosed(e.Document.FilePath);
+            var filePath = e.Document.FilePath;
+            if (filePath == null)
+            {
+                return;
+            }
+
+            if (_documentIds.TryGetValue(filePath, out var documentId))
+            {
+                var document = _workspace.CurrentSolution.GetDocument(documentId);
+                if (document?.FilePath != null)
+                {
+                    var project = _xamlProjects.Values.SingleOrDefault(p => p.Id == document.Project.Id);
+                    project?.RemoveSourceFile(document.FilePath);
+                }
+                _documentIds.TryRemove(filePath, out _);
+            }
         }
 
         private void OnProjectClosing(IVsHierarchy hierarchy)
@@ -236,25 +251,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
                 var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(newMoniker).Single(d => d.ProjectId == project.Id);
                 _documentIds[newMoniker] = documentId;
-            }
-        }
-
-        private void OnDocumentClosed(string? filePath)
-        {
-            if (filePath == null)
-            {
-                return;
-            }
-
-            if (_documentIds.TryGetValue(filePath, out var documentId))
-            {
-                var document = _workspace.CurrentSolution.GetDocument(documentId);
-                if (document?.FilePath != null)
-                {
-                    var project = _xamlProjects.Values.SingleOrDefault(p => p.Id == document.Project.Id);
-                    project?.RemoveSourceFile(document.FilePath);
-                }
-                _documentIds.TryRemove(filePath, out _);
             }
         }
 
