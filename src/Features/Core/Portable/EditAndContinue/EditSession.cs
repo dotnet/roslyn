@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
-        internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
         private readonly ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
 
@@ -46,6 +45,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly EditAndContinueDocumentAnalysesCache Analyses;
 
+        internal readonly bool InBreakState;
+
         /// <summary>
         /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports 
         /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze 
@@ -55,20 +56,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly object _documentsWithReportedDiagnosticsGuard = new();
 
         private PendingSolutionUpdate? _pendingUpdate;
-        private bool _changesApplied;
 
         internal EditSession(
             DebuggingSession debuggingSession,
             EditSessionTelemetry telemetry,
-            IManagedEditAndContinueDebuggerService debuggerService)
+            bool inBreakState)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
-            DebuggerService = debuggerService;
 
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
-            BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true);
+            InBreakState = inBreakState;
+
+            BaseActiveStatements = inBreakState ?
+                new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true) :
+                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty);
+
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
         }
 
@@ -86,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
         public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
         {
-            var availability = await DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+            var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
             if (availability.Status == ManagedEditAndContinueAvailabilityStatus.ModuleNotLoaded)
             {
                 return null;
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
-                return CreateActiveStatementsMap(await DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
+                return CreateActiveStatementsMap(await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
@@ -479,11 +483,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                if (_changesApplied)
-                {
-                    return false;
-                }
-
                 var baseSolution = DebuggingSession.LastCommittedSolution;
                 if (baseSolution.HasNoChanges(solution))
                 {
@@ -759,6 +758,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _4 = ArrayBuilder<IDisposable>.GetInstance(out var readers);
                 using var _5 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
                 using var _6 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
+                using var _7 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
 
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
@@ -832,8 +832,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
-                    if (projectSummary == ProjectAnalysisSummary.CompilationErrors || projectSummary == ProjectAnalysisSummary.RudeEdits)
+                    if (projectSummary == ProjectAnalysisSummary.CompilationErrors)
                     {
+                        isBlocked = true;
+                    }
+                    else if (projectSummary == ProjectAnalysisSummary.RudeEdits)
+                    {
+                        foreach (var analysis in changedDocumentAnalyses)
+                        {
+                            if (analysis.RudeEditErrors.Length > 0)
+                            {
+                                documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEditErrors));
+                            }
+                        }
+
                         isBlocked = true;
                     }
 
@@ -869,13 +881,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // since we already checked that no changed document is out-of-sync above.
                     var oldActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                    var lineEdits = await projectChanges.LineChanges.SelectAsArrayAsync(async lineChange =>
+                    var lineEdits = await projectChanges.LineChanges.SelectAsArrayAsync(async (lineChange, cancellationToken) =>
                     {
                         var document = await newProject.GetDocumentAsync(lineChange.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                         Contract.ThrowIfNull(document);
                         Contract.ThrowIfNull(document.FilePath);
                         return new SequencePointUpdates(document.FilePath, lineChange.Changes);
-                    }).ConfigureAwait(false);
+                    }, cancellationToken).ConfigureAwait(false);
 
                     using var pdbStream = SerializableBytes.CreateWritableStream();
                     using var metadataStream = SerializableBytes.CreateWritableStream();
@@ -955,7 +967,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         reader.Dispose();
                     }
 
-                    return SolutionUpdate.Blocked(diagnostics.ToImmutable());
+                    return SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable());
                 }
 
                 return new SolutionUpdate(
@@ -965,7 +977,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     nonRemappableRegions.ToImmutable(),
                     readers.ToImmutable(),
                     emitBaselines.ToImmutable(),
-                    diagnostics.ToImmutable());
+                    diagnostics.ToImmutable(),
+                    documentsWithRudeEdits.ToImmutable());
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
@@ -1130,12 +1143,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
             Contract.ThrowIfNull(pendingUpdate);
             return pendingUpdate;
-        }
-
-        internal void ChangesApplied()
-        {
-            Debug.Assert(!_changesApplied);
-            _changesApplied = true;
         }
     }
 }

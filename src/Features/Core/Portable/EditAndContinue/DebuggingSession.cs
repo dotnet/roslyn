@@ -45,16 +45,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private List<IDisposable>? _lazyBaselineModuleReaders;
         private readonly object _projectEmitBaselinesGuard = new();
 
-        // Maps active statement instructions to their latest spans.
-        // Consumed by the next edit session and updated when changes are committed at the end of the edit session.
+        // Maps active statement instructions reported by the debugger to their latest spans that might not yet have been applied
+        // (remapping not triggered yet). Consumed by the next edit session and updated when changes are committed at the end of the edit session.
         //
-        // Consider a function F containing a call to function G that is updated a couple of times
-        // before the thread returns from G and is remapped to the latest version of F.
-        // '>' indicates an active statement instruction.
+        // Consider a function F containing a call to function G. While G is being executed, F is updated a couple of times (in two edit sessions)
+        // before the thread returns from G and is remapped to the latest version of F. At the start of the second edit session,
+        // the active instruction reported by the debugger is still at the original location since function F has not been remapped yet (G has not returned yet).
+        //
+        // '>' indicates an active statement instruction for non-leaf frame reported by the debugger.
+        // v1 - before first edit, G executing
+        // v2 - after first edit, G still executing
+        // v3 - after second edit and G returned
         //
         // F v1:        F v2:       F v3:
         // 0: nop       0: nop      0: nop
-        // 1> G()       1: nop      1: nop
+        // 1> G()       1> nop      1: nop
         // 2: nop       2: G()      2: nop
         // 3: nop       3: nop      3> G()
         //
@@ -85,16 +90,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly CommittedSolution LastCommittedSolution;
 
+        internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
+
         internal DebuggingSession(
             Solution solution,
-            Func<Project, CompilationOutputs> compilationOutputsProvider)
+            IManagedEditAndContinueDebuggerService debuggerService,
+            Func<Project, CompilationOutputs> compilationOutputsProvider,
+            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
             _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
             _modulesPreparedForUpdate = new HashSet<Guid>();
 
-            LastCommittedSolution = new CommittedSolution(this, solution);
+            DebuggerService = debuggerService;
+            LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 

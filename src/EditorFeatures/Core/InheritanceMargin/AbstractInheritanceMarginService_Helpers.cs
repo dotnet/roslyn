@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var baseSymbolItems = await baseSymbols
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken))
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
             var derivedTypeItems = await derivedTypesSymbols
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken))
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
             var definitionItem = await memberSymbol.ToClassifiedDefinitionItemAsync(
@@ -79,13 +79,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var implementingMemberItems = await implementingMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken), cancellationToken).ConfigureAwait(false);
             var implementedMemberItems = await implementedMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken), cancellationToken).ConfigureAwait(false);
             var overridenMemberItems = await overridenMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overridden, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overridden, cancellationToken), cancellationToken).ConfigureAwait(false);
             var overridingMemberItems = await overridingMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var definitionItem = await memberSymbol.ToClassifiedDefinitionItemAsync(
                 solution,

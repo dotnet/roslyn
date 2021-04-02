@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract bool CanOffer(SyntaxNode body);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+        protected abstract string EscapeResourceString(string input);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -75,8 +76,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
             return ImmutableArray.Create<CodeAction>(new MyCodeAction(
-                 FeaturesResources.Add_null_checks_for_all_parameters,
-                     c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c)));
+                FeaturesResources.Add_null_checks_for_all_parameters,
+                c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c),
+                nameof(FeaturesResources.Add_null_checks_for_all_parameters)));
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -95,7 +97,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c)));
+                c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c),
+                nameof(FeaturesResources.Add_null_check)));
 
             // Also, if this was a string, offer to add the special checks to 
             // string.IsNullOrEmpty and string.IsNullOrWhitespace.
@@ -103,11 +106,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrEmpty_check,
-                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), c)));
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), c),
+                    nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
 
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c),
+                    nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));
             }
 
             return result.ToImmutable();
@@ -371,7 +376,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
             => (TStatementSyntax)generator.CreateNullCheckAndThrowStatement(semanticModel, parameter);
 
-        private static TStatementSyntax CreateStringCheckStatement(
+        private TStatementSyntax CreateStringCheckStatement(
             Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
@@ -543,7 +548,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
 
-        private static SyntaxNode CreateArgumentException(
+        private SyntaxNode CreateArgumentException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName)
         {
             var text = methodName switch
@@ -553,22 +558,26 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
+            // The resource string is written to be shown in a UI and is not necessarily valid code, but we're
+            // going to be putting it into a string literal so we need to escape quotes etc. to avoid syntax errors
+            var escapedText = EscapeResourceString(text);
+
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var content);
 
             var nameofExpression = generator.NameOfExpression(generator.IdentifierName(parameter.Name));
 
-            const string Placeholder = "{0}";
-            var placeholderIndex = text.IndexOf(Placeholder);
-            if (placeholderIndex < 0)
+            var textParts = GetPreAndPostTextParts(text);
+            var escapedTextParts = GetPreAndPostTextParts(escapedText);
+            if (textParts.pre is null)
             {
                 Debug.Fail("Should have found {0} in the resource string.");
-                content.Add(InterpolatedStringText(generator, text));
+                content.Add(InterpolatedStringText(generator, escapedText, text));
             }
             else
             {
-                content.Add(InterpolatedStringText(generator, text[..placeholderIndex]));
+                content.Add(InterpolatedStringText(generator, escapedTextParts.pre, textParts.pre));
                 content.Add(generator.Interpolation(nameofExpression));
-                content.Add(InterpolatedStringText(generator, text[(placeholderIndex + Placeholder.Length)..]));
+                content.Add(InterpolatedStringText(generator, escapedTextParts.post, textParts.post));
             }
 
             return generator.ObjectCreationExpression(
@@ -580,9 +589,22 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 nameofExpression);
         }
 
-        private static SyntaxNode InterpolatedStringText(SyntaxGenerator generator, string text)
+        private static (string pre, string post) GetPreAndPostTextParts(string text)
         {
-            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(text, text));
+            const string Placeholder = "{0}";
+
+            var index = text.IndexOf(Placeholder);
+            if (index < 0)
+            {
+                return (null, null);
+            }
+
+            return (text[..index], text[(index + Placeholder.Length)..]);
+        }
+
+        private static SyntaxNode InterpolatedStringText(SyntaxGenerator generator, string content, string value)
+        {
+            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(content, value));
         }
     }
 }

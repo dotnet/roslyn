@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
-            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName!, selectedItem);
+            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
         }
 
         protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(

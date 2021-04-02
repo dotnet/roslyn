@@ -511,7 +511,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSP_RequestDuration = 483,
         LSP_TimeInQueue = 484,
 
-        InheritanceMargin_TargetsMenuOpen = 485,
-        InheritanceMargin_NavigateToTarget = 486,
+        Intellicode_UnknownIntent = 485,
+
+        LSP_CompletionListCacheMiss = 486,
+
+        InheritanceMargin_TargetsMenuOpen = 487,
+        InheritanceMargin_NavigateToTarget = 488,
     }
 }
