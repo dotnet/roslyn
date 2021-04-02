@@ -320,7 +320,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             var modifiedSolution = originalDocument.Project.Solution;
             var mappingDictionary = await MapExpressionToParametersAsync(originalDocument, expression, cancellationToken).ConfigureAwait(false);
-            var variablesInExpression = expression.DescendantNodes().OfType<TIdentifierNameSyntax>();
 
             foreach (var (project, projectCallSites) in callSites.GroupBy(kvp => kvp.Key.Project))
             {
@@ -338,7 +337,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     {
                         var newRoot = await ModifyDocumentInvocationsAndIntroduceParameterAsync(compilation,
                             originalDocument, document, mappingDictionary, methodSymbol, containingMethod,
-                            expression, allOccurrences, parameterName, variablesInExpression, invocationExpressionList,
+                            expression, allOccurrences, parameterName, invocationExpressionList,
                             cancellationToken).ConfigureAwait(false);
                         modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, newRoot);
                     }
@@ -369,7 +368,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var editor = new SyntaxEditor(root, generator);
             var syntaxFacts = currentDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var insertionIndex = GetInsertionIndex(compilation, methodSymbol, syntaxFacts, containingMethod);
-            var newMethodIdentifier = methodSymbol.Name + "_" + parameterName;
+
+            // Creating a new method name by concatenating the parameter name that has been camelcased.
+            var newMethodIdentifier = "Get" + parameterName.First().ToString().ToUpper() + parameterName[1..];
+
             var validParameters = methodSymbol.Parameters.AsEnumerable().SelectMany(parameter => mappingDictionary.Values.Where(param => parameter.Equals(param))).ToImmutableArray();
             if (trampoline)
             {
@@ -578,7 +580,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private async Task<SyntaxNode> ModifyDocumentInvocationsAndIntroduceParameterAsync(Compilation compilation,
             Document originalDocument, Document document, Dictionary<TIdentifierNameSyntax, IParameterSymbol> mappingDictionary,
             IMethodSymbol methodSymbol, SyntaxNode containingMethod, TExpressionSyntax expression,
-            bool allOccurrences, string parameterName, IEnumerable<TIdentifierNameSyntax> variablesInExpression,
+            bool allOccurrences, string parameterName,
             List<TInvocationExpressionSyntax> invocations, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -600,7 +602,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     var updatedInvocationArguments = syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax);
                     var updatedExpression = CreateNewArgumentExpression(expressionEditor,
-                        syntaxFacts, mappingDictionary, variablesInExpression, parameterToArgumentMap, updatedInvocationArguments);
+                        syntaxFacts, mappingDictionary, parameterToArgumentMap, updatedInvocationArguments);
                     var allArguments = AddArgumentToArgumentList(updatedInvocationArguments, generator,
                         updatedExpression.WithAdditionalAnnotations(Formatter.Annotation), insertionIndex);
                     return syntaxFacts.UpdateArgumentListSyntax(currentArgumentListSyntax, allArguments);
@@ -629,30 +631,26 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// </summary>
         private TExpressionSyntax CreateNewArgumentExpression(SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             Dictionary<TIdentifierNameSyntax, IParameterSymbol> mappingDictionary,
-            IEnumerable<TIdentifierNameSyntax> variables,
             ImmutableDictionary<IParameterSymbol, int> parameterToArgumentMap,
             SeparatedSyntaxList<SyntaxNode> updatedInvocationArguments)
         {
-            foreach (var variable in variables)
+            foreach (var (variable, mappedParameter) in mappingDictionary)
             {
-                if (mappingDictionary.TryGetValue(variable, out var mappedParameter))
+                var parameterMapped = false;
+                if (parameterToArgumentMap.TryGetValue(mappedParameter, out var index))
                 {
-                    var parameterMapped = false;
-                    if (parameterToArgumentMap.TryGetValue(mappedParameter, out var index))
-                    {
-                        var updatedInvocationArgument = updatedInvocationArguments.ToArray()[index];
-                        var argumentExpression = syntaxFacts.GetExpressionOfArgument(updatedInvocationArgument);
-                        var parenthesizedArgumentExpression = editor.Generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
-                        editor.ReplaceNode(variable, parenthesizedArgumentExpression);
-                        parameterMapped = true;
-                    }
+                    var updatedInvocationArgument = updatedInvocationArguments.ToArray()[index];
+                    var argumentExpression = syntaxFacts.GetExpressionOfArgument(updatedInvocationArgument);
+                    var parenthesizedArgumentExpression = editor.Generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
+                    editor.ReplaceNode(variable, parenthesizedArgumentExpression);
+                    parameterMapped = true;
+                }
 
-                    if (mappedParameter.HasExplicitDefaultValue && !parameterMapped)
-                    {
-                        var generatedExpression = GenerateExpressionFromOptionalParameter(mappedParameter);
-                        var parenthesizedGeneratedExpression = editor.Generator.AddParentheses(generatedExpression, includeElasticTrivia: false);
-                        editor.ReplaceNode(variable, parenthesizedGeneratedExpression);
-                    }
+                if (mappedParameter.HasExplicitDefaultValue && !parameterMapped)
+                {
+                    var generatedExpression = GenerateExpressionFromOptionalParameter(mappedParameter);
+                    var parenthesizedGeneratedExpression = editor.Generator.AddParentheses(generatedExpression, includeElasticTrivia: false);
+                    editor.ReplaceNode(variable, parenthesizedGeneratedExpression);
                 }
             }
 
@@ -704,7 +702,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Does not handle params parameters.
         /// </summary>
         private static async Task<bool> ShouldExpressionDisplayCodeActionAsync(
-            Document document, TExpressionSyntax expression, IMethodSymbol methodSymbol,
+            Document document, TExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
             var variablesInExpression = expression.DescendantNodes().OfType<TIdentifierNameSyntax>();
@@ -712,18 +710,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             foreach (var variable in variablesInExpression)
             {
-                var parameterSymbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
-                if (parameterSymbol is not IParameterSymbol parameter)
+                var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
+                if (symbol is IRangeVariableSymbol or ILocalSymbol)
                 {
                     return false;
                 }
-                if (parameter.IsParams)
+
+                if (symbol is IParameterSymbol parameter)
                 {
-                    return false;
+                    if (parameter.IsParams)
+                    {
+                        return false;
+                    }
                 }
             }
 
-            return methodSymbol != null && methodSymbol.GetParameters().Any();
+            return true;
         }
 
         /// <summary>
@@ -735,7 +737,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
             CancellationToken cancellationToken)
         {
-            var isParameterized = await ShouldExpressionDisplayCodeActionAsync(document, expression, methodSymbol, cancellationToken).ConfigureAwait(false);
+            var isParameterized = await ShouldExpressionDisplayCodeActionAsync(document, expression, cancellationToken).ConfigureAwait(false);
             if (!isParameterized)
             {
                 return null;
