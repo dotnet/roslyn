@@ -73,9 +73,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: its operator body consists of a semicolon. For expression-bodied
             // SPEC: operators, the body is an expression. For all other operators,
             // SPEC: the operator body consists of a block...
-            if (hasBody && IsExtern)
+            if (IsAbstract && IsExtern)
             {
-                diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
+                diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
+            }
+            else if (hasBody && (IsExtern || IsAbstract))
+            {
+                Debug.Assert(!(IsAbstract && IsExtern));
+                if (IsExtern)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_AbstractHasBody, location, this);
+                }
             }
             else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial)
             {
@@ -94,17 +106,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected static DeclarationModifiers MakeDeclarationModifiers(BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
+        protected static DeclarationModifiers MakeDeclarationModifiers(bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
         {
-            var defaultAccess = DeclarationModifiers.Private;
+            var defaultAccess = inInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
 
-            return ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+            if (inInterface)
+            {
+                allowedModifiers |= DeclarationModifiers.Abstract | DeclarationModifiers.Sealed;
+            }
+
+            var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
+
+            if (inInterface && syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } &&
+                opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
+            {
+                if ((result & (DeclarationModifiers.Abstract | DeclarationModifiers.Sealed)) != 0)
+                {
+                    if ((result & (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract)) == (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, ModifierUtils.ConvertSingleModifierToSyntaxText(DeclarationModifiers.Sealed));
+                        result &= ~DeclarationModifiers.Sealed;
+                    }
+
+                    LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+                    LanguageVersion requiredVersion = MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.RequiredVersion();
+
+                    if (availableVersion < requiredVersion)
+                    {
+                        var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
+                        var availableVersionArgument = availableVersion.ToDisplayString();
+
+                        reportModifierIfPresent(result, DeclarationModifiers.Abstract, location, diagnostics, requiredVersionArgument, availableVersionArgument);
+                        reportModifierIfPresent(result, DeclarationModifiers.Sealed, location, diagnostics, requiredVersionArgument, availableVersionArgument);
+                    }
+
+                    result &= ~DeclarationModifiers.Sealed;
+                }
+                else if ((result & DeclarationModifiers.Static) != 0)
+                {
+                    Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
+                }
+            }
+
+            return result;
+
+            static void reportModifierIfPresent(DeclarationModifiers result, DeclarationModifiers errorModifier, Location location, BindingDiagnosticBag diagnostics, CSharpRequiredLanguageVersion requiredVersionArgument, string availableVersionArgument)
+            {
+                if ((result & errorModifier) != 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InvalidModifierForLanguageVersion, location,
+                                    ModifierUtils.ConvertSingleModifierToSyntaxText(errorModifier),
+                                    availableVersionArgument,
+                                    requiredVersionArgument);
+                }
+            }
         }
 
         protected abstract Location ReturnTypeLocation { get; }

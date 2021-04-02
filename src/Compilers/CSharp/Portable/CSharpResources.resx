@@ -667,7 +667,7 @@
     <value>Type '{1}' already defines a member called '{0}' with the same parameter types</value>
   </data>
   <data name="ERR_StaticNotVirtual" xml:space="preserve">
-    <value>A static member '{0}' cannot be marked as override, virtual, or abstract</value>
+    <value>A static member cannot be marked as '{0}'</value>
   </data>
   <data name="ERR_OverrideNotNew" xml:space="preserve">
     <value>A member '{0}' marked as override cannot be marked as new or virtual</value>
@@ -6599,5 +6599,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
+  </data>
+  <data name="IDS_FeatureStaticAbstractMembersInInterfaces" xml:space="preserve">
+    <value>static abstract members in interfaces</value>
   </data>
 </root>

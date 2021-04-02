@@ -972,6 +972,11 @@
         <target state="translated">tworzenie obiektu z typem docelowym</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
+        <source>static abstract members in interfaces</source>
+        <target state="new">static abstract members in interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Zestaw „{0}” zawierający typ „{1}” odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
@@ -3452,8 +3457,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
-        <source>A static member '{0}' cannot be marked as override, virtual, or abstract</source>
-        <target state="translated">Statycznej składowej „{0}” nie można oznaczyć specyfikatorem override, virtual ani abstract</target>
+        <source>A static member cannot be marked as '{0}'</source>
+        <target state="needs-review-translation">Statycznej składowej „{0}” nie można oznaczyć specyfikatorem override, virtual ani abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">

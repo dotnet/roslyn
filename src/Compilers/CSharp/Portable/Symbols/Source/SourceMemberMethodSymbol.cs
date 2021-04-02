@@ -969,7 +969,8 @@ done:
         {
             if (_containingType.IsInterface)
             {
-                if (hasBody || IsExplicitInterfaceImplementation)
+                if ((!IsStatic || MethodKind is MethodKind.StaticConstructor) &&
+                    (hasBody || IsExplicitInterfaceImplementation))
                 {
                     Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
@@ -978,6 +979,8 @@ done:
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }
+
+                // PROTOTYPE(StaticAbstractMembersInInterfaces): Check runtime capability. 
             }
         }
 

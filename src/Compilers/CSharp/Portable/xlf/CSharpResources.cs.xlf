@@ -972,6 +972,11 @@
         <target state="translated">Vytvoření objektu s cílovým typem</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
+        <source>static abstract members in interfaces</source>
+        <target state="new">static abstract members in interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Sestavení {0}, které obsahuje typ {1}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>
@@ -3452,8 +3457,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
-        <source>A static member '{0}' cannot be marked as override, virtual, or abstract</source>
-        <target state="translated">Statický člen {0} nemůže být označený klíčovými slovy override, virtual nebo abstract.</target>
+        <source>A static member cannot be marked as '{0}'</source>
+        <target state="needs-review-translation">Statický člen {0} nemůže být označený klíčovými slovy override, virtual nebo abstract.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">

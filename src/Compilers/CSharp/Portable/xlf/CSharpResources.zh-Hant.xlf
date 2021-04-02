@@ -972,6 +972,11 @@
         <target state="translated">建立具目標類型的物件</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
+        <source>static abstract members in interfaces</source>
+        <target state="new">static abstract members in interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">包含類型 '{1}' 的組件 '{0}' 參考了 .NET Framework，此情形不受支援。</target>
@@ -3452,8 +3457,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
-        <source>A static member '{0}' cannot be marked as override, virtual, or abstract</source>
-        <target state="translated">靜態成員 '{0}' 不可標記為 override、virtual 或 abstract</target>
+        <source>A static member cannot be marked as '{0}'</source>
+        <target state="needs-review-translation">靜態成員 '{0}' 不可標記為 override、virtual 或 abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">
