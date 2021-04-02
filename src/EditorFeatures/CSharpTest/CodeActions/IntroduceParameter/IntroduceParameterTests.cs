@@ -994,7 +994,7 @@ class TestClass
         var test = new TestClass(5, 6);
     }
 }";
-            var expression =
+            var expected =
 @"using System;
 class TestClass
 {
@@ -1009,7 +1009,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expression, 0);
+            await TestInRegularAndScriptAsync(code, expected, 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -1152,6 +1152,82 @@ class TestClass
     }
 }";
             await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestCrossLanguageInvocations()
+        {
+            var code =
+@"<Workspace>
+    <Project Language= ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public class Program
+{
+    public Program() {}
+
+    public int M(int x, int y)
+    {
+        int m = [|x * y|];
+        return m;
+    }
+
+    void M1()
+    {
+        M(7, 2);
+    }
+}
+        </Document>
+    </Project>
+
+<Project Language= ""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+Class ProgramVB
+    Sub M2()
+        Dim programC = New Program()
+        programC.M(7, 2)
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+";
+
+            var expected =
+@"<Workspace>
+    <Project Language= ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public class Program
+{
+    public Program() {}
+
+    public int M(int x, int y, int m)
+    {
+        return m;
+    }
+
+    void M1()
+    {
+        M(7, 2, 7 * 2);
+    }
+}
+        </Document>
+    </Project>
+
+<Project Language= ""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+Class ProgramVB
+    Sub M2()
+        Dim programC = New Program()
+        programC.M(7, 2)
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(code, expected, 0);
         }
     }
 }
