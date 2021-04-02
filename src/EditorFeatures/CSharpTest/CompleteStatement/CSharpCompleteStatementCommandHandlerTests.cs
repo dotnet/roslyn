@@ -2401,6 +2401,32 @@ public class Class1
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("typeof(object$$)", "typeof(object)")]
+        [InlineData("typeof($$object)", "typeof(object)")]
+        public void TypeOfExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        var x = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        var x = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         [InlineData("default$$(object)")]
         [InlineData("def$$ault(object)")]
         [InlineData("default(object$$")]
