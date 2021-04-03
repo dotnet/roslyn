@@ -2,16 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
     internal class InheritanceMarginViewModel
     {
@@ -60,13 +63,20 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             if (members.Length == 1)
             {
                 var member = tag.MembersOnLine[0];
-                var textAppended = " " + EditorFeaturesWpfResources.is_inherited;
-                var inlines = member.DisplayTexts.ToInlines(classificationFormatMap, classificationTypeMap);
-                WrapMemberWithinApostrophe(inlines);
-                inlines.Add(new Run(textAppended));
-                var toolTipTextBlock = inlines.ToTextBlock(classificationFormatMap);
 
-                var automationName = member.DisplayTexts.JoinText() + textAppended;
+                // Here we want to show a classified text with loc text,
+                // e.g. 'Bar' is inherited.
+                // But the classified text are inlines, so can't directly use string.format to generate the string
+                var inlines = member.DisplayTexts.ToInlines(classificationFormatMap, classificationTypeMap);
+                var startOfThePlaceholder = ServicesVSResources._0_is_inherited.IndexOf("{0}", StringComparison.Ordinal);
+                var prefixString = ServicesVSResources._0_is_inherited[..startOfThePlaceholder];
+                var suffixString = ServicesVSResources._0_is_inherited[(startOfThePlaceholder + "{0}".Length)..];
+                inlines.Insert(0, new Run(prefixString));
+                inlines.Add(new Run(suffixString));
+                var toolTipTextBlock = inlines.ToTextBlock(classificationFormatMap);
+                toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
+
+                var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
                 var menuItemViewModels = member.TargetItems
                     .SelectAsArray(TargetMenuItemViewModel.Create).CastArray<InheritanceContextMenuItemViewModel>();
                 return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, menuItemViewModels, false);
@@ -75,22 +85,16 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             {
                 var textBlock = new TextBlock
                 {
-                    Text = EditorFeaturesWpfResources.Multiple_members_are_inherited
+                    Text = ServicesVSResources.Multiple_members_are_inherited
                 };
 
                 // Same automation name can't be set for control. So add the line number info.
-                var automationName = string.Format(EditorFeaturesWpfResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
+                var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
                 var menuItemViewModels = tag.MembersOnLine
                     .SelectAsArray(MemberMenuItemViewModel.Create)
                     .CastArray<InheritanceContextMenuItemViewModel>();
                 return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, menuItemViewModels, true);
             }
-        }
-
-        private static void WrapMemberWithinApostrophe(IList<Inline> memberInlines)
-        {
-            memberInlines.Insert(0, new Run("'"));
-            memberInlines.Add(new Run("'"));
         }
     }
 }

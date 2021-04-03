@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -12,7 +13,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
     [Export(typeof(IGlyphFactoryProvider))]
     [Name(nameof(InheritanceGlyphFactoryProvider))]
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly ClassificationTypeMap _classificationTypeMap;
-        private readonly IClassificationFormatMap _classificationFormatMap;
+        private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
@@ -41,13 +42,18 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _classificationTypeMap = classificationTypeMap;
-            _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
+            _classificationFormatMapService = classificationFormatMapService;
             _waitIndicator = waitIndicator;
         }
 
         public IGlyphFactory GetGlyphFactory(IWpfTextView view, IWpfTextViewMargin margin)
         {
-            return new InheritanceGlyphFactory(_threadingContext, _streamingFindUsagesPresenter, _classificationTypeMap, _classificationFormatMap, _waitIndicator);
+            return new InheritanceGlyphFactory(
+                _threadingContext,
+                _streamingFindUsagesPresenter,
+                _classificationTypeMap,
+                _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
+                _waitIndicator);
         }
     }
 }

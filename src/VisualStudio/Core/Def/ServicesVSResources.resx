@@ -1710,4 +1710,20 @@ I agree to all of the foregoing:</value>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
   </data>
+  <data name="Multiple_members_are_inherited" xml:space="preserve">
+    <value>Multiple members are inherited</value>
+  </data>
+  <data name="_0_is_inherited" xml:space="preserve">
+    <value>'{0}' is inherited</value>
+  </data>
+  <data name="Navigate_to_0" xml:space="preserve">
+    <value>Navigate to '{0}'</value>
+  </data>
+  <data name="_0_in_1" xml:space="preserve">
+    <value>'{0}' in '{1}'</value>
+  </data>
+  <data name="Multiple_members_are_inherited_on_line_0" xml:space="preserve">
+    <value>Multiple members are inherited on line {0}</value>
+    <comment>Line number info is needed for accessibility purpose.</comment>
+  </data>
 </root>

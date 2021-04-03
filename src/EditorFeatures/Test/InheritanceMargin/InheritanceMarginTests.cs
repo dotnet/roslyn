@@ -516,16 +516,17 @@ interface {|target1:IBar|}
     void {|target4:Foo|}();
     int {|target6:Poo|} { get; set; }
     event EventHandler {|target8:Eoo|};
+    int {|target9:this|}[int i] { get; set; }
 }
 public class {|target2:Bar|} : IBar
 {
     public void {|target3:Foo|}() { }
     public int {|target5:Poo|} { get; set; }
     public event EventHandler {|target7:Eoo|};
+    public int {|target10:this|}[int i] { get => 1; set { } }
 }";
-
             var itemForEooInClass = new TestInheritanceMemberItem(
-                lineNumber: 12,
+                lineNumber: 13,
                 memberName: "event EventHandler Bar.Eoo",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "event EventHandler IBar.Eoo",
@@ -552,7 +553,7 @@ public class {|target2:Bar|} : IBar
                 );
 
             var itemForPooInClass = new TestInheritanceMemberItem(
-                lineNumber: 11,
+                lineNumber: 12,
                 memberName: "int Bar.Poo { get; set; }",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "int IBar.Poo { get; set; }",
@@ -570,7 +571,7 @@ public class {|target2:Bar|} : IBar
                 );
 
             var itemForFooInClass = new TestInheritanceMemberItem(
-                lineNumber: 10,
+                lineNumber: 11,
                 memberName: "void Bar.Foo()",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "void IBar.Foo()",
@@ -588,12 +589,30 @@ public class {|target2:Bar|} : IBar
                 );
 
             var itemForBar = new TestInheritanceMemberItem(
-                lineNumber: 8,
+                lineNumber: 9,
                 memberName: "class Bar",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "interface IBar",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.Implementing))
+                );
+
+            var itemForIndexerInClass = new TestInheritanceMemberItem(
+                lineNumber: 14,
+                memberName: "int Bar.this[int] { get; set; }",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "int IBar.this[int] { get; set; }",
+                        locationTag: "target9",
+                        relationship: InheritanceRelationship.Implementing))
+                );
+
+            var itemForIndexerInInterface = new TestInheritanceMemberItem(
+                lineNumber: 7,
+                memberName: "int IBar.this[int] { get; set; }",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "int Bar.this[int] { get; set; }",
+                        locationTag: "target10",
+                        relationship: InheritanceRelationship.Implemented))
                 );
 
             return VerifyInSingleDocumentAsync(
@@ -606,7 +625,9 @@ public class {|target2:Bar|} : IBar
                 itemForFooInInterface,
                 itemForFooInClass,
                 itemForIBar,
-                itemForBar);
+                itemForBar,
+                itemForIndexerInInterface,
+                itemForIndexerInClass);
         }
 
         [Theory]

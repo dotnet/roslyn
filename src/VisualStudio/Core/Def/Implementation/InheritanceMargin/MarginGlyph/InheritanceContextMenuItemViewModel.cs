@@ -4,7 +4,7 @@
 
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
     internal abstract class InheritanceContextMenuItemViewModel
     {

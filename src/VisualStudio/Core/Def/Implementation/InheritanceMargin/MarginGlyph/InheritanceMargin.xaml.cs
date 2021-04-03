@@ -7,13 +7,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
     internal partial class InheritanceMargin
     {
@@ -21,16 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly IWaitIndicator _waitIndicator;
         private readonly Workspace _workspace;
-
-        /// <summary>
-        /// Note: This name is used in xaml file.
-        /// </summary>
-        private const string SingleMemberContextMenuStyle = nameof(SingleMemberContextMenuStyle);
-
-        /// <summary>
-        /// Note: This name is used in xaml file.
-        /// </summary>
-        private const string MultipleMembersContextMenuStyle = nameof(MultipleMembersContextMenuStyle);
 
         public InheritanceMargin(
             IThreadingContext threadingContext,
@@ -68,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
                 Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
                 _waitIndicator.Wait(
                     title: EditorFeaturesResources.Navigating,
-                    message: string.Format(EditorFeaturesWpfResources.Navigate_to_0, viewModel.DisplayContent),
+                    message: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
                     allowCancel: true,
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
@@ -82,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 
         private void ChangeBorderToHoveringColor()
         {
-            SetResourceReference(BackgroundProperty, "VsBrush.CommandBarMenuBackgroundGradient");
-            SetResourceReference(BorderBrushProperty, "VsBrush.CommandBarMenuBorder");
+            SetResourceReference(BackgroundProperty, VsBrushes.CommandBarMenuBackgroundGradientKey);
+            SetResourceReference(BorderBrushProperty, VsBrushes.CommandBarMenuBorderKey);
         }
 
         private void InheritanceMargin_OnMouseEnter(object sender, MouseEventArgs e)

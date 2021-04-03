@@ -25,9 +25,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         protected abstract ImmutableArray<SyntaxNode> GetMembers(IEnumerable<SyntaxNode> nodesToSearch);
 
         /// <summary>
-        /// Get the identifier of declaration node is declared.
+        /// Get the token that represents declaration node.
+        /// e.g. Identifier for method/property/event and this keyword for indexer.
         /// </summary>
-        protected abstract SyntaxToken GetIdentifier(SyntaxNode declarationNode);
+        protected abstract SyntaxToken GetDeclarationToken(SyntaxNode declarationNode);
 
         public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemsAsync(
             Document document,
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             if (baseSymbols.Any() || derivedSymbols.Any())
             {
-                var identifierToken = GetIdentifier(declarationNode);
+                var identifierToken = GetDeclarationToken(declarationNode);
                 var lineNumber = lines.GetLineFromPosition(identifierToken.SpanStart).LineNumber;
                 var item = await CreateInheritanceMemberItemAsync(
                     solution,
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             if (overriddenSymbols.Any() || overridingSymbols.Any() || implementingSymbols.Any() || implementedSymbols.Any())
             {
-                var identifierToken = GetIdentifier(declarationNode);
+                var identifierToken = GetDeclarationToken(declarationNode);
                 var lineNumber = lines.GetLineFromPosition(identifierToken.SpanStart).LineNumber;
                 var item = await CreateInheritanceMemberInfoForMemberAsync(
                     solution,
