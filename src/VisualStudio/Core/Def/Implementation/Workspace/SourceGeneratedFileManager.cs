@@ -278,8 +278,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     UpdateBufferContentsAsync,
                     asyncListener: _fileManager._listener,
                     _cancellationTokenSource.Token);
+            }
 
-                _workspace.OnSourceGeneratedDocumentOpened(documentIdentity, textBuffer.AsTextContainer());
+            private void DisconnectFromWorkspaceIfOpen()
+            {
+                if (_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
+                {
+                    _workspace.OnSourceGeneratedDocumentClosed(_documentIdentity.DocumentId);
+                }
             }
 
             public void Dispose()
@@ -292,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
-                _workspace.OnSourceGeneratedDocumentClosed(_documentIdentity.DocumentId);
+                DisconnectFromWorkspaceIfOpen();
 
                 // Cancel any remaining asynchronous work we may have had to update this file
                 _cancellationTokenSource.Cancel();
@@ -372,11 +378,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             edit.Replace(startPosition: 0, _textBuffer.CurrentSnapshot.Length, generatedSource.ToString());
                             edit.Apply();
                         }
+
+                        // If the file isn't already open, open it now. We may transition between opening and closing
+                        // if the file is repeatedly appearing and disappearing.
+                        if (!_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
+                        {
+                            _workspace.OnSourceGeneratedDocumentOpened(_documentIdentity, _textBuffer.AsTextContainer());
+                        }
                     }
                     finally
                     {
                         _updatingBuffer = false;
                     }
+                }
+                else
+                {
+                    // The file doesn't exist, so remove it from the workspace if it's still linked
+                    DisconnectFromWorkspaceIfOpen();
                 }
 
                 // Update the InfoBar either way
