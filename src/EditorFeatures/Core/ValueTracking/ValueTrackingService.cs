@@ -89,20 +89,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     await progressCollector.TryReportAsync(document.Project.Solution, node.GetLocation(), symbol, cancellationToken).ConfigureAwait(false);
                 }
             }
-            else if (node is not null && symbol is null)
-            {
-                // If the correct symbol couldn't be determined but a node is available, try to let
-                // the operation collector handle the operation and report as needed
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var operation = semanticModel.GetOperation(node, cancellationToken);
-
-                if (operation is null)
-                {
-                    return;
-                }
-
-                await operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(

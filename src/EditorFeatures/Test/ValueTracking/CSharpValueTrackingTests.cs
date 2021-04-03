@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
-using System;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
@@ -29,6 +28,39 @@ class C
     }
 
     public string GetS() => S;
+}
+";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+
+            //
+            // property S 
+            //  |> S = s [Code.cs:7]
+            //  |> public string S { get; set; } [Code.cs:3]
+            //
+            await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (7, "s"),
+                    (3, "public string S { get; set; } = \"\""),
+                });
+        }
+
+        [Fact]
+        public async Task TestPropertyWithThis()
+        {
+            var code =
+@"
+class C
+{
+    public string $$S { get; set; } = """""";
+
+    public void SetS(string s)
+    {
+        this.S = s;
+    }
+
+    public string GetS() => this.S;
 }
 ";
             using var workspace = TestWorkspace.CreateCSharp(code);
@@ -71,9 +103,46 @@ class C
             //  |> _s = s [Code.cs:7]
             //  |> string _s = "" [Code.cs:3]
             //
-            Assert.Equal(2, initialItems.Length);
-            ValidateItem(initialItems[0], 7);
-            ValidateItem(initialItems[1], 3);
+            await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (7, "s"),
+                    (3, "_s = \"\"")
+                });
+        }
+
+        [Fact]
+        public async Task TestFieldWithThis()
+        {
+            var code =
+@"
+class C
+{
+    private string $$_s = """""";
+
+    public void SetS(string s)
+    {
+        this._s = s;
+    }
+
+    public string GetS() => this._s;
+}";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+
+            //
+            // field _s 
+            //  |> this._s = s [Code.cs:7]
+            //  |> string _s = "" [Code.cs:3]
+            //
+            await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (7, "s"),
+                    (3, "_s = \"\"")
+                });
         }
 
         [Fact]
@@ -587,12 +656,17 @@ class C
                 initialItems.Single(),
                 childInfo: new[]
                 {
+                    (24, "2"), // |> i = [|2|] [Code.cs:24]
                     (18, "i"), // |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
                 });
 
+            // |> i = [|2|] [Code.cs:24]
+            await ValidateChildrenEmptyAsync(workspace, children[0]);
+
+            // |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
             children = await ValidateChildrenAsync(
                 workspace,
-                children.Single(),
+                children[1],
                 childInfo: new[]
                 {
                     (5, "i") // |> if (int.TryParse(o.ToString(), out [|i|])) [Code.cs:5]

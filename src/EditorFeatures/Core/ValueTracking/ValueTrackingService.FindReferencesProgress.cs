@@ -63,6 +63,15 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var node = location.Location.FindNode(CancellationToken.None);
 
+                    // Assignments to a member using a "this." or "Me." result in the node being an
+                    // identifier and the parent of the node being the member access expression. The member
+                    // access expression gives the right value for "IsLeftSideOfAnyAssignment" but also
+                    // gives the correct operation, where as the IdentifierSyntax does not.
+                    if (node.Parent is not null && syntaxFacts.IsAnyMemberAccessExpression(node.Parent))
+                    {
+                        node = node.Parent;
+                    }
+
                     if (syntaxFacts.IsLeftSideOfAnyAssignment(node))
                     {
                         await AddItemsFromAssignmentAsync(location.Document, node, _operationCollector, _cancellationToken).ConfigureAwait(false);

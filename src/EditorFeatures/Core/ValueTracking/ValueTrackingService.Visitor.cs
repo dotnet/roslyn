@@ -38,7 +38,16 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         IParameterReferenceOperation or
                         IFieldReferenceOperation or
                         IPropertyReferenceOperation => VisitReferenceAsync(operation, cancellationToken),
+
                     IAssignmentOperation assignmentOperation => VisitAssignmentOperationAsync(assignmentOperation, cancellationToken),
+
+                    // All the operations in this group don't have meaningful use themselves, but the child operations
+                    // could be meaningful for value tracking. 
+                    // Ex: Binary operation of [| x + y |]
+                    // both x and y should be evaluated separately
+                    IBinaryOperation or
+                        IAwaitOperation or
+                        IBlockOperation => VisitChildrenAsync(operation, cancellationToken),
 
                     // Default to reporting if there is symbol information available
                     _ => VisitDefaultAsync(operation, cancellationToken)
@@ -46,18 +55,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             private async Task VisitDefaultAsync(IOperation operation, CancellationToken cancellationToken)
             {
-                // If the operation has children, always visit the children instead of the root 
-                // operation. They are the interesting bits for ValueTracking
-                if (operation.Children.Any())
-                {
-                    foreach (var childOperation in operation.Children)
-                    {
-                        await VisitAsync(childOperation, cancellationToken).ConfigureAwait(false);
-                    }
-
-                    return;
-                }
-
                 var semanticModel = operation.SemanticModel;
                 if (semanticModel is null)
                 {
@@ -73,8 +70,16 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 await AddOperationAsync(operation, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false);
             }
 
+            private async Task VisitChildrenAsync(IOperation operation, CancellationToken cancellationToken)
+            {
+                foreach (var child in operation.Children)
+                {
+                    await VisitAsync(child, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
             private Task VisitAssignmentOperationAsync(IAssignmentOperation assignmentOperation, CancellationToken cancellationToken)
-                => VisitDefaultAsync(assignmentOperation.Value, cancellationToken);
+                => VisitAsync(assignmentOperation.Value, cancellationToken);
 
             private Task VisitObjectCreationAsync(IObjectCreationOperation objectCreationOperation, CancellationToken cancellationToken)
                 => TrackArgumentsAsync(objectCreationOperation.Arguments, cancellationToken);
@@ -93,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     IFieldReferenceOperation or
                     IPropertyReferenceOperation);
 
-                if (IsArgument(operation, out var argumentOperation) && argumentOperation.Parameter is not null)
+                if (IsContainedIn<IArgumentOperation>(operation, out var argumentOperation) && argumentOperation.Parameter is not null)
                 {
                     if (argumentOperation.Parameter.IsRefOrOut())
                     {
@@ -107,10 +112,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return AddReference(operation, cancellationToken);
                 }
 
-                if (IsReturn(operation))
+                if (IsContainedIn<IReturnOperation>(operation) || IsContainedIn<IAssignmentOperation>(operation))
                 {
-                    // If the reference is part of a return operation we want to track where the values come from
-                    // since they contribute to the "output" of the method and are relavent for value tracking.
+                    // If the reference is part of a return operation or assignment operation we want to track where the values come from
+                    // since they contribute to the "output" of the method/assignment and are relavent for value tracking.
                     return AddReference(operation, cancellationToken);
                 }
 
@@ -127,56 +132,24 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     };
             }
 
-            private static bool IsArgument(IOperation? operation, [NotNullWhen(returnValue: true)] out IArgumentOperation? argumentOperation)
-            {
-                while (operation is not null)
-                {
-                    if (operation is IArgumentOperation tmpArgumentOperation)
-                    {
-                        argumentOperation = tmpArgumentOperation;
-                        return true;
-                    }
-
-                    operation = operation.Parent;
-                }
-
-                argumentOperation = null;
-                return false;
-            }
-
-            private static bool IsReturn(IOperation? operation)
-            {
-                while (operation is not null)
-                {
-                    if (operation is IReturnOperation)
-                    {
-                        return true;
-                    }
-
-                    operation = operation.Parent;
-                }
-
-                return false;
-            }
-
-            private async Task VisitLiteralAsync(ILiteralOperation literalOperation, CancellationToken cancellationToken)
+            private Task VisitLiteralAsync(ILiteralOperation literalOperation, CancellationToken cancellationToken)
             {
                 if (literalOperation.Type is null)
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
-                await AddOperationAsync(literalOperation, literalOperation.Type, cancellationToken).ConfigureAwait(false);
+                return AddOperationAsync(literalOperation, literalOperation.Type, cancellationToken);
             }
 
-            private async Task VisitReturnAsync(IReturnOperation returnOperation, CancellationToken cancellationToken)
+            private Task VisitReturnAsync(IReturnOperation returnOperation, CancellationToken cancellationToken)
             {
                 if (returnOperation.ReturnedValue is null)
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
-                await VisitAsync(returnOperation.ReturnedValue, cancellationToken).ConfigureAwait(false);
+                return VisitAsync(returnOperation.ReturnedValue, cancellationToken);
             }
 
             private async Task AddOperationAsync(IOperation operation, ISymbol symbol, CancellationToken cancellationToken)
@@ -192,11 +165,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             {
                 var collectorsAndArgumentMap = argumentOperations
                     .Where(ShouldTrackArgument)
+                    // Clone the collector here to allow each argument to report multiple items.
+                    // See Clone() docs for more details
                     .Select(argument => (collector: Clone(), argument))
                     .ToImmutableArray();
 
                 var tasks = collectorsAndArgumentMap
-                    .Select(pair => pair.collector.VisitAsync(pair.argument, cancellationToken));
+                    .Select(pair => Task.Run(() => pair.collector.VisitAsync(pair.argument, cancellationToken)));
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
@@ -211,6 +186,19 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 }
             }
 
+            /// <summary>
+            /// Clone the current collector into a new one with
+            /// the same parent but a separate progress collector.
+            /// This allows collection of items given the same state
+            /// as this collector while also keeping them "grouped" separately.
+            /// </summary>
+            /// <remarks>
+            /// This is useful for cases such as tracking arguments, where each
+            /// argument may be an expression or something else. We want to track each
+            /// argument expression in the correct order, but a single argument may produce
+            /// multiple items. By cloning we can track the items for each argument and then
+            /// gather them all at the end to report in the correct order.
+            /// </remarks>
             private OperationCollector Clone()
             {
                 var collector = new ValueTrackingProgressCollector();
@@ -220,12 +208,56 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             private static bool ShouldTrackArgument(IArgumentOperation argumentOperation)
             {
+                // Ref or Out arguments always contribute data as "assignments"
+                // across method calls
                 return argumentOperation.Parameter?.IsRefOrOut() == true
+
+                    // If the argument value is an expression, binary operation, or
+                    // invocation then parts of the operation need to be evaluated
+                    // to see if they contribute data for value tracking
                     || argumentOperation.Value is IExpressionStatementOperation
                         or IBinaryOperation
                         or IInvocationOperation
+
+                    // If the argument value is a parameter reference, then the method calls
+                    // leading to that parameter value should be tracked as well.
+                    // Ex:
+                    // string Prepend(string s1) => "pre" + s1;
+                    // string CallPrepend(string [|s2|]) => Prepend(s2);
+                    // Tracking [|s2|] into calls as an argument means that we 
+                    // need to know where [|s2|] comes from and how it contributes
+                    // to the value s1
                         or IParameterReferenceOperation
+
+                    // A literal value as an argument is a dead end for data, but still contributes
+                    // to a value and should be shown in value tracking. It should never expand
+                    // further though. 
+                    // Ex:
+                    // string Prepend(string [|s|]) => "pre" + s;
+                    // string DefaultPrepend() => Prepend("default");
+                    // [|s|] is the parameter we need to track values for, which 
+                    // is assigned to "default" in DefaultPrepend
                         or ILiteralOperation;
+            }
+
+            private static bool IsContainedIn<TContainingOperation>(IOperation? operation) where TContainingOperation : IOperation
+                => IsContainedIn<TContainingOperation>(operation, out var _);
+
+            private static bool IsContainedIn<TContainingOperation>(IOperation? operation, [NotNullWhen(returnValue: true)] out TContainingOperation? containingOperation) where TContainingOperation : IOperation
+            {
+                while (operation is not null)
+                {
+                    if (operation is TContainingOperation)
+                    {
+                        containingOperation = (TContainingOperation)operation;
+                        return true;
+                    }
+
+                    operation = operation.Parent;
+                }
+
+                containingOperation = default;
+                return false;
             }
         }
     }
