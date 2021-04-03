@@ -91,11 +91,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IImmutableSet<string> kinds,
             CancellationToken disposalToken)
         {
-            InitializeRemoteHostIfNecessary(solution, disposalToken);
+            InitializeRemoteHostIfNecessary(solution, asyncListener, disposalToken);
             return new NavigateToSearcher(solution, asyncListener, callback, searchPattern, searchCurrentDocument, kinds);
         }
 
-        private static void InitializeRemoteHostIfNecessary(Solution solution, CancellationToken disposalToken)
+        private static void InitializeRemoteHostIfNecessary(
+            Solution solution, IAsynchronousOperationListener asyncListener, CancellationToken disposalToken)
         {
             lock (s_gate)
             {
@@ -109,6 +110,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     return;
                 }
 
+                var asyncToken = asyncListener.BeginAsyncOperation(nameof(InitializeRemoteHostIfNecessary));
+
                 s_remoteHostPopulatedTask = Task.Run(async () =>
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, disposalToken).ConfigureAwait(false);
@@ -121,6 +124,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                             disposalToken).ConfigureAwait(false);
                     }
                 }, disposalToken);
+                s_remoteHostPopulatedTask.CompletesAsyncOperation(asyncToken);
             }
         }
 
