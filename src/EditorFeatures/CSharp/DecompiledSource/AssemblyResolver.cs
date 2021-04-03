@@ -6,9 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using ICSharpCode.Decompiler.Metadata;
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 {
     internal class AssemblyResolver : IAssemblyResolver
     {
+        private static readonly Dictionary<MetadataReference, (string fileName, ImmutableArray<byte> image)> _inMemoryImagesForTesting = new();
+
         private readonly Compilation _parentCompilation;
         private readonly Dictionary<string, List<IAssemblySymbol>> _cache = new();
         private readonly StringBuilder _logger;
@@ -49,6 +52,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         {
             // This method is not called by the decompiler
             throw new NotSupportedException();
+        }
+
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Could be non-static if instance data is accessed")]
+        public PEFile TryResolve(MetadataReference metadataReference, PEStreamOptions streamOptions)
+        {
+            if (_inMemoryImagesForTesting.TryGetValue(metadataReference, out var pair))
+            {
+                return new PEFile(pair.fileName, new MemoryStream(pair.image.ToArray()), streamOptions);
+            }
+
+            return null;
         }
 
         public PEFile Resolve(IAssemblyReference name)
@@ -111,33 +125,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 // reference assemblies should be fine here, we only need the metadata of references.
                 var reference = _parentCompilation.GetMetadataReference(assembly);
                 Log(CSharpEditorResources.Load_from_0, reference.Display);
-                if (File.Exists(reference.Display))
-                {
-                    return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
-                }
-                else
-                {
-                    var peReader = GetPropertyValue<PEReader>(GetPropertyValue(assembly.GetMetadata().GetModules().First(), "Module"), "PEReaderOpt");
-                    return new PEFile(reference.Display, peReader);
-                }
+                return TryResolve(reference, PEStreamOptions.PrefetchMetadata)
+                    ?? new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
             }
-        }
-
-        private static PropertyType GetPropertyValue<PropertyType>(object instance, string propertyName)
-        {
-            return (PropertyType)GetPropertyValue(instance, propertyName);
-        }
-
-        private static object GetPropertyValue(object instance, string propertyName)
-        {
-            var type = instance.GetType();
-            var propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            if (propertyInfo == null)
-            {
-                throw new ArgumentException("Property " + propertyName + " was not found on type " + type.ToString());
-            }
-            var result = propertyInfo.GetValue(instance, null);
-            return result;
         }
 
         public PEFile ResolveModule(PEFile mainModule, string moduleName)
@@ -161,5 +151,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
         private void Log(string format, params object[] args)
             => _logger.AppendFormat(format + Environment.NewLine, args);
+
+        internal static class TestAccessor
+        {
+            public static void AddInMemoryImage(MetadataReference reference, string fileName, ImmutableArray<byte> image)
+            {
+                Contract.ThrowIfNull(fileName);
+                _inMemoryImagesForTesting.Add(reference, (fileName, image));
+            }
+
+            public static bool ContainsInMemoryImage(MetadataReference reference)
+            {
+                return _inMemoryImagesForTesting.ContainsKey(reference);
+            }
+
+            public static void ClearInMemoryImages()
+            {
+                _inMemoryImagesForTesting.Clear();
+            }
+        }
     }
 }
