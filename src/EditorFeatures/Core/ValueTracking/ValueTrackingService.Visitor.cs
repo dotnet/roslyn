@@ -201,8 +201,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             /// </remarks>
             private OperationCollector Clone()
             {
-                var collector = new ValueTrackingProgressCollector();
-                collector.Parent = ProgressCollector.Parent;
+                var collector = new ValueTrackingProgressCollector
+                {
+                    Parent = ProgressCollector.Parent
+                };
                 return new OperationCollector(collector, Solution);
             }
 
@@ -219,24 +221,24 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         or IBinaryOperation
                         or IInvocationOperation
 
-                    // If the argument value is a parameter reference, then the method calls
-                    // leading to that parameter value should be tracked as well.
-                    // Ex:
-                    // string Prepend(string s1) => "pre" + s1;
-                    // string CallPrepend(string [|s2|]) => Prepend(s2);
-                    // Tracking [|s2|] into calls as an argument means that we 
-                    // need to know where [|s2|] comes from and how it contributes
-                    // to the value s1
+                        // If the argument value is a parameter reference, then the method calls
+                        // leading to that parameter value should be tracked as well.
+                        // Ex:
+                        // string Prepend(string s1) => "pre" + s1;
+                        // string CallPrepend(string [|s2|]) => Prepend(s2);
+                        // Tracking [|s2|] into calls as an argument means that we 
+                        // need to know where [|s2|] comes from and how it contributes
+                        // to the value s1
                         or IParameterReferenceOperation
 
-                    // A literal value as an argument is a dead end for data, but still contributes
-                    // to a value and should be shown in value tracking. It should never expand
-                    // further though. 
-                    // Ex:
-                    // string Prepend(string [|s|]) => "pre" + s;
-                    // string DefaultPrepend() => Prepend("default");
-                    // [|s|] is the parameter we need to track values for, which 
-                    // is assigned to "default" in DefaultPrepend
+                        // A literal value as an argument is a dead end for data, but still contributes
+                        // to a value and should be shown in value tracking. It should never expand
+                        // further though. 
+                        // Ex:
+                        // string Prepend(string [|s|]) => "pre" + s;
+                        // string DefaultPrepend() => Prepend("default");
+                        // [|s|] is the parameter we need to track values for, which 
+                        // is assigned to "default" in DefaultPrepend
                         or ILiteralOperation;
             }
 
@@ -247,9 +249,9 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             {
                 while (operation is not null)
                 {
-                    if (operation is TContainingOperation)
+                    if (operation is TContainingOperation tmpOperation)
                     {
-                        containingOperation = (TContainingOperation)operation;
+                        containingOperation = tmpOperation;
                         return true;
                     }
 
