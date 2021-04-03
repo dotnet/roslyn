@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// use the latest data instead.
         /// </summary>
         private static readonly object s_gate = new();
-        private static Task s_remoteHostPopulatedTask = null!;
+        private static Task s_remoteHostHydrateTask = null!;
 
         private NavigateToSearcher(
             Solution solution,
@@ -100,19 +100,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             lock (s_gate)
             {
-                if (s_remoteHostPopulatedTask != null)
+                if (s_remoteHostHydrateTask != null)
                     return;
 
                 // If there are no projects in this solution that use OOP, then there's nothing we need to do.
                 if (solution.Projects.All(p => !RemoteSupportedLanguages.IsSupported(p.Language)))
                 {
-                    s_remoteHostPopulatedTask = Task.CompletedTask;
+                    s_remoteHostHydrateTask = Task.CompletedTask;
                     return;
                 }
 
                 var asyncToken = asyncListener.BeginAsyncOperation(nameof(InitializeRemoteHostIfNecessary));
 
-                s_remoteHostPopulatedTask = Task.Run(async () =>
+                s_remoteHostHydrateTask = Task.Run(async () =>
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, disposalToken).ConfigureAwait(false);
                     if (client != null)
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                             disposalToken).ConfigureAwait(false);
                     }
                 }, disposalToken);
-                s_remoteHostPopulatedTask.CompletesAsyncOperation(asyncToken);
+                s_remoteHostHydrateTask.CompletesAsyncOperation(asyncToken);
             }
         }
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
             var isProjectSystemFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-            var isRemoteHostFullyLoaded = s_remoteHostPopulatedTask.IsCompleted;
+            var isRemoteHostFullyLoaded = s_remoteHostHydrateTask.IsCompleted;
 
             var isFullyLoaded = isProjectSystemFullyLoaded && isRemoteHostFullyLoaded;
 
