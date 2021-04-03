@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// sync with us.  Until that happens, we'll continue to use the cached results from prior
         /// sessions so that we can get results very quickly right after launch without forcing the
         /// user to wait for OOP to hydrate the entire solution over.  This strikes a good balance
-        /// of speed an accuracy as most of the time cached results will be fast and good enough,
+        /// of speed and accuracy as most of the time cached results will be fast and good enough,
         /// and eventually (usually within dozens of seconds, even for large projects) we will
         /// switch over to full and accurate results which can also come back quickly.
         /// </summary>
