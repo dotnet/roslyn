@@ -294,12 +294,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
             foreach (var projectGroup in orderedProjects)
-            {
-                var tasks = projectGroup.SelectAsArray(p => Task.Run(() => SearchAsync(p, isFullyLoaded, seenItems, cancellationToken)));
-                var taskResults = await Task.WhenAll(tasks).ConfigureAwait(false);
-                foreach (var taskResult in taskResults)
-                    result.Add(taskResult);
-            }
+                result.AddRange(await Task.WhenAll(projectGroup.Select(p => Task.Run(() => SearchAsync(p, isFullyLoaded, seenItems, cancellationToken)))).ConfigureAwait(false));
 
             return (seenItems.Count, result.ToImmutable());
         }
