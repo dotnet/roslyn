@@ -182,8 +182,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var isFullyLoaded = isProjectSystemFullyLoaded && isRemoteHostFullyLoaded;
 
             var orderedProjects = GetOrderedProjectsToProcess();
-            var (itemsReported, projectResults) = await ProcessProjectsAsync(
-                orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+            var (itemsReported, projectResults) = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
 
             // If we're fully loaded then we're done at this point.  All the searchs would have been against the latest
             // computed data and we don't need to do anything else.
