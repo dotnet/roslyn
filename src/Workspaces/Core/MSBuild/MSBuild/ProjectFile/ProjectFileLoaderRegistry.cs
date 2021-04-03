@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 if (extension.Length > 0 && extension[0] == '.')
                 {
-                    extension = extension.Substring(1);
+                    extension = extension[1..];
                 }
 
                 if (_extensionToLanguageMap.TryGetValue(extension, out var language))

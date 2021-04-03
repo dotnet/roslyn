@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             private class AnalyzerReferencePathComparer : IEqualityComparer<AnalyzerReference?>
             {
-                public static AnalyzerReferencePathComparer Instance = new AnalyzerReferencePathComparer();
+                public static AnalyzerReferencePathComparer Instance = new();
 
                 private AnalyzerReferencePathComparer() { }
 

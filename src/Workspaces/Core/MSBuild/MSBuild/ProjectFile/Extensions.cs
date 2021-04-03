@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
         /// </summary>
         private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
-            => new ProjectFileReference(reference.EvaluatedInclude, reference.GetAliases());
+            => new(reference.EvaluatedInclude, reference.GetAliases());
 
         public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
         {
@@ -54,9 +54,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var referenceOutputAssemblyText = item.GetMetadata(MetadataNames.ReferenceOutputAssembly);
 
-            return !RoslynString.IsNullOrWhiteSpace(referenceOutputAssemblyText)
-                ? !string.Equals(referenceOutputAssemblyText, bool.FalseString, StringComparison.OrdinalIgnoreCase)
-                : true;
+            return RoslynString.IsNullOrWhiteSpace(referenceOutputAssemblyText) ||
+                !string.Equals(referenceOutputAssemblyText, bool.FalseString, StringComparison.OrdinalIgnoreCase);
         }
 
         public static string? ReadPropertyString(this MSB.Execution.ProjectInstance executedProject, string propertyName)
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (builder.Length > 0)
                 {
-                    builder.Append(" ");
+                    builder.Append(' ');
                 }
 
                 builder.Append(item.EvaluatedInclude);

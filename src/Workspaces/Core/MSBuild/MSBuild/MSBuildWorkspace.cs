@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     public sealed class MSBuildWorkspace : Workspace
     {
         // used to serialize access to public methods
-        private readonly NonReentrantLock _serializationLock = new NonReentrantLock();
+        private readonly NonReentrantLock _serializationLock = new();
 
         private readonly MSBuildProjectLoader _loader;
         private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Diagnostics logged while opening solutions, projects and documents.
         /// </summary>
-        public ImmutableList<WorkspaceDiagnostic> Diagnostics => _reporter.Diagnostics;
+        public ImmutableList<WorkspaceDiagnostic> Diagnostics => _reporter._diagnostics;
 
         protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
         {
@@ -268,21 +268,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         #region Apply Changes
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
-            switch (feature)
+            return feature switch
             {
-                case ApplyChangesKind.ChangeDocument:
-                case ApplyChangesKind.AddDocument:
-                case ApplyChangesKind.RemoveDocument:
-                case ApplyChangesKind.AddMetadataReference:
-                case ApplyChangesKind.RemoveMetadataReference:
-                case ApplyChangesKind.AddProjectReference:
-                case ApplyChangesKind.RemoveProjectReference:
-                case ApplyChangesKind.AddAnalyzerReference:
-                case ApplyChangesKind.RemoveAnalyzerReference:
-                    return true;
-                default:
-                    return false;
-            }
+                ApplyChangesKind.ChangeDocument or
+                ApplyChangesKind.AddDocument or
+                ApplyChangesKind.RemoveDocument or
+                ApplyChangesKind.AddMetadataReference or
+                ApplyChangesKind.RemoveMetadataReference or
+                ApplyChangesKind.AddProjectReference or
+                ApplyChangesKind.RemoveProjectReference or
+                ApplyChangesKind.AddAnalyzerReference or
+                ApplyChangesKind.RemoveAnalyzerReference => true,
+                _ => false,
+            };
         }
 
         private static bool HasProjectFileChanges(ProjectChanges changes)
@@ -336,7 +334,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         try
                         {
                             var buildManager = new ProjectBuildManager(_loader.Properties);
-                            _applyChangesProjectFile = fileLoader.LoadProjectFileAsync(projectPath, buildManager, CancellationToken.None).Result;
+                            _applyChangesProjectFile = fileLoader.LoadProjectFileAsync(projectPath, buildManager, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(default);
                         }
                         catch (IOException exception)
                         {

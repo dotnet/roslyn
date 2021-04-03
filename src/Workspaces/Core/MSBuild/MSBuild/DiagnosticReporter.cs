@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 
@@ -11,13 +12,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal sealed class DiagnosticReporter
     {
-        internal ImmutableList<WorkspaceDiagnostic> Diagnostics;
+        internal ImmutableList<WorkspaceDiagnostic> _diagnostics;
         private readonly Workspace _workspace;
 
         public DiagnosticReporter(Workspace workspace)
         {
             _workspace = workspace;
-            Diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
+            _diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
         }
 
         public void Report(DiagnosticReportingMode mode, string message, Func<string, Exception>? createException = null)
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         internal void AddDiagnostic(WorkspaceDiagnostic diagnostic)
         {
-            ImmutableInterlocked.Update(ref Diagnostics, (list, d) => list.Add(d), diagnostic);
+            ImmutableInterlocked.Update(ref _diagnostics, (list, d) => list.Add(d), diagnostic);
         }
 
         public void Report(WorkspaceDiagnostic diagnostic)
