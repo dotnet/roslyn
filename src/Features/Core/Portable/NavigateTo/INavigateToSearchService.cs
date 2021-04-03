@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         IImmutableSet<string> KindsProvided { get; }
         bool CanFilter { get; }
 
+        /// <summary>
+        /// Searches the documents inside <paramref name="project"/> for symbols that matches
+        /// <paramref name="searchPattern"/>. <paramref name="priorityDocuments"/> is an optional
+        /// subset of the documents from <paramref name="project"/> that can be used to prioritize
+        /// work.
+        /// </summary>
         Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken);
         Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken);
     }

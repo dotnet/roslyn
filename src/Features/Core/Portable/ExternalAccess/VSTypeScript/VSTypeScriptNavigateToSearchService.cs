@@ -128,6 +128,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             public TextSpan SourceSpan => _navigableItem.SourceSpan;
 
+            public bool IsStale => false;
+
             public ImmutableArray<INavigableItem> ChildItems
                 => _navigableItem.ChildItems.IsDefault
                     ? default

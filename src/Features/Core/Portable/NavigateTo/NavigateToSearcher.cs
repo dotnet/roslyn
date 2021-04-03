@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                    tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.ToImmutableArray(), seenItems, isFullyLoaded), _cancellationToken));
+                    tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.Where(d => d.Project == currentProject).ToImmutableArray(), seenItems, isFullyLoaded), _cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
