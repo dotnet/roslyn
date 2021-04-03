@@ -168,17 +168,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
         private static string GetFullReflectionName(INamedTypeSymbol containingType)
         {
-            var stack = new Stack<string>();
-            stack.Push(containingType.MetadataName);
-            var ns = containingType.ContainingNamespace;
-            do
-            {
-                stack.Push(ns.Name);
-                ns = ns.ContainingNamespace;
-            }
-            while (ns != null && !ns.IsGlobalNamespace);
+            var containingTypeStack = new Stack<string>();
+            var containingNamespaceStack = new Stack<string>();
 
-            return string.Join(".", stack);
+            for (INamespaceOrTypeSymbol symbol = containingType;
+                symbol is not null and not INamespaceSymbol { IsGlobalNamespace: true };
+                symbol = (INamespaceOrTypeSymbol)symbol.ContainingType ?? symbol.ContainingNamespace)
+            {
+                if (symbol.ContainingType is not null)
+                    containingTypeStack.Push(symbol.MetadataName);
+                else
+                    containingNamespaceStack.Push(symbol.MetadataName);
+            }
+
+            var result = string.Join(".", containingNamespaceStack);
+            if (containingTypeStack.Any())
+            {
+                result += "+" + string.Join("+", containingTypeStack);
+            }
+
+            return result;
         }
     }
 }
