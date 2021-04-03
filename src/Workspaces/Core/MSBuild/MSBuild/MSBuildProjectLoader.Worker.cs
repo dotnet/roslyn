@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-# nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -287,7 +283,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var projectPath = projectFileInfo.FilePath;
 
                 var projectName = Path.GetFileNameWithoutExtension(projectPath);
-                if (addDiscriminator && !string.IsNullOrWhiteSpace(projectFileInfo.TargetFramework))
+                if (addDiscriminator && !RoslynString.IsNullOrWhiteSpace(projectFileInfo.TargetFramework))
                 {
                     projectName += "(" + projectFileInfo.TargetFramework + ")";
                 }
@@ -344,7 +340,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
                     var assemblyName = commandLineArgs.CompilationName;
-                    if (string.IsNullOrWhiteSpace(assemblyName))
+                    if (RoslynString.IsNullOrWhiteSpace(assemblyName))
                     {
                         // if there isn't an assembly name, make one from the file path.
                         // Note: This may not be necessary any longer if the command line args
@@ -407,7 +403,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
 
                 // if this is still unreasonable, use a fixed name.
-                if (string.IsNullOrWhiteSpace(assemblyName))
+                if (RoslynString.IsNullOrWhiteSpace(assemblyName))
                 {
                     assemblyName = "assembly";
                 }

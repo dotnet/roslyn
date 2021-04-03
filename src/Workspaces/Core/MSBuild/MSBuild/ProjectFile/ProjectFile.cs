@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,13 +32,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, ProjectBuildManager buildManager, DiagnosticLog log)
         {
             _loader = loader;
-            _loadedProject = loadedProject;
+            _loadedProject = loadedProject ?? throw new ArgumentNullException(nameof(loadedProject));
             _buildManager = buildManager;
-
-            _projectDirectory = loadedProject != null
-                ? PathUtilities.EnsureTrailingSeparator(loadedProject.DirectoryPath)
-                : null;
-
+            _projectDirectory = PathUtilities.EnsureTrailingSeparator(loadedProject.DirectoryPath);
             Log = log;
         }
 
@@ -54,7 +48,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
             var targetFrameworksValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFrameworks);
 
-            if (string.IsNullOrEmpty(targetFrameworkValue) && !string.IsNullOrEmpty(targetFrameworksValue))
+            if (RoslynString.IsNullOrEmpty(targetFrameworkValue) && !RoslynString.IsNullOrEmpty(targetFrameworksValue))
             {
                 // This project has a <TargetFrameworks> property, but does not specify a <TargetFramework>.
                 // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
@@ -111,13 +105,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var commandLineArgs = GetCommandLineArgs(project);
 
             var outputFilePath = project.ReadPropertyString(PropertyNames.TargetPath);
-            if (!string.IsNullOrWhiteSpace(outputFilePath))
+            if (!RoslynString.IsNullOrWhiteSpace(outputFilePath))
             {
                 outputFilePath = GetAbsolutePathRelativeToProject(outputFilePath);
             }
 
             var outputRefFilePath = project.ReadPropertyString(PropertyNames.TargetRefPath);
-            if (!string.IsNullOrWhiteSpace(outputRefFilePath))
+            if (!RoslynString.IsNullOrWhiteSpace(outputRefFilePath))
             {
                 outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
             }
@@ -130,7 +124,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var defaultNamespace = project.ReadPropertyString(PropertyNames.RootNamespace) ?? string.Empty;
 
             var targetFramework = project.ReadPropertyString(PropertyNames.TargetFramework);
-            if (string.IsNullOrWhiteSpace(targetFramework))
+            if (RoslynString.IsNullOrWhiteSpace(targetFramework))
             {
                 targetFramework = null;
             }
@@ -222,9 +216,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             => GetAbsolutePathRelativeToProject(documentItem.ItemSpec);
 
         private static bool IsDocumentLinked(MSB.Framework.ITaskItem documentItem)
-            => !string.IsNullOrEmpty(documentItem.GetMetadata(MetadataNames.Link));
+            => !RoslynString.IsNullOrEmpty(documentItem.GetMetadata(MetadataNames.Link));
 
-        private IDictionary<string, MSB.Evaluation.ProjectItem> _documents;
+        private IDictionary<string, MSB.Evaluation.ProjectItem>? _documents;
 
         protected bool IsDocumentGenerated(MSB.Framework.ITaskItem documentItem)
         {
@@ -243,7 +237,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected static string GetDocumentLogicalPath(MSB.Framework.ITaskItem documentItem, string projectDirectory)
         {
             var link = documentItem.GetMetadata(MetadataNames.Link);
-            if (!string.IsNullOrEmpty(link))
+            if (!RoslynString.IsNullOrEmpty(link))
             {
                 // if a specific link is specified in the project file then use it to form the logical path.
                 return link;
@@ -278,11 +272,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public void AddDocument(string filePath, string logicalPath = null)
+        public void AddDocument(string filePath, string? logicalPath = null)
         {
             var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
 
-            Dictionary<string, string> metadata = null;
+            Dictionary<string, string>? metadata = null;
             if (logicalPath != null && relativePath != logicalPath)
             {
                 metadata = new Dictionary<string, string>
@@ -346,18 +340,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return GlobalAssemblyCacheLocation.RootLocations.Any(gloc => PathUtilities.IsChildPath(gloc, filePath));
         }
 
-        private static string s_frameworkRoot;
+        private static string? s_frameworkRoot;
         private static string FrameworkRoot
         {
             get
             {
-                if (string.IsNullOrEmpty(s_frameworkRoot))
+                if (RoslynString.IsNullOrEmpty(s_frameworkRoot))
                 {
                     var runtimeDir = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
                     s_frameworkRoot = Path.GetDirectoryName(runtimeDir); // back out one directory level to be root path of all framework versions
                 }
 
-                return s_frameworkRoot;
+                return s_frameworkRoot ?? throw new InvalidOperationException($"Unable to get {nameof(FrameworkRoot)}");
             }
         }
 
@@ -381,7 +375,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private MSB.Evaluation.ProjectItem FindReferenceItem(AssemblyIdentity identity, string filePath)
         {
             var references = _loadedProject.GetItems(ItemNames.Reference);
-            MSB.Evaluation.ProjectItem item = null;
+            MSB.Evaluation.ProjectItem? item = null;
 
             var fileName = Path.GetFileNameWithoutExtension(filePath);
 
@@ -422,7 +416,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            return item;
+            return item ?? throw new InvalidOperationException($"Unable to find reference item '{identity?.Name}'");
         }
 
         private static string GetHintPath(MSB.Evaluation.ProjectItem item)
@@ -458,7 +452,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var references = _loadedProject.GetItems(ItemNames.ProjectReference);
             var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
 
-            MSB.Evaluation.ProjectItem item = null;
+            MSB.Evaluation.ProjectItem? item = null;
 
             // find by project file path
             item = references.First(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
