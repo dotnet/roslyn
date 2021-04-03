@@ -405,19 +405,6 @@ partial class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnExternMethod()
-        {
-            var code = @"
-using System;
-
-class C
-{
-    extern void M([||]string s);
-}";
-            await VerifyCS.VerifyRefactoringAsync(code, code);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExistingFieldAssignment()
         {
             await VerifyCS.VerifyRefactoringAsync(
