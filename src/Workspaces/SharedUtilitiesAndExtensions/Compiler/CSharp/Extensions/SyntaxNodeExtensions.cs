@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             throw new ArgumentOutOfRangeException(nameof(position));
         }
 
-        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
+        public static (SyntaxToken openParen, SyntaxToken closeParen) GetParentheses(this SyntaxNode node)
         {
             switch (node)
             {
