@@ -2400,7 +2400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (info.Kind == SyntaxKind.ExternAliasDirective)
                             {
                                 // Record targets of used extern aliases
-                                var node = info.Tree.GetRoot().FindToken(info.Span.Start, findInsideTrivia: false).
+                                var node = info.Tree.GetRoot(cancellationToken).FindToken(info.Span.Start, findInsideTrivia: false).
                                                Parent!.FirstAncestorOrSelf<ExternAliasDirectiveSyntax>();
 
                                 if (node is object && GetExternAliasTarget(node.Identifier.ValueText, out NamespaceSymbol target))

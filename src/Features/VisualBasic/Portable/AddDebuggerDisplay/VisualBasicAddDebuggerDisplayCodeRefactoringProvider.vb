@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddDebuggerDisplayCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay), [Shared]>
     Friend NotInheritable Class VisualBasicAddDebuggerDisplayCodeRefactoringProvider
         Inherits AbstractAddDebuggerDisplayCodeRefactoringProvider(Of
             TypeBlockSyntax, MethodStatementSyntax)

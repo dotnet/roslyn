@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 
 namespace BuildValidator
@@ -34,6 +35,5 @@ namespace BuildValidator
         SourceFileInfo SourceFileInfo)
     {
         public string DisplayPath => OnDiskPath ?? ("[embedded]" + SourceFileInfo.SourceFilePath);
-        public SyntaxTreeInfo SyntaxTreeInfo => new SyntaxTreeInfo(SourceFileInfo.SourceFilePath, SourceText);
     }
 }
