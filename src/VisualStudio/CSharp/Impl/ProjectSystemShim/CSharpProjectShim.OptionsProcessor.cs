@@ -100,12 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                     }
                 }
 
-                // Update the specific options based on the specific settings
-                foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNASERRORLIST))
-                {
-                    diagnosticOptions[diagnosticID] = ReportDiagnostic.Error;
-                }
-
                 foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNNOTASERRORLIST))
                 {
                     if (ruleSetSpecificDiagnosticOptions.TryGetValue(diagnosticID, out var ruleSetOption))
