@@ -7482,13 +7482,12 @@ struct C
 {
    ~$$
 }";
-            await VerifyItemExistsAsync(markup, "C");
+            await VerifyItemIsAbsentAsync(markup, "C");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("record")]
         [InlineData("record class")]
-        [InlineData("record struct")]
         public async Task RecordDestructor(string record)
         {
             var markup = $@"
@@ -7498,6 +7497,18 @@ struct C
 }}";
             await VerifyItemExistsAsync(markup, "C");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordStructDestructor()
+        {
+            var markup = $@"
+record struct C
+{{
+   ~$$
+}}";
+            await VerifyItemIsAbsentAsync(markup, "C");
+        }
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldAvailableInBothLinkedFiles()
