@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     /// </summary>
     internal interface INavigateToSearcherHost
     {
+        INavigateToSearchService? GetNavigateToSearchService(Project project);
         ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
     }
 
@@ -44,6 +46,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _asyncListener = asyncListener;
             _disposalToken = disposalToken;
         }
+
+        public INavigateToSearchService? GetNavigateToSearchService(Project project)
+            => project.GetLanguageService<INavigateToSearchService>();
 
         public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
         {

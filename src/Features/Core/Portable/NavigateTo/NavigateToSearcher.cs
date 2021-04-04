@@ -5,17 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -261,7 +257,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             // If they don't even support the service, then always show them as having done the
             // complete search.  That way we don't call back into this project ever.
-            var service = project.GetLanguageService<INavigateToSearchService>();
+            var service = _host.GetNavigateToSearchService(project);
             if (service == null)
                 return NavigateToSearchLocation.Latest;
 
