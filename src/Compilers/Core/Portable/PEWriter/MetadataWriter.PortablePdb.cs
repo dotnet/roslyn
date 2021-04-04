@@ -883,7 +883,7 @@ namespace Microsoft.Cci
 
                 var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
                 var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
-                if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
+                if ((optimizationLevel, debugPlusMode) != OptimizationLevelFacts.DefaultValues)
                 {
                     WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
                 }

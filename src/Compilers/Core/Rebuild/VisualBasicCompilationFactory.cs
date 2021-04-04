@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public sealed class VisualBasicCompilationFactory : CompilationFactory
     {

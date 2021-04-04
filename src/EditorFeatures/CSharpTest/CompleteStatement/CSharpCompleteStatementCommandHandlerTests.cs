@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2400,6 +2401,58 @@ public class Class1
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(52137, "https://github.com/dotnet/roslyn/issues/52137")]
+        [InlineData("typeof(object$$)", "typeof(object)")]
+        [InlineData("typeof($$object)", "typeof(object)")]
+        public void TypeOfExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        var x = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        var x = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(52365, "https://github.com/dotnet/roslyn/issues/52365")]
+        public void TupleExpression_Handled()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        var x = (0, 0$$)
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        var x = (0, 0);$$
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         [InlineData("default$$(object)")]
         [InlineData("def$$ault(object)")]
         [InlineData("default(object$$")]
@@ -4082,6 +4135,30 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(37874, "https://github.com/dotnet/roslyn/pull/37874")]
+        public void TestWithSettingTurnedOff()
+        {
+            var code = @"
+public class ClassC
+{
+    private int xValue = 7;
+    public int XValue
+    {
+        get
+        {
+            return Math.Min(xValue$$, 1)
+        } 
+    }
+}";
+            var expected = code.Replace("$$", ";$$");
+
+            Verify(code, expected, ExecuteTest,
+                setOptionsOpt: workspace =>
+                {
+                    workspace.SetOptions(workspace.Options.WithChangedOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false));
+                });
+        }
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
