@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var switchStatement = context.Node;
-            if (switchStatement.ContainsDirectives)
-            {
-                return;
-            }
-
             var syntaxTree = switchStatement.SyntaxTree;
 
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
