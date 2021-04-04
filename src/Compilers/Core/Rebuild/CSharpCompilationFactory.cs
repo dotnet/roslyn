@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using CS = Microsoft.CodeAnalysis.CSharp;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public sealed class CSharpCompilationFactory : CompilationFactory
     {
