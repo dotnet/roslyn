@@ -7509,7 +7509,6 @@ record struct C
             await VerifyItemIsAbsentAsync(markup, "C");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldAvailableInBothLinkedFiles()
         {
