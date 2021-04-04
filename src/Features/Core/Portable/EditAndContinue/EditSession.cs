@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
                 return CreateActiveStatementsMap(await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return new ActiveStatementsMap(
                     SpecializedCollections.EmptyReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>>(),
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return result;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ImmutableArray<ActiveStatementExceptionRegions>.Empty;
             }
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return false;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     addedSymbols,
                     activeStatementsInChangedDocuments.ToImmutable());
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -755,10 +755,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _1 = ArrayBuilder<ManagedModuleUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
                 using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
-                using var _4 = ArrayBuilder<IDisposable>.GetInstance(out var readers);
-                using var _5 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
-                using var _6 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
-                using var _7 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
+                using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
+                using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
+                using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
 
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
@@ -855,7 +854,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, readers, out var createBaselineDiagnostics, out var baseline))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
@@ -881,13 +880,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // since we already checked that no changed document is out-of-sync above.
                     var oldActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                    var lineEdits = await projectChanges.LineChanges.SelectAsArrayAsync(async lineChange =>
+                    var lineEdits = await projectChanges.LineChanges.SelectAsArrayAsync(async (lineChange, cancellationToken) =>
                     {
                         var document = await newProject.GetDocumentAsync(lineChange.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                         Contract.ThrowIfNull(document);
                         Contract.ThrowIfNull(document.FilePath);
                         return new SequencePointUpdates(document.FilePath, lineChange.Changes);
-                    }).ConfigureAwait(false);
+                    }, cancellationToken).ConfigureAwait(false);
 
                     using var pdbStream = SerializableBytes.CreateWritableStream();
                     using var metadataStream = SerializableBytes.CreateWritableStream();
@@ -962,11 +961,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (isBlocked)
                 {
-                    foreach (var reader in readers)
-                    {
-                        reader.Dispose();
-                    }
-
                     return SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable());
                 }
 
@@ -975,12 +969,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
                         deltas.ToImmutable()),
                     nonRemappableRegions.ToImmutable(),
-                    readers.ToImmutable(),
+
                     emitBaselines.ToImmutable(),
                     diagnostics.ToImmutable(),
                     documentsWithRudeEdits.ToImmutable());
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1131,8 +1125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 solution,
                 update.EmitBaselines,
                 update.ModuleUpdates.Updates,
-                update.NonRemappableRegions,
-                update.ModuleReaders));
+                update.NonRemappableRegions));
 
             // commit/discard was not called:
             Contract.ThrowIfFalse(previousPendingUpdate == null);

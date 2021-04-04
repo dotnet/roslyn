@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
@@ -314,11 +314,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             Contract.ThrowIfNull(editSession);
 
-            var pendingUpdate = editSession.RetrievePendingUpdate();
-            foreach (var moduleReader in pendingUpdate.ModuleReaders)
-            {
-                moduleReader.Dispose();
-            }
+            _ = editSession.RetrievePendingUpdate();
         }
 
         public async ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
@@ -451,7 +447,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return currentActiveStatements[baseActiveStatement.PrimaryDocumentOrdinal].Span;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }
@@ -491,7 +487,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // If the document is out-of-sync the exception regions can't be determined.
                 return baseExceptionRegions.Spans.IsDefault ? (bool?)null : baseExceptionRegions.IsActiveStatementCovered;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }

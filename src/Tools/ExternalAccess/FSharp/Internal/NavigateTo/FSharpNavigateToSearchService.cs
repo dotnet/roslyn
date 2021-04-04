@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 
         public async Task SearchDocumentAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded, CancellationToken cancellationToken)
         {
             var results = await _service.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
             foreach (var result in results)
@@ -41,7 +42,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 
         public async Task SearchProjectAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded, CancellationToken cancellationToken)
         {
             var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
             foreach (var result in results)
