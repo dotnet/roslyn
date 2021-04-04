@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     project, GetPriorityDocuments(project), _searchPattern, _kinds, OnResultFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
             }
 
-            async Task OnResultFound(INavigateToSearchResult result)
+            Task OnResultFound(INavigateToSearchResult result)
             {
                 // If we're seeing a dupe in another project, then filter it out here.  The results from
                 // the individual projects will already contain the information about all the projects
@@ -281,10 +281,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 lock (seenItems)
                 {
                     if (!seenItems.Add(result))
-                        return;
+                        return Task.CompletedTask;
                 }
 
-                await _callback.AddItemAsync(project, result, cancellationToken).ConfigureAwait(false);
+                return _callback.AddItemAsync(project, result, cancellationToken);
             }
         }
     }
