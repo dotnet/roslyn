@@ -69,10 +69,12 @@ class C
     end sub
 end class",
 "
+Imports System
+
 class C
     public sub new(byref s as string)
         If s Is Nothing Then
-            Throw New System.ArgumentNullException(NameOf(s))
+            Throw New ArgumentNullException(NameOf(s))
         End If
     end sub
 end class")
@@ -89,11 +91,12 @@ class C
     end sub
 end class",
 "
+Imports System
 Imports System.Runtime.InteropServices
 class C
     public sub new(<Out> byref s as string)
         If s Is Nothing Then
-            Throw New System.ArgumentNullException(NameOf(s))
+            Throw New ArgumentNullException(NameOf(s))
         End If
     end sub
 end class")
@@ -627,6 +630,28 @@ end class")
 Class C
     Sub M(a As Action(Of Integer, Integer))
         M(Sub(x[||]
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(52383, "https://github.com/dotnet/roslyn/issues/52383")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestImportSystem() As Task
+            Await TestInRegularAndScript1Async(
+"
+Class C
+    Sub M([||]s As String)
+
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(s As String)
+        If s Is Nothing Then
+            Throw New ArgumentNullException(NameOf(s))
+        End If
     End Sub
 End Class")
         End Function

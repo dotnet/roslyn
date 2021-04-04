@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public async Task SearchDocumentAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded, CancellationToken cancellationToken)
         {
             if (_searchService == null)
                 return;
@@ -49,7 +50,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public async Task SearchProjectAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded, CancellationToken cancellationToken)
         {
             if (_searchService == null)
                 return;
@@ -125,6 +127,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             public Document Document => _navigableItem.Document;
 
             public TextSpan SourceSpan => _navigableItem.SourceSpan;
+
+            public bool IsStale => false;
 
             public ImmutableArray<INavigableItem> ChildItems
                 => _navigableItem.ChildItems.IsDefault

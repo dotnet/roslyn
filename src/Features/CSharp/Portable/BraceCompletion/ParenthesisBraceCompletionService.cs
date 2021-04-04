@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             // now check whether parser think whether there is already counterpart closing parenthesis
-            var (openBrace, closeBrace) = token.Parent.GetParentheses();
+            var (openParen, closeParen) = token.Parent.GetParentheses();
 
             // We can complete the brace if the closing brace is missing or the incorrect kind.
-            if (closeBrace.Kind() != SyntaxKind.CloseParenToken || closeBrace.Span.Length == 0)
+            if (closeParen.Kind() != SyntaxKind.CloseParenToken || closeParen.Span.Length == 0)
             {
                 return true;
             }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // brace completion session higher up on the stack.  If that's the case then we can
             // complete the opening brace here, so return this as valid for completion.
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return text.Lines.GetLineFromPosition(openBrace.SpanStart).LineNumber == text.Lines.GetLineFromPosition(closeBrace.Span.End).LineNumber;
+            return text.Lines.GetLineFromPosition(openParen.SpanStart).LineNumber == text.Lines.GetLineFromPosition(closeParen.Span.End).LineNumber;
         }
     }
 }
