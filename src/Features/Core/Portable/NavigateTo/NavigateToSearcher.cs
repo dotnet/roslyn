@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         public static NavigateToSearcher Create(
-            INavigateToSearcherHost? host,
             Solution solution,
             IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
             bool searchCurrentDocument,
             IImmutableSet<string> kinds,
-            CancellationToken disposalToken)
+            CancellationToken disposalToken,
+            INavigateToSearcherHost? host = null)
         {
             host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
             return new NavigateToSearcher(host, solution, asyncListener, callback, searchPattern, searchCurrentDocument, kinds);
@@ -123,15 +123,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var orderedProjects = GetOrderedProjectsToProcess();
             var (itemsReported, projectResults) = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
 
-            // If we're fully loaded then we're done at this point.  All the searchs would have been against the latest
+            // If we're fully loaded then we're done at this point.  All the searches would have been against the latest
             // computed data and we don't need to do anything else.
             if (isFullyLoaded)
                 return true;
 
             // We weren't fully loaded *but* we reported some items to the user, then consider that
             // good enough for now.  The user will have some results they can use, and (in the case
-            // that we actually examined the cache for data) we will tell the user that hte results
-            // may be incomplete/inacurate and they should try again soon.
+            // that we actually examined the cache for data) we will tell the user that the results
+            // may be incomplete/inaccurate and they should try again soon.
             if (itemsReported > 0)
             {
                 return projectResults.All(t => t.location == NavigateToSearchLocation.Latest);
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// <summary>
         /// Returns a sequence of groups of projects to process.  The sequence is in priority order,
         /// and all projects in a particular group should be processed before the next group.  This
-        /// allows us to associate cpu resources in likely areas the user wants, while also still
+        /// allows us to associate CPU resources in likely areas the user wants, while also still
         /// allowing for good parallelization.
         /// </summary>
         private ImmutableArray<ImmutableArray<Project>> GetOrderedProjectsToProcess()
