@@ -2378,7 +2378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // Allow partial keyword to be added or removed.
-                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.PartialKeyword))
+                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.PartialKeyword, ignore2: SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2422,7 +2422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(DelegateDeclarationSyntax oldNode, DelegateDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
+                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2434,8 +2434,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier));
-                ReportError(RudeEditKind.Renamed);
+                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
+                {
+                    ReportError(RudeEditKind.Renamed);
+                }
             }
 
             private void ClassifyUpdate(BaseFieldDeclarationSyntax oldNode, BaseFieldDeclarationSyntax newNode)
@@ -2446,9 +2448,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers));
-                ReportError(RudeEditKind.ModifiersUpdate);
-                return;
+                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.UnsafeKeyword))
+                {
+                    ReportError(RudeEditKind.ModifiersUpdate);
+                    return;
+                }
             }
 
             private void ClassifyUpdate(VariableDeclarationSyntax oldNode, VariableDeclarationSyntax newNode)
@@ -2508,7 +2512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 // Ignore async keyword when matching modifiers. Async checks are done in ComputeBodyMatch.
-                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.AsyncKeyword))
+                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.AsyncKeyword, ignore2: SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2625,7 +2629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(ConstructorDeclarationSyntax oldNode, ConstructorDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
+                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2649,7 +2653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(PropertyDeclarationSyntax oldNode, PropertyDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
+                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.UnsafeKeyword))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
@@ -2692,17 +2696,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Initializer, newNode.Initializer));
-
-                if (containingType.Arity > 0)
+                if (!SyntaxFactory.AreEquivalent(oldNode.Initializer, newNode.Initializer))
                 {
-                    ReportError(RudeEditKind.GenericTypeInitializerUpdate);
-                    return;
-                }
+                    if (containingType.Arity > 0)
+                    {
+                        ReportError(RudeEditKind.GenericTypeInitializerUpdate);
+                        return;
+                    }
 
-                if (newNode.Initializer != null)
-                {
-                    ClassifyDeclarationBodyRudeUpdates(newNode.Initializer);
+                    if (newNode.Initializer != null)
+                    {
+                        ClassifyDeclarationBodyRudeUpdates(newNode.Initializer);
+                    }
                 }
             }
 
@@ -2798,7 +2803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // changes in attribute separators are not interesting:
             }
 
-            private static bool AreModifiersEquivalent(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, SyntaxKind ignore)
+            private static bool AreModifiersEquivalent(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, SyntaxKind ignore, SyntaxKind? ignore2 = null)
             {
                 var oldIgnoredModifierIndex = oldModifiers.IndexOf(ignore);
                 var newIgnoredModifierIndex = newModifiers.IndexOf(ignore);
@@ -2813,7 +2818,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     newModifiers = newModifiers.RemoveAt(newIgnoredModifierIndex);
                 }
 
-                return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers);
+                return ignore2 is null
+                    ? SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
+                    : AreModifiersEquivalent(oldModifiers, newModifiers, ignore2.Value);
             }
 
             private void ClassifyMethodBodyRudeUpdate(

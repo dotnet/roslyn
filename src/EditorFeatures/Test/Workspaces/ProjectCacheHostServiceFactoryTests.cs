@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _hostServices = hostServices;
                 _workspace = workspace;
 
-                var globalOptionService = new GlobalOptionService(ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersister>>.Empty);
+                var globalOptionService = new GlobalOptionService(workspaceThreadingService: null, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersisterProvider>>.Empty);
                 _optionService = new OptionServiceFactory.OptionService(globalOptionService, this);
             }
 

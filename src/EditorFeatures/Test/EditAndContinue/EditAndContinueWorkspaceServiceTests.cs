@@ -1610,9 +1610,6 @@ class C { int Y => 2; }
             // no change in non-remappable regions since we didn't have any active statements:
             Assert.Empty(editSession.DebuggingSession.NonRemappableRegions);
 
-            // no open module readers since we didn't defer any module update:
-            Assert.Empty(editSession.DebuggingSession.GetBaselineModuleReaders());
-
             // solution update status after discarding an update (still has update ready):
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None));
 
@@ -1957,17 +1954,20 @@ class C { int Y => 2; }
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, workspace.CurrentSolution);
             Assert.Empty(emitDiagnostics);
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+            ValidateDelta(updates.Updates.Single());
 
-            // check emitted delta:
-            var delta = updates.Updates.Single();
-            Assert.Empty(delta.ActiveStatements);
-            Assert.NotEmpty(delta.ILDelta);
-            Assert.NotEmpty(delta.MetadataDelta);
-            Assert.NotEmpty(delta.PdbDelta);
-            Assert.Equal(0x06000001, delta.UpdatedMethods.Single());
-            Assert.Equal(moduleId, delta.Module);
-            Assert.Empty(delta.ExceptionRegions);
-            Assert.Empty(delta.SequencePoints);
+            void ValidateDelta(ManagedModuleUpdate delta)
+            {
+                // check emitted delta:
+                Assert.Empty(delta.ActiveStatements);
+                Assert.NotEmpty(delta.ILDelta);
+                Assert.NotEmpty(delta.MetadataDelta);
+                Assert.NotEmpty(delta.PdbDelta);
+                Assert.Equal(0x06000001, delta.UpdatedMethods.Single());
+                Assert.Equal(moduleId, delta.Module);
+                Assert.Empty(delta.ExceptionRegions);
+                Assert.Empty(delta.SequencePoints);
+            }
 
             // the update should be stored on the service:
             var pendingUpdate = editSession.Test_GetPendingSolutionUpdate();
@@ -1976,7 +1976,7 @@ class C { int Y => 2; }
             Assert.Equal(project.Id, baselineProjectId);
             Assert.Equal(moduleId, newBaseline.OriginalMetadata.GetModuleVersionId());
 
-            var readers = pendingUpdate.ModuleReaders;
+            var readers = debuggingSession.GetBaselineModuleReaders();
             Assert.Equal(2, readers.Length);
             Assert.NotNull(readers[0]);
             Assert.NotNull(readers[1]);
@@ -2013,6 +2013,12 @@ class C { int Y => 2; }
                 // solution update status after committing an update:
                 var discardedUpdateSolutionStatus = await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None);
                 Assert.True(discardedUpdateSolutionStatus);
+
+                (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, workspace.CurrentSolution);
+                Assert.Empty(emitDiagnostics);
+                Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+                ValidateDelta(updates.Updates.Single());
             }
 
             if (breakMode)
@@ -2077,6 +2083,7 @@ class C { int Y => 2; }
             var service = CreateEditAndContinueService();
 
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
+            var debuggingSession = service.Test_GetDebuggingSession();
 
             // module is not loaded:
             EnterBreakState(service, activeStatements);
@@ -2108,7 +2115,7 @@ class C { int Y => 2; }
             var pendingUpdate = editSession.Test_GetPendingSolutionUpdate();
             var (baselineProjectId, newBaseline) = pendingUpdate.EmitBaselines.Single();
 
-            var readers = pendingUpdate.ModuleReaders;
+            var readers = debuggingSession.GetBaselineModuleReaders();
             Assert.Equal(2, readers.Length);
             Assert.NotNull(readers[0]);
             Assert.NotNull(readers[1]);
@@ -2123,12 +2130,6 @@ class C { int Y => 2; }
 
                 // no change in non-remappable regions since we didn't have any active statements:
                 Assert.Empty(editSession.DebuggingSession.NonRemappableRegions);
-
-                // deferred module readers tracked:
-                var baselineReaders = editSession.DebuggingSession.GetBaselineModuleReaders();
-                Assert.Equal(2, baselineReaders.Length);
-                Assert.Same(readers[0], baselineReaders[0]);
-                Assert.Same(readers[1], baselineReaders[1]);
 
                 // verify that baseline is added:
                 Assert.Same(newBaseline, editSession.DebuggingSession.Test_GetProjectEmitBaseline(project.Id));
@@ -2150,26 +2151,18 @@ class C { int Y => 2; }
                 (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, workspace.CurrentSolution);
                 Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
                 Assert.Empty(emitDiagnostics);
-
-                ExitBreakState();
-                EndDebuggingSession(service);
-
-                // open module readers should be disposed when the debugging session ends:
-                VerifyReadersDisposed(readers);
             }
             else
             {
                 service.DiscardSolutionUpdate();
                 Assert.Null(editSession.Test_GetPendingSolutionUpdate());
-
-                // no open module readers since we didn't defer any module update:
-                Assert.Empty(editSession.DebuggingSession.GetBaselineModuleReaders());
-
-                VerifyReadersDisposed(readers);
-
-                ExitBreakState();
-                EndDebuggingSession(service);
             }
+
+            ExitBreakState();
+            EndDebuggingSession(service);
+
+            // open module readers should be disposed when the debugging session ends:
+            VerifyReadersDisposed(readers);
         }
 
         [Fact]
@@ -2659,7 +2652,7 @@ class C { int Y => 1; }
             var baselineA0 = newBaselineA1.GetInitialEmitBaseline();
             var baselineB0 = newBaselineB1.GetInitialEmitBaseline();
 
-            var readers = pendingUpdate.ModuleReaders;
+            var readers = debuggingSession.GetBaselineModuleReaders();
             Assert.Equal(4, readers.Length);
             Assert.False(readers.Any(r => r is null));
 
@@ -2671,10 +2664,6 @@ class C { int Y => 1; }
 
             // no change in non-remappable regions since we didn't have any active statements:
             Assert.Empty(debuggingSession.NonRemappableRegions);
-
-            // deferred module readers tracked:
-            var baselineReaders = debuggingSession.GetBaselineModuleReaders();
-            AssertEx.Equal(readers, baselineReaders);
 
             // verify that baseline is added for both modules:
             Assert.Same(newBaselineA1, debuggingSession.Test_GetProjectEmitBaseline(projectA.Id));
@@ -2718,7 +2707,8 @@ class C { int Y => 1; }
             Assert.Same(baselineB0.OriginalMetadata, newBaselineB2.OriginalMetadata);
 
             // no new module readers:
-            Assert.Empty(pendingUpdate.ModuleReaders);
+            var baselineReaders = debuggingSession.GetBaselineModuleReaders();
+            AssertEx.Equal(readers, baselineReaders);
 
             CommitSolutionUpdate(service);
             Assert.Null(editSession.Test_GetPendingSolutionUpdate());
@@ -3160,7 +3150,6 @@ class C { int Y => 1; }
         /// - edit, but not apply the edits
         /// - break
         /// </summary>
-        /// <returns></returns>
         [Fact]
         public async Task BreakInPresenceOfUnappliedChanges()
         {
@@ -3277,6 +3266,92 @@ class C { int Y => 1; }
             {
                 "0x06000003 v1 | AS (7,14)-(7,18) δ=2",
             }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+
+            ExitBreakState();
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// - F5
+        /// - edit and apply edit that deletes non-leaf active statement
+        /// - break
+        /// </summary>
+        [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
+        public async Task BreakAfterRunModeChangeDeletesNonLeafActiveStatement()
+        {
+            var markedSource1 =
+@"class Test
+{
+    static bool B() => true;
+    static void G() { while (B()); <AS:0>}</AS:0>
+
+    static void F()
+    {
+        <AS:1>G();</AS:1>
+    }
+}";
+
+            var markedSource2 =
+@"class Test
+{
+    static bool B() => true;
+    static void G() { while (B()); <AS:0>}</AS:0>
+
+    static void F()
+    {
+    }
+}";
+            var moduleId = EmitAndLoadLibraryToDebuggee(ActiveStatementsDescription.ClearTags(markedSource1));
+
+            using var workspace = CreateWorkspace();
+            var project = AddDefaultTestProject(workspace, ActiveStatementsDescription.ClearTags(markedSource1));
+            var documentId = project.DocumentIds.Single();
+            var solution = project.Solution;
+
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // Apply update: F v1 -> v2.
+
+            solution = solution.WithDocumentText(documentId, SourceText.From(ActiveStatementsDescription.ClearTags(markedSource2), Encoding.UTF8));
+
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            CommitSolutionUpdate(service);
+
+            // Break
+
+            EnterBreakState(service, GetActiveStatementDebugInfos(
+                new[] { markedSource1 },
+                modules: new[] { moduleId, moduleId },
+                methodRowIds: new[] { 2, 3 },
+                methodVersions: new[] { 1, 1 },  // frame F v1 is still executing (G has not returned)
+                flags: new[]
+                {
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame,    // G
+                    ActiveStatementFlags.IsNonLeafFrame, // F
+                }));
+
+            // check that the active statement is mapped correctly to snapshot v2:
+            var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
+
+            var activeInstructionF1 = new ManagedInstructionId(new ManagedMethodId(moduleId, 0x06000003, version: 1), ilOffset: 0);
+            var span = await service.GetCurrentActiveStatementPositionAsync(solution, s_noSolutionActiveSpans, activeInstructionF1, CancellationToken.None);
+            Assert.Null(span);
+
+            var spans = (await service.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+            AssertEx.Equal(new[]
+            {
+                (expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame),
+
+                // TODO: https://github.com/dotnet/roslyn/issues/52100
+                // This is incorrect: the active statement shouldn't be reported since it has been deleted.
+                // We need the debugger to mark the method version as replaced by run-mode update.
+                (new LinePositionSpan(new LinePosition(7, 14), new LinePosition(7, 18)), ActiveStatementFlags.IsNonLeafFrame)
+            }, spans);
 
             ExitBreakState();
         }
