@@ -325,8 +325,26 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetFilePathPrefixForGenerator(ISourceGenerator generator)
         {
-            var type = generator.GetType();
+            var type = GetGeneratorType(generator);
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
+        }
+
+        public static Type GetGeneratorType(Type generatorType)
+        {
+            if (generatorType.IsGenericType && generatorType.GetGenericTypeDefinition() == typeof(IncrementalToSourceGeneratorWrapper<>))
+            {
+                return generatorType.GetGenericArguments()[0];
+            }
+            return generatorType;
+        }
+
+        internal static Type GetGeneratorType(ISourceGenerator generator)
+        {
+            if(generator is IncrementalGeneratorWrapper igw)
+            {
+                return igw.Generator.GetType();
+            }
+            return generator.GetType();
         }
 
         internal abstract CommonMessageProvider MessageProvider { get; }

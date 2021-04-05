@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (!_directoryInfoOnDiskByContainingDirectoryId.ContainsKey(document.Id.Id))
             {
                 _directoryInfoOnDiskByContainingDirectoryId.Add(document.Id.Id,
-                    new GeneratedFileDirectoryInfo(document.Id, document.SourceGenerator.GetType()));
+                    new GeneratedFileDirectoryInfo(document.Id, document.SourceGeneratorType));
             }
 
             // We must always ensure the file name portion of the path is just the hint name, which matches the compiler's choice so
