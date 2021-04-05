@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         Submission,
         ImplicitClass,
         SimpleProgram,
-        // PROTOTYPE(record-structs): rename to RecordClass?
         Record,
         RecordStruct
     }

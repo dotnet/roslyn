@@ -643,8 +643,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">'{0}' alıcı türü geçerli bir kayıt türü değil.</target>
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="needs-review-translation">'{0}' alıcı türü geçerli bir kayıt türü değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">

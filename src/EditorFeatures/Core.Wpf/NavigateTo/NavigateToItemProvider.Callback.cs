@@ -101,6 +101,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     // This should be updated whenever NavigateToItemKind has a record.
                     CodeAnalysis.NavigateTo.NavigateToItemKind.Record
                         => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Class,
+                    // VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind doesn't have a record struct, fall back to struct.
+                    // This should be updated whenever NavigateToItemKind has a record struct.
+                    CodeAnalysis.NavigateTo.NavigateToItemKind.RecordStruct
+                        => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Structure,
                     CodeAnalysis.NavigateTo.NavigateToItemKind.Structure
                         => VisualStudio.Language.NavigateTo.Interfaces.NavigateToItemKind.Structure,
                     _ => throw ExceptionUtilities.UnexpectedValue(kind)

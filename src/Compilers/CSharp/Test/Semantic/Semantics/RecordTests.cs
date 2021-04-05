@@ -485,7 +485,7 @@ record R3(R3 x) : Base
         }
 
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
-        public void AmbigCtor_WithFieldInitializer()
+        public void AmbigCtor_WithPropertyInitializer()
         {
             // PROTOTYPE(record-structs): ported
             var src = @"
@@ -514,6 +514,32 @@ record R(R X)
             Assert.Equal("R X", initializer.ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, initializer.Kind);
             Assert.Equal("R..ctor(R X)", initializer.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GetDeclaredSymbolOnAnOutLocalInPropertyInitializer()
+        {
+            var src = @"
+record R(int I)
+{
+    public int I { get; init; } = M(out int i) ? i : 0;
+    static bool M(out int i) => throw null; 
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): warning CS8907: Parameter 'I' is unread. Did you forget to use it to initialize the property with that name?
+                // record R(int I)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "I").WithArguments("I").WithLocation(2, 14)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var outVarSyntax = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Single();
+            var outVar = model.GetDeclaredSymbol(outVarSyntax)!;
+            Assert.Equal("System.Int32 i", outVar.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, outVar.Kind);
+            Assert.Equal("System.Int32 R.<I>k__BackingField", outVar.ContainingSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]

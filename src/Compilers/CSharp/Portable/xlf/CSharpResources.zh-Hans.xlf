@@ -643,8 +643,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">指定的接收器类型“{0}”不是有效的记录类型。</target>
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="needs-review-translation">指定的接收器类型“{0}”不是有效的记录类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">

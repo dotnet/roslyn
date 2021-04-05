@@ -2983,7 +2983,6 @@ class C(int X, int Y)
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
         public void RecordInterfaceParsing()
         {
-            // PROTOTYPE(record-structs): should we treat this as a binding error instead, for better error recovery?
             var text = "record interface C(int X, int Y);";
             UsingTree(text, options: TestOptions.RegularPreview,
                 // (1,8): error CS1001: Identifier expected

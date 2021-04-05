@@ -643,8 +643,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">Typ příjemce {0} není platný typ záznamu.</target>
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="needs-review-translation">Typ příjemce {0} není platný typ záznamu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
