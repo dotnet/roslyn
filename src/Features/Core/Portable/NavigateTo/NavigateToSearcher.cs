@@ -109,17 +109,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         /// <summary>
-        /// Returns <see langword="true"/> if all searches were performed against the latest data
-        /// and represent the complete set of results. Or <see langword="false"/> if any searches
-        /// were performed against cached data and could be incomplete or inaccurate.
+        /// Returns <see langword="true"/> if all searches were performed against the latest data and represent the
+        /// complete set of results. Or <see langword="false"/> if any searches were performed against cached data and
+        /// could be incomplete or inaccurate.
         /// </summary>
         private async Task<bool> SearchAllProjectsAsync(CancellationToken cancellationToken)
         {
-            // We consider ourselves fully loaded when both the project system has completed loaded
-            // us, and we've totally hydrated the oop side.  Until that happens, we'll attempt to
-            // return cached data from languages that support that.
-            var isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
+            // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
+            // that support that.
+            var (projectSystemIsFullyLoaded, remoteHostIsFullyLoaded) = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
+            var isFullyLoaded = projectSystemIsFullyLoaded && remoteHostIsFullyLoaded;
             var orderedProjects = GetOrderedProjectsToProcess();
             var (itemsReported, projectResults) = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
 
@@ -128,32 +129,30 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (isFullyLoaded)
                 return true;
 
-            // We weren't fully loaded *but* we reported some items to the user, then consider that
-            // good enough for now.  The user will have some results they can use, and (in the case
-            // that we actually examined the cache for data) we will tell the user that the results
-            // may be incomplete/inaccurate and they should try again soon.
+            // We weren't fully loaded *but* we reported some items to the user, then consider that good enough for now.
+            // The user will have some results they can use, and (in the case that we actually examined the cache for
+            // data) we will tell the user that the results may be incomplete/inaccurate and they should try again soon.
             if (itemsReported > 0)
-            {
                 return projectResults.All(t => t.location == NavigateToSearchLocation.Latest);
-            }
 
-            // We didn't have any items reported *and* we weren't fully loaded.  If it turns out
-            // that some of our projects were using cached data then we can try searching them
-            // again, but this tell them to use the latest data.  The ensures the user at least gets
-            // some result instead of nothing.
+            // We didn't have any items reported *and* we weren't fully loaded.  If it turns out that some of our
+            // projects were using cached data then we can try searching them again, but this tell them to use the
+            // latest data.  The ensures the user at least gets some result instead of nothing.
             var projectsUsingCache = projectResults.Where(t => t.location == NavigateToSearchLocation.Cache).SelectAsArray(t => t.project);
             await ProcessProjectsAsync(ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
 
-            // we did a full uncached search.  return true to indicate that no message should be
-            // shown to the user.
-            return true;
+            // We attempted a full oop sync and an uncached search.  However, we still may need to tell the user that
+            // things are incomplete if the project system hadn't fully loaded.
+            return projectSystemIsFullyLoaded;
         }
 
         /// <summary>
-        /// Returns a sequence of groups of projects to process.  The sequence is in priority order,
-        /// and all projects in a particular group should be processed before the next group.  This
-        /// allows us to associate CPU resources in likely areas the user wants, while also still
-        /// allowing for good parallelization.
+        /// Returns a sequence of groups of projects to process.  The sequence is in priority order, and all projects in
+        /// a particular group should be processed before the next group.  This allows us to associate CPU resources in
+        /// likely areas the user wants, while also still allowing for good parallelization.  Specifically, we consider
+        /// the active-document the most important to get results for, as some users use navigate-to to navigate within
+        /// the doc they are editing.  So we want those results to appear as quick as possible, without the search for
+        /// them contending with the searches for other projects for CPU time.
         /// </summary>
         private ImmutableArray<ImmutableArray<Project>> GetOrderedProjectsToProcess()
         {
@@ -170,8 +169,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
 
-            // First, if there's an active document, search that project first, prioritizing that
-            // active document and all visible documents from it.
+            // First, if there's an active document, search that project first, prioritizing that active document and
+            // all visible documents from it.
             if (_activeDocument != null)
             {
                 processedProjects.Add(_activeDocument.Project);
@@ -203,10 +202,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         /// <summary>
-        /// Given a search within a particular project, this returns any documents within that
-        /// project that should take precedence when searching.  This allows results to get to the
-        /// user more quickly for common cases (like using nav-to to find results in the file you
-        /// currently have open
+        /// Given a search within a particular project, this returns any documents within that project that should take
+        /// precedence when searching.  This allows results to get to the user more quickly for common cases (like using
+        /// nav-to to find results in the file you currently have open
         /// </summary>
         private ImmutableArray<Document> GetPriorityDocuments(Project project)
         {
