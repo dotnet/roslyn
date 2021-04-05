@@ -447,12 +447,14 @@ record struct Point(int x, int y);
                     Assert.True(point is SourceNamedTypeSymbol);
                     Assert.True(point.IsRecordStruct);
                     Assert.True(point.GetPublicSymbol().IsRecord);
+                    Assert.Equal("record struct Point", point.ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
                 }
                 else
                 {
                     Assert.True(point is PENamedTypeSymbol);
                     Assert.False(point.IsRecordStruct);
                     Assert.False(point.GetPublicSymbol().IsRecord);
+                    Assert.Equal("struct Point", point.ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
                 }
             }
         }
