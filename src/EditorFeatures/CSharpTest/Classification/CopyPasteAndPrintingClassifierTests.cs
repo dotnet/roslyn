@@ -21,6 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class CopyPasteAndPrintingClassifierTests
     {
