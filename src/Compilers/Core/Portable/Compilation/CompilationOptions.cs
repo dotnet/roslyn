@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis
             this.Platform = platform;
             this.GeneralDiagnosticOption = generalDiagnosticOption;
             this.WarningLevel = warningLevel;
-            this.SpecificDiagnosticOptions = specificDiagnosticOptions;
+            this.SpecificDiagnosticOptions = MapSpecificDiagnosticOptions(specificDiagnosticOptions);
             this.ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
@@ -328,6 +328,8 @@ namespace Microsoft.CodeAnalysis
                 return builder.ToImmutableAndFree();
             });
         }
+
+        private protected abstract ImmutableDictionary<string, ReportDiagnostic> MapSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
 
         internal bool CanReuseCompilationReferenceManager(CompilationOptions other)
         {

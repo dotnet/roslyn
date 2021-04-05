@@ -1373,6 +1373,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithOverflowChecks(checkOverflow)
         End Function
 
+        ''' <summary>
+        ''' No special handling in VisualBasic is required.
+        ''' </summary>
+        Private Protected Overrides Function MapSpecificDiagnosticOptions(specificDiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)) As ImmutableDictionary(Of String, ReportDiagnostic)
+            Return specificDiagnosticOptions
+        End Function
+
         Public Overrides Property NullableContextOptions As NullableContextOptions
             Get
                 Return NullableContextOptions.Disable

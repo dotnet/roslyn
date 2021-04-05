@@ -806,6 +806,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithOverflowChecks(checkOverflow);
         }
 
+        /// <summary>
+        /// Replaces "nullable" identifier with the actual nullable warnings.
+        /// </summary>
+        /// <param name="specificDiagnosticOptions"></param>
+        /// <returns></returns>
+        private protected override ImmutableDictionary<string, ReportDiagnostic> MapSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        {
+            if (specificDiagnosticOptions.IsEmpty)
+            {
+                return specificDiagnosticOptions;
+            }
+
+            var builder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>();
+            foreach (var (key, value) in specificDiagnosticOptions)
+            {
+                if (string.Equals(key, "nullable", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var errorCode in ErrorFacts.NullableWarnings)
+                    {
+                        builder.Add(errorCode, value);
+                    }
+
+                    builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation), value);
+                    builder.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode), value);
+                }
+                else
+                {
+                    builder.Add(key, value);
+                }
+            }
+
+            return builder.ToImmutableDictionary();
+        }
+
         // 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
         public CSharpCompilationOptions(
