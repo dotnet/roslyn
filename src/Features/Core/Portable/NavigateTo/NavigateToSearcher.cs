@@ -159,6 +159,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // If we're only searching the current doc, we don't need to examine anything else but that.
             if (_searchCurrentDocument)
             {
+                // Note: _currentDocument may still be null.  Just because the user asked to search current document
+                // doesn't mean we were able to map the view to an active doc inside Roslyn.  In this case, we just
+                // don't search anything.
                 var project = _currentDocument?.Project;
                 return project == null
                     ? ImmutableArray<ImmutableArray<Project>>.Empty
