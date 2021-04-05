@@ -120,8 +120,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.CachedTags = null;
                 this.CachedTaggedSpan = null;
 
-                // And notify any concerned parties that we have new tags.
-                this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
+                // Note: we explicitly do *not* call into TagsChanged here.  This type exists only for the copy/paste
+                // scenario, and in the case the editor always calls into us for the span in question, ignoring
+                // TagsChanged, as per DPugh:
+                //
+                //    For rich text copy, we always call the buffer classifier to get the classifications of the copied
+                //    text. It ignores any tags changed events.
+                //
+                // It's important that we do not call TagsChanged here as the only thing we could do is notify that the
+                // entire doc is changed, and that incurs a heavy cost for the editor reacting to that notification.
             }
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
