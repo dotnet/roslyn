@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source = new BoundInterpolatedString(
                     unconvertedSource.Syntax,
                     interpolationData: null,
-                    unconvertedSource.Parts,
+                    BindInterpolatedStringParts(unconvertedSource, diagnostics),
                     unconvertedSource.ConstantValue,
                     unconvertedSource.Type,
                     unconvertedSource.HasErrors);

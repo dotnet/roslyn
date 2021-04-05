@@ -496,14 +496,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
         }
 
-        public void AddRange(ReadOnlySpan<T> items)
-        {
-            foreach (var i in items)
-            {
-                _builder.Add(i);
-            }
-        }
-
         public void AddRange<S>(ImmutableArray<S> items) where S : class, T
         {
             AddRange(ImmutableArray<T>.CastUp(items));

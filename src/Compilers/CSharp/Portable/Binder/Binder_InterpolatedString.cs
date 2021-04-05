@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Case 1
                 Debug.Assert(unconvertedInterpolatedString.Parts.All(static part => part.Type is null or { SpecialType: SpecialType.System_String }));
-                return constructWithData(unconvertedInterpolatedString.Parts, data: null);
+                return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
             }
 
             if (tryBindAsBuilderType(out var result))
@@ -163,47 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The specifics of 3 vs 4 aren't necessary for this stage of binding. The only thing that matters is that every part needs to be convertible
             // object.
-            ArrayBuilder<BoundExpression>? partsBuilder = null;
-            var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
-            for (int i = 0; i < unconvertedInterpolatedString.Parts.Length; i++)
-            {
-                var part = unconvertedInterpolatedString.Parts[i];
-                if (part is BoundStringInsert insert)
-                {
-                    BoundExpression newValue;
-                    if (insert.Value.Type is null)
-                    {
-                        newValue = GenerateConversionForAssignment(objectType, insert.Value, diagnostics);
-                    }
-                    else
-                    {
-                        newValue = BindToNaturalType(insert.Value, diagnostics);
-                        _ = GenerateConversionForAssignment(objectType, insert.Value, diagnostics);
-                    }
-
-                    if (insert.Value != newValue)
-                    {
-                        if (partsBuilder is null)
-                        {
-                            partsBuilder = ArrayBuilder<BoundExpression>.GetInstance(unconvertedInterpolatedString.Parts.Length);
-                            partsBuilder.AddRange(unconvertedInterpolatedString.Parts, i);
-                        }
-
-                        partsBuilder.Add(insert.Update(newValue, insert.Alignment, insert.Format, insert.Type));
-                    }
-                    else
-                    {
-                        partsBuilder?.Add(part);
-                    }
-                }
-                else
-                {
-                    Debug.Assert(part is BoundLiteral { Type: { SpecialType: SpecialType.System_String } });
-                    partsBuilder?.Add(part);
-                }
-            }
-
-            return constructWithData(partsBuilder?.ToImmutableAndFree() ?? unconvertedInterpolatedString.Parts, data: null);
+            return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
 
             BoundInterpolatedString constructWithData(ImmutableArray<BoundExpression> parts, InterpolatedStringBuilderData? data)
                 => new BoundInterpolatedString(
@@ -274,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentsBuilder.Add(new BoundInterpolatedStringElementPlaceholder(newPart.Syntax, i, newPart.Type));
                     if (currentFormatCall.Arguments.Length > 1)
                     {
-                        argumentsBuilder.AddRange(currentFormatCall.Arguments.AsSpan()[1..]);
+                        argumentsBuilder.AddRange(currentFormatCall.Arguments, 1, currentFormatCall.Arguments.Length - 1);
                     }
 
                     interpolatedDataBuilder.Add(currentFormatCall with { Arguments = argumentsBuilder.ToImmutableAndClear() });
@@ -394,6 +354,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LocalScopeDepth));
                 return true;
             }
+        }
+
+        private ImmutableArray<BoundExpression> BindInterpolatedStringParts(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)
+        {
+            ArrayBuilder<BoundExpression>? partsBuilder = null;
+            var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
+            for (int i = 0; i < unconvertedInterpolatedString.Parts.Length; i++)
+            {
+                var part = unconvertedInterpolatedString.Parts[i];
+                if (part is BoundStringInsert insert)
+                {
+                    BoundExpression newValue;
+                    if (insert.Value.Type is null)
+                    {
+                        newValue = GenerateConversionForAssignment(objectType, insert.Value, diagnostics);
+                    }
+                    else
+                    {
+                        newValue = BindToNaturalType(insert.Value, diagnostics);
+                        _ = GenerateConversionForAssignment(objectType, insert.Value, diagnostics);
+                    }
+
+                    if (insert.Value != newValue)
+                    {
+                        if (partsBuilder is null)
+                        {
+                            partsBuilder = ArrayBuilder<BoundExpression>.GetInstance(unconvertedInterpolatedString.Parts.Length);
+                            partsBuilder.AddRange(unconvertedInterpolatedString.Parts, i);
+                        }
+
+                        partsBuilder.Add(insert.Update(newValue, insert.Alignment, insert.Format, insert.Type));
+                    }
+                    else
+                    {
+                        partsBuilder?.Add(part);
+                    }
+                }
+                else
+                {
+                    Debug.Assert(part is BoundLiteral { Type: { SpecialType: SpecialType.System_String } });
+                    partsBuilder?.Add(part);
+                }
+            }
+
+            return partsBuilder?.ToImmutableAndFree() ?? unconvertedInterpolatedString.Parts;
         }
     }
 }
