@@ -448,7 +448,7 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// Relative and absolute paths treated the same as <see cref="Path.Combine(string, string)"/>.
         /// </remarks>
-       [NotNullIfNotNull("path")]
+        [return: NotNullIfNotNull("path")]
         public static string? CombinePaths(string? root, string? path)
         {
             if (RoslynString.IsNullOrEmpty(root))
