@@ -2627,35 +2627,6 @@ struct Type<T>
             await waiter.ExpeditedWaitAsync();
         }
 
-        [WpfFact]
-        public async Task TestGetTagsOnBufferTagger()
-        {
-            // don't crash
-            using var workspace = TestWorkspace.CreateCSharp("class C { C c; }");
-            var document = workspace.Documents.First();
-
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-
-            var provider = new SemanticClassificationBufferTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                listenerProvider);
-
-            var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
-            using var disposable = (IDisposable)tagger;
-            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.ExpeditedWaitAsync();
-
-            var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
-            var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
-
-            Assert.Empty(tags);
-            Assert.NotEmpty(allTags);
-
-            Assert.Equal(1, allTags.Count());
-        }
-
         [Theory]
         [CombinatorialData]
         public async Task Tuples(TestHost testHost)

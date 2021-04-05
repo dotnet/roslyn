@@ -24,11 +24,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    internal partial class SemanticClassificationBufferTaggerProvider
+    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
     {
         private class Tagger : ForegroundThreadAffinitizedObject, IAccurateTagger<IClassificationTag>, IDisposable
         {
-            private readonly SemanticClassificationBufferTaggerProvider _owner;
+            private readonly CopyPasteAndPrintingClassificationBufferTaggerProvider _owner;
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITaggerEventSource _eventSource;
             private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
 
             public Tagger(
-                SemanticClassificationBufferTaggerProvider owner,
+                CopyPasteAndPrintingClassificationBufferTaggerProvider owner,
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener asyncListener)
                 : base(owner.ThreadingContext)
@@ -59,6 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 ConnectToEventSource();
             }
+
+            // Explicitly a no-op.  This classifier does not support change notifications. See comment in
+            // OnEventSourceChanged_OnForeground for more details.
+            public event EventHandler<SnapshotSpanEventArgs> TagsChanged { add { } remove { } }
 
             public void Dispose()
             {
@@ -130,8 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // It's important that we do not call TagsChanged here as the only thing we could do is notify that the
                 // entire doc is changed, and that incurs a heavy cost for the editor reacting to that notification.
             }
-
-            public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
