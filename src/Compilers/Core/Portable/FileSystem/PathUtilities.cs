@@ -443,7 +443,7 @@ namespace Roslyn.Utilities
         /// <param name="root">First path: absolute, relative, or null.</param>
         /// <param name="path">Second path: absolute, relative, or null.</param>
         /// <returns>
-        /// The combined paths. If <paramref name="path"/> contains an absolute path, returns <paramref name="root"/>.
+        /// The combined paths. If <paramref name="path"/> contains an absolute path, returns <paramref name="path"/>.
         /// </returns>
         /// <remarks>
         /// Relative and absolute paths treated the same as <see cref="Path.Combine(string, string)"/>.
