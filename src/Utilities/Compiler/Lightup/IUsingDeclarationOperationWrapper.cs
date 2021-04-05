@@ -24,7 +24,7 @@ namespace Analyzer.Utilities.Lightup
         }
 
         public IOperation WrappedOperation { get; }
-        public ITypeSymbol Type => this.WrappedOperation.Type;
+        public ITypeSymbol? Type => this.WrappedOperation.Type;
         public IVariableDeclarationGroupOperation DeclarationGroup => DeclarationGroupAccessor(WrappedOperation);
         public bool IsAsynchronous => IsAsynchronousAccessor(this.WrappedOperation);
 
