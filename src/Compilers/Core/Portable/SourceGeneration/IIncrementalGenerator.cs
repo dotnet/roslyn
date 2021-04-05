@@ -20,6 +20,6 @@ namespace Microsoft.CodeAnalysis
         /// on the <paramref name="context"/>
         /// </summary>
         /// <param name="context">The <see cref="IncrementalGeneratorInitializationContext"/> to register callbacks on</param>
-        public void Initialize(IncrementalGeneratorInitializationContext context);
+        void Initialize(IncrementalGeneratorInitializationContext context);
     }
 }
