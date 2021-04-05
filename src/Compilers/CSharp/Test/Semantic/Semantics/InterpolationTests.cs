@@ -1323,6 +1323,14 @@ namespace System.Runtime.CompilerServices
             }
         }
 
+        private static Verification VerifyOnMonoOrCoreClr
+        {
+            get
+            {
+                return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped;
+            }
+        }
+
         [Theory]
         [CombinatorialData]
         public void InterpolatedStringBuilder_OverloadsAndBoolReturns(bool useDefaultParameters, bool useBoolReturns)
@@ -1633,7 +1641,7 @@ value:1,alignment:2:format:Y";
 
             string expectedIl = getIl();
 
-            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: expectedOutput, verify: VerifyOnMonoOrCoreClr, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
             verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
 
             var comp1 = CreateCompilation(interpolatedStringBuilder, targetFramework: TargetFramework.NetCoreApp);
@@ -1641,7 +1649,7 @@ value:1,alignment:2:format:Y";
             foreach (var reference in new[] { comp1.EmitToImageReference(), comp1.EmitToPortableExecutableReference() })
             {
                 var comp2 = CreateCompilation(source, new[] { reference }, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
-                verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput);
+                verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput, verify: VerifyOnMonoOrCoreClr);
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
             }
 
@@ -3263,8 +3271,10 @@ class C
 
             var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var comp = CreateCompilation(new[] { source, interpolatedStringBuilder },
+                targetFramework: TargetFramework.NetCoreApp,
+                parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, expectedOutput: @"
 Disposed
 value:S converted
 value:C");
