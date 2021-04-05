@@ -586,6 +586,87 @@ namespace N
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public class C", FeaturesResources.class_));
         }
 
+        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        public void Class_ModifiersUpdate_IgnoreUnsafe()
+        {
+            var src1 = "public class C { }";
+            var src2 = "public unsafe class C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public class C { }]@0 -> [public unsafe class C { }]@0");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        public void ModifiersUpdate_IgnoreUnsafe()
+        {
+            var src1 = @"
+using System;
+unsafe delegate void D();
+class C
+{
+    unsafe class N { }
+    public unsafe event Action<int> A { add { } remove { } }
+    unsafe int F() => 0;
+    unsafe int X;
+    unsafe int Y { get; }
+    unsafe C() {}
+    unsafe ~C() {}
+}
+";
+            var src2 = @"
+using System;
+delegate void D();
+class C
+{
+    class N { }
+    public event Action<int> A { add { } remove { } }
+    int F() => 0;
+    int X;
+    int Y { get; }
+    C() {}
+    ~C() {}
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [unsafe delegate void D();]@17 -> [delegate void D();]@17",
+                "Update [unsafe class N { }]@60 -> [class N { }]@53",
+                "Update [public unsafe event Action<int> A { add { } remove { } }]@84 -> [public event Action<int> A { add { } remove { } }]@70",
+                "Update [unsafe int F() => 0;]@146 -> [int F() => 0;]@125",
+                "Update [unsafe int X;]@172 -> [int X;]@144",
+                "Update [unsafe int Y { get; }]@191 -> [int Y { get; }]@156",
+                "Update [unsafe C() {}]@218 -> [C() {}]@176",
+                "Update [unsafe ~C() {}]@237 -> [~C() {}]@188");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        public void ModifiersUpdate_IgnoreUnsafe2()
+        {
+            var srcA1 = "partial class C { unsafe void F() { } }";
+            var srcB1 = "partial class C { }";
+            var srcA2 = "partial class C { }";
+            var srcB2 = "partial class C { void F() { } }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits: new[]
+                    {
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F"))
+                    }),
+                });
+        }
+
         [Fact]
         public void Struct_Modifiers_Ref_Update1()
         {
@@ -687,8 +768,7 @@ namespace N
             edits.VerifyEdits(
                 "Update [unsafe struct C { }]@0 -> [struct C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "struct C", CSharpFeaturesResources.struct_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -9376,8 +9456,7 @@ class C
 
             edits.VerifyEdits("Update [unsafe Node* left;]@14 -> [Node* left;]@14");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Node* left", FeaturesResources.field));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -9393,7 +9472,6 @@ class C
                 "Update [Node* left]@21 -> [Node left]@14");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Node left", FeaturesResources.field),
                 Diagnostic(RudeEditKind.TypeUpdate, "Node left", FeaturesResources.field));
         }
 
@@ -9493,8 +9571,7 @@ class C
 
             edits.VerifyEdits("Update [int P => 1;]@10 -> [unsafe int P => 1;]@10");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "unsafe int P", FeaturesResources.property_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]

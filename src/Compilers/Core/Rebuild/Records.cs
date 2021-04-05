@@ -7,6 +7,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
 }
