@@ -1997,12 +1997,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     yield return CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation);
                     yield return CSharp.MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode);
                 }
-                else if (ushort.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out ushort number) &&
-                       ErrorFacts.IsWarning((ErrorCode)number))
-                {
-                    // The id refers to a compiler warning.
-                    yield return CSharp.MessageProvider.Instance.GetIdForErrorCode(number);
-                }
                 else
                 {
                     // Previous versions of the compiler used to report a warning (CS1691)
