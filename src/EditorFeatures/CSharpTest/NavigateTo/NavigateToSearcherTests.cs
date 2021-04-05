@@ -117,7 +117,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>()))
                         .Returns(Task.CompletedTask);
 
-            // Becaue we did a ful search, we should let the user know it was totally accurate.
+            // Because we did a full search, we should let the user know it was totally accurate.
+            callbackMock.Setup(c => c.Done(true));
+
+            var searcher = NavigateToSearcher.Create(
+                workspace.CurrentSolution,
+                AsynchronousOperationListenerProvider.NullListener,
+                callbackMock.Object,
+                pattern,
+                searchCurrentDocument: false,
+                kinds: ImmutableHashSet<string>.Empty,
+                CancellationToken.None,
+                hostMock.Object);
+
+            await searcher.SearchAsync(CancellationToken.None);
+        }
+
+        [Fact]
+        public async Task NotFullyLoadedStillReportsAsFullyCompletedIfSecondCallReturnsNothing()
+        {
+            using var workspace = TestWorkspace.CreateCSharp("");
+
+            var pattern = "irrelevant";
+
+            var searchService = new Mock<INavigateToSearchService>(MockBehavior.Strict);
+
+            // First call will pass in that we're not fully loaded.  If we return null, we should get another call with
+            // the request to search the fully loaded data.  If we don't report anything the second time, we will still
+            // tell the user the search was complete.
+            SetupSearchProject(searchService, pattern, isFullyLoaded: false, result: null);
+            SetupSearchProject(searchService, pattern, isFullyLoaded: true, result: null);
+
+            // Simulate a host that says the solution isn't fully loaded.
+            var hostMock = new Mock<INavigateToSearcherHost>(MockBehavior.Strict);
+            hostMock.Setup(h => h.IsFullyLoadedAsync(It.IsAny<CancellationToken>())).Returns(new ValueTask<bool>(false));
+            hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(searchService.Object);
+
+            var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
+            callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
+
+            // Because we did a full search, we should let the user know it was totally accurate.
             callbackMock.Setup(c => c.Done(true));
 
             var searcher = NavigateToSearcher.Create(
