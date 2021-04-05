@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
@@ -33,6 +34,108 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        private BoundNode RewriteToInterpolatedStringBuilderPattern(BoundInterpolatedString node)
+        {
+            Debug.Assert(node.InterpolationData is { Construction: not null });
+            // PROTOTYPE(interp-string): Support the general builder pattern that doesn't save to a local.
+            var resultSymbol = _factory.SynthesizedLocal(_compilation.GetSpecialType(SpecialType.System_String), node.Syntax);
+            var resultTemp = _factory.Local(resultSymbol);
+            var builderTempSymbol = _factory.InterpolatedStringBuilderLocal(node.InterpolationData.BuilderType, node.InterpolationData.ScopeOfContainingExpression, node.Syntax);
+            var builderTemp = _factory.Local(builderTempSymbol);
+
+            // PROTOTYPE(interp-string): Support optional out param for whether the builder was created successfully
+            // var builder = Construction(baseStringLength, numFormatHoles);
+            var builderConstruction = _factory.Assignment(builderTemp, MakeCallWithNoExplicitArgument(node.InterpolationData.Construction, node.Syntax, expression: null, assertParametersAreOptional: false));
+
+            // For every interpolation part, call the appropriate builder.TryFormat... method.
+
+            Debug.Assert(node.InterpolationData.BuilderFormatCalls.Length >= 1);
+            Debug.Assert(node.Parts.Length == node.InterpolationData.BuilderFormatCalls.Length);
+            var usesBoolReturn = node.InterpolationData.BuilderFormatCalls[0].Method.ReturnType.SpecialType == SpecialType.System_Boolean;
+            var tryFormatCalls = ArrayBuilder<BoundExpression>.GetInstance(node.InterpolationData.BuilderFormatCalls.Length);
+            for (int i = 0; i < node.Parts.Length; i++)
+            {
+                var formatInfo = node.InterpolationData.BuilderFormatCalls[i];
+                var part = node.Parts[i];
+                Debug.Assert(usesBoolReturn == (formatInfo.Method.ReturnType.SpecialType == SpecialType.System_Boolean));
+                Debug.Assert(formatInfo.Arguments[0] is BoundInterpolatedStringElementPlaceholder { Index: var index } && index == i);
+                Debug.Assert(part is BoundStringInsert or BoundLiteral);
+
+                // Visit the part, and replace the part placeholder in the TryFormat... call with the replaced part.
+                var visitedPart = VisitExpression(part is BoundStringInsert { Value: var value } ? value : part);
+                var formatCall = MakeCallWithNoExplicitArgument(formatInfo with
+                {
+                    Arguments = formatInfo.Arguments.SetItem(0, visitedPart)
+                }, part.Syntax, builderTemp, assertParametersAreOptional: false);
+                tryFormatCalls.Add(formatCall);
+                Debug.Assert(usesBoolReturn == (formatCall.Type!.SpecialType == SpecialType.System_Boolean));
+            }
+
+            var builderPatternStatements = ArrayBuilder<BoundStatement>.GetInstance();
+            builderPatternStatements.Add(builderConstruction);
+            if (usesBoolReturn)
+            {
+                BoundExpression? tryFormatBinaryExpressions = null;
+
+                // builder.TryFormat... && builder.TryFormat... && ...
+                foreach (var tryFormatCall in tryFormatCalls)
+                {
+                    tryFormatBinaryExpressions = tryFormatBinaryExpressions is null
+                        ? tryFormatCall
+                        : _factory.LogicalAnd(tryFormatBinaryExpressions, tryFormatCall);
+                }
+
+                Debug.Assert(tryFormatBinaryExpressions is not null);
+
+                builderPatternStatements.Add(_factory.ExpressionStatement(tryFormatBinaryExpressions));
+            }
+            else
+            {
+                // builder.TryFormat...; builder.TryFormat...; ...
+                foreach (var tryFormatCall in tryFormatCalls)
+                {
+                    builderPatternStatements.Add(_factory.ExpressionStatement(tryFormatCall));
+                }
+            }
+
+            tryFormatCalls.Free();
+
+            // PROTOTYPE(interp-string): This will need to be a lot more complicated to support method parameter scenarios
+            // resultTemp = builder.ToString();
+
+            builderPatternStatements.Add(_factory.Assignment(resultTemp, _factory.InstanceCall(builderTemp, "ToString")));
+
+            // If the builder needs to be disposed after usage, wrap in a try-finally
+            if (node.InterpolationData.DisposeInfo is { } disposeInfo)
+            {
+                // builder.Dispose();
+                var disposeCall = _factory.ExpressionStatement(MakeCallWithNoExplicitArgument(disposeInfo, node.Syntax, builderTemp, assertParametersAreOptional: false));
+                BoundStatement builderDisposeStatement;
+
+                // If the node can be null, wrap in a check
+                if (!node.InterpolationData.BuilderType.IsNonNullableValueType())
+                {
+                    // builder != null
+                    var builderNullCheck = MakeNullCheck(node.Syntax, builderTemp, BinaryOperatorKind.NotEqual);
+
+                    // if (builder != null) builder.Dispose();
+                    builderDisposeStatement = _factory.If(builderNullCheck, disposeCall);
+                }
+                else
+                {
+                    builderDisposeStatement = disposeCall;
+                }
+
+                // try { builderPatternStatements } finally { dispose }
+                var builderPatternStatementsBlock = _factory.Block(builderPatternStatements.ToImmutableAndClear());
+                var finallyBlock = _factory.Block(builderDisposeStatement);
+                builderPatternStatements.Add(_factory.Try(builderPatternStatementsBlock, catchBlocks: ImmutableArray<BoundCatchBlock>.Empty, finallyBlock));
+            }
+
+            _needsSpilling = true;
+            return _factory.SpillSequence(ImmutableArray.Create(resultSymbol, builderTempSymbol), builderPatternStatements.ToImmutableAndFree(), resultTemp);
         }
 
         private bool CanLowerToStringConcatenation(BoundInterpolatedString node)
@@ -108,7 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? result;
 
-            if (CanLowerToStringConcatenation(node))
+            if (node.InterpolationData is not null)
+            {
+                // If we can lower to the builder pattern, do so.
+                return RewriteToInterpolatedStringBuilderPattern(node);
+            }
+            else if (CanLowerToStringConcatenation(node))
             {
                 // All fill-ins, if any, are strings, and none of them have alignment or format specifiers.
                 // We can lower to a more efficient string concatenation

@@ -511,6 +511,9 @@ namespace Microsoft.CodeAnalysis
         System_Text_StringBuilder__AppendObject,
         System_Text_StringBuilder__ctor,
 
+        System_Runtime_CompilerServices_InterpolatedStringBuilder__CreateInt32Int32,
+        System_Runtime_CompilerServices_InterpolatedStringBuilder__Dispose,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

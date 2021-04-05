@@ -376,14 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundUnconvertedInterpolatedString unconvertedInterpolatedString:
                     {
-                        // We determine the best method of emitting as a string (either via Concat, Format, or the builder pattern)
-                        // during lowering, and it's not part of the publicly-visible API, unlike conversion to a builder type.
-                        result = new BoundInterpolatedString(
-                            unconvertedInterpolatedString.Syntax,
-                            unconvertedInterpolatedString.Parts,
-                            unconvertedInterpolatedString.ConstantValue,
-                            unconvertedInterpolatedString.Type,
-                            unconvertedInterpolatedString.HasErrors);
+                        result = BindUnconvertedInterpolatedStringToString(unconvertedInterpolatedString, diagnostics);
                     }
                     break;
                 default:
@@ -2965,7 +2958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return argument;
         }
 
-        private void CoerceArguments<TMember>(
+        internal void CoerceArguments<TMember>(
             MemberResolutionResult<TMember> methodResult,
             ArrayBuilder<BoundExpression> arguments,
             BindingDiagnosticBag diagnostics)

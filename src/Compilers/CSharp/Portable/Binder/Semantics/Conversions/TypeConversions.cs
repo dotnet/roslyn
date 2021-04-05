@@ -6,9 +6,9 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -56,6 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Conversions involving interpolated strings require a Binder.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+#nullable  enable
+        public override bool IsApplicableInterpolatedStringBuilderType(BoundUnconvertedInterpolatedString source, TypeSymbol builderType,
+            BindingDiagnosticBag diagnostics,
+            [NotNullWhen(true)] out ImmutableArray<MethodArgumentInfo> builderArguments)
+        {
+            // Determining whether a builder type is applicable to an interpolated string requires a binder
             throw ExceptionUtilities.Unreachable;
         }
     }

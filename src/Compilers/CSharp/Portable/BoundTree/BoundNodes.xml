@@ -2014,6 +2014,11 @@
   </Node>
 
   <Node Name="BoundInterpolatedString" Base="BoundInterpolatedStringBase">
+      <Field Name="InterpolationData" Type="InterpolatedStringBuilderData?"/>
+  </Node>
+    
+  <Node Name="BoundInterpolatedStringElementPlaceholder" Base="BoundExpression">
+      <Field Name="Index" Type="int"/>
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">

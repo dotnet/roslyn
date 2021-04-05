@@ -529,7 +529,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned, refKind
+            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned, refKind, valEscapeScope: null
+#if DEBUG
+                , createdAtLineNumber, createdAtFilePath
+#endif
+                );
+        }
+
+        public LocalSymbol InterpolatedStringBuilderLocal(
+            TypeSymbol type,
+            uint valEscapeScope,
+            SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string? createdAtFilePath = null
+#endif
+            )
+        {
+            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), SynthesizedLocalKind.InterpolatedStringBuilder, syntax, isPinned: false, RefKind.None, valEscapeScope
 #if DEBUG
                 , createdAtLineNumber, createdAtFilePath
 #endif

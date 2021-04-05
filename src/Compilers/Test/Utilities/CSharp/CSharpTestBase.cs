@@ -784,7 +784,7 @@ namespace System.Runtime.CompilerServices
             TargetFramework targetFramework = TargetFramework.Standard,
             Verification verify = Verification.Passes)
         {
-            options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+            options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : CheckForTopLevelStatements(source.GetSyntaxTrees(parseOptions)));
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
             return CompileAndVerify(
                 compilation,
@@ -1094,12 +1094,7 @@ namespace System.Runtime.CompilerServices
         {
             var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName);
 
-            if (options == null)
-            {
-                bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
-
-                options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
-            }
+            options ??= CheckForTopLevelStatements(syntaxTrees);
 
             // Using single-threaded build if debugger attached, to simplify debugging.
             if (Debugger.IsAttached)
@@ -1128,6 +1123,14 @@ namespace System.Runtime.CompilerServices
             }
 
             return compilation;
+        }
+
+        private static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
+        {
+            bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
+
+            var options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
+            return options;
         }
 
         private static void ValidateCompilation(Func<CSharpCompilation> createCompilationLambda)
@@ -2029,7 +2032,7 @@ namespace System.Runtime.CompilerServices
 
         #region Span
 
-        protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree, CSharpCompilationOptions options = null)
+        protected static CSharpCompilation CreateCompilationWithSpan(CSharpTestSource tree, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateCompilation(
                 SpanSource,
@@ -2040,13 +2043,11 @@ namespace System.Runtime.CompilerServices
             var comp = CreateCompilation(
                 tree,
                 references: new[] { reference.EmitToImageReference() },
-                options: options);
+                options: options,
+                parseOptions: parseOptions);
 
             return comp;
         }
-
-        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
-            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s, options: parseOptions), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {

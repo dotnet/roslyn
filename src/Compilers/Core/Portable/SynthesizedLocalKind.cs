@@ -232,6 +232,12 @@ namespace Microsoft.CodeAnalysis
         /// TODO: Avoid using lambdas and display classes for implementation of relaxation stubs and remove this kind.
         /// </summary>
         DelegateRelaxationReceiver = 0x101,
+
+        /// <summary>
+        /// The builder type of an interpolated string, when using the interpolated string builder pattern.
+        /// This synthesized local is allowed to have a val escape
+        /// </summary>
+        InterpolatedStringBuilder = 0x102,
     }
 
     internal static class SynthesizedLocalKindExtensions

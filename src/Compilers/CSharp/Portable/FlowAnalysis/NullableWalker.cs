@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // PROTOTYPE(interp-string): Implement TryFormat and Create method analysis.
     /// <summary>
     /// Nullability flow analysis.
     /// </summary>
