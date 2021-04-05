@@ -70,7 +70,9 @@ internal sealed class M
             // This test depends on the version of mscorlib used by the TestWorkspace and may 
             // change in the future
             [WorkItem(530526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
-            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [Theory, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [InlineData(false)]
+            [InlineData(true, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
             public async Task BracketedIdentifierSimplificationTest(bool allowDecompilation)
             {
                 var expected = allowDecompilation switch
