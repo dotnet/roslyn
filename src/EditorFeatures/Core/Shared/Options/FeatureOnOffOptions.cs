@@ -94,6 +94,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
                 nameof(ShowInheritanceMargin),
                 defaultValue: false,
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
+
+        public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
+            nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
+
     }
 
     [ExportOptionProvider, Shared]
@@ -126,5 +131,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             FeatureOnOffOptions.ShowInheritanceMargin);
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
     }
 }

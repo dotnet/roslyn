@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             BinaryExpressionSyntax>
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAddParameterCheckCodeRefactoringProvider()
         {
         }

@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>10</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -49,6 +49,7 @@
   <PropertyGroup>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <BenchmarkDotNetVersion>0.12.1</BenchmarkDotNetVersion>
+    <BenchmarkDotNetDiagnosticsWindowsVersion>0.12.1</BenchmarkDotNetDiagnosticsWindowsVersion>
     <DiffPlexVersion>1.4.4</DiffPlexVersion>
     <EnvDTEVersion>$(MicrosoftVisualStudioShellPackagesVersion)</EnvDTEVersion>
     <EnvDTE80Version>$(MicrosoftVisualStudioShellPackagesVersion)</EnvDTE80Version>

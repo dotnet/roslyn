@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
         ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
-            SerializableDocumentKey documentKey,
+            DocumentKey documentKey,
             TextSpan textSpan,
             Checksum checksum,
             CancellationToken cancellationToken);

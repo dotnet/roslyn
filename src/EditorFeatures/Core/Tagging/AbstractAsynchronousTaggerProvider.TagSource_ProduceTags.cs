@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     {
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
-                    }).CompletesAsyncOperation(asyncToken);
+                    }, CancellationToken.None).CompletesAsyncOperation(asyncToken); // TODO: What should the cancellation behavior be here? passing CancellationToken.None for now
                 }
                 else
                 {

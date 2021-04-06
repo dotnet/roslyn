@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public class CompilationOptionsReader
     {
@@ -340,16 +340,34 @@ namespace BuildValidator
                 var imageSize = blobReader.ReadInt32();
                 var mvid = blobReader.ReadGuid();
 
-                yield return new MetadataReferenceInfo(
-                    timestamp,
-                    imageSize,
-                    name,
-                    mvid,
-                    string.IsNullOrEmpty(externAliases)
-                        ? ImmutableArray<string>.Empty
-                        : externAliases.Split(',').ToImmutableArray(),
-                    kind,
-                    embedInteropTypes);
+                if (string.IsNullOrEmpty(externAliases))
+                {
+                    yield return new MetadataReferenceInfo(
+                        timestamp,
+                        imageSize,
+                        name,
+                        mvid,
+                        externAlias: null,
+                        kind,
+                        embedInteropTypes);
+                }
+                else
+                {
+                    foreach (var alias in externAliases.Split(','))
+                    {
+                        // The "global" alias is an invention of the tooling on top of the compiler. 
+                        // The compiler itself just sees "global" as a reference without any aliases
+                        // and we need to mimic that here.
+                        yield return new MetadataReferenceInfo(
+                            timestamp,
+                            imageSize,
+                            name,
+                            mvid,
+                            alias == "global" ? null : alias,
+                            kind,
+                            embedInteropTypes);
+                    }
+                }
             }
         }
 
