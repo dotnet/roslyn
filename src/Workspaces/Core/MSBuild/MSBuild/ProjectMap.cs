@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectFilePath = projectInfo.FilePath;
             if (RoslynString.IsNullOrEmpty(projectFilePath))
             {
-                throw new ArgumentException("Project does not have a path..");
+                throw new ArgumentException(WorkspaceMSBuildResources.Project_does_not_have_a_path);
             }
 
             if (!_projectPathToProjectInfosMap.TryGetValue(projectFilePath, out var projectInfos))
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             if (projectInfos.Contains(pi => pi.Id == projectInfo.Id))
             {
-                throw new ArgumentException("Project already added.");
+                throw new ArgumentException(WorkspaceMSBuildResources.Project_already_added);
             }
 
             projectInfos = projectInfos.Add(projectInfo);

@@ -326,7 +326,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var projectPath = project.FilePath;
                     if (projectPath is null)
                     {
-                        _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, $"Project path for '{project.Name}' was null", projectChanges.ProjectId));
+                        _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
+                                                               string.Format(WorkspaceMSBuildResources.Project_path_for_0_was_null, project.Name),
+                                                               projectChanges.ProjectId));
                         return;
                     }
                     if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var fileLoader))
@@ -373,7 +375,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var encoding = DetermineEncoding(text, document);
                 if (document.FilePath is null)
                 {
-                    _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, $"Path for document '{document.Name}' was null", document.Id));
+                    var message = string.Format(WorkspaceMSBuildResources.Path_for_document_0_was_null, document.Name);
+                    _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                     return;
                 }
                 this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
@@ -510,7 +513,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var identity = GetAssemblyIdentity(projectId, metadataReference);
             if (identity is null)
             {
-                _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, $"Unable to add metadata reference '{metadataReference.Display}'", projectId));
+                var message = string.Format(WorkspaceMSBuildResources.Unable_to_add_metadata_reference_0, metadataReference.Display);
+                _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
                 return;
             }
             _applyChangesProjectFile.AddMetadataReference(metadataReference, identity);
@@ -523,7 +527,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var identity = GetAssemblyIdentity(projectId, metadataReference);
             if (identity is null)
             {
-                _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, $"Unable to remove metadata reference '{metadataReference.Display}'", projectId));
+                var message = string.Format(WorkspaceMSBuildResources.Unable_to_remove_metadata_reference_0, metadataReference.Display);
+                _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
                 return;
             }
             _applyChangesProjectFile.RemoveMetadataReference(metadataReference, identity);

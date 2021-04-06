@@ -330,7 +330,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     if (commandLineParser is null)
                     {
-                        throw new Exception($"Unable to find a '{nameof(ICommandLineParserService)}' for '{projectFileInfo.Language}'");
+                        var message = string.Format(WorkspaceMSBuildResources.Unable_to_find_a_0_for_1, nameof(ICommandLineParserService), projectFileInfo.Language);
+                        throw new Exception(message);
                     }
 
                     var commandLineArgs = commandLineParser.Parse(
@@ -416,7 +417,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var analyzerService = GetWorkspaceService<IAnalyzerService>();
                 if (analyzerService is null)
                 {
-                    throw new Exception($"Unable to find '{nameof(IAnalyzerService)}'");
+                    var message = string.Format(WorkspaceMSBuildResources.Unable_to_find_0, nameof(IAnalyzerService));
+                    throw new Exception(message);
                 }
 
                 var analyzerLoader = analyzerService.GetLoader();

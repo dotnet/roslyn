@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     break;
 
                 default:
-                    throw new ArgumentException($"Invalid {nameof(DiagnosticReportingMode)} specified: {mode}", nameof(mode));
+                    throw new ArgumentException(string.Format(WorkspaceMSBuildResources.Invalid_0_specified_1, nameof(DiagnosticReportingMode), nameof(mode)), nameof(mode));
             }
         }
 
