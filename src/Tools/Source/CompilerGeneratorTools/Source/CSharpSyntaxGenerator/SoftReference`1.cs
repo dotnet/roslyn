@@ -25,12 +25,12 @@ namespace CSharpSyntaxGenerator
 
         public SoftReference(T? target)
         {
+            if (target is not null)
+                SetTarget(target);
+
             Gen2GcCallback.Register(
                 static self => ((SoftReference<T>)self).OnGen2GC(),
                 this);
-
-            if (target is not null)
-                SetTarget(target);
         }
 
         public void SetTarget(T target)
