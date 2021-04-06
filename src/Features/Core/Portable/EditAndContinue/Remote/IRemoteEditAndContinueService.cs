@@ -31,11 +31,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics, ImmutableArray<DocumentId> DocumentsWithRudeEdits)> EmitSolutionUpdateAsync(
             PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
+        /// </summary>
         ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(CancellationToken cancellationToken);
         ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken);
 
         ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, bool captureMatchingDocuments, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
+        /// </summary>
         ValueTask<ImmutableArray<DocumentId>> BreakStateEnteredAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
+        /// </summary>
         ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(CancellationToken cancellationToken);
 
         ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);

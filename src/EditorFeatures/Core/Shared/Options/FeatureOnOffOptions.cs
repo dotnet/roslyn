@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(AddImportsOnPaste)}"));
 
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
-            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: null,
+            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
 
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(

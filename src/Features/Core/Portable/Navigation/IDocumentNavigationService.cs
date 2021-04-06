@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <summary>
         /// Navigates to the given position in the specified document, opening it if necessary.
         /// </summary>
-        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken);
+        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Navigates to the given line/offset in the specified document, opening it if necessary.
@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         public static bool TryNavigateToSpan(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
             => service.TryNavigateToSpan(workspace, documentId, textSpan, options: null, cancellationToken);
+
+        public static bool TryNavigateToSpan(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
+            => service.TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
 
         public static bool TryNavigateToLineAndOffset(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
             => service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options: null, cancellationToken);
