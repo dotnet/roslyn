@@ -6593,29 +6593,24 @@ class C
         return b with { Item1 = 42, Item2 = 43 };
     }
 }";
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "4243");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       22 (0x16)
   .maxstack  2
-  .locals init (System.ValueTuple<int, int> V_0,
-                System.ValueTuple<int, int> V_1)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.0
-  IL_0003:  ldloca.s   V_0
-  IL_0005:  ldc.i4.s   42
-  IL_0007:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_000c:  ldloca.s   V_0
-  IL_000e:  ldc.i4.s   43
-  IL_0010:  stfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0015:  ldloc.0
-  IL_0016:  stloc.1
-  IL_0017:  br.s       IL_0019
-  IL_0019:  ldloc.1
-  IL_001a:  ret
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   42
+  IL_0006:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  ldc.i4.s   43
+  IL_000f:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0014:  ldloc.0
+  IL_0015:  ret
 }");
         }
 
