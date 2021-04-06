@@ -78,9 +78,13 @@ End Class
             //  |> Me._s = s [Code.vb:4]
             //  |> Private _s As String = "" [Code.vb:2]
             //
-            Assert.Equal(2, initialItems.Length);
-            ValidateItem(initialItems[0], 5);
-            ValidateItem(initialItems[1], 2);
+            await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (5, "s"),
+                    (2, "_s")
+                });
         }
 
         [Fact]
