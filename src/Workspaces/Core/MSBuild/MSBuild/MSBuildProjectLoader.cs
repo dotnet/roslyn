@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly PathResolver _pathResolver;
         private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
+        private readonly MSB.Execution.BuildManager? _msbuildManager;
 
         // used to protect access to the following mutable state
         private readonly NonReentrantLock _dataGuard = new NonReentrantLock();
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             HostWorkspaceServices workspaceServices,
             DiagnosticReporter diagnosticReporter,
             ProjectFileLoaderRegistry? projectFileLoaderRegistry,
-            ImmutableDictionary<string, string>? properties)
+            ImmutableDictionary<string, string>? properties,
+            MSB.Execution.BuildManager? msbuildManager = null)
         {
             _workspaceServices = workspaceServices;
             _diagnosticReporter = diagnosticReporter;
@@ -47,6 +49,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(workspaceServices, _diagnosticReporter);
 
             _properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            _msbuildManager = msbuildManager;
 
             if (properties != null)
             {
@@ -202,7 +206,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
+            var buildManager = new ProjectBuildManager(_properties, msbuildLogger, _msbuildManager);
 
             var worker = new Worker(
                 _workspaceServices,
