@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.UseEnhancedColors,
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
-            FeatureOnOffOptions.ShowInheritanceMargin);
+            FeatureOnOffOptions.ShowInheritanceMargin,
             FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
     }
 }
