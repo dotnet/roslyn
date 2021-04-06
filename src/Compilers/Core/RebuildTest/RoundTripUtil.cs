@@ -82,7 +82,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         }
 
-        private record EmitInfo(ImmutableArray<byte> PEBytes, PEReader PEReader, ImmutableArray<byte> PdbBytes, MetadataReader PdbReader);
+        private record EmitInfo(ImmutableArray<byte> PEBytes, PEReader PEReader, ImmutableArray<byte> PdbBytes, MetadataReader PdbReader) : IDisposable
+        {
+            public void Dispose() => PEReader.Dispose();
+        }
 
         public static unsafe void VerifyRoundTrip<TCompilation>(TCompilation original, EmitOptions? emitOptions = null)
             where TCompilation : Compilation
@@ -92,8 +95,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             original.VerifyDiagnostics();
             emitOptions ??= new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
-            var originalEmit = emitOriginal();
-
+            using var originalEmit = emitOriginal();
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
             var optionsReader = new CompilationOptionsReader(logger, originalEmit.PdbReader, originalEmit.PEReader);
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.True(result.Success);
 
             var rebuildBytes = rebuildStream.ToImmutable();
-            var rebuildReader = new PEReader(rebuildBytes);
+            using var rebuildReader = new PEReader(rebuildBytes);
 
             ImmutableArray<byte> rebuildPdbBytes;
             MetadataReader rebuildPdbReader;
@@ -217,7 +219,6 @@ Actual:
 {rebuildMdv}
 ");
             }
-
 
             static string getMdv(MetadataReader metadataReader)
             {

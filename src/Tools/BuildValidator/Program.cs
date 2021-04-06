@@ -279,8 +279,7 @@ namespace BuildValidator
             LocalReferenceResolver referenceResolver)
         {
             // Find the embedded pdb
-            var originalBinaryStream = File.OpenRead(assemblyInfo.FilePath);
-            var originalPeReader = new PEReader(originalBinaryStream);
+            using var originalPeReader = new PEReader(File.OpenRead(assemblyInfo.FilePath));
             var originalBinary = new FileInfo(assemblyInfo.FilePath);
 
             var pdbOpened = originalPeReader.TryOpenAssociatedPortablePdb(
