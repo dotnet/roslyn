@@ -2446,7 +2446,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     }
                                     else if (oldSymbol.DeclaringSyntaxReferences.Length == 1 && newSymbol.DeclaringSyntaxReferences.Length == 1)
                                     {
-                                        // Handles partial methods and record members
+                                        // Handles partial methods and explicitly implemented properties that implement positional parameters of records
 
                                         // We ignore partial method definition parts when processing edits (GetSymbolForEdit).
                                         // The only declaration in compilation without syntax errors that can have multiple declaring references is a type declaration.
@@ -2460,9 +2460,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // if it changed in any way that's not allowed.
                                         ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol);
 
-                                        // If a node has been inserted but neither old nor new has a body, we can stop processing
-                                        // unless its explicitly implenenting a positional property of a record, in which case we
-                                        // still need to issue constructor edits below.
+                                        // If a node has been inserted but neither old nor new has a body, we can stop processing.
+                                        // The exception to this is explicitly implemented properties that implement positional parameters of
+                                        // records, as even not having an initializer is an "edit", since the compiler generated property would have
+                                        // had one.
                                         var isRecordPrimaryConstructorParameter = IsRecordPrimaryConstructorParameter(oldNode);
 
                                         var oldBody = TryGetDeclarationBody(oldNode);
