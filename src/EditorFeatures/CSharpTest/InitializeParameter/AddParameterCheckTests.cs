@@ -405,19 +405,6 @@ partial class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnExternMethod()
-        {
-            var code = @"
-using System;
-
-class C
-{
-    extern void M([||]string s);
-}";
-            await VerifyCS.VerifyRefactoringAsync(code, code);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExistingFieldAssignment()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -2031,6 +2018,33 @@ class C
     }
 }";
             await VerifyCS.VerifyRefactoringAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52383, "https://github.com/dotnet/roslyn/issues/52383")]
+        public async Task TestImportSystem()
+        {
+            await VerifyCS.VerifyRefactoringAsync(
+@"
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
         }
     }
 }
