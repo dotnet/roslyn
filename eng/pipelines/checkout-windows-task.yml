@@ -2,6 +2,10 @@
 steps:
   - checkout: none
 
+  # This script needs to be reevaluated. The Build.SourceVersion is the last
+  # commit SHA to the pull request and  does not include the merge commit.
+  # The equivalent of building `refs/pull/###/head` instead of `refs/pull/###/merge`.
+  # See https://github.com/dotnet/roslyn/issues/52444
   - script: |
       @echo on
       git init
