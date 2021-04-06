@@ -564,10 +564,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // Remove trivia so the expression is in a single line and does not affect the spacing of the following line
             var returnStatement = generator.ReturnStatement(expression.WithoutTrivia());
             var typeSymbol = await GetTypeOfExpressionAsync(document, expression, cancellationToken).ConfigureAwait(false);
-            var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: ImmutableArray.Create(returnStatement), returnType: typeSymbol);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, options: new CodeGenerationOptions(options: options, parseOptions: expression.SyntaxTree.Options));
+            var newMethodDeclaration = await CreateMethodDeclarationAsync(document, methodSymbol, expression, returnStatement, validParameters, newMethodIdentifier, typeSymbol, true, cancellationToken).ConfigureAwait(false);
             return newMethodDeclaration;
         }
 
@@ -610,16 +607,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                ? generator.ExpressionStatement(invocation)
                : generator.ReturnStatement(invocation);
 
-            var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, statements: ImmutableArray.Create(newStatement), containingType: methodSymbol.ContainingType);
-            var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, options: new CodeGenerationOptions(options: options, parseOptions: expression.SyntaxTree.Options));
+            var newMethodDeclaration = await CreateMethodDeclarationAsync(document, methodSymbol, expression, newStatement, null, null, null, false, cancellationToken).ConfigureAwait(false);
             return newMethodDeclaration;
         }
 
         private static async Task<SyntaxNode> CreateMethodDeclarationAsync(Document document, IMethodSymbol methodSymbol,
-            TExpressionSyntax expression, SyntaxNode newStatement, ImmutableArray<IParameterSymbol> validParameters,
-            string newMethodIdentifier, ITypeSymbol typeSymbol, bool isTrampoline, CancellationToken cancellationToken)
+            TExpressionSyntax expression, SyntaxNode newStatement, ImmutableArray<IParameterSymbol>? validParameters,
+            string? newMethodIdentifier, ITypeSymbol? typeSymbol, bool isTrampoline, CancellationToken cancellationToken)
         {
             var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
