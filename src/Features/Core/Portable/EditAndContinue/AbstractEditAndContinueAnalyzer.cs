@@ -432,6 +432,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal abstract bool IsRecordPrimaryConstructorProperty(SyntaxNode declaration);
 
+        internal abstract bool IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, out bool isFirstAccessor);
+
         /// <summary>
         /// Returns the list of known synthesized members of a record that need to have edits issued for them when fields or properties change.
         /// </summary>
@@ -2310,25 +2312,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         continue;
                                     }
 
-                                    if (IsRecordPrimaryConstructorProperty(edit.OldNode))
-                                    {
-                                        // When deleting a property of a record that represents a primary constructor parameter we need to mark each
-                                        // part of the property as processed so that they don't become delete edits. This isn't an issue for normal
-                                        // properties because deleting them is a rude edit so it never gets this far.
-                                        var oldProperty = (IPropertySymbol)oldSymbol;
-                                        if (oldProperty.GetMethod is not null)
-                                        {
-                                            processedSymbols.Add(oldProperty.GetMethod);
-                                        }
-                                        if (oldProperty.SetMethod is not null)
-                                        {
-                                            processedSymbols.Add(oldProperty.SetMethod);
-                                        }
-                                    }
-                                    else if (!newSymbol.IsImplicitlyDeclared)
+                                    if (!newSymbol.IsImplicitlyDeclared)
                                     {
                                         // Ignore the delete. The new symbol is explicitly declared and thus there will be an insert edit that will issue a semantic update.
+                                        // Note that this could also be the case for deleting properties of records, but they will be handled when we see
+                                        // their accessors below.
                                         continue;
+                                    }
+                                    else if (IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(edit.OldNode, out var isFirst))
+                                    {
+                                        // Defer a constructor edit to cover the property initializer changing
+                                        DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration: null, syntaxMap, oldSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
+
+                                        // If there was no body deleted then we are done since the compiler generated property also has no body
+                                        if (TryGetDeclarationBody(edit.OldNode) is null)
+                                        {
+                                            continue;
+                                        }
+
+                                        // If there was a body, then the backing field of the property will be affected so we
+                                        // need to issue edits for the synthezied members.
+                                        // We only need to do this once though.
+                                        if (isFirst)
+                                        {
+                                            ReportRecordSynthesizedMembersChanged(newCompilation, newSymbol.ContainingType, semanticEdits);
+                                        }
                                     }
 
                                     // can't change visibility:
@@ -2341,8 +2349,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // If a constructor is deleted and replaced by an implicit one the update needs to aggregate updates to all data member initializers,
                                     // or if a property is deleted that is part of a records primary constructor, which is effectivelly moving from an explicit to implicit
                                     // initializer.
-                                    if (IsConstructorWithMemberInitializers(edit.OldNode) ||
-                                        IsRecordPrimaryConstructorProperty(edit.OldNode))
+                                    if (IsConstructorWithMemberInitializers(edit.OldNode))
                                     {
                                         processedSymbols.Remove(oldSymbol);
                                         DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration: null, syntaxMap, oldSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
@@ -2437,17 +2444,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                             ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol);
 
-                                            if (newSymbol is IMethodSymbol && newSymbol.ContainingType.IsRecord)
+                                            if (IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(newNode, out var isFirst))
                                             {
                                                 // If there is no body declared we can skip it entirely because for a property accessor
                                                 // it matches what the compiler would have previously implicitly implemented.
-                                                if (TryGetDeclarationBody(newNode) == null)
+                                                if (TryGetDeclarationBody(newNode) is null)
                                                 {
                                                     continue;
                                                 }
 
-                                                editKind = SemanticEditKind.Update;
+                                                // If there was a body, then the backing field of the property will be affected so we
+                                                // need to issue edits for the synthezied members. Only need to do it once.
+                                                if (isFirst)
+                                                {
+                                                    ReportRecordSynthesizedMembersChanged(newCompilation, newSymbol.ContainingType, semanticEdits);
+                                                }
                                             }
+
+                                            editKind = SemanticEditKind.Update;
                                         }
                                     }
                                     else if (newSymbol is IFieldSymbol { ContainingType: { TypeKind: TypeKind.Enum } })

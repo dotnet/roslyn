@@ -1122,6 +1122,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             && record.ParameterList is not null
             && record.ParameterList.Parameters.Any(p => p.Identifier.ValueText.Equals(name));
 
+        internal override bool IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, out bool isFirstAccessor)
+        {
+            isFirstAccessor = false;
+            if (declaration is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: PropertyDeclarationSyntax property } list } &&
+                IsRecordPrimaryConstructorProperty(property))
+            {
+                isFirstAccessor = list.Accessors[0] == declaration;
+                return true;
+            }
+            return false;
+        }
+
         internal override IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(Compilation compilation, INamedTypeSymbol record)
         {
             // All methods that are updated have well known names, and calling GetMembers(string) is

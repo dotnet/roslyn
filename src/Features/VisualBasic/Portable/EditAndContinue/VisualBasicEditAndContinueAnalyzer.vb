@@ -1000,6 +1000,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
+        Friend Overrides Function IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(declaration As SyntaxNode, ByRef isFirstAccessor As Boolean) As Boolean
+            Return False
+        End Function
+
         Friend Overrides Function GetRecordUpdatedSynthesizedMembers(compilation As Compilation, record As INamedTypeSymbol) As IEnumerable(Of ISymbol)
             Return SpecializedCollections.EmptyEnumerable(Of ISymbol)
         End Function
