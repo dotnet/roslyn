@@ -104,6 +104,41 @@ class Library
     }
 }
 ");
+
+            AddSourceFile("lib2.cs", @"
+extern alias SystemRuntime;
+using System;
+
+class Library
+{
+    void Method()
+    {
+        System.Reflection.Assembly a1 = null;
+        SystemRuntime::System.Reflection.Assembly a2 = null;
+        Console.WriteLine(a1);
+        Console.WriteLine(a2);
+    }
+}
+");
+
+            AddSourceFile("lib3.cs", @"
+extern alias SystemRuntime1;
+extern alias SystemRuntime2;
+using System;
+
+class Library
+{
+    void Method()
+    {
+        System.Reflection.Assembly a1 = null;
+        SystemRuntime1::System.Reflection.Assembly a2 = null;
+        SystemRuntime2::System.Reflection.Assembly a3 = null;
+        Console.WriteLine(a1);
+        Console.WriteLine(a2);
+        Console.WriteLine(a3);
+    }
+}
+");
         }
 
         public static IEnumerable<object?[]> GetCSharpData()
@@ -112,6 +147,8 @@ class Library
 
             Add(Permutate(new CommandInfo("hw.cs /target:exe /debug:embedded", "test.exe", null)));
             Add(Permutate(new CommandInfo("lib1.cs /target:library /debug:embedded", "test.dll", null)));
+            Add(Permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll /debug:embedded", "test.dll", null)));
+            Add(Permutate(new CommandInfo("lib3.cs /target:library /r:SystemRuntime1=System.Runtime.dll /r:SystemRuntime2=System.Runtime.dll /debug:embedded", "test.dll", null)));
 
             return list;
 
@@ -122,7 +159,7 @@ class Library
                 return e;
             }
 
-            IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
             {
                 // No options at all for optimization
                 yield return commandInfo;
@@ -209,7 +246,7 @@ End Module
                 return e;
             }
 
-            IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
             {
                 // No options at all for optimization
                 yield return commandInfo;
@@ -231,7 +268,7 @@ End Module
                 };
             }
 
-            IEnumerable<CommandInfo> PermutateRuntime(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> PermutateRuntime(CommandInfo commandInfo)
             {
                 yield return commandInfo with
                 {
