@@ -351,6 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 // simple case.  They're asking for the classifications for a tree that we already have.
                 // Just get the results from the tree and return them.
+
                 classifiedSpans.AddRange(tempList);
             }
 
