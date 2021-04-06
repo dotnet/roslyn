@@ -346,15 +346,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 foreach (var projectFileInfo in projectFileInfos)
                 {
-                    if (projectFileInfo.IsEmpty)
-                    {
-                        continue;
-                    }
 
                     var outputFilePath = projectFileInfo.OutputFilePath;
-                    RoslynDebug.AssertNotNull(outputFilePath);
                     var outputRefFilePath = projectFileInfo.OutputRefFilePath;
-                    RoslynDebug.AssertNotNull(outputRefFilePath);
 
                     if ((builder.Contains(outputFilePath) && File.Exists(outputFilePath)) ||
                         (builder.Contains(outputRefFilePath) && File.Exists(outputRefFilePath)))
