@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         ExpressionSyntax,
         InvocationExpressionSyntax,
         ObjectCreationExpressionSyntax,
-        MemberAccessExpressionSyntax,
         IdentifierNameSyntax>
     {
         [ImportingConstructor]
@@ -42,5 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments)
             => (argumentList as ArgumentListSyntax)!.WithArguments(arguments);
+
+        protected override bool IsClassSpecificExpression(SyntaxNode variable)
+            => variable.Kind() is SyntaxKind.ThisExpression or SyntaxKind.BaseExpression;
     }
 }

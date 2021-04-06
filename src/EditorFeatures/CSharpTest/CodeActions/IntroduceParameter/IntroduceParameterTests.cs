@@ -466,7 +466,7 @@ class TestClass
 
     void M1(int x, int y, int z) 
     {
-        this.M(z, y, x, GetM(z, y));
+        this.M(z, y, x, this.GetM(z, y));
     }
 }";
 
@@ -1337,7 +1337,7 @@ class TestClass
         return 5;
     }
 
-    public int M(int x, int y) 
+    public int M(int x, int y)
     {
         int m = [|x * this.M1();|]
         return m;
@@ -1348,8 +1348,19 @@ class TestClass
 @"using System;
 class TestClass
 {
-    void M(int x, int y, int m) 
+    public int M1()
     {
+        return 5;
+    }
+
+    public int GetM(int x)
+    {
+        return x * this.M1();
+    }
+
+    public int M(int x, int y, int m)
+    {
+        return m;
     }
 }";
 

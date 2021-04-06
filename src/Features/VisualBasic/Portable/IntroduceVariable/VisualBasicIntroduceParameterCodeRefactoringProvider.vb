@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicIntroduceParameterCodeRefactoringProvider
-        Inherits AbstractIntroduceParameterService(Of ExpressionSyntax, InvocationExpressionSyntax, ObjectCreationExpressionSyntax, MemberAccessExpressionSyntax, IdentifierNameSyntax)
+        Inherits AbstractIntroduceParameterService(Of ExpressionSyntax, InvocationExpressionSyntax, ObjectCreationExpressionSyntax, IdentifierNameSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -32,6 +32,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Protected Overrides Function UpdateArgumentListSyntax(node As SyntaxNode, arguments As SeparatedSyntaxList(Of SyntaxNode)) As SyntaxNode
             Return TryCast(node, ArgumentListSyntax)?.WithArguments(arguments)
+        End Function
+
+        Protected Overrides Function IsClassSpecificExpression(variable As SyntaxNode) As Boolean
+            Return variable.Kind() = (SyntaxKind.MeExpression Or SyntaxKind.MyClassExpression Or SyntaxKind.MyBaseExpression)
         End Function
 
     End Class

@@ -28,17 +28,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         TExpressionSyntax,
         TInvocationExpressionSyntax,
         TObjectCreationExpressionSyntax,
-        TMemberAccessExpressionSyntax,
         TIdentifierNameSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TObjectCreationExpressionSyntax : TExpressionSyntax
-        where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TIdentifierNameSyntax : TExpressionSyntax
     {
         protected abstract SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol);
         protected abstract SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl);
         protected abstract SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments);
+        protected abstract bool IsClassSpecificExpression(SyntaxNode variable);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -794,7 +793,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Depends upon the identifiers in the expression mapping back to parameters.
         /// Does not handle params parameters.
         /// </summary>
-        private static async Task<bool> ShouldExpressionDisplayCodeActionAsync(
+        private async Task<(bool shouldDisplay, bool containsClassExpression)> ShouldExpressionDisplayCodeActionAsync(
             Document document, TExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
@@ -806,25 +805,27 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
                 if (symbol is IRangeVariableSymbol or ILocalSymbol)
                 {
-                    return false;
+                    return (false, false);
                 }
 
                 if (symbol is IParameterSymbol parameter)
                 {
                     if (parameter.IsParams)
                     {
-                        return false;
+                        return (false, false);
                     }
                 }
             }
 
-            /*foreach (var variable in variablesInExpression)
+            foreach (var variable in variablesInExpression)
             {
-                var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
-                if (symbol.Thi
-            }*/
+                if (IsClassSpecificExpression(variable))
+                {
+                    return (true, true);
+                }
+            }
 
-            return true;
+            return (true, false);
         }
 
         /// <summary>
@@ -836,7 +837,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
             CancellationToken cancellationToken)
         {
-            var shouldDisplay = await ShouldExpressionDisplayCodeActionAsync(document, expression, cancellationToken).ConfigureAwait(false);
+            var (shouldDisplay, containsClassExpression) = await ShouldExpressionDisplayCodeActionAsync(
+                document, expression, cancellationToken).ConfigureAwait(false);
             if (!shouldDisplay)
             {
                 return null;
@@ -848,8 +850,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var singleLineExpression = syntaxFacts.ConvertToSingleLine(expression);
             var nodeString = singleLineExpression.ToString();
 
-            actionsBuilder.Add(CreateNewCodeAction(FeaturesResources.and_update_call_sites_directly, allOccurrences: false, trampoline: false, overload: false));
-            actionsBuilderAllOccurrences.Add(CreateNewCodeAction(FeaturesResources.and_update_call_sites_directly, allOccurrences: true, trampoline: false, overload: false));
+            if (!containsClassExpression)
+            {
+                actionsBuilder.Add(CreateNewCodeAction(FeaturesResources.and_update_call_sites_directly, allOccurrences: false, trampoline: false, overload: false));
+                actionsBuilderAllOccurrences.Add(CreateNewCodeAction(FeaturesResources.and_update_call_sites_directly, allOccurrences: true, trampoline: false, overload: false));
+            }
 
             if (methodSymbol.MethodKind is not MethodKind.Constructor)
             {
