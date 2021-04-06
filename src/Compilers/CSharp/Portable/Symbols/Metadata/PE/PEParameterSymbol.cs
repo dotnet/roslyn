@@ -34,34 +34,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             IsCallerFilePath = 0x1 << 5,
             IsCallerLineNumber = 0x1 << 6,
             IsCallerMemberName = 0x1 << 7,
-            IsCallerArgumentExpression = 0x1 << 8,
         }
 
         private struct PackedFlags
         {
             // Layout:
-            // |..|fffffffff|n|rr|ccccccccc|vvvvvvvvv|
+            // |...|fffffffff|n|rr|cccccccc|vvvvvvvv|
             // 
-            // v = decoded well known attribute values. 9 bits.
-            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 9 bits.
+            // v = decoded well known attribute values. 8 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
-            // Current total = 30 bits.
+            // Current total = 28 bits.
 
             private const int WellKnownAttributeDataOffset = 0;
-            private const int WellKnownAttributeCompletionFlagOffset = 9;
-            private const int RefKindOffset = 18;
-            private const int FlowAnalysisAnnotationsOffset = 22;
+            private const int WellKnownAttributeCompletionFlagOffset = 8;
+            private const int RefKindOffset = 16;
+            private const int FlowAnalysisAnnotationsOffset = 20;
 
             private const int RefKindMask = 0x3;
 
-            private const int WellKnownAttributeDataMask = (0x1 << 9) - 1;
+            private const int WellKnownAttributeDataMask = (0x1 << 8) - 1;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
             private const int FlowAnalysisAnnotationsMask = 0xFF;
 
-            private const int HasNameInMetadataBit = 0x1 << 20;
-            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 21;
+            private const int HasNameInMetadataBit = 0x1 << 18;
+            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 19;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -599,14 +598,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool HasCallerArgumentExpressionAttribute
-        {
-            get
-            {
-                return _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
-            }
-        }
-
         internal override bool IsCallerLineNumber
         {
             get
@@ -667,39 +658,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        private int? _cachedCallerArgumentExpressionParameterIndex;
+
         internal override int CallerArgumentExpressionParameterIndex
         {
             get
             {
-                const WellKnownAttributeFlags flag = WellKnownAttributeFlags.IsCallerArgumentExpression;
-
-                if (!_packedFlags.TryGetWellKnownAttribute(flag, out bool value))
+                if (_cachedCallerArgumentExpressionParameterIndex.HasValue)
                 {
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    bool isCallerArgumentExpression = !HasCallerLineNumberAttribute
-                        && !HasCallerFilePathAttribute
-                        && !HasCallerMemberNameAttribute
-                        && HasCallerArgumentExpressionAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
-
-                    value = _packedFlags.SetWellKnownAttribute(flag, isCallerArgumentExpression);
+                    return _cachedCallerArgumentExpressionParameterIndex.Value;
                 }
 
-                if (value)
+                var info = _moduleSymbol.Module.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                bool isCallerArgumentExpression = !HasCallerLineNumberAttribute
+                    && !HasCallerFilePathAttribute
+                    && !HasCallerMemberNameAttribute
+                    && info.HasValue
+                    && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
+
+
+
+                if (isCallerArgumentExpression)
                 {
-                    var info = _moduleSymbol.Module.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
-                    Debug.Assert(info.HasValue);
                     _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
                     var parameters = ContainingSymbol.GetParameters();
                     for (int i = 0; i < parameters.Length; i++)
                     {
                         if (parameters[i].Name == parameterName)
                         {
+                            _cachedCallerArgumentExpressionParameterIndex = i;
                             return i;
                         }
                     }
                 }
 
+                _cachedCallerArgumentExpressionParameterIndex = -1;
                 return -1;
             }
         }
