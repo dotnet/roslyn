@@ -124,6 +124,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
 
+            public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
             public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 this.AssertIsForeground();
