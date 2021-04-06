@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             //      receiver with { P1 = e1, P2 = e2 }
             //
-            // if the receiver is a struct, then set the given struct properties:
+            // if the receiver is a struct, duplicate the value, then set the given struct properties:
             //
             //     var tmp = receiver;
             //     tmp.P1 = e1;

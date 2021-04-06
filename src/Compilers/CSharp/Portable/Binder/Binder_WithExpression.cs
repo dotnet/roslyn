@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (cloneMethod is null)
                 {
                     hasErrors = true;
-                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
+                    diagnostics.Add(ErrorCode.ERR_CannotClone, syntax.Expression.Location, receiverType);
                 }
                 else
                 {

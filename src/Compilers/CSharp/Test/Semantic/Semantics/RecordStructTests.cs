@@ -6377,6 +6377,8 @@ interface I1 {}
 var b = new B() { X = 1 };
 var b2 = b.M();
 System.Console.Write(b2.X);
+System.Console.Write("" "");
+System.Console.Write(b.X);
 
 public struct B
 {
@@ -6388,14 +6390,14 @@ public struct B
 }";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (11,16): error CS8652: The feature 'with on structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,16): error CS8652: The feature 'with on structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         return this with { X = 42 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this with { X = 42 }").WithArguments("with on structs").WithLocation(11, 16)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this with { X = 42 }").WithArguments("with on structs").WithLocation(13, 16)
                 );
 
             comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            var verifier = CompileAndVerify(comp, expectedOutput: "42 1");
             verifier.VerifyIL("B.M", @"
 {
   // Code size       18 (0x12)
@@ -6576,33 +6578,44 @@ public readonly record struct B(int X, int Y)
         public void WithExprOnStruct_OnTuple()
         {
             var src = @"
-var b = (1, 2);
-var b2 = M(b);
-System.Console.Write(b2.Item1);
-System.Console.Write(b2.Item2);
-
-static (int, int) M((int, int) b)
+class C
 {
-    return b with { Item1 = 42, Item2 = 43 };
+    static void Main()
+    {
+        var b = (1, 2);
+        var b2 = M(b);
+        System.Console.Write(b2.Item1);
+        System.Console.Write(b2.Item2);
+    }
+
+    static (int, int) M((int, int) b)
+    {
+        return b with { Item1 = 42, Item2 = 43 };
+    }
 }";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "4243");
-            verifier.VerifyIL("<Program>$.<<Main>$>g__M|0_0(System.ValueTuple<int, int>)", @"
+            verifier.VerifyIL("C.M", @"
 {
-  // Code size       22 (0x16)
+  // Code size       27 (0x1b)
   .maxstack  2
-  .locals init (System.ValueTuple<int, int> V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  ldc.i4.s   42
-  IL_0006:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  ldc.i4.s   43
-  IL_000f:  stfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0014:  ldloc.0
-  IL_0015:  ret
+  .locals init (System.ValueTuple<int, int> V_0,
+                System.ValueTuple<int, int> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  ldc.i4.s   42
+  IL_0007:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   43
+  IL_0010:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0015:  ldloc.0
+  IL_0016:  stloc.1
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ldloc.1
+  IL_001a:  ret
 }");
         }
 
@@ -6679,31 +6692,39 @@ static (int, int, int, int, int, int, int, int) M((int, int, int, int, int, int,
         public void WithExprOnStruct_OnReadonlyField()
         {
             var src = @"
-var b = new B { X = 1 };
+var b = new B { X = 1 }; // 1
 
 public struct B
 {
     public readonly int X;
     public B M()
     {
-        return this with { X = 42 };
+        return this with { X = 42 }; // 2
     }
     public static B M2(B b)
     {
-        return b with { X = 42 };
+        return b with { X = 42 }; // 3
+    }
+    public B(int i)
+    {
+        this = default;
+        _ = this with { X = 42 }; // 4
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,17): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                // var b = new B { X = 1 };
+                // var b = new B { X = 1 }; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "X").WithLocation(2, 17),
                 // (9,28): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         return this with { X = 42 };
+                //         return this with { X = 42 }; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "X").WithLocation(9, 28),
                 // (13,25): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
-                //         return b with { X = 42 };
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "X").WithLocation(13, 25)
+                //         return b with { X = 42 }; // 3
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "X").WithLocation(13, 25),
+                // (18,25): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         _ = this with { X = 42 }; // 4
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "X").WithLocation(18, 25)
                 );
         }
 
@@ -6757,7 +6778,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (10,16): error CS8858: The receiver type 'I' is not a valid record type and is not a value type.
                 //         return i with { X = 42 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "i").WithArguments("I").WithLocation(10, 16)
+                Diagnostic(ErrorCode.ERR_CannotClone, "i").WithArguments("I").WithLocation(10, 16)
                 );
         }
 
