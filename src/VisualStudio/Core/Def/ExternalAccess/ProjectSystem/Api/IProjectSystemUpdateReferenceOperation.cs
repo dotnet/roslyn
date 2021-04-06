@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
@@ -14,13 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// </summary>
         /// <returns>A boolean indicating success.</returns>
         /// <remarks>Throws <see cref="InvalidOperationException"/> if operation has already been applied.</remarks>
-        Task<bool> ApplyAsync();
+        Task<bool> ApplyAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Reverts a reference update operation to the project file.
         /// </summary>
         /// <returns>A boolean indicating success.</returns>
         /// <remarks>Throws <see cref="InvalidOperationException"/> if operation has not been applied.</remarks>
-        Task<bool> RevertAsync();
+        Task<bool> RevertAsync(CancellationToken cancellationToken);
     }
 }
