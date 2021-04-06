@@ -677,8 +677,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     && info.HasValue
                     && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
-
-
                 if (isCallerArgumentExpression)
                 {
                     _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
