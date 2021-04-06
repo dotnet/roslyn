@@ -41,20 +41,28 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                     IAssignmentOperation assignmentOperation => VisitAssignmentOperationAsync(assignmentOperation, cancellationToken),
 
-                    // All the operations in this group don't have meaningful use themselves, but the child operations
-                    // could be meaningful for value tracking. 
-                    // Ex: Binary operation of [| x + y |]
-                    // both x and y should be evaluated separately
-                    IBinaryOperation or
-                        IAwaitOperation or
-                        IBlockOperation => VisitChildrenAsync(operation, cancellationToken),
-
                     // Default to reporting if there is symbol information available
                     _ => VisitDefaultAsync(operation, cancellationToken)
                 };
 
             private async Task VisitDefaultAsync(IOperation operation, CancellationToken cancellationToken)
             {
+                // If an operation has children, desend in them by default. 
+                // For cases that should not be descendend into, they should be explicitly handled
+                // in VisitAsync. 
+                // Ex: Binary operation of [| x + y |]
+                // both x and y should be evaluated separately
+                var childrenVisited = await TryVisitChildrenAsync(operation, cancellationToken).ConfigureAwait(false);
+
+                // In cases where the child operations were visited, they would be added instead of the parent
+                // currently being evaluated. Do not add the parent as well since it would be redundent. 
+                // Ex: Binary operation of [| x + y |]
+                // both x and y should be evaluated separately, but the whole operation should not be reported
+                if (childrenVisited)
+                {
+                    return;
+                }
+
                 var semanticModel = operation.SemanticModel;
                 if (semanticModel is null)
                 {
@@ -70,12 +78,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 await AddOperationAsync(operation, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task VisitChildrenAsync(IOperation operation, CancellationToken cancellationToken)
+            private async Task<bool> TryVisitChildrenAsync(IOperation operation, CancellationToken cancellationToken)
             {
                 foreach (var child in operation.Children)
                 {
                     await VisitAsync(child, cancellationToken).ConfigureAwait(false);
                 }
+
+                return operation.Children.Any();
             }
 
             private Task VisitAssignmentOperationAsync(IAssignmentOperation assignmentOperation, CancellationToken cancellationToken)
