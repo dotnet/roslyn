@@ -54,11 +54,25 @@ namespace CSharpSyntaxGenerator
 
         private bool OnGen2GC()
         {
+            if (_strongReference is null)
+            {
+                // Avoid all work if _strongReference is not known to hold a value. This path offers a very fast common
+                // path at the possible expense of keeping an object alive longer than necessary.
+                //
+                // Race conditions between this path and SetTarget could lead to an object being kept alive through a
+                // Gen 2 GC when it would otherwise be collected, but this is not a problem since the type only
+                // guarantees a lower bound on reachability. It is kept alive at least until the next Gen 2 GC, but
+                // makes no assurances that the object will be collected at the first available Gen 2 GC.
+                //
+                // Return true to keep receiving Gen 2 callbacks
+                return true;
+            }
+
             if (_weakReference.TryGetTarget(out var target)
                 && GC.GetGeneration(target) >= 2)
             {
                 // Clear the strong reference if the weak reference is in Gen 2
-                Interlocked.CompareExchange(ref _strongReference, null, target);
+                Interlocked.CompareExchange<T?>(ref _strongReference, null, target);
             }
 
             // Return true to keep receiving Gen 2 callbacks
