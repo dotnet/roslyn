@@ -31,38 +31,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             HasCallerFilePathAttribute = 0x1 << 2,
             HasCallerLineNumberAttribute = 0x1 << 3,
             HasCallerMemberNameAttribute = 0x1 << 4,
-            HasCallerArgumentExpressionAttribute = 0x1 << 5,
-            IsCallerFilePath = 0x1 << 6,
-            IsCallerLineNumber = 0x1 << 7,
-            IsCallerMemberName = 0x1 << 8,
-            IsCallerArgumentExpression = 0x1 << 9,
+            IsCallerFilePath = 0x1 << 5,
+            IsCallerLineNumber = 0x1 << 6,
+            IsCallerMemberName = 0x1 << 7,
+            IsCallerArgumentExpression = 0x1 << 8,
         }
 
         private struct PackedFlags
         {
             // Layout:
-            // |fffffffff|n|rr|cccccccccc|vvvvvvvvvv|
+            // |..|fffffffff|n|rr|ccccccccc|vvvvvvvvv|
             // 
-            // v = decoded well known attribute values. 10 bits.
-            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 10 bits.
+            // v = decoded well known attribute values. 9 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 9 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
-            // Current total = 32 bits. CAN'T ADD MORE FLAGS WITHOUT UPDATING TO LONG.
+            // Current total = 30 bits.
 
             private const int WellKnownAttributeDataOffset = 0;
-            private const int WellKnownAttributeCompletionFlagOffset = 10;
-            private const int RefKindOffset = 20;
-            private const int FlowAnalysisAnnotationsOffset = 24;
+            private const int WellKnownAttributeCompletionFlagOffset = 9;
+            private const int RefKindOffset = 18;
+            private const int FlowAnalysisAnnotationsOffset = 22;
 
             private const int RefKindMask = 0x3;
 
-            private const int WellKnownAttributeDataMask = (0x1 << 10) - 1;
+            private const int WellKnownAttributeDataMask = (0x1 << 9) - 1;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
             private const int FlowAnalysisAnnotationsMask = 0xFF;
 
-            private const int HasNameInMetadataBit = 0x1 << 22;
-            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 23;
+            private const int HasNameInMetadataBit = 0x1 << 20;
+            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 21;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -604,15 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasCallerArgumentExpressionAttribute;
-
-                bool value;
-                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
-                {
-                    value = _packedFlags.SetWellKnownAttribute(flag, _moduleSymbol.Module.HasAttribute(_handle,
-                        AttributeDescription.CallerArgumentExpressionAttribute));
-                }
-                return value;
+                return _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
             }
         }
 
