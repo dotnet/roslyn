@@ -14,6 +14,8 @@
 # it's fine to call `build.ps1 -build -testDesktop` followed by repeated calls to
 # `.\build.ps1 -testDesktop`.
 
+# Here is a comment
+
 [CmdletBinding(PositionalBinding=$false)]
 param (
   [string][Alias('c')]$configuration = "Debug",
