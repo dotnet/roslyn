@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         ExpressionSyntax,
         InvocationExpressionSyntax,
         ObjectCreationExpressionSyntax,
+        MemberAccessExpressionSyntax,
         IdentifierNameSyntax>
     {
         [ImportingConstructor]
@@ -36,7 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl)
         {
-            return variableDecl.Parent?.Parent;
+            return variableDecl.Parent?.Parent as LocalDeclarationStatementSyntax;
         }
+
+        protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments)
+            => (argumentList as ArgumentListSyntax)!.WithArguments(arguments);
     }
 }

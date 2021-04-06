@@ -1305,10 +1305,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryCast(node, ObjectCreationExpressionSyntax)?.ArgumentList
         End Function
 
-        Public Function UpdateArgumentListSyntax(node As SyntaxNode, arguments As SeparatedSyntaxList(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFacts.UpdateArgumentListSyntax
-            Return TryCast(node, ArgumentListSyntax)?.WithArguments(arguments)
-        End Function
-
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFacts.ConvertToSingleLine
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function

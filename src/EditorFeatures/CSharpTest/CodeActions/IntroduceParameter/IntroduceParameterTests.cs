@@ -434,6 +434,46 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionWithSingleMethodCallAndAccessorsTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z)
+    {
+        int m = [|y * x|];
+    }
+
+    void M1(int x, int y, int z) 
+    {
+        this.M(z, y, x);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int GetM(int x, int y)
+    {
+        return y * x;
+    }
+
+    void M(int x, int y, int z, int m)
+    {
+    }
+
+    void M1(int x, int y, int z) 
+    {
+        this.M(z, y, x, GetM(z, y));
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestExpressionWithSingleMethodCallTrampolineAllOccurrences()
         {
             var code =
@@ -1283,6 +1323,37 @@ class TestClass
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestThisKeywordInExpression()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    public int M1()
+    {
+        return 5;
+    }
+
+    public int M(int x, int y) 
+    {
+        int m = [|x * this.M1();|]
+        return m;
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int m) 
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
     }
 }
