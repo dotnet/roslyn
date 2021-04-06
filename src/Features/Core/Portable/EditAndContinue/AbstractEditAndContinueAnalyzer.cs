@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Return true if the declaration is a property that represents one of the parameters in a records primary constructor.
         /// </summary>
-        internal abstract bool IsRecordPrimaryConstructorProperty(SyntaxNode declaration);
+        internal abstract bool IsPropertyDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration);
 
         /// <summary>
         /// Return true if the declaration is a property accessor for a property that represents one of the parameters in a records primary constructor.

@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsRecordPrimaryConstructorParameter(SyntaxNode declaration)
             => declaration is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } };
 
-        internal override bool IsRecordPrimaryConstructorProperty(SyntaxNode declaration)
+        internal override bool IsPropertyDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration)
             => declaration is PropertyDeclarationSyntax { Parent: RecordDeclarationSyntax record, Identifier: { ValueText: var name } }
             && record.ParameterList is not null
             && record.ParameterList.Parameters.Any(p => p.Identifier.ValueText.Equals(name));
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             isFirstAccessor = false;
             if (declaration is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: PropertyDeclarationSyntax property } list } &&
-                IsRecordPrimaryConstructorProperty(property))
+                IsPropertyDeclarationMatchingPrimaryConstructorParameter(property))
             {
                 isFirstAccessor = list.Accessors[0] == declaration;
                 return true;
