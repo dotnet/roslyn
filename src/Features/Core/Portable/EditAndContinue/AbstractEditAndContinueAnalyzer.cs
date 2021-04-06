@@ -2417,14 +2417,38 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // or is replacing an implicitly generated one (e.g. parameterless constructor, auto-generated record methods, etc.)
                                     oldContainingType = oldSymbol.ContainingType;
 
-                                    if (oldSymbol.IsImplicitlyDeclared && oldSymbol.DeclaredAccessibility != newSymbol.DeclaredAccessibility)
+                                    if (oldSymbol.IsImplicitlyDeclared)
                                     {
                                         // Replace implicit declaration with an explicit one with a different visibility is a rude edit.
-                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingVisibility,
-                                            GetDiagnosticSpan(edit.NewNode, edit.Kind),
-                                            arguments: new[] { GetDisplayName(edit.NewNode, edit.Kind) }));
+                                        if (oldSymbol.DeclaredAccessibility != newSymbol.DeclaredAccessibility)
+                                        {
+                                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingVisibility,
+                                                GetDiagnosticSpan(edit.NewNode, edit.Kind),
+                                                arguments: new[] { GetDisplayName(edit.NewNode, edit.Kind) }));
 
-                                        continue;
+                                            continue;
+                                        }
+
+                                        // If a user explicitly implements a member of a record then we want to issue an update, not an insert.
+                                        if (oldSymbol.DeclaringSyntaxReferences.Length == 1)
+                                        {
+                                            var oldNode = GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences[0], cancellationToken);
+                                            var newNode = edit.NewNode;
+
+                                            ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol);
+
+                                            if (newSymbol is IMethodSymbol && newSymbol.ContainingType.IsRecord)
+                                            {
+                                                // If there is no body declared we can skip it entirely because for a property accessor
+                                                // it matches what the compiler would have previously implicitly implemented.
+                                                if (TryGetDeclarationBody(newNode) == null)
+                                                {
+                                                    continue;
+                                                }
+
+                                                editKind = SemanticEditKind.Update;
+                                            }
+                                        }
                                     }
                                     else if (newSymbol is IFieldSymbol { ContainingType: { TypeKind: TypeKind.Enum } })
                                     {
