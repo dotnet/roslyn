@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -2261,7 +2260,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorCode = ErrorCode.ERR_MethDelegateMismatch;
                             break;
                         default:
-                            errorCode = fromAddressOf ? ErrorCode.ERR_AddressOfToNonFunctionPointer : ErrorCode.ERR_MethGrpToNonDel;
+                            if (fromAddressOf)
+                            {
+                                errorCode = ErrorCode.ERR_AddressOfToNonFunctionPointer;
+                            }
+                            else if (targetType.SpecialType == SpecialType.System_Delegate)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, location);
+                                return;
+                            }
+                            else
+                            {
+                                errorCode = ErrorCode.ERR_MethGrpToNonDel;
+                            }
                             break;
                     }
 

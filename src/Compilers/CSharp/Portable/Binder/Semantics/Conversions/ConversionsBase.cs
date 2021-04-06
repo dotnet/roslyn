@@ -1393,13 +1393,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
 
-            if (type.IsDelegateType())
+            if (type.SpecialType == SpecialType.System_Delegate)
+            {
+                return LambdaConversionResult.Success;
+            }
+            else if (type.IsDelegateType())
             {
                 return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type);
             }
-            else if (type.IsExpressionTree())
+            else if (type.IsGenericOrNonGenericExpressionType(out bool isGenericType))
             {
-                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                return isGenericType ?
+                    IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type) :
+                    LambdaConversionResult.Success;
             }
 
             return LambdaConversionResult.BadTargetType;

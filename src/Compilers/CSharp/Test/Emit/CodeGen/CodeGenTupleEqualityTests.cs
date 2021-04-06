@@ -1358,9 +1358,12 @@ class C
                 // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
                 //         System.Console.Write((null, () => 1) == (default, default));
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "<null>", "default").WithLocation(6, 30),
-                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'lambda expression' and 'default'
+                // (6,37): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.Write((null, () => 1) == (default, default));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "lambda expression", "default").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(6, 37),
+                // (6,37): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((null, () => 1) == (default, default));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(6, 37),
                 // (7,30): error CS0034: Operator '==' is ambiguous on operands of type '(<null>, lambda expression)' and 'default'
                 //         System.Console.Write((null, () => 2) == default);
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 2) == default").WithArguments("==", "(<null>, lambda expression)", "default").WithLocation(7, 30)
@@ -1659,15 +1662,24 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
+                // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30),
-                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'method group'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(6, 65),
+                // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "method group").WithLocation(6, 30),
-                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(6, 65),
+                // (6,76): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 76),
+                // (6,76): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 76),
+                // (6,82): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 82),
+                // (6,82): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 82)
                 );
 
             var tree = comp.SyntaxTrees[0];
@@ -1691,20 +1703,20 @@ class C
 
             // ... its first lambda ...
             var firstLambda = tuple2.Arguments[1].Expression;
-            Assert.Null(model.GetTypeInfo(firstLambda).Type);
-            Assert.Null(model.GetTypeInfo(firstLambda).ConvertedType);
+            Assert.Equal("System.Action", model.GetTypeInfo(firstLambda).Type.ToTestDisplayString());
+            Assert.Equal("System.Delegate", model.GetTypeInfo(firstLambda).ConvertedType.ToTestDisplayString());
 
             // ... its method group ...
             var methodGroup = tuple2.Arguments[2].Expression;
             Assert.Null(model.GetTypeInfo(methodGroup).Type);
-            Assert.Null(model.GetTypeInfo(methodGroup).ConvertedType);
+            Assert.Equal("System.Delegate", model.GetTypeInfo(methodGroup).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(methodGroup).Symbol);
             Assert.Equal(new[] { "void C.Main()" }, model.GetSymbolInfo(methodGroup).CandidateSymbols.Select(s => s.ToTestDisplayString()));
 
             // ... its second lambda and the symbols it uses
             var secondLambda = tuple2.Arguments[3].Expression;
-            Assert.Null(model.GetTypeInfo(secondLambda).Type);
-            Assert.Null(model.GetTypeInfo(secondLambda).ConvertedType);
+            Assert.Equal("System.Func<System.Int32, System.Int32>", model.GetTypeInfo(secondLambda).Type.ToTestDisplayString());
+            Assert.Equal("System.Delegate", model.GetTypeInfo(secondLambda).ConvertedType.ToTestDisplayString());
 
             var addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
             Assert.Equal("i + j", addition.ToString());
@@ -1986,9 +1998,9 @@ public class C
                 // (6,13): error CS0815: Cannot assign (<null>, <null>) to an implicitly-typed variable
                 //         var t = (null, null);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "t = (null, null)").WithArguments("(<null>, <null>)").WithLocation(6, 13),
-                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
+                // (7,22): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (null == (() => {}) ) {}
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null == (() => {})").WithArguments("==", "<null>", "lambda expression").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => {}").WithArguments("inferred delegate type").WithLocation(7, 22),
                 // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         if ("" == 1) {}
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @""""" == 1").WithArguments("==", "string", "int").WithLocation(8, 13)

@@ -5833,6 +5833,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DefaultLiteralNoTargetType" xml:space="preserve">
     <value>There is no target type for the default literal.</value>
   </data>
+  <data name="ERR_CannotInferDelegateType" xml:space="preserve">
+    <value>The delegate type could not be inferred.</value>
+  </data>
   <data name="ERR_SingleElementPositionalPatternRequiresDisambiguation" xml:space="preserve">
     <value>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</value>
   </data>
@@ -6593,6 +6596,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureLambdaAttributes" xml:space="preserve">
     <value>lambda attributes</value>
+  </data>
+  <data name="IDS_FeatureInferredDelegateType" xml:space="preserve">
+    <value>inferred delegate type</value>
   </data>
   <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
     <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>

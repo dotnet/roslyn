@@ -1310,7 +1310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
             return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
         }
-#nullable disable
 
         private BoundExpression BindSizeOf(SizeOfExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
@@ -1328,7 +1327,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
 
-#nullable enable
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, BindingDiagnosticBag diagnostics)
         {
@@ -3017,7 +3015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private TypeWithAnnotations GetCorrespondingParameterTypeWithAnnotations(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
+        private static TypeWithAnnotations GetCorrespondingParameterTypeWithAnnotations(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {
             int paramNum = result.ParameterFromArgument(arg);
             var type = parameters[paramNum].TypeWithAnnotations;
@@ -8302,7 +8300,95 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool ReportDelegateInvokeUseSiteDiagnostic(BindingDiagnosticBag diagnostics, TypeSymbol possibleDelegateType,
+#nullable enable
+        internal (NamedTypeSymbol?, MethodSymbol?) GetMethodGroupDelegateType(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
+        {
+            if (GetUniqueMethodGroupMethod(node, diagnostics) is { } method &&
+                GetMethodGroupOrLambdaDelegateType(method.RefKind, method.ReturnsVoid ? default : method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations, diagnostics) is { } delegateType)
+            {
+                return (delegateType, method);
+            }
+            return default;
+        }
+
+        private MethodSymbol? GetUniqueMethodGroupMethod(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
+        {
+            if (node.Methods.Length > 1)
+            {
+                return null;
+            }
+            var method = node.Methods.SingleOrDefault();
+            if (node.SearchExtensionMethods)
+            {
+                var receiver = node.ReceiverOpt!;
+                foreach (var scope in new ExtensionMethodScopes(this))
+                {
+                    var methodGroup = MethodGroup.GetInstance();
+                    try
+                    {
+                        PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, diagnostics);
+                        foreach (var m in methodGroup.Methods)
+                        {
+                            if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced)
+                            {
+                                if (method is { })
+                                {
+                                    return null;
+                                }
+                                method = reduced;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        methodGroup.Free();
+                    }
+                }
+            }
+            if (method is { } && !node.TypeArgumentsOpt.IsDefault)
+            {
+                method = method.ConstructedFrom.Construct(node.TypeArgumentsOpt);
+            }
+            return method;
+        }
+
+        // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
+        // Consider using that method directly since it also synthesizes delegates if necessary.
+        internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
+            RefKind returnRefKind,
+            TypeWithAnnotations returnTypeOpt,
+            ImmutableArray<RefKind> parameterRefKinds,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (returnRefKind == RefKind.None &&
+                (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)))
+            {
+                var wkDelegateType = returnTypeOpt.HasType ?
+                    WellKnownTypes.GetWellKnownFunctionDelegate(invokeArgumentCount: parameterTypes.Length) :
+                    WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length);
+
+                if (wkDelegateType != WellKnownType.Unknown)
+                {
+                    // PROTOTYPE: Report use-site diagnostics.
+                    var delegateType = Compilation.GetWellKnownType(wkDelegateType);
+                    if (!delegateType.HasUseSiteError)
+                    {
+                        diagnostics.AddDependencies(delegateType);
+                        if (returnTypeOpt.HasType)
+                        {
+                            parameterTypes = parameterTypes.Add(returnTypeOpt);
+                        }
+                        return parameterTypes.Length == 0 ? delegateType : delegateType.Construct(parameterTypes);
+                    }
+                }
+            }
+
+            return null;
+        }
+#nullable disable
+
+        internal static bool ReportDelegateInvokeUseSiteDiagnostic(BindingDiagnosticBag diagnostics, TypeSymbol possibleDelegateType,
             Location location = null, SyntaxNode node = null)
         {
             Debug.Assert((location == null) ^ (node == null));
