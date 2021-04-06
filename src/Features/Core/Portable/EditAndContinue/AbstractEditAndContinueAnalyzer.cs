@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool IsRecordPrimaryConstructorProperty(SyntaxNode declaration);
 
         /// <summary>
-        /// Returns true if the symbol in question is a known synthesized member of a record
+        /// Returns the list of known synthesized members of a record that need to have edits issued for them when fields or properties change.
         /// </summary>
         internal abstract IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(Compilation compilation, INamedTypeSymbol record);
 
