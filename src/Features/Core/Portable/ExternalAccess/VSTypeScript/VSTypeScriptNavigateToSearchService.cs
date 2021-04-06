@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
@@ -33,22 +35,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public async Task<NavigateToSearchLocation> SearchDocumentAsync(
+            Document document, string searchPattern, IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            if (_searchService == null)
-                return ImmutableArray<INavigateToSearchResult>.Empty;
+            if (_searchService != null)
+            {
+                var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
+            }
 
-            var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(r => Convert(r));
+            return NavigateToSearchLocation.Latest;
         }
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public async Task<NavigateToSearchLocation> SearchProjectAsync(
+            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
+            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            if (_searchService == null)
-                return ImmutableArray<INavigateToSearchResult>.Empty;
+            if (_searchService != null)
+            {
+                var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
+            }
 
-            var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(r => Convert(r));
+            return NavigateToSearchLocation.Latest;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
@@ -117,6 +131,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             public Document Document => _navigableItem.Document;
 
             public TextSpan SourceSpan => _navigableItem.SourceSpan;
+
+            public bool IsStale => false;
 
             public ImmutableArray<INavigableItem> ChildItems
                 => _navigableItem.ChildItems.IsDefault

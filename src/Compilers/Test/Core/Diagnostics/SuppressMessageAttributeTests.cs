@@ -21,11 +21,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     {
         #region Local Suppression
 
-        [Fact]
-        public async Task LocalSuppressionOnType()
+        public static IEnumerable<string[]> QualifiedAttributeNames { get; } = new[] {
+            new[] { "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute" },
+            new[] { "System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute" },
+        };
+
+        public static IEnumerable<string[]> SimpleAttributeNames { get; } = new[] {
+            new[] { "SuppressMessage" },
+            new[] { "UnconditionalSuppressMessage" }
+        };
+
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task LocalSuppressionOnType(string attrName)
         {
             await VerifyCSharpAsync(@"
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"")]
+[" + attrName + @"(""Test"", ""Declaration"")]
 public class C
 {
 }
@@ -37,14 +48,15 @@ public class C1
                 Diagnostic("Declaration", "C1"));
         }
 
-        [Fact]
-        public async Task MultipleLocalSuppressionsOnSingleSymbol()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task MultipleLocalSuppressionsOnSingleSymbol(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[SuppressMessage(""Test"", ""Declaration"")]
-[SuppressMessage(""Test"", ""TypeDeclaration"")]
+[" + attrName + @"(""Test"", ""Declaration"")]
+[" + attrName + @"(""Test"", ""TypeDeclaration"")]
 public class C
 {
 }
@@ -52,14 +64,15 @@ public class C
                 new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C"), new WarningOnTypeDeclarationAnalyzer() });
         }
 
-        [Fact]
-        public async Task DuplicateLocalSuppressions()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task DuplicateLocalSuppressions(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[SuppressMessage(""Test"", ""Declaration"")]
-[SuppressMessage(""Test"", ""Declaration"")]
+[" + attrName + @"(""Test"", ""Declaration"")]
+[" + attrName + @"(""Test"", ""Declaration"")]
 public class C
 {
 }
@@ -67,13 +80,14 @@ public class C
                 new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("C") });
         }
 
-        [Fact]
-        public async Task LocalSuppressionOnMember()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task LocalSuppressionOnMember(string attrName)
         {
             await VerifyCSharpAsync(@"
 public class C
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"")]
+    [" + attrName + @"(""Test"", ""Declaration"")]
     public void Goo() {}
     public void Goo1() {}
 }
@@ -86,15 +100,16 @@ public class C
 
         #region Global Suppression
 
-        [Fact]
-        public async Task GlobalSuppressionOnNamespaces()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task GlobalSuppressionOnNamespaces(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Namespace"", Target=""N"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Namespace"", Target=""N.N1"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Namespace"", Target=""N4"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Namespace"", Target=""N"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Namespace"", Target=""N.N1"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Namespace"", Target=""N4"")]
 
 namespace N
 {
@@ -115,14 +130,15 @@ namespace N4
                 Diagnostic("Declaration", "N3"));
         }
 
-        [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
-        public async Task GlobalSuppressionOnNamespaces_NamespaceAndDescendants()
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task GlobalSuppressionOnNamespaces_NamespaceAndDescendants(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N.N1"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""namespaceanddescendants"", Target=""N4"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N.N1"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""namespaceanddescendants"", Target=""N4"")]
 
 namespace N
 {
@@ -149,15 +165,16 @@ namespace N.N1.N6.N7
                 Diagnostic("Declaration", "N"));
         }
 
-        [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
-        public async Task GlobalSuppressionOnTypesAndNamespaces_NamespaceAndDescendants()
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task GlobalSuppressionOnTypesAndNamespaces_NamespaceAndDescendants(string attrName)
         {
             var source = @"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N.N1.N2"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N4"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""C2"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N.N1.N2"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""NamespaceAndDescendants"", Target=""N4"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""C2"")]
 
 namespace N
 {
@@ -215,16 +232,17 @@ namespace N.N1.N2.N7
                 Diagnostic("Declaration", "C1"));
         }
 
-        [Fact]
-        public async Task GlobalSuppressionOnTypes()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task GlobalSuppressionOnTypes(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""Ef"")]
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""Egg"")]
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""Ele`2"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""Ef"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""Egg"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""Ele`2"")]
 
 public class E
 {
@@ -240,16 +258,17 @@ public delegate void Ele<T1,T2>(T1 x, T2 y);
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("E") });
         }
 
-        [Fact]
-        public async Task GlobalSuppressionOnNestedTypes()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task GlobalSuppressionOnNestedTypes(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""type"", Target=""C.A1"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""type"", Target=""C+A2"")]
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""member"", Target=""C+A3"")]
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""member"", Target=""C.A4"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""type"", Target=""C.A1"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""type"", Target=""C+A2"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""member"", Target=""C+A3"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""member"", Target=""C.A4"")]
 
 public class C
 {
@@ -265,11 +284,12 @@ public class C
                 Diagnostic("Declaration", "A4"));
         }
 
-        [Fact]
-        public async Task GlobalSuppressionOnBasicModule()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task GlobalSuppressionOnBasicModule(string attrName)
         {
             await VerifyBasicAsync(@"
-<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"", Scope=""type"", Target=""M"")>
+<assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""type"", Target=""M"")>
 
 Module M
     Class C
@@ -279,14 +299,15 @@ End Module
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("M") });
         }
 
-        [Fact]
-        public async Task GlobalSuppressionOnMembers()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task GlobalSuppressionOnMembers(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Member"", Target=""C.#M1"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Member"", Target=""C.#M3`1()"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Member"", Target=""C.#M1"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Member"", Target=""C.#M3`1()"")]
 
 public class C
 {
@@ -299,14 +320,15 @@ public class C
                 new[] { Diagnostic("Declaration", "M2") });
         }
 
-        [Fact]
-        public async Task GlobalSuppressionOnValueTupleMemberWithDocId()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task GlobalSuppressionOnValueTupleMemberWithDocId(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Member"", Target=""~M:C.M~System.Threading.Tasks.Task{System.ValueTuple{System.Boolean,ErrorCode}}"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Member"", Target=""~M:C.M~System.Threading.Tasks.Task{System.ValueTuple{System.Boolean,ErrorCode}}"")]
 
 enum ErrorCode {}
 
@@ -318,14 +340,15 @@ class C
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("M") });
         }
 
-        [Fact]
-        public async Task MultipleGlobalSuppressionsOnSingleSymbol()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task MultipleGlobalSuppressionsOnSingleSymbol(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
-[assembly: SuppressMessage(""Test"", ""TypeDeclaration"", Scope=""Type"", Target=""E"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[assembly: " + attrName + @"(""Test"", ""TypeDeclaration"", Scope=""Type"", Target=""E"")]
 
 public class E
 {
@@ -334,14 +357,15 @@ public class E
                 new DiagnosticAnalyzer[] { new WarningOnNamePrefixDeclarationAnalyzer("E"), new WarningOnTypeDeclarationAnalyzer() });
         }
 
-        [Fact]
-        public async Task DuplicateGlobalSuppressions()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task DuplicateGlobalSuppressions(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
-[assembly: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[assembly: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
 
 public class E
 {
@@ -371,12 +395,13 @@ public class E
                 Diagnostic("Comment", "' Comment"));
         }
 
-        [Fact]
-        public async Task GloballySuppressSyntaxDiagnosticsCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task GloballySuppressSyntaxDiagnosticsCSharp(string attrName)
         {
             await VerifyCSharpAsync(@"
 // before module attributes
-[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"")]
+[module: " + attrName + @"(""Test"", ""Comment"")]
 // before class
 public class C
 {
@@ -391,12 +416,13 @@ public class C
                 new[] { new WarningOnCommentAnalyzer() });
         }
 
-        [Fact]
-        public async Task GloballySuppressSyntaxDiagnosticsBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task GloballySuppressSyntaxDiagnosticsBasic(string attrName)
         {
             await VerifyBasicAsync(@"
 ' before module attributes
-<Module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"")>
+<Module: " + attrName + @"(""Test"", ""Comment"")>
 ' before class
 Public Class C
     ' before sub
@@ -409,12 +435,13 @@ End Class
                 new[] { new WarningOnCommentAnalyzer() });
         }
 
-        [Fact]
-        public async Task GloballySuppressSyntaxDiagnosticsOnTargetCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task GloballySuppressSyntaxDiagnosticsOnTargetCSharp(string attrName)
         {
             await VerifyCSharpAsync(@"
 // before module attributes
-[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope=""Member"" Target=""C.Goo():System.Void"")]
+[module: " + attrName + @"(""Test"", ""Comment"", Scope=""Member"" Target=""C.Goo():System.Void"")]
 // before class
 public class C
 {
@@ -432,12 +459,13 @@ public class C
                 Diagnostic("Comment", "// after class"));
         }
 
-        [Fact]
-        public async Task GloballySuppressSyntaxDiagnosticsOnTargetBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task GloballySuppressSyntaxDiagnosticsOnTargetBasic(string attrName)
         {
             await VerifyBasicAsync(@"
 ' before module attributes
-<Module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope:=""Member"", Target:=""C.Goo():System.Void"")>
+<Module: " + attrName + @"(""Test"", ""Comment"", Scope:=""Member"", Target:=""C.Goo():System.Void"")>
 ' before class
 Public Class C
     ' before sub
@@ -453,11 +481,12 @@ End Class
                 Diagnostic("Comment", "' after class"));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnNamespaceDeclarationCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnNamespaceDeclarationCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope=""namespace"", Target=""A.B"")]
+[assembly: " + attrName + @"(""Test"", ""Token"", Scope=""namespace"", Target=""A.B"")]
 namespace A
 [|{
     namespace B
@@ -474,11 +503,12 @@ namespace A
                 Diagnostic("Token", "}").WithLocation(9, 1));
         }
 
-        [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
-        public async Task SuppressSyntaxDiagnosticsOnNamespaceAndChildDeclarationCSharp()
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnNamespaceAndChildDeclarationCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope=""NamespaceAndDescendants"", Target=""A.B"")]
+[assembly: " + attrName + @"(""Test"", ""Token"", Scope=""NamespaceAndDescendants"", Target=""A.B"")]
 namespace A
 [|{
     namespace B
@@ -491,13 +521,14 @@ namespace A
                 Diagnostic("Token", "}").WithLocation(9, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnNamespaceDeclarationBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnNamespaceDeclarationBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
-<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope:=""Namespace"", Target:=""A.B"")>
+<assembly: " + attrName + @"(""Test"", ""Token"", Scope:=""Namespace"", Target:=""A.B"")>
 Namespace [|A
-    Namespace B 
+    Namespace B
         Class C
         End Class
     End Namespace
@@ -511,13 +542,14 @@ End|] Namespace
                 Diagnostic("Token", "End").WithLocation(8, 1));
         }
 
-        [Fact, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
-        public async Task SuppressSyntaxDiagnosticsOnNamespaceAndDescendantsDeclarationBasic()
+        [Theory, WorkItem(486, "https://github.com/dotnet/roslyn/issues/486")]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnNamespaceAndDescendantsDeclarationBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
-<assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"", Scope:=""NamespaceAndDescendants"", Target:=""A.B"")>
+<assembly: " + attrName + @"(""Test"", ""Token"", Scope:=""NamespaceAndDescendants"", Target:=""A.B"")>
 Namespace [|A
-    Namespace B 
+    Namespace B
         Class C
         End Class
     End Namespace
@@ -541,27 +573,28 @@ End|] Namespace
                 diagnostics: Diagnostic("Comment", "' In root namespace").WithLocation(3, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnTypesCSharp()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnTypesCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
 namespace N
 [|{
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     class C<T> {}
 
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     struct S<T> {}
 
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     interface I<T>{}
 
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     enum E {}
 
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     delegate void D();
 }|]
 ",
@@ -569,35 +602,36 @@ namespace N
                 Diagnostic("Token", "}").WithLocation(20, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnTypesBasic()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnTypesBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Imports System.Diagnostics.CodeAnalysis
 
 Namespace [|N
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Module M
     End Module
 
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Class C
     End Class
 
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Structure S
     End Structure
 
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Interface I
     End Interface
 
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Enum E
         None
     End Enum
 
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Delegate Sub D()
 End|] Namespace
 ",
@@ -605,18 +639,19 @@ End|] Namespace
                 Diagnostic("Token", "End").WithLocation(28, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnFieldsCSharp()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnFieldsCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
 class C
 [|{
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     int field1 = 1, field2 = 2;
 
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     int field3 = 3;
 }|]
 ",
@@ -624,13 +659,14 @@ class C
                 Diagnostic("Token", "}"));
         }
 
-        [Fact]
+        [Theory]
         [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
-        public async Task SuppressSyntaxDiagnosticsOnEnumFieldsCSharp()
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnEnumFieldsCSharp(string attrName)
         {
             await VerifyCSharpAsync(@"
 // before module attributes
-[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope=""Member"" Target=""E.Field1"")]
+[module: " + attrName + @"(""Test"", ""Comment"", Scope=""Member"" Target=""E.Field1"")]
 // before enum
 public enum E
 {
@@ -648,18 +684,19 @@ public enum E
                 Diagnostic("Comment", "// after enum"));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnFieldsBasic()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnFieldsBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Imports System.Diagnostics.CodeAnalysis
 
 Class [|C
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Public field1 As Integer = 1,
            field2 As Double = 2.0
 
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Public field3 As Integer = 3
 End|] Class
 ",
@@ -667,16 +704,17 @@ End|] Class
                 Diagnostic("Token", "End"));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnEventsCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnEventsCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
 [|{
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     public event System.Action<int> E1;
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     public event System.Action<int> E2, E3;
 }|]
 ",
@@ -684,17 +722,18 @@ class C
                 Diagnostic("Token", "}"));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnEventsBasic()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnEventsBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Imports System.Diagnostics.CodeAnalysis
 
 Class [|C
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Public Event E1 As System.Action(Of Integer)
 
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Public Event E2(ByVal arg As Integer)
 End|] Class
 ",
@@ -702,15 +741,16 @@ End|] Class
                 Diagnostic("Token", "End"));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnEventAddAccessorCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnEventAddAccessorCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
 {
     public event System.Action<int> E
     [|{
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        [" + attrName + @"(""Test"", ""Token"")]
         add {}
         remove|] {}
     }
@@ -720,13 +760,14 @@ class C
                 Diagnostic("Token", "remove").WithLocation(8, 9));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnEventAddAccessorBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnEventAddAccessorBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Class C
     Public Custom Event E As System.Action(Of Integer[|)
-        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        <" + attrName + @"(""Test"", ""Token"")>
         AddHandler(value As Action(Of Integer))
         End AddHandler
         RemoveHandler|](value As Action(Of Integer))
@@ -740,8 +781,9 @@ End Class
                 Diagnostic("Token", "RemoveHandler"));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnEventRemoveAccessorCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnEventRemoveAccessorCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
@@ -749,7 +791,7 @@ class C
     public event System.Action<int> E
     {
         add {[|}
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        [" + attrName + @"(""Test"", ""Token"")]
         remove {}
     }|]
 }
@@ -758,15 +800,16 @@ class C
                 Diagnostic("Token", "}").WithLocation(9, 5));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnEventRemoveAccessorBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnEventRemoveAccessorBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Class C
     Public Custom Event E As System.Action(Of Integer)
         AddHandler(value As Action(Of Integer))
         End [|AddHandler
-        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        <" + attrName + @"(""Test"", ""Token"")>
         RemoveHandler(value As Action(Of Integer))
         End RemoveHandler
         RaiseEvent|](obj As Integer)
@@ -779,8 +822,9 @@ End Class
         }
 
         [WorkItem(1103442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1103442")]
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnRaiseEventAccessorBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnRaiseEventAccessorBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Class C
@@ -789,7 +833,7 @@ Class C
         End AddHandler
         RemoveHandler(value As Action(Of Integer))
         End [|RemoveHandler
-        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        <" + attrName + @"(""Test"", ""Token"")>
         RaiseEvent(obj As Integer)
         End RaiseEvent
     End|] Event
@@ -799,18 +843,19 @@ End Class
                 Diagnostic("Token", "End"));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnPropertyCSharp()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnPropertyCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
 class C
 [|{
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     int Property1 { get; set; }
 
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     int Property2
     {
         get { return 2; }
@@ -822,17 +867,18 @@ class C
                 Diagnostic("Token", "}").WithLocation(15, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnPropertyBasic()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnPropertyBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Imports System.Diagnostics.CodeAnalysis
 
 Class [|C
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Property Property1 As Integer
 
-    <SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Property Property2 As Integer
         Get
             Return 2
@@ -847,8 +893,9 @@ End|] Class
                 Diagnostic("Token", "End").WithLocation(17, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnPropertyGetterCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnPropertyGetterCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
@@ -856,7 +903,7 @@ class C
     int x;
     int Property
     [|{
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        [" + attrName + @"(""Test"", ""Token"")]
         get { return 2; }
         set|] { x = 2; }
     }
@@ -866,14 +913,15 @@ class C
                 Diagnostic("Token", "set").WithLocation(9, 9));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnPropertyGetterBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnPropertyGetterBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Class C
     Private x As Integer
     Property [Property] As [|Integer
-        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        <" + attrName + @"(""Test"", ""Token"")>
         Get
             Return 2
         End Get
@@ -887,8 +935,9 @@ End Class
                 Diagnostic("Token", "Set").WithLocation(9, 9));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnPropertySetterCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnPropertySetterCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
@@ -896,7 +945,7 @@ class C
     int x;
     int Property
     [|{
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        [" + attrName + @"(""Test"", ""Token"")]
         get { return 2; }
         set|] { x = 2; }
     }
@@ -906,8 +955,9 @@ class C
                 Diagnostic("Token", "set").WithLocation(9, 9));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnPropertySetterBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnPropertySetterBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Class C
@@ -916,7 +966,7 @@ Class C
         Get
             Return 2
         End [|Get
-        <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+        <" + attrName + @"(""Test"", ""Token"")>
         Set(value As Integer)
             x = value
         End Set
@@ -927,14 +977,15 @@ End Class
                 Diagnostic("Token", "End").WithLocation(12, 5));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnIndexerCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnIndexerCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
 {
     int x[|;
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     int this[int i]
     {
         get { return 2; }
@@ -946,8 +997,9 @@ class C
                 Diagnostic("Token", "}").WithLocation(11, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnIndexerGetterCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnIndexerGetterCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
@@ -955,7 +1007,7 @@ class C
     int x;
     int this[int i]
     [|{
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        [" + attrName + @"(""Test"", ""Token"")]
         get { return 2; }
         set|] { x = 2; }
     }
@@ -965,8 +1017,9 @@ class C
                 Diagnostic("Token", "set").WithLocation(9, 9));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnIndexerSetterCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnIndexerSetterCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
@@ -975,7 +1028,7 @@ class C
     int this[int i]
     {
         get { return 2; [|}
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+        [" + attrName + @"(""Test"", ""Token"")]
         set { x = 2; }
     }|]
 }
@@ -984,18 +1037,19 @@ class C
                 Diagnostic("Token", "}").WithLocation(10, 5));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnMethodCSharp()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnMethodCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
 abstract class C
 [|{
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     public void M1<T>() {}
 
-    [SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     public abstract void M2();
 }|]
 ",
@@ -1003,60 +1057,64 @@ abstract class C
                 Diagnostic("Token", "}").WithLocation(11, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnMethodBasic()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnMethodBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Imports System.Diagnostics.CodeAnalysis
 
 Public MustInherit Class [|C
-    <SuppressMessage(""Test"", ""Token"")> 
+    <" + attrName + @"(""Test"", ""Token"")>
     Public Function M2(Of T)() As Integer
         Return 0
-    End Function 
-    
-    <SuppressMessage(""Test"", ""Token"")> 
-    Public MustOverride Sub M3() 
+    End Function
+
+    <" + attrName + @"(""Test"", ""Token"")>
+    Public MustOverride Sub M3()
 End|] Class
 ",
                 Diagnostic("Token", "C").WithLocation(4, 26),
                 Diagnostic("Token", "End").WithLocation(12, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnOperatorCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnOperatorCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
 [|{
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
-    public static C operator +(C a, C b) 
+    [" + attrName + @"(""Test"", ""Token"")]
+    public static C operator +(C a, C b)
     {
         return null;
-    } 
+    }
 }|]
 ",
                 Diagnostic("Token", "{").WithLocation(3, 1),
                 Diagnostic("Token", "}").WithLocation(9, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnOperatorBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnOperatorBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Class [|C
-    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")> 
-    Public Shared Operator +(ByVal a As C, ByVal b As C) As C 
+    <" + attrName + @"(""Test"", ""Token"")>
+    Public Shared Operator +(ByVal a As C, ByVal b As C) As C
         Return Nothing
-    End Operator 
-End|] Class 
+    End Operator
+End|] Class
 ",
                 Diagnostic("Token", "C").WithLocation(2, 7),
                 Diagnostic("Token", "End").WithLocation(7, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnConstructorCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnConstructorCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class Base
@@ -1066,20 +1124,21 @@ class Base
 
 class C : Base
 [|{
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
-    public C() : base(0) {} 
+    [" + attrName + @"(""Test"", ""Token"")]
+    public C() : base(0) {}
 }|]
 ",
                 Diagnostic("Token", "{").WithLocation(8, 1),
                 Diagnostic("Token", "}").WithLocation(11, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnConstructorBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnConstructorBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Class [|C
-    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Public Sub New()
     End Sub
 End|] Class
@@ -1088,13 +1147,14 @@ End|] Class
                 Diagnostic("Token", "End").WithLocation(6, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnDestructorCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnDestructorCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
 [|{
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     ~C() {}
 }|]
 ",
@@ -1102,13 +1162,14 @@ class C
                 Diagnostic("Token", "}").WithLocation(6, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnNestedTypeCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnNestedTypeCSharp(string attrName)
         {
             await VerifyTokenDiagnosticsCSharpAsync(@"
 class C
 [|{
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")]
+    [" + attrName + @"(""Test"", ""Token"")]
     class D
     {
         class E
@@ -1121,12 +1182,13 @@ class C
                 Diagnostic("Token", "}").WithLocation(11, 1));
         }
 
-        [Fact]
-        public async Task SuppressSyntaxDiagnosticsOnNestedTypeBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressSyntaxDiagnosticsOnNestedTypeBasic(string attrName)
         {
             await VerifyTokenDiagnosticsBasicAsync(@"
 Class [|C
-    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Token"")>
+    <" + attrName + @"(""Test"", ""Token"")>
     Class D
         Class E
         End Class
@@ -1141,48 +1203,52 @@ End|] Class
 
         #region Special Cases
 
-        [Fact]
-        public async Task SuppressMessageCompilationEnded()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressMessageCompilationEnded(string attrName)
         {
             await VerifyCSharpAsync(
-                @"[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CompilationEnded"")]",
+                @"[module: " + attrName + @"(""Test"", ""CompilationEnded"")]",
                 new[] { new WarningOnCompilationEndedAnalyzer() });
         }
 
-        [Fact]
-        public async Task SuppressMessageOnPropertyAccessor()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressMessageOnPropertyAccessor(string attrName)
         {
             await VerifyCSharpAsync(@"
 public class C
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"")]
+    [" + attrName + @"(""Test"", ""Declaration"")]
     public string P { get; private set; }
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("get_") });
         }
 
-        [Fact]
-        public async Task SuppressMessageOnDelegateInvoke()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressMessageOnDelegateInvoke(string attrName)
         {
             await VerifyCSharpAsync(@"
 public class C
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"")]
+    [" + attrName + @"(""Test"", ""Declaration"")]
     delegate void D();
 }
 ",
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("Invoke") });
         }
 
-        [Fact]
-        public async Task SuppressMessageOnCodeBodyCSharp()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressMessageOnCodeBodyCSharp(string attrName)
         {
             await VerifyCSharpAsync(
                 @"
 public class C
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CodeBody"")]
+    [" + attrName + @"(""Test"", ""CodeBody"")]
     void Goo()
     {
         Goo();
@@ -1192,13 +1258,14 @@ public class C
                 new[] { new WarningOnCodeBodyAnalyzer(LanguageNames.CSharp) });
         }
 
-        [Fact]
-        public async Task SuppressMessageOnCodeBodyBasic()
+        [Theory]
+        [MemberData(nameof(QualifiedAttributeNames))]
+        public async Task SuppressMessageOnCodeBodyBasic(string attrName)
         {
             await VerifyBasicAsync(
                 @"
 Public Class C
-    <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CodeBody"")>
+    <" + attrName + @"(""Test"", ""CodeBody"")>
     Sub Goo()
         Goo()
     End Sub
@@ -1211,23 +1278,24 @@ End Class
 
         #region Attribute Decoding
 
-        [Fact]
-        public async Task UnnecessaryScopeAndTarget()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task UnnecessaryScopeAndTarget(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[SuppressMessage(""Test"", ""Declaration"", Scope=""Type"")]
+[" + attrName + @"(""Test"", ""Declaration"", Scope=""Type"")]
 public class C1
 {
 }
 
-[SuppressMessage(""Test"", ""Declaration"", Target=""C"")]
+[" + attrName + @"(""Test"", ""Declaration"", Target=""C"")]
 public class C2
 {
 }
 
-[SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""C"")]
+[" + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""C"")]
 public class C3
 {
 }
@@ -1235,15 +1303,16 @@ public class C3
                 new[] { new WarningOnNamePrefixDeclarationAnalyzer("C") });
         }
 
-        [Fact]
-        public async Task InvalidScopeOrTarget()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task InvalidScopeOrTarget(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Class"", Target=""C"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Class"", Target=""E"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Class"", Target=""C"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"", Target=""E"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Class"", Target=""E"")]
 
 public class C
 {
@@ -1253,14 +1322,15 @@ public class C
                 Diagnostic("Declaration", "C"));
         }
 
-        [Fact]
-        public async Task MissingScopeOrTarget()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task MissingScopeOrTarget(string attrName)
         {
             await VerifyCSharpAsync(@"
 using System.Diagnostics.CodeAnalysis;
 
-[module: SuppressMessage(""Test"", ""Declaration"", Target=""C"")]
-[module: SuppressMessage(""Test"", ""Declaration"", Scope=""Type"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Target=""C"")]
+[module: " + attrName + @"(""Test"", ""Declaration"", Scope=""Type"")]
 
 public class C
 {
@@ -1270,16 +1340,17 @@ public class C
                 Diagnostic("Declaration", "C"));
         }
 
-        [Fact]
-        public async Task InvalidAttributeConstructorParameters()
+        [Theory]
+        [MemberData(nameof(SimpleAttributeNames))]
+        public async Task InvalidAttributeConstructorParameters(string attrName)
         {
             await VerifyBasicAsync(@"
 Imports System.Diagnostics.CodeAnalysis
 
-<module: SuppressMessage(UndeclaredIdentifier, ""Comment"")>
-<module: SuppressMessage(""Test"", UndeclaredIdentifier)>
-<module: SuppressMessage(""Test"", ""Comment"", Scope:=UndeclaredIdentifier, Target:=""C"")>
-<module: SuppressMessage(""Test"", ""Comment"", Scope:=""Type"", Target:=UndeclaredIdentifier)>
+<module: " + attrName + @"UndeclaredIdentifier, ""Comment"")>
+<module: " + attrName + @"(""Test"", UndeclaredIdentifier)>
+<module: " + attrName + @"(""Test"", ""Comment"", Scope:=UndeclaredIdentifier, Target:=""C"")>
+<module: " + attrName + @"(""Test"", ""Comment"", Scope:=""Type"", Target:=UndeclaredIdentifier)>
 
 Class C
 End Class

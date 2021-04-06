@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private DocumentState DocumentState => (DocumentState)State;
+        internal DocumentState DocumentState => (DocumentState)State;
 
         /// <summary>
         /// The kind of source code this document contains.
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

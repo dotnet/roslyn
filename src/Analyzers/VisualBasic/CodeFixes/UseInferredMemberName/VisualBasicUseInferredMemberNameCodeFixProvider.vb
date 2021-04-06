@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.UseInferredMemberName
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseInferredMemberName), [Shared]>
     Friend Class VisualBasicUseInferredMemberNameCodeFixProvider
         Inherits AbstractUseInferredMemberNameCodeFixProvider
 
