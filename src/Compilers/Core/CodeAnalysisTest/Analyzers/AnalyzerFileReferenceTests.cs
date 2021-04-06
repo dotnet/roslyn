@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var generators2 = reference.GetGenerators();
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            AssertEx.Equal(generators, generators2);
+            Assert.Equal(generators, generators2);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
