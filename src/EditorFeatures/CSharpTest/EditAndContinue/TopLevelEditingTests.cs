@@ -1553,9 +1553,11 @@ class C
         [Fact]
         public void Record_Partial_MovePrimaryConstructor()
         {
-            var src1 = @"partial record C { }
+            var src1 = @"
+partial record C { }
 partial record C(int X);";
-            var src2 = @"partial record C(int X);
+            var src2 = @"
+partial record C(int X);
 partial record C { }";
 
             var edits = GetTopEdits(src1, src2);
@@ -1708,7 +1710,8 @@ public abstract record C<T>
         public void Record_ImplementSynthesized_PrintMembers()
         {
             var src1 = "record C { }";
-            var src2 = @"record C
+            var src2 = @"
+record C
 {
     protected virtual bool PrintMembers(System.Text.StringBuilder builder)
     {
@@ -1728,7 +1731,8 @@ public abstract record C<T>
         public void Record_ImplementSynthesized_WrongParameterName()
         {
             var src1 = "record C { }";
-            var src2 = @"record C
+            var src2 = @"
+record C
 {
     protected virtual bool PrintMembers(System.Text.StringBuilder sb)
     {
@@ -1757,7 +1761,8 @@ public abstract record C<T>
         public void Record_ImplementSynthesized_ToString()
         {
             var src1 = "record C { }";
-            var src2 = @"record C
+            var src2 = @"
+record C
 {
     public override string ToString()
     {
@@ -1776,7 +1781,8 @@ public abstract record C<T>
         [Fact]
         public void Record_UnImplementSynthesized_ToString()
         {
-            var src1 = @"record C
+            var src1 = @"
+record C
 {
     public override string ToString()
     {
@@ -1797,7 +1803,7 @@ public abstract record C<T>
         public void Record_AddProperty_Primary()
         {
             var src1 = "record C(int X);";
-            var src2 = @"record C(int X, int Y);";
+            var src2 = "record C(int X, int Y);";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -1809,7 +1815,8 @@ public abstract record C<T>
         public void Record_AddProperty_NotPrimary()
         {
             var src1 = "record C(int X);";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int Y { get; set; }
 }";
@@ -1830,13 +1837,15 @@ public abstract record C<T>
         [Fact]
         public void Record_AddProperty_NotPrimary_WithConstructor()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     public C(string fromAString)
     {
     }
 }";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int Y { get; set; }
 
@@ -1861,7 +1870,8 @@ public abstract record C<T>
         [Fact]
         public void Record_AddProperty_NotPrimary_WithExplicitMembers()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     protected virtual bool PrintMembers(System.Text.StringBuilder builder)
     {
@@ -1882,7 +1892,8 @@ public abstract record C<T>
     {
     }
 }";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int Y { get; set; }
 
@@ -1919,7 +1930,8 @@ public abstract record C<T>
         public void Record_AddProperty_NotPrimary_WithInitializer()
         {
             var src1 = "record C(int X);";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int Y { get; set; } = 1;
 }";
@@ -1960,13 +1972,15 @@ public abstract record C<T>
         [Fact]
         public void Record_AddField_WithExplicitMembers()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     public C(C other)
     {
     }
 }";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     private int _y;
     
@@ -2085,7 +2099,8 @@ public abstract record C<T>
         public void Record_ImplementSynthesized_Property()
         {
             var src1 = "record C(int X);";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int X { get; init; }
 }";
@@ -2102,7 +2117,8 @@ public abstract record C<T>
         public void Record_ImplementSynthesized_Property_WithBody()
         {
             var src1 = "record C(int X);";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int X
     {
@@ -2135,7 +2151,8 @@ public abstract record C<T>
         public void Record_ImplementSynthesized_Property_WithExpressionBody()
         {
             var src1 = "record C(int X);";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int X { get => 4; init => throw null; }
 }";
@@ -2158,7 +2175,8 @@ public abstract record C<T>
         public void Record_ImplementSynthesized_Property_InitToSet()
         {
             var src1 = "record C(int X);";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int X { get; set; }
 }";
@@ -2173,7 +2191,8 @@ public abstract record C<T>
         public void Record_ImplementSynthesized_Property_MakeReadOnly()
         {
             var src1 = "record C(int X);";
-            var src2 = @"record C(int X)
+            var src2 = @"
+record C(int X)
 {
     public int X { get; }
 }";
@@ -2187,7 +2206,8 @@ public abstract record C<T>
         [Fact]
         public void Record_UnImplementSynthesized_Property()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     public int X { get; init; }
 }";
@@ -2204,7 +2224,8 @@ public abstract record C<T>
         [Fact]
         public void Record_UnImplementSynthesized_Property_WithExpressionBody()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     public int X { get => 4; init => throw null; }
 }";
@@ -2227,7 +2248,8 @@ public abstract record C<T>
         [Fact]
         public void Record_UnImplementSynthesized_Property_WithBody()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     public int X { get { return 4; } init { } }
 }";
@@ -2297,7 +2319,8 @@ public abstract record C<T>
         [Fact]
         public void Record_UnImplementSynthesized_Property_WithInitializer()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     public int X { get; init; } = 1;
 }";
@@ -2314,7 +2337,8 @@ public abstract record C<T>
         [Fact]
         public void Record_UnImplementSynthesized_Property_WithInitializerMatchingCompilerGenerated()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     public int X { get; init; } = X;
 }";
@@ -2331,7 +2355,8 @@ public abstract record C<T>
         [Fact]
         public void Record_Property_Delete_NotPrimary()
         {
-            var src1 = @"record C(int X)
+            var src1 = @"
+record C(int X)
 {
     public int Y { get; init; }
 }";
