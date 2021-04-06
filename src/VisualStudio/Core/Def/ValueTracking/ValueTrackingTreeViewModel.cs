@@ -19,10 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
         }
 
-        public ValueTrackingTreeViewModel()
-            : this(GetSample())
-        { }
-
         public ObservableCollection<ValueTrackingTreeItemViewModel> Roots { get; } = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -40,10 +36,5 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         private void NotifyPropertyChanged(string name)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        public static ValueTrackingTreeItemViewModel[] GetSample()
-        {
-            return new ValueTrackingTreeItemViewModel[0];
-        }
     }
 }

@@ -15,17 +15,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public static ValueTrackingToolWindow? Instance { get; set; }
         private readonly ValueTrackingTreeViewModel _viewModel;
 
+        public ValueTrackingToolWindow() : base(null)
+        {
+            this.Caption = "Value Tracking";
+
+            _viewModel = new();
+            Content = new ValueTrackingTree(_viewModel);
+        }
+
         public ValueTrackingToolWindow(ValueTrackingTreeItemViewModel root)
             : base(null)
         {
-            if (Instance is not null)
-            {
-                throw new Exception("Cannot initialize the window more than once");
-            }
+            Caption = "Value Tracking";
 
-            this.Caption = "Value Tracking";
-
-            _viewModel = new ValueTrackingTreeViewModel(root);
+            _viewModel = new(root);
             Content = new ValueTrackingTree(_viewModel);
         }
 

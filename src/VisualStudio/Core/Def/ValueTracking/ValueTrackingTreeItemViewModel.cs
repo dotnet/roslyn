@@ -16,6 +16,13 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using System.Windows.Input;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.PlatformUI;
+using System;
+using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
@@ -27,9 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IGlyphService _glyphService;
 
+        protected LineSpan LineSpan { get; }
         protected Document Document { get; }
-        protected int LineNumber { get; }
+        protected IThreadingContext ThreadingContext { get; }
 
+        public int LineNumber => LineSpan.Start;
         public ObservableCollection<TreeViewItemBase> ChildItems { get; } = new();
 
         public string FileDisplay => $"[{Document.Name}:{LineNumber}]";
@@ -53,17 +62,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public ValueTrackingTreeItemViewModel(
             Document document,
-            int lineNumber,
+            LineSpan lineSpan,
             SourceText sourceText,
             ISymbol symbol,
             ImmutableArray<ClassifiedSpan> classifiedSpans,
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap,
             IGlyphService glyphService,
+            IThreadingContext threadingContext,
             ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
         {
             Document = document;
-            LineNumber = lineNumber;
+            LineSpan = lineSpan;
             ClassifiedSpans = classifiedSpans;
 
             _sourceText = sourceText;
@@ -71,6 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
             _glyphService = glyphService;
+            ThreadingContext = threadingContext;
 
             if (!children.IsDefaultOrEmpty)
             {
@@ -79,6 +90,23 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     ChildItems.Add(child);
                 }
             }
+        }
+
+        public virtual void Select()
+        {
+            var workspace = Document.Project.Solution.Workspace;
+            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+            if (navigationService is null)
+            {
+                return;
+            }
+
+            // While navigating do not activate the tab, which will change focus from the tool window
+            var options = workspace.Options
+                .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
+                .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
+
+            navigationService.TryNavigateToLineAndOffset(workspace, Document.Id, LineSpan.Start, 0, options, ThreadingContext.DisposalToken);
         }
     }
 }

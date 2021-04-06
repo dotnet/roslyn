@@ -163,13 +163,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             var root = new ValueTrackingTreeItemViewModel(
                 document,
-                lineSpan.Start,
+                lineSpan,
                 sourceText,
                 selectedSymbol,
                 classificationResult.ClassifiedSpans,
                 classificationFormatMap,
                 _typeMap,
                 _glyphService,
+                _threadingContext,
                 childViewModels);
 
             await ShowToolWindowAsync(root, cancellationToken).ConfigureAwait(false);
@@ -182,6 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                    _typeMap,
                    _glyphService,
                    valueTrackingService,
+                   _threadingContext,
                    children);
         }
 
