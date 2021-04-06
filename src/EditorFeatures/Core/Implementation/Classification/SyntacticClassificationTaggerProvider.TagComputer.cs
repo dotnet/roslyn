@@ -54,13 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // The latest data about the document being classified that we've cached.  objects can 
             // be accessed from both threads, and must be obtained when this lock is held.
-            //
-            // Note: we cache this data once we've retrieved the actual syntax tree for a document.  This 
-            // way, when we call into the actual classification service, it should be very quick for the 
-            // it to get the tree if it needs it.
             private readonly object _gate = new();
             private ITextSnapshot _lastProcessedSnapshot;
             private Document _lastProcessedDocument;
+            private SyntaxTree _lastProcessedSyntaxTree;
 
             private Workspace _workspace;
             private CancellationTokenSource _reportChangeCancellationSource;
@@ -139,6 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 lock (_gate)
                 {
                     _lastProcessedDocument = null;
+                    _lastProcessedSyntaxTree = null;
                 }
             }
 
@@ -203,18 +201,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
+                SyntaxTree syntaxTree;
                 var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
                 using (latencyTracker)
                 {
                     // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
                     // F#/typescript and other languages that doesn't support syntax tree will return null here.
-                    _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 lock (_gate)
                 {
                     _lastProcessedSnapshot = snapshot;
                     _lastProcessedDocument = document;
+                    _lastProcessedSyntaxTree = syntaxTree;
                 }
 
                 _reportChangeCancellationSource = new CancellationTokenSource();
@@ -296,11 +296,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // From this point on we'll do all operations over these values.
                 ITextSnapshot lastSnapshot;
                 Document lastDocument;
+                SyntaxTree lastSyntaxTree;
 
                 lock (_gate)
                 {
                     lastSnapshot = _lastProcessedSnapshot;
                     lastDocument = _lastProcessedDocument;
+                    lastSyntaxTree = _lastProcessedSyntaxTree;
                 }
 
                 if (lastDocument == null)
@@ -326,6 +328,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     AddClassifiedSpansForPreviousTree(
                         classificationService, span, lastSnapshot, lastDocument, classifiedSpans);
                 }
+
+                // Ensure the syntax tree stays alive for as long as we're doing the processing.
+                GC.KeepAlive(lastSyntaxTree);
             }
 
             private void AddClassifiedSpansForCurrentTree(
@@ -346,7 +351,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 // simple case.  They're asking for the classifications for a tree that we already have.
                 // Just get the results from the tree and return them.
-
                 classifiedSpans.AddRange(tempList);
             }
 
