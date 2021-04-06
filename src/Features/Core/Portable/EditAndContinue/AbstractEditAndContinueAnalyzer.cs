@@ -2314,7 +2314,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     {
                                         // When deleting a property of a record that represents a primary constructor parameter we need to mark each
                                         // part of the property as processed so that they don't become delete edits. This isn't an issue for normal
-                                        // properties because adding them is a rude edit so it never gets this far.
+                                        // properties because deleting them is a rude edit so it never gets this far.
                                         var oldProperty = (IPropertySymbol)oldSymbol;
                                         if (oldProperty.GetMethod is not null)
                                         {
