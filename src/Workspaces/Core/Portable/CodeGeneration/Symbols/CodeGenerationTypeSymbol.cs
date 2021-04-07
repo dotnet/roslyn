@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ImmutableArray<INamedTypeSymbol> AllInterfaces
             => ImmutableArray.Create<INamedTypeSymbol>();
 
-        public bool IsReferenceType => TypeKind == TypeKind.Class;
+        public bool IsReferenceType => TypeKind != TypeKind.Enum && TypeKind != TypeKind.Struct && TypeKind != TypeKind.Error;
+
 
         public bool IsValueType => TypeKind == TypeKind.Struct || TypeKind == TypeKind.Enum;
 
