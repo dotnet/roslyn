@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -151,7 +152,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Reset(bool waitForPrompt = true)
         {
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_Reset);
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var interactiveWindow = AcquireInteractiveWindow();
+                var operations = (IInteractiveWindowOperations)interactiveWindow;
+                var result = await operations.ResetAsync();
+                Contract.ThrowIfFalse(result.IsSuccessful);
+            });
 
             if (waitForPrompt)
             {
