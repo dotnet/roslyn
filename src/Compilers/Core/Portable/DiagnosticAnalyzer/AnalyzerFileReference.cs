@@ -117,17 +117,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _diagnosticAnalyzers.GetExtensions(language);
         }
 
+        /// <remarks>
+        /// Generators may be wrapped during load. Use <see cref="UnwrapTypeIfRequired(Type)"/> to get the underlying type.
+        /// </remarks>
         public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages()
         {
             return _generators.GetExtensionsForAllLanguages(includeDuplicates: false);
         }
 
+        /// <remarks>
+        /// Generators may be wrapped during load. Use <see cref="UnwrapTypeIfRequired(Type)"/> to get the underlying type.
+        /// </remarks>
         [Obsolete("Use GetGenerators(string language) or GetGeneratorsForAllLanguages()")]
         public override ImmutableArray<ISourceGenerator> GetGenerators()
         {
             return _generators.GetExtensions(LanguageNames.CSharp);
         }
 
+        /// <remarks>
+        /// Generators may be wrapped during load. Use <see cref="UnwrapTypeIfRequired(Type)"/> to get the underlying type.
+        /// </remarks>
         public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
         {
             return _generators.GetExtensions(language);
@@ -157,6 +166,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 return _lazyIdentity;
             }
+        }
+
+        /// <summary>
+        /// Gets the underlying type of the component that was loaded if it was wrapped at load time
+        /// </summary>
+        /// <remarks>
+        /// Types returned from e.g. <see cref="GetGeneratorsForAllLanguages()"/> or <see cref="GetGenerators(string)"/> may be wrapped
+        /// in an adaptor for backwards compatibility reasons. This method allows the caller to get at the underlying type
+        /// without having to know if it was wrapped or not.
+        /// </remarks>
+        /// <param name="loadedType">The type that was returned from the loader</param>
+        /// <returns>The underlying type if wrapped, or the passed in type if not</returns>
+        public static Type UnwrapTypeIfRequired(Type loadedType)
+        {
+            if (loadedType.IsGenericType && loadedType.GetGenericTypeDefinition() == typeof(IncrementalToSourceGeneratorWrapper<>))
+            {
+                return loadedType.GetGenericArguments()[0];
+            }
+            return loadedType;
         }
 
         [MemberNotNull(nameof(_lazyIdentity), nameof(_lazyDisplay))]

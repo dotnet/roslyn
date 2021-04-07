@@ -329,15 +329,6 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
-        public static Type GetGeneratorType(Type generatorType)
-        {
-            if (generatorType.IsGenericType && generatorType.GetGenericTypeDefinition() == typeof(IncrementalToSourceGeneratorWrapper<>))
-            {
-                return generatorType.GetGenericArguments()[0];
-            }
-            return generatorType;
-        }
-
         internal static Type GetGeneratorType(ISourceGenerator generator)
         {
             if (generator is IncrementalGeneratorWrapper igw)
