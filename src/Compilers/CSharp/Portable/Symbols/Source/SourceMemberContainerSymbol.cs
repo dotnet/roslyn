@@ -3466,7 +3466,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 switch (member)
                 {
-                    case FieldSymbol:
                     case EventSymbol:
                     case MethodSymbol { MethodKind: not (MethodKind.Ordinary or MethodKind.Constructor) }:
                         continue;
@@ -3542,8 +3541,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            void addDeconstruct(SynthesizedRecordConstructor ctor, ImmutableArray<PropertySymbol> properties)
+            void addDeconstruct(SynthesizedRecordConstructor ctor, ImmutableArray<Symbol> positionalMembers)
             {
+                Debug.Assert(positionalMembers.All(p => p is PropertySymbol or FieldSymbol));
+
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.DeconstructMethodName,
                     this,
@@ -3563,7 +3564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingDeconstructMethod))
                 {
-                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, properties, memberOffset: members.Count, diagnostics));
+                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, positionalMembers, memberOffset: members.Count, diagnostics));
                 }
                 else
                 {
@@ -3722,9 +3723,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ImmutableArray<PropertySymbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
+            ImmutableArray<Symbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                var existingOrAddedMembers = ArrayBuilder<PropertySymbol>.GetInstance(recordParameters.Length);
+                var existingOrAddedMembers = ArrayBuilder<Symbol>.GetInstance(recordParameters.Length);
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
@@ -3743,11 +3744,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!memberSignatures.TryGetValue(targetProperty, out var existingMember))
                     {
                         existingMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetProperty, memberIsFromSomeCompilation: true);
-                        isInherited = true;
+                        if (existingMember is FieldSymbol)
+                        {
+                            // field from base type should not be considered before we look at fields from current type
+                            existingMember = null;
+                        }
+                        else
+                        {
+                            isInherited = true;
+                        }
                     }
+
+                    if (existingMember is null)
+                    {
+                        var targetField = new SignatureOnlyFieldSymbol(param.Name,
+                                                                       this,
+                                                                       param.TypeWithAnnotations);
+
+                        if (!memberSignatures.TryGetValue(targetField, out existingMember))
+                        {
+                            existingMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetField, memberIsFromSomeCompilation: true);
+                            if (existingMember is not FieldSymbol)
+                            {
+                                existingMember = null;
+                            }
+                        }
+                    }
+
                     if (existingMember is null)
                     {
                         addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
+                    }
+                    else if (existingMember is FieldSymbol { IsStatic: false } field)
+                    {
+                        Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeaturePositionalFieldsInRecords, diagnostics);
+                        existingOrAddedMembers.Add(field);
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
