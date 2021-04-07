@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int FlowAnalysisAnnotationsOffset = 20;
 
             private const int RefKindMask = 0x3;
-
-            private const int WellKnownAttributeDataMask = (0x1 << 8) - 1;
+            private const int WellKnownAttributeDataMask = 0xFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
             private const int FlowAnalysisAnnotationsMask = 0xFF;
 
@@ -142,6 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private ConstantValue _lazyDefaultValue = ConstantValue.Unset;
         private ThreeState _lazyIsParams;
+
+        /// <summary>
+        /// The index of a CallerArgumentExpression. The value -2 means uninitialized, -1 means
+        /// not found. Otherwise, the index of the CallerArgumentExpression.
+        /// </summary>        
+        private int _lazyCallerArgumentExpressionParameterIndex = -2;
 
         /// <summary>
         /// Attributes filtered out from m_lazyCustomAttributes, ParamArray, etc.
@@ -658,23 +663,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private int? _cachedCallerArgumentExpressionParameterIndex;
-
         internal override int CallerArgumentExpressionParameterIndex
         {
             get
             {
-                if (_cachedCallerArgumentExpressionParameterIndex.HasValue)
+                if (_lazyCallerArgumentExpressionParameterIndex != -2)
                 {
-                    return _cachedCallerArgumentExpressionParameterIndex.Value;
+                    return _lazyCallerArgumentExpressionParameterIndex;
                 }
 
                 var info = _moduleSymbol.Module.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                bool isCallerArgumentExpression = !HasCallerLineNumberAttribute
+                bool isCallerArgumentExpression = info.HasValue
+                    && !HasCallerLineNumberAttribute
                     && !HasCallerFilePathAttribute
                     && !HasCallerMemberNameAttribute
-                    && info.HasValue
                     && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
                 if (isCallerArgumentExpression)
@@ -685,13 +688,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         if (parameters[i].Name == parameterName)
                         {
-                            _cachedCallerArgumentExpressionParameterIndex = i;
+                            _lazyCallerArgumentExpressionParameterIndex = i;
                             return i;
                         }
                     }
                 }
 
-                _cachedCallerArgumentExpressionParameterIndex = -1;
+                _lazyCallerArgumentExpressionParameterIndex = -1;
                 return -1;
             }
         }
