@@ -190,11 +190,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : factory.ReferenceEqualsExpression(identifier, nullExpr);
 
             // generates: if (s == null) throw new ArgumentNullException(nameof(s))
-            return factory.IfStatement(
+            var throwStatement = factory.ThrowStatement(CreateNewArgumentNullException(
+                                    factory, semanticModel.Compilation, parameter));
+            throwStatement = throwStatement.WithLeadingTrivia(factory.Whitespace(" ")).WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation);
+
+            var ifStatement = factory.IfStatement(
                condition,
                 SpecializedCollections.SingletonEnumerable(
-                    factory.ThrowStatement(CreateNewArgumentNullException(
-                        factory, semanticModel.Compilation, parameter))));
+                    throwStatement));
+
+            var close = ifStatement.FindToken(10);
+            var newClose = close.WithoutTrailingTrivia();
+            ifStatement = ifStatement.ReplaceToken(close, newClose);
+
+            return ifStatement;
         }
 
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
