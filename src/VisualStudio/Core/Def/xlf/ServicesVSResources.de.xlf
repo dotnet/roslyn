@@ -1017,6 +1017,11 @@
         <target state="translated">Benanntes Argument verwenden</target>
         <note>"argument" is a programming term for a value passed to a function</note>
       </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="new">Value Tracking</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
+      </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="translated">Der hier zugewiesene Wert wird nie verwendet.</target>

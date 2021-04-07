@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ValueTrackingToolWindow(ValueTrackingTreeViewModel viewModel)
             : base(null)
         {
-            Caption = "Value Tracking";
+            Caption = ServicesVSResources.Value_Tracking;
 
             ViewModel = viewModel;
             Content = new ValueTrackingTree(ViewModel);

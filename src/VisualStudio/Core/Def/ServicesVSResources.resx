@@ -1647,4 +1647,8 @@ I agree to all of the foregoing:</value>
   <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
     <value>This action cannot be undone. Do you wish to continue?</value>
   </data>
+  <data name="Value_Tracking" xml:space="preserve">
+    <value>Value Tracking</value>
+    <comment>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</comment>
+  </data>
 </root>
