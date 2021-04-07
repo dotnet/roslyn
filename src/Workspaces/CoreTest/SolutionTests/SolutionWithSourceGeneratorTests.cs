@@ -3,16 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 
@@ -270,6 +268,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var syntaxTree = Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees, t => t.FilePath != "RegularDocument.cs");
             var generatedDocument = Assert.IsType<SourceGeneratedDocument>(project.GetDocument(syntaxTree));
             Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
+        }
+
+        [Fact]
+        public async Task TreeReusedIfGeneratedFileDoesNotChangeBetweenRuns()
+        {
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var generatedTreeBeforeChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
+
+            // Mutate the regular document to produce a new compilation
+            project = project.Documents.Single().WithText(SourceText.From("// Change")).Project;
+
+            var generatedTreeAfterChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
+
+            Assert.Same(generatedTreeBeforeChange, generatedTreeAfterChange);
+        }
+
+        [Fact]
+        public async Task TreeNotReusedIfParseOptionsChangeChangeBetweenRuns()
+        {
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var generatedTreeBeforeChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
+
+            // Mutate the parse options to produce a new compilation
+            Assert.NotEqual(DocumentationMode.Diagnose, project.ParseOptions!.DocumentationMode);
+            project = project.WithParseOptions(project.ParseOptions.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            var generatedTreeAfterChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
+
+            Assert.NotSame(generatedTreeBeforeChange, generatedTreeAfterChange);
         }
     }
 }

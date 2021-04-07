@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => factory.ObjectCreationExpression(
                 compilation.GetTypeByMetadataName("System.ArgumentNullException"),
                 factory.NameOfExpression(
-                    factory.IdentifierName(parameter.Name)));
+                    factory.IdentifierName(parameter.Name))).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 
         public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,

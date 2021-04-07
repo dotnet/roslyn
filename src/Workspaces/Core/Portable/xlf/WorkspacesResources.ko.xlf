@@ -87,6 +87,11 @@
         <target state="translated">옵션을 지정된 솔루션에서 가져오지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Predefined_conversion_from_0_to_1">
+        <source>Predefined conversion from {0} to {1}.</source>
+        <target state="new">Predefined conversion from {0} to {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
         <source>Project does not contain specified reference</source>
         <target state="translated">지정된 참조가 프로젝트에 포함되어 있지 않습니다.</target>

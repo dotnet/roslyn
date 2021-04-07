@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly bool _searchCurrentDocument;
         private readonly IImmutableSet<string> _kinds;
         private readonly Document? _currentDocument;
-        private readonly ProgressTracker _progress;
+        private readonly IStreamingProgressTracker _progress;
         private readonly CancellationToken _cancellationToken;
 
         public NavigateToSearcher(
@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
             _cancellationToken = cancellationToken;
-            _progress = new ProgressTracker((_, current, maximum) => callback.ReportProgress(current, maximum));
+            _progress = new StreamingProgressTracker((current, maximum) =>
+            {
+                callback.ReportProgress(current, maximum);
+                return new ValueTask();
+            });
 
             if (_searchCurrentDocument)
             {
@@ -58,28 +62,30 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         internal async Task SearchAsync()
         {
+            var isFullyLoaded = true;
+
             try
             {
+                var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                isFullyLoaded = await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false);
+
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken);
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
-                _progress.AddItems(_solution.Projects.Count());
-
-                await SearchAllProjectsAsync().ConfigureAwait(false);
+                await _progress.AddItemsAsync(_solution.Projects.Count()).ConfigureAwait(false);
+                await SearchAllProjectsAsync(isFullyLoaded).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
             }
             finally
             {
-                var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-                var isFullyLoaded = await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false);
                 // providing this extra information will make UI to show indication to users
                 // that result might not contain full data
                 _callback.Done(isFullyLoaded);
             }
         }
 
-        private async Task SearchAllProjectsAsync()
+        private async Task SearchAllProjectsAsync(bool isFullyLoaded)
         {
             var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
             var processedProjects = new HashSet<Project>();
@@ -106,7 +112,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // Search the active project first.  That way we can deliver results that are
                 // closer in scope to the user quicker without forcing them to do something like
                 // NavToInCurrentDoc
-                await Task.Run(() => SearchAsync(activeProject, priorityDocs, seenItems), _cancellationToken).ConfigureAwait(false);
+                await Task.Run(() => SearchAsync(activeProject, priorityDocs, seenItems, isFullyLoaded), _cancellationToken).ConfigureAwait(false);
             }
 
             // Now, process all visible docs that were not from the active project.
@@ -115,7 +121,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                    tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.ToImmutableArray(), seenItems), _cancellationToken));
+                    tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.Where(d => d.Project == currentProject).ToImmutableArray(), seenItems, isFullyLoaded), _cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -126,7 +132,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                    tasks.Add(Task.Run(() => SearchAsync(currentProject, ImmutableArray<Document>.Empty, seenItems), _cancellationToken));
+                    tasks.Add(Task.Run(() => SearchAsync(currentProject, ImmutableArray<Document>.Empty, seenItems, isFullyLoaded), _cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -135,68 +141,52 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task SearchAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
-            HashSet<INavigateToSearchResult> seenItems)
+            HashSet<INavigateToSearchResult> seenItems,
+            bool isFullyLoaded)
         {
             try
             {
-                await SearchCoreAsync(project, priorityDocuments, seenItems).ConfigureAwait(false);
+                await SearchCoreAsync(project, priorityDocuments, seenItems, isFullyLoaded).ConfigureAwait(false);
             }
             finally
             {
-                _progress.ItemCompleted();
+                await _progress.ItemCompletedAsync().ConfigureAwait(false);
             }
         }
 
         private async Task SearchCoreAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
-            HashSet<INavigateToSearchResult> seenItems)
+            HashSet<INavigateToSearchResult> seenItems,
+            bool isFullyLoaded)
         {
             if (_searchCurrentDocument && _currentDocument?.Project != project)
                 return;
 
-            var cacheService = project.Solution.Services.CacheService;
-            if (cacheService != null)
+            var service = project.GetLanguageService<INavigateToSearchService>();
+            if (service == null)
+                return;
+
+            var task = _currentDocument != null
+                ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, OnResultFound, isFullyLoaded, _cancellationToken)
+                : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, OnResultFound, isFullyLoaded, _cancellationToken);
+
+            await task.ConfigureAwait(false);
+            return;
+
+            async Task OnResultFound(INavigateToSearchResult result)
             {
-                using (cacheService.EnableCaching(project.Id))
+                // If we're seeing a dupe in another project, then filter it out here.  The results from
+                // the individual projects will already contain the information about all the projects
+                // leading to a better condensed view that doesn't look like it contains duplicate info.
+                lock (seenItems)
                 {
-                    var service = GetSearchService(project);
-                    if (service != null)
-                    {
-                        var searchTask = _currentDocument != null
-                            ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, _cancellationToken)
-                            : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, _cancellationToken);
-
-                        var results = await searchTask.ConfigureAwait(false);
-                        if (results != null)
-                        {
-                            foreach (var result in results)
-                            {
-                                // If we're seeing a dupe in another project, then filter it out here.  The results from
-                                // the individual projects will already contain the information about all the projects
-                                // leading to a better condensed view that doesn't look like it contains duplicate info.
-                                lock (seenItems)
-                                {
-                                    if (!seenItems.Add(result))
-                                        continue;
-                                }
-
-                                await _callback.AddItemAsync(project, result, _cancellationToken).ConfigureAwait(false);
-                            }
-                        }
-                    }
+                    if (!seenItems.Add(result))
+                        return;
                 }
-            }
-        }
 
-        private static INavigateToSearchService? GetSearchService(Project project)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacySearchService = project.GetLanguageService<INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService>();
-            return legacySearchService != null
-                ? new WrappedNavigateToSearchService(legacySearchService)
-                : project.GetLanguageService<INavigateToSearchService>();
-#pragma warning restore CS0618 // Type or member is obsolete
+                await _callback.AddItemAsync(project, result, _cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
