@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Roslyn.Assert(withExpr.CloneMethod is not null);
+                Debug.Assert(withExpr.CloneMethod is not null);
                 Debug.Assert(withExpr.CloneMethod.ParameterCount == 0);
 
                 expression = _factory.Convert(
