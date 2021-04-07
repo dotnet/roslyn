@@ -3137,10 +3137,7 @@ moreArguments:
                         var escape = CheckValEscape(node, withExpr.Receiver, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
                         var initializerExpr = withExpr.InitializerExpression;
-                        if (initializerExpr != null)
-                        {
-                            escape = escape && CheckValEscape(initializerExpr.Syntax, initializerExpr, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
-                        }
+                        escape = escape && CheckValEscape(initializerExpr.Syntax, initializerExpr, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                         return escape;
                     }

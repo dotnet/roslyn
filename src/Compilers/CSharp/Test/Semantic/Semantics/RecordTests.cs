@@ -9562,6 +9562,40 @@ record C(int X)
             );
         }
 
+        [Fact]
+        public void WithExpr_ValEscape()
+        {
+            var text = @"
+using System;
+record R
+{
+    public S1 Property { set { throw null; } }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var r = new R();
+        Span<int> local = stackalloc int[1];
+        _ = r with { Property = MayWrap(ref local) };
+        _ = new R() { Property = MayWrap(ref local) };
+    }
+
+    static S1 MayWrap(ref Span<int> arg)
+    {
+        return default;
+    }
+}
+
+ref struct S1
+{
+    public ref int this[int i] => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
+        }
+
         [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
         [Fact]
         public void Inheritance_01()
