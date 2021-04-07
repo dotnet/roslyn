@@ -640,6 +640,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void LengthPattern_16()
+        {
+            UsingExpression(@"c is [0]()",
+                    // (1,1): error CS1073: Unexpected token '('
+                    // c is [0]()
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "c is [0]").WithArguments("(").WithLocation(1, 1));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.LengthPatternClause);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void NoRegressionOnEmptyPropertyPattern()
         {
             UsingExpression(@"c is {}");
@@ -1152,6 +1186,83 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                     }
                 }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_11()
+        {
+            UsingExpression(@"c is {var x ..}",
+                    // (1,13): error CS1003: Syntax error, ',' expected
+                    // c is {var x ..}
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",", "..").WithLocation(1, 13));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.ListPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.VarPattern);
+                            {
+                                N(SyntaxKind.VarKeyword);
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.SlicePattern);
+                            {
+                                N(SyntaxKind.DotDotToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_12()
+        {
+            UsingExpression(@"c is var x ..",
+                    // (1,12): error CS1073: Unexpected token '..'
+                    // c is var x ..
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments("..").WithLocation(1, 12));
+
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.VarPattern);
+                    {
+                        N(SyntaxKind.VarKeyword);
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
             }
             EOF();
         }
