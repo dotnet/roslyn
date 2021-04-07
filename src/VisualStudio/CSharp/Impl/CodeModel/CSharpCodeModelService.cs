@@ -88,6 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.DelegateDeclaration:
@@ -102,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return true;
 
                 case SyntaxKind.VariableDeclarator:
@@ -139,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                     break;
 
-                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.ClassDeclaration: // PROTOTYPE(record-structs): no sure what this is for (and elsewhere in this file)
                     if (scope == EnvDTE.vsCMElement.vsCMElementClass)
                     {
                         return true;

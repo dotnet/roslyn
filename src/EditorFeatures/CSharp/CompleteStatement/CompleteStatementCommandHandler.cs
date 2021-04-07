@@ -392,8 +392,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     return ((ExternAliasDirectiveSyntax)currentNode).SemicolonToken.IsMissing;
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
+                case SyntaxKind.RecordDeclaration:
+                    return ((RecordDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
+                case SyntaxKind.RecordStructDeclaration:
+                    return ((RecordStructDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
                 case SyntaxKind.InterfaceDeclaration:
                     return ((InterfaceDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
                 case SyntaxKind.EnumDeclaration:

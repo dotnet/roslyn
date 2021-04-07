@@ -52,7 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         private static bool IsStructAccessorContext(CSharpSyntaxContext context)
-            => context.ContainingTypeDeclaration.IsKind(SyntaxKind.StructDeclaration) &&
+        {
+            var type = context.ContainingTypeDeclaration;
+            return (type.IsKind(SyntaxKind.StructDeclaration) || type.IsKind(SyntaxKind.RecordStructDeclaration)) &&
                 context.TargetToken.IsAnyAccessorDeclarationContext(context.Position, SyntaxKind.ReadOnlyKeyword);
+        }
     }
 }

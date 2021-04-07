@@ -1136,6 +1136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     case StructDeclarationSyntax @struct:
                         AppendConstructors(@struct.Members, constructors, cancellationToken);
                         break;
+                    case RecordStructDeclarationSyntax recordStruct:
+                        AppendConstructors(recordStruct.Members, constructors, cancellationToken);
+                        break;
                 }
             }
         }
@@ -1778,6 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
@@ -1914,6 +1918,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     return DeclarationKind.RecordClass;
                 case SyntaxKind.StructDeclaration:
                     return DeclarationKind.Struct;
+                case SyntaxKind.RecordStructDeclaration:
+                    return DeclarationKind.RecordStruct;
                 case SyntaxKind.InterfaceDeclaration:
                     return DeclarationKind.Interface;
                 case SyntaxKind.EnumDeclaration:
