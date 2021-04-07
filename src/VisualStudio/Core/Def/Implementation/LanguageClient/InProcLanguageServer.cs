@@ -127,7 +127,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
             var serverTypeName = languageClient.GetType().Name;
-            var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+
+            LogHubLspLogger? logger = null;
+            // In 16.10 preview 2 LogHub moved to MS.VS.Utilities and MS.VS.RpcContracts and the old assembly was removed.
+            // To allow LSP integration tests to run on 16.10 preview 1, we only setup the loghub
+            // logger if the MS.VS.Utilities assembly contains the LogHub types.
+            // FeatureFlags.IFeatureFlags is a known type in the MS.VS.Utilities assembly.
+            var traceConfigurationType = typeof(FeatureFlags.IFeatureFlags).Assembly.GetType("Microsoft.VisualStudio.LogHub.TraceConfiguration", throwOnError: false);
+            if (traceConfigurationType != null)
+            {
+                logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+            }
 
             return new InProcLanguageServer(
                 languageClient,
