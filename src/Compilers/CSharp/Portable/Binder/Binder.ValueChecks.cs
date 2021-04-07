@@ -2636,6 +2636,12 @@ moreArguments:
 
                     return escape;
 
+                case BoundKind.WithExpression:
+                    var withExpression = (BoundWithExpression)expr;
+
+                    return Math.Max(GetValEscape(withExpression.Receiver, scopeOfTheContainingExpression),
+                                    GetValEscape(withExpression.InitializerExpression, scopeOfTheContainingExpression));
+
                 case BoundKind.UnaryOperator:
                     return GetValEscape(((BoundUnaryOperator)expr).Operand, scopeOfTheContainingExpression);
 
@@ -3006,37 +3012,50 @@ moreArguments:
                         isRefEscape: false);
 
                 case BoundKind.ObjectCreationExpression:
-                    var objectCreation = (BoundObjectCreationExpression)expr;
-                    var constructorSymbol = objectCreation.Constructor;
-
-                    var escape = CheckInvocationEscape(
-                        objectCreation.Syntax,
-                        constructorSymbol,
-                        null,
-                        constructorSymbol.Parameters,
-                        objectCreation.Arguments,
-                        objectCreation.ArgumentRefKindsOpt,
-                        objectCreation.ArgsToParamsOpt,
-                        checkingReceiver,
-                        escapeFrom,
-                        escapeTo,
-                        diagnostics,
-                        isRefEscape: false);
-
-                    var initializerExpr = objectCreation.InitializerExpressionOpt;
-                    if (initializerExpr != null)
                     {
-                        escape = escape &&
-                            CheckValEscape(
-                                initializerExpr.Syntax,
-                                initializerExpr,
-                                escapeFrom,
-                                escapeTo,
-                                checkingReceiver: false,
-                                diagnostics: diagnostics);
+                        var objectCreation = (BoundObjectCreationExpression)expr;
+                        var constructorSymbol = objectCreation.Constructor;
+
+                        var escape = CheckInvocationEscape(
+                            objectCreation.Syntax,
+                            constructorSymbol,
+                            null,
+                            constructorSymbol.Parameters,
+                            objectCreation.Arguments,
+                            objectCreation.ArgumentRefKindsOpt,
+                            objectCreation.ArgsToParamsOpt,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
+
+                        var initializerExpr = objectCreation.InitializerExpressionOpt;
+                        if (initializerExpr != null)
+                        {
+                            escape = escape &&
+                                CheckValEscape(
+                                    initializerExpr.Syntax,
+                                    initializerExpr,
+                                    escapeFrom,
+                                    escapeTo,
+                                    checkingReceiver: false,
+                                    diagnostics: diagnostics);
+                        }
+
+                        return escape;
                     }
 
-                    return escape;
+                case BoundKind.WithExpression:
+                    {
+                        var withExpr = (BoundWithExpression)expr;
+                        var escape = CheckValEscape(node, withExpr.Receiver, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+
+                        var initializerExpr = withExpr.InitializerExpression;
+                        escape = escape && CheckValEscape(initializerExpr.Syntax, initializerExpr, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                        return escape;
+                    }
 
                 case BoundKind.UnaryOperator:
                     var unary = (BoundUnaryOperator)expr;

@@ -2269,7 +2269,7 @@ record C(int X) : B
             comp.VerifyDiagnostics(
                 // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "Clone".
                 //         b = b with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_CannotClone, "b").WithArguments("B").WithLocation(12, 13)
             );
         }
 
@@ -2295,7 +2295,7 @@ record C(int X) : B
             comp.VerifyDiagnostics(
                 // (12,13): error CS8803: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
                 //         b = b with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_CannotClone, "b").WithArguments("B").WithLocation(12, 13)
             );
         }
 
@@ -2320,7 +2320,7 @@ record C(int X)
             comp.VerifyDiagnostics(
                 // (12,13): error CS8803: The 'with' expression requires the receiver type 'B' to have a single accessible non-inherited instance method named "Clone".
                 //         b = b with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13)
+                Diagnostic(ErrorCode.ERR_CannotClone, "b").WithArguments("B").WithLocation(12, 13)
             );
         }
 
@@ -2415,7 +2415,7 @@ record C(int X)
             comp.VerifyDiagnostics(
                 // (12,13): error CS8858: The receiver type 'B' is not a valid record type.
                 //         b = b with { Y = 2 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_CannotClone, "b").WithArguments("B").WithLocation(12, 13),
                 // (12,22): error CS0117: 'B' does not contain a definition for 'Y'
                 //         b = b with { Y = 2 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Y").WithArguments("B", "Y").WithLocation(12, 22)
@@ -2438,7 +2438,7 @@ record C(int X)
             comp.VerifyDiagnostics(
                 // (7,17): error CS8858: The receiver type 'dynamic' is not a valid record type.
                 //         var x = c with { X = 2 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("dynamic").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_CannotClone, "c").WithArguments("dynamic").WithLocation(7, 17)
                 );
         }
 
@@ -2632,7 +2632,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,13): error CS8858: The receiver type 'T' is not a valid record type.
                 //         _ = t with { X = 2 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_CannotClone, "t").WithArguments("T").WithLocation(6, 13),
                 // (6,22): error CS0117: 'T' does not contain a definition for 'X'
                 //         _ = t with { X = 2 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("T", "X").WithLocation(6, 22)
@@ -2656,7 +2656,7 @@ class C
             comp.VerifyDiagnostics(
                 // (8,13): error CS8858: The receiver type 'T' is not a valid record type.
                 //         _ = t with { X = 2, Property = 3 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_CannotClone, "t").WithArguments("T").WithLocation(8, 13),
                 // (8,22): error CS0117: 'T' does not contain a definition for 'X'
                 //         _ = t with { X = 2, Property = 3 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("T", "X").WithLocation(8, 22)
@@ -2709,7 +2709,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,13): error CS8858: The receiver type 'T' is not a valid record type.
                 //         _ = t with { X = 2, Property = 3 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("T").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_CannotClone, "t").WithArguments("T").WithLocation(6, 13),
                 // (6,22): error CS0117: 'T' does not contain a definition for 'X'
                 //         _ = t with { X = 2, Property = 3 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("T", "X").WithLocation(6, 22)
@@ -2789,9 +2789,19 @@ class C : Base<S>
 }";
             var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (11,13): error CS8858: The receiver type 'U' is not a valid record type.
+                // (11,13): error CS8652: The feature 'with on structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = t with { X = 2, Property = 3 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("U").WithLocation(11, 13),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "t with { X = 2, Property = 3 }").WithArguments("with on structs").WithLocation(11, 13),
+                // (11,22): error CS0117: 'U' does not contain a definition for 'X'
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("U", "X").WithLocation(11, 22),
+                // (11,29): error CS0117: 'U' does not contain a definition for 'Property'
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("U", "Property").WithLocation(11, 29)
+                );
+
+            comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
                 // (11,22): error CS0117: 'U' does not contain a definition for 'X'
                 //         _ = t with { X = 2, Property = 3 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("U", "X").WithLocation(11, 22),
@@ -3813,7 +3823,7 @@ public class Program
             comp.VerifyEmitDiagnostics(
                 // (6,15): error CS8858: The receiver type 'A' is not a valid record type.
                 //         A x = new A() with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_CannotClone, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
 
             Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
@@ -4039,7 +4049,7 @@ public class Program
             comp.VerifyEmitDiagnostics(
                 // (6,15): error CS8858: The receiver type 'A' is not a valid record type.
                 //         A x = new A() with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_CannotClone, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
 
             Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
@@ -4264,7 +4274,7 @@ public class Program
             comp.VerifyEmitDiagnostics(
                 // (6,15): error CS8858: The receiver type 'A' is not a valid record type.
                 //         A x = new A() with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new A()").WithArguments("A").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_CannotClone, "new A()").WithArguments("A").WithLocation(6, 15)
                 );
 
             Assert.Equal("class A", comp.GlobalNamespace.GetTypeMember("A")
@@ -4372,7 +4382,7 @@ class Program
             comp4.VerifyEmitDiagnostics(
                 // (7,18): error CS8858: The receiver type 'C' is not a valid record type.
                 //         var c2 = c1 with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c1").WithArguments("C").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_CannotClone, "c1").WithArguments("C").WithLocation(7, 18),
                 // (7,18): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_13, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c2 = c1 with { X = 11 };
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "c1").WithArguments("B", "Clone_13, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
@@ -4388,7 +4398,7 @@ class Program
             comp5.VerifyEmitDiagnostics(
                 // (7,18): error CS8858: The receiver type 'C' is not a valid record type.
                 //         var c2 = c1 with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c1").WithArguments("C").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_CannotClone, "c1").WithArguments("C").WithLocation(7, 18),
                 // (7,18): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'Clone_13, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c2 = c1 with { X = 11 };
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "c1").WithArguments("B", "Clone_13, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
@@ -7855,7 +7865,7 @@ class C
             comp.VerifyDiagnostics(
                 // (8,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { X = ""-3 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_CannotClone, "c").WithArguments("C").WithLocation(8, 13),
                 // (8,26): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'int'
                 //         c = c with { X = ""-3 };
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @"""""-3").WithArguments("-", "string", "int").WithLocation(8, 26)
@@ -8374,10 +8384,10 @@ class C
             comp.VerifyDiagnostics(
                 // (9,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_CannotClone, "c").WithArguments("C").WithLocation(9, 13),
                 // (10,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_CannotClone, "c").WithArguments("C").WithLocation(10, 13)
             );
         }
 
@@ -8685,7 +8695,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (11,13): error CS8858: The receiver type 'R' is not a valid record type.
                 //         _ = r with { P = 2 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "r").WithArguments("R").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_CannotClone, "r").WithArguments("R").WithLocation(11, 13));
         }
 
         [Fact]
@@ -8884,6 +8894,7 @@ record B(int X)
         [Fact]
         public void WithExpr_NullableAnalysis_01()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(int X)
@@ -8904,6 +8915,7 @@ record B(int X)
         [Fact]
         public void WithExpr_NullableAnalysis_02()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string X)
@@ -8925,6 +8937,7 @@ record B(string X)
         [Fact]
         public void WithExpr_NullableAnalysis_03()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string? X)
@@ -8988,6 +9001,7 @@ record B(int X)
         [Fact, WorkItem(44763, "https://github.com/dotnet/roslyn/issues/44763")]
         public void WithExpr_NullableAnalysis_05()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string? X, string? Y)
@@ -9025,6 +9039,7 @@ record B(string? X, string? Y)
         [Fact]
         public void WithExpr_NullableAnalysis_06()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B
@@ -9441,6 +9456,7 @@ class D
         [Fact]
         public void WithExprAssignToRef1()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int Y)
@@ -9529,6 +9545,7 @@ record C(int Y)
         [Fact]
         public void WithExpressionSameLHS()
         {
+            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C(int X)
 {
@@ -9543,6 +9560,40 @@ record C(int X)
                 //         c = c with { X = 1, X = 2};
                 Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "X").WithArguments("X").WithLocation(7, 29)
             );
+        }
+
+        [Fact]
+        public void WithExpr_ValEscape()
+        {
+            var text = @"
+using System;
+record R
+{
+    public S1 Property { set { throw null; } }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var r = new R();
+        Span<int> local = stackalloc int[1];
+        _ = r with { Property = MayWrap(ref local) };
+        _ = new R() { Property = MayWrap(ref local) };
+    }
+
+    static S1 MayWrap(ref Span<int> arg)
+    {
+        return default;
+    }
+}
+
+ref struct S1
+{
+    public ref int this[int i] => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
         [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]

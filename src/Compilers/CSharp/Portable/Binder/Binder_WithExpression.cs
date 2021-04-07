@@ -32,7 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? cloneMethod = null;
-            if (!receiverType.IsErrorType())
+            if (receiverType.IsValueType)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnStructs, diagnostics);
+            }
+            else if (!receiverType.IsErrorType())
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (cloneMethod is null)
                 {
                     hasErrors = true;
-                    diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Expression.Location, receiverType);
+                    diagnostics.Add(ErrorCode.ERR_CannotClone, syntax.Expression.Location, receiverType);
                 }
                 else
                 {

@@ -6274,8 +6274,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>
   </data>
-  <data name="ERR_NoSingleCloneMethod" xml:space="preserve">
-    <value>The receiver type '{0}' is not a valid record type.</value>
+  <data name="ERR_CannotClone" xml:space="preserve">
+    <value>The receiver type '{0}' is not a valid record type and is not a struct type.</value>
   </data>
   <data name="ERR_AssignmentInitOnly" xml:space="preserve">
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
@@ -6566,6 +6566,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRecordStructs" xml:space="preserve">
     <value>record structs</value>
     <comment>'record structs' is not localizable.</comment>
+  </data>
+  <data name="IDS_FeatureWithOnStructs" xml:space="preserve">
+    <value>with on structs</value>
   </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
