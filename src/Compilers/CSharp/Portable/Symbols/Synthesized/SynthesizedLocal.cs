@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxNode _syntaxOpt;
         private readonly bool _isPinned;
         private readonly RefKind _refKind;
-        private readonly uint _valEscapeScope;
 
 #if DEBUG
         private readonly int _createdAtLineNumber;
@@ -38,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SynthesizedLocalKind kind,
             SyntaxNode syntaxOpt = null,
             bool isPinned = false,
-            RefKind refKind = RefKind.None,
-            uint? valEscapeScope = null
+            RefKind refKind = RefKind.None
 #if DEBUG
             ,
             [CallerLineNumber] int createdAtLineNumber = 0,
@@ -50,8 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!type.IsVoidType());
             Debug.Assert(!kind.IsLongLived() || syntaxOpt != null);
             Debug.Assert(refKind != RefKind.Out);
-            Debug.Assert((valEscapeScope == null && kind != SynthesizedLocalKind.InterpolatedStringBuilder) ||
-                         (valEscapeScope != null && kind == SynthesizedLocalKind.InterpolatedStringBuilder));
 
             _containingMethodOpt = containingMethodOpt;
             _type = type;
@@ -59,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxOpt = syntaxOpt;
             _isPinned = isPinned;
             _refKind = refKind;
-            _valEscapeScope = valEscapeScope ?? Binder.ExternalScope;
 
 #if DEBUG
             _createdAtLineNumber = createdAtLineNumber;
@@ -161,10 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here, except for interpolated string builders
-        /// synthesized during lowering (as they can be ref structs).
+        /// Checking escape scopes is not valid here.
         /// </summary>
-        internal override uint ValEscapeScope => _kind == SynthesizedLocalKind.InterpolatedStringBuilder ? _valEscapeScope : throw ExceptionUtilities.Unreachable;
+        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Compiler should always be synthesizing locals with correct escape semantics.

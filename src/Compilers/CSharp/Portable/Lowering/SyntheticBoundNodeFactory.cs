@@ -525,11 +525,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             ,
             [CallerLineNumber] int createdAtLineNumber = 0,
-            [CallerFilePath] string? createdAtFilePath = null
+            [CallerFilePath] string createdAtFilePath = ""
 #endif
             )
         {
-            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned, refKind, valEscapeScope: null
+            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned, refKind
 #if DEBUG
                 , createdAtLineNumber, createdAtFilePath
 #endif
@@ -543,11 +543,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             ,
             [CallerLineNumber] int createdAtLineNumber = 0,
-            [CallerFilePath] string? createdAtFilePath = null
+            [CallerFilePath] string createdAtFilePath = ""
 #endif
             )
         {
-            return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), SynthesizedLocalKind.InterpolatedStringBuilder, syntax, isPinned: false, RefKind.None, valEscapeScope
+            return new InterpolatedStringBuilderLocalSymbol(CurrentFunction, syntax, TypeWithAnnotations.Create(type), valEscapeScope
 #if DEBUG
                 , createdAtLineNumber, createdAtFilePath
 #endif

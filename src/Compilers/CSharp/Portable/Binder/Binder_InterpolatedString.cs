@@ -210,10 +210,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // (such as Span<T>) that are not convertible to `object` are permissible as interpolated string components, provided there
                 // is an applicable TryFormatInterpolationHole that accepts them. To preserve langversion, we therefore make sure all components
                 // are convertible to object if the current langversion is lower than the interpolation feature
+                TypeSymbol? objectType = null;
+                BindingDiagnosticBag? conversionDiagnostics = null;
                 var needToCheckConversionToObject = !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) && diagnostics.AccumulatesDiagnostics;
-                var (objectType, conversionDiagnostics) = needToCheckConversionToObject
-                    ? (GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax), BindingDiagnosticBag.GetInstance())
-                    : (null, null);
+                if (needToCheckConversionToObject)
+                {
+                    objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
+                    conversionDiagnostics = BindingDiagnosticBag.GetInstance();
+                }
 
                 // Swap out the first argument of the format calls, which is the (potentially converted) part from the original string with
                 // a placeholder, and put the part into the interpolated string's list of parts.
@@ -312,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PROTOTYPE(interp-strings): Do we need to support versions of InterpolatedStringBuilder that do not have Dispose, or implement it
                 // with a different signature, or that are not a ref struct and explicitly implement IDisposable?
-                // PROTOTYPE(interp-string): Is the runtime going to expose this?
+                // PROTOTYPE(interp-string): Is the runtime going to expose this, or do we want to support pattern-based dispose?
 
                 var disposeMethod = (MethodSymbol)GetWellKnownTypeMember(
                     WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__Dispose,
@@ -323,21 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (disposeMethod != null)
                 {
-                    var argsToParams = default(ImmutableArray<int>);
-                    var expanded = disposeMethod.HasParamsParameter();
-
-                    BindDefaultArguments(
-                        unconvertedInterpolatedString.Syntax,
-                        disposeMethod.Parameters,
-                        argumentsBuilder,
-                        argumentRefKindsBuilder: null,
-                        ref argsToParams,
-                        out BitVector defaultArguments,
-                        expanded,
-                        enableCallerInfo: true,
-                        diagnostics);
-
-                    disposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutable(), argsToParams, defaultArguments, expanded);
+                    disposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutable(), ArgsToParamsOpt: default, DefaultArguments: default, Expanded: false);
 
                     ReportDiagnosticsIfObsolete(diagnostics, disposeMethod, unconvertedInterpolatedString.Syntax, hasBaseReceiver: false);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, disposeMethod, unconvertedInterpolatedString.Syntax.Location, isDelegateConversion: false);

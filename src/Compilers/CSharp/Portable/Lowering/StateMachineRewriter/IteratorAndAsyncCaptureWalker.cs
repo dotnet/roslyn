@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Interpolated string builder variables are limited in lifetime, and will not be used in a context that
                 // actually needs to be saved to the closure.
-                if (variable is not SynthesizedLocal { SynthesizedKind: SynthesizedLocalKind.InterpolatedStringBuilder })
+                if (variable is not InterpolatedStringBuilderLocalSymbol)
                 {
                     (_lazyDisallowedCaptures ??= new MultiDictionary<Symbol, SyntaxNode>()).Add(variable, syntax);
                 }
