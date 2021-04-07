@@ -2283,7 +2283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var kind = binary.OperatorKind;
                 var op = kind.Operator();
-                return op is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual && !kind.IsUserDefined();
+                return op is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual
+                    && (!kind.IsUserDefined() || kind.IsLifted());
             }
 
             static bool isNullableValueTypeConversion(BoundExpression expr)
