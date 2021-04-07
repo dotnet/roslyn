@@ -2303,8 +2303,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool learnFromOperator()
             {
-                if (TryVisitConditionalAccess(binary.Right, out var stateWhenNotNull)
-                    && (isNullableValueTypeConversion(binary.Left) || binary.Left.ConstantValue is object))
+                if ((isNullableValueTypeConversion(binary.Left) || binary.Left.ConstantValue is object)
+                    && TryVisitConditionalAccess(binary.Right, out var stateWhenNotNull))
                 {
                     var isNullConstant = binary.Left.ConstantValue?.IsNull == true;
                     SetConditionalState(isNullConstant == isEquals(binary)
@@ -2564,7 +2564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected bool TryVisitConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+        private bool TryVisitConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
             var access = node switch
             {
@@ -2613,7 +2613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the expression has "state when not null" after visiting,
         /// the method returns 'true' and writes the state to <paramref name="stateWhenNotNull" />.
         /// </summary>
-        protected bool VisitPossibleConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+        private bool VisitPossibleConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
             stateWhenNotNull = default;
             if (TryVisitConditionalAccess(node, out stateWhenNotNull))
