@@ -796,8 +796,6 @@ namespace Microsoft.CodeAnalysis
                         compilation = compilation.WithReferences(newReferences);
                     }
 
-                    var generators = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetGenerators(this.ProjectState.Language)).ToImmutableArray();
-
                     // We will finalize the compilation by adding full contents here.
                     // TODO: allow finalize compilation to incrementally update a prior version
                     // https://github.com/dotnet/roslyn/issues/46418
@@ -812,14 +810,14 @@ namespace Microsoft.CodeAnalysis
                     {
                         using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
 
-                        if (generators.Any())
+                        if (ProjectState.SourceGenerators.Any())
                         {
                             var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray<AdditionalText>(state => new AdditionalTextWithState(state));
                             var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
                             var generatorDriver = compilationFactory.CreateGeneratorDriver(
                                     this.ProjectState.ParseOptions!,
-                                    generators,
+                                    ProjectState.SourceGenerators,
                                     this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                     additionalTexts);
 
