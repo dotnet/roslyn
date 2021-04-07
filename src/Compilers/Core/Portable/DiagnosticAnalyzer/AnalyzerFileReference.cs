@@ -354,9 +354,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static IEnumerable<string> GetTransformersSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
 
+        // These constants are referenced in Caravela.Try.
+        public const string CompilerPlugInAttributeTypeName = "CompilerPluginAttribute";
+        public const string CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Sdk";
+
         private static bool IsPluginAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
-            return peModule.IsTargetAttribute(customAttrHandle, nameof(Caravela), "CompilerPluginAttribute", ctor: out _);
+            // This type is defined in Caravela.Framework.Sdk project, in the Caravela repo.
+            return peModule.IsTargetAttribute(customAttrHandle, CompilerPlugInAttributeTypeNamespace, CompilerPlugInAttributeTypeName, ctor: out _);
         }
         // </Caravela>
 
