@@ -7652,5 +7652,89 @@ record Person(string First, string Last);
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.RecordClassName);
         }
+
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
+        public void TestFunctionPointerWithoutIncludeTypesInParameterOptions()
+        {
+            var text = @"
+class A {
+    delegate*<int, string> f;
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                ((FieldSymbol)global.GetTypeMembers("A", 0).Single()
+                .GetMembers("f").Single()).Type;
+
+            var format = new SymbolDisplayFormat();
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "delegate*<Int32, String>");
+        }
+
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
+        public void TestFunctionPointerWithTupleParameter()
+        {
+            var text = @"
+class A {
+    delegate*<(int, string), void> f;
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                ((FieldSymbol)global.GetTypeMembers("A", 0).Single()
+                .GetMembers("f").Single()).Type;
+
+            var format = new SymbolDisplayFormat();
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "delegate*<(Int32, String), Void>");
+        }
+
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
+        public void TestFunctionPointerWithTupleParameterWithNames()
+        {
+            var text = @"
+class A {
+    delegate*<(int i, string s), (int i, string s)> f;
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                ((FieldSymbol)global.GetTypeMembers("A", 0).Single()
+                .GetMembers("f").Single()).Type;
+
+            var format = new SymbolDisplayFormat();
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "delegate*<(Int32 i, String s), (Int32 i, String s)>");
+        }
+
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
+        public void TestFunctionPointerWithRefParameters()
+        {
+            var text = @"
+class A {
+    delegate*<in int, ref readonly string> f;
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                ((FieldSymbol)global.GetTypeMembers("A", 0).Single()
+                .GetMembers("f").Single()).Type;
+
+            var format = new SymbolDisplayFormat();
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "delegate*<in Int32, ref readonly String>");
+        }
     }
 }

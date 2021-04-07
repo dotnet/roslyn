@@ -54,6 +54,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
+        public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+        {
+            if (symbol?.IsValueType != true)
+                return false;
+
+            return !symbol.IsNullable();
+        }
+
         public static bool IsNullable(
             [NotNullWhen(true)] this ITypeSymbol? symbol,
             [NotNullWhen(true)] out ITypeSymbol? underlyingType)

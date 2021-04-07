@@ -42,11 +42,6 @@
         <target state="translated">Chytré odsazování</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Formátovat dokument</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">Formátuje se dokument...</target>

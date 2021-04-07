@@ -711,11 +711,6 @@
         <target state="translated">Argument nemůže mít element, který je null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">Analyzátor se pokusil registrovat akci async, která se ale nepodporuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
         <target state="translated">Ohlášená diagnostika s ID {0} se v analyzátoru nepodporuje.</target>
