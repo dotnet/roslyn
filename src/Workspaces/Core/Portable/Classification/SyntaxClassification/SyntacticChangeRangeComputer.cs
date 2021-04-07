@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Classification
             return ComputeSyntacticChangeRange(oldRoot, newRoot, cancellationToken);
         }
 
-        private static TextChangeRange ComputeSyntacticChangeRange(SyntaxNode oldRoot, SyntaxNode newRoot, CancellationToken cancellationToken)
+        public static TextChangeRange ComputeSyntacticChangeRange(SyntaxNode oldRoot, SyntaxNode newRoot, CancellationToken cancellationToken)
         {
             if (oldRoot == newRoot)
                 return default;
@@ -105,10 +105,10 @@ namespace Microsoft.CodeAnalysis.Classification
             var oldRootWidth = oldRoot.FullWidth();
             var newRootWidth = newRoot.FullWidth();
 
-            Contract.ThrowIfFalse(commonLeftWidth > oldRootWidth);
-            Contract.ThrowIfFalse(commonLeftWidth > newRootWidth);
-            Contract.ThrowIfFalse(commonRightWidth > oldRootWidth);
-            Contract.ThrowIfFalse(commonRightWidth > newRootWidth);
+            Contract.ThrowIfTrue(commonLeftWidth > oldRootWidth);
+            Contract.ThrowIfTrue(commonLeftWidth > newRootWidth);
+            Contract.ThrowIfTrue(commonRightWidth > oldRootWidth);
+            Contract.ThrowIfTrue(commonRightWidth > newRootWidth);
 
             return new TextChangeRange(
                 TextSpan.FromBounds(start: commonLeftWidth.Value, end: oldRootWidth - commonRightWidth.Value),
