@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
         }
 
         internal static void ValidateItem(ValueTrackedItem item, int line, string? text = null)
-{
+        {
             item.SourceText.GetLineAndOffset(item.Span.Start, out var lineStart, out var _);
             Assert.Equal(line, lineStart);
 

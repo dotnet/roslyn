@@ -249,7 +249,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 {
                     return true;
                 }
-                
                 // A literal value as an argument is a dead end for data, but still contributes
                 // to a value and should be shown in value tracking. It should never expand
                 // further though. 
