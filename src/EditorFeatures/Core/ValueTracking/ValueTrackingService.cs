@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         private static async Task AddItemsFromAssignmentAsync(Document document, SyntaxNode lhsNode, OperationCollector collector, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var operation = semanticModel.GetOperation(lhsNode);
+            var operation = semanticModel.GetOperation(lhsNode, cancellationToken);
             if (operation is null)
             {
                 return;
