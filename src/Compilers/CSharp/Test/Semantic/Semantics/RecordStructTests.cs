@@ -6777,7 +6777,7 @@ class C
                 );
         }
 
-        [Fact()]
+        [Fact]
         public void WithExprOnStruct_OnRefStruct()
         {
             // Similar to test RefLikeObjInitializers but with `with` expressions
@@ -6836,6 +6836,69 @@ class Program
                 //         result = new S2() with { Field1 = inner, Field2 = outer };
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "Field1 = inner").WithArguments("inner").WithLocation(23, 34)
                 );
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnRefStruct_ReceiverMayWrap()
+        {
+            // Similar to test LocalWithNoInitializerEscape but wrapping method is used as receiver for `with` expression
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        S1 sp;
+        Span<int> local = stackalloc int[1];
+        sp = MayWrap(ref local) with { }; // 1, 2
+    }
+
+    static S1 MayWrap(ref Span<int> arg)
+    {
+        return default;
+    }
+
+    ref struct S1
+    {
+        public ref int this[int i] => throw null;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (9,26): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         sp = MayWrap(ref local) with { }; // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(9, 26),
+                // (9,14): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //         sp = MayWrap(ref local) with { }; // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref local)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(9, 14)
+                );
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnRefStruct_ReceiverMayWrap_02()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> local = stackalloc int[1];
+        S1 sp = MayWrap(ref local) with { };
+    }
+
+    static S1 MayWrap(ref Span<int> arg)
+    {
+        return default;
+    }
+
+    ref struct S1
+    {
+        public ref int this[int i] => throw null;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
