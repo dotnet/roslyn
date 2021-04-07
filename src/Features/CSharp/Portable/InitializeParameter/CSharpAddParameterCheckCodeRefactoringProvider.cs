@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.Options;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             if (InitializeParameterHelpers.IsExpressionBody(body))
             {
                 return InitializeParameterHelpers.TryConvertExpressionBodyToStatement(body,
-                    semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken),
+                    semicolonToken: Token(SyntaxKind.SemicolonToken),
                     createReturnStatementForExpression: false,
                     statement: out var _);
             }
@@ -63,5 +64,27 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override string EscapeResourceString(string input)
             => input.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+        protected override StatementSyntax CreateParameterCheckIfStatement(DocumentOptionSet options, ExpressionSyntax condition, StatementSyntax ifTrueStatement)
+        {
+            var withBlock = options.GetOption(CSharpCodeStyleOptions.PreferBraces).Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
+            var singleLine = options.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine).Value;
+            var ifTruePart = withBlock
+                ? Block(ifTrueStatement)
+                : singleLine
+                    ? ifTrueStatement.WithoutLeadingTrivia()
+                    : ifTrueStatement;
+            var closeParenTrailingTrivia = singleLine && !withBlock
+                ? Space
+                : ElasticMarker;
+            return IfStatement(
+                attributeLists: default,
+                ifKeyword: Token(SyntaxKind.IfKeyword),
+                openParenToken: Token(SyntaxKind.OpenParenToken),
+                condition: condition,
+                closeParenToken: Token(SyntaxKind.CloseParenToken).WithTrailingTrivia(closeParenTrailingTrivia),
+                statement: ifTruePart,
+                @else: null);
+        }
     }
 }

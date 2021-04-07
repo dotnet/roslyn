@@ -2075,9 +2075,9 @@ class C
 }",
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
                 }
             }.RunAsync();
         }
@@ -2110,9 +2110,9 @@ class C
 }",
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
                 }
             }.RunAsync();
         }
@@ -2147,9 +2147,9 @@ class C
 }",
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
                 }
             }.RunAsync();
         }
@@ -2176,15 +2176,14 @@ class C
 {
     public C(object o)
     {
-        if (o is null)
-            throw new ArgumentNullException(nameof(o));
+        if (o is null) throw new ArgumentNullException(nameof(o));
     }
 }",
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
                 }
             }.RunAsync();
         }
@@ -2211,15 +2210,14 @@ class C
 {
     public C(object o)
     {
-        if (o is null)
-            throw new ArgumentNullException(nameof(o));
+        if (o is null) throw new ArgumentNullException(nameof(o));
     }
 }",
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
                 }
             }.RunAsync();
         }
@@ -2254,10 +2252,234 @@ class C
 }",
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
                 }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline},
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+        }}
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+        }}
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
             }.RunAsync();
         }
     }
