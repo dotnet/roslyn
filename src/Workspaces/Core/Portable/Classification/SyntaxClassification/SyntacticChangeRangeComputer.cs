@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             if (commonLeftWidth == null || commonRightWidth == null)
             {
-                // They better have both been the same, otherwise our walk was somehow non-symettric.
+                // They better have both been the same, otherwise our walk was somehow non-symmetric.
                 Contract.ThrowIfFalse(commonLeftWidth == commonRightWidth);
 
                 // The trees were effectively identical (even if the children were different).  Return that there was no
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 Contract.ThrowIfFalse((oldRoot.FullSpan.End - currentOld.FullSpan.End) ==
                                       (newRoot.FullSpan.End - currentNew.FullSpan.End));
 
-                // If the two nodes/tokens were the same just skip past them.  They're part of the common left width.
+                // If the two nodes/tokens were the same just skip past them.  They're part of the common right width.
                 if (currentOld.IsIncrementallyIdenticalTo(currentNew))
                     continue;
 
@@ -189,10 +189,10 @@ namespace Microsoft.CodeAnalysis.Classification
                     return oldRoot.FullSpan.End - currentOld.FullSpan.End;
 
                 // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
-                // class, the class node would be new, but there might be many member nodes that were the same that we'd
-                // want to see and skip.  Crumble the node and deal with its right side.
+                // class, the class node would be new, but there might be many member nodes following the edited node
+                // that were the same that we'd want to see and skip.  Crumble the node and deal with its right side.
                 //
-                // Do not reverse teh chilren.  We want to process the rightmost child first and walk right to left.
+                // Do not reverse the children.  We want to process the rightmost child first and walk right to left.
                 foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens())
                     oldStack.Push(nodeOrToken);
 
