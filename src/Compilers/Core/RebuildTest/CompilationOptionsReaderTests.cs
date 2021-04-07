@@ -51,20 +51,18 @@ class C { }
             Assert.Null(reader.GetPublicKey());
         }
 
-        [Fact]
-        public void OutputKind()
+        [Theory]
+        [CombinatorialData]
+        public void OutputKind(OutputKind kind)
         {
-            foreach (OutputKind kind in Enum.GetValues(typeof(OutputKind)))
-            {
-                var compilation = CreateCompilation(
-                    options: new CSharpCompilationOptions(outputKind: kind),
-                    source: @"
+            var compilation = CreateCompilation(
+                options: new CSharpCompilationOptions(outputKind: kind),
+                source: @"
 class Program {
-    public static void Main() { }
+public static void Main() { }
 }");
-                var reader = GetOptionsReader(compilation);
-                Assert.Equal(kind, reader.GetMetadataCompilationOptions().OptionToEnum<OutputKind>(CompilationOptionNames.OutputKind));
-            }
+            var reader = GetOptionsReader(compilation);
+            Assert.Equal(kind, reader.GetMetadataCompilationOptions().OptionToEnum<OutputKind>(CompilationOptionNames.OutputKind));
         }
     }
 }
