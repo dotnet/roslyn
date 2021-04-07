@@ -13,34 +13,10 @@ namespace Microsoft.CodeAnalysis
     /// Wraps an incremental generator in a dummy <see cref="ISourceGenerator"/> interface.
     /// </summary>
     /// <remarks>
-    /// Used to unify loading incremental generators with older ISourceGenerator style ones. There are various places
-    /// that assume there is a 1 to 1 mapping between generator instance and type. While it was never an explicit guarantee
-    /// enough downstream consumers take a dependency on this behavior that is worth preserving. This wrapper allows us
-    /// to continue to maintain that mapping while still wrapping the type.
+    /// Allows us to treat both generator types as ISourceGenerator externally and not change the public API.
+    /// Inside the driver we unwrap and use the actual generator instance.
     /// </remarks>
-    /// <typeparam name="TIncrementalGenerator">The type of the incrmental generator being wrapped</typeparam>
-    internal sealed class IncrementalToSourceGeneratorWrapper<TIncrementalGenerator> : IncrementalGeneratorWrapper, ISourceGenerator
-        where TIncrementalGenerator : IIncrementalGenerator
-    {
-        public IncrementalToSourceGeneratorWrapper(TIncrementalGenerator generator)
-            : base(generator)
-        {
-        }
-
-        // never used. Just for back compat with loading mechansim
-        void ISourceGenerator.Execute(GeneratorExecutionContext context) => throw ExceptionUtilities.Unreachable;
-
-        void ISourceGenerator.Initialize(GeneratorInitializationContext context) => throw ExceptionUtilities.Unreachable;
-    }
-
-    /// <summary>
-    /// Non generic wrapper for incremental generators
-    /// </summary>
-    /// <remarks>
-    /// The generic version allows us to ensure we get a unique type per wrapper externally.
-    /// Internally we can just use this to grab the actual generator instance we care about.
-    /// </remarks>
-    internal class IncrementalGeneratorWrapper
+    internal sealed class IncrementalGeneratorWrapper : ISourceGenerator
     {
         internal IIncrementalGenerator Generator { get; }
 
@@ -48,5 +24,10 @@ namespace Microsoft.CodeAnalysis
         {
             this.Generator = generator;
         }
+
+        // never used. Just for back compat with loading mechanisim
+        void ISourceGenerator.Execute(GeneratorExecutionContext context) => throw ExceptionUtilities.Unreachable;
+
+        void ISourceGenerator.Initialize(GeneratorInitializationContext context) => throw ExceptionUtilities.Unreachable;
     }
 }

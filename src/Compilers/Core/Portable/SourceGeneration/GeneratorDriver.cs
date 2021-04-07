@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            // PROTOTYPE: we currently drop any incremental generators.
+            // PROTOTYPE(source-generators):
+            //            we currently drop any incremental generators.
             //            in a future PR we'll switch this round to create adaptors for the old style generators
             //            and natively deal with incremental generators in the driver.
             generators = generators.WhereAsArray(g => g is not IncrementalGeneratorWrapper);
@@ -126,6 +127,25 @@ namespace Microsoft.CodeAnalysis
                 }
                 return sources.ToImmutableAndFree();
             }
+        }
+
+        /// <summary>
+        /// Returns the underlying type of a given generator
+        /// </summary>
+        /// <remarks>
+        /// For <see cref="IIncrementalGenerator"/>s we create a wrapper type that also implements
+        /// <see cref="ISourceGenerator"/>. This method will unwrap and return the underlying type
+        /// in those cases.
+        /// </remarks>
+        /// <param name="generator">The generator to get the type of</param>
+        /// <returns>The underlying generator type</returns>
+        public static Type GetGeneratorType(ISourceGenerator generator)
+        {
+            if (generator is IncrementalGeneratorWrapper igw)
+            {
+                return igw.Generator.GetType();
+            }
+            return generator.GetType();
         }
 
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
@@ -327,15 +347,6 @@ namespace Microsoft.CodeAnalysis
         {
             var type = GetGeneratorType(generator);
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
-        }
-
-        internal static Type GetGeneratorType(ISourceGenerator generator)
-        {
-            if (generator is IncrementalGeneratorWrapper igw)
-            {
-                return igw.Generator.GetType();
-            }
-            return generator.GetType();
         }
 
         internal abstract CommonMessageProvider MessageProvider { get; }

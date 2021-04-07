@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGeneratorsForAllLanguages();
-            var typeNames = generators.Select(g => g.GetType().FullName);
+            var typeNames = generators.Select(g => GeneratorDriver.GetGeneratorType(g).FullName);
 
             AssertEx.SetEqual(new[]
             {
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.FSharpGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
-                "Microsoft.CodeAnalysis.IncrementalToSourceGeneratorWrapper`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
+                "Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator"
             }, typeNames);
         }
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGenerators(LanguageNames.CSharp);
 
-            var typeNames = generators.Select(g => g.GetType().FullName);
+            var typeNames = generators.Select(g => GeneratorDriver.GetGeneratorType(g).FullName);
             AssertEx.SetEqual(new[]
             {
                 "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator",
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
-                "Microsoft.CodeAnalysis.IncrementalToSourceGeneratorWrapper`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
+                "Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator"
             }, typeNames);
         }
 
@@ -313,14 +313,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGenerators(LanguageNames.VisualBasic);
 
-            var typeNames = generators.Select(g => g.GetType().FullName);
+            var typeNames = generators.Select(g => GeneratorDriver.GetGeneratorType(g).FullName);
             AssertEx.SetEqual(new[]
             {
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
-                "Microsoft.CodeAnalysis.IncrementalToSourceGeneratorWrapper`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
+                "Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator"
             }, typeNames);
         }
 
@@ -436,7 +436,7 @@ public class Generator : ISourceGenerator
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
 
-            var csharpGenerators = reference.GetGenerators(LanguageNames.CSharp).Select(a => a.GetType().FullName).ToArray();
+            var csharpGenerators = reference.GetGenerators(LanguageNames.CSharp).Select(g => GeneratorDriver.GetGeneratorType(g).FullName).ToArray();
             Assert.Equal(10, csharpGenerators.Length);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", csharpGenerators[0]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", csharpGenerators[1]);
@@ -445,20 +445,20 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator", csharpGenerators[4]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", csharpGenerators[5]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestGenerator", csharpGenerators[6]);
-            Assert.Equal("Microsoft.CodeAnalysis.IncrementalToSourceGeneratorWrapper`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]", csharpGenerators[7]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator", csharpGenerators[7]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator", csharpGenerators[8]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", csharpGenerators[9]);
 
-            var vbGenerators = reference.GetGenerators(LanguageNames.VisualBasic).Select(a => a.GetType().FullName).ToArray();
+            var vbGenerators = reference.GetGenerators(LanguageNames.VisualBasic).Select(g => GeneratorDriver.GetGeneratorType(g).FullName).ToArray();
             Assert.Equal(5, vbGenerators.Length);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator", vbGenerators[0]);
-            Assert.Equal("Microsoft.CodeAnalysis.IncrementalToSourceGeneratorWrapper`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]", vbGenerators[1]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator", vbGenerators[1]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator", vbGenerators[2]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", vbGenerators[3]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", vbGenerators[4]);
 
             // generators load in language order (C#, F#, VB), and *do not* include duplicates
-            var allGenerators = reference.GetGeneratorsForAllLanguages().Select(g => g.GetType().FullName).ToArray();
+            var allGenerators = reference.GetGeneratorsForAllLanguages().Select(g => GeneratorDriver.GetGeneratorType(g).FullName).ToArray();
             Assert.Equal(12, allGenerators.Length);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", allGenerators[0]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", allGenerators[1]);
@@ -467,46 +467,11 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator", allGenerators[4]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", allGenerators[5]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestGenerator", allGenerators[6]);
-            Assert.Equal("Microsoft.CodeAnalysis.IncrementalToSourceGeneratorWrapper`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]", allGenerators[7]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator", allGenerators[7]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator", allGenerators[8]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", allGenerators[9]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.FSharpGenerator", allGenerators[10]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", allGenerators[11]);
-        }
-
-        [Fact]
-        public void TestUnwrapType()
-        {
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
-
-            // analyzers (never wrapped)
-            foreach (var analyzer in reference.GetAnalyzersForAllLanguages())
-            {
-                var analyzerType = analyzer.GetType();
-                var unwrapped = AnalyzerFileReference.UnwrapTypeIfRequired(analyzerType);
-
-                Assert.Equal(analyzerType, unwrapped);
-            }
-
-            // generators
-            foreach (var generator in reference.GetGeneratorsForAllLanguages())
-            {
-                var generatorType = generator.GetType();
-                var unwrapped = AnalyzerFileReference.UnwrapTypeIfRequired(generatorType);
-                bool isWrapped = generatorType.IsGenericType && generatorType.GetGenericTypeDefinition() == typeof(IncrementalToSourceGeneratorWrapper<>);
-
-                if (isWrapped)
-                {
-                    Assert.NotEqual(generatorType, unwrapped);
-                    Assert.Equal(generatorType.GetGenericArguments()[0], unwrapped);
-                    Assert.True(typeof(IIncrementalGenerator).IsAssignableFrom(unwrapped));
-                }
-                else
-                {
-                    Assert.Equal(generatorType, unwrapped);
-                    Assert.True(typeof(ISourceGenerator).IsAssignableFrom(unwrapped));
-                }
-            }
         }
 
         // NOTE: the order in which these are emitted can change the test 'TestLoadedAnalyzerOrderIsDeterministic'

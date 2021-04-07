@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis
         // TODO: make this public. Tracked by https://github.com/dotnet/roslyn/issues/50546
         internal ISourceGenerator SourceGenerator => State.SourceGenerator;
 
-        internal Type SourceGeneratorType => Diagnostics.AnalyzerFileReference.UnwrapTypeIfRequired(State.SourceGenerator.GetType());
-
         public string HintName => State.HintName;
     }
 }

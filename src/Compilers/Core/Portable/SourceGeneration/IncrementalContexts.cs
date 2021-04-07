@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="callback">An <see cref="Action{T}"/> that accepts a <see cref="GeneratorPostInitializationContext"/> that will be invoked after initialization.</param>
         public void RegisterForPostInitialization(Action<GeneratorPostInitializationContext> callback)
         {
-            // PROTOTYPE: should we share the post init context with the V1 api or make a duplicate context?
-            // PROTOTYPE: public api stub
+            // PROTOTYPE(source-generators): should we share the post init context with the V1 api or make a duplicate context?
+            // PROTOTYPE(source-generators): public api stub
         }
 
         public void RegisterExecutionPipeline(Action<IncrementalGeneratorPipelineContext> callback)
         {
-            // PROTOTYPE: should this be a required method on the interface?
-            // PROTOTYPE: public api stub
+            // PROTOTYPE(source-generators): should this be a required method on the interface?
+            // PROTOTYPE(source-generators): public api stub
         }
     }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
     {
         public void RegisterOutput(IncrementalGeneratorOutput output)
         {
-            // PROTOTYPE: public api stub
+            // PROTOTYPE(source-generators): public api stub
         }
     }
 }

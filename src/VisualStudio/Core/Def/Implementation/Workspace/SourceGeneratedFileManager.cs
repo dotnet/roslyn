@@ -122,8 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (!_directoryInfoOnDiskByContainingDirectoryId.ContainsKey(document.Id.Id))
             {
+                // PROTOTYPE(source-generators): this will return the incorrect type for wrapped generators
+                //                               there is ongoing work to remove the type dependency, so we'll
+                //                               fix it when that merges in
                 _directoryInfoOnDiskByContainingDirectoryId.Add(document.Id.Id,
-                    new GeneratedFileDirectoryInfo(document.Id, document.SourceGeneratorType));
+                    new GeneratedFileDirectoryInfo(document.Id, document.SourceGenerator.GetType()));
             }
 
             // We must always ensure the file name portion of the path is just the hint name, which matches the compiler's choice so
