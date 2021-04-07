@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -41,7 +42,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
-                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, caretLocation),
+                data: CreateCodeActionResolveData(
+                    CSharpAnalyzersResources.Use_implicit_type,
+                    caretLocation,
+                    customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
                 priority: PriorityLevel.Low,
                 groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },

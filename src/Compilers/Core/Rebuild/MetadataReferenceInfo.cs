@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public readonly struct MetadataReferenceInfo
     {
@@ -16,7 +16,7 @@ namespace BuildValidator
         public readonly string Name;
         public readonly FileInfo FileInfo;
         public readonly Guid Mvid;
-        public readonly ImmutableArray<string> ExternAliases;
+        public readonly string? ExternAlias;
         public readonly MetadataImageKind Kind;
         public readonly bool EmbedInteropTypes;
 
@@ -25,7 +25,7 @@ namespace BuildValidator
             int imageSize,
             string name,
             Guid mvid,
-            ImmutableArray<string> externAliases,
+            string? externAlias,
             MetadataImageKind kind,
             bool embedInteropTypes)
         {
@@ -33,7 +33,7 @@ namespace BuildValidator
             ImageSize = imageSize;
             Name = name;
             Mvid = mvid;
-            ExternAliases = externAliases;
+            ExternAlias = externAlias;
             Kind = kind;
             EmbedInteropTypes = embedInteropTypes;
             FileInfo = new FileInfo(name);

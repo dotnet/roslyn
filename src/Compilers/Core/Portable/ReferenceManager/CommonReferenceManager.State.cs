@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enumerates all referenced assemblies and their aliases.
         /// </summary>
-        internal abstract IEnumerable<(IAssemblySymbolInternal, ImmutableArray<string>)> GetReferencedAssemblyAliases();
+        internal abstract IEnumerable<(IAssemblySymbolInternal AssemblySymbol, ImmutableArray<string> Aliases)> GetReferencedAssemblyAliases();
 
         internal abstract MetadataReference? GetMetadataReference(IAssemblySymbolInternal? assemblySymbol);
         internal abstract ImmutableArray<MetadataReference> ExplicitReferences { get; }
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        internal override IEnumerable<(IAssemblySymbolInternal, ImmutableArray<string>)> GetReferencedAssemblyAliases()
+        internal override IEnumerable<(IAssemblySymbolInternal AssemblySymbol, ImmutableArray<string> Aliases)> GetReferencedAssemblyAliases()
         {
             for (int i = 0; i < ReferencedAssemblies.Length; i++)
             {

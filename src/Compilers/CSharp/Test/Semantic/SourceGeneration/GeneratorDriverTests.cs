@@ -1331,5 +1331,32 @@ class C { }
             Assert.Single(result3.GeneratedSources);
             Assert.Equal(results.GeneratedTrees[3], result3.GeneratedSources[0].SyntaxTree);
         }
+
+        [Fact]
+        public void SyntaxTrees_Are_Lazy()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new SingleFileTestGenerator("public class D {}", "source.cs");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            var results = driver.GetRunResult();
+
+            var tree = Assert.Single(results.GeneratedTrees);
+
+            Assert.False(tree.TryGetRoot(out _));
+            var rootFromGetRoot = tree.GetRoot();
+            Assert.NotNull(rootFromGetRoot);
+            Assert.True(tree.TryGetRoot(out var rootFromTryGetRoot));
+            Assert.Same(rootFromGetRoot, rootFromTryGetRoot);
+        }
     }
 }

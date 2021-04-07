@@ -6,6 +6,8 @@ using System;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Rebuild;
+using Microsoft.CodeAnalysis.Text;
 
 namespace BuildValidator
 {
@@ -27,4 +29,11 @@ namespace BuildValidator
         bool Debug,
         string DebugPath);
 
+    internal record ResolvedSource(
+        string? OnDiskPath,
+        SourceText SourceText,
+        SourceFileInfo SourceFileInfo)
+    {
+        public string DisplayPath => OnDiskPath ?? ("[embedded]" + SourceFileInfo.SourceFilePath);
+    }
 }

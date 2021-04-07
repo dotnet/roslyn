@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     /// <summary>An entry in the source-link.json dictionary.</summary>
     public readonly struct SourceLink

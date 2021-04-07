@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         // In this case, s is being tracked because it contributed to the return of the method. We only
                         // want to track assignments to s that could impact the return rather than tracking the same method
                         // twice.
-                        var isParameterForPreviousTrackedMethod = previousSymbol == parameterSymbol.ContainingSymbol;
+                        var isParameterForPreviousTrackedMethod = previousSymbol?.Equals(parameterSymbol.ContainingSymbol) == true;
 
                         // For Ref or Out parameters, they contribute data across method calls through assignments
                         // within the method. No need to track returns
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         private static async Task AddItemsFromAssignmentAsync(Document document, SyntaxNode lhsNode, OperationCollector collector, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var operation = semanticModel.GetOperation(lhsNode);
+            var operation = semanticModel.GetOperation(lhsNode, cancellationToken);
             if (operation is null)
             {
                 return;

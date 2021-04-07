@@ -30,16 +30,28 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 
         public bool CanFilter => _service.CanFilter;
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public async Task<NavigateToSearchLocation> SearchDocumentAsync(
+            Document document, string searchPattern, IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded, CancellationToken cancellationToken)
         {
             var results = await _service.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(x => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(x));
+            foreach (var result in results)
+                await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
+
+            return NavigateToSearchLocation.Latest;
         }
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public async Task<NavigateToSearchLocation> SearchProjectAsync(
+            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
+            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded, CancellationToken cancellationToken)
         {
             var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            return results.SelectAsArray(x => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(x));
+            foreach (var result in results)
+                await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
+
+            return NavigateToSearchLocation.Latest;
         }
     }
 }
