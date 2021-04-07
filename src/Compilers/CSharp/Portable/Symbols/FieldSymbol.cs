@@ -405,6 +405,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
+                return TupleElementIndex >= 0;
+            }
+        }
+
+        public virtual bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
                 return false;
             }
         }
@@ -418,6 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!(this is TupleElementFieldSymbol));
                 return ContainingType.IsTupleType ? this : null;
             }
         }
@@ -430,7 +441,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                Debug.Assert(!(this is TupleElementFieldSymbol));
+                return TupleElementIndex >= 0 ? this : null;
             }
         }
 
@@ -451,6 +463,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // wrapped tuple fields already have this information and override this property
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
+
+                var map = ContainingType.TupleFieldDefinitionsToIndexMap;
+                if (map is object && map.TryGetValue(this.OriginalDefinition, out int index))
+                {
+                    return index;
+                }
+
                 return -1;
             }
         }

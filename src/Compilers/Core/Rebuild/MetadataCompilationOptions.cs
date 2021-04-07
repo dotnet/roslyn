@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     internal class MetadataCompilationOptions
     {

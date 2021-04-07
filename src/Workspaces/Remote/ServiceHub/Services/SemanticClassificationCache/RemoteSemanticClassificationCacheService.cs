@@ -181,12 +181,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
-            SerializableDocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken)
+            DocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
-                    documentKey.Rehydrate(), checksum, cancellationToken).ConfigureAwait(false);
+                    documentKey, checksum, cancellationToken).ConfigureAwait(false);
                 if (classifiedSpans.IsDefault)
                     return null;
 

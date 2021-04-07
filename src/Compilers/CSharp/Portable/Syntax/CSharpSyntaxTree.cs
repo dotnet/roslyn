@@ -392,6 +392,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cloneRoot: false);
         }
 
+        /// <summary>
+        /// Produces a syntax tree by parsing the source text lazily. The syntax tree is realized when
+        /// <see cref="CSharpSyntaxTree.GetRoot(CancellationToken)"/> is called.
+        /// </summary>
+        internal static SyntaxTree ParseTextLazy(
+            SourceText text,
+            CSharpParseOptions? options = null,
+            string path = "")
+        {
+            return new LazySyntaxTree(text, options ?? CSharpParseOptions.Default, path, diagnosticOptions: null);
+        }
+
         // The overload that has more parameters is itself obsolete, as an intentional break to allow future
         // expansion
 #pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
