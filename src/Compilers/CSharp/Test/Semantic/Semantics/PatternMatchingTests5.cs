@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -30,12 +29,20 @@ class C
         Console.Write(Test2(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
     }
 }
-struct S { public A? Prop1;    }
-struct A { public B? Prop2;    }
-struct B { public int? Prop3;  }
-
+struct S
+{
+    public A? Prop1;
+}
+struct A
+{
+    public B? Prop2;
+}
+struct B
+{
+    public int? Prop3;
+}
 ";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendPropertyPattern, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var verifier = CompileAndVerify(compilation, expectedOutput: "TrueTrue");
             verifier.VerifyIL("C.Test1", @"
@@ -110,14 +117,18 @@ class C
     public static void Main(string[] args)
     {        
         _ = new C() is { Prop1: null } and { Prop1.Prop2: null };
+        _ = new C() is { Prop1: null, Prop1.Prop2: null };
     }
 }
 ";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendPropertyPattern, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS8518: An expression of type 'C' can never match the provided pattern.
                 //         _ = new C() is { Prop1: null } and { Prop1.Prop2: null };
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new C() is { Prop1: null } and { Prop1.Prop2: null }").WithArguments("C").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new C() is { Prop1: null } and { Prop1.Prop2: null }").WithArguments("C").WithLocation(9, 13),
+                // (10,13): error CS8518: An expression of type 'C' can never match the provided pattern.
+                //         _ = new C() is { Prop1: null, Prop1.Prop2: null };
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new C() is { Prop1: null, Prop1.Prop2: null }").WithArguments("C").WithLocation(10, 13)
                 );
         }
 
@@ -143,7 +154,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendPropertyPattern, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("C.Main", @"
@@ -179,6 +190,47 @@ class C
   IL_002d:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_04()
+        {
+            var program = @"
+class C
+{
+    public C Prop1 { get; set; }
+    public C Prop2 { get; set; }
+
+    public static void Main(string[] args)
+    {        
+        _ = new C() is { Prop1?.Prop2: {} };
+    }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendPropertyPattern, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (9,26): error CS9001: Conditional access may not be used in property subpatterns. Use a simple member access instead.
+                //         _ = new C() is { Prop1?.Prop2: {} };
+                Diagnostic(ErrorCode.ERR_ConditionalAccessInSubpattern, "Prop1?.Prop2").WithLocation(9, 26));
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_05()
+        {
+            var program = @"
+class C
+{
+    public static void Main(string[] args)
+    {        
+        _ = new C() is { Prop1<int>.Prop2: {} };
+    }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendPropertyPattern, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,26): error CS9000: Identifier or a simple member access expected.
+                //         _ = new C() is { Prop1<int>.Prop2: {} };
+                Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1<int>").WithLocation(6, 26));
         }
     }
 }

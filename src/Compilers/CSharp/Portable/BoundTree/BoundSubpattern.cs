@@ -9,10 +9,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // PROTOTYPE(extended-property-patterns) Split BoundPropertySubpattern and remove this (requires IOperation changes)
     partial class BoundSubpattern
     {
         internal BoundSubpattern(SyntaxNode syntax, Symbol? symbol, BoundPattern pattern, bool hasErrors = false)
-            : this(syntax, symbol is null ? default : ImmutableArray.Create(symbol), pattern, hasErrors)
+            : this(syntax, symbol is null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(symbol), pattern, hasErrors)
         {
         }
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.Symbols.IsDefault)
+                if (this.Symbols.IsEmpty)
                     return null;
                 if (this.Symbols.Length == 1)
                     return this.Symbols[0];

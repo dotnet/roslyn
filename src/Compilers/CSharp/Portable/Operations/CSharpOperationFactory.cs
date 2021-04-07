@@ -2292,6 +2292,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IOperation CreatePropertySubpatternMember(Symbol? symbol, ITypeSymbol matchedType, SyntaxNode syntax)
         {
+            // PROTOTYPE(extended-property-patterns)
             var nameSyntax = (syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.NameColon?.Name : null) ?? syntax;
             bool isImplicit = nameSyntax == syntax;
             switch (symbol)

@@ -527,46 +527,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!recursive.Properties.IsDefault)
             {
                 // we have a "property" form
-                foreach (var subPattern in recursive.Properties)
+                foreach (var subpattern in recursive.Properties)
                 {
-                    BoundPattern pattern = subPattern.Pattern;
+                    BoundPattern pattern = subpattern.Pattern;
                     BoundDagTemp currentInput = input;
-                    if (!subPattern.Symbols.IsDefault)
-                    {
-                        Symbol last = subPattern.Symbols[^1];
-                        foreach (Symbol symbol in subPattern.Symbols)
-                        {
-                            BoundDagEvaluation evaluation;
-                            switch (symbol)
-                            {
-                                case PropertySymbol property:
-                                    evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(currentInput, property));
-                                    break;
-                                case FieldSymbol field:
-                                    evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(currentInput, field));
-                                    break;
-                                default:
-                                    RoslynDebug.Assert(recursive.HasAnyErrors);
-                                    tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), currentInput, hasErrors: true)));
-                                    continue;
-                            }
-
-                            tests.Add(new Tests.One(evaluation));
-                            TypeSymbol type = symbol.GetTypeOrReturnType().Type;
-                            currentInput = new BoundDagTemp(pattern.Syntax, type, evaluation);
-
-                            if (!ReferenceEquals(symbol, last))
-                            {
-                                currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
-                            }
-                        }
-                    }
-                    else
+                    if (subpattern.Symbols.IsEmpty)
                     {
                         RoslynDebug.Assert(recursive.HasAnyErrors);
-                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), currentInput, hasErrors: true)));
+                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
+                        goto done;
                     }
 
+                    Symbol last = subpattern.Symbols.Last();
+                    foreach (Symbol symbol in subpattern.Symbols)
+                    {
+                        BoundDagEvaluation evaluation;
+                        switch (symbol)
+                        {
+                            case PropertySymbol property:
+                                evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(currentInput, property));
+                                break;
+                            case FieldSymbol field:
+                                evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(currentInput, field));
+                                break;
+                            default:
+                                RoslynDebug.Assert(recursive.HasAnyErrors);
+                                tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), currentInput, hasErrors: true)));
+                                goto done;
+                        }
+
+                        tests.Add(new Tests.One(evaluation));
+                        TypeSymbol type = symbol.GetTypeOrReturnType().Type;
+                        currentInput = new BoundDagTemp(pattern.Syntax, type, evaluation);
+
+                        if (!ReferenceEquals(symbol, last))
+                        {
+                            currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
+                        }
+                    }
+
+done:
                     tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                 }
             }

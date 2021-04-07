@@ -585,11 +585,10 @@ tryAgain:
 
         private SubpatternSyntax ParseSubpatternElement()
         {
-            PatternSyntax pattern = ParsePattern(Precedence.Conditional);
-
             NameColonSyntax nameColon = null;
             ExpressionColonSyntax exprColon = null;
 
+            PatternSyntax pattern = ParsePattern(Precedence.Conditional);
             // If there is a colon but it's not preceeded by a valid expression, leave it out to parse it as a missing comma, preserving C# 9.0 behavior.
             if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern) is ExpressionSyntax expr)
             {

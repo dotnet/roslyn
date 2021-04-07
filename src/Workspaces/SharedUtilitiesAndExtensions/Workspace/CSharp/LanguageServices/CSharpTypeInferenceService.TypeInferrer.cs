@@ -1458,6 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // parent type.  So look up the parent type first, then find the X member in it
                 // and use that type.
                 if (child == subpattern.Pattern &&
+                    // PROTOTYPE(extended-property-patterns)
                     subpattern.NameColon != null)
                 {
                     var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
@@ -1558,6 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (var subPattern in positionalPart.Subpatterns)
                         {
+                            // PROTOTYPE(extended-property-patterns)
                             elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
 
                             var patternType = GetPatternTypes(subPattern.Pattern).FirstOrDefault();

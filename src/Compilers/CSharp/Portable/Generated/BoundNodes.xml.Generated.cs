@@ -7504,6 +7504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(BoundKind.Subpattern, syntax, hasErrors || pattern.HasErrors())
         {
 
+            RoslynDebug.Assert(!symbols.IsDefault, "Field 'symbols' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(pattern is object, "Field 'pattern' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Symbols = symbols;
