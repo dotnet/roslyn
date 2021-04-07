@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,10 +13,13 @@ namespace Microsoft.CodeAnalysis
     /// Wraps an incremental generator in a dummy <see cref="ISourceGenerator"/> interface.
     /// </summary>
     /// <remarks>
-    /// Used to unify loading incremental generators with older ISourceGenerator style ones
+    /// Used to unify loading incremental generators with older ISourceGenerator style ones. There are various places
+    /// that assume there is a 1 to 1 mapping between generator instance and type. While it was never an explicit guarantee
+    /// enough downstream consumers take a dependency on this behavior that is worth preserving. This wrapper allows us
+    /// to continue to maintain that mapping while still wrapping the type.
     /// </remarks>
     /// <typeparam name="TIncrementalGenerator">The type of the incrmental generator being wrapped</typeparam>
-    internal class IncrementalToSourceGeneratorWrapper<TIncrementalGenerator> : IncrementalGeneratorWrapper, ISourceGenerator
+    internal sealed class IncrementalToSourceGeneratorWrapper<TIncrementalGenerator> : IncrementalGeneratorWrapper, ISourceGenerator
         where TIncrementalGenerator : IIncrementalGenerator
     {
         public IncrementalToSourceGeneratorWrapper(TIncrementalGenerator generator)
@@ -33,7 +37,7 @@ namespace Microsoft.CodeAnalysis
     /// Non generic wrapper for incremental generators
     /// </summary>
     /// <remarks>
-    /// The generic version allows us to ensure we get a unique type per wrapper externally
+    /// The generic version allows us to ensure we get a unique type per wrapper externally.
     /// Internally we can just use this to grab the actual generator instance we care about.
     /// </remarks>
     internal class IncrementalGeneratorWrapper
