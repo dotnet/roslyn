@@ -212,34 +212,49 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             {
                 // Ref or Out arguments always contribute data as "assignments"
                 // across method calls
-                return argumentOperation.Parameter?.IsRefOrOut() == true
+                if (argumentOperation.Parameter?.IsRefOrOut() == true)
+                {
+                    return true;
+                }
 
-                    // If the argument value is an expression, binary operation, or
-                    // invocation then parts of the operation need to be evaluated
-                    // to see if they contribute data for value tracking
-                    || argumentOperation.Value is IExpressionStatementOperation
+                // If the argument value is an expression, binary operation, or
+                // invocation then parts of the operation need to be evaluated
+                // to see if they contribute data for value tracking
+                if (argumentOperation.Value is IExpressionStatementOperation
                         or IBinaryOperation
-                        or IInvocationOperation
+                        or IInvocationOperation)
+                {
+                    return true;
+                }
 
-                        // If the argument value is a parameter reference, then the method calls
-                        // leading to that parameter value should be tracked as well.
-                        // Ex:
-                        // string Prepend(string s1) => "pre" + s1;
-                        // string CallPrepend(string [|s2|]) => Prepend(s2);
-                        // Tracking [|s2|] into calls as an argument means that we 
-                        // need to know where [|s2|] comes from and how it contributes
-                        // to the value s1
-                        or IParameterReferenceOperation
+                // If the argument value is a parameter reference, then the method calls
+                // leading to that parameter value should be tracked as well.
+                // Ex:
+                // string Prepend(string s1) => "pre" + s1;
+                // string CallPrepend(string [|s2|]) => Prepend(s2);
+                // Tracking [|s2|] into calls as an argument means that we 
+                // need to know where [|s2|] comes from and how it contributes
+                // to the value s1
+                if (argumentOperation.Value is IParameterReferenceOperation)
+                {
+                    return true;
+                }
 
-                        // A literal value as an argument is a dead end for data, but still contributes
-                        // to a value and should be shown in value tracking. It should never expand
-                        // further though. 
-                        // Ex:
-                        // string Prepend(string [|s|]) => "pre" + s;
-                        // string DefaultPrepend() => Prepend("default");
-                        // [|s|] is the parameter we need to track values for, which 
-                        // is assigned to "default" in DefaultPrepend
-                        or ILiteralOperation;
+
+                // A literal value as an argument is a dead end for data, but still contributes
+                // to a value and should be shown in value tracking. It should never expand
+                // further though. 
+                // Ex:
+                // string Prepend(string [|s|]) => "pre" + s;
+                // string DefaultPrepend() => Prepend("default");
+                // [|s|] is the parameter we need to track values for, which 
+                // is assigned to "default" in DefaultPrepend
+                if (argumentOperation.Value is ILiteralOperation)
+                {
+                    return true;
+                }
+
+                return false;
             }
 
             private static bool IsContainedIn<TContainingOperation>(IOperation? operation) where TContainingOperation : IOperation

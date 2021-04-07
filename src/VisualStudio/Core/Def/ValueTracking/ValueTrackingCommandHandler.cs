@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,17 +13,14 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -45,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly ClassificationTypeMap _typeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IGlyphService _glyphService;
+        private readonly IEditorFormatMapService _formatMapService;
         private RoslynPackage? _roslynPackage;
 
         [ImportingConstructor]
@@ -54,7 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
             IClassificationFormatMapService classificationFormatMapService,
-            IGlyphService glyphService)
+            IGlyphService glyphService,
+            IEditorFormatMapService formatMapService)
         {
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
             _serviceProvider1 = serviceProvider;
@@ -62,6 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _typeMap = typeMap;
             _classificationFormatMapService = classificationFormatMapService;
             _glyphService = glyphService;
+            _formatMapService = formatMapService;
         }
 
         public string DisplayName => "Go to value tracking";
@@ -144,6 +143,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return;
             }
 
+            var toolWindow = await GetOrCreateToolWindowAsync(textView, cancellationToken).ConfigureAwait(false);
+            if (toolWindow is null || toolWindow.ViewModel is null)
+            {
+                return;
+            }
+
             var valueTrackingService = solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
             var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
 
@@ -154,45 +159,57 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var document = solution.GetRequiredDocument(location.SourceTree);
 
             var sourceText = await location.SourceTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            sourceText.GetLineAndOffset(location.SourceSpan.Start, out var lineStart, out var _);
-            sourceText.GetLineAndOffset(location.SourceSpan.End, out var lineEnd, out var _);
-            var lineSpan = LineSpan.FromBounds(lineStart, lineEnd);
-
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
             var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, cancellationToken).ConfigureAwait(false);
 
             var root = new ValueTrackingTreeItemViewModel(
                 document,
-                lineSpan,
+                location.SourceSpan,
                 sourceText,
                 selectedSymbol,
                 classificationResult.ClassifiedSpans,
-                classificationFormatMap,
-                _typeMap,
+                toolWindow.ViewModel,
                 _glyphService,
                 _threadingContext,
-                childViewModels);
+                children: childViewModels);
 
-            await ShowToolWindowAsync(root, cancellationToken).ConfigureAwait(false);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            toolWindow.ViewModel.Roots.Clear();
+            toolWindow.ViewModel.Roots.Add(root);
+
+            await ShowToolWindowAsync(cancellationToken).ConfigureAwait(true);
 
             ValueTrackingTreeItemViewModel CreateViewModel(ValueTrackedItem valueTrackedItem, ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
                 => new ValueTrackedTreeItemViewModel(
                    valueTrackedItem,
                    solution,
-                   classificationFormatMap,
-                   _typeMap,
+                   toolWindow.ViewModel,
                    _glyphService,
                    valueTrackingService,
                    _threadingContext,
                    children);
         }
 
-        private async Task ShowToolWindowAsync(ValueTrackingTreeItemViewModel viewModel, CancellationToken cancellationToken)
+        private async Task ShowToolWindowAsync(CancellationToken cancellationToken)
+        {
+            var roslynPackage = await TryGetRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(roslynPackage);
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await roslynPackage.ShowToolWindowAsync(
+                    typeof(ValueTrackingToolWindow),
+                    0,
+                    true,
+                    roslynPackage.DisposalToken).ConfigureAwait(false);
+        }
+
+        private async Task<ValueTrackingToolWindow?> GetOrCreateToolWindowAsync(ITextView textView, CancellationToken cancellationToken)
         {
             var roslynPackage = await TryGetRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
             if (roslynPackage is null)
             {
-                return;
+                return null;
             }
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -201,25 +218,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             {
                 var factory = roslynPackage.GetAsyncToolWindowFactory(Guids.ValueTrackingToolWindowId);
 
+                var viewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
+
                 factory.CreateToolWindow(Guids.ValueTrackingToolWindowId, 0, viewModel);
                 await factory.InitializeToolWindowAsync(Guids.ValueTrackingToolWindowId, 0);
 
-                ValueTrackingToolWindow.Instance = (ValueTrackingToolWindow)await roslynPackage.ShowToolWindowAsync(
+                // FindWindowPaneAsync creates an instance if it does not exist
+                ValueTrackingToolWindow.Instance = (ValueTrackingToolWindow)await roslynPackage.FindWindowPaneAsync(
                     typeof(ValueTrackingToolWindow),
                     0,
                     true,
                     roslynPackage.DisposalToken).ConfigureAwait(false);
             }
-            else
-            {
-                ValueTrackingToolWindow.Instance.Root = viewModel;
 
-                await roslynPackage.ShowToolWindowAsync(
-                    typeof(ValueTrackingToolWindow),
-                    0,
-                    false,
-                    roslynPackage.DisposalToken).ConfigureAwait(false);
-            }
+            return ValueTrackingToolWindow.Instance;
         }
 
         private async ValueTask<RoslynPackage?> TryGetRoslynPackageAsync(CancellationToken cancellationToken)

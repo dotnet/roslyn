@@ -6,19 +6,37 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     internal class ValueTrackingTreeViewModel : INotifyPropertyChanged
     {
-        public ValueTrackingTreeViewModel(params ValueTrackingTreeItemViewModel[] roots)
+        public ValueTrackingTreeViewModel(IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap, IEditorFormatMapService _formatMapService)
         {
-            foreach (var root in roots)
-            {
-                Roots.Add(root);
-            }
+            ClassificationFormatMap = classificationFormatMap;
+            ClassificationTypeMap = classificationTypeMap;
+            FormatMapService = _formatMapService;
+
+            var properties = FormatMapService.GetEditorFormatMap("text")
+                                          .GetProperties(ReferenceHighlightTag.TagId);
+
+            HighlightBrush = properties["Background"] as Brush;
         }
 
+        private Brush? _highlightBrush;
+        public Brush? HighlightBrush
+        {
+            get => _highlightBrush;
+            set => SetProperty(ref _highlightBrush, value);
+        }
+
+        public IClassificationFormatMap ClassificationFormatMap { get; }
+        public ClassificationTypeMap ClassificationTypeMap { get; }
+        public IEditorFormatMapService FormatMapService { get; }
         public ObservableCollection<ValueTrackingTreeItemViewModel> Roots { get; } = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;

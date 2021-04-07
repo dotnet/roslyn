@@ -32,20 +32,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ValueTrackedTreeItemViewModel(
             ValueTrackedItem trackedItem,
             Solution solution,
-            IClassificationFormatMap classificationFormatMap,
-            ClassificationTypeMap classificationTypeMap,
+            ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
             IThreadingContext threadingContext,
             ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
             : base(
                   trackedItem.Document,
-                  trackedItem.LineSpan,
+                  trackedItem.Span,
                   trackedItem.SourceText,
                   trackedItem.Symbol,
                   trackedItem.ClassifiedSpans,
-                  classificationFormatMap,
-                  classificationTypeMap,
+                  treeViewModel,
                   glyphService,
                   threadingContext,
                   children: children)
@@ -53,10 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             _trackedItem = trackedItem;
             _solution = solution;
-            _classificationFormatMap = classificationFormatMap;
-            _classificationTypeMap = classificationTypeMap;
             _glyphService = glyphService;
             _valueTrackingService = valueTrackingService;
+
+            _classificationFormatMap = treeViewModel.ClassificationFormatMap;
+            _classificationTypeMap = treeViewModel.ClassificationTypeMap;
 
             if (children.IsDefaultOrEmpty)
             {
@@ -142,8 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 builder.Add(new ValueTrackedTreeItemViewModel(
                     valueTrackedItem,
                     _solution,
-                    _classificationFormatMap,
-                    _classificationTypeMap,
+                    TreeViewModel,
                     _glyphService,
                     _valueTrackingService,
                     ThreadingContext));

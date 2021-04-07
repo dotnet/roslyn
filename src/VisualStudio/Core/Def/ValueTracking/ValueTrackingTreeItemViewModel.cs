@@ -23,6 +23,8 @@ using Microsoft.VisualStudio.PlatformUI;
 using System;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
@@ -30,10 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     {
         private readonly SourceText _sourceText;
         private readonly ISymbol _symbol;
-        private readonly IClassificationFormatMap _classificationFormatMap;
-        private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IGlyphService _glyphService;
 
+        protected ValueTrackingTreeViewModel TreeViewModel { get; }
+        protected TextSpan TextSpan { get; }
         protected LineSpan LineSpan { get; }
         protected Document Document { get; }
         protected IThreadingContext ThreadingContext { get; }
@@ -51,37 +53,56 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         {
             get
             {
+                if (ClassifiedSpans.IsDefaultOrEmpty)
+                {
+                    return new List<Inline>();
+                }
+
                 var classifiedTexts = ClassifiedSpans.SelectAsArray(
                    cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
 
+                var spanStartPosition = TextSpan.Start - ClassifiedSpans[0].TextSpan.Start;
+                var spanEndPosition = TextSpan.End - ClassifiedSpans[0].TextSpan.End;
+
                 return classifiedTexts.ToInlines(
-                    _classificationFormatMap,
-                    _classificationTypeMap);
+                    TreeViewModel.ClassificationFormatMap,
+                    TreeViewModel.ClassificationTypeMap,
+                    (run, classifiedText, position) =>
+                    {
+                        if (TreeViewModel.HighlightBrush is not null)
+                        {
+                            if (position >= spanStartPosition && position <= spanEndPosition)
+                            {
+                                run.SetValue(
+                                    TextElement.BackgroundProperty,
+                                    TreeViewModel.HighlightBrush);
+                            }
+                        }
+                    });
             }
         }
 
         public ValueTrackingTreeItemViewModel(
             Document document,
-            LineSpan lineSpan,
+            TextSpan textSpan,
             SourceText sourceText,
             ISymbol symbol,
             ImmutableArray<ClassifiedSpan> classifiedSpans,
-            IClassificationFormatMap classificationFormatMap,
-            ClassificationTypeMap classificationTypeMap,
+            ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IThreadingContext threadingContext,
             ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
         {
             Document = document;
-            LineSpan = lineSpan;
+            TextSpan = textSpan;
+
             ClassifiedSpans = classifiedSpans;
+            TreeViewModel = treeViewModel;
+            ThreadingContext = threadingContext;
 
             _sourceText = sourceText;
             _symbol = symbol;
-            _classificationFormatMap = classificationFormatMap;
-            _classificationTypeMap = classificationTypeMap;
             _glyphService = glyphService;
-            ThreadingContext = threadingContext;
 
             if (!children.IsDefaultOrEmpty)
             {
@@ -90,6 +111,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     ChildItems.Add(child);
                 }
             }
+
+            sourceText.GetLineAndOffset(textSpan.Start, out var lineStart, out var _);
+            sourceText.GetLineAndOffset(textSpan.End, out var lineEnd, out var _);
+            LineSpan = LineSpan.FromBounds(lineStart, lineEnd);
         }
 
         public virtual void Select()

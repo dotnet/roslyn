@@ -13,32 +13,33 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     internal class ValueTrackingToolWindow : ToolWindowPane
     {
         public static ValueTrackingToolWindow? Instance { get; set; }
-        private readonly ValueTrackingTreeViewModel _viewModel;
+        public ValueTrackingTreeViewModel? ViewModel { get; }
 
         public ValueTrackingToolWindow() : base(null)
         {
-            this.Caption = "Value Tracking";
-
-            _viewModel = new();
-            Content = new ValueTrackingTree(_viewModel);
         }
 
-        public ValueTrackingToolWindow(ValueTrackingTreeItemViewModel root)
+        public ValueTrackingToolWindow(ValueTrackingTreeViewModel viewModel)
             : base(null)
         {
             Caption = "Value Tracking";
 
-            _viewModel = new(root);
-            Content = new ValueTrackingTree(_viewModel);
+            ViewModel = viewModel;
+            Content = new ValueTrackingTree(ViewModel);
         }
 
-        public ValueTrackingTreeItemViewModel Root
+        public ValueTrackingTreeItemViewModel? Root
         {
-            get => _viewModel.Roots.Single();
+            get => ViewModel?.Roots.Single();
             set
             {
-                _viewModel.Roots.Clear();
-                _viewModel.Roots.Add(value);
+                if (ViewModel is null || value is null)
+                {
+                    return;
+                }
+
+                ViewModel.Roots.Clear();
+                ViewModel.Roots.Add(value);
             }
         }
     }
