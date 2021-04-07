@@ -215,35 +215,38 @@ public class A
             await RunMethodReferenceTest(input);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
-        public async Task TestFullyQualifiedName()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [InlineData("class", "class", "class")]
+        [InlineData("record class", "record class", "record class")]
+        [InlineData("record struct", "record struct", "record struct")]
+        public async Task TestFullyQualifiedName(string typeKind1, string typeKind2, string typeKind3)
         {
-            const string input = @"<Workspace>
+            var input = $@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public class A
-{
-    {|A.C: public void C()
-    {
+public {typeKind1} A
+{{
+    {{|A.C: public void C()
+    {{
         C();
-    }|}
+    }}|}}
 
-    public class B
-    {
-        {|A+B.C: public void C()
-        {
+    public {typeKind2} B
+    {{
+        {{|A+B.C: public void C()
+        {{
             C();
-        }|}
+        }}|}}
 
-        public class D
-        {
-            {|A+B+D.C: public void C()
-            {
+        public {typeKind3} D
+        {{
+            {{|A+B+D.C: public void C()
+            {{
                 C();
-            }|}
-        }
-    }
-}
+            }}|}}
+        }}
+    }}
+}}
 ]]>
         </Document>
     </Project>
