@@ -227,5 +227,59 @@ public class C
 }
 |}", "/*")
         End Function
+
+        <Fact>
+        Public Async Function TestDeleteFullFile() As Task
+            Await TestCSharp(
+"{|changed:[|
+using X;
+
+public class C
+{
+    void M1()
+    {
+    }
+
+    void M2()
+    {
+    }
+
+    void M3()
+    {
+    }
+
+    void M4()
+    {
+    }
+}
+|]|}", "")
+        End Function
+
+        <Fact>
+        Public Async Function InsertFullFile() As Task
+            Await TestCSharp(
+"{|changed:[||]|}", "
+using X;
+
+public class C
+{
+    void M1()
+    {
+    }
+
+    void M2()
+    {
+    }
+
+    void M3()
+    {
+    }
+
+    void M4()
+    {
+    }
+}
+")
+        End Function
     End Class
 End Namespace
