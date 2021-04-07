@@ -2289,14 +2289,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isNullableValueTypeConversion(BoundExpression expr)
             {
-                var isNullableConversion = expr is BoundConversion
+                return expr is BoundConversion
                 {
-                    ConversionKind: ConversionKind.ExplicitNullable
-                        or ConversionKind.ImplicitNullable
-                };
-                // PROTOTYPE: determine why an operand of a nullable conversion is able to be a nullable value type
-                // Debug.Assert(!isNullableConversion || ((BoundConversion)expr).Operand.Type.IsNonNullableValueType());
-                return isNullableConversion && ((BoundConversion)expr).Operand.Type.IsNonNullableValueType();
+                    ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable,
+                } conv && conv.Operand.Type.IsNonNullableValueType();
             }
 
             static bool isEquals(BoundBinaryOperator binary)
