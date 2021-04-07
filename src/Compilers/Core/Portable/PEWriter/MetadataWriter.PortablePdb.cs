@@ -950,7 +950,7 @@ namespace Microsoft.Cci
 
                     // Extern alias
                     if (pair.Aliases.Length > 0)
-                        builder.WriteUTF8(string.Join(",", pair.Aliases));
+                        builder.WriteUTF8(string.Join(",", pair.Aliases.OrderBy(StringComparer.Ordinal)));
 
                     // Always null terminate the extern alias list
                     builder.WriteByte(0);

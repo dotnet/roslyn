@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public sealed partial class RebuildCommandLineTests : CSharpTestBase
     {
-        private record CommandInfo(string CommandLine, string PeFileName, string? PdbFileName);
+        private record CommandInfo(string CommandLine, string PeFileName, string? PdbFileName, string? CommandLineSuffix = null);
 
         internal static string RootDirectory => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"q:\" : "/";
         internal static string ClientDirectory => Path.Combine(RootDirectory, "compiler");
@@ -190,8 +190,8 @@ class Library
                 PermutateOptimizations, PermutateDllKinds, PermutatePdbFormat);
             Permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll /debug:embedded", "test.dll", null),
                 PermutateOptimizations);
-            Permutate(new CommandInfo("lib3.cs /target:library /r:SystemRuntime1=System.Runtime.dll /r:SystemRuntime2=System.Runtime.dll /debug:embedded", "test.dll", null),
-                PermutateOptimizations);
+            Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
+                PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
 
             return list;
 
@@ -204,6 +204,23 @@ class Library
                 }
 
                 Add(e);
+            }
+
+            // Permutate the alias before and after the standard references so that we make sure the 
+            // rebuild is resistent to the ordering of aliases. 
+            static IEnumerable<CommandInfo> PermutateExternAlias(CommandInfo commandInfo)
+            {
+                var alias = @" /r:SystemRuntime1=System.Runtime.dll /r:SystemRuntime2=System.Runtime.dll";
+
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + alias
+                };
+
+                yield return commandInfo with
+                {
+                    CommandLineSuffix = commandInfo.CommandLineSuffix + alias
+                };
             }
 
             static IEnumerable<CommandInfo> PermutatePdbFormat(CommandInfo commandInfo)
@@ -246,14 +263,14 @@ class Library
             {
                 foreach (var commandInfo in commandInfos)
                 {
-                    list.Add(new object?[] { commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName });
+                    list.Add(new object?[] { commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName, commandInfo.CommandLineSuffix });
                 }
             }
         }
 
         [Theory]
         [MemberData(nameof(GetCSharpData))]
-        public void CSharp(string commandLine, string peFilePath, string? pdbFilePath)
+        public void CSharp(string commandLine, string peFilePath, string? pdbFilePath, string? commandLineSuffix)
         {
             TestOutputHelper.WriteLine($"Command Line: {commandLine}");
             AddCSharpSourceFiles();
@@ -272,6 +289,11 @@ class Library
             if (pdbFilePath is object)
             {
                 args.Add($"/pdb:{pdbFilePath}");
+            }
+
+            if (commandLineSuffix is object)
+            {
+                args.AddRange(commandLineSuffix.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             }
 
             TestOutputHelper.WriteLine($"Final Line: {string.Join(" ", args)}");

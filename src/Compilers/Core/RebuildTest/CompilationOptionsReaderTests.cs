@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
 using Xunit;
 using Microsoft.Cci;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var peBytes = compilation.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
             var originalReader = new PEReader(peBytes);
             var originalPdbReader = originalReader.GetEmbeddedPdbMetadataReader();
+            AssertEx.NotNull(originalPdbReader);
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
             return new CompilationOptionsReader(logger, originalPdbReader, originalReader);
