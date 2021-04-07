@@ -212,6 +212,11 @@
         <target state="translated">'{1}' tür parametresinde 'unmanaged' kısıtlaması olduğundan '{1}', '{0}' için kısıtlama olarak kullanılamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalAccessInSubpattern">
+        <source>Conditional access may not be used in property subpatterns. Use a simple member access instead.</source>
+        <target state="new">Conditional access may not be used in property subpatterns. Use a simple member access instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">'{0}' yerel işlevi, Conditional özniteliğini kullanabilmek için 'static' olmalıdır</target>
@@ -515,6 +520,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Geçersiz karma algoritması adı: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">

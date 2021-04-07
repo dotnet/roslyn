@@ -212,6 +212,11 @@
         <target state="translated">Параметр типа "{1}" имеет ограничение "unmanaged", поэтому "{1}" не может использоваться в качестве ограничения для "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalAccessInSubpattern">
+        <source>Conditional access may not be used in property subpatterns. Use a simple member access instead.</source>
+        <target state="new">Conditional access may not be used in property subpatterns. Use a simple member access instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">Локальная функция "{0}" должна быть "static", чтобы использовать атрибут Conditional</target>
@@ -515,6 +520,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Недопустимое имя хэш-алгоритма: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
