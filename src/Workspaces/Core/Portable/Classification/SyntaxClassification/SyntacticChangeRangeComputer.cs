@@ -15,7 +15,12 @@ namespace Microsoft.CodeAnalysis.Classification
     /// <summary>
     /// Computes a syntactic text change range that determines the range of a document that was changed by an edit. The
     /// portions outside this change range are guaranteed to be syntactically identical (see <see
-    /// cref="SyntaxNode.IsIncrementallyIdenticalTo"/>).
+    /// cref="SyntaxNode.IsIncrementallyIdenticalTo"/>).  This algorithm is intended to be <em>fast</em>.  It is
+    /// technically linear in the number of nodes and tokens that may need to examined.  However, in practice, it should
+    /// operate in sub-linear time as it will bail the moment tokens don't match, and it's able to skip over matching
+    /// nodes fully without examining the contents of those nodes.  This is intended for consumers that want a
+    /// reasonably accurate change range computer, but do not want to spend an inordinate amount of time getting the
+    /// most accurate and minimal result possible.
     /// </summary>
     /// <remarks>
     /// This computation is not guaranteed to be minimal.  It may return a range that includes parts that are unchanged.
@@ -175,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 var currentOld = oldStack.Pop();
                 var currentNew = newStack.Pop();
 
-                // The width on the right we've moved past on both old/new should be teh same.
+                // The width on the right we've moved past on both old/new should be the same.
                 Contract.ThrowIfFalse((oldRoot.FullSpan.End - currentOld.FullSpan.End) ==
                                       (newRoot.FullSpan.End - currentNew.FullSpan.End));
 
