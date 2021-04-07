@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static Type GetGeneratorType(ISourceGenerator generator)
         {
-            if(generator is IncrementalGeneratorWrapper igw)
+            if (generator is IncrementalGeneratorWrapper igw)
             {
                 return igw.Generator.GetType();
             }

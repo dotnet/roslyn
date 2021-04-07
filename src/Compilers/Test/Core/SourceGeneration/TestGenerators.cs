@@ -86,7 +86,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
     }
 
-    internal class IncrementalCallbackGenerator : IIncrementalGenerator
+    internal sealed class IncrementalCallbackGenerator : IIncrementalGenerator
     {
         private readonly Action<IncrementalGeneratorInitializationContext> _onInit;
 
@@ -98,7 +98,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public void Initialize(IncrementalGeneratorInitializationContext context) => _onInit(context);
     }
 
-    internal class IncrementalAndSourceCallbackGenerator : CallbackGenerator, IIncrementalGenerator
+    internal sealed class IncrementalAndSourceCallbackGenerator : CallbackGenerator, IIncrementalGenerator
     {
         private readonly Action<IncrementalGeneratorInitializationContext> _onInit;
 
