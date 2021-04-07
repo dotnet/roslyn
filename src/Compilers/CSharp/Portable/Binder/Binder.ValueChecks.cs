@@ -2636,6 +2636,12 @@ moreArguments:
 
                     return escape;
 
+                case BoundKind.WithExpression:
+                    var withExpression = (BoundWithExpression)expr;
+
+                    return Math.Max(GetValEscape(withExpression.Receiver, scopeOfTheContainingExpression),
+                                    GetValEscape(withExpression.InitializerExpression, scopeOfTheContainingExpression));
+
                 case BoundKind.UnaryOperator:
                     return GetValEscape(((BoundUnaryOperator)expr).Operand, scopeOfTheContainingExpression);
 
@@ -2723,12 +2729,6 @@ moreArguments:
                 case BoundKind.UnconvertedSwitchExpression:
                     var switchExpr = (BoundSwitchExpression)expr;
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
-
-                case BoundKind.WithExpression:
-                    var withExpression = (BoundWithExpression)expr;
-
-                    return Math.Max(GetValEscape(withExpression.Receiver, scopeOfTheContainingExpression),
-                                    GetValEscape(withExpression.InitializerExpression, scopeOfTheContainingExpression));
 
                 default:
                     // in error situations some unexpected nodes could make here
@@ -3046,6 +3046,17 @@ moreArguments:
                         return escape;
                     }
 
+                case BoundKind.WithExpression:
+                    {
+                        var withExpr = (BoundWithExpression)expr;
+                        var escape = CheckValEscape(node, withExpr.Receiver, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+
+                        var initializerExpr = withExpr.InitializerExpression;
+                        escape = escape && CheckValEscape(initializerExpr.Syntax, initializerExpr, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                        return escape;
+                    }
+
                 case BoundKind.UnaryOperator:
                     var unary = (BoundUnaryOperator)expr;
                     return CheckValEscape(node, unary.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
@@ -3130,17 +3141,6 @@ moreArguments:
                     }
 
                     return true;
-
-                case BoundKind.WithExpression:
-                    {
-                        var withExpr = (BoundWithExpression)expr;
-                        var escape = CheckValEscape(node, withExpr.Receiver, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
-
-                        var initializerExpr = withExpr.InitializerExpression;
-                        escape = escape && CheckValEscape(initializerExpr.Syntax, initializerExpr, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
-
-                        return escape;
-                    }
 
                 default:
                     // in error situations some unexpected nodes could make here
