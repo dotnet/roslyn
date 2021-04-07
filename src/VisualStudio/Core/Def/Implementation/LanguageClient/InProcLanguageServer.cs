@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -153,6 +154,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 logger);
         }
 
+        // Make sure this isn't inlined so these types are only loaded
+        // after the type check in CreateAsync.
+        // Removal tracked by https://github.com/dotnet/roslyn/issues/52454
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static async Task<LogHubLspLogger?> CreateLoggerAsync(
             VSShell.IAsyncServiceProvider? asyncServiceProvider,
             string serverTypeName,
