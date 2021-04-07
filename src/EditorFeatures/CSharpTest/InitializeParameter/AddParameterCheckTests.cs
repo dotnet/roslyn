@@ -2046,5 +2046,219 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesNone_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+            throw new ArgumentNullException(nameof(o));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false, NotificationOption2.Silent },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+            throw new ArgumentNullException(nameof(o));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false, NotificationOption2.Silent },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+        {
+            throw new ArgumentNullException(nameof(o));
+        }
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false, NotificationOption2.Silent },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesNone_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+            throw new ArgumentNullException(nameof(o));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Silent },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+            throw new ArgumentNullException(nameof(o));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Silent },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+        {
+            throw new ArgumentNullException(nameof(o));
+        }
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Silent },
+                }
+            }.RunAsync();
+        }
     }
 }
