@@ -145,18 +145,34 @@ class Library
         {
             var list = new List<object?[]>();
 
-            Add(Permutate(new CommandInfo("hw.cs /target:exe /debug:embedded", "test.exe", null)));
-            Add(Permutate(new CommandInfo("lib1.cs /target:library /debug:embedded", "test.dll", null)));
-            Add(Permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll /debug:embedded", "test.dll", null)));
-            Add(Permutate(new CommandInfo("lib3.cs /target:library /r:SystemRuntime1=System.Runtime.dll /r:SystemRuntime2=System.Runtime.dll /debug:embedded", "test.dll", null)));
+            Add(Permutate(new CommandInfo("hw.cs /target:exe", "test.exe", null)));
+            Add(Permutate(new CommandInfo("lib1.cs /target:library", "test.dll", null)));
+            Add(Permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll", "test.dll", null)));
+            Add(Permutate(new CommandInfo("lib3.cs /target:library /r:SystemRuntime1=System.Runtime.dll /r:SystemRuntime2=System.Runtime.dll", "test.dll", null)));
 
             return list;
 
-            IEnumerable<CommandInfo> Permutate(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> Permutate(CommandInfo commandInfo)
             {
                 IEnumerable<CommandInfo> e = new[] { commandInfo };
-                e = e.SelectMany(PermutateOptimizations);
+                e = e
+                    .SelectMany(PermutatePdbFormat)
+                    .SelectMany(PermutateOptimizations);
                 return e;
+            }
+
+            static IEnumerable<CommandInfo> PermutatePdbFormat(CommandInfo commandInfo)
+            {
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /debug:portable",
+                    PdbFileName = "test.pdb"
+                };
+
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /debug:embedded"
+                };
             }
 
             static IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)

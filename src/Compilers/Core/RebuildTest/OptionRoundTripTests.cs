@@ -14,8 +14,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Rebuild;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -70,6 +70,17 @@ End Class",
             Assert.True(OptimizationLevelFacts.TryParsePdbSerializedString(data, out var optimization2, out var debugPlus2));
             Assert.Equal(optimization, optimization2);
             Assert.Equal(debugPlus, debugPlus2);
+        }
+
+        [Fact]
+        public void PortablePdb()
+        {
+            var original = CreateCompilation(
+                @"class C { static void Main() { } }",
+                options: BaseCSharpCompilationOptions,
+                sourceFileName: "test.cs");
+
+            RoundTripUtil.VerifyRoundTrip(original, new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb, pdbFilePath: "test.pdb"));
         }
     }
 }
