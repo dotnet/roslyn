@@ -235,7 +235,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer);
