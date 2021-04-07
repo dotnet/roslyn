@@ -2294,8 +2294,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConversionKind: ConversionKind.ExplicitNullable
                         or ConversionKind.ImplicitNullable
                 };
-                Debug.Assert(!isNullableConversion || ((BoundConversion)expr).Operand.Type.IsNonNullableValueType());
-                return isNullableConversion;
+                // PROTOTYPE: determine why an operand of a nullable conversion is able to be a nullable value type
+                // Debug.Assert(!isNullableConversion || ((BoundConversion)expr).Operand.Type.IsNonNullableValueType());
+                return isNullableConversion && ((BoundConversion)expr).Operand.Type.IsNonNullableValueType();
             }
 
             static bool isEquals(BoundBinaryOperator binary)
