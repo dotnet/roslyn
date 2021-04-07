@@ -212,6 +212,11 @@
         <target state="translated">형식 매개 변수 '{1}'에 'unmanaged' 제약 조건이 있으므로 '{1}'은(는) '{0}'에 대한 제약 조건으로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalAccessInSubpattern">
+        <source>Conditional access may not be used in property subpatterns. Use a simple member access instead.</source>
+        <target state="new">Conditional access may not be used in property subpatterns. Use a simple member access instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">조건부 특성을 사용하려면 로컬 함수 '{0}'이(가) 'static'이어야 합니다.</target>
@@ -520,6 +525,11 @@
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
         <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">

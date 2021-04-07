@@ -212,6 +212,11 @@
         <target state="translated">类型参数“{1}”具有 "unmanaged" 约束，因此“{1}”不能用作“{0}”的约束</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalAccessInSubpattern">
+        <source>Conditional access may not be used in property subpatterns. Use a simple member access instead.</source>
+        <target state="new">Conditional access may not be used in property subpatterns. Use a simple member access instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">本地函数“{0}”必须为 "static" 才能使用 "Conditional" 特性</target>
@@ -520,6 +525,11 @@
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
         <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
