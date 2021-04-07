@@ -133,6 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // To allow LSP integration tests to run on 16.10 preview 1, we only setup the loghub
             // logger if the MS.VS.Utilities assembly contains the LogHub types.
             // FeatureFlags.IFeatureFlags is a known type in the MS.VS.Utilities assembly.
+            // Removal tracked by https://github.com/dotnet/roslyn/issues/52454
             var traceConfigurationType = typeof(FeatureFlags.IFeatureFlags).Assembly.GetType("Microsoft.VisualStudio.LogHub.TraceConfiguration", throwOnError: false);
             if (traceConfigurationType != null)
             {
