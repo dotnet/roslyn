@@ -51,5 +51,17 @@ namespace Microsoft.CodeAnalysis.Classification
         /// syntactic and semantic classifications for this version later.
         /// </summary>
         ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
+
+        /// <summary>
+        /// Determines the range of the documents that should be considered syntactically changed after an edit.  In
+        /// language systems that can reuse major parts of a document after an edit, and which would not need to
+        /// recompute classifications for those reused parts, this can speed up processing on a host by not requiring
+        /// the host to reclassify all the source in view, but only the source that could have changed.
+        /// <para>
+        /// If determining this is not possible, or potentially expensive, <see langword="null"/> can be returned to
+        /// indicate that the entire document should be considered changed and should be syntactically reclassified.
+        /// </para>
+        /// </summary>
+        Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
     }
 }

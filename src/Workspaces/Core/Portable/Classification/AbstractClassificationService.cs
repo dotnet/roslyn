@@ -120,5 +120,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 result.Add(span);
             }
         }
+
+        public Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        {
+            var classificationService = oldDocument.GetLanguageService<ISyntaxClassificationService>();
+            if (classificationService == null)
+                return SpecializedTasks.Default<TextChangeRange?>();
+
+            return classificationService.ComputeSyntacticChangeRangeAsync(oldDocument, newDocument, cancellationToken);
+        }
     }
 }

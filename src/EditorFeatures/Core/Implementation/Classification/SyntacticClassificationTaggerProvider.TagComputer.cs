@@ -186,14 +186,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private async Task EnqueueProcessSnapshotWorkerAsync(Document document, CancellationToken cancellationToken)
+            private async Task EnqueueProcessSnapshotWorkerAsync(Document currentDocument, CancellationToken cancellationToken)
             {
                 // we will enqueue new one soon, cancel pending refresh right away
                 _reportChangeCancellationSource.Cancel();
 
-                var newText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var snapshot = newText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot == null)
+                var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var currentSnapshot = currentText.FindCorrespondingEditorTextSnapshot();
+                if (currentSnapshot == null)
                 {
                     // It's possible that we're seeing a notification for an update that happened
                     // just before the file was opened, and so the document we're given is still the
@@ -201,31 +201,89 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                SyntaxTree syntaxTree;
+                SyntaxTree currentSyntaxTree;
                 var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
                 using (latencyTracker)
                 {
                     // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
                     // F#/typescript and other languages that doesn't support syntax tree will return null here.
-                    syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    currentSyntaxTree = await currentDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 }
+
+                // We don't need to grab _lastProcessedDocument in a lock.  We don't care which version of the previous
+                // doc we grab, just that we grab some prior version.  This is only used 
+                var changedSpan = await GetChangedSpanAsync(_lastProcessedDocument, currentDocument, currentSnapshot, cancellationToken).ConfigureAwait(false);
+
+                // Once we're past this point, we're mutating our internal state so we cannot cancel past that.
+                cancellationToken = CancellationToken.None;
 
                 lock (_gate)
                 {
-                    _lastProcessedSnapshot = snapshot;
-                    _lastProcessedDocument = document;
-                    _lastProcessedSyntaxTree = syntaxTree;
+                    _lastProcessedSnapshot = currentSnapshot;
+                    _lastProcessedDocument = currentDocument;
+                    _lastProcessedSyntaxTree = currentSyntaxTree;
                 }
 
                 _reportChangeCancellationSource = new CancellationTokenSource();
                 _notificationService.RegisterNotification(() =>
                     {
                         _workQueue.AssertIsForeground();
-                        ReportChangedSpan(snapshot.GetFullSpan());
+                        ReportChangedSpan(changedSpan);
                     },
                     ReportChangeDelayInMilliseconds,
                     _listener.BeginAsyncOperation("ReportEntireFileChanged"),
                     _reportChangeCancellationSource.Token);
+            }
+
+            private async Task<SnapshotSpan> GetChangedSpanAsync(
+                Document previousDocument, Document currentDocument,
+                ITextSnapshot currentSnapshot, CancellationToken cancellationToken)
+            {
+                // Try to defer to the classification service to see if it can find a narrower range to recompute.
+                if (previousDocument != null)
+                {
+                    var classificationService = TryGetClassificationService(currentSnapshot);
+                    if (classificationService != null)
+                    {
+                        var changeRange = await ComputeChangeRangeAsync(
+                            previousDocument, currentDocument, classificationService, cancellationToken).ConfigureAwait(false);
+                        if (changeRange != null)
+                            return currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
+                    }
+                }
+
+                // Couldn't compute a narrower range.  Just the mark the entire file as changed.
+                return currentSnapshot.GetFullSpan();
+            }
+
+            private static async Task<TextChangeRange?> ComputeChangeRangeAsync(
+                Document previousDocument, Document currentDocument,
+                IClassificationService classificationService, CancellationToken cancellationToken)
+            {
+                // We want to compute a minimal change, but we don't want this to run for too long.  So do the
+                // computation work in the threadpool, but also gate how much time we can spend here so that we can let
+                // the editor know about the size of the change asap.
+                using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+                var computeTask = Task.Run(() =>
+                    classificationService.ComputeSyntacticChangeRangeAsync(previousDocument, currentDocument, linkedToken.Token), linkedToken.Token);
+
+                var delayTask = Task.Delay(TaggerConstants.NearImmediateDelay, linkedToken.Token);
+
+                var completedTask = await Task.WhenAny(computeTask, delayTask).ConfigureAwait(false);
+
+                // Ensure that we cancel any outstanding work on the other task, once one completes.
+                linkedToken.Cancel();
+
+                // ensure that if we completed because of cancellation, we throw that up.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // If we timed out, just return nothing.  We'll reclassify the full doc.
+                if (completedTask == delayTask)
+                    return null;
+
+                // Otherwise, extract out the change range that was computed by our service.
+                return await computeTask.ConfigureAwait(false);
             }
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)
@@ -251,30 +309,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     if (spans.Count > 0 && _workspace != null)
                     {
-                        var firstSpan = spans[0];
-                        var languageServices = _workspace.Services.GetLanguageServices(firstSpan.Snapshot.ContentType);
-                        if (languageServices != null)
-                        {
-                            var result = GetTags(spans, languageServices);
-                            if (result != null)
-                            {
-                                return result;
-                            }
-                        }
+                        var result = GetTagsWorker(spans);
+                        if (result != null)
+                            return result;
                     }
 
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
                 }
             }
 
-            private IEnumerable<ITagSpan<IClassificationTag>> GetTags(
-                NormalizedSnapshotSpanCollection spans, HostLanguageServices languageServices)
+            private IClassificationService TryGetClassificationService(ITextSnapshot snapshot)
             {
-                var classificationService = languageServices.GetService<IClassificationService>();
-                if (classificationService == null)
-                {
+                var languageServices = _workspace.Services.GetLanguageServices(snapshot.ContentType);
+                if (languageServices == null)
                     return null;
-                }
+
+                return languageServices.GetService<IClassificationService>();
+            }
+
+            private IEnumerable<ITagSpan<IClassificationTag>> GetTagsWorker(NormalizedSnapshotSpanCollection spans)
+            {
+                var classificationService = TryGetClassificationService(spans[0].Snapshot);
+                if (classificationService == null)
+                    return null;
 
                 var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 

@@ -2041,35 +2041,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxEquivalence.AreEquivalent(oldList.Node, newList.Node, ignoreChildNode, topLevel: false);
         }
 
-        /// <summary>
-        /// See <see cref="AreIncrementallyIdentical(SyntaxNode, SyntaxNode)"/> and <see
-        /// cref="AreIncrementallyIdentical(SyntaxToken, SyntaxToken)"/>.
-        /// </summary>
-        public static bool AreIncrementallyIdentical(SyntaxNodeOrToken oldNodeOrToken, SyntaxNodeOrToken newNodeOrToken)
-            => oldNodeOrToken.UnderlyingNode == newNodeOrToken.UnderlyingNode;
-
-        /// <summary>
-        /// Returns true if these two nodes are considered "incrementally identical".  An incrementally identical node
-        /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
-        /// and the incremental parser is able to take the node from the original tree and use it in its entirety in the
-        /// new tree.  In this case, the <see cref="SyntaxNode.ToFullString()"/> of each node will be the same, though 
-        /// will have different parents, and may occur at different positions in the respective trees.  If two nodes are
-        /// incrementally identical, all children of each node will be incrementally identical as well.
-        /// </summary>
-        public static bool AreIncrementallyIdentical(SyntaxNode oldNode, SyntaxNode newNode)
-            => oldNode.Green == newNode.Green;
-
-        /// <summary>
-        /// Returns true if these two tokens are considered "incrementally identical".  An incrementally identical token
-        /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
-        /// and the incremental parser is able to take the token from the original tree and use it in its entirety in the
-        /// new tree.  In this case, the <see cref="SyntaxToken.ToFullString()"/> of each token will be the same, though 
-        /// will have different parents, and may occur at different positions in the respective trees.  If two tokens are
-        /// incrementally identical, all trivial of each node will be incrementally identical as well.
-        /// </summary>
-        public static bool AreIncrementallyIdentical(SyntaxToken oldToken, SyntaxToken newToken)
-            => oldToken.Node == newToken.Node;
-
         internal static TypeSyntax? GetStandaloneType(TypeSyntax? node)
         {
             if (node != null)

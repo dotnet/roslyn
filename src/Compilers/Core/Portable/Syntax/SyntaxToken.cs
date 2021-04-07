@@ -686,5 +686,16 @@ namespace Microsoft.CodeAnalysis
                 (Node == null && token.Node == null) ||
                 (Node != null && token.Node != null && Node.IsEquivalentTo(token.Node));
         }
+
+        /// <summary>
+        /// Returns true if these two tokens are considered "incrementally identical".  An incrementally identical token
+        /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
+        /// and the incremental parser is able to take the token from the original tree and use it in its entirety in the
+        /// new tree.  In this case, the <see cref="SyntaxToken.ToFullString()"/> of each token will be the same, though 
+        /// will have different parents, and may occur at different positions in the respective trees.  If two tokens are
+        /// incrementally identical, all trivial of each node will be incrementally identical as well.
+        /// </summary>
+        public bool IsIncrementallyIdenticalTo(SyntaxToken token)
+            => this.Node == token.Node;
     }
 }

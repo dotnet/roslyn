@@ -17,16 +17,19 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers();
 
+        /// <inheritdoc cref="IClassificationService.AddLexicalClassifications"/>
         void AddLexicalClassifications(SourceText text,
             TextSpan textSpan,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
+        /// <inheritdoc cref="IClassificationService.AddSyntacticClassificationsAsync"/>
         void AddSyntacticClassifications(SyntaxTree syntaxTree,
             TextSpan textSpan,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
+        /// <inheritdoc cref="IClassificationService.AddSemanticClassificationsAsync"/>
         Task AddSemanticClassificationsAsync(Document document,
             TextSpan textSpan,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
@@ -34,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
+        /// <inheritdoc cref="AddSemanticClassificationsAsync"/>
         void AddSemanticClassifications(
             SemanticModel semanticModel,
             TextSpan textSpan,
@@ -43,6 +47,10 @@ namespace Microsoft.CodeAnalysis.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
+        /// <inheritdoc cref="IClassificationService.AdjustStaleClassification"/>
         ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
+
+        /// <inheritdoc cref="IClassificationService.ComputeSyntacticChangeRangeAsync"/>
+        Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
     }
 }
