@@ -3821,6 +3821,31 @@ class C
                 );
         }
 
+        [Fact]
+        public void EqualsCondAccess_15()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    C M0(object obj) => this;
+    void M(C? c)
+    {
+        int x, y;
+        _ = ((object?)c?.M0(x = y = 0) != null)
+            ? x.ToString()
+            : y.ToString(); // 1
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(12, 15)
+                );
+        }
+
         [WorkItem(545352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545352")]
         [Fact]
         public void UseDefViolationInDelegateInSwitchWithGoto()
