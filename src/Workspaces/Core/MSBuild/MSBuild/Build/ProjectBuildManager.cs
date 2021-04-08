@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 {
     internal class ProjectBuildManager
     {
-        private static readonly XmlReaderSettings s_xmlReaderSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlReaderSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
             XmlResolver = null
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process
-        private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
+        private static readonly SemaphoreSlim s_buildManagerLock = new(initialCount: 1);
 
         private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {

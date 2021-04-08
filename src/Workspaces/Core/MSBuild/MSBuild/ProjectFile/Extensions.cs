@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
         /// </summary>
         private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
-            => new ProjectFileReference(reference.EvaluatedInclude, reference.GetAliases());
+            => new(reference.EvaluatedInclude, reference.GetAliases());
 
         public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
         {
