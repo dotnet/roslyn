@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     public sealed class MSBuildWorkspace : Workspace
     {
         // used to serialize access to public methods
-        private readonly NonReentrantLock _serializationLock = new NonReentrantLock();
+        private readonly NonReentrantLock _serializationLock = new();
 
         private readonly MSBuildProjectLoader _loader;
         private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
