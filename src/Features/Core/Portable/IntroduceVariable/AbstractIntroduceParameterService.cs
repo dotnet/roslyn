@@ -574,7 +574,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (syntaxFacts.IsAnyMemberAccessExpression(fullExpression))
             {
                 var identifierExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(fullExpression);
-                methodName = generator.MemberAccessExpression(identifierExpression, newMethodIdentifier);
+                if (identifierExpression is not null)
+                {
+                    methodName = generator.MemberAccessExpression(identifierExpression, newMethodIdentifier);
+                }
+                else
+                {
+                    // In the VB case sometimes the the member access expression's expression is nothing
+                    // so I generate a member binding expression instead.
+                    methodName = generator.MemberBindingExpression(generator.IdentifierName(newMethodIdentifier));
+                }
             }
             else if (syntaxFacts.IsMemberBindingExpression(fullExpression))
             {
@@ -862,7 +871,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 {
                     containsClassSpecificStatement = true;
                 }
-
             }
 
             return (true, containsClassSpecificStatement);
