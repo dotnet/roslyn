@@ -3496,6 +3496,7 @@ class A : Attribute { }
 class B : Attribute { }
 partial class Program
 {
+    static Delegate D0() => (Func<object, object>)([A] x => x);
     static Delegate D1() => (Action)([A] () => { });
     static Delegate D2(int x) => (Func<int, int, int>)((int y, [A][B] int z) => x);
     static Delegate D3() => (Action<int, object>)(([A]_, y) => { });
@@ -3530,6 +3531,7 @@ partial class Program
     }
     static void Main()
     {
+        Report(D0());
         Report(D1());
         Report(D2(0));
         Report(D3());
@@ -3544,6 +3546,7 @@ partial class Program
             var pairs = exprs.Select(e => (e, model.GetSymbolInfo(e).Symbol)).ToArray();
             var expectedAttributes = new[]
             {
+                "[A] x => x: [method: A]",
                 "[A] () => { }: [method: A]",
                 "(int y, [A][B] int z) => x: [parameter: A] [parameter: B]",
                 "([A]_, y) => { }: [parameter: A]",
@@ -3553,10 +3556,11 @@ partial class Program
             AssertEx.Equal(expectedAttributes, pairs.Select(p => getAttributesPublic(p.Item1, p.Item2)));
 
             CompileAndVerify(comp, expectedOutput:
-@"<D1>b__0_0: [method: A]
+@"<D0>b__0_0: [method: A]
+<D1>b__1_0: [method: A]
 <D2>b__0: [parameter: A] [parameter: B]
-<D3>b__2_0: [parameter: A]
-<D4>b__3_0: [method: System.Runtime.CompilerServices.CompilerGeneratedAttribute] [method: B] [return: A]");
+<D3>b__3_0: [parameter: A]
+<D4>b__4_0: [method: System.Runtime.CompilerServices.CompilerGeneratedAttribute] [method: B] [return: A]");
 
             static string getAttributesInternal(LambdaExpressionSyntax expr, ISymbol symbol)
             {
@@ -3727,6 +3731,206 @@ class Program
                 // (7,38): error CS0246: The type or namespace name 'A3' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Action<object> a3 = ([A3] object obj) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A3").WithArguments("A3").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void LambdaAttributes_04()
+        {
+            var source =
+@"using System;
+class AAttribute : Attribute
+{
+    public AAttribute(Action a) { }
+}
+[A([B] () => { })]
+class BAttribute : Attribute
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,2): error CS0181: Attribute constructor parameter 'a' has type 'Action', which is not a valid attribute parameter type
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "System.Action").WithLocation(6, 2));
+        }
+
+        [Fact]
+        public void LambdaAttributes_BadAttributeLocation()
+        {
+            var source =
+@"using System;
+
+[AttributeUsage(AttributeTargets.Property)]
+class PropAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Method)]
+class MethodAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.ReturnValue)]
+class ReturnAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Parameter)]
+class ParamAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+class TypeParamAttribute : Attribute { }
+
+class Program
+{
+    static void Main()
+    {
+        Action<object> a =
+            [Prop] // 1
+            [Return] // 2
+            [Method]
+            [return: Prop] // 3
+            [return: Return]
+            [return: Method] // 4
+            (
+            [Param]
+            [TypeParam] // 5
+            object o) =>
+        {
+        };
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (23,14): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //             [Prop] // 1
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(23, 14),
+                // (24,14): error CS0592: Attribute 'Return' is not valid on this declaration type. It is only valid on 'return' declarations.
+                //             [Return] // 2
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Return").WithArguments("Return", "return").WithLocation(24, 14),
+                // (26,22): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //             [return: Prop] // 3
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(26, 22),
+                // (28,22): error CS0592: Attribute 'Method' is not valid on this declaration type. It is only valid on 'method' declarations.
+                //             [return: Method] // 4
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Method").WithArguments("Method", "method").WithLocation(28, 22),
+                // (31,14): error CS0592: Attribute 'TypeParam' is not valid on this declaration type. It is only valid on 'type parameter' declarations.
+                //             [TypeParam] // 5
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TypeParam").WithArguments("TypeParam", "type parameter").WithLocation(31, 14));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var symbol = (IMethodSymbol)model.GetSymbolInfo(lambda).Symbol;
+            Assert.NotNull(symbol);
+
+            verifyAttributes(symbol.GetAttributes(), "PropAttribute", "ReturnAttribute", "MethodAttribute");
+            verifyAttributes(symbol.GetReturnTypeAttributes(), "PropAttribute", "ReturnAttribute", "MethodAttribute");
+            verifyAttributes(symbol.Parameters[0].GetAttributes(), "ParamAttribute", "TypeParamAttribute");
+
+            void verifyAttributes(ImmutableArray<AttributeData> attributes, params string[] expectedAttributeNames)
+            {
+                var actualAttributes = attributes.SelectAsArray(a => a.AttributeClass.GetSymbol());
+                var expectedAttributes = expectedAttributeNames.Select(n => comp.GetTypeByMetadataName(n));
+                AssertEx.Equal(expectedAttributes, actualAttributes);
+            }
+        }
+
+        [Fact]
+        public void LambdaAttributes_AttributeSemanticModel()
+        {
+            var source =
+@"using System;
+class AAttribute : Attribute { }
+class BAttribute : Attribute { }
+class CAttribute : Attribute { }
+class Program
+{
+    static void Main()
+    {
+        Action a = [A] () => { };
+        Func<object> b = [return: B] () => null;
+        Action<object> c = ([C] object obj) => { };
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var attributeSyntaxes = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>();
+            var actualAttributes = attributeSyntaxes.Select(a => model.GetSymbolInfo(a).Symbol.GetSymbol<MethodSymbol>()).ToImmutableArray();
+            var expectedAttributes = new[] { "AAttribute", "BAttribute", "CAttribute" }.Select(a => comp.GetTypeByMetadataName(a).InstanceConstructors.Single()).ToImmutableArray();
+            AssertEx.Equal(expectedAttributes, actualAttributes);
+       }
+
+        [Fact]
+        public void LambdaAttributes_DisallowedAttributes()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : Attribute { }
+    public class IsUnmanagedAttribute : Attribute { }
+    public class IsByRefLikeAttribute : Attribute { }
+    public class NullableContextAttribute : Attribute { public NullableContextAttribute(byte b) { } }
+}
+class Program
+{
+    static void Main()
+    {
+        Action a =
+            [IsReadOnly] // 1
+            [IsUnmanaged] // 2
+            [IsByRefLike] // 3
+            [Extension] // 4
+            [NullableContext(0)] // 5
+            () => { };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (15,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //             [IsReadOnly] // 1
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(15, 14),
+                // (16,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
+                //             [IsUnmanaged] // 2
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(16, 14),
+                // (17,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
+                //             [IsByRefLike] // 3
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(17, 14),
+                // (18,14): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
+                //             [Extension] // 4
+                Diagnostic(ErrorCode.ERR_ExplicitExtension, "Extension").WithLocation(18, 14),
+                // (19,14): error CS8335: Do not use 'System.Runtime.CompilerServices.NullableContextAttribute'. This is reserved for compiler usage.
+                //             [NullableContext(0)] // 5
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "NullableContext(0)").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(19, 14));
+        }
+
+        [Fact]
+        public void LambdaAttributes_DisallowedSecurityAttributes()
+        {
+            var source =
+@"using System;
+using System.Security;
+class Program
+{
+    static void Main()
+    {
+        Action a =
+            [SecurityCritical] // 1
+            [SecuritySafeCriticalAttribute] // 2
+            async () => { }; // 3
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,14): error CS4030: Security attribute 'SecurityCritical' cannot be applied to an Async method.
+                //             [SecurityCritical] // 1
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecurityCritical").WithArguments("SecurityCritical").WithLocation(8, 14),
+                // (9,14): error CS4030: Security attribute 'SecuritySafeCriticalAttribute' cannot be applied to an Async method.
+                //             [SecuritySafeCriticalAttribute] // 2
+                Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCriticalAttribute").WithArguments("SecuritySafeCriticalAttribute").WithLocation(9, 14),
+                // (10,22): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //             async () => { }; // 3
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 22));
         }
 
         [Fact]
