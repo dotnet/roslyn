@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordDeclaration:
                     return SyntaxFactory.RecordDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
-                    throw new ArgumentException("kind");
+                    throw new ArgumentException(CSharpResources.SyntaxKindIncorrectDeclarationType, nameof(kind));
             }
         }
     }
