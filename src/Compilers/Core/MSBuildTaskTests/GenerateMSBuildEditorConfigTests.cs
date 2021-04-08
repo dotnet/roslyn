@@ -98,6 +98,34 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
         }
 
         [Fact]
+        public void MultipleSpecialCharacterItemMetaDataCreatesSections()
+        {
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/{file1}.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/file#2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:/file[3].cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
+
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                MetadataItems = new[] { item1, item2, item3 }
+            };
+            configTask.Execute();
+
+            var result = configTask.ConfigFileContents;
+
+            Assert.Equal(@"is_global = true
+
+[c:/\{file1\}.cs]
+build_metadata.Compile.ToRetrieve = abc123
+
+[c:/file\#2.cs]
+build_metadata.Compile.ToRetrieve = def456
+
+[c:/file\[3\].cs]
+build_metadata.Compile.ToRetrieve = ghi789
+", result);
+        }
+
+        [Fact]
         public void DuplicateItemSpecsAreCombinedInSections()
         {
             ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
