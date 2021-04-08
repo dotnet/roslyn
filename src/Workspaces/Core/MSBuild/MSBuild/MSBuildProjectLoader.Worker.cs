@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
             }
 
-            private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
+            private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
             {
                 var watch = _progress != null
                     ? Stopwatch.StartNew()
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (_progress != null && watch != null)
                     {
                         watch.Stop();
-                        _progress.Report(new ProjectLoadProgress(projectPath, operation, targetFramework, watch.Elapsed));
+                        _progress.Report(new ProjectLoadProgress(projectPath ?? string.Empty, operation, targetFramework, watch.Elapsed));
                     }
                 }
 
@@ -281,15 +281,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var language = projectFileInfo.Language;
                 var projectPath = projectFileInfo.FilePath;
-
-                var projectName = Path.GetFileNameWithoutExtension(projectPath);
+                var projectName = Path.GetFileNameWithoutExtension(projectPath) ?? string.Empty;
                 if (addDiscriminator && !RoslynString.IsNullOrWhiteSpace(projectFileInfo.TargetFramework))
                 {
                     projectName += "(" + projectFileInfo.TargetFramework + ")";
                 }
 
-                var version = VersionStamp.Create(
-                    FileUtilities.GetFileTimeStamp(projectPath));
+                var version = projectPath is null
+                    ? VersionStamp.Default
+                    : VersionStamp.Create(FileUtilities.GetFileTimeStamp(projectPath));
 
                 if (projectFileInfo.IsEmpty)
                 {
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 });
             }
 
-            private static string GetAssemblyNameFromProjectPath(string projectFilePath)
+            private static string GetAssemblyNameFromProjectPath(string? projectFilePath)
             {
                 var assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
 
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, string projectFilePath, ProjectId projectId)
+            private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, string? projectFilePath, ProjectId projectId)
             {
                 var paths = new HashSet<string>(PathUtilities.Comparer);
                 foreach (var doc in documents)

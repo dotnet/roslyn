@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _projectPathToProjectInfosMap[projectFilePath] = projectInfos;
         }
 
-        private ProjectId CreateProjectId(string projectPath, string? outputFilePath, string? outputRefFilePath)
+        private ProjectId CreateProjectId(string? projectPath, string? outputFilePath, string? outputRefFilePath)
         {
             var newProjectId = ProjectId.CreateNewId(debugName: projectPath);
             Add(newProjectId, projectPath, outputFilePath, outputRefFilePath);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var outputFilePath = projectFileInfo.OutputFilePath;
             var outputRefFilePath = projectFileInfo.OutputRefFilePath;
 
-            if (TryGetIdsByProjectPath(projectPath, out var projectIds))
+            if (projectPath is not null && TryGetIdsByProjectPath(projectPath, out var projectIds))
             {
                 if (TryFindOutputFileRefPathInProjectIdSet(outputRefFilePath, projectIds, out var projectId) ||
                     TryFindOutputFilePathInProjectIdSet(outputFilePath, projectIds, out projectId))

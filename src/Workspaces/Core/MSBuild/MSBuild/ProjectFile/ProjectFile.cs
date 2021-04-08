@@ -21,20 +21,21 @@ namespace Microsoft.CodeAnalysis.MSBuild
     internal abstract class ProjectFile : IProjectFile
     {
         private readonly ProjectFileLoader _loader;
-        private readonly MSB.Evaluation.Project _loadedProject;
+        private readonly MSB.Evaluation.Project? _loadedProject;
         private readonly ProjectBuildManager _buildManager;
         private readonly string _projectDirectory;
 
         public DiagnosticLog Log { get; }
-        public virtual string FilePath => _loadedProject.FullPath;
+        public virtual string FilePath => _loadedProject?.FullPath ?? string.Empty;
         public string Language => _loader.Language;
 
-        protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, ProjectBuildManager buildManager, DiagnosticLog log)
+        protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project? loadedProject, ProjectBuildManager buildManager, DiagnosticLog log)
         {
             _loader = loader;
-            _loadedProject = loadedProject ?? throw new ArgumentNullException(nameof(loadedProject));
+            _loadedProject = loadedProject;
             _buildManager = buildManager;
-            _projectDirectory = PathUtilities.EnsureTrailingSeparator(loadedProject.DirectoryPath);
+            var directory = loadedProject?.DirectoryPath ?? string.Empty;
+            _projectDirectory = PathUtilities.EnsureTrailingSeparator(directory);
             Log = log;
         }
 
@@ -45,6 +46,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
         {
+            if (_loadedProject is null)
+            {
+                return ImmutableArray.Create(ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath, Log));
+            }
+
             var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
             var targetFrameworksValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFrameworks);
 
@@ -86,13 +92,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
             else
             {
                 var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
-
+                projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath, Log);
                 return ImmutableArray.Create(projectFileInfo);
             }
         }
 
         private async Task<ProjectFileInfo> BuildProjectFileInfoAsync(CancellationToken cancellationToken)
         {
+            if (_loadedProject is null)
+            {
+                return ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath, Log);
+            }
+
             var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
@@ -225,6 +236,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (_documents == null)
             {
                 _documents = new Dictionary<string, MSB.Evaluation.ProjectItem>();
+                if (_loadedProject is null)
+                {
+                    return false;
+                }
+
                 foreach (var item in _loadedProject.GetItems(ItemNames.Compile))
                 {
                     _documents[GetAbsolutePathRelativeToProject(item.EvaluatedInclude)] = item;
@@ -274,6 +290,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void AddDocument(string filePath, string? logicalPath = null)
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
 
             Dictionary<string, string>? metadata = null;
@@ -292,6 +313,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveDocument(string filePath)
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
 
             var items = _loadedProject.GetItems(ItemNames.Compile);
@@ -305,6 +331,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void AddMetadataReference(MetadataReference reference, AssemblyIdentity identity)
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             if (reference is PortableExecutableReference peRef && peRef.FilePath != null)
             {
                 var metadata = new Dictionary<string, string>();
@@ -362,6 +393,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveMetadataReference(MetadataReference reference, AssemblyIdentity identity)
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             if (reference is PortableExecutableReference peRef && peRef.FilePath != null)
             {
                 var item = FindReferenceItem(identity, peRef.FilePath);
@@ -374,6 +410,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private MSB.Evaluation.ProjectItem FindReferenceItem(AssemblyIdentity identity, string filePath)
         {
+            if (_loadedProject is null)
+            {
+                throw new InvalidOperationException($"Unable to find reference item '{identity?.Name}'");
+            }
+
             var references = _loadedProject.GetItems(ItemNames.Reference);
             MSB.Evaluation.ProjectItem? item = null;
 
@@ -424,6 +465,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void AddProjectReference(string projectName, ProjectFileReference reference)
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             var metadata = new Dictionary<string, string>
             {
                 { MetadataNames.Name, projectName }
@@ -440,6 +486,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveProjectReference(string projectName, string projectFilePath)
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             var item = FindProjectReferenceItem(projectName, projectFilePath);
             if (item != null)
             {
@@ -447,8 +498,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private MSB.Evaluation.ProjectItem FindProjectReferenceItem(string projectName, string projectFilePath)
+        private MSB.Evaluation.ProjectItem? FindProjectReferenceItem(string projectName, string projectFilePath)
         {
+            if (_loadedProject is null)
+            {
+                return null;
+            }
+
             var references = _loadedProject.GetItems(ItemNames.ProjectReference);
             var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
 
@@ -469,6 +525,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void AddAnalyzerReference(AnalyzerReference reference)
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             if (reference is AnalyzerFileReference fileRef)
             {
                 var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
@@ -478,6 +539,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveAnalyzerReference(AnalyzerReference reference)
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             if (reference is AnalyzerFileReference fileRef)
             {
                 var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
@@ -494,6 +560,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void Save()
         {
+            if (_loadedProject is null)
+            {
+                return;
+            }
+
             _loadedProject.Save();
         }
     }

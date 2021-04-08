@@ -15,12 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override string Language
-        {
-            get { return LanguageNames.CSharp; }
-        }
+        public override string Language => LanguageNames.CSharp;
 
-        protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project project, ProjectBuildManager buildManager, DiagnosticLog log)
+        protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
         {
             return new CSharpProjectFile(this, project, buildManager, log);
         }

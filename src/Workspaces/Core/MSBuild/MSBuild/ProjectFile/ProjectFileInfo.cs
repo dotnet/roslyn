@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// The path to the project file for this project.
         /// </summary>
-        public string FilePath { get; }
+        public string? FilePath { get; }
 
         /// <summary>
         /// The path to the output file this project generates.
@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
-                ? FilePath
+                ? FilePath ?? string.Empty
                 : $"{FilePath} ({TargetFramework})";
 
         private ProjectFileInfo(
             bool isEmpty,
             string language,
-            string filePath,
+            string? filePath,
             string? outputFilePath,
             string? outputRefFilePath,
             string? defaultNamespace,
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public static ProjectFileInfo Create(
             string language,
-            string filePath,
+            string? filePath,
             string? outputFilePath,
             string? outputRefFilePath,
             string? defaultNamespace,
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences,
                 log);
 
-        public static ProjectFileInfo CreateEmpty(string language, string filePath, DiagnosticLog log)
+        public static ProjectFileInfo CreateEmpty(string language, string? filePath, DiagnosticLog log)
             => new ProjectFileInfo(
                 isEmpty: true,
                 language,
