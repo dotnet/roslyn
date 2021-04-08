@@ -293,7 +293,7 @@ class C
         { int a; if (fFalse && G(out a)) F(a); } // Error
         { int a; if (fFalse && G(out a)) F(a); else No(); } // Error
         { int a; if (fFalse && G(out a)) No(); else F(a); } // Error
-        { int a; if (fFalse && G(out a)) No(); F(a); } // Error 
+        { int a; if (fFalse && G(out a)) No(); F(a); } // Error
         { int a; if (fFalse && G(out a)) No(); else No(); F(a); } // Error
 
         // Unassigned.  Unreachable expr considered assigned.
@@ -327,10 +327,10 @@ class C
 
         // Unassigned. G(out a) is unreachable expr.
         { int a; if (fTrue || G(out a)) F(a); } // Error
-        { int a; if (fTrue || G(out a)) F(a); else No(); } // Error 
+        { int a; if (fTrue || G(out a)) F(a); else No(); } // Error
         { int a; if (fTrue || G(out a)) No(); else F(a); } // Error
         { int a; if (fTrue || G(out a)) No(); F(a); } // Error
-        { int a; if (fTrue || G(out a)) No(); else No(); F(a); } // Error 
+        { int a; if (fTrue || G(out a)) No(); else No(); F(a); } // Error
         { int a; if (fTrue || G(out a)) G(out a); else No(); F(a); } // Error
 
         // Assigned.
@@ -430,7 +430,7 @@ class C
                 //         { int a; if (fFalse && G(out a)) No(); else F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(129, 55),
                 // (130,50): error CS0165: Use of unassigned local variable 'a'
-                //         { int a; if (fFalse && G(out a)) No(); F(a); } // Error 
+                //         { int a; if (fFalse && G(out a)) No(); F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(130, 50),
                 // (131,61): error CS0165: Use of unassigned local variable 'a'
                 //         { int a; if (fFalse && G(out a)) No(); else No(); F(a); } // Error
@@ -503,7 +503,7 @@ class C
                 //         { int a; if (fTrue || G(out a)) F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(163, 43),
                 // (164,43): error CS0165: Use of unassigned local variable 'a'
-                //         { int a; if (fTrue || G(out a)) F(a); else No(); } // Error 
+                //         { int a; if (fTrue || G(out a)) F(a); else No(); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(164, 43),
 
                 // Note: Dev10 spuriously reports (165,56,165,57): error CS0165: Use of unassigned local variable 'a'
@@ -512,7 +512,7 @@ class C
                 //         { int a; if (fTrue || G(out a)) No(); F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(166, 49),
                 // (167,60): error CS0165: Use of unassigned local variable 'a'
-                //         { int a; if (fTrue || G(out a)) No(); else No(); F(a); } // Error 
+                //         { int a; if (fTrue || G(out a)) No(); else No(); F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(167, 60)
 
                 // Note: Dev10 spuriously reports (168,66,168,67): error CS0165: Use of unassigned local variable 'a'
@@ -634,7 +634,7 @@ class C
         if (f) { int a; while (fTrue || G(out a)) F(a); } // Error, unreachable expression
         if (f) { int a; while (fTrue || G(out a)) No(); F(a); } // Error, unreachable expression, not statement
 
-        // Assigned 
+        // Assigned
         if (f) { int a; while (fFalse || G(out a)) F(a); }
         if (f) { int a; while (fFalse || G(out a)) No(); F(a); }
     }
@@ -768,7 +768,7 @@ class C
         // Unassigned.
         if (f) { int a; do No(); while (fFalse && G(out a)); F(a); } // Error
 
-        // 
+        //
         if (f) { int a; do No(); while (f || G(out a)); F(a); } // Assigned after false
         if (f) { int a; do No(); while (fTrue || G(out a)); F(a); } // unreachable expr, unassigned
         if (f) { int a; do No(); while (fFalse || G(out a)); F(a); } // Assigned
@@ -816,7 +816,7 @@ class C
                 //         if (f) { int a; do { break; F(a); } while (f); } // Unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "F"),
 
-                // NOTE: By design, we will not match dev10's report of 
+                // NOTE: By design, we will not match dev10's report of
                 // (77,44,77,48): warning CS0162: Unreachable code detected
                 // See DevDiv #13696.
 
@@ -855,7 +855,7 @@ class C
 }
 ";
 
-            // NOTE: By design, we will not match dev10's report of 
+            // NOTE: By design, we will not match dev10's report of
             // warning CS0162: Unreachable code detected
             // See DevDiv #13696.
             CreateCompilation(source).VerifyDiagnostics();
@@ -1359,7 +1359,7 @@ class C
         { int a; F(f ? 1 : 2); F(a); } // Error
 
         { int a; F(fFalse ? a : 2); } // no DA error; expr is not reachable
-        { int a; F(fFalse ? 1 : a); } // 
+        { int a; F(fFalse ? 1 : a); } //
 
         { int a; F(fTrue ? a : 2); } // Error - should it also be unreachable?
         { int a; F(fTrue ? 1 : a); } // BUG: Spec says error. Should this be unreachable?
@@ -1535,7 +1535,7 @@ class C
                 //         { int a; F(f ? 1 : 2); F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
                 // (164,33): error CS0165: Use of unassigned local variable 'a'
-                //         { int a; F(fFalse ? 1 : a); } // 
+                //         { int a; F(fFalse ? 1 : a); } //
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
                 // (166,28): error CS0165: Use of unassigned local variable 'a'
                 //         { int a; F(fTrue ? a : 2); } // Error - should it also be unreachable?
@@ -3047,6 +3047,59 @@ class C
                 );
         }
 
+        [Fact]
+        public void EqualsBoolConstant_04()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    void M1(object obj)
+    {
+        _ = (obj is string x == true)
+            ? x.ToString()
+            : x.ToString(); // 1
+    }
+
+    void M2(object obj)
+    {
+        _ = (obj is string x == false)
+            ? x.ToString() // 2
+            : x.ToString();
+    }
+
+    void M3(object obj)
+    {
+        _ = (obj is string x != true)
+            ? x.ToString() // 3
+            : x.ToString();
+    }
+
+    void M4(object obj)
+    {
+        _ = (obj is string x != false)
+            ? x.ToString()
+            : x.ToString(); // 4
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,15): error CS0165: Use of unassigned local variable 'x'
+                //             : x.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(10, 15),
+                // (16,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(16, 15),
+                // (23,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(23, 15),
+                // (31,15): error CS0165: Use of unassigned local variable 'x'
+                //             : x.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(31, 15)
+                );
+        }
+
         [Theory]
         [InlineData("b")]
         [InlineData("true")]
@@ -4182,7 +4235,7 @@ class C
         public void AssignedInFinallyUsedInTry()
         {
             var source =
-@"  
+@"
     public class Program
     {
         static void Main(string[] args)
@@ -4192,7 +4245,7 @@ class C
 
         public static void Test()
         {
-            object obj; 
+            object obj;
 
             try
             {

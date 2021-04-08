@@ -2243,9 +2243,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Only the leftmost operator of a left-associative binary operator chain can learn from a conditional access on the left
             // For simplicity, we just special case it here.
+            // For example, `a?.b(out x) == true` has a conditional access on the left of the operator,
+            // but `expr == a?.b(out x) == true` has a conditional access on the right of the operator
             if (VisitPossibleConditionalAccess(binary.Left, out var stateWhenNotNull)
-                && canLearnFromOperator()
-                && (isNullableValueTypeConversion(binary.Right) || binary.Right.ConstantValue is object))
+                && canLearnFromOperator(binary)
+                && isKnownNullOrNotNull(binary.Right))
             {
                 VisitRvalue(binary.Right);
                 Meet(ref stateWhenNotNull, ref State);
@@ -2264,8 +2266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (true)
             {
-                if (!canLearnFromOperator()
-                    || !learnFromOperator())
+                if (!canLearnFromOperator(binary)
+                    || !learnFromOperator(binary))
                 {
                     Unsplit();
                     Visit(binary.Right);
@@ -2279,29 +2281,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = stack.Pop();
             }
 
-            bool canLearnFromOperator()
+            static bool canLearnFromOperator(BoundBinaryOperator binary)
             {
                 var kind = binary.OperatorKind;
-                var op = kind.Operator();
-                return op is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual
+                return kind.Operator() is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual
                     && (!kind.IsUserDefined() || kind.IsLifted());
             }
 
-            static bool isNullableValueTypeConversion(BoundExpression expr)
+            static bool isKnownNullOrNotNull(BoundExpression expr)
             {
-                return expr is BoundConversion
-                {
-                    ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable,
-                } conv && conv.Operand.Type.IsNonNullableValueType();
+                return expr.ConstantValue is object
+                    || (expr is BoundConversion
+                    {
+                        ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable,
+                    } conv && conv.Operand.Type.IsNonNullableValueType());
             }
 
             static bool isEquals(BoundBinaryOperator binary)
                 => binary.OperatorKind.Operator() == BinaryOperatorKind.Equal;
 
-            bool learnFromOperator()
+            // Returns true if `binary.Right` was visited by the call.
+            bool learnFromOperator(BoundBinaryOperator binary)
             {
-                if ((isNullableValueTypeConversion(binary.Left) || binary.Left.ConstantValue is object)
-                    && TryVisitConditionalAccess(binary.Right, out var stateWhenNotNull))
+                // `true == a?.b(out x)`
+                if (isKnownNullOrNotNull(binary.Left) && TryVisitConditionalAccess(binary.Right, out var stateWhenNotNull))
                 {
                     var isNullConstant = binary.Left.ConstantValue?.IsNull == true;
                     SetConditionalState(isNullConstant == isEquals(binary)
@@ -2310,6 +2313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
                 }
+                // `a && b(out x) == true`
                 else if (IsConditionalState && binary.Right.ConstantValue is { IsBoolean: true } rightConstant)
                 {
                     var (stateWhenTrue, stateWhenFalse) = (StateWhenTrue.Clone(), StateWhenFalse.Clone());
@@ -2321,6 +2325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
                 }
+                // `true == a && b(out x)`
                 else if (binary.Left.ConstantValue is { IsBoolean: true } leftConstant)
                 {
                     Unsplit();
@@ -2561,6 +2566,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Visits a node only if it is a conditional access.
+        /// If the expression has "state when not null" after visiting,
+        /// the method returns 'true' and writes the state to <paramref name="stateWhenNotNull" />.
+        /// </summary>
         private bool TryVisitConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
             var access = node switch
