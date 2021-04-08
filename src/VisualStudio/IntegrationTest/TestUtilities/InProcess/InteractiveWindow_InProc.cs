@@ -170,8 +170,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SubmitText(string text)
         {
-            using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
-            _interactiveWindow.SubmitAsync(new[] { text }).WithCancellation(cts.Token).Wait();
+            _interactiveWindow.SubmitAsync(new[] { text }).Wait();
         }
 
         public void CloseWindow()
@@ -219,21 +218,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer)
         {
-            var beginTime = DateTime.UtcNow;
-            while (!valueComparer(expectedValue, getValue()) && DateTime.UtcNow < beginTime + Helper.HangMitigatingTimeout)
+            while (!valueComparer(expectedValue, getValue()))
             {
                 Thread.Sleep(50);
-            }
-
-            var actualValue = getValue();
-            if (!valueComparer(expectedValue, getValue()))
-            {
-                throw new Exception(
-                    $"Unable to find expected content in REPL within {Helper.HangMitigatingTimeout.TotalMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
-                    $"Expected:{Environment.NewLine}" +
-                    $"[[{expectedValue}]]" +
-                    $"Actual:{Environment.NewLine}" +
-                    $"[[{actualValue}]]");
             }
         }
 
