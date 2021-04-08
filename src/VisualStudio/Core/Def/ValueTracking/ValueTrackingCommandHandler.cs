@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             var toolWindow = await GetOrCreateToolWindowAsync(textView, cancellationToken).ConfigureAwait(false);
-            if (toolWindow is null || toolWindow.ViewModel is null)
+            if (toolWindow?.ViewModel is null)
             {
                 return;
             }
