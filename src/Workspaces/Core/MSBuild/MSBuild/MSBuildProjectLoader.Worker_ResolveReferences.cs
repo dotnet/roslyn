@@ -346,7 +346,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 foreach (var projectFileInfo in projectFileInfos)
                 {
-
                     var outputFilePath = projectFileInfo.OutputFilePath;
                     var outputRefFilePath = projectFileInfo.OutputRefFilePath;
 
