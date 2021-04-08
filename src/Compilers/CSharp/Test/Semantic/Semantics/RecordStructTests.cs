@@ -441,6 +441,7 @@ record struct Point(int x, int y);
                 Assert.False(point.IsRecord);
                 Assert.Equal(TypeKind.Struct, point.TypeKind);
                 Assert.Equal(SpecialType.System_ValueType, point.BaseTypeNoUseSiteDiagnostics.SpecialType);
+                Assert.Equal("Point", point.ToTestDisplayString());
 
                 if (isSourceSymbol)
                 {
