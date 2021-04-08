@@ -2059,7 +2059,7 @@ using System;
 
 class C
 {
-    public C([||]object o)
+    public C($$object o)
     {
     }
 }",
@@ -2094,7 +2094,7 @@ using System;
 
 class C
 {
-    public C([||]object o)
+    public C($$object o)
     {
     }
 }",
@@ -2129,7 +2129,7 @@ using System;
 
 class C
 {
-    public C([||]object o)
+    public C($$object o)
     {
     }
 }",
@@ -2166,7 +2166,7 @@ using System;
 
 class C
 {
-    public C([||]object o)
+    public C($$object o)
     {
     }
 }",
@@ -2200,7 +2200,7 @@ using System;
 
 class C
 {
-    public C([||]object o)
+    public C($$object o)
     {
     }
 }",
@@ -2234,7 +2234,7 @@ using System;
 
 class C
 {
-    public C([||]object o)
+    public C($$object o)
     {
     }
 }",
@@ -2271,7 +2271,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -2308,7 +2308,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -2345,7 +2345,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -2384,7 +2384,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -2420,7 +2420,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -2456,7 +2456,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
