@@ -87,6 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                return _tupleElementIndex >= 0 && !_isImplicitlyDeclared;
+            }
+        }
+
         public override FieldSymbol TupleUnderlyingField
         {
             get
@@ -151,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _useSiteDiagnosticInfo;
+            return new UseSiteInfo<AssemblySymbol>(_useSiteDiagnosticInfo);
         }
 
         public sealed override int GetHashCode()

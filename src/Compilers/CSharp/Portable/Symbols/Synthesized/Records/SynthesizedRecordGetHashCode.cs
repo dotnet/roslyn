@@ -19,17 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly PropertySymbol _equalityContract;
 
-        public SynthesizedRecordGetHashCode(SourceMemberContainerTypeSymbol containingType, PropertySymbol equalityContract, int memberOffset, DiagnosticBag diagnostics)
+        public SynthesizedRecordGetHashCode(SourceMemberContainerTypeSymbol containingType, PropertySymbol equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectGetHashCode, memberOffset, diagnostics)
         {
             _equalityContract = equalityContract;
         }
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(
-            isNullableEnabled: true,
-            ContainingType.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32));
+        protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__GetHashCode;
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 0;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, this.SyntaxNode, compilationState, diagnostics);
 

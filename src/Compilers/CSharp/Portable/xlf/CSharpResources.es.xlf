@@ -427,6 +427,11 @@
         <target state="translated">Referencia no coincidente entre "{0}" y el puntero de función "{1}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">No se puede llamar a un puntero a función con argumentos con nombre.</target>
@@ -510,6 +515,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Nombre de algoritmo hash no válido: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -1001,6 +1011,11 @@
         <source>Record defines 'Equals' but not 'GetHashCode'.</source>
         <target state="translated">El registro define "Equals", pero no "GetHashCode".</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -9222,11 +9237,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">No se encuentra el tipo de interoperabilidad que coincide con el tipo de interoperabilidad incrustado '{0}'. ¿Falta alguna referencia de ensamblado?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">El tipo de valor devuelto por referencia 'ref {0}' no es compatible.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">El nombre de archivo '{0}' almacenado en '{1}' debe coincidir con su nombre de archivo.</target>
@@ -10507,11 +10517,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">No se permite una expresión throw en este contexto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">Una deconstrucción no puede mezclar declaraciones y expresiones en el lado izquierdo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
         <source>A declaration is not allowed in this context.</source>
         <target state="translated">No se permite una declaración en este contexto.</target>
@@ -10815,11 +10820,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">"{0}" no puede implementar el miembro de interfaz "{1}" en el tipo "{2}" porque el entorno de ejecución de destino no admite la implementación de interfaz predeterminada.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">El modificador "{0}" no es válido para este elemento en C# {1}. Use la versión de lenguaje "{2}" o una posterior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBLambdaTests : CSharpPDBTestBase
@@ -77,24 +79,24 @@ class C
         [Fact]
         public void Nested()
         {
-            var source = WithWindowsLineBreaks(@"
+            var source = MarkedSource(WithWindowsLineBreaks(@"
 using System;
 class Test
 {
     public static int Main()
     {
-         if (M(1) != 10) 
+        if (M(1) != 10) 
             return 1;
         return 0;
     }
 
     static public int M(int p)
-    {
+    <M><C:0>{
         Func<int, int> f1 = delegate(int x)
-        {
+        <C:1><L:0.0>{
             int q = 2;
             Func<int, int> f2 = (y) => 
-            {
+            <L:1.1>{
                 return p + q + x + y;
             };
             return f2(3);
@@ -102,102 +104,11 @@ class Test
         return f1(4);
     }
 }
-");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
-            c.VerifyPdb(@"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <entryPoint declaringType=""Test"" methodName=""Main"" />
-  <methods>
-    <method containingType=""Test"" name=""Main"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""1"" offset=""12"" />
-          <slot kind=""21"" offset=""0"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""10"" endLine=""7"" endColumn=""25"" document=""1"" />
-        <entry offset=""0xf"" hidden=""true"" document=""1"" />
-        <entry offset=""0x12"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""22"" document=""1"" />
-        <entry offset=""0x16"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
-        <entry offset=""0x1a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1c"">
-        <namespace name=""System"" />
-      </scope>
-    </method>
-    <method containingType=""Test"" name=""M"" parameterNames=""p"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""26"" />
-          <slot kind=""21"" offset=""0"" />
-        </encLocalSlotMap>
-        <encLambdaMap>
-          <methodOrdinal>1</methodOrdinal>
-          <closure offset=""0"" />
-          <closure offset=""56"" />
-          <lambda offset=""56"" closure=""0"" />
-          <lambda offset=""136"" closure=""1"" />
-        </encLambdaMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0xd"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xe"" startLine=""14"" startColumn=""9"" endLine=""22"" endColumn=""11"" document=""1"" />
-        <entry offset=""0x1b"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""22"" document=""1"" />
-        <entry offset=""0x25"" startLine=""24"" startColumn=""5"" endLine=""24"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x27"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1_0"" name=""&lt;M&gt;b__0"" parameterNames=""x"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""56"" />
-          <slot kind=""0"" offset=""110"" />
-          <slot kind=""21"" offset=""56"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x14"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x15"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x1c"" startLine=""17"" startColumn=""13"" endLine=""20"" endColumn=""15"" document=""1"" />
-        <entry offset=""0x29"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""26"" document=""1"" />
-        <entry offset=""0x33"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x35"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1_1"" name=""&lt;M&gt;b__1"" parameterNames=""y"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-        <encLocalSlotMap>
-          <slot kind=""21"" offset=""136"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""14"" document=""1"" />
-        <entry offset=""0x1"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""38"" document=""1"" />
-        <entry offset=""0x1f"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""14"" document=""1"" />
-      </sequencePoints>
-    </method>
-  </methods>
-</symbols>");
+"), removeTags: true); // We're validating offsets so need to remove tags entirely
+
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source.Tree, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdbLambdasAndClosures(source);
         }
 
         [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]

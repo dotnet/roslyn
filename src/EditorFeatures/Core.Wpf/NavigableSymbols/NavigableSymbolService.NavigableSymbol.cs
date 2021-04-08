@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                         _document.Project.Solution,
                         _definitions[0].NameDisplayParts.GetFullText(),
                         _threadingContext,
-                        _presenter));
+                        _presenter,
+                        context.CancellationToken));
         }
     }
 }

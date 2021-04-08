@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private bool _afterLineBreak;
         private bool _afterIndentation;
+        private bool _inSingleLineInterpolation;
 
         // CONSIDER: if we become concerned about space, we shouldn't actually need any 
         // of the values between indentations[0] and indentations[initialDepth] (exclusive).
@@ -177,6 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private int LineBreaksAfter(SyntaxToken currentToken, SyntaxToken nextToken)
         {
+            if (_inSingleLineInterpolation)
+            {
+                return 0;
+            }
+
             if (currentToken.IsKind(SyntaxKind.EndOfDirectiveToken))
             {
                 return 1;
@@ -428,6 +434,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
+            if (token.IsKind(SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+            {
+                return true;
+            }
+
             if (token.IsKind(SyntaxKind.CommaToken) &&
                 !next.IsKind(SyntaxKind.CommaToken) &&
                 !token.Parent.IsKind(SyntaxKind.EnumDeclaration))
@@ -450,7 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (token.IsKind(SyntaxKind.ColonToken))
             {
-                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause);
+                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause) &&
+                    !token.Parent.IsKind(SyntaxKind.XmlPrefix);
             }
 
             if (next.IsKind(SyntaxKind.ColonToken))
@@ -479,9 +491,108 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.EqualsToken) || next.IsKind(SyntaxKind.EqualsToken))
+            if (token.IsKind(SyntaxKind.EqualsToken))
             {
-                return true;
+                return !token.Parent.IsKind(SyntaxKind.XmlTextAttribute);
+            }
+
+            if (next.IsKind(SyntaxKind.EqualsToken))
+            {
+                return !next.Parent.IsKind(SyntaxKind.XmlTextAttribute);
+            }
+
+            // Rules for function pointer below are taken from:
+            // https://github.com/dotnet/roslyn/blob/1cca63b5d8ea170f8d8e88e1574aa3ebe354c23b/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Formatting/Rules/SpacingFormattingRule.cs#L321-L413
+            if (token.Parent.IsKind(SyntaxKind.FunctionPointerType))
+            {
+                // No spacing between delegate and *
+                if (next.IsKind(SyntaxKind.AsteriskToken) && token.IsKind(SyntaxKind.DelegateKeyword))
+                {
+                    return false;
+                }
+
+                // Force a space between * and the calling convention
+                if (token.IsKind(SyntaxKind.AsteriskToken) && next.Parent.IsKind(SyntaxKind.FunctionPointerCallingConvention))
+                {
+                    switch (next.Kind())
+                    {
+                        case SyntaxKind.IdentifierToken:
+                        case SyntaxKind.ManagedKeyword:
+                        case SyntaxKind.UnmanagedKeyword:
+                            return true;
+                    }
+                }
+            }
+
+            if (next.Parent.IsKind(SyntaxKind.FunctionPointerParameterList) && next.IsKind(SyntaxKind.LessThanToken))
+            {
+                switch (token.Kind())
+                {
+                    // No spacing between the * and < tokens if there is no calling convention
+                    case SyntaxKind.AsteriskToken:
+                    // No spacing between the calling convention and opening angle bracket of function pointer types:
+                    // delegate* managed<
+                    case SyntaxKind.ManagedKeyword:
+                    case SyntaxKind.UnmanagedKeyword:
+                    // No spacing between the calling convention specifier and the opening angle
+                    // delegate* unmanaged[Cdecl]<
+                    case SyntaxKind.CloseBracketToken when token.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConventionList):
+                        return false;
+                }
+            }
+
+            // No space between unmanaged and the [
+            // delegate* unmanaged[
+            if (token.Parent.IsKind(SyntaxKind.FunctionPointerCallingConvention) && next.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConventionList) &&
+                next.IsKind(SyntaxKind.OpenBracketToken))
+            {
+                return false;
+            }
+
+            // Function pointer calling convention adjustments
+            if (next.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConventionList) && token.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConventionList))
+            {
+                if (next.IsKind(SyntaxKind.IdentifierToken))
+                {
+                    if (token.IsKind(SyntaxKind.OpenBracketToken))
+                    {
+                        return false;
+                    }
+                    // Space after the ,
+                    // unmanaged[Cdecl, Thiscall
+                    else if (token.IsKind(SyntaxKind.CommaToken))
+                    {
+                        return true;
+                    }
+                }
+
+                // No space between identifier and comma
+                // unmanaged[Cdecl,
+                if (next.IsKind(SyntaxKind.CommaToken))
+                {
+                    return false;
+                }
+
+                // No space before the ]
+                // unmanaged[Cdecl]
+                if (next.IsKind(SyntaxKind.CloseBracketToken))
+                {
+                    return false;
+                }
+            }
+
+            // No space after the < in function pointer parameter lists
+            // delegate*<void
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+            {
+                return false;
+            }
+
+            // No space before the > in function pointer parameter lists
+            // delegate*<void>
+            if (next.IsKind(SyntaxKind.GreaterThanToken) && next.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+            {
+                return false;
             }
 
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken) || next.IsKind(SyntaxKind.EqualsGreaterThanToken))
@@ -491,6 +602,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             // Can happen in directives (e.g. #line 1 "file")
             if (SyntaxFacts.IsLiteral(token.Kind()) && SyntaxFacts.IsLiteral(next.Kind()))
+            {
+                return true;
+            }
+
+            // No space before an asterisk that's part of a PointerTypeSyntax.
+            if (next.IsKind(SyntaxKind.AsteriskToken) && next.Parent is PointerTypeSyntax)
+            {
+                return false;
+            }
+
+            // The last asterisk of a pointer declaration should be followed by a space.
+            if (token.IsKind(SyntaxKind.AsteriskToken) && token.Parent is PointerTypeSyntax &&
+                (next.IsKind(SyntaxKind.IdentifierToken) || next.Parent.IsKind(SyntaxKind.IndexerDeclaration)))
             {
                 return true;
             }
@@ -914,6 +1038,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             return 0;
+        }
+
+        public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
+        {
+            if (node.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
+            {
+                //Just for non verbatim strings we want to make sure that the formatting of interpolations does not emit line breaks.
+                //See: https://github.com/dotnet/roslyn/issues/50742
+                //
+                //The flag _inSingleLineInterpolation is set to true while visiting InterpolatedStringExpressionSyntax and checked in LineBreaksAfter
+                //to suppress adding newlines.
+                var old = _inSingleLineInterpolation;
+                _inSingleLineInterpolation = true;
+                try
+                {
+                    return base.VisitInterpolatedStringExpression(node);
+                }
+                finally
+                {
+                    _inSingleLineInterpolation = old;
+                }
+            }
+
+            return base.VisitInterpolatedStringExpression(node);
         }
     }
 }

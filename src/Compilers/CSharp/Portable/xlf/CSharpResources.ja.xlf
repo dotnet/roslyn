@@ -427,6 +427,11 @@
         <target state="translated">'{0}' と関数ポインター '{1}' で参照が一致しません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">関数ポインターを名前付き引数で呼び出すことはできません。</target>
@@ -510,6 +515,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">無効なハッシュ アルゴリズム名: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -1001,6 +1011,11 @@
         <source>Record defines 'Equals' but not 'GetHashCode'.</source>
         <target state="translated">レコードでは 'Equals' が定義されていますが、'GetHashCode' は定義されていません。</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -9222,11 +9237,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">埋め込み相互運用型 '{0}' と一致する相互運用型が見つかりません。アセンブリ参照が指定されていることを確認してください。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">参照渡しの戻り値の型 'ref {0}' はサポートされていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">'{1}' に格納されているモジュール名 '{0}' はファイル名と一致する必要があります。</target>
@@ -10507,11 +10517,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">このコンテキストではスロー式は許可されていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">分解の左側で宣言と式を混用できません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
         <source>A declaration is not allowed in this context.</source>
         <target state="translated">宣言はこのコンテキストでは許可されていません。</target>
@@ -10815,11 +10820,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">ターゲットのランタイムは既定のインターフェイス実装をサポートしていないため、'{0}' は型 '{2}' のインターフェイス メンバー '{1}' を実装できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">C# {1} では、修飾子 '{0}' はこの項目に対して有効ではありません。'{2}' 以上の言語バージョンをご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

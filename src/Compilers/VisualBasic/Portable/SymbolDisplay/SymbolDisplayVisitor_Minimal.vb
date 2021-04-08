@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return semanticModelOpt IsNot Nothing AndAlso
                 DirectCast(derivedType, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute,
                                                                                        DirectCast(semanticModelOpt.Compilation, VisualBasicCompilation),
-                                                                                       useSiteDiagnostics:=Nothing)
+                                                                                       useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
         End Function
     End Class
 End Namespace

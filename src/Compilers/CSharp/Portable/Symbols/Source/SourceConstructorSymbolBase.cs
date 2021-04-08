@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.IsKind(SyntaxKind.RecordDeclaration));
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             var syntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
             var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
@@ -60,7 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyReturnType = TypeWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
 
             var location = this.Locations[0];
-            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0))
+            // Don't report ERR_StaticConstParam if the ctor symbol name doesn't match the containing type name.
+            // This avoids extra unnecessary errors.
+            // There will already be a diagnostic saying Method must have a return type.
+            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0) &&
+                ContainingType.Name == ((ConstructorDeclarationSyntax)this.SyntaxNode).Identifier.ValueText)
             {
                 diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
             }
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract bool AllowRefOrOut { get; }
 #nullable disable
 
-        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 

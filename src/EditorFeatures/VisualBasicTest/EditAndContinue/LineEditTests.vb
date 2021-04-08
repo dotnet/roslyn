@@ -5,8 +5,10 @@
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+    <UseExportProvider>
     Public Class LineEditTests
         Inherits EditingTestBase
 
@@ -71,7 +73,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 6), New LineChange(6, 2)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 6), New SourceLineUpdate(6, 2)}, {})
         End Sub
 
         <Fact>
@@ -111,7 +113,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 6), New LineChange(7, 2)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 6), New SourceLineUpdate(7, 2)}, {})
         End Sub
 
         <Fact>
@@ -135,7 +137,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 4)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 4)}, {})
         End Sub
 
         <Fact>
@@ -159,7 +161,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 4)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 4)}, {})
         End Sub
 
         <Fact>
@@ -466,7 +468,7 @@ Class C
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3), New LineChange(3, 2)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)}, {})
         End Sub
 
         <Fact>
@@ -484,7 +486,7 @@ Class C
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3), New LineChange(3, 2)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)}, {})
         End Sub
 
         <Fact>
@@ -504,10 +506,10 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3),
-                                   New LineChange(2, 3),
-                                   New LineChange(3, 2),
-                                   New LineChange(3, 2)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3),
+                                   New SourceLineUpdate(2, 3),
+                                   New SourceLineUpdate(3, 2),
+                                   New SourceLineUpdate(3, 2)}, {})
         End Sub
 
         <Fact>
@@ -526,7 +528,7 @@ Class C
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 4)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 4)}, {})
         End Sub
 
         <Fact>
@@ -544,7 +546,7 @@ Class C
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
@@ -563,7 +565,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
@@ -582,7 +584,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
@@ -601,7 +603,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {"Goo"})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {"Goo"})
         End Sub
 
         <Fact>
@@ -620,7 +622,7 @@ Class C
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 4)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 4)}, {})
         End Sub
 
         <Fact>
@@ -638,7 +640,7 @@ Class C
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
@@ -790,7 +792,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             ' to make it simpler, we recompile the constructor (by reporting a field as a node update)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {"Goo"})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {"Goo"})
         End Sub
 
         <Fact>
@@ -962,7 +964,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
@@ -981,7 +983,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
@@ -1000,7 +1002,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
@@ -1019,7 +1021,7 @@ End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {})
+            edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>

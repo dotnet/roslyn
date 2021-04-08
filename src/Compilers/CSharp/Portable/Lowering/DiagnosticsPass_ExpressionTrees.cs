@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed partial class DiagnosticsPass
     {
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly CSharpCompilation _compilation;
         private bool _inExpressionLambda;
         private bool _reportedUnsafe;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Containing static local function, static anonymous function, or static lambda.
         private SourceMethodSymbol _staticLocalOrAnonymousFunction;
 
-        public static void IssueDiagnostics(CSharpCompilation compilation, BoundNode node, DiagnosticBag diagnostics, MethodSymbol containingSymbol)
+        public static void IssueDiagnostics(CSharpCompilation compilation, BoundNode node, BindingDiagnosticBag diagnostics, MethodSymbol containingSymbol)
         {
             Debug.Assert(node != null);
             Debug.Assert((object)containingSymbol != null);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DiagnosticsPass(CSharpCompilation compilation, DiagnosticBag diagnostics, MethodSymbol containingSymbol)
+        private DiagnosticsPass(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, MethodSymbol containingSymbol)
         {
             Debug.Assert(diagnostics != null);
             Debug.Assert((object)containingSymbol != null);

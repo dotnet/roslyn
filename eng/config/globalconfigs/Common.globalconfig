@@ -64,7 +64,7 @@ dotnet_diagnostic.xUnit2013.severity = none
 # xUnit2017: "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now
 dotnet_diagnostic.xUnit2017.severity = none
 
-# https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md
+# https://github.com/Microsoft/VSSDK-Analyzers/blob/main/doc/index.md
 # VSSDK001: Derive from AsyncPackage
 dotnet_diagnostic.VSSDK001.severity = warning
 # VSSDK003: Support async tool windows

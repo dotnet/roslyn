@@ -32,7 +32,7 @@
                      Text="{Binding TypeName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      Name="TypeNameTextBox"
                      Padding="{StaticResource ResourceKey=textboxPadding}"
-                     GotFocus="SelectAllInTextBox"/>
+                     GotFocus="SelectAllInTextBox" />
         <Label x:Uid="GeneratedNameLabel" 
                    x:Name="GeneratedNameLabel" 
                    Content="{Binding ElementName=control, Path=GeneratedName}" 
@@ -42,8 +42,8 @@
                      Text="{Binding GeneratedName, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
                      IsReadOnly="True"
                      Background="{DynamicResource {x:Static SystemColors.ControlBrush}}"
-                     Padding="{StaticResource ResourceKey=textboxPadding}"
-                     GotFocus="SelectAllInTextBox"/>
+                     Padding="{StaticResource ResourceKey=textboxPadding}" 
+                     KeyboardNavigation.IsTabStop="False" />
 
         <GroupBox x:Uid="DestinationSelectionGroupBox"
                       Margin="0, 9, 0, 0"

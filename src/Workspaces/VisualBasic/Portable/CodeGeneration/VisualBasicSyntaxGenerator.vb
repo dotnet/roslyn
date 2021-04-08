@@ -32,10 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
-        Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
-            Return SyntaxFactory.EndOfLine(text)
-        End Function
-
         Friend Overrides Function Whitespace(text As String) As SyntaxTrivia
             Return SyntaxFactory.Whitespace(text)
         End Function
@@ -1445,12 +1441,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional modifiers As DeclarationModifiers = Nothing,
             Optional members As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
+            Return EnumDeclaration(name, Nothing, accessibility, modifiers, members)
+        End Function
+
+        Friend Overrides Function EnumDeclaration(name As String,
+                                                  underlyingType As SyntaxNode,
+                                                  Optional accessibility As Accessibility = Accessibility.NotApplicable,
+                                                  Optional modifiers As DeclarationModifiers = Nothing,
+                                                  Optional members As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+
+            Dim underlyingTypeClause = If(underlyingType Is Nothing, Nothing, SyntaxFactory.SimpleAsClause(DirectCast(underlyingType, TypeSyntax)))
+
             Return SyntaxFactory.EnumBlock(
                 enumStatement:=SyntaxFactory.EnumStatement(
                     attributeLists:=Nothing,
                     modifiers:=GetModifierList(accessibility, modifiers And GetAllowedModifiers(SyntaxKind.EnumStatement), DeclarationKind.Enum),
                     identifier:=name.ToIdentifierToken(),
-                    underlyingType:=Nothing),
+                    underlyingType:=underlyingTypeClause),
                     members:=AsEnumMembers(members))
         End Function
 

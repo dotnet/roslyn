@@ -16,6 +16,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestLineBreakInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""",
+                @"$""Printed: {new Printer(){TextToPrint = ""Hello world!""}.PrintedText}"""
+            );
+        }
+
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestVerbatimStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($@""Test with line
+breaks
+{
+                new[]{
+     1, 2, 3
+  }[2]
+}
+            "");",
+            @"Console.WriteLine($@""Test with line
+breaks
+{new[]{1, 2, 3}[2]}
+            "");"
+            );
+        }
+
         [Fact]
         public void TestNormalizeExpression1()
         {
@@ -171,6 +198,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("Func<string, int> f = blah;", "Func<string, int> f = blah;");
         }
 
+        [Theory]
+        [InlineData("int*p;", "int* p;")]
+        [InlineData("int *p;", "int* p;")]
+        [InlineData("int*p1,p2;", "int* p1, p2;")]
+        [InlineData("int *p1, p2;", "int* p1, p2;")]
+        [InlineData("int**p;", "int** p;")]
+        [InlineData("int **p;", "int** p;")]
+        [InlineData("int**p1,p2;", "int** p1, p2;")]
+        [InlineData("int **p1, p2;", "int** p1, p2;")]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
+        public void TestNormalizeAsteriskInPointerDeclaration(string text, string expected)
+        {
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
+        public void TestNormalizeAsteriskInPointerReturnTypeOfIndexer()
+        {
+            var text = @"public unsafe class C
+{
+  int*this[int x,int y]{get=>(int*)0;}
+}";
+            var expected = @"public unsafe class C
+{
+  int* this[int x, int y] { get => (int*)0; }
+}";
+            TestNormalizeDeclaration(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeAsteriskInVoidPointerCast()
+        {
+            var text = @"public unsafe class C
+{
+  void*this[int x,int y]{get   =>  (  void  *   ) 0;}
+}";
+            var expected = @"public unsafe class C
+{
+  void* this[int x, int y] { get => (void*)0; }
+}";
+            TestNormalizeDeclaration(text, expected);
+        }
+
         private void TestNormalizeStatement(string text, string expected)
         {
             var node = SyntaxFactory.ParseStatement(text);
@@ -231,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class ia\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
             TestNormalizeDeclaration("class ib\r\n{\r\nint\r\np\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int p\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
 
-            // properties with initalizers
+            // properties with initializers
             TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}=1;\r\n}", "class i4\r\n{\r\n  int p { set; } = 1;\r\n}");
             TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}=1;\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
             TestNormalizeDeclaration("class i6\r\n{\r\nint\r\np\r\n{\r\ninit;\r\n}=1;\r\n}", "class i6\r\n{\r\n  int p { init; } = 1;\r\n}");
@@ -620,6 +691,92 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("(string prefix,string uri)ns", "(string prefix, string uri) ns");
             TestNormalizeDeclaration("public void Foo((string prefix,string uri)ns)", "public void Foo((string prefix, string uri) ns)");
             TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointer()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate * < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate*<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithManagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *managed < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* managed<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConventionAndSpecifiers()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged [ Cdecl ,  Thiscall ] < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged[Cdecl, Thiscall]<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(49732, "https://github.com/dotnet/roslyn/issues/49732")]
+        public void TestNormalizeXmlInDocComment()
+        {
+            var code = @"/// <returns>
+/// If this method succeeds, it returns <b xmlns:loc=""http://microsoft.com/wdcml/l10n"">S_OK</b>.
+/// </returns>";
+            TestNormalizeDeclaration(code, code);
         }
 
         [Theory]

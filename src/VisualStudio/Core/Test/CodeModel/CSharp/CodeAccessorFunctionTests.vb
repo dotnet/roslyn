@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "Access tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess1()
             Dim code =
     <Code>
@@ -34,7 +34,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAccess2()
             Dim code =
     <Code>
@@ -58,7 +58,7 @@ class C
 
 #End Region
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>

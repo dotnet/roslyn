@@ -615,6 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "generatedfilesout":
+                            value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrWhiteSpace(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);

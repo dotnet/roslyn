@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -16,10 +14,10 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
+using VSThreading = Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -31,16 +29,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly IAsyncServiceProvider _vsServiceProvider;
             private readonly AsynchronousOperationListenerProvider _listenerProvider;
             private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
+            private readonly IThreadingContext _threadingContext;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public Factory(
                 SVsServiceProvider vsServiceProvider,
                 AsynchronousOperationListenerProvider listenerProvider,
+                IThreadingContext threadingContext,
                 [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
             {
                 _vsServiceProvider = (IAsyncServiceProvider)vsServiceProvider;
                 _listenerProvider = listenerProvider;
+                _threadingContext = threadingContext;
                 _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
             }
 
@@ -57,12 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices, _vsServiceProvider, _listenerProvider, _callbackDispatchers);
+                return new VisualStudioRemoteHostClientProvider(workspaceServices, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
             }
         }
 
         private readonly HostWorkspaceServices _services;
-        private readonly AsyncLazy<RemoteHostClient?> _lazyClient;
+        private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
@@ -70,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private VisualStudioRemoteHostClientProvider(
             HostWorkspaceServices services,
             IAsyncServiceProvider vsServiceProvider,
+            IThreadingContext threadingContext,
             AsynchronousOperationListenerProvider listenerProvider,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
@@ -77,17 +79,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _vsServiceProvider = vsServiceProvider;
             _listenerProvider = listenerProvider;
             _callbackDispatchers = callbackDispatchers;
-            _lazyClient = new AsyncLazy<RemoteHostClient?>(CreateHostClientAsync, cacheResult: true);
+
+            // using VS AsyncLazy here since Roslyn's is not compatible with JTF. 
+            // Our ServiceBroker services may be invoked by other VS components under JTF.
+            _lazyClient = new VSThreading.AsyncLazy<RemoteHostClient?>(CreateHostClientAsync, threadingContext.JoinableTaskFactory);
         }
 
-        private async Task<RemoteHostClient?> CreateHostClientAsync(CancellationToken cancellationToken)
+        private async Task<RemoteHostClient?> CreateHostClientAsync()
         {
             try
             {
                 var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
-                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _listenerProvider, serviceBroker, _callbackDispatchers, cancellationToken).ConfigureAwait(false);
+                // VS AsyncLazy does not currently support cancellation:
+                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _listenerProvider, serviceBroker, _callbackDispatchers, CancellationToken.None).ConfigureAwait(false);
 
                 // proffer in-proc brokered services:
                 _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));

@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// Used to log information from within the compiler server
     /// </summary>
     /// <remarks>
-    /// Implementations of this interface must assume they are used on multilpe threads without any form
+    /// Implementations of this interface must assume they are used on multiple threads without any form
     /// of synchronization.
     /// </remarks>
     internal interface ICompilerServerLogger
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             if (_loggingStream is object)
             {
-                var threadId = Thread.CurrentThread.ManagedThreadId;
+                var threadId = Environment.CurrentManagedThreadId;
                 var prefix = $"PID={_processId} TID={threadId} Ticks={Environment.TickCount} ";
                 string output = prefix + message + Environment.NewLine;
                 byte[] bytes = Encoding.UTF8.GetBytes(output);

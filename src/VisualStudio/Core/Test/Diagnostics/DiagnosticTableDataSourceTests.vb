@@ -7,8 +7,8 @@ Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -17,7 +17,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
@@ -823,15 +822,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             <Obsolete>
             Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
-                Return GetPushDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken)
+                Return GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken)
             End Function
 
-            Public Function GetPullDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetPullDiagnostics
-                Return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics)
+            Public Function GetPullDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPullDiagnosticsAsync
+                Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
             End Function
 
-            Public Function GetPushDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetPushDiagnostics
-                Return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics)
+            Public Function GetPushDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPushDiagnosticsAsync
+                Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
             End Function
 
             Private Function GetDiagnostics(
