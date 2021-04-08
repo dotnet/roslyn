@@ -80,7 +80,23 @@ namespace Roslyn.Utilities
             // This way we would return a cancelled token, which is reasonable.
             var nextToken = nextSource.Token;
 
-            var priorSource = Interlocked.Exchange(ref _cts, nextSource);
+            // The following block is identical to Interlocked.Exchange, except no replacement is made if the current
+            // field value is null (latch on null). This ensures state is not corrupted if CreateNext is called after
+            // the object is disposed.
+            var priorSource = Volatile.Read(ref _cts);
+            while (priorSource is not null)
+            {
+                var candidate = Interlocked.CompareExchange(ref _cts, nextSource, priorSource);
+
+                if (candidate == priorSource)
+                {
+                    break;
+                }
+                else
+                {
+                    priorSource = candidate;
+                }
+            }
 
             if (priorSource == null)
             {
