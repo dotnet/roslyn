@@ -99,6 +99,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public void ExecuteReturnOrTypeCommand(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
         {
+            try
+            {
+                ExecuteReturnOrTypeCommandWorker(args, nextHandler, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextHandler().
+            }
+        }
+
+        private void ExecuteReturnOrTypeCommandWorker(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
+        {
             // run next handler first so that editor has chance to put the return into the buffer first.
             nextHandler();
 

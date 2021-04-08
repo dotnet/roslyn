@@ -33,6 +33,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
+            try
+            {
+                ExecuteCommandWorker(args, nextHandler, context);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextHandler().
+            }
+        }
+
+        private void ExecuteCommandWorker(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        {
             // Ensure completion and any other buffer edits happen first.
             nextHandler();
 

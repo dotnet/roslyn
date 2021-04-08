@@ -36,6 +36,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            try
+            {
+                ExecuteCommandWorker(args, nextCommandHandler, executionContext);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextCommandHandler().
+            }
+        }
+
+        private static void ExecuteCommandWorker(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
+        {
             // We need to check for the token *after* the opening quote is typed, so defer to the editor first
             nextCommandHandler();
 
