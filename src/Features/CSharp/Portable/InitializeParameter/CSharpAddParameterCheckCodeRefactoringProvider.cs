@@ -69,22 +69,25 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         {
             var withBlock = options.GetOption(CSharpCodeStyleOptions.PreferBraces).Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
             var singleLine = options.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine).Value;
-            var ifTruePart = withBlock
-                ? Block(ifTrueStatement) // wrap the if-true part in braces
-                : singleLine
-                    ? ifTrueStatement.WithoutLeadingTrivia() // if single line is allowed, any elastic trivia between the closing brace of if and the statement must be removed
-                    : ifTrueStatement;
-            var closeParenTrailingTrivia = singleLine && !withBlock
-                ? Space // Remove any elastic marker and replace it with a space
-                : ElasticMarker;
+            var closeParenToken = Token(SyntaxKind.CloseParenToken);
+            if (withBlock)
+            {
+                ifTrueStatement = Block(ifTrueStatement);
+            }
+            else if (singleLine)
+            {
+                // if single line is allowed, any elastic trivia between the closing brace of if and the statement must be removed
+                closeParenToken = closeParenToken.WithTrailingTrivia(Space);
+                ifTrueStatement = ifTrueStatement.WithoutLeadingTrivia();
+            }
 
             return IfStatement(
                 attributeLists: default,
                 ifKeyword: Token(SyntaxKind.IfKeyword),
                 openParenToken: Token(SyntaxKind.OpenParenToken),
                 condition: condition,
-                closeParenToken: Token(SyntaxKind.CloseParenToken).WithTrailingTrivia(closeParenTrailingTrivia),
-                statement: ifTruePart,
+                closeParenToken: closeParenToken,
+                statement: ifTrueStatement,
                 @else: null);
         }
     }
