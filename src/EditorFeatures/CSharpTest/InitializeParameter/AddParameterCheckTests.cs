@@ -1742,14 +1742,12 @@ class C
 {
     public C(string s)
     {
-        if (s is null)
-            throw new ArgumentNullException(nameof(s));
+        if (s is null) throw new ArgumentNullException(nameof(s));
     }
 }",
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent) },
-                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
                 }
             }.RunAsync();
         }
