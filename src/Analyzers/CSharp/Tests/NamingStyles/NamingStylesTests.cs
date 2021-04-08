@@ -1409,5 +1409,17 @@ using System.Threading.Tasks;
 [|await Task.Delay(0);|]
 ", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
+
+        [Fact]
+        [WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")]
+        public async Task TestExternAsync()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    static extern void [|some_p_invoke()|];
+}", new TestParameters(options: s_options.MethodNamesArePascalCase));
+        }
     }
 }

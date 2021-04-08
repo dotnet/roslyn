@@ -17,6 +17,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
@@ -117,9 +118,6 @@ namespace BuildValidator
                     }
                 }
 
-                var sourceResolver = new LocalSourceResolver(options, loggerFactory);
-                var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
-                var buildConstructor = new BuildConstructor(logger);
                 var assemblyInfos = GetAssemblyInfos(
                     options.AssembliesPaths,
                     options.Excludes,
@@ -206,12 +204,10 @@ namespace BuildValidator
             var sourceResolver = new LocalSourceResolver(options, loggerFactory);
             var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
 
-            var buildConstructor = new BuildConstructor(logger);
-
             var assembliesCompiled = new List<CompilationDiff>();
             foreach (var assemblyInfo in assemblyInfos)
             {
-                var compilationDiff = ValidateFile(assemblyInfo, buildConstructor, logger, options, sourceResolver, referenceResolver);
+                var compilationDiff = ValidateFile(assemblyInfo, logger, sourceResolver, referenceResolver);
                 assembliesCompiled.Add(compilationDiff);
 
                 if (!compilationDiff.Succeeded)
@@ -278,104 +274,95 @@ namespace BuildValidator
 
         private static CompilationDiff ValidateFile(
             AssemblyInfo assemblyInfo,
-            BuildConstructor buildConstructor,
             ILogger logger,
-            Options options,
             LocalSourceResolver sourceResolver,
             LocalReferenceResolver referenceResolver)
         {
-            MetadataReaderProvider? pdbReaderProvider = null;
+            // Find the embedded pdb
+            using var originalPeReader = new PEReader(File.OpenRead(assemblyInfo.FilePath));
+            var originalBinary = new FileInfo(assemblyInfo.FilePath);
 
+            var pdbOpened = originalPeReader.TryOpenAssociatedPortablePdb(
+                peImagePath: assemblyInfo.FilePath,
+                filePath => File.Exists(filePath) ? new MemoryStream(File.ReadAllBytes(filePath)) : null,
+                out var pdbReaderProvider,
+                out var pdbPath);
+
+            if (!pdbOpened || pdbReaderProvider is null)
+            {
+                logger.LogError($"Could not find pdb for {originalBinary.FullName}");
+                return CompilationDiff.CreateMiscError(assemblyInfo, "Could not find pdb");
+            }
+
+            using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
+
+            var pdbReader = pdbReaderProvider.GetMetadataReader();
+            var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
+            if (!optionsReader.HasMetadataCompilationOptions)
+            {
+                return CompilationDiff.CreateMiscError(assemblyInfo, "Missing metadata compilation options");
+            }
+
+            var encoding = optionsReader.GetEncoding();
+            var metadataReferenceInfos = optionsReader.GetMetadataReferences();
+            var sourceFileInfos = optionsReader.GetSourceFileInfos(encoding);
+
+            logger.LogInformation("Locating metadata references");
+            if (!referenceResolver.TryResolveReferences(metadataReferenceInfos, out var metadataReferences))
+            {
+                logger.LogError($"Failed to rebuild {originalBinary.Name} due to missing metadata references");
+                return CompilationDiff.CreateMissingReferences(assemblyInfo, referenceResolver, metadataReferenceInfos);
+            }
+            logResolvedMetadataReferences();
+
+            var sourceLinks = ResolveSourceLinks(optionsReader, logger);
+            if (sourceResolver.ResolveSources(sourceFileInfos, sourceLinks, encoding) is not { } sources)
+            {
+                logger.LogError($"Failed to resolve sources");
+                return CompilationDiff.CreateMiscError(assemblyInfo, "Failed to resolve sources");
+            }
+            logResolvedSources();
+
+            CompilationFactory compilationFactory;
             try
             {
-                // Find the embedded pdb
-                using var originalBinaryStream = File.OpenRead(assemblyInfo.FilePath);
-                using var originalPeReader = new PEReader(originalBinaryStream);
-                var originalBinary = new FileInfo(assemblyInfo.FilePath);
+                compilationFactory = CompilationFactory.Create(
+                    originalBinary.Name,
+                    optionsReader);
+            }
+            catch (Exception ex)
+            {
+                return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
+            }
 
-                var pdbOpened = originalPeReader.TryOpenAssociatedPortablePdb(
-                    peImagePath: assemblyInfo.FilePath,
-                    filePath => File.Exists(filePath) ? File.OpenRead(filePath) : null,
-                    out pdbReaderProvider,
-                    out var pdbPath);
+            return CompilationDiff.Create(
+                assemblyInfo,
+                compilationFactory,
+                sources.SelectAsArray(x => compilationFactory.CreateSyntaxTree(x.SourceFileInfo.SourceFilePath, x.SourceText)),
+                metadataReferences,
+                logger);
 
-                if (!pdbOpened || pdbReaderProvider is null)
+            void logResolvedMetadataReferences()
+            {
+                using var _ = logger.BeginScope("Metadata References");
+                for (var i = 0; i < metadataReferenceInfos.Length; i++)
                 {
-                    logger.LogError($"Could not find pdb for {originalBinary.FullName}");
-                    return CompilationDiff.CreateMiscError(assemblyInfo, "Could not find pdb");
-                }
-
-                using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
-
-                var pdbReader = pdbReaderProvider.GetMetadataReader();
-                var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
-                if (!optionsReader.HasMetadataCompilationOptions)
-                {
-                    return CompilationDiff.CreateMiscError(assemblyInfo, "Missing metadata compilation options");
-                }
-
-                var encoding = optionsReader.GetEncoding();
-                var metadataReferenceInfos = optionsReader.GetMetadataReferences();
-                var sourceFileInfos = optionsReader.GetSourceFileInfos(encoding);
-
-                logger.LogInformation("Locating metadata references");
-                if (!referenceResolver.TryResolveReferences(metadataReferenceInfos, out var metadataReferences))
-                {
-                    logger.LogError($"Failed to rebuild {originalBinary.Name} due to missing metadata references");
-                    return CompilationDiff.CreateMissingReferences(assemblyInfo, referenceResolver, metadataReferenceInfos);
-                }
-                logResolvedMetadataReferences();
-
-                var sourceLinks = ResolveSourceLinks(optionsReader, logger);
-                if (sourceResolver.ResolveSources(sourceFileInfos, sourceLinks, encoding) is not { } sources)
-                {
-                    logger.LogError($"Failed to resolve sources");
-                    return CompilationDiff.CreateMiscError(assemblyInfo, "Failed to resolve sources");
-                }
-                logResolvedSources();
-
-                Compilation compilation;
-                try
-                {
-                    compilation = buildConstructor.CreateCompilation(
-                        optionsReader,
-                        originalBinary.Name,
-                        sources,
-                        metadataReferences);
-                }
-                catch (Exception ex)
-                {
-                    return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
-                }
-
-                return CompilationDiff.Create(assemblyInfo, optionsReader, compilation, logger);
-
-                void logResolvedMetadataReferences()
-                {
-                    using var _ = logger.BeginScope("Metadata References");
-                    for (var i = 0; i < metadataReferenceInfos.Length; i++)
-                    {
-                        logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
-                    }
-                }
-
-                void logResolvedSources()
-                {
-                    using var _ = logger.BeginScope("Source Names");
-                    foreach (var resolvedSource in sources)
-                    {
-                        var sourceFileInfo = resolvedSource.SourceFileInfo;
-                        var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
-                        var embeddedCompressedHash = sourceFileInfo.EmbeddedCompressedHash is { } compressedHash
-                            ? ("[uncompressed]" + BitConverter.ToString(compressedHash).Replace("-", ""))
-                            : null;
-                        logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash} - {embeddedCompressedHash}");
-                    }
+                    logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
                 }
             }
-            finally
+
+            void logResolvedSources()
             {
-                pdbReaderProvider?.Dispose();
+                using var _ = logger.BeginScope("Source Names");
+                foreach (var resolvedSource in sources)
+                {
+                    var sourceFileInfo = resolvedSource.SourceFileInfo;
+                    var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
+                    var embeddedCompressedHash = sourceFileInfo.EmbeddedCompressedHash is { } compressedHash
+                        ? ("[uncompressed]" + BitConverter.ToString(compressedHash).Replace("-", ""))
+                        : null;
+                    logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash} - {embeddedCompressedHash}");
+                }
             }
         }
 
@@ -386,7 +373,8 @@ namespace BuildValidator
             var sourceLinkUTF8 = compilationOptionsReader.GetSourceLinkUTF8();
             if (sourceLinkUTF8 is null)
             {
-                return default;
+                logger.LogInformation("No source link cdi found in pdb");
+                return ImmutableArray<SourceLink>.Empty;
             }
 
             var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
@@ -394,7 +382,7 @@ namespace BuildValidator
 
             if (sourceLinks.IsDefault)
             {
-                logger.LogInformation("No source links found in pdb");
+                logger.LogInformation("Empty source link cdi found in pdb");
                 sourceLinks = ImmutableArray<SourceLink>.Empty;
             }
             else
