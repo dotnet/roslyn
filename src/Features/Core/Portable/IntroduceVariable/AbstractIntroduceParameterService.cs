@@ -840,10 +840,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             var variablesInExpression = expression.DescendantNodes();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var containsClassSpecificStatement = false;
 
-            foreach (var identifier in variablesInExpression.OfType<TIdentifierNameSyntax>())
+            foreach (var variable in variablesInExpression)
             {
-                var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
+                var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
                 if (symbol is IRangeVariableSymbol or ILocalSymbol)
                 {
                     return (false, false);
@@ -856,17 +857,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         return (false, false);
                     }
                 }
-            }
 
-            foreach (var variable in variablesInExpression)
-            {
                 if (IsClassSpecificExpression(variable))
                 {
-                    return (true, true);
+                    containsClassSpecificStatement = true;
                 }
+
             }
 
-            return (true, false);
+            return (true, containsClassSpecificStatement);
         }
 
         /// <summary>
