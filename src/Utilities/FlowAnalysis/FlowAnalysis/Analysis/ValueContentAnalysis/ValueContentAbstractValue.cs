@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 valueTypeSymbol = type;
                 return true;
             }
-            else if (type is INamedTypeSymbol { EnumUnderlyingType: not null } namedTypeSymbol)
+            else if (type is INamedTypeSymbol namedTypeSymbol
+                && namedTypeSymbol.EnumUnderlyingType != null)
             {
                 valueTypeSymbol = namedTypeSymbol.EnumUnderlyingType;
                 return true;

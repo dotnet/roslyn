@@ -193,9 +193,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsOperationNoneRoot(this IOperation operation)
         {
-#pragma warning disable IDE0078 // Use pattern matching - https://github.com/dotnet/roslyn/issues/51691
             return operation.Kind == OperationKind.None && operation.Parent == null;
-#pragma warning restore IDE0078 // Use pattern matching
         }
 
         /// <summary>
