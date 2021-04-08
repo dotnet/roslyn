@@ -310,5 +310,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(generatedTreeBeforeChange, generatedTreeAfterChange);
         }
+
+        [Fact]
+        public async Task CompilationNotCreatedByFetchingGeneratedFilesIfNoGeneratorsPresent()
+        {
+            using var workspace = CreateWorkspace();
+            var project = AddEmptyProject(workspace.CurrentSolution);
+
+            Assert.Empty(await project.GetSourceGeneratedDocumentsAsync());
+
+            // We shouldn't have any compilation since we didn't have to run anything
+            Assert.False(project.TryGetCompilation(out _));
+        }
     }
 }

@@ -1105,6 +1105,12 @@ namespace Microsoft.CodeAnalysis
 
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionState solution, CancellationToken cancellationToken)
             {
+                // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
+                if (!this.ProjectState.SourceGenerators.Any())
+                {
+                    return TextDocumentStates<SourceGeneratedDocumentState>.Empty;
+                }
+
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return compilationInfo.GeneratedDocuments;
             }
