@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var navBarService = document.Project.LanguageServices.GetRequiredService<INavigationBarItemService>();
-            var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
-            var navBarItems = await navBarService.GetItemsAsync(document, workspaceSupportsDocumentChanges, cancellationToken).ConfigureAwait(false);
+            var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, cancellationToken).ConfigureAwait(false);
             if (navBarItems.IsEmpty)
             {
                 return Array.Empty<object>();
