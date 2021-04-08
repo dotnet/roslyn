@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -176,7 +174,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public Task<Solution> OpenSolutionAsync(
 #pragma warning restore RS0026
             string solutionFilePath,
-            IProgress<ProjectLoadProgress> progress = null,
+            IProgress<ProjectLoadProgress>? progress = null,
             CancellationToken cancellationToken = default)
             => OpenSolutionAsync(solutionFilePath, msbuildLogger: null, progress, cancellationToken);
 
@@ -192,8 +190,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public async Task<Solution> OpenSolutionAsync(
 #pragma warning restore RS0026
             string solutionFilePath,
-            ILogger msbuildLogger,
-            IProgress<ProjectLoadProgress> progress = null,
+            ILogger? msbuildLogger,
+            IProgress<ProjectLoadProgress>? progress = null,
             CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
@@ -224,7 +222,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public Task<Project> OpenProjectAsync(
 #pragma warning restore RS0026
             string projectFilePath,
-            IProgress<ProjectLoadProgress> progress = null,
+            IProgress<ProjectLoadProgress>? progress = null,
             CancellationToken cancellationToken = default)
             => OpenProjectAsync(projectFilePath, msbuildLogger: null, progress, cancellationToken);
 
@@ -240,8 +238,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public async Task<Project> OpenProjectAsync(
 #pragma warning restore RS0026
             string projectFilePath,
-            ILogger msbuildLogger,
-            IProgress<ProjectLoadProgress> progress = null,
+            ILogger? msbuildLogger,
+            IProgress<ProjectLoadProgress>? progress = null,
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
@@ -260,7 +258,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             this.UpdateReferencesAfterAdd();
 
-            return this.CurrentSolution.GetProject(projects[0].Id);
+            var projectResult = this.CurrentSolution.GetProject(projects[0].Id);
+            RoslynDebug.AssertNotNull(projectResult);
+            return projectResult;
         }
 
         #endregion
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                    changes.GetRemovedAnalyzerReferences().Any();
         }
 
-        private IProjectFile _applyChangesProjectFile;
+        private IProjectFile? _applyChangesProjectFile;
 
         public override bool TryApplyChanges(Solution newSolution)
         {
@@ -324,6 +324,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
+                    if (projectPath is null)
+                    {
+                        _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
+                                                               string.Format(WorkspaceMSBuildResources.Project_path_for_0_was_null, project.Name),
+                                                               projectChanges.ProjectId));
+                        return;
+                    }
                     if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var fileLoader))
                     {
                         try
@@ -366,13 +373,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (document != null)
             {
                 var encoding = DetermineEncoding(text, document);
-
+                if (document.FilePath is null)
+                {
+                    var message = string.Format(WorkspaceMSBuildResources.Path_for_document_0_was_null, document.Name);
+                    _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
+                    return;
+                }
                 this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
         }
 
-        private static Encoding DetermineEncoding(SourceText text, Document document)
+        private static Encoding? DetermineEncoding(SourceText text, Document document)
         {
             if (text.Encoding != null)
             {
@@ -381,6 +393,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             try
             {
+                if (document.FilePath is null)
+                {
+                    return null;
+                }
+
                 using var stream = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 var onDiskText = EncodedStringText.Create(stream);
                 return onDiskText.Encoding;
@@ -400,7 +417,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Debug.Assert(_applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
-            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(project.FilePath, out _))
+            var filePath = project?.FilePath;
+            if (filePath is null)
+            {
+                return;
+            }
+            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(filePath, out _))
             {
                 var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
                 var fileName = Path.ChangeExtension(info.Name, extension);
@@ -409,7 +431,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     ? Path.Combine(Path.Combine(info.Folders.ToArray()), fileName)
                     : fileName;
 
-                var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath));
+                var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(filePath)!);
 
                 var newDocumentInfo = info.WithName(fileName)
                     .WithFilePath(fullPath)
@@ -454,7 +476,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Debug.Assert(_applyChangesProjectFile != null);
 
             var document = this.CurrentSolution.GetDocument(documentId);
-            if (document != null)
+            if (document?.FilePath is not null)
             {
                 _applyChangesProjectFile.RemoveDocument(document.FilePath);
                 this.DeleteDocumentFile(document.Id, document.FilePath);
@@ -487,29 +509,49 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
         {
-            Debug.Assert(_applyChangesProjectFile != null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
             var identity = GetAssemblyIdentity(projectId, metadataReference);
+            if (identity is null)
+            {
+                var message = string.Format(WorkspaceMSBuildResources.Unable_to_add_metadata_reference_0, metadataReference.Display);
+                _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
+                return;
+            }
             _applyChangesProjectFile.AddMetadataReference(metadataReference, identity);
             this.OnMetadataReferenceAdded(projectId, metadataReference);
         }
 
         protected override void ApplyMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
         {
-            Debug.Assert(_applyChangesProjectFile != null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
             var identity = GetAssemblyIdentity(projectId, metadataReference);
+            if (identity is null)
+            {
+                var message = string.Format(WorkspaceMSBuildResources.Unable_to_remove_metadata_reference_0, metadataReference.Display);
+                _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
+                return;
+            }
             _applyChangesProjectFile.RemoveMetadataReference(metadataReference, identity);
             this.OnMetadataReferenceRemoved(projectId, metadataReference);
         }
 
-        private AssemblyIdentity GetAssemblyIdentity(ProjectId projectId, MetadataReference metadataReference)
+        private AssemblyIdentity? GetAssemblyIdentity(ProjectId projectId, MetadataReference metadataReference)
         {
             var project = this.CurrentSolution.GetProject(projectId);
+            if (project is null)
+            {
+                return null;
+            }
             if (!project.MetadataReferences.Contains(metadataReference))
             {
                 project = project.AddMetadataReference(metadataReference);
             }
 
             var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+            if (compilation is null)
+            {
+                return null;
+            }
             var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference) as IAssemblySymbol;
             return symbol?.Identity;
         }
@@ -519,7 +561,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Debug.Assert(_applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(projectReference.ProjectId);
-            if (project != null)
+            if (project?.FilePath is not null)
             {
                 _applyChangesProjectFile.AddProjectReference(project.Name, new ProjectFileReference(project.FilePath, projectReference.Aliases));
             }
@@ -532,7 +574,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Debug.Assert(_applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(projectReference.ProjectId);
-            if (project != null)
+            if (project?.FilePath is not null)
             {
                 _applyChangesProjectFile.RemoveProjectReference(project.Name, project.FilePath);
             }
