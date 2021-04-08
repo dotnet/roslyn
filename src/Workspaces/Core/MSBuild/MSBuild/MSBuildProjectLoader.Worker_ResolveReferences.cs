@@ -81,15 +81,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 private static string? GetFilePath(MetadataReference metadataReference)
                 {
-                    switch (metadataReference)
+                    return metadataReference switch
                     {
-                        case PortableExecutableReference portableExecutableReference:
-                            return portableExecutableReference.FilePath;
-                        case UnresolvedMetadataReference unresolvedMetadataReference:
-                            return unresolvedMetadataReference.Reference;
-                        default:
-                            return null;
-                    }
+                        PortableExecutableReference portableExecutableReference => portableExecutableReference.FilePath,
+                        UnresolvedMetadataReference unresolvedMetadataReference => unresolvedMetadataReference.Reference,
+                        _ => null,
+                    };
                 }
 
                 public void AddProjectReference(ProjectReference projectReference)
