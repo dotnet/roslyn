@@ -4,12 +4,11 @@
 
 #nullable disable
 
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -381,9 +380,26 @@ class C
                 // (9,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         a = (object x, [A] object _) => { };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(9, 24));
+            verifyAttributes(comp);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+            verifyAttributes(comp);
+
+            static void verifyAttributes(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>();
+                var lambdas = exprs.Select(e => (IMethodSymbol)model.GetSymbolInfo(e).Symbol).ToArray();
+                Assert.Equal(2, lambdas.Length);
+                Assert.Equal(new[] { "AAttribute" }, getParameterAttributes(lambdas[0].Parameters[0]));
+                Assert.Equal(new string[0], getParameterAttributes(lambdas[0].Parameters[1]));
+                Assert.Equal(new string[0], getParameterAttributes(lambdas[1].Parameters[0]));
+                Assert.Equal(new[] { "AAttribute" }, getParameterAttributes(lambdas[1].Parameters[1]));
+            }
+
+            static ImmutableArray<string> getParameterAttributes(IParameterSymbol parameter) => parameter.GetAttributes().SelectAsArray(a => a.ToString());
         }
 
         [Fact]

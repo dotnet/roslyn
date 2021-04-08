@@ -3498,7 +3498,8 @@ partial class Program
 {
     static Delegate D1() => (Action)([A] () => { });
     static Delegate D2(int x) => (Func<int, int, int>)((int y, [A][B] int z) => x);
-    Delegate D3() => (Func<int>)([return: A][B] () => GetHashCode());
+    static Delegate D3() => (Action<int, object>)(([A]_, y) => { });
+    Delegate D4() => (Func<int>)([return: A][B] () => GetHashCode());
 }";
             var sourceB =
 @"using System;
@@ -3531,7 +3532,8 @@ partial class Program
     {
         Report(D1());
         Report(D2(0));
-        Report(new Program().D3());
+        Report(D3());
+        Report(new Program().D4());
     }
 }";
 
@@ -3544,6 +3546,7 @@ partial class Program
             {
                 "[A] () => { }: [method: A]",
                 "(int y, [A][B] int z) => x: [parameter: A] [parameter: B]",
+                "([A]_, y) => { }: [parameter: A]",
                 "[return: A][B] () => GetHashCode(): [method: B] [return: A]",
             };
             AssertEx.Equal(expectedAttributes, pairs.Select(p => getAttributesInternal(p.Item1, p.Item2)));
@@ -3552,7 +3555,8 @@ partial class Program
             CompileAndVerify(comp, expectedOutput:
 @"<D1>b__0_0: [method: A]
 <D2>b__0: [parameter: A] [parameter: B]
-<D3>b__2_0: [method: System.Runtime.CompilerServices.CompilerGeneratedAttribute] [method: B] [return: A]");
+<D3>b__2_0: [parameter: A]
+<D4>b__3_0: [method: System.Runtime.CompilerServices.CompilerGeneratedAttribute] [method: B] [return: A]");
 
             static string getAttributesInternal(LambdaExpressionSyntax expr, ISymbol symbol)
             {

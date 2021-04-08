@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static readonly TypeSymbol InferenceFailureReturnType = new UnsupportedMetadataTypeSymbol();
 
-        private static readonly TypeWithAnnotations UnknownReturnType = TypeWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
-
         // PROTOTYPE: We shouldn't be binding attributes each time we create a LambdaSymbol.
         // Instead, the attributes should be bound by the UnboundLambda and passed in explicitly.
         // That includes attributes on parameters as well as method level attributes.
@@ -278,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in _parameters)
             {
-                parameter.ForceComplete(null, default);
+                parameter.ForceComplete(locationOpt: null, cancellationToken: default);
             }
 
             GetAttributes();
@@ -314,7 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
             var hasExplicitlyTypedParameterList = unboundLambda.HasExplicitlyTypedParameterList;
             var numDelegateParameters = parameterTypes.Length;
-            var parenthesizedParameters = (Syntax as ParenthesizedLambdaExpressionSyntax)?.ParameterList;
 
             for (int p = 0; p < unboundLambda.ParameterCount; ++p)
             {
