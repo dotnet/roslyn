@@ -23,6 +23,9 @@ namespace IdeCoreBenchmarks
         private SyntaxTree _tree;
         private SyntaxNode _root;
 
+        private SyntaxNode _rootWithSimpleEdit;
+        private SyntaxNode _rootWithComplexEdit;
+
         [GlobalSetup]
         public void GlobalSetup()
         {
@@ -40,6 +43,24 @@ namespace IdeCoreBenchmarks
             _text = SourceText.From(text);
             _tree = SyntaxFactory.ParseSyntaxTree(text);
             _root = _tree.GetCompilationUnitRoot();
+            _rootWithSimpleEdit = WithSimpleEditAtMiddle();
+            _rootWithComplexEdit = WithDestabalizingEditAtMiddle();
+        }
+
+        private SyntaxNode WithSimpleEditAtMiddle()
+        {
+            var newText = _text.WithChanges(new TextChange(new TextSpan(8, 1), "m"));
+            var newTree = _tree.WithChangedText(newText);
+            var newRoot = newTree.GetRoot();
+            return newRoot;
+        }
+
+        private SyntaxNode WithDestabalizingEditAtMiddle()
+        {
+            var newText = _text.WithChanges(new TextChange(new TextSpan(_index, 0), "var v = x "));
+            var newTree = _tree.WithChangedText(newText);
+            var newRoot = newTree.GetRoot();
+            return newRoot;
         }
 
         [Benchmark]
@@ -47,9 +68,7 @@ namespace IdeCoreBenchmarks
         {
             // this will change the switch statement to `mode.kind` instead of `node.kind`.  This should be reuse most
             // of the tree and should result in a very small diff.
-            var newText = _text.WithChanges(new TextChange(new TextSpan(8, 1), "m"));
-            var newTree = _tree.WithChangedText(newText);
-            var newRoot = newTree.GetRoot();
+            var newRoot = WithSimpleEditAtMiddle();
 
             SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, CancellationToken.None);
         }
@@ -58,11 +77,21 @@ namespace IdeCoreBenchmarks
         public void DestabalizingEditAtMiddle()
         {
             // this will change the switch statement to a switch expression.  This may have large cascading changes.
-            var newText = _text.WithChanges(new TextChange(new TextSpan(_index, 0), "var v = x "));
-            var newTree = _tree.WithChangedText(newText);
-            var newRoot = newTree.GetRoot();
+            var newRoot = WithDestabalizingEditAtMiddle();
 
             SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, CancellationToken.None);
+        }
+
+        [Benchmark]
+        public void SimpleEditAtMiddle_NoParse()
+        {
+            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, _rootWithSimpleEdit, CancellationToken.None);
+        }
+
+        [Benchmark]
+        public void DestabalizingEditAtMiddle_NoParse()
+        {
+            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, _rootWithComplexEdit, CancellationToken.None);
         }
     }
 }

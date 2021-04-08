@@ -136,6 +136,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IClassificationService.AdjustStaleClassification
             End Function
 
+            Public Function GetDataToCacheAsync(document As Document, cancellationToken As CancellationToken) As Task(Of Object) Implements IClassificationService.GetDataToCacheAsync
+                Return SpecializedTasks.Default(Of Object)
+            End Function
+
             Public Function ComputeSyntacticChangeRangeAsync(oldDocument As Document, newDocument As Document, cancellationToken As CancellationToken) As Task(Of TextChangeRange?) Implements IClassificationService.ComputeSyntacticChangeRangeAsync
                 Return SpecializedTasks.Default(Of TextChangeRange?)
             End Function

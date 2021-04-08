@@ -57,7 +57,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly object _gate = new();
             private ITextSnapshot _lastProcessedSnapshot;
             private Document _lastProcessedDocument;
-            private SyntaxTree _lastProcessedSyntaxTree;
+
+            /// <summary>
+            /// Data stored by the <see cref="IClassificationService"/> that can be computed in the bg which it will
+            /// benefit from when it is called back for classifications later.
+            /// </summary>
+            private object _lastProcessedCachedData;
 
             private Workspace _workspace;
             private CancellationTokenSource _reportChangeCancellationSource;
@@ -142,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 lock (_gate)
                 {
                     _lastProcessedDocument = null;
-                    _lastProcessedSyntaxTree = null;
+                    _lastProcessedCachedData = null;
                 }
             }
 
@@ -207,18 +212,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                SyntaxTree currentSyntaxTree;
-                var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
-                using (latencyTracker)
+                var service = TryGetClassificationService(currentSnapshot);
+                object currentCachedData = null;
+                var changedSpan = currentSnapshot.GetFullSpan();
+                if (service != null)
                 {
-                    // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
-                    // F#/typescript and other languages that doesn't support syntax tree will return null here.
-                    currentSyntaxTree = await currentDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                }
+                    var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
+                    using (latencyTracker)
+                    {
+                        // preemptively allow the classification service to compute and cache data for this file.  For
+                        // example, in C# and VB we will parse the file so that are called from tagger from UI thread,
+                        // we have the root of the tree ready to go.
+                        currentCachedData = await service.GetDataToCacheAsync(currentDocument, cancellationToken).ConfigureAwait(false);
 
-                // We don't need to grab _lastProcessedDocument in a lock.  We don't care which version of the previous
-                // doc we grab, just that we grab some prior version.  This is only used 
-                var changedSpan = await GetChangedSpanAsync(_lastProcessedDocument, currentDocument, currentSnapshot, cancellationToken).ConfigureAwait(false);
+                        // Query the service to determine waht span of the document actually changed and should be
+                        // reclassified in the host editor.
+                        changedSpan = await GetChangedSpanAsync(currentDocument, currentSnapshot, service, cancellationToken).ConfigureAwait(false);
+                    }
+                }
 
                 // Once we're past this point, we're mutating our internal state so we cannot cancel past that.
                 cancellationToken = CancellationToken.None;
@@ -227,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     _lastProcessedSnapshot = currentSnapshot;
                     _lastProcessedDocument = currentDocument;
-                    _lastProcessedSyntaxTree = currentSyntaxTree;
+                    _lastProcessedCachedData = currentCachedData;
                 }
 
                 _reportChangeCancellationSource = new CancellationTokenSource();
@@ -242,20 +253,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             private async Task<SnapshotSpan> GetChangedSpanAsync(
-                Document previousDocument, Document currentDocument,
-                ITextSnapshot currentSnapshot, CancellationToken cancellationToken)
+                Document currentDocument, ITextSnapshot currentSnapshot,
+                IClassificationService service, CancellationToken cancellationToken)
             {
-                // Try to defer to the classification service to see if it can find a narrower range to recompute.
+                // We don't need to grab _lastProcessedDocument in a lock.  We don't care which version of the previous
+                // doc we grab, just that we grab some prior version.  This is only used 
+                var previousDocument = _lastProcessedDocument;
                 if (previousDocument != null)
                 {
-                    var classificationService = TryGetClassificationService(currentSnapshot);
-                    if (classificationService != null)
-                    {
-                        var changeRange = await ComputeChangeRangeAsync(
-                            previousDocument, currentDocument, classificationService, cancellationToken).ConfigureAwait(false);
-                        if (changeRange != null)
-                            return currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
-                    }
+                    var changeRange = await ComputeChangeRangeAsync(
+                        previousDocument, currentDocument, service, cancellationToken).ConfigureAwait(false);
+                    if (changeRange != null)
+                        return currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
                 }
 
                 // Couldn't compute a narrower range.  Just the mark the entire file as changed.
@@ -359,13 +368,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // From this point on we'll do all operations over these values.
                 ITextSnapshot lastSnapshot;
                 Document lastDocument;
-                SyntaxTree lastSyntaxTree;
+                object lastCachedData;
 
                 lock (_gate)
                 {
                     lastSnapshot = _lastProcessedSnapshot;
                     lastDocument = _lastProcessedDocument;
-                    lastSyntaxTree = _lastProcessedSyntaxTree;
+                    lastCachedData = _lastProcessedCachedData;
                 }
 
                 if (lastDocument == null)
@@ -392,8 +401,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         classificationService, span, lastSnapshot, lastDocument, classifiedSpans);
                 }
 
-                // Ensure the syntax tree stays alive for as long as we're doing the processing.
-                GC.KeepAlive(lastSyntaxTree);
+                // Ensure the cached data stays alive for as long as we're calling into the classification service to do
+                // the computation.
+                GC.KeepAlive(lastCachedData);
             }
 
             private void AddClassifiedSpansForCurrentTree(
