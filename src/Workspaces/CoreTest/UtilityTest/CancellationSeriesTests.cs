@@ -1,4 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE.md file in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/project-system:
 // https://github.com/dotnet/project-system/blob/bdf69d5420ec8d894f5bf4c3d4692900b7f2479c/tests/Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests/Threading/Tasks/CancellationSeriesTests.cs
@@ -11,7 +13,7 @@ using System.Linq;
 using System.Threading;
 using Xunit;
 
-namespace Microsoft.VisualStudio.Threading.Tasks
+namespace Roslyn.Utilities
 {
     public sealed class CancellationSeriesTests
     {

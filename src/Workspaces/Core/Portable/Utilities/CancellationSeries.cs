@@ -1,4 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE.md file in the project root for more information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/project-system:
 // https://github.com/dotnet/project-system/blob/bdf69d5420ec8d894f5bf4c3d4692900b7f2479c/src/Microsoft.VisualStudio.ProjectSystem.Managed/Threading/Tasks/CancellationSeries.cs
@@ -12,7 +14,7 @@ using System.Diagnostics;
 #endif
 using System.Threading;
 
-namespace Microsoft.VisualStudio.Threading.Tasks
+namespace Roslyn.Utilities
 {
     /// <summary>
     /// Produces a series of <see cref="CancellationToken"/> objects such that requesting a new token
@@ -47,12 +49,9 @@ namespace Microsoft.VisualStudio.Threading.Tasks
 
         ~CancellationSeries()
         {
-            Debug.Assert(
+            Contract.ThrowIfFalse(
                 Environment.HasShutdownStarted || _cts == null,
-                "Instance of CancellationSeries not disposed before being finalized",
-                "Stack at construction:{0}{1}",
-                Environment.NewLine,
-                _ctorStack);
+                $"Instance of CancellationSeries not disposed before being finalized{Environment.NewLine}Stack at construction:{Environment.NewLine}{_ctorStack}");
         }
 #endif
 
@@ -79,9 +78,9 @@ namespace Microsoft.VisualStudio.Threading.Tasks
             // Obtain the token before exchange, as otherwise the CTS may be cancelled before
             // we request the Token, which will result in an ObjectDisposedException.
             // This way we would return a cancelled token, which is reasonable.
-            CancellationToken nextToken = nextSource.Token;
+            var nextToken = nextSource.Token;
 
-            CancellationTokenSource? priorSource = Interlocked.Exchange(ref _cts, nextSource);
+            var priorSource = Interlocked.Exchange(ref _cts, nextSource);
 
             if (priorSource == null)
             {
@@ -110,7 +109,7 @@ namespace Microsoft.VisualStudio.Threading.Tasks
             GC.SuppressFinalize(this);
 #endif
 
-            CancellationTokenSource? source = Interlocked.Exchange(ref _cts, null);
+            var source = Interlocked.Exchange(ref _cts, null);
 
             if (source == null)
             {
