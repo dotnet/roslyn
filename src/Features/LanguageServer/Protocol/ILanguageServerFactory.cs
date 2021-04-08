@@ -5,11 +5,11 @@
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Api
+namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal interface ILanguageServerFactory
     {
-        public InProcLanguageServer Create(
+        public LanguageServerTarget Create(
             JsonRpc jsonRpc,
             ServerCapabilities serverCapabilities,
             ILspWorkspaceRegistrationService workspaceRegistrationService,

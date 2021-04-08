@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Api;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -52,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
         /// </summary>
-        private InProcLanguageServer? _languageServer;
+        private LanguageServerTarget? _languageServer;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -187,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        internal static async Task<InProcLanguageServer> CreateAsync(
+        internal static async Task<LanguageServerTarget> CreateAsync(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
@@ -224,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 return null;
 
             var logName = $"Roslyn.{serverTypeName}.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
-            var logId = new LogId(logName, new ServiceMoniker(typeof(InProcLanguageServer).FullName));
+            var logId = new LogId(logName, new ServiceMoniker(typeof(LanguageServerTarget).FullName));
 
             var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
             var service = serviceContainer.GetFullAccessServiceBroker();
@@ -241,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return new LogHubLspLogger(configuration, traceSource);
         }
 
-        public InProcLanguageServer Create(
+        public LanguageServerTarget Create(
             JsonRpc jsonRpc,
             ServerCapabilities serverCapabilities,
             ILspWorkspaceRegistrationService workspaceRegistrationService,

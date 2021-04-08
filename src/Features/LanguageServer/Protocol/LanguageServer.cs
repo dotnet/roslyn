@@ -14,9 +14,9 @@ using StreamJsonRpc;
 
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Api
+namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class InProcLanguageServer : IAsyncDisposable
+    internal class LanguageServerTarget : IAsyncDisposable
     {
         private readonly ServerCapabilities _serverCapabilities;
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Api
 
         internal bool HasShutdownStarted => _shuttingDown;
 
-        internal InProcLanguageServer(
+        internal LanguageServerTarget(
             AbstractRequestDispatcherFactory requestDispatcherFactory,
             JsonRpc jsonRpc,
             ServerCapabilities serverCapabilities,

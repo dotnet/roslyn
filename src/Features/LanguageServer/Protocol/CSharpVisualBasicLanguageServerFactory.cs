@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Api;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -29,13 +28,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _listenerProvider = listenerProvider;
         }
 
-        public InProcLanguageServer Create(
+        public LanguageServerTarget Create(
             JsonRpc jsonRpc,
             ServerCapabilities serverCapabilities,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
-            return new InProcLanguageServer(
+            return new LanguageServerTarget(
                 _dispatcherFactory,
                 jsonRpc,
                 serverCapabilities,

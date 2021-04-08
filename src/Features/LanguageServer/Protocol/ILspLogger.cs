@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Api
+namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal interface ILspLogger
     {

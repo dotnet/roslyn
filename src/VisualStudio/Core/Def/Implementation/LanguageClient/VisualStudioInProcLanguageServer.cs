@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Api;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -24,10 +23,10 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     /// <summary>
-    /// Implementation of <see cref="InProcLanguageServer"/> that also supports
+    /// Implementation of <see cref="LanguageServerTarget"/> that also supports
     /// VS LSP extension methods.
     /// </summary>
-    internal class VisualStudioInProcLanguageServer : InProcLanguageServer
+    internal class VisualStudioInProcLanguageServer : LanguageServerTarget
     {
         /// <summary>
         /// Legacy support for LSP push diagnostics.

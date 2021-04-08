@@ -7,7 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Api;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;

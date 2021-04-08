@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageServer.Api;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
