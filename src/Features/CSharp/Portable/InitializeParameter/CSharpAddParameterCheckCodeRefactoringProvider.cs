@@ -70,13 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             var withBlock = options.GetOption(CSharpCodeStyleOptions.PreferBraces).Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
             var singleLine = options.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine).Value;
             var ifTruePart = withBlock
-                ? Block(ifTrueStatement)
+                ? Block(ifTrueStatement) // wrap the if-true part in braces
                 : singleLine
-                    ? ifTrueStatement.WithoutLeadingTrivia()
+                    ? ifTrueStatement.WithoutLeadingTrivia() // if single line is allowed, any elastic trivia between the closing brace of if and the statement must be removed
                     : ifTrueStatement;
             var closeParenTrailingTrivia = singleLine && !withBlock
-                ? Space
+                ? Space // Remove any elastic marker and replace it with a space
                 : ElasticMarker;
+
             return IfStatement(
                 attributeLists: default,
                 ifKeyword: Token(SyntaxKind.IfKeyword),
