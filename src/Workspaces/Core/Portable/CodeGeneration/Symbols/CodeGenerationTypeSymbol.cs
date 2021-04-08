@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsReferenceType => TypeKind != TypeKind.Enum && TypeKind != TypeKind.Struct && TypeKind != TypeKind.Error;
 
-
         public bool IsValueType => TypeKind == TypeKind.Struct || TypeKind == TypeKind.Enum;
 
         public bool IsAnonymousType => false;

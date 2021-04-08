@@ -198,14 +198,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax typeDeclaration;
             if (namedType.IsRecord)
             {
-                if (namedType.IsReferenceType)
-                {
-                    typeDeclaration = SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken());
-                }
-                else
-                {
-                    typeDeclaration = SyntaxFactory.RecordStructDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken());
-                }
+                typeDeclaration = namedType.IsReferenceType
+                    ? SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken())
+                    : SyntaxFactory.RecordStructDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken());
             }
             else
             {

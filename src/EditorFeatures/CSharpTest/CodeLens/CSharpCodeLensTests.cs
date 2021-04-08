@@ -216,29 +216,29 @@ public class A
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeLens)]
-        [InlineData("class", "class", "class")]
-        [InlineData("record class", "record class", "record class")]
-        [InlineData("record struct", "record struct", "record struct")]
-        public async Task TestFullyQualifiedName(string typeKind1, string typeKind2, string typeKind3)
+        [InlineData("class")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestFullyQualifiedName(string typeKind)
         {
             var input = $@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
-public {typeKind1} A
+public {typeKind} A
 {{
     {{|A.C: public void C()
     {{
         C();
     }}|}}
 
-    public {typeKind2} B
+    public {typeKind} B
     {{
         {{|A+B.C: public void C()
         {{
             C();
         }}|}}
 
-        public {typeKind3} D
+        public {typeKind} D
         {{
             {{|A+B+D.C: public void C()
             {{
