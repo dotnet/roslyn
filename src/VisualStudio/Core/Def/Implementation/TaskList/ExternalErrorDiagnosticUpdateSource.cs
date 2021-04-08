@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     /// It raises events about diagnostic updates, which eventually trigger the "Build + Intellisense" and "Build only" error list diagnostic
     /// sources to update the reported diagnostics.
     /// </summary>
-    internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
+    internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource, IDisposable
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         // Gate for concurrent access and fields guarded with this gate.
         private readonly object _gate = new();
         private InProgressState? _stateDoNotAccessDirectly;
-        private CancellationTokenSource? _activeCancellationSourceDoNotAccessDirectly;
+        private readonly CancellationSeries _activeCancellationSeriesDoNotAccessDirectly = new();
 
         /// <summary>
         /// Latest diagnostics reported during current or last build.
@@ -126,6 +126,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         /// Indicates if a build is currently in progress inside Visual Studio.
         /// </summary>
         public bool IsInProgress => BuildInProgressState != null;
+
+        public void Dispose()
+        {
+            lock (_gate)
+            {
+                _activeCancellationSeriesDoNotAccessDirectly.Dispose();
+            }
+        }
 
         /// <summary>
         /// Get the latest diagnostics reported during current or last build.
@@ -468,7 +476,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             lock (_gate)
             {
-                return (_stateDoNotAccessDirectly, _activeCancellationSourceDoNotAccessDirectly?.Token ?? _disposalToken);
+                return (_stateDoNotAccessDirectly, _stateDoNotAccessDirectly?.CancellationToken ?? _disposalToken);
             }
         }
 
@@ -479,7 +487,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 var state = _stateDoNotAccessDirectly;
 
                 _stateDoNotAccessDirectly = null;
-                return (state, _activeCancellationSourceDoNotAccessDirectly?.Token ?? _disposalToken);
+                return (state, state?.CancellationToken ?? _disposalToken);
             }
         }
 
@@ -489,18 +497,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 if (_stateDoNotAccessDirectly == null)
                 {
-                    _activeCancellationSourceDoNotAccessDirectly?.Cancel();
-                    _activeCancellationSourceDoNotAccessDirectly = CancellationTokenSource.CreateLinkedTokenSource(_disposalToken);
-
                     // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
                     // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
                     // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                    _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution);
+                    _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution, _activeCancellationSeriesDoNotAccessDirectly.CreateNext(_disposalToken));
                     OnBuildProgressChanged(_stateDoNotAccessDirectly, BuildProgress.Started);
                 }
 
-                RoslynDebug.Assert(_activeCancellationSourceDoNotAccessDirectly != null);
-                return (_stateDoNotAccessDirectly, _activeCancellationSourceDoNotAccessDirectly.Token);
+                return (_stateDoNotAccessDirectly, _stateDoNotAccessDirectly.CancellationToken);
             }
         }
 
@@ -608,13 +612,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             #endregion
 
-            public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
+            public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution, CancellationToken cancellationToken)
             {
                 _owner = owner;
                 Solution = solution;
+                CancellationToken = cancellationToken;
             }
 
             public Solution Solution { get; }
+
+            public CancellationToken CancellationToken { get; }
 
             private static ImmutableHashSet<string> GetOrCreateDiagnosticIds(
                 ProjectId projectId,
