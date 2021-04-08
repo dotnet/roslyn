@@ -68,8 +68,6 @@ namespace Microsoft.CodeAnalysis
         public bool SetEarlyDecodedWellKnownAttributeData(EarlyWellKnownAttributeData data)
         {
             WellKnownAttributeData.Seal(data);
-            // Early decode must complete before full decode
-            Debug.Assert(!IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData));
             var setOnOurThread = Interlocked.CompareExchange(ref _earlyDecodedWellKnownAttributeData, data, null) == null;
             NotePartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData);
             return setOnOurThread;
