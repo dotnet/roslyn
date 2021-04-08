@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly ClassificationTypeMap _typeMap;
             private readonly SyntacticClassificationTaggerProvider _taggerProvider;
 
+            /// <summary>
+            /// Timeout before we cancel the work to diff and return whatever we have.
+            /// </summary>
+            private readonly int _diffTimeout;
+
             private int _taggerReferenceCount;
 
             public TagComputer(
@@ -74,14 +79,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 IForegroundNotificationService notificationService,
                 IAsynchronousOperationListener asyncListener,
                 ClassificationTypeMap typeMap,
-                SyntacticClassificationTaggerProvider taggerProvider)
+                SyntacticClassificationTaggerProvider taggerProvider,
+                int diffTimeout = TaggerConstants.NearImmediateDelay)
             {
                 _subjectBuffer = subjectBuffer;
                 _notificationService = notificationService;
                 _listener = asyncListener;
                 _typeMap = typeMap;
                 _taggerProvider = taggerProvider;
-
+                _diffTimeout = diffTimeout;
                 _workQueue = new AsynchronousSerialWorkQueue(taggerProvider._threadingContext, asyncListener);
                 _reportChangeCancellationSource = new CancellationTokenSource();
 
@@ -256,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return currentSnapshot.GetFullSpan();
             }
 
-            private static async Task<TextChangeRange?> ComputeChangeRangeAsync(
+            private async Task<TextChangeRange?> ComputeChangeRangeAsync(
                 Document previousDocument, Document currentDocument,
                 IClassificationService classificationService, CancellationToken cancellationToken)
             {
@@ -268,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var computeTask = Task.Run(() =>
                     classificationService.ComputeSyntacticChangeRangeAsync(previousDocument, currentDocument, linkedToken.Token), linkedToken.Token);
 
-                var delayTask = Task.Delay(TaggerConstants.NearImmediateDelay, linkedToken.Token);
+                var delayTask = Task.Delay(_diffTimeout, linkedToken.Token);
 
                 var completedTask = await Task.WhenAny(computeTask, delayTask).ConfigureAwait(false);
 
