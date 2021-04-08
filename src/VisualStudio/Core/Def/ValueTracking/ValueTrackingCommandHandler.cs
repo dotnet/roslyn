@@ -196,7 +196,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var roslynPackage = await TryGetRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(roslynPackage);
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await roslynPackage.ShowToolWindowAsync(
                     typeof(ValueTrackingToolWindow),
                     0,
