@@ -2481,5 +2481,43 @@ class C
                 CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_AllParameters()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]object a, object b, object c)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object a, object b, object c)
+    {
+        if (a is null) throw new ArgumentNullException(nameof(a));
+        if (b is null) throw new ArgumentNullException(nameof(b));
+        if (c is null) throw new ArgumentNullException(nameof(c));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
+            }.RunAsync();
+        }
     }
 }
