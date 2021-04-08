@@ -26,6 +26,7 @@ Microsoft.CodeAnalysis.SyntaxContextReceiverCreator
 Microsoft.CodeAnalysis.SyntaxNode.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNode! other) -> bool
 Microsoft.CodeAnalysis.SyntaxNodeOrToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNodeOrToken other) -> bool
 Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
+override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
