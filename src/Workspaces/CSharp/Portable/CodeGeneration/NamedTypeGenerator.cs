@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var members = GetMembers(namedType).Where(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s))
                                                .ToImmutableArray();
-            if (namedType.IsRecord && namedType.IsReferenceType)
+            if (namedType.IsRecord && namedType.TypeKind is TypeKind.Class)
             {
                 declaration = GenerateRecordMembers(service, options, (RecordDeclarationSyntax)declaration, members, cancellationToken);
             }
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax typeDeclaration;
             if (namedType.IsRecord)
             {
-                typeDeclaration = namedType.IsReferenceType
+                typeDeclaration = namedType.TypeKind is TypeKind.Class
                     ? SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken())
                     : SyntaxFactory.RecordStructDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken());
             }
