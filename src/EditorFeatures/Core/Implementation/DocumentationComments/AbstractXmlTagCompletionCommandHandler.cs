@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag);
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag))
             {
                 var buffer = args.SubjectBuffer;
 
