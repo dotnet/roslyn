@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 throw new InvalidOperationException();
             }
 
-            globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
+            globalProperties ??= ImmutableDictionary<string, string>.Empty;
             var allProperties = s_defaultGlobalProperties.RemoveRange(globalProperties.Keys).AddRange(globalProperties);
             _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
             _batchBuildLogger = new MSBuildDiagnosticLogger()
