@@ -41,7 +41,7 @@ namespace IdeCoreBenchmarks
                 throw new ArgumentException("Code location not found");
 
             _text = SourceText.From(text);
-            _tree = SyntaxFactory.ParseSyntaxTree(text);
+            _tree = SyntaxFactory.ParseSyntaxTree(_text);
             _root = _tree.GetCompilationUnitRoot();
             _rootWithSimpleEdit = WithSimpleEditAtMiddle();
             _rootWithComplexEdit = WithDestabalizingEditAtMiddle();
@@ -49,7 +49,9 @@ namespace IdeCoreBenchmarks
 
         private SyntaxNode WithSimpleEditAtMiddle()
         {
-            var newText = _text.WithChanges(new TextChange(new TextSpan(8, 1), "m"));
+            // this will change the switch statement to `mode.kind` instead of `node.kind`.  This should be reuse most
+            // of the tree and should result in a very small diff.
+            var newText = _text.WithChanges(new TextChange(new TextSpan(_index + 8, 1), "m"));
             var newTree = _tree.WithChangedText(newText);
             var newRoot = newTree.GetRoot();
             return newRoot;
@@ -57,6 +59,7 @@ namespace IdeCoreBenchmarks
 
         private SyntaxNode WithDestabalizingEditAtMiddle()
         {
+            // this will change the switch statement to a switch expression.  This may have large cascading changes.
             var newText = _text.WithChanges(new TextChange(new TextSpan(_index, 0), "var v = x "));
             var newTree = _tree.WithChangedText(newText);
             var newRoot = newTree.GetRoot();
@@ -66,19 +69,14 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public void SimpleEditAtMiddle()
         {
-            // this will change the switch statement to `mode.kind` instead of `node.kind`.  This should be reuse most
-            // of the tree and should result in a very small diff.
             var newRoot = WithSimpleEditAtMiddle();
-
             SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, CancellationToken.None);
         }
 
         [Benchmark]
         public void DestabalizingEditAtMiddle()
         {
-            // this will change the switch statement to a switch expression.  This may have large cascading changes.
             var newRoot = WithDestabalizingEditAtMiddle();
-
             SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, CancellationToken.None);
         }
 
