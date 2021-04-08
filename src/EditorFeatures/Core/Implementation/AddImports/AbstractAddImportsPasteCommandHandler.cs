@@ -40,20 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            try
-            {
-                ExecuteCommandWorker(args, nextCommandHandler, executionContext);
-            }
-            catch (OperationCanceledException)
-            {
-                // According to Editor command handler API guidelines, it's best if we return early if cancellation
-                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
-                // calling nextCommandHandler().
-            }
-        }
-
-        private void ExecuteCommandWorker(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
-        {
             // Check that the feature is enabled before doing any work
             var optionValue = args.SubjectBuffer.GetOptionalFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste);
 
@@ -78,6 +64,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
             // Perform the paste command before adding imports
             nextCommandHandler();
 
+            if (executionContext.OperationContext.UserCancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                ExecuteCommandWorker(args, executionContext, optionValue, trackingSpan);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextCommandHandler().
+            }
+        }
+
+        private void ExecuteCommandWorker(
+            PasteCommandArgs args,
+            CommandExecutionContext executionContext,
+            bool? optionValue,
+            ITrackingSpan trackingSpan)
+        {
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
             {
                 return;

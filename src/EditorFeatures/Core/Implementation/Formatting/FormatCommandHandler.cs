@@ -99,9 +99,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public void ExecuteReturnOrTypeCommand(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
         {
+            // run next handler first so that editor has chance to put the return into the buffer first.
+            nextHandler();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             try
             {
-                ExecuteReturnOrTypeCommandWorker(args, nextHandler, cancellationToken);
+                ExecuteReturnOrTypeCommandWorker(args, cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -111,11 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
         }
 
-        private void ExecuteReturnOrTypeCommandWorker(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
+        private void ExecuteReturnOrTypeCommandWorker(EditorCommandArgs args, CancellationToken cancellationToken)
         {
-            // run next handler first so that editor has chance to put the return into the buffer first.
-            nextHandler();
-
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
             if (!CanExecuteCommand(subjectBuffer))

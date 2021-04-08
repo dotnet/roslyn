@@ -25,10 +25,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         {
             try
             {
-                using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text))
+                using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
+                var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
+
+                nextHandler();
+
+                var cancellationToken = context.OperationContext.UserCancellationToken;
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    ExecuteCommandWorker(args, nextHandler, context.OperationContext.UserCancellationToken);
+                    return;
                 }
+
+                ExecuteCommandWorker(args, caretPosition, cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -38,12 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
         }
 
-        private static void ExecuteCommandWorker(PasteCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
+        private static void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
         {
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
-
-            nextHandler();
-
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
             {
                 return;

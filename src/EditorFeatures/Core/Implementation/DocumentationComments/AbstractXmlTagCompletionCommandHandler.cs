@@ -33,9 +33,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
+            // Ensure completion and any other buffer edits happen first.
+            nextHandler();
+
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             try
             {
-                ExecuteCommandWorker(args, nextHandler, context);
+                ExecuteCommandWorker(args, context);
             }
             catch (OperationCanceledException)
             {
@@ -45,17 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
         }
 
-        private void ExecuteCommandWorker(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        private void ExecuteCommandWorker(TypeCharCommandArgs args, CommandExecutionContext context)
         {
-            // Ensure completion and any other buffer edits happen first.
-            nextHandler();
-
             if (args.TypedChar != '>' && args.TypedChar != '/')
             {
                 return;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag))
+            using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag);
             {
                 var buffer = args.SubjectBuffer;
 
