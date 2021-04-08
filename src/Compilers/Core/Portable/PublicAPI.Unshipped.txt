@@ -20,6 +20,8 @@ Microsoft.CodeAnalysis.IncrementalGeneratorOutput.IncrementalGeneratorOutput() -
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.IncrementalGeneratorPipelineContext() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.RegisterOutput(Microsoft.CodeAnalysis.IncrementalGeneratorOutput output) -> void
+Microsoft.CodeAnalysis.IncrementalValueSource<T>
+Microsoft.CodeAnalysis.IncrementalValueSource<T>.IncrementalValueSource() -> void
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
@@ -32,6 +34,11 @@ Microsoft.CodeAnalysis.IMethodSymbol.MethodImplementationFlags.get -> System.Ref
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void
+Microsoft.CodeAnalysis.SourceGeneration.IncrementalValueSource<T>
+Microsoft.CodeAnalysis.SourceGeneration.IncrementalValueSource<T>.IncrementalValueSource() -> void
+Microsoft.CodeAnalysis.SourceProductionContext
+Microsoft.CodeAnalysis.SourceProductionContext.AddSource(string! name, string! content) -> void
+Microsoft.CodeAnalysis.SourceProductionContext.SourceProductionContext() -> void
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string!
 Microsoft.CodeAnalysis.SyntaxContextReceiverCreator

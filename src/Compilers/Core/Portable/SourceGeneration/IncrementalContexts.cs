@@ -51,4 +51,12 @@ namespace Microsoft.CodeAnalysis
             // PROTOTYPE(source-generators): public api stub
         }
     }
+
+    /// <summary>
+    /// Context passed to the callback provided as part of <see cref="IncrementalValueSourceExtensions.GenerateSource{T}(IncrementalValueSource{T}, Action{SourceProductionContext, T})"/>
+    /// </summary>
+    public readonly struct SourceProductionContext
+    {
+        public void AddSource(string name, string content) { }
+    }
 }
