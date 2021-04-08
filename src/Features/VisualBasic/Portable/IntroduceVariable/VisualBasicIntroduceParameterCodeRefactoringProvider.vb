@@ -37,6 +37,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Protected Overrides Function IsClassSpecificExpression(variable As SyntaxNode) As Boolean
             Return variable.Kind() = (SyntaxKind.MeExpression Or SyntaxKind.MyClassExpression Or SyntaxKind.MyBaseExpression)
         End Function
-
     End Class
 End Namespace

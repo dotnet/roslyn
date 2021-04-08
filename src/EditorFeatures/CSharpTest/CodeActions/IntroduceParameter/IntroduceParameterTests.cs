@@ -466,7 +466,221 @@ class TestClass
 
     void M1(int x, int y, int z) 
     {
-        this.M(z, y, x, this.GetM(z, y));
+        this.M(z, y, x, GetM(z, y));
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionWithSingleMethodCallAndAccessorsConditionalTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z)
+    {
+        int m = [|y * x|];
+    }
+
+    void M1(int x, int y, int z) 
+    {
+        this?.M(z, y, x);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int GetM(int x, int y)
+    {
+        return y * x;
+    }
+
+    void M(int x, int y, int z, int m)
+    {
+    }
+
+    void M1(int x, int y, int z) 
+    {
+        this?.M(z, y, x, this?.GetM(z, y));
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionWithSingleMethodCallMultipleAccessorsTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z) 
+    {
+        A a = new A();
+        var age = a.Prop.ComputeAge(x, y);
+    }
+}
+
+class A
+{
+    public B Prop { get; set; }
+}
+class B
+{
+    public int ComputeAge(int x, int y)
+    {
+        var age = [|x + y|];
+        return age;
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z) 
+    {
+        A a = new A();
+        var age = a.Prop.ComputeAge(x, y, a.Prop.GetAge(x, y));
+    }
+}
+
+class A
+{
+    public B Prop { get; set; }
+}
+class B
+{
+    public int GetAge(int x, int y)
+    {
+        return x + y;
+    }
+
+    public int ComputeAge(int x, int y, int age)
+    {
+        return age;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionWithSingleMethodCallMultipleAccessorsConditionalTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z) 
+    {
+        A a = new A();
+        var age = a?.Prop?.ComputeAge(x, y);
+    }
+}
+
+class A
+{
+    public B Prop { get; set; }
+}
+class B
+{
+    public int ComputeAge(int x, int y)
+    {
+        var age = [|x + y|];
+        return age;
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z) 
+    {
+        A a = new A();
+        var age = a?.Prop?.ComputeAge(x, y, a?.Prop?.GetAge(x, y));
+    }
+}
+
+class A
+{
+    public B Prop { get; set; }
+}
+class B
+{
+    public int GetAge(int x, int y)
+    {
+        return x + y;
+    }
+
+    public int ComputeAge(int x, int y, int age)
+    {
+        return age;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z) 
+    {
+        A a = new A();
+        var age = a.Prop?.ComputeAge(x, y);
+    }
+}
+
+class A
+{
+    public B Prop { get; set; }
+}
+class B
+{
+    public int ComputeAge(int x, int y)
+    {
+        var age = [|x + y|];
+        return age;
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z) 
+    {
+        A a = new A();
+        var age = a.Prop?.ComputeAge(x, y, a.Prop?.GetAge(x, y));
+    }
+}
+
+class A
+{
+    public B Prop { get; set; }
+}
+class B
+{
+    public int GetAge(int x, int y)
+    {
+        return x + y;
+    }
+
+    public int ComputeAge(int x, int y, int age)
+    {
+        return age;
     }
 }";
 
@@ -1364,6 +1578,78 @@ class TestClass
     }
 }";
 
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestFieldReferenceInOptionalParameter()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y = int.MaxValue)
+    {
+        int m = [|x * y|];
+        return m;
+    }
+
+    void M1()
+    {
+        M(7);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    int M(int x, int m, int y = int.MaxValue)
+    {
+        return m;
+    }
+
+    void M1()
+    {
+        M(7, 7 * int.MaxValue);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestNamedParameterNecessary()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y = 5, int z = 3)
+    {
+        int m = [|z * y|];
+        return m;
+    }
+
+    void M1()
+    {
+        M(z: 0, y: 2);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    int M(int x, int m, int y = 5, int z = 3)
+    {
+        return m;
+    }
+
+    void M1()
+    {
+        M(z: 0, m: 0 * 2, y: 2);
+    }
+}";
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
     }
