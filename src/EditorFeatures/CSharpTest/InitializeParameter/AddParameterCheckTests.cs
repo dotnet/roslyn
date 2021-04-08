@@ -1748,7 +1748,8 @@ class C
 }",
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent) }
+                    { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent) },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
                 }
             }.RunAsync();
         }
