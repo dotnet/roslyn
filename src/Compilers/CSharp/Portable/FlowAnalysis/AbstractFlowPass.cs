@@ -2612,7 +2612,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool VisitPossibleConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
-            stateWhenNotNull = default;
             if (TryVisitConditionalAccess(node, out stateWhenNotNull))
             {
                 return true;
@@ -3410,4 +3409,3 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal enum RegionPlace { Before, Inside, After };
 }
-
