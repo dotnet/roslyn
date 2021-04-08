@@ -950,37 +950,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return true;
             }
 
-            // Original expression and current node being semantically equivalent isn't enough when the original expression 
-            // is a member access via instance reference (either implicit or explicit), the check only ensures that the expression
-            // and current node are both backed by the same member symbol. So in this case, in addition to SemanticEquivalence check, 
-            // we also check if expression and current node are both instance member access.
-            //
-            // For example, even though the first `c` binds to a field and we are introducing a local for it,
-            // we don't want other references to that field to be replaced as well (i.e. the second `c` in the expression).
-            //
-            //  class C
-            //  {
-            //      C c;
-            //      void Test()
-            //      {
-            //          var x = [|c|].c;
-            //      }
-            //  }
-
-            var originalOperation = originalSemanticModel.GetOperation(expression, cancellationToken);
-            if (originalOperation != null && IsInstanceMemberReference(originalOperation))
-            {
-                var currentOperation = originalSemanticModel.GetOperation(currentNode, cancellationToken);
-                return currentOperation != null && IsInstanceMemberReference(currentOperation) && SemanticEquivalence.AreEquivalent(
-                    originalSemanticModel, originalSemanticModel, expression, currentNode);
-            }
-
             return SemanticEquivalence.AreEquivalent(
                 originalSemanticModel, originalSemanticModel, expression, currentNode);
-
-            static bool IsInstanceMemberReference(IOperation operation)
-                => operation is IMemberReferenceOperation memberReferenceOperation &&
-                    memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
         }
 
         private class MyCodeAction : SolutionChangeAction
