@@ -56,7 +56,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         End Function
 
         Protected Overrides Function CreateParameterCheckIfStatement(options As DocumentOptionSet, condition As ExpressionSyntax, ifTrueStatement As StatementSyntax) As StatementSyntax
-            Return SyntaxFactory.MultiLineIfBlock(SyntaxFactory.IfStatement(condition), New SyntaxList(Of StatementSyntax)(ifTrueStatement), Nothing, Nothing)
+            Return SyntaxFactory.MultiLineIfBlock(
+                SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), condition, SyntaxFactory.Token(SyntaxKind.ThenKeyword)),
+                New SyntaxList(Of StatementSyntax)(ifTrueStatement),
+                Nothing,
+                Nothing)
         End Function
     End Class
 End Namespace
