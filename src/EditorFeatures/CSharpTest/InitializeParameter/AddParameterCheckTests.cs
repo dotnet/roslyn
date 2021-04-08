@@ -2273,7 +2273,7 @@ class C
     {
     }
 }",
-                FixedCode = @$"
+                FixedCode = $@"
 using System;
 
 class C
