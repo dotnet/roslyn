@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
             else if (singleLine)
             {
-                // if single line is allowed, any elastic trivia between the closing brace of if and the statement must be removed
+                // Any elastic trivia between the closing parenthesis of if and the statement must be removed
+                // to convince the formatter to keep everything on a single line.
+                // Note: ifTrueStatement and closeParenToken are generated, so there is no need to deal with any existing trivia.
                 closeParenToken = closeParenToken.WithTrailingTrivia(Space);
                 ifTrueStatement = ifTrueStatement.WithoutLeadingTrivia();
             }
