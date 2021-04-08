@@ -85,4 +85,29 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
 
     }
+
+    internal sealed class IncrementalCallbackGenerator : IIncrementalGenerator
+    {
+        private readonly Action<IncrementalGeneratorInitializationContext> _onInit;
+
+        public IncrementalCallbackGenerator(Action<IncrementalGeneratorInitializationContext> onInit)
+        {
+            _onInit = onInit;
+        }
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => _onInit(context);
+    }
+
+    internal sealed class IncrementalAndSourceCallbackGenerator : CallbackGenerator, IIncrementalGenerator
+    {
+        private readonly Action<IncrementalGeneratorInitializationContext> _onInit;
+
+        public IncrementalAndSourceCallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Action<IncrementalGeneratorInitializationContext> onIncrementalInit)
+            : base(onInit, onExecute)
+        {
+            _onInit = onIncrementalInit;
+        }
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => _onInit(context);
+    }
 }

@@ -1081,5 +1081,44 @@ class C { }
             Assert.True(tree.TryGetRoot(out var rootFromTryGetRoot));
             Assert.Same(rootFromGetRoot, rootFromTryGetRoot);
         }
+
+        [Fact]
+        // PROTOTYPE(source-generators): checks we're dropping the incremental drivers for now, and running dual drivers as ISourceGenerator
+        public void GeneratorDriver_Does_Not_Run_Incremental_Generators()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int initCount = 0, executeCount = 0;
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
+
+            int incrementalInitCount = 0;
+            var generator2 = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => incrementalInitCount++));
+
+            int dualInitCount = 0, dualExecuteCount = 0, dualIncrementalInitCount = 0;
+            var generator3 = new IncrementalAndSourceCallbackGenerator((ic) => dualInitCount++, (sgc) => dualExecuteCount++, (ic) => dualIncrementalInitCount++);
+
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2, generator3 }, parseOptions: parseOptions);
+            driver.RunGenerators(compilation);
+
+            // ran generator 1
+            Assert.Equal(1, initCount);
+            Assert.Equal(1, executeCount);
+
+            // didn't run the incremental generator
+            Assert.Equal(0, incrementalInitCount);
+
+            // ran the combined generator only as an ISourceGenerator
+            Assert.Equal(1, dualInitCount);
+            Assert.Equal(1, dualExecuteCount);
+            Assert.Equal(0, dualIncrementalInitCount);
+        }
     }
 }
