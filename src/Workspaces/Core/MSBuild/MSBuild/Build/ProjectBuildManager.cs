@@ -61,11 +61,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         private readonly ILogger? _msbuildLogger;
         private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
         private MSBuildDiagnosticLogger? _batchBuildLogger;
-        private bool _batchBuildStarted;
 
         ~ProjectBuildManager()
         {
-            if (_batchBuildStarted)
+            if (BatchBuildStarted)
             {
                 throw new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
             }
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         public Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
             string path, CancellationToken cancellationToken)
         {
-            if (_batchBuildStarted)
+            if (BatchBuildStarted)
             {
                 return LoadProjectAsync(path, _batchBuildProjectCollection, cancellationToken);
             }
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         public async Task<string?> TryGetOutputFilePathAsync(
             string path, CancellationToken cancellationToken)
         {
-            Debug.Assert(_batchBuildStarted);
+            Debug.Assert(BatchBuildStarted);
 
             // This tries to get the project output path and retrieving the evaluated $(TargetPath) property.
 
@@ -150,11 +149,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             return project?.GetPropertyValue(PropertyNames.TargetPath);
         }
 
-        public bool BatchBuildStarted => _batchBuildStarted;
+        public bool BatchBuildStarted { get; private set; }
 
         public void StartBatchBuild(IDictionary<string, string>? globalProperties = null)
         {
-            if (_batchBuildStarted)
+            if (BatchBuildStarted)
             {
                 throw new InvalidOperationException();
             }
@@ -176,12 +175,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
 
-            _batchBuildStarted = true;
+            BatchBuildStarted = true;
         }
 
         public void EndBatchBuild()
         {
-            if (!_batchBuildStarted)
+            if (!BatchBuildStarted)
             {
                 throw new InvalidOperationException();
             }
@@ -192,13 +191,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             _batchBuildProjectCollection?.UnloadAllProjects();
             _batchBuildProjectCollection = null;
             _batchBuildLogger = null;
-            _batchBuildStarted = false;
+            BatchBuildStarted = false;
         }
 
         public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
-            Debug.Assert(_batchBuildStarted);
+            Debug.Assert(BatchBuildStarted);
 
             var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
 
