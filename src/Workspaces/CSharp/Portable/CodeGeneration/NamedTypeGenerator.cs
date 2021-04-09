@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var members = GetMembers(namedType).Where(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s))
                                                .ToImmutableArray();
-            if (namedType.IsRecord)
+            if (namedType.IsRecord && namedType.TypeKind is TypeKind.Class)
             {
                 declaration = GenerateRecordMembers(service, options, (RecordDeclarationSyntax)declaration, members, cancellationToken);
             }
@@ -170,8 +170,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((EnumDeclarationSyntax)declaration).WithMembers(default);
 
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return ((TypeDeclarationSyntax)declaration).WithMembers(default);
 
                 default:
@@ -196,7 +198,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax typeDeclaration;
             if (namedType.IsRecord)
             {
-                typeDeclaration = SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken());
+                typeDeclaration = namedType.TypeKind is TypeKind.Class
+                    ? SyntaxFactory.RecordDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken())
+                    : SyntaxFactory.RecordStructDeclaration(SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken());
             }
             else
             {

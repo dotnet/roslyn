@@ -508,7 +508,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             switch (node.Parent.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     // Anything without modifiers is private if it's in a class/struct declaration.
                     return Accessibility.Private;
                 case SyntaxKind.InterfaceDeclaration:

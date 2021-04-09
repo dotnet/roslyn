@@ -12,23 +12,23 @@ using Microsoft.CodeAnalysis.Organizing.Organizers;
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
 {
     [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
-    internal class RecordDeclarationOrganizer : AbstractSyntaxNodeOrganizer<RecordDeclarationSyntax>
+    internal class RecordStructDeclarationOrganizer : AbstractSyntaxNodeOrganizer<RecordStructDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RecordDeclarationOrganizer()
+        public RecordStructDeclarationOrganizer()
         {
         }
 
-        protected override RecordDeclarationSyntax Organize(
-            RecordDeclarationSyntax syntax,
+        protected override RecordStructDeclarationSyntax Organize(
+            RecordStructDeclarationSyntax syntax,
             CancellationToken cancellationToken)
         {
             return syntax.Update(
                 syntax.AttributeLists,
                 ModifiersOrganizer.Organize(syntax.Modifiers),
                 syntax.Keyword,
-                syntax.ClassKeyword,
+                syntax.StructKeyword,
                 syntax.Identifier,
                 syntax.TypeParameterList,
                 syntax.ParameterList,

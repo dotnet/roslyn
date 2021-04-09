@@ -101,6 +101,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInRecordStruct()
+        {
+            await VerifyAbsenceAsync(
+@"record struct S {
+    $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUnsafeStruct()
         {
             await VerifyKeywordAsync(
