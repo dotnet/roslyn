@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             private static async Task<ProjectIndex> CreateIndexAsync(Project project, CancellationToken cancellationToken)
             {
-                var classesAndRecordsThatMayDeriveFromSystemObject = new MultiDictionary<Document, DeclaredSymbolInfo>();
+                var classesThatMayDeriveFromSystemObject = new MultiDictionary<Document, DeclaredSymbolInfo>();
                 var valueTypes = new MultiDictionary<Document, DeclaredSymbolInfo>();
                 var enums = new MultiDictionary<Document, DeclaredSymbolInfo>();
                 var delegates = new MultiDictionary<Document, DeclaredSymbolInfo>();
@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         switch (info.Kind)
                         {
                             case DeclaredSymbolInfoKind.Class:
-                            case DeclaredSymbolInfoKind.Record:
-                                classesAndRecordsThatMayDeriveFromSystemObject.Add(document, info);
+                                classesThatMayDeriveFromSystemObject.Add(document, info);
                                 break;
                             case DeclaredSymbolInfoKind.Enum:
                                 enums.Add(document, info);
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                return new ProjectIndex(classesAndRecordsThatMayDeriveFromSystemObject, valueTypes, enums, delegates, namedTypes);
+                return new ProjectIndex(classesThatMayDeriveFromSystemObject, valueTypes, enums, delegates, namedTypes);
             }
         }
     }
