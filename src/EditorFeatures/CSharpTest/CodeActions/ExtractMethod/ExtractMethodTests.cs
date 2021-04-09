@@ -118,6 +118,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestSwitchExpression()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    int Foo(int x) => x switch
+    {
+        1 => 1,
+        _ => [|1 + x|]
+    };
+}",
+@"class Program
+{
+    int Foo(int x) => x switch
+    {
+        1 => 1,
+        _ => NewMethod(x)
+    };
+
+    private static int NewMethod(x) => 1 + x;
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionBodyWhenPossible()
         {
             await TestInRegularAndScript1Async(
