@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     ///  Field Name         Type                Size (bytes)
     /// ----------------------------------------------------
     ///  Length             Integer             4
-    ///  ProtocolVersion    Integer             4
+    ///  RequestId          Guid                16
     ///  Language           RequestLanguage     4
     ///  CompilerHash       String              Variable
     ///  Argument Count     UInteger            4
@@ -45,17 +45,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </summary>
     internal class BuildRequest
     {
-        public readonly uint ProtocolVersion;
+        public readonly Guid RequestId;
         public readonly RequestLanguage Language;
         public readonly ReadOnlyCollection<Argument> Arguments;
         public readonly string CompilerHash;
 
-        public BuildRequest(uint protocolVersion,
-                            RequestLanguage language,
+        public BuildRequest(RequestLanguage language,
                             string compilerHash,
-                            IEnumerable<Argument> arguments)
+                            IEnumerable<Argument> arguments,
+                            Guid? requestId = null)
         {
-            ProtocolVersion = protocolVersion;
+            RequestId = requestId ?? Guid.Empty;
             Language = language;
             Arguments = new ReadOnlyCollection<Argument>(arguments.ToList());
             CompilerHash = compilerHash;
@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                           string workingDirectory,
                                           string tempDirectory,
                                           string compilerHash,
+                                          Guid? requestId = null,
                                           string? keepAlive = null,
                                           string? libDirectory = null)
         {
@@ -102,13 +103,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 requestArgs.Add(new Argument(ArgumentId.CommandLineArgument, i, arg));
             }
 
-            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, compilerHash, requestArgs);
+            return new BuildRequest(language, compilerHash, requestArgs, requestId);
         }
 
         public static BuildRequest CreateShutdown()
         {
             var requestArgs = new[] { new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: "") };
-            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, GetCommitHash() ?? "", requestArgs);
+            return new BuildRequest(RequestLanguage.CSharpCompile, GetCommitHash() ?? "", requestArgs);
         }
 
         /// <summary>
@@ -139,25 +140,34 @@ namespace Microsoft.CodeAnalysis.CommandLine
             cancellationToken.ThrowIfCancellationRequested();
 
             // Parse the request into the Request data structure.
-            using (var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode))
+            using var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode);
+            var requestId = ReadGuid(reader);
+            var language = (RequestLanguage)reader.ReadUInt32();
+            var compilerHash = reader.ReadString();
+            uint argumentCount = reader.ReadUInt32();
+            var argumentsBuilder = new List<Argument>((int)argumentCount);
+
+            for (int i = 0; i < argumentCount; i++)
             {
-                var protocolVersion = reader.ReadUInt32();
-                var language = (RequestLanguage)reader.ReadUInt32();
-                var compilerHash = reader.ReadString();
-                uint argumentCount = reader.ReadUInt32();
+                cancellationToken.ThrowIfCancellationRequested();
+                argumentsBuilder.Add(BuildRequest.Argument.ReadFromBinaryReader(reader));
+            }
 
-                var argumentsBuilder = new List<Argument>((int)argumentCount);
+            return new BuildRequest(language,
+                                    compilerHash,
+                                    argumentsBuilder,
+                                    requestId);
 
-                for (int i = 0; i < argumentCount; i++)
+            static Guid ReadGuid(BinaryReader reader)
+            {
+                const int size = 16;
+                var bytes = new byte[size];
+                if (size != reader.Read(bytes, 0, size))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    argumentsBuilder.Add(BuildRequest.Argument.ReadFromBinaryReader(reader));
+                    throw new InvalidOperationException();
                 }
 
-                return new BuildRequest(protocolVersion,
-                                        language,
-                                        compilerHash,
-                                        argumentsBuilder);
+                return new Guid(bytes);
             }
         }
 
@@ -169,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             using (var memoryStream = new MemoryStream())
             using (var writer = new BinaryWriter(memoryStream, Encoding.Unicode))
             {
-                writer.Write(ProtocolVersion);
+                writer.Write(RequestId.ToByteArray());
                 writer.Write((uint)Language);
                 writer.Write(CompilerHash);
                 writer.Write(Arguments.Count);
@@ -521,11 +531,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </summary>
     internal static class BuildProtocolConstants
     {
-        /// <summary>
-        /// The version number for this protocol.
-        /// </summary>
-        public const uint ProtocolVersion = 3;
-
         // Arguments for CSharp and VB Compiler
         public enum ArgumentId
         {

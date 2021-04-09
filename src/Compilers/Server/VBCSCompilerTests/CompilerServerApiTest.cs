@@ -70,7 +70,6 @@ class Hello
             builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, argumentIndex: 0, value: file.Path));
 
             return new BuildRequest(
-                BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.CSharpCompile,
                 BuildProtocolConstants.GetCommitHash(),
                 builder.ToImmutable());
@@ -183,18 +182,10 @@ class Hello
         }
 
         [Fact]
-        public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
-        {
-            using var serverData = await ServerUtil.CreateServer(Logger);
-            var buildResponse = await serverData.SendAsync(new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
-            Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
-        }
-
-        [Fact]
         public async Task IncorrectServerHashReturnsIncorrectHashResponse()
         {
             using var serverData = await ServerUtil.CreateServer(Logger);
-            var buildResponse = await serverData.SendAsync(new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+            var buildResponse = await serverData.SendAsync(new BuildRequest(RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
             Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
         }
 
