@@ -2,7 +2,7 @@
 
 #nullable disable warnings
 
-namespace StyleCop.Analyzers.Helpers
+namespace Analyzer.Utilities
 {
     using System;
     using System.Collections.Concurrent;

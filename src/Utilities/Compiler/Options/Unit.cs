@@ -9,7 +9,7 @@ namespace Analyzer.Utilities
     /// Represents a type with a single value. This type is often used to denote the successful completion of a void-returning method (C#) or a Sub procedure (Visual Basic).
     /// </summary>
     /// <remarks>
-    /// This class is a duplicate from "https://github.com/dotnet/reactive/blob/master/Rx.NET/Source/src/System.Reactive/Unit.cs
+    /// This class is a duplicate from "https://github.com/dotnet/reactive/blob/main/Rx.NET/Source/src/System.Reactive/Unit.cs
     /// </remarks>
     internal struct Unit : IEquatable<Unit>
     {
