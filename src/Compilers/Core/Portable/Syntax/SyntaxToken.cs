@@ -696,6 +696,6 @@ namespace Microsoft.CodeAnalysis
         /// incrementally identical, all trivial of each node will be incrementally identical as well.
         /// </summary>
         public bool IsIncrementallyIdenticalTo(SyntaxToken token)
-            => this.Node == token.Node;
+            => this.Node != null && this.Node == token.Node;
     }
 }
