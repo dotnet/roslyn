@@ -2237,6 +2237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             stack.Free();
         }
 
+#nullable enable
         protected virtual void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
         {
             var binary = stack.Pop();
@@ -2292,9 +2293,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return expr.ConstantValue is object
                     || (expr is BoundConversion
-                    {
-                        ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable,
-                    } conv && conv.Operand.Type.IsNonNullableValueType());
+                        {
+                            ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable,
+                        } conv && conv.Operand.Type!.IsNonNullableValueType());
             }
 
             static bool isEquals(BoundBinaryOperator binary)
@@ -2341,6 +2342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
+#nullable disable
 
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
         {
