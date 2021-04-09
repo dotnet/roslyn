@@ -1120,5 +1120,59 @@ class C { }
             Assert.Equal(1, dualExecuteCount);
             Assert.Equal(0, dualIncrementalInitCount);
         }
+
+        [Fact]
+        public void User_WrappedFunc_Throw_Exceptions()
+        {
+            var func = makeFunc(throwEx: false);
+            var throwsFunc = makeFunc(throwEx: true);
+            var timeoutFunc = makeFunc(throwCanceled: true);
+
+            var userFunc = func.WrapUserFunction();
+            var userThrowsFunc = throwsFunc.WrapUserFunction();
+            var userTimeoutFunc = timeoutFunc.WrapUserFunction();
+
+            // user functions return same values when wrapped
+            var result = userFunc(10);
+            var userResult = userFunc(10);
+            Assert.Equal(10, result);
+            Assert.Equal(result, userResult);
+
+            // exceptions thrown in user code are wrapped
+            Assert.Throws<InvalidOperationException>(() => throwsFunc(20));
+            Assert.Throws<UserFunctionException>(() => userThrowsFunc(20));
+
+            try
+            {
+                userThrowsFunc(20);
+            }
+            catch (UserFunctionException e)
+            {
+                Assert.IsType<InvalidOperationException>(e.InnerException);
+            }
+
+            // cancellation is not wrapped, and is bubbled up
+            Assert.Throws<OperationCanceledException>(() => timeoutFunc(30));
+            Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30));
+
+            Func<int, int> makeFunc(bool throwEx = false, bool throwCanceled = false)
+            {
+                return (input) =>
+                {
+                    if (throwEx)
+                    {
+                        throw new InvalidOperationException("User code did something");
+                    }
+                    else if (throwCanceled)
+                    {
+                        throw new OperationCanceledException();
+                    }
+                    else
+                    {
+                        return input;
+                    }
+                };
+            }
+        }
     }
 }
