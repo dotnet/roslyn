@@ -147,8 +147,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
             //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
             //    `defa$$ult(object)` where `token` references `default` but the caret isn't inside the parentheses.
-            var (openingDelimeter, closingDelimiter) = GetDelimiters(startingNode);
-            if (!openingDelimeter.IsKind(SyntaxKind.None) && openingDelimeter.Span.Start >= caretPosition
+            var delimiters = startingNode.GetParentheses();
+            if (delimiters == default)
+            {
+                delimiters = startingNode.GetBraces();
+            }
+
+            var (openingDelimiter, closingDelimiter) = delimiters;
+            if (!openingDelimiter.IsKind(SyntaxKind.None) && openingDelimiter.Span.Start >= caretPosition
                 || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
             {
                 startingNode = startingNode.Parent;
@@ -518,59 +524,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </returns>
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
-            return GetDelimiters(currentNode).closingDelimiter.IsMissing;
-        }
-
-        private static (SyntaxToken openingDelimeter, SyntaxToken closingDelimiter) GetDelimiters(SyntaxNode currentNode)
-        {
-            switch (currentNode.Kind())
-            {
-                case SyntaxKind.ArgumentList:
-                    var argumentList = (ArgumentListSyntax)currentNode;
-                    return (argumentList.OpenParenToken, argumentList.CloseParenToken);
-
-                case SyntaxKind.ParenthesizedExpression:
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)currentNode;
-                    return (parenthesizedExpression.OpenParenToken, parenthesizedExpression.CloseParenToken);
-
-                case SyntaxKind.BracketedArgumentList:
-                    var bracketedArgumentList = (BracketedArgumentListSyntax)currentNode;
-                    return (bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken);
-
-                case SyntaxKind.ObjectInitializerExpression:
-                case SyntaxKind.WithInitializerExpression:
-                    var initializerExpressionSyntax = (InitializerExpressionSyntax)currentNode;
-                    return (initializerExpressionSyntax.OpenBraceToken, initializerExpressionSyntax.CloseBraceToken);
-
-                case SyntaxKind.ArrayRankSpecifier:
-                    var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
-                    return (arrayRankSpecifierSyntax.OpenBracketToken, arrayRankSpecifierSyntax.CloseBracketToken);
-
-                case SyntaxKind.ParameterList:
-                    var parameterList = (ParameterListSyntax)currentNode;
-                    return (parameterList.OpenParenToken, parameterList.CloseParenToken);
-
-                case SyntaxKind.DefaultExpression:
-                    var defaultExpressionSyntax = (DefaultExpressionSyntax)currentNode;
-                    return (defaultExpressionSyntax.OpenParenToken, defaultExpressionSyntax.CloseParenToken);
-
-                case SyntaxKind.CheckedExpression:
-                case SyntaxKind.UncheckedExpression:
-                    var checkedExpressionSyntax = (CheckedExpressionSyntax)currentNode;
-                    return (checkedExpressionSyntax.OpenParenToken, checkedExpressionSyntax.CloseParenToken);
-
-                case SyntaxKind.TypeOfExpression:
-                    var typeOfExpressionSyntax = (TypeOfExpressionSyntax)currentNode;
-                    return (typeOfExpressionSyntax.OpenParenToken, typeOfExpressionSyntax.CloseParenToken);
-
-                case SyntaxKind.TupleExpression:
-                    var tupleExpressionSyntax = (TupleExpressionSyntax)currentNode;
-                    return (tupleExpressionSyntax.OpenParenToken, tupleExpressionSyntax.CloseParenToken);
-
-                default:
-                    // Type of node does not have delimiters used by this feature
-                    return default;
-            }
+            return currentNode.GetBraces().closeBrace.IsMissing &&
+                currentNode.GetParentheses().closeParen.IsMissing;
         }
     }
 }
