@@ -150,11 +150,11 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
 indent_style = space
 
 # XML project files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
+[*.{{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}}]
 indent_size = 2
 
 # XML config files
-[*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
+[*.{{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}}]
 indent_size = 2
 
 # Code files
