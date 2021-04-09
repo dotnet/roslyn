@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.Internal.VisualStudio.Shell;
@@ -321,9 +322,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
         }
 
         void INavigationBarPresenter.PresentItems(
-            IList<NavigationBarProjectItem> projects,
+            ImmutableArray<NavigationBarProjectItem> projects,
             NavigationBarProjectItem selectedProject,
-            IList<NavigationBarItem> types,
+            ImmutableArray<NavigationBarItem> types,
             NavigationBarItem selectedType,
             NavigationBarItem selectedMember)
         {

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -32,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, INavigationBarController
     {
         private static readonly NavigationBarModel EmptyModel = new(
-                ImmutableArray<NavigationBarItem>.Empty,
-                semanticVersionStamp: default,
-                itemService: null);
+            ImmutableArray<NavigationBarItem>.Empty,
+            semanticVersionStamp: default,
+            itemService: null!);
 
         private static readonly NavigationBarSelectedTypeAndMember EmptySelectedInfo = new(typeItem: null, memberItem: null);
 
@@ -45,6 +46,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private bool _disconnected = false;
         private Workspace? _workspace;
+
+        /// <summary>
+        /// Latest model and selected items produced once <see cref="_selectedItemInfoTask"/> completes and presents the
+        /// single item to the view.  These can then be read in when the dropdown is expanded and we want to show all
+        /// items.
+        /// </summary>
+        private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _latestModelAndSelectedInfo_OnlyAccessOnUIThread;
+
+        /// <summary>
+        /// The last full information we have presented. If we end up wanting to present the same thing again, we can
+        /// just skip doing that as the UI will already know about this.
+        /// </summary>
+        private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
 
         public NavigationBarController(
             IThreadingContext threadingContext,
@@ -71,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _modelTask = Task.FromResult(EmptyModel);
             _selectedItemInfoTask = Task.FromResult(EmptySelectedInfo);
 
-            _lastModelAndSelectedInfo_OnlyAccessOnUIThread = (EmptyModel, EmptySelectedInfo);
+            _latestModelAndSelectedInfo_OnlyAccessOnUIThread = (EmptyModel, EmptySelectedInfo);
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
@@ -94,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             _workspace = workspace;
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
+            _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
 
             if (IsForeground())
             {
@@ -123,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             if (_workspace != null)
             {
+                _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
                 _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
                 _workspace = null;
             }
@@ -187,6 +203,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
         }
 
+        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
+        {
+            if (args.Solution.Workspace != _workspace)
+                return;
+
+            var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
+            if (args.NewActiveContextDocumentId == currentContextDocumentId ||
+                args.OldActiveContextDocumentId == currentContextDocumentId)
+            {
+                // if the active context changed, recompute the types/member as they may be changed as well.
+                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
+            }
+        }
+
         private void OnSubjectBufferPostChanged(object? sender, EventArgs e)
         {
             AssertIsForeground();
@@ -214,17 +244,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (document == null)
                 return;
 
-            // Just present whatever information we have at this point.  We don't want to block the user from
-            // being able to open the dropdown list.
+            // Grab and present whatever information we have at this point.
             GetProjectItems(out var projectItems, out var selectedProjectItem);
+            var (model, selectedInfo) = _latestModelAndSelectedInfo_OnlyAccessOnUIThread;
 
-            var (lastModel, selectedInfo) = _lastModelAndSelectedInfo_OnlyAccessOnUIThread;
+            if (Equals(model, _lastPresentedInfo.model) &&
+                Equals(selectedInfo, _lastPresentedInfo.selectedInfo) &&
+                Equals(selectedProjectItem, _lastPresentedInfo.selectedProjectItem) &&
+                projectItems.SequenceEqual(_lastPresentedInfo.projectItems))
+            {
+                // Nothing changed, so we can skip presenting these items.
+                return;
+            }
+
             _presenter.PresentItems(
                 projectItems,
                 selectedProjectItem,
-                lastModel.Types,
+                model.Types,
                 selectedInfo.TypeItem,
                 selectedInfo.MemberItem);
+
+            _lastPresentedInfo = (projectItems, selectedProjectItem, model, selectedInfo);
         }
 
         private void GetProjectItems(out ImmutableArray<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem? selectedProjectItem)
@@ -262,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             NavigationBarItem? newLeft = null;
             NavigationBarItem? newRight = null;
-            var listOfLeft = new List<NavigationBarItem>();
+            using var _1 = ArrayBuilder<NavigationBarItem>.GetInstance(out var listOfLeft);
             var listOfRight = new List<NavigationBarItem>();
 
             if (oldRight != null)
@@ -288,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _presenter.PresentItems(
                 projectItems,
                 selectedProjectItem,
-                listOfLeft,
+                listOfLeft.ToImmutable(),
                 newLeft,
                 newRight);
         }

@@ -30,13 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private CancellationTokenSource _modelTaskCancellationSource = new();
 
         /// <summary>
-        /// Latest model and selected items produced once <see cref="_selectedItemInfoTask"/> completes and presents the
-        /// single item to the view.  These can then be read in when the dropdown is expanded and we want to show all
-        /// items.
-        /// </summary>
-        private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastModelAndSelectedInfo_OnlyAccessOnUIThread;
-
-        /// <summary>
         /// Starts a new task to compute the model based on the current text.
         /// </summary>
         private void StartModelUpdateAndSelectedItemUpdateTasks(int modelUpdateDelay, int selectedItemUpdateDelay)
@@ -168,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // as the user can only see one at a time as they're editing in a document.  However, once we've done this,
             // store the full list of items as well so that if the user expands the dropdown, we can take all those
             // values and shove them in so it appears as if the lists were always fully realized.
-            _lastModelAndSelectedInfo_OnlyAccessOnUIThread = (lastModel, currentSelectedItem);
+            _latestModelAndSelectedInfo_OnlyAccessOnUIThread = (lastModel, currentSelectedItem);
             PushSelectedItemsToPresenter(currentSelectedItem);
         }
 
