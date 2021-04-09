@@ -16,7 +16,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class LanguageServerTarget : IAsyncDisposable
+    internal class LanguageServerTarget : ILanguageServerTarget
     {
         private readonly ICapabilitiesProvider _capabilitiesProvider;
 

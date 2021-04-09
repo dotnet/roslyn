@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = await CreateAsync(
+            _languageServer = (LanguageServerTarget)await CreateAsync(
                 this,
                 serverStream,
                 serverStream,
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        internal static async Task<LanguageServerTarget> CreateAsync(
+        internal static async Task<ILanguageServerTarget> CreateAsync(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return new LogHubLspLogger(configuration, traceSource);
         }
 
-        public LanguageServerTarget Create(
+        public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,

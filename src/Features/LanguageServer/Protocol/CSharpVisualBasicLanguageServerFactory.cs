@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _listenerProvider = listenerProvider;
         }
 
-        public LanguageServerTarget Create(
+        public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal interface ILanguageServerFactory
     {
-        public LanguageServerTarget Create(
+        public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
