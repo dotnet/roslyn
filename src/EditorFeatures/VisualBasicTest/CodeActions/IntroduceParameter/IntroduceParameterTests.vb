@@ -623,6 +623,99 @@ End Class"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestExpressionCaseWithOptionalParametersUsedOverload() As Task
+            Dim source =
+"Class Program
+    Function M(x As Integer, Optional y As Integer = 5) As Integer
+        Dim num As Integer = [|x * y|]
+        Return num
+    End Function
+
+    Sub M1()
+        Dim x = M(7)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Public Function M(x As Integer, Optional y As Integer = 5) As Integer
+        Return M(x, x * y, y)
+    End Function
+
+    Function M(x As Integer, num As Integer, Optional y As Integer = 5) As Integer
+        Return num
+    End Function
+
+    Sub M1()
+        Dim x = M(7)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestExpressionCaseWithOptionalParametersUsedTrampoline() As Task
+            Dim source =
+"Class Program
+    Function M(x As Integer, Optional y As Integer = 5) As Integer
+        Dim num As Integer = [|x * y|]
+        Return num
+    End Function
+
+    Sub M1()
+        Dim x = M(7)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Public Function GetNum(x As Integer, Optional y As Integer = 5) As Integer
+        Return x * y
+    End Function
+
+    Function M(x As Integer, num As Integer, Optional y As Integer = 5) As Integer
+        Return num
+    End Function
+
+    Sub M1()
+        Dim x = M(7, GetNum(7))
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestExpressionCaseWithOptionalParametersUnusedTrampoline() As Task
+            Dim source =
+"Class Program
+    Function M(x As Integer, Optional y As Integer = 5) As Integer
+        Dim num As Integer = [|x * y|]
+        Return num
+    End Function
+
+    Sub M1()
+        Dim x = M(7, 2)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Public Function GetNum(x As Integer, Optional y As Integer = 5) As Integer
+        Return x * y
+    End Function
+
+    Function M(x As Integer, num As Integer, Optional y As Integer = 5) As Integer
+        Return num
+    End Function
+
+    Sub M1()
+        Dim x = M(7, GetNum(7, 2), 2)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
         Public Async Function TestExpressionCaseWithCancellationToken() As Task
             Dim source =
 "Imports System.Threading
@@ -643,6 +736,158 @@ Class Program
 
     Sub M1(cancellationToken As CancellationToken)
         M(7, 7 * 7, cancellationToken)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestExpressionInConstructor() As Task
+            Dim source =
+"Class Program
+    Public Sub New(x As Integer, y As Integer)
+        Dim prod = [|x * y|]
+    End Sub
+
+    Sub M1()
+        Dim test As New Program(5, 2)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Public Sub New(x As Integer, y As Integer, prod As Integer)
+    End Sub
+
+    Sub M1()
+        Dim test As New Program(5, 2, 5 * 2)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestFieldInitializer() As Task
+            Dim source =
+"Class Program
+    Public val As Integer = [|5 * 2|]
+    Public Sub New(x As Integer, y As Integer)
+        Dim prod = x * y
+    End Sub
+
+    Sub M1()
+        Dim test As New Program(5, 2)
+    End Sub
+End Class"
+
+            Await TestMissingInRegularAndScriptAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestPropertyGetter() As Task
+            Dim source =
+"Class TestClass
+    Dim seconds As Double
+    Property Hours() As Double
+        Get
+            Return [|seconds / 3600|]
+        End Get
+        Set(ByVal Value As Double)
+            seconds = Value * 3600
+        End Set
+    End Property
+End Class"
+
+            Await TestMissingInRegularAndScriptAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestPropertySetter() As Task
+            Dim source =
+"Class TestClass
+    Dim seconds As Double
+    Property Hours() As Double
+        Get
+            Return seconds / 3600
+        End Get
+        Set(ByVal Value As Double)
+            seconds = [|Value * 3600|]
+        End Set
+    End Property
+End Class"
+
+            Await TestMissingInRegularAndScriptAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestDestructor() As Task
+            Dim source =
+"Class Program
+    Protected Overrides Sub Finalize()
+        Dim prod = [|1 * 5|]
+    End Sub
+End Class"
+
+            Await TestMissingInRegularAndScriptAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestExpressionInParameter() As Task
+            Dim source =
+"Class Program
+    Public Sub M(Optional y as Integer = [|5 * 5|])
+    End Sub
+End Class"
+
+            Await TestMissingInRegularAndScriptAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestMeKeywordInExpression() As Task
+            Dim source =
+"Class Program
+    Dim f As Integer
+
+    Public Sub M(x As Integer)
+        Dim y = [|Me.f + x|]
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Dim f As Integer
+
+    Public Function GetY(x As Integer) As Integer
+        Return Me.f + x
+    End Function
+
+    Public Sub M(x As Integer, y As Integer)
+    End Sub
+End Class"
+            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestNamedParameterNecessary() As Task
+            Dim source =
+"Class Program
+    Function M(x As Integer, Optional y As Integer = 5, Optional z As Integer = 3) As Integer
+        Dim num As Integer = [|y * z|]
+        Return num
+    End Function
+
+    Sub M1()
+        M(z:=0, y:=2)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Function M(x As Integer, num As Integer, Optional y As Integer = 5, Optional z As Integer = 3) As Integer
+        Return num
+    End Function
+
+    Sub M1()
+        M(z:=0, m:=2 * 0, y:=2)
     End Sub
 End Class"
 
