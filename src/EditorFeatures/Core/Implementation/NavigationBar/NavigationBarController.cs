@@ -34,13 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private readonly IWaitIndicator _waitIndicator;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        /// <summary>
-        /// If we have pushed a full list to the presenter in response to a focus event, this
-        /// contains the version stamp of the list that was pushed. It is null if the last thing
-        /// pushed to the list was due to a caret move or file change.
-        /// </summary>
-        private VersionStamp? _versionStampOfFullListPushedToPresenter = null;
-
         private bool _disconnected = false;
         private Workspace? _workspace;
 
@@ -72,8 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 itemService: null);
             _modelTask = Task.FromResult(_lastCompletedModel);
 
-            _selectedItemInfo = new NavigationBarSelectedTypeAndMember(null, null);
-            _selectedItemInfoTask = Task.FromResult(_selectedItemInfo);
+            var selectedItemInfo = new NavigationBarSelectedTypeAndMember(null, null);
+            _selectedItemInfoTask = Task.FromResult(selectedItemInfo);
+
+            _lastModelAndSelectedInfo = (_lastCompletedModel, selectedItemInfo);
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
@@ -212,18 +207,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            // Refresh the drop downs to their full information
-            _waitIndicator.Wait(
-                EditorFeaturesResources.Navigation_Bars,
-                EditorFeaturesResources.Refreshing_navigation_bars,
-                allowCancel: true,
-                action: context => UpdateDropDownsSynchronously(context.CancellationToken));
-        }
-
-        private void UpdateDropDownsSynchronously(CancellationToken cancellationToken)
-        {
-            AssertIsForeground();
-
             var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return;
@@ -232,13 +215,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // being able to open the dropdown list.
             GetProjectItems(out var projectItems, out var selectedProjectItem);
 
+            NavigationBarModel lastModel;
+            NavigationBarSelectedTypeAndMember selectedInfo;
+            lock (_gate)
+            {
+                lastModel = _lastModelAndSelectedInfo.model;
+                selectedInfo = _lastModelAndSelectedInfo.selectedInfo;
+            }
+
             _presenter.PresentItems(
                 projectItems,
                 selectedProjectItem,
-                _lastCompletedModel.Types,
-                _selectedItemInfoTask.Result.TypeItem,
-                _selectedItemInfoTask.Result.MemberItem);
-            _versionStampOfFullListPushedToPresenter = _modelTask.Result.SemanticVersionStamp;
+                lastModel.Types,
+                selectedInfo.TypeItem,
+                selectedInfo.MemberItem);
         }
 
         private void GetProjectItems(out IList<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem? selectedProjectItem)
@@ -305,7 +295,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 listOfLeft,
                 newLeft,
                 newRight);
-            _versionStampOfFullListPushedToPresenter = null;
         }
 
         private void OnItemSelected(object? sender, NavigationBarItemSelectedEventArgs e)
