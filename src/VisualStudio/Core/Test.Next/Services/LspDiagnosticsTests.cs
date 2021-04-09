@@ -381,13 +381,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var dispatcherFactory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+                var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
 
                 var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream));
 
                 var languageServer = new VisualStudioInProcLanguageServer(
                     dispatcherFactory,
                     jsonRpc,
-                    new LSP.ServerCapabilities(),
+                    capabilitiesProvider,
                     lspWorkspaceRegistrationService,
                     listenerProvider,
                     NoOpLspLogger.Instance,
@@ -582,8 +583,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             public override string Name => nameof(LspDiagnosticsTests);
 
-            protected internal override LSP.VSServerCapabilities GetCapabilities() => new();
-
+            public override LSP.ServerCapabilities GetCapabilities(LSP.ClientCapabilities clientCapabilities) => new();
         }
     }
 }

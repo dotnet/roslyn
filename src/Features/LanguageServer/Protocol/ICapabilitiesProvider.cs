@@ -3,16 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface ILanguageServerFactory
+    internal interface ICapabilitiesProvider
     {
-        public LanguageServerTarget Create(
-            JsonRpc jsonRpc,
-            ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
-            ILspLogger logger);
+        ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
     }
 }

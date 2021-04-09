@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal class LanguageServerTarget : IAsyncDisposable
     {
-        private readonly ServerCapabilities _serverCapabilities;
+        private readonly ICapabilitiesProvider _capabilitiesProvider;
 
         protected readonly JsonRpc JsonRpc;
         protected readonly RequestDispatcher RequestDispatcher;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         internal LanguageServerTarget(
             AbstractRequestDispatcherFactory requestDispatcherFactory,
             JsonRpc jsonRpc,
-            ServerCapabilities serverCapabilities,
+            ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher();
 
-            _serverCapabilities = serverCapabilities;
+            _capabilitiesProvider = capabilitiesProvider;
             WorkspaceRegistrationService = workspaceRegistrationService;
             Logger = logger;
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _clientCapabilities = initializeParams.Capabilities;
                 return Task.FromResult(new InitializeResult
                 {
-                    Capabilities = _serverCapabilities,
+                    Capabilities = _capabilitiesProvider.GetCapabilities(_clientCapabilities),
                 });
             }
             finally

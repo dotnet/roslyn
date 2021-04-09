@@ -39,14 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         internal VisualStudioInProcLanguageServer(
             AbstractRequestDispatcherFactory requestDispatcherFactory,
             JsonRpc jsonRpc,
-            ServerCapabilities serverCapabilities,
+            ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
             IDiagnosticService? diagnosticService,
             string? clientName,
             string userVisibleServerName,
-            string telemetryServerTypeName) : base(requestDispatcherFactory, jsonRpc, serverCapabilities, workspaceRegistrationService, listenerProvider, logger, clientName, userVisibleServerName, telemetryServerTypeName)
+            string telemetryServerTypeName) : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, listenerProvider, logger, clientName, userVisibleServerName, telemetryServerTypeName)
         {
             _diagnosticService = diagnosticService;
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.

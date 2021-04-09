@@ -26,7 +26,7 @@ using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory
+    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
     {
         /// <summary>
         /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
@@ -104,11 +104,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _threadingContext = threadingContext;
         }
 
-        /// <summary>
-        /// Can be overridden by subclasses to control what capabilities this language client has.
-        /// </summary>
-        protected internal abstract VSServerCapabilities GetCapabilities();
-
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
             // HACK HACK HACK: prevent potential crashes/state corruption during load. Fixes
@@ -134,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // https://github.com/dotnet/roslyn/issues/29602 will track removing this hack
             // since that's the primary offending persister that needs to be addressed.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _ = GetCapabilities();
+            _ = GetCapabilities(new VSClientCapabilities { SupportsVisualStudioExtensions = true });
 
             if (_languageServer is not null)
             {
@@ -204,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             var server = languageClient.Create(
                 jsonRpc,
-                languageClient.GetCapabilities(),
+                languageClient,
                 lspWorkspaceRegistrationService,
                 logger ?? NoOpLspLogger.Instance);
 
@@ -242,14 +237,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         public LanguageServerTarget Create(
             JsonRpc jsonRpc,
-            ServerCapabilities serverCapabilities,
+            ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
             return new VisualStudioInProcLanguageServer(
                 _requestDispatcherFactory,
                 jsonRpc,
-                serverCapabilities,
+                capabilitiesProvider,
                 workspaceRegistrationService,
                 _listenerProvider,
                 logger,
@@ -258,5 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 userVisibleServerName: this.Name,
                 telemetryServerTypeName: this.GetType().Name);
         }
+
+        public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
     }
 }

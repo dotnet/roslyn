@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public LanguageServerTarget Create(
             JsonRpc jsonRpc,
-            ServerCapabilities serverCapabilities,
+            ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
             return new LanguageServerTarget(
                 _dispatcherFactory,
                 jsonRpc,
-                serverCapabilities,
+                capabilitiesProvider,
                 workspaceRegistrationService,
                 _listenerProvider,
                 logger,
