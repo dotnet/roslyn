@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            if (node is BlockSyntax { Statements: { Count: > 1 } statements })
+            if (node is BlockSyntax { Statements: { Count: >= 1 } statements })
             {
                 // In the case of a block, see if the first statement is on the same line 
                 // as the open curly.  If so then we'll want to consider the end of the

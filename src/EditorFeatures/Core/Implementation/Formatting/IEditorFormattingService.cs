@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IEditorFormattingService : ILanguageService
     {

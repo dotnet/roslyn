@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -33,8 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
-            if (formattingService == null || !formattingService.SupportsFormatSelection)
+            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
+            var editorFormattingService = formattingService == null ? document.GetLanguageService<IEditorFormattingService>() : null;
+            if ((formattingService?.SupportsFormatSelection ?? editorFormattingService?.SupportsFormatSelection) != true)
             {
                 return false;
             }

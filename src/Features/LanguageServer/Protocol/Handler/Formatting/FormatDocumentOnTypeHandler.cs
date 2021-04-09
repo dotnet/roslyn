@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             if (document != null)
             {
-                var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();
+                var formattingService = document.Project.LanguageServices.GetRequiredService<IFormattingInteractionService>();
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(request.Character))
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         protected virtual Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(
-            IEditorFormattingService formattingService,
+            IFormattingInteractionService formattingService,
             Document document,
             int position,
             DocumentOptionSet documentOptions,
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             => formattingService.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
 
         protected virtual Task<IList<TextChange>?> GetFormattingChangesAsync(
-            IEditorFormattingService formattingService,
+            IFormattingInteractionService formattingService,
             Document document,
             char typedChar,
             int position,

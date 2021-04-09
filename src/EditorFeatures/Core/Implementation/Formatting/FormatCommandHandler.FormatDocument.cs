@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -27,8 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
-            if (formattingService == null || !formattingService.SupportsFormatDocument)
+            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
+            var editorFormattingService = formattingService == null ? document.GetLanguageService<IEditorFormattingService>() : null;
+            if ((formattingService?.SupportsFormatDocument ?? editorFormattingService?.SupportsFormatDocument) != true)
             {
                 return false;
             }

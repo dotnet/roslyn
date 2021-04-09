@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (document != null)
             {
-                var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();
+                var formattingService = document.Project.LanguageServices.GetRequiredService<IFormattingInteractionService>();
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 TextSpan? textSpan = null;
                 if (range != null)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         protected virtual Task<IList<TextChange>> GetFormattingChangesAsync(
-            IEditorFormattingService formattingService,
+            IFormattingInteractionService formattingService,
             Document document,
             TextSpan? textSpan,
             DocumentOptionSet documentOptions,

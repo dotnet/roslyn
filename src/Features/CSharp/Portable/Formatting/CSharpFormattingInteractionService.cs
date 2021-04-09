@@ -27,22 +27,27 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportLanguageService(typeof(IEditorFormattingService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpEditorFormattingService : IEditorFormattingService
+    [ExportLanguageService(typeof(IFormattingInteractionService), LanguageNames.CSharp), Shared]
+    internal partial class CSharpFormattingInteractionService : IFormattingInteractionService
     {
+        internal const bool SupportsFormatDocumentConstant = true;
+        internal const bool SupportsFormatOnPasteConstant = true;
+        internal const bool SupportsFormatSelectionConstant = true;
+        internal const bool SupportsFormatOnReturnConstant = false;
+
         // All the characters that might potentially trigger formatting when typed
         private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEditorFormattingService()
+        public CSharpFormattingInteractionService()
         {
         }
 
-        public bool SupportsFormatDocument => true;
-        public bool SupportsFormatOnPaste => true;
-        public bool SupportsFormatSelection => true;
-        public bool SupportsFormatOnReturn => false;
+        public bool SupportsFormatDocument => SupportsFormatDocumentConstant;
+        public bool SupportsFormatOnPaste => SupportsFormatOnPasteConstant;
+        public bool SupportsFormatSelection => SupportsFormatSelectionConstant;
+        public bool SupportsFormatOnReturn => SupportsFormatOnReturnConstant;
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
@@ -149,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        Task<IList<TextChange>?> IEditorFormattingService.GetFormattingChangesOnReturnAsync(
+        Task<IList<TextChange>?> IFormattingInteractionService.GetFormattingChangesOnReturnAsync(
             Document document, int caretPosition, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
             => SpecializedTasks.Null<IList<TextChange>>();
 
