@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
                          ? intermediateProjects
                          : intermediateProjects.Add((ProjectState, translate));
 
-                    var newState = State.Create(newInProgressCompilation, state.GeneratedDocuments, newIntermediateProjects);
+                    var newState = State.Create(newInProgressCompilation, state.GeneratedDocuments, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), newIntermediateProjects);
 
                     return new CompilationTracker(newProject, newState);
                 }
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                     if (translate != null)
                     {
                         var intermediateProjects = ImmutableArray.Create((this.ProjectState, translate));
-                        return new CompilationTracker(newProject, new InProgressState(declarationOnlyCompilation, state.GeneratedDocuments, intermediateProjects));
+                        return new CompilationTracker(newProject, new InProgressState(declarationOnlyCompilation, state.GeneratedDocuments, compilationWithGeneratedDocuments: state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects));
                     }
 
                     return new CompilationTracker(newProject, new LightDeclarationState(declarationOnlyCompilation, state.GeneratedDocuments, generatedDocumentsAreFinal: false));
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis
                             return compilation;
                         }
 
-                        compilation = await BuildDeclarationCompilationFromInProgressAsync(solutionServices, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
+                        (compilation, _) = await BuildDeclarationCompilationFromInProgressAsync(solutionServices, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
 
                         // We must have an in progress compilation. Build off of that.
                         return compilation;
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis
                     if (state.DeclarationOnlyCompilation != null)
                     {
                         // we have declaration only compilation. build final one from it.
-                        return FinalizeCompilationAsync(solution, state.DeclarationOnlyCompilation, authoritativeGeneratedDocuments, nonAuthoritativeGeneratedDocuments, cancellationToken);
+                        return FinalizeCompilationAsync(solution, state.DeclarationOnlyCompilation, authoritativeGeneratedDocuments, nonAuthoritativeGeneratedDocuments, compilationWithStaleGeneratedTrees: null, cancellationToken);
                     }
 
                     // We've got nothing.  Build it from scratch :(
@@ -597,7 +597,13 @@ namespace Microsoft.CodeAnalysis
                 if (state is FullDeclarationState or FinalState)
                 {
                     // We have a declaration compilation, use it to reconstruct the final compilation
-                    return FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments, nonAuthoritativeGeneratedDocuments, cancellationToken);
+                    return FinalizeCompilationAsync(
+                        solution,
+                        compilation,
+                        authoritativeGeneratedDocuments,
+                        nonAuthoritativeGeneratedDocuments,
+                        compilationWithStaleGeneratedTrees: null,
+                        cancellationToken);
                 }
                 else
                 {
@@ -613,7 +619,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(solution.Services, cancellationToken).ConfigureAwait(false);
 
-                    return await FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments: null, nonAuthoritativeGeneratedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty, cancellationToken).ConfigureAwait(false);
+                    return await FinalizeCompilationAsync(
+                        solution, compilation,
+                        authoritativeGeneratedDocuments: null,
+                        nonAuthoritativeGeneratedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
+                        compilationWithStaleGeneratedTrees: null,
+                        cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -675,8 +686,8 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var compilation = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
-                    return await FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments: null, nonAuthoritativeGeneratedDocuments: state.GeneratedDocuments, cancellationToken).ConfigureAwait(false);
+                    var (compilationWithoutGenerators, compilationWithGenerators) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                    return await FinalizeCompilationAsync(solution, compilationWithoutGenerators, authoritativeGeneratedDocuments: null, nonAuthoritativeGeneratedDocuments: state.GeneratedDocuments, compilationWithGenerators, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -684,25 +695,46 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<Compilation> BuildDeclarationCompilationFromInProgressAsync(
-                SolutionServices solutionServices, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
+            private async Task<(Compilation compilationWithoutGenerators, Compilation? compilationWithGenerators)> BuildDeclarationCompilationFromInProgressAsync(
+                SolutionServices solutionServices, InProgressState state, Compilation compilationWithoutGenerators, CancellationToken cancellationToken)
             {
                 try
                 {
+                    var compilationWithGenerators = state.CompilationWithGeneratedDocuments;
                     var intermediateProjects = state.IntermediateProjects;
 
                     while (intermediateProjects.Length > 0)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var compilationTranslationAction = intermediateProjects[0].action;
-                        inProgressCompilation = await compilationTranslationAction.TransformCompilationAsync(inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                        // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
+                        var intermediateProject = intermediateProjects[0];
+
+                        compilationWithoutGenerators = await intermediateProject.action.TransformCompilationAsync(compilationWithoutGenerators, cancellationToken).ConfigureAwait(false);
+
+                        if (compilationWithGenerators != null)
+                        {
+                            // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
+                            // the generated documents, or if don't have any source generators in the first place.
+                            if (intermediateProject.action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
+                                intermediateProject.state.SourceGenerators.Any())
+                            {
+                                compilationWithGenerators = await intermediateProject.action.TransformCompilationAsync(compilationWithGenerators, cancellationToken).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                compilationWithGenerators = null;
+                            }
+                        }
+
+                        // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
+                        // even if we were to get cancelled at a later point.
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
-                        this.WriteState(State.Create(inProgressCompilation, state.GeneratedDocuments, intermediateProjects), solutionServices);
+                        this.WriteState(State.Create(compilationWithoutGenerators, state.GeneratedDocuments, compilationWithGenerators, intermediateProjects), solutionServices);
                     }
 
-                    return inProgressCompilation;
+                    return (compilationWithoutGenerators, compilationWithGenerators);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -737,9 +769,10 @@ namespace Microsoft.CodeAnalysis
             /// and when applicable for the current compilation.</param>
             private async Task<CompilationInfo> FinalizeCompilationAsync(
                 SolutionState solution,
-                Compilation compilation,
+                Compilation compilationWithoutGenerators,
                 TextDocumentStates<SourceGeneratedDocumentState>? authoritativeGeneratedDocuments,
                 TextDocumentStates<SourceGeneratedDocumentState> nonAuthoritativeGeneratedDocuments,
+                Compilation? compilationWithStaleGeneratedTrees,
                 CancellationToken cancellationToken)
             {
                 try
@@ -766,11 +799,19 @@ namespace Microsoft.CodeAnalysis
                                 // if the referenced project is a submission project must be a submission as well:
                                 Debug.Assert(this.ProjectState.IsSubmission);
 
+                                // We now need to (potentially) update the prior submission compilation. That Compilation is held in the
+                                // ScriptCompilationInfo that we need to replace as a unit.
                                 var previousSubmissionCompilation =
                                     await solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
 
-                                compilation = compilation.WithScriptCompilationInfo(
-                                    compilation.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+                                if (compilationWithoutGenerators.ScriptCompilationInfo!.PreviousScriptCompilation != previousSubmissionCompilation)
+                                {
+                                    compilationWithoutGenerators = compilationWithoutGenerators.WithScriptCompilationInfo(
+                                        compilationWithoutGenerators.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+
+                                    compilationWithStaleGeneratedTrees = compilationWithStaleGeneratedTrees?.WithScriptCompilationInfo(
+                                        compilationWithStaleGeneratedTrees.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
+                                }
                             }
                             else
                             {
@@ -791,20 +832,27 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    if (!Enumerable.SequenceEqual(compilation.ExternalReferences, newReferences))
+                    // Now that we know the set of references this compilation should have, update them if they're not already.
+                    // Generators cannot add references, so we can use the same set of references both for the compilation
+                    // that doesn't have generated files, and the one we're trying to reuse that has generated files.
+                    // Since we updated both of these compilations together in response to edits, we only have to check one
+                    // for a potential mismatch.
+                    if (!Enumerable.SequenceEqual(compilationWithoutGenerators.ExternalReferences, newReferences))
                     {
-                        compilation = compilation.WithReferences(newReferences);
+                        compilationWithoutGenerators = compilationWithoutGenerators.WithReferences(newReferences);
+                        compilationWithStaleGeneratedTrees = compilationWithStaleGeneratedTrees?.WithReferences(newReferences);
                     }
 
                     // We will finalize the compilation by adding full contents here.
                     // TODO: allow finalize compilation to incrementally update a prior version
                     // https://github.com/dotnet/roslyn/issues/46418
-                    var compilationWithoutGeneratedFiles = compilation;
+                    Compilation compilationWithGenerators;
 
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments;
                     if (authoritativeGeneratedDocuments.HasValue)
                     {
                         generatedDocuments = authoritativeGeneratedDocuments.Value;
+                        compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(generatedDocuments.States.Select(state => state.SyntaxTree));
                     }
                     else
                     {
@@ -823,9 +871,23 @@ namespace Microsoft.CodeAnalysis
 
                             if (generatorDriver != null)
                             {
-                                generatorDriver = generatorDriver.RunGenerators(compilationWithoutGeneratedFiles, cancellationToken);
+                                generatorDriver = generatorDriver.RunGenerators(compilationWithoutGenerators, cancellationToken);
+                                var runResult = generatorDriver.GetRunResult();
 
-                                foreach (var generatorResult in generatorDriver.GetRunResult().Results)
+                                // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
+                                // to compilationWithStaleGeneratedTrees if we at any point realize it can't be used. We'll first check the count of trees
+                                // if that changed then we absolutely can't reuse it. But if the counts match, we'll then see if each generated tree
+                                // content is identical to the prior generation run; if we find a match each time, then the set of the generated trees
+                                // and the prior generated trees are identical.
+                                if (compilationWithStaleGeneratedTrees != null)
+                                {
+                                    if (nonAuthoritativeGeneratedDocuments.Count != runResult.Results.Sum(r => r.GeneratedSources.Length))
+                                    {
+                                        compilationWithStaleGeneratedTrees = null;
+                                    }
+                                }
+
+                                foreach (var generatorResult in runResult.Results)
                                 {
                                     foreach (var generatedSource in generatorResult.GeneratedSources)
                                     {
@@ -836,12 +898,16 @@ namespace Microsoft.CodeAnalysis
 
                                         if (existing != null)
                                         {
-                                            generatedDocumentsBuilder.Add(
-                                                existing.WithUpdatedGeneratedContent(
+                                            var newDocument = existing.WithUpdatedGeneratedContent(
                                                     generatedSource.SourceText,
                                                     generatedSource.SyntaxTree,
                                                     this.ProjectState.ParseOptions!,
-                                                    cancellationToken));
+                                                    cancellationToken);
+
+                                            generatedDocumentsBuilder.Add(newDocument);
+
+                                            if (newDocument != existing)
+                                                compilationWithStaleGeneratedTrees = null;
                                         }
                                         else
                                         {
@@ -855,30 +921,43 @@ namespace Microsoft.CodeAnalysis
                                                     this.ProjectState.LanguageServices,
                                                     solution.Services,
                                                     cancellationToken));
+
+                                            // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
+                                            // was added, and an equal number must have been removed. Rather than trying to incrementally update
+                                            // this compilation, we'll just toss this and re-add all the trees.
+                                            compilationWithStaleGeneratedTrees = null;
                                         }
                                     }
                                 }
                             }
                         }
 
-                        generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
+                        // If we didn't null out this compilation, it means we can actually use it
+                        if (compilationWithStaleGeneratedTrees != null)
+                        {
+                            generatedDocuments = nonAuthoritativeGeneratedDocuments;
+                            compilationWithGenerators = compilationWithStaleGeneratedTrees;
+                        }
+                        else
+                        {
+                            generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
+                            compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(generatedDocuments.States.Select(state => state.SyntaxTree));
+                        }
                     }
 
-                    compilation = compilation.AddSyntaxTrees(generatedDocuments.States.Select(state => state.SyntaxTree));
-
                     var finalState = FinalState.Create(
-                        State.CreateValueSource(compilation, solution.Services),
-                        State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
-                        compilationWithoutGeneratedFiles,
+                        State.CreateValueSource(compilationWithGenerators, solution.Services),
+                        State.CreateValueSource(compilationWithoutGenerators, solution.Services),
+                        compilationWithoutGenerators,
                         hasSuccessfullyLoaded,
                         generatedDocuments,
-                        compilation,
+                        compilationWithGenerators,
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
                     this.WriteState(finalState, solution.Services);
 
-                    return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatedDocuments);
+                    return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatedDocuments);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
