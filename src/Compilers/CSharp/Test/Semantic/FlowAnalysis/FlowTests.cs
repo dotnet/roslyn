@@ -3854,8 +3854,7 @@ class C
 
 class C
 {
-    C M0(object obj) => this;
-    void M(C? c)
+    void M()
     {
         int x, y;
         _ = ""a""?.Equals(x = y = 0) == true
