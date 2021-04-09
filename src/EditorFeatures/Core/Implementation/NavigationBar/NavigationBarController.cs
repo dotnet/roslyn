@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     /// </remarks>
     internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, INavigationBarController
     {
+        private static readonly NavigationBarModel EmptyModel = new(
+                SpecializedCollections.EmptyList<NavigationBarItem>(),
+                semanticVersionStamp: default,
+                itemService: null);
+
+        private static readonly NavigationBarSelectedTypeAndMember EmptySelectedInfo = new(typeItem: null, memberItem: null);
+
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
         private readonly IWaitIndicator _waitIndicator;
@@ -59,16 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             subjectBuffer.PostChanged += OnSubjectBufferPostChanged;
 
             // Initialize the tasks to be an empty model so we never have to deal with a null case.
-            _lastCompletedModel = new NavigationBarModel(
-                SpecializedCollections.EmptyList<NavigationBarItem>(),
-                semanticVersionStamp: default,
-                itemService: null);
-            _modelTask = Task.FromResult(_lastCompletedModel);
+            _modelTask = Task.FromResult(EmptyModel);
+            _selectedItemInfoTask = Task.FromResult(EmptySelectedInfo);
 
-            var selectedItemInfo = new NavigationBarSelectedTypeAndMember(null, null);
-            _selectedItemInfoTask = Task.FromResult(selectedItemInfo);
-
-            _lastModelAndSelectedInfo = (_lastCompletedModel, selectedItemInfo);
+            _lastModelAndSelectedInfo = (EmptyModel, EmptySelectedInfo);
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             void ConnectToNewWorkspace()
             {
                 // For the first time you open the file, we'll start immediately
-                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
+                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
             }
         }
 
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
                     if (currentContextDocumentId != null && currentContextDocumentId.ProjectId == args.ProjectId)
                     {
-                        StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
+                        StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
                     }
                 }
             }
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 if (currentContextDocumentId != null && currentContextDocumentId == args.DocumentId)
                 {
                     // The context has changed, so update everything.
-                    StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
+                    StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
                 }
             }
         }
@@ -188,19 +189,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: TaggerConstants.MediumDelay, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
+            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: TaggerConstants.MediumDelay, selectedItemUpdateDelay: 0);
         }
 
         private void OnCaretMoved(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.NearImmediateDelay, updateUIWhenDone: true);
+            StartSelectedItemUpdateTask(delay: TaggerConstants.NearImmediateDelay);
         }
 
         private void OnViewFocused(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.ShortDelay, updateUIWhenDone: true);
+            StartSelectedItemUpdateTask(delay: TaggerConstants.ShortDelay);
         }
 
         private void OnDropDownFocused(object? sender, EventArgs e)
@@ -361,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
             // Have to make sure we come back to the main thread for this.
             AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
+            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
         }
     }
 }
