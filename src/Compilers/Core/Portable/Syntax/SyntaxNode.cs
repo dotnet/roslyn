@@ -353,9 +353,15 @@ namespace Microsoft.CodeAnalysis
         /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
         /// and the incremental parser is able to take the node from the original tree and use it in its entirety in the
         /// new tree.  In this case, the <see cref="SyntaxNode.ToFullString()"/> of each node will be the same, though 
-        /// will have different parents, and may occur at different positions in the respective trees.  If two nodes are
+        /// will have different parents, and may occur at different positions in their respective trees.  If two nodes are
         /// incrementally identical, all children of each node will be incrementally identical as well.
         /// </summary>
+        /// <remarks>
+        /// Incrementally identical nodes can also appear within the same syntax tree, or syntax trees that did not arise
+        /// from <see cref="SyntaxTree.WithChangedText"/>.  This can happen as the parser is allowed to construct parse
+        /// trees from shared nodes for efficiency.  In all these cases though, it will still remain true that the incrementally
+        /// identical nodes will have different parents and nd may occur at different positions in their respective trees.
+        /// </remarks>
         public bool IsIncrementallyIdenticalTo(SyntaxNode other)
             => this.Green == other.Green;
 
