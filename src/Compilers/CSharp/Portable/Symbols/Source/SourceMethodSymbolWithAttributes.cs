@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
             }
         }
+
+        internal virtual Binder? SignatureBinder => null;
+
+        internal virtual Binder? ParameterBinder => null;
+
 #nullable disable
 
         internal SyntaxReference SyntaxRef
@@ -278,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     declarations,
                     ref lazyCustomAttributesBag,
                     symbolPart,
-                    binderOpt: (this as LocalFunctionSymbol)?.SignatureBinder);
+                    binderOpt: SignatureBinder);
             }
 
             if (bagCreatedOnThisThread)

@@ -682,6 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind)
             => new LambdaSymbol(
+                Binder,
                 Binder.Compilation,
                 containingSymbol,
                 _unboundLambda,

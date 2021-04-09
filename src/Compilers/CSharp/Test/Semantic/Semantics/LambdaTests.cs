@@ -3857,7 +3857,50 @@ class Program
             var actualAttributes = attributeSyntaxes.Select(a => model.GetSymbolInfo(a).Symbol.GetSymbol<MethodSymbol>()).ToImmutableArray();
             var expectedAttributes = new[] { "AAttribute", "BAttribute", "CAttribute" }.Select(a => comp.GetTypeByMetadataName(a).InstanceConstructors.Single()).ToImmutableArray();
             AssertEx.Equal(expectedAttributes, actualAttributes);
-       }
+        }
+
+        [Theory]
+        [InlineData("Action a = [A] () => { };")]
+        [InlineData("Func<object> f = [return: A] () => null;")]
+        [InlineData("Action<int> a = ([A] int i) => { };")]
+        public void LambdaAttributes_SpeculativeSemanticModel(string statement)
+        {
+            string source =
+$@"using System;
+class AAttribute : Attribute {{ }}
+class Program
+{{
+    static void Main()
+    {{
+        {statement}
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var a = (IdentifierNameSyntax)tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single().Name;
+            Assert.Equal("A", a.Identifier.Text);
+            var attrInfo = model.GetSymbolInfo(a);
+            var attrType = comp.GetMember<NamedTypeSymbol>("AAttribute").GetPublicSymbol();
+            var attrCtor = attrType.GetMember(".ctor");
+            Assert.Equal(attrCtor, attrInfo.Symbol);
+
+            // Assert that this is also true for the speculative semantic model
+            var newTree = SyntaxFactory.ParseSyntaxTree(source + " ");
+            var m = newTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(m.Body.SpanStart, m, out model));
+
+            a = (IdentifierNameSyntax)newTree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single().Name;
+            Assert.Equal("A", a.Identifier.Text);
+
+            // If we aren't using the right binder here, the compiler crashes going through the binder factory
+            var info = model.GetSymbolInfo(a);
+            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
+            Assert.Equal(attrType, info.Symbol);
+        }
 
         [Fact]
         public void LambdaAttributes_DisallowedAttributes()

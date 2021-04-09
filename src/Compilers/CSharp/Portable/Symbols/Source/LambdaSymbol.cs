@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class LambdaSymbol : SourceMethodSymbolWithAttributes
     {
+        private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
         private readonly MessageID _messageID;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Instead, the attributes should be bound by the UnboundLambda and passed in explicitly.
         // That includes attributes on parameters as well as method level attributes.
         public LambdaSymbol(
+            Binder binder,
             CSharpCompilation compilation,
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(unboundLambda.Syntax.GetReference())
         {
             Debug.Assert(syntaxReferenceOpt is not null);
+            _binder = binder;
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _refKind = refKind;
@@ -259,6 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal SyntaxNode Syntax => syntaxReferenceOpt.GetSyntax();
+
+        internal override Binder SignatureBinder => _binder;
+
+        internal override Binder ParameterBinder => new WithLambdaParametersBinder(this, _binder);
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
