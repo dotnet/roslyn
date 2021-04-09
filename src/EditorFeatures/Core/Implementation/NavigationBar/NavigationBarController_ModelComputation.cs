@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private Task<NavigationBarModel> _modelTask;
         private CancellationTokenSource _modelTaskCancellationSource = new();
 
+        /// <summary>
+        /// Latest model and selected items produced once <see cref="_selectedItemInfoTask"/> completes and presents the
+        /// single item to the view.  These can then be read in when the dropdown is expanded and we want to show all
+        /// items.
+        /// </summary>
         private readonly object _gate = new();
         private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastModelAndSelectedInfo;
 
