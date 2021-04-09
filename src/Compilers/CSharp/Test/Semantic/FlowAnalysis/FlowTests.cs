@@ -3846,6 +3846,28 @@ class C
                 );
         }
 
+        [Fact]
+        public void EqualsCondAccess_16()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    C M0(object obj) => this;
+    void M(C? c)
+    {
+        int x, y;
+        _ = ""a""?.Equals(x = y = 0) == true
+            ? x.ToString()
+            : y.ToString();
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                );
+        }
+
         [WorkItem(545352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545352")]
         [Fact]
         public void UseDefViolationInDelegateInSwitchWithGoto()

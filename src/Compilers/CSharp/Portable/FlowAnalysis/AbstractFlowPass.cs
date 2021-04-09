@@ -2568,8 +2568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Visits a node only if it is a conditional access.
-        /// If the expression has "state when not null" after visiting,
-        /// the method returns 'true' and writes the state to <paramref name="stateWhenNotNull" />.
+        /// Returns 'true' if and only if the node was visited.
         /// </summary>
         private bool TryVisitConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
@@ -2584,10 +2583,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 EnterRegionIfNeeded(access);
                 Unsplit();
-                var hasStateWhenNotNull = VisitConditionalAccess(access, out stateWhenNotNull);
+                VisitConditionalAccess(access, out stateWhenNotNull);
                 Debug.Assert(!IsConditionalState);
                 LeaveRegionIfNeeded(access);
-                return hasStateWhenNotNull;
+                return true;
             }
 
             stateWhenNotNull = default;
@@ -2633,15 +2632,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool VisitConditionalAccess(BoundConditionalAccess node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+        private void VisitConditionalAccess(BoundConditionalAccess node, out TLocalState stateWhenNotNull)
         {
             VisitRvalue(node.Receiver);
 
             if (node.Receiver.ConstantValue != null && !IsConstantNull(node.Receiver))
             {
                 VisitRvalue(node.AccessExpression);
-                stateWhenNotNull = default;
-                return false;
+                stateWhenNotNull = this.State.Clone();
             }
             else
             {
@@ -2675,7 +2673,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stateWhenNotNull = State;
                 State = savedState;
                 Join(ref State, ref stateWhenNotNull);
-                return true;
             }
         }
 
