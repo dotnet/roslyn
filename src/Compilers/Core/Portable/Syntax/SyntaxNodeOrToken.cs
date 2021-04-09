@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis
         /// cref="SyntaxToken.IsIncrementallyIdenticalTo"/>.
         /// </summary>
         public bool IsIncrementallyIdenticalTo(SyntaxNodeOrToken other)
-            => this.UnderlyingNode == other.UnderlyingNode;
+            => this.UnderlingNode != null && this.UnderlyingNode == other.UnderlyingNode;
 
         /// <summary>
         /// Returns a new <see cref="SyntaxNodeOrToken"/> that wraps the supplied token.
