@@ -66,13 +66,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             subjectBuffer.PostChanged += OnSubjectBufferPostChanged;
 
             // Initialize the tasks to be an empty model so we never have to deal with a null case.
-            _modelTask = Task.FromResult(
-                new NavigationBarModel(
-                    SpecializedCollections.EmptyList<NavigationBarItem>(),
-                    default,
-                    null));
+            _lastCompletedModel = new NavigationBarModel(
+                SpecializedCollections.EmptyList<NavigationBarItem>(),
+                semanticVersionStamp: default,
+                itemService: null);
+            _modelTask = Task.FromResult(_lastCompletedModel);
 
-            _selectedItemInfoTask = Task.FromResult(new NavigationBarSelectedTypeAndMember(null, null));
+            _selectedItemInfo = new NavigationBarSelectedTypeAndMember(null, null);
+            _selectedItemInfoTask = Task.FromResult(_selectedItemInfo);
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
@@ -96,15 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _workspace = workspace;
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
 
-            void connectToNewWorkspace()
-            {
-                // For the first time you open the file, we'll start immediately
-                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
-            }
-
             if (IsForeground())
             {
-                connectToNewWorkspace();
+                ConnectToNewWorkspace();
             }
             else
             {
@@ -113,8 +108,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    connectToNewWorkspace();
+                    ConnectToNewWorkspace();
                 }).CompletesAsyncOperation(asyncToken);
+            }
+
+            return;
+
+            void ConnectToNewWorkspace()
+            {
+                // For the first time you open the file, we'll start immediately
+                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
             }
         }
 
@@ -221,36 +224,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            // If the presenter already has the full list and the model is already complete, then we
-            // don't have to do any further computation nor push anything to the presenter
-            if (PresenterAlreadyHaveUpToDateFullList(cancellationToken))
-            {
+            var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
                 return;
-            }
 
-            // We need to ensure that all the state computation is up to date, so cancel any
-            // previous work and ensure the model is up to date
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: false);
-
-            // Wait for the work to be complete. We'll wait with our cancellationToken, so if the
-            // user hits cancel we won't block them, but the computation can still continue
-
-            using (Logger.LogBlock(FunctionId.NavigationBar_UpdateDropDownsSynchronously_WaitForModel, cancellationToken))
-            {
-                _modelTask.Wait(cancellationToken);
-            }
-
-            using (Logger.LogBlock(FunctionId.NavigationBar_UpdateDropDownsSynchronously_WaitForSelectedItemInfo, cancellationToken))
-            {
-                _selectedItemInfoTask.Wait(cancellationToken);
-            }
-
+            // Just present whatever information we have at this point.  We don't want to block the user from
+            // being able to open the dropdown list.
             GetProjectItems(out var projectItems, out var selectedProjectItem);
 
             _presenter.PresentItems(
                 projectItems,
                 selectedProjectItem,
-                _modelTask.Result.Types,
+                _lastCompletedModel.Types,
                 _selectedItemInfoTask.Result.TypeItem,
                 _selectedItemInfoTask.Result.MemberItem);
             _versionStampOfFullListPushedToPresenter = _modelTask.Result.SemanticVersionStamp;
@@ -280,29 +265,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             selectedProjectItem = document != null
                 ? projectItems.FirstOrDefault(p => p.Text == document.Project.Name) ?? projectItems.First()
                 : projectItems.First();
-        }
-
-        /// <summary>
-        /// Check if the presenter has already been pushed the full model that corresponds to the
-        /// current buffer's project version stamp.
-        /// </summary>
-        private bool PresenterAlreadyHaveUpToDateFullList(CancellationToken cancellationToken)
-        {
-            AssertIsForeground();
-
-            // If it doesn't have a full list pushed, then of course not
-            if (_versionStampOfFullListPushedToPresenter == null)
-            {
-                return false;
-            }
-
-            var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
-            return document.Project.GetDependentSemanticVersionAsync(cancellationToken).WaitAndGetResult(cancellationToken) == _versionStampOfFullListPushedToPresenter;
         }
 
         private void PushSelectedItemsToPresenter(NavigationBarSelectedTypeAndMember selectedItems)

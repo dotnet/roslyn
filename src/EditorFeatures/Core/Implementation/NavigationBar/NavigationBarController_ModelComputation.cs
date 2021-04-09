@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private NavigationBarModel _lastCompletedModel;
         private CancellationTokenSource _modelTaskCancellationSource = new();
 
+        private readonly object _gate = new();
+        private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastModelAndSelectedInfo;
+
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
         /// </summary>
