@@ -23,19 +23,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
+            using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
+            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
+
+            nextHandler();
+
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             try
             {
-                using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
-                var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
-
-                nextHandler();
-
-                var cancellationToken = context.OperationContext.UserCancellationToken;
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
                 ExecuteCommandWorker(args, caretPosition, cancellationToken);
             }
             catch (OperationCanceledException)
