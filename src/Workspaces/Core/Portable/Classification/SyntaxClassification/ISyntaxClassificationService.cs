@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Classification
         ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
         /// <inheritdoc cref="IClassificationService.ComputeSyntacticChangeRangeAsync"/>
-        Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
+        Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
+            Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

@@ -70,26 +70,26 @@ namespace IdeCoreBenchmarks
         public void SimpleEditAtMiddle()
         {
             var newRoot = WithSimpleEditAtMiddle();
-            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, CancellationToken.None);
+            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, TimeSpan.MaxValue, CancellationToken.None);
         }
 
         [Benchmark]
         public void DestabalizingEditAtMiddle()
         {
             var newRoot = WithDestabalizingEditAtMiddle();
-            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, CancellationToken.None);
+            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, TimeSpan.MaxValue, CancellationToken.None);
         }
 
         [Benchmark]
         public void SimpleEditAtMiddle_NoParse()
         {
-            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, _rootWithSimpleEdit, CancellationToken.None);
+            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, _rootWithSimpleEdit, TimeSpan.MaxValue, CancellationToken.None);
         }
 
         [Benchmark]
         public void DestabalizingEditAtMiddle_NoParse()
         {
-            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, _rootWithComplexEdit, CancellationToken.None);
+            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, _rootWithComplexEdit, TimeSpan.MaxValue, CancellationToken.None);
         }
     }
 }

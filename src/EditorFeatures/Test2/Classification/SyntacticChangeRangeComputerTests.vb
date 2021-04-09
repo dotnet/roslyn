@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim endingTree = startingTree.WithChangedText(endingText)
                 Dim endingRoot = Await endingTree.GetRootAsync()
 
-                Dim actualChange = SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(startingRoot, endingRoot, Nothing)
+                Dim actualChange = SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(startingRoot, endingRoot, TimeSpan.MaxValue, Nothing)
                 Dim expectedChange = New TextChangeRange(
                     annotatedSpan,
                     annotatedSpan.Length + newText.Length - spans(0).Length)

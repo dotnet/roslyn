@@ -262,34 +262,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var previousDocument = _lastProcessedDocument;
                 if (previousDocument != null)
                 {
-                    var changeRange = await ComputeChangeRangeAsync(
-                        previousDocument, currentDocument, service, cancellationToken).ConfigureAwait(false);
+                    var changeRange = await service.ComputeSyntacticChangeRangeAsync(
+                        previousDocument, currentDocument, _diffTimeout, cancellationToken).ConfigureAwait(false);
                     if (changeRange != null)
                         return currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
                 }
 
                 // Couldn't compute a narrower range.  Just the mark the entire file as changed.
                 return currentSnapshot.GetFullSpan();
-            }
-
-            private async Task<TextChangeRange?> ComputeChangeRangeAsync(
-                Document previousDocument, Document currentDocument,
-                IClassificationService classificationService, CancellationToken cancellationToken)
-            {
-                // We want to compute a minimal change, but we don't want this to run for too long.  So do the
-                // computation work in the threadpool, but also gate how much time we can spend here so that we can let
-                // the editor know about the size of the change asap.
-                var computeTaskWithTimeout =
-                    classificationService.ComputeSyntacticChangeRangeAsync(previousDocument, currentDocument, cancellationToken)
-                                         .WithTimeout(_diffTimeout);
-                try
-                {
-                    return await computeTaskWithTimeout.ConfigureAwait(false);
-                }
-                catch (TimeoutException)
-                {
-                    return null;
-                }
             }
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)

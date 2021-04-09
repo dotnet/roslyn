@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Return SpecializedTasks.Default(Of Object)
             End Function
 
-            Public Function ComputeSyntacticChangeRangeAsync(oldDocument As Document, newDocument As Document, cancellationToken As CancellationToken) As Task(Of TextChangeRange?) Implements IClassificationService.ComputeSyntacticChangeRangeAsync
+            Public Function ComputeSyntacticChangeRangeAsync(oldDocument As Document, newDocument As Document, timeout As TimeSpan, cancellationToken As CancellationToken) As Task(Of TextChangeRange?) Implements IClassificationService.ComputeSyntacticChangeRangeAsync
                 Return SpecializedTasks.Default(Of TextChangeRange?)
             End Function
         End Class

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,7 +71,14 @@ namespace Microsoft.CodeAnalysis.Classification
         /// If determining this is not possible, or potentially expensive, <see langword="null"/> can be returned to
         /// indicate that the entire document should be considered changed and should be syntactically reclassified.
         /// </para>
+        /// <para>
+        /// Implementations should attempt to abide by the provided timeout as much as they can, returning the best
+        /// information available at that point.  As this can be called in performance critical scenarios, it is better
+        /// to return quickly with potentially larger change span (including that of the full document) rather than
+        /// spend too much time computing a very precise result.
+        /// </para>
         /// </summary>
-        Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
+        Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
+            Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

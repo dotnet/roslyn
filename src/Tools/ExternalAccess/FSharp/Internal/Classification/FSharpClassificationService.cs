@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             return SpecializedTasks.Default<object?>();
         }
 
-        public Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
         {
             return SpecializedTasks.Default<TextChangeRange?>();
         }
