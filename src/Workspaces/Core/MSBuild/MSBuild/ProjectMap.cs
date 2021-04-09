@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Create an empty <see cref="ProjectMap"/>.
         /// </summary>
-        public static ProjectMap Create() => new ProjectMap();
+        public static ProjectMap Create() => new();
 
         /// <summary>
         /// Create a <see cref="ProjectMap"/> populated with the given <see cref="Solution"/>.
