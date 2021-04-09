@@ -334,7 +334,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             var solution = inProgressState.Solution;
             var cancellationToken = inProgressState.CancellationToken;
-            var (allLiveErrors, pendingLiveErrorsToSync) = inProgressState.GetLiveErrors(cancellationToken);
+            var (allLiveErrors, pendingLiveErrorsToSync) = inProgressState.GetLiveErrors();
 
             // Raise events for build only errors
             var buildErrors = GetBuildErrors().Except(allLiveErrors).GroupBy(k => k.DocumentId);
@@ -694,13 +694,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public ProjectId? TryGetLastProjectWithReportedErrors()
                 => _lastProjectWithReportedErrors;
 
-            public (ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync) GetLiveErrors(CancellationToken cancellationToken)
+            public (ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync) GetLiveErrors()
             {
                 var allLiveErrorsBuilder = ImmutableArray.CreateBuilder<DiagnosticData>();
                 var pendingLiveErrorsToSyncBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<DiagnosticData>>();
                 foreach (var projectId in GetProjectsWithErrors())
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    CancellationToken.ThrowIfCancellationRequested();
 
                     var errors = GetLiveErrorsForProject(projectId);
                     allLiveErrorsBuilder.AddRange(errors);
