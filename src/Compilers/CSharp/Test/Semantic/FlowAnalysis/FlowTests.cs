@@ -3894,6 +3894,7 @@ class C
             //         y.ToString(); // warning
             //     }
             // }
+            // https://github.com/dotnet/roslyn/issues/50980
             CreateCompilation(source).VerifyDiagnostics(
                 // (10,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 1
