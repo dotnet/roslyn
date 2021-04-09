@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -84,6 +85,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var caretOpt = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretOpt.HasValue)
+            {
+                return false;
+            }
+
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
             {
                 return false;
             }
@@ -178,7 +184,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 SyntaxKind.ParameterList,
                 SyntaxKind.DefaultExpression,
                 SyntaxKind.CheckedExpression,
-                SyntaxKind.UncheckedExpression))
+                SyntaxKind.UncheckedExpression,
+                SyntaxKind.TypeOfExpression,
+                SyntaxKind.TupleExpression))
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -212,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
             else if (syntaxFacts.IsStatement(currentNode)
-                || currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+                || CanHaveSemicolon(currentNode))
             {
                 return MoveCaretToFinalPositionInStatement(speculative, currentNode, args, originalCaret, caret, isInsideDelimiters);
             }
@@ -223,6 +231,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return MoveCaretToSemicolonPosition(speculative, args, document, root, originalCaret, caret, syntaxFacts, currentNode,
                     isInsideDelimiters, cancellationToken);
             }
+        }
+
+        private static bool CanHaveSemicolon(SyntaxNode currentNode)
+        {
+            if (currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+            {
+                return true;
+            }
+
+            if (currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } })
+            {
+                return true;
+            }
+
+            if (currentNode is MethodDeclarationSyntax method)
+            {
+                if (method.Modifiers.Any(SyntaxKind.AbstractKeyword) || method.Modifiers.Any(SyntaxKind.ExternKeyword) ||
+                    method.IsParentKind(SyntaxKind.InterfaceDeclaration))
+                {
+                    return true;
+                }
+
+                if (method.Modifiers.Any(SyntaxKind.PartialKeyword) && method.Body is null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
@@ -288,6 +325,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
                     targetPosition = caret;
@@ -519,6 +558,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.UncheckedExpression:
                     var checkedExpressionSyntax = (CheckedExpressionSyntax)currentNode;
                     return (checkedExpressionSyntax.OpenParenToken, checkedExpressionSyntax.CloseParenToken);
+
+                case SyntaxKind.TypeOfExpression:
+                    var typeOfExpressionSyntax = (TypeOfExpressionSyntax)currentNode;
+                    return (typeOfExpressionSyntax.OpenParenToken, typeOfExpressionSyntax.CloseParenToken);
+
+                case SyntaxKind.TupleExpression:
+                    var tupleExpressionSyntax = (TupleExpressionSyntax)currentNode;
+                    return (tupleExpressionSyntax.OpenParenToken, tupleExpressionSyntax.CloseParenToken);
 
                 default:
                     // Type of node does not have delimiters used by this feature
