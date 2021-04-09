@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             return new NavigationBarModel(SpecializedCollections.EmptyList<NavigationBarItem>(), new VersionStamp(), null);
         }
 
-        private Task<NavigationBarSelectedTypeAndMember> _selectedItemInfoTask;
+        private Task _selectedItemInfoTask;
         private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new();
 
         /// <summary>
@@ -130,48 +130,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            // Cancel off any existing work
-            _selectedItemInfoTaskCancellationSource.Cancel();
-            _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
-            var cancellationToken = _selectedItemInfoTaskCancellationSource.Token;
-
             var currentView = _presenter.TryGetCurrentView();
             var subjectBufferCaretPosition = currentView?.GetCaretPoint(_subjectBuffer);
             if (!subjectBufferCaretPosition.HasValue)
                 return;
 
+            // Cancel off any existing work
+            _selectedItemInfoTaskCancellationSource.Cancel();
+            _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
+            var cancellationToken = _selectedItemInfoTaskCancellationSource.Token;
+
             var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartSelectedItemUpdateTask");
             _selectedItemInfoTask = DetermineSelectedItemInfoAsync(
-                _modelTask, _selectedItemInfoTask, delay, subjectBufferCaretPosition.Value, cancellationToken);
+                _modelTask, delay, subjectBufferCaretPosition.Value, cancellationToken);
             _selectedItemInfoTask.CompletesAsyncOperation(asyncToken);
         }
 
-        private async Task<NavigationBarSelectedTypeAndMember> DetermineSelectedItemInfoAsync(
+        private async Task DetermineSelectedItemInfoAsync(
             Task<NavigationBarModel> lastModelTask,
-            Task<NavigationBarSelectedTypeAndMember> lastSelectedItemTask,
             int delay,
             SnapshotPoint caretPosition,
             CancellationToken cancellationToken)
         {
-            var lastSelectedItem = await lastSelectedItemTask.ConfigureAwait(false);
             var lastModel = await lastModelTask.ConfigureAwait(false);
-            try
-            {
-                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-                var currentSelectedItem = ComputeSelectedTypeAndMember(lastModel, caretPosition, cancellationToken);
+            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+            var currentSelectedItem = ComputeSelectedTypeAndMember(lastModel, caretPosition, cancellationToken);
 
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-                // Pushing is not cancellable.  Once we have shown the items, we want our model to always represent this.
-                PushSelectedItemsToPresenter(currentSelectedItem);
-                return currentSelectedItem;
-            }
-            catch (OperationCanceledException)
+            PushSelectedItemsToPresenter(currentSelectedItem);
+
+            // Once we've pushed, update our state to reflect that
+            lock (_gate)
             {
-                // If we canceled, then just return along whatever we have computed so far.  Note: this means the
-                // _selectedItemInfoTask will never enter the canceled state.  It always represents the last
-                // successfully computed type/member.
-                return lastSelectedItem;
+                _lastModelAndSelectedInfo = (lastModel, currentSelectedItem);
             }
         }
 
