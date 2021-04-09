@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -39,16 +40,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var notificationService = workspace.GetService<IForegroundNotificationService>();
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
-                subjectBuffer,
-                notificationService,
-                AsynchronousOperationListenerProvider.NullListener,
-                typeMap: null,
                 new SyntacticClassificationTaggerProvider(
                     workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                     notificationService,
                     typeMap: null,
                     AsynchronousOperationListenerProvider.NullProvider),
-                diffTimeout: int.MaxValue);
+                subjectBuffer,
+                notificationService,
+                AsynchronousOperationListenerProvider.NullListener,
+                typeMap: null,
+                diffTimeout: TimeSpan.MaxValue);
 
             // Capture the expected value before the await, in case it changes.
             var expectedLength = subjectBuffer.CurrentSnapshot.Length;

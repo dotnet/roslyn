@@ -75,17 +75,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             /// <summary>
             /// Timeout before we cancel the work to diff and return whatever we have.
             /// </summary>
-            private readonly int _diffTimeout;
+            private readonly TimeSpan _diffTimeout;
 
             private int _taggerReferenceCount;
 
             public TagComputer(
+                SyntacticClassificationTaggerProvider taggerProvider,
                 ITextBuffer subjectBuffer,
                 IForegroundNotificationService notificationService,
                 IAsynchronousOperationListener asyncListener,
                 ClassificationTypeMap typeMap,
-                SyntacticClassificationTaggerProvider taggerProvider,
-                int diffTimeout = TaggerConstants.NearImmediateDelay)
+                TimeSpan diffTimeout)
             {
                 _subjectBuffer = subjectBuffer;
                 _notificationService = notificationService;
