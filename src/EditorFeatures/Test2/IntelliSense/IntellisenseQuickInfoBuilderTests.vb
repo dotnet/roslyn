@@ -1255,7 +1255,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "1"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "overload"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.overload),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
 
             ToolTipAssert.EqualContent(expected, container)
