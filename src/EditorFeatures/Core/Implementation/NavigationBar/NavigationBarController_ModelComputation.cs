@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,12 +117,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                         items.Do(i => i.InitializeTrackingSpans(snapshot));
                         var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-                        return new NavigationBarModel(items, version, languageService);
+                        return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
                     }
                 }
             }
 
-            return new NavigationBarModel(SpecializedCollections.EmptyList<NavigationBarItem>(), new VersionStamp(), null);
+            return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, new VersionStamp(), null);
         }
 
         private Task _selectedItemInfoTask;

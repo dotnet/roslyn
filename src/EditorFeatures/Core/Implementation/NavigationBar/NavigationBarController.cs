@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, INavigationBarController
     {
         private static readonly NavigationBarModel EmptyModel = new(
-                SpecializedCollections.EmptyList<NavigationBarItem>(),
+                ImmutableArray<NavigationBarItem>.Empty,
                 semanticVersionStamp: default,
                 itemService: null);
 
@@ -226,12 +227,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 selectedInfo.MemberItem);
         }
 
-        private void GetProjectItems(out IList<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem? selectedProjectItem)
+        private void GetProjectItems(out ImmutableArray<NavigationBarProjectItem> projectItems, out NavigationBarProjectItem? selectedProjectItem)
         {
             var documents = _subjectBuffer.CurrentSnapshot.GetRelatedDocumentsWithChanges();
             if (!documents.Any())
             {
-                projectItems = SpecializedCollections.EmptyList<NavigationBarProjectItem>();
+                projectItems = ImmutableArray<NavigationBarProjectItem>.Empty;
                 selectedProjectItem = null;
                 return;
             }
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     d.Project.GetGlyph(),
                     workspace: d.Project.Solution.Workspace,
                     documentId: d.Id,
-                    language: d.Project.Language)).OrderBy(projectItem => projectItem.Text).ToList();
+                    language: d.Project.Language)).OrderBy(projectItem => projectItem.Text).ToImmutableArray();
 
             projectItems.Do(i => i.InitializeTrackingSpans(_subjectBuffer.CurrentSnapshot));
 
