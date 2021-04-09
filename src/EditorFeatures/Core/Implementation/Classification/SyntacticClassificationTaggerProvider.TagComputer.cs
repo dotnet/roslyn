@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
@@ -278,27 +279,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // We want to compute a minimal change, but we don't want this to run for too long.  So do the
                 // computation work in the threadpool, but also gate how much time we can spend here so that we can let
                 // the editor know about the size of the change asap.
-                using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-                var computeTask = Task.Run(() =>
-                    classificationService.ComputeSyntacticChangeRangeAsync(previousDocument, currentDocument, linkedToken.Token), linkedToken.Token);
-
-                var delayTask = Task.Delay(_diffTimeout, linkedToken.Token);
-
-                var completedTask = await Task.WhenAny(computeTask, delayTask).ConfigureAwait(false);
-
-                // Ensure that we cancel any outstanding work on the other task, once one completes.
-                linkedToken.Cancel();
-
-                // ensure that if we completed because of cancellation, we throw that up.
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // If we timed out, just return nothing.  We'll reclassify the full doc.
-                if (completedTask == delayTask)
+                var computeTaskWithTimeout =
+                    classificationService.ComputeSyntacticChangeRangeAsync(previousDocument, currentDocument, cancellationToken)
+                                         .WithTimeout(_diffTimeout);
+                try
+                {
+                    return await computeTaskWithTimeout.ConfigureAwait(false);
+                }
+                catch (TimeoutException)
+                {
                     return null;
-
-                // Otherwise, extract out the change range that was computed by our service.
-                return await computeTask.ConfigureAwait(false);
+                }
             }
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)
