@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -268,15 +268,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         #region Apply Changes
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
-            return feature.HasFlag(ApplyChangesKind.ChangeDocument) ||
-                   feature.HasFlag(ApplyChangesKind.AddDocument) ||
-                   feature.HasFlag(ApplyChangesKind.RemoveDocument) ||
-                   feature.HasFlag(ApplyChangesKind.AddMetadataReference) ||
-                   feature.HasFlag(ApplyChangesKind.RemoveMetadataReference) ||
-                   feature.HasFlag(ApplyChangesKind.AddProjectReference) ||
-                   feature.HasFlag(ApplyChangesKind.RemoveProjectReference) ||
-                   feature.HasFlag(ApplyChangesKind.AddAnalyzerReference) ||
-                   feature.HasFlag(ApplyChangesKind.RemoveAnalyzerReference);
+            return feature switch
+            {
+                ApplyChangesKind.ChangeDocument or
+                ApplyChangesKind.AddDocument or
+                ApplyChangesKind.RemoveDocument or
+                ApplyChangesKind.AddMetadataReference or
+                ApplyChangesKind.RemoveMetadataReference or
+                ApplyChangesKind.AddProjectReference or
+                ApplyChangesKind.RemoveProjectReference or
+                ApplyChangesKind.AddAnalyzerReference or
+                ApplyChangesKind.RemoveAnalyzerReference => true,
+                _ => false,
+            };
         }
 
         private static bool HasProjectFileChanges(ProjectChanges changes)
