@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// single item to the view.  These can then be read in when the dropdown is expanded and we want to show all
         /// items.
         /// </summary>
-        private readonly object _gate = new();
-        private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastModelAndSelectedInfo;
+        private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastModelAndSelectedInfo_OnlyAccessOnUIThread;
 
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
@@ -162,13 +161,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-            PushSelectedItemsToPresenter(currentSelectedItem);
+            AssertIsForeground();
 
-            // Once we've pushed, update our state to reflect that
-            lock (_gate)
-            {
-                _lastModelAndSelectedInfo = (lastModel, currentSelectedItem);
-            }
+            // Update the UI to show *just* the type/member that was selected.  We don't need it to know about all items
+            // as the user can only see one at a time as they're editing in a document.  However, once we've done this,
+            // store the full list of items as well so that if the user expands the dropdown, we can take all those
+            // values and shove them in so it appears as if the lists were always fully realized.
+            _lastModelAndSelectedInfo_OnlyAccessOnUIThread = (lastModel, currentSelectedItem);
+            PushSelectedItemsToPresenter(currentSelectedItem);
         }
 
         internal static NavigationBarSelectedTypeAndMember ComputeSelectedTypeAndMember(NavigationBarModel model, SnapshotPoint caretPosition, CancellationToken cancellationToken)

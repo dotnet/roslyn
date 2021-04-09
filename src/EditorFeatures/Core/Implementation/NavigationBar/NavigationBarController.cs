@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _modelTask = Task.FromResult(EmptyModel);
             _selectedItemInfoTask = Task.FromResult(EmptySelectedInfo);
 
-            _lastModelAndSelectedInfo = (EmptyModel, EmptySelectedInfo);
+            _lastModelAndSelectedInfo_OnlyAccessOnUIThread = (EmptyModel, EmptySelectedInfo);
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
@@ -217,14 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // being able to open the dropdown list.
             GetProjectItems(out var projectItems, out var selectedProjectItem);
 
-            NavigationBarModel lastModel;
-            NavigationBarSelectedTypeAndMember selectedInfo;
-            lock (_gate)
-            {
-                lastModel = _lastModelAndSelectedInfo.model;
-                selectedInfo = _lastModelAndSelectedInfo.selectedInfo;
-            }
-
+            var (lastModel, selectedInfo) = _lastModelAndSelectedInfo_OnlyAccessOnUIThread;
             _presenter.PresentItems(
                 projectItems,
                 selectedProjectItem,
