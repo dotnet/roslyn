@@ -3867,6 +3867,43 @@ class C
                 );
         }
 
+        [Fact]
+        public void EqualsCondAccess_17()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    void M(C? c)
+    {
+        int x, y;
+        _ = (c?.Equals(x = 0), c?.Equals(y = 0)) == (true, true)
+            ? x.ToString() // 1
+            : y.ToString(); // 2
+    }
+}
+";
+            // This could be made to work (i.e. removing diagnostic 1) but isn't a high priority scenario.
+            // The corresponding scenario in nullable also doesn't work:
+            // void M(string? x, string? y)
+            // {
+            //     if ((x, y) == ("a", "b"))
+            //     {
+            //         x.ToString(); // warning
+            //         y.ToString(); // warning
+            //     }
+            // }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(10, 15),
+                // (11,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(11, 15)
+                );
+        }
+
         [WorkItem(545352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545352")]
         [Fact]
         public void UseDefViolationInDelegateInSwitchWithGoto()
