@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
-        void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
+        Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
     }
 }

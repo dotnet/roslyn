@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
@@ -24,12 +25,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
     [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]
     internal class FSharpNavigationBarItemService : INavigationBarItemService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IFSharpNavigationBarItemService _service;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpNavigationBarItemService(IFSharpNavigationBarItemService service)
+        public FSharpNavigationBarItemService(
+            IThreadingContext threadingContext,
+            IFSharpNavigationBarItemService service)
         {
+            _threadingContext = threadingContext;
             _service = service;
         }
 
@@ -39,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
         }
 
-        public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+        public async Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
             if (item.Spans.Count > 0)
@@ -47,6 +52,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                 var span = item.Spans.First();
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetService<IFSharpDocumentNavigationService>();
+
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken))
                 {

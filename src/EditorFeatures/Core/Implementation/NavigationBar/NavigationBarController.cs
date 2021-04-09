@@ -349,12 +349,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private void OnItemSelected(object? sender, NavigationBarItemSelectedEventArgs e)
         {
             AssertIsForeground();
+            _ = OnItemSelectedAsync(e.Item);
+        }
 
-            _waitIndicator.Wait(
+        private async Task OnItemSelectedAsync(NavigationBarItem item)
+        {
+            AssertIsForeground();
+            using var waitContext = _waitIndicator.StartWait(
                 EditorFeaturesResources.Navigation_Bars,
                 EditorFeaturesResources.Refreshing_navigation_bars,
                 allowCancel: true,
-                action: context => ProcessItemSelectionSynchronously(e.Item, context.CancellationToken));
+                showProgress: false);
+
+            try
+            {
+                await ProcessItemSelectionAsync(item, waitContext.CancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
         }
 
         /// <summary>
@@ -362,10 +375,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         /// <param name="item">The selected item.</param>
         /// <param name="cancellationToken">A cancellation token from the wait context.</param>
-        private void ProcessItemSelectionSynchronously(NavigationBarItem item, CancellationToken cancellationToken)
+        private async Task ProcessItemSelectionAsync(NavigationBarItem item, CancellationToken cancellationToken)
         {
             AssertIsForeground();
-
             if (item is NavigationBarPresentedItem)
             {
                 // Presented items are not navigable, but they may be selected due to a race
@@ -377,8 +389,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (item is NavigationBarProjectItem projectItem)
             {
                 projectItem.SwitchToContext();
-
-                // TODO: navigate to document / focus text view
             }
             else
             {
@@ -388,20 +398,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 if (document != null)
                 {
                     var languageService = document.GetRequiredLanguageService<INavigationBarItemService>();
+                    var snapshot = _subjectBuffer.CurrentSnapshot;
+                    item.Spans = item.TrackingSpans.Select(ts => ts.GetSpan(snapshot).Span.ToTextSpan()).ToList();
+                    var view = _presenter.TryGetCurrentView();
 
-                    NavigateToItem(item, document, _subjectBuffer.CurrentSnapshot, languageService, cancellationToken);
+                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task below.
+                    await languageService.NavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true);
                 }
             }
 
-            // Now that the edit has been done, refresh to make sure everything is up-to-date. At
-            // this point, we now use CancellationToken.None to ensure we're properly refreshed.
-            UpdateDropDownsSynchronously(CancellationToken.None);
-        }
-
-        private void NavigateToItem(NavigationBarItem item, Document document, ITextSnapshot snapshot, INavigationBarItemService languageService, CancellationToken cancellationToken)
-        {
-            item.Spans = item.TrackingSpans.Select(ts => ts.GetSpan(snapshot).Span.ToTextSpan()).ToList();
-            languageService.NavigateToItem(document, item, _presenter.TryGetCurrentView(), cancellationToken);
+            // Now that the edit has been done, refresh to make sure everything is up-to-date.
+            // Have to make sure we come back to the main thread for this.
+            AssertIsForeground();
+            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
         }
     }
 }

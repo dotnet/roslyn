@@ -125,9 +125,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
 
-                Dim navigationPoint = service.GetSymbolItemNavigationPoint(
+                Dim navigationPoint = (Await service.GetSymbolItemNavigationPointAsync(
                     sourceDocument, DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
-                    CancellationToken.None).Value
+                    CancellationToken.None)).Value
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)
                 Assert.Equal(expectedNavigationDocument.FilePath, navigationPoint.Tree.FilePath)

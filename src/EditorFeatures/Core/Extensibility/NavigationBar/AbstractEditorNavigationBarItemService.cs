@@ -17,8 +17,15 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService
     {
-        protected abstract VirtualTreePoint? GetSymbolNavigationPoint(Document document, ISymbol symbol, CancellationToken cancellationToken);
-        protected abstract void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
+        protected readonly IThreadingContext ThreadingContext;
+
+        protected AbstractEditorNavigationBarItemService(IThreadingContext threadingContext)
+        {
+            ThreadingContext = threadingContext;
+        }
+
+        protected abstract Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
+        protected abstract Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
@@ -28,16 +35,17 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v));
         }
 
-        public void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToItem(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
+        public Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+            => NavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
 
-        protected void NavigateToSymbolItem(
+        protected async Task NavigateToSymbolItemAsync(
             Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
             var symbolNavigationService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
 
-            var symbolInfo = item.NavigationSymbolId.Resolve(document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true, cancellationToken: cancellationToken);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbolInfo = item.NavigationSymbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             var symbol = symbolInfo.GetAnySymbol();
 
             // Do not allow third party navigation to types or constructors
@@ -49,19 +57,21 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
                 return;
             }
 
-            var navigationPoint = this.GetSymbolItemNavigationPoint(document, item, cancellationToken);
-
+            var navigationPoint = await this.GetSymbolItemNavigationPointAsync(document, item, cancellationToken).ConfigureAwait(false);
             if (navigationPoint.HasValue)
             {
-                NavigateToVirtualTreePoint(document.Project.Solution, navigationPoint.Value, cancellationToken);
+                await NavigateToVirtualTreePointAsync(document.Project.Solution, navigationPoint.Value, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        protected static void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
+        protected async Task NavigateToVirtualTreePointAsync(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
         {
             var documentToNavigate = solution.GetRequiredDocument(navigationPoint.Tree);
             var workspace = solution.Workspace;
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+            // Have to move back to UI thread in order to navigate.
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken))
             {
@@ -77,10 +87,10 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         public virtual bool ShowItemGrayedIfNear(NavigationBarItem item)
             => true;
 
-        public VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+        public async Task<VirtualTreePoint?> GetSymbolItemNavigationPointAsync(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
-            var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
 
             var symbol = symbols.Symbol;
@@ -96,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
                 }
             }
 
-            return GetSymbolNavigationPoint(document, symbol, cancellationToken);
+            return await GetSymbolNavigationPointAsync(document, symbol, cancellationToken).ConfigureAwait(false);
         }
     }
 }

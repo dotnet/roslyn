@@ -6,13 +6,12 @@ using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigationBar;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 {
@@ -21,14 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEditorNavigationBarItemService()
+        public CSharpEditorNavigationBarItemService(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
 
-        protected override VirtualTreePoint? GetSymbolNavigationPoint(
+        protected override async Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var location = symbol.Locations.FirstOrDefault(l => l.SourceTree!.Equals(syntaxTree));
 
             if (location == null)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return new VirtualTreePoint(location.SourceTree!, location.SourceTree!.GetText(cancellationToken), location.SourceSpan.Start);
         }
 
-        protected override void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToSymbolItem(document, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken);
+        protected override Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+            => NavigateToSymbolItemAsync(document, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken);
     }
 }
