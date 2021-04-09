@@ -695,6 +695,12 @@ namespace Microsoft.CodeAnalysis
         /// will have different parents, and may occur at different positions in the respective trees.  If two tokens are
         /// incrementally identical, all trivial of each node will be incrementally identical as well.
         /// </summary>
+        /// <remarks>
+        /// Incrementally identical tokens can also appear within the same syntax tree, or syntax trees that did not arise
+        /// from <see cref="SyntaxTree.WithChangedText"/>.  This can happen as the parser is allowed to construct parse
+        /// trees using shared tokens for efficiency.  In all these cases though, it will still remain true that the incrementally
+        /// identical tokens will have different parents and may occur at different positions in their respective trees.
+        /// </remarks>
         public bool IsIncrementallyIdenticalTo(SyntaxToken token)
             => this.Node != null && this.Node == token.Node;
     }
