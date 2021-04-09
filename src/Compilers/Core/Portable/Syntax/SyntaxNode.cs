@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis
         /// identical nodes will have different parents and nd may occur at different positions in their respective trees.
         /// </remarks>
         public bool IsIncrementallyIdenticalTo(SyntaxNode other)
-            => this.Green == other.Green;
+            => this.Green != null && this.Green == other.Green;
 
         /// <summary>
         /// Determines whether the node represents a language construct that was actually parsed
