@@ -283,6 +283,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             TextSpan INavigableItem.SourceSpan => _item.DeclaredSymbolInfo.Span;
 
+            bool INavigableItem.IsStale => _item.IsStale;
+
             ImmutableArray<INavigableItem> INavigableItem.ChildItems => ImmutableArray<INavigableItem>.Empty;
 
             #endregion

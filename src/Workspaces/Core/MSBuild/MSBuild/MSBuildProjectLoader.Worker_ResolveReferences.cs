@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-# nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -117,7 +113,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 /// <summary>
                 /// Returns true if a metadata reference with the given file path is contained within this list.
                 /// </summary>
-                public bool Contains(string filePath)
+                public bool Contains(string? filePath)
                     => filePath != null
                     && _pathToIndicesMap.ContainsKey(filePath);
 
@@ -201,6 +197,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);
 
                 var projectDirectory = Path.GetDirectoryName(projectFileInfo.FilePath);
+                RoslynDebug.AssertNotNull(projectDirectory);
 
                 // Next, iterate through all project references in the file and create project references.
                 foreach (var projectFileReference in projectFileInfo.ProjectReferences)
