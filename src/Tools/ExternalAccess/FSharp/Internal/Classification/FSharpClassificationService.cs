@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             return _service.AdjustStaleClassification(text, classifiedSpan);
         }
 
-        public Task<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken)
+        public ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.Default<object?>();
+            return new();
         }
 
-        public Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
+        public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.Default<TextChangeRange?>();
+            return new();
         }
     }
 }

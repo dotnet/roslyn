@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         private static readonly ObjectPool<Stack<SyntaxNodeOrToken>> s_pool = new(() => new());
 
-        public static async Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
+        public static async ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
             Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
         {
             // If they're the same doc, there is no change.
@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return new TextChangeRange();
 
             var stopwatch = SharedStopwatch.StartNew();
+
             var oldRoot = await oldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // If we ran out of time, we have to assume both are completely different.

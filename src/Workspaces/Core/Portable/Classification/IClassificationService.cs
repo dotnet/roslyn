@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// concern that this might impact the UI thread later on when classifications are retrieved.  <see
         /// langword="null"/> can be returned if not data needs to be cached.
         /// </summary>
-        Task<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken);
+        ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines the range of the documents that should be considered syntactically changed after an edit.  In
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// spend too much time computing a very precise result.
         /// </para>
         /// </summary>
-        Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
+        ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
             Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

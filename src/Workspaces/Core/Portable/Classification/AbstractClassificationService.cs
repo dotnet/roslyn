@@ -122,15 +122,15 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
-        public async Task<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken)
+        public async ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken)
             => await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        public Task<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
+        public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
             Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
         {
             var classificationService = oldDocument.GetLanguageService<ISyntaxClassificationService>();
             return classificationService == null
-                ? SpecializedTasks.Default<TextChangeRange?>()
+                ? new((TextChangeRange?)null)
                 : classificationService.ComputeSyntacticChangeRangeAsync(oldDocument, newDocument, timeout, cancellationToken);
         }
     }
