@@ -146,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var cancellationToken = _selectedItemInfoTaskCancellationSource.Token;
 
             var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartSelectedItemUpdateTask");
-            _selectedItemInfoTask = DetermineSelectedItemInfoAsync(
-                _modelTask, delay, subjectBufferCaretPosition.Value, cancellationToken);
+            _selectedItemInfoTask = DetermineSelectedItemInfoAsync(_modelTask, delay, subjectBufferCaretPosition.Value, cancellationToken);
             _selectedItemInfoTask.CompletesAsyncOperation(asyncToken);
         }
 
