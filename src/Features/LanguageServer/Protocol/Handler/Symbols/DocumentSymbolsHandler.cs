@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SourceText text, CancellationToken cancellationToken, string? containerName = null)
         {
             if (item.Spans.IsEmpty)
+            {
                 return null;
+            }
 
             var location = GetLocation(item, compilation, tree, cancellationToken);
 
