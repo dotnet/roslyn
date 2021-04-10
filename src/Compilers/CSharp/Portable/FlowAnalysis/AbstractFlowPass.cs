@@ -2292,10 +2292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isKnownNullOrNotNull(BoundExpression expr)
             {
                 return expr.ConstantValue is object
-                    || (expr is BoundConversion
-                        {
-                            ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable,
-                        } conv && conv.Operand.Type!.IsNonNullableValueType());
+                    || (expr is BoundConversion { ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable } conv
+                        && conv.Operand.Type!.IsNonNullableValueType());
             }
 
             static bool isEquals(BoundBinaryOperator binary)
