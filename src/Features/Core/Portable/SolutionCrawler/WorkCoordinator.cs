@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // subscribe to active document changed event for active file background analysis scope.
                 if (_documentTrackingService != null)
                 {
-                    _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.Workspace.CurrentSolution);
+                    _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.GetCurrentCompileTimeSolution());
                     _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
                 }
             }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
 
                 // and ask to re-analyze whole solution for the given analyzer
-                var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                var scope = new ReanalyzeScope(_registration.GetCurrentCompileTimeSolution().Id);
                 Reanalyze(analyzer, scope);
             }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (forceAnalyze || analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                         {
-                            var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                            var scope = new ReanalyzeScope(_registration.GetCurrentCompileTimeSolution().Id);
                             Reanalyze(analyzer, scope);
                         }
                     }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // log big reanalysis request from things like fix all, suppress all or option changes
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
-                    var solution = _registration.CurrentSolution;
+                    var solution = _registration.GetCurrentCompileTimeSolution();
                     SolutionCrawlerLogger.LogReanalyze(
                         CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
                 }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnActiveDocumentChanged(object? sender, DocumentId activeDocumentId)
             {
-                var solution = _registration.Workspace.CurrentSolution;
+                var solution = _registration.GetCurrentCompileTimeSolution();
 
                 // Check if we are only performing backgroung analysis for active file.
                 if (activeDocumentId != null)
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
             {
-                var solution = _registration.CurrentSolution;
+                var solution = _registration.GetCurrentCompileTimeSolution();
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
 
                 foreach (var document in scope.GetDocuments(solution))
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> workers)
                 {
-                    var solution = _workCoordinator._registration.CurrentSolution;
+                    var solution = _workCoordinator._registration.GetCurrentCompileTimeSolution();
                     var list = new List<WorkItem>();
 
                     foreach (var project in solution.Projects)

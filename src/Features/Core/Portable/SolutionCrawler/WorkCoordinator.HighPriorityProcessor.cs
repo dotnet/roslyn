@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // see whether we have work item for the document
                             Contract.ThrowIfFalse(GetNextWorkItem(out var workItem, out var documentCancellation));
 
-                            var solution = _processor.CurrentSolution;
+                            var solution = _processor._registration.GetCurrentCompileTimeSolution();
 
                             // okay now we have work to do
                             await ProcessDocumentAsync(solution, Analyzers, workItem, documentCancellation).ConfigureAwait(false);
