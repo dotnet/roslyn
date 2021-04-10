@@ -216,7 +216,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private void OnSubjectBufferPostChanged(object? sender, EventArgs e)
         {
             AssertIsForeground();
-
             StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: TaggerConstants.MediumDelay);
         }
 
