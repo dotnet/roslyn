@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             void ConnectToNewWorkspace()
             {
                 // For the first time you open the file, we'll start immediately
-                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
+                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
             }
         }
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
                     if (currentContextDocumentId != null && currentContextDocumentId.ProjectId == args.ProjectId)
                     {
-                        StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
+                        StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
                     }
                 }
             }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 if (currentContextDocumentId != null && currentContextDocumentId == args.DocumentId)
                 {
                     // The context has changed, so update everything.
-                    StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
+                    StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
                 }
             }
         }
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 args.OldActiveContextDocumentId == currentContextDocumentId)
             {
                 // if the active context changed, recompute the types/member as they may be changed as well.
-                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
+                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
             }
         }
 
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
 
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: TaggerConstants.MediumDelay, selectedItemUpdateDelay: 0);
+            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: TaggerConstants.MediumDelay);
         }
 
         private void OnCaretMoved(object? sender, EventArgs e)
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
             // Have to make sure we come back to the main thread for this.
             AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0);
+            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
         }
     }
 }

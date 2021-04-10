@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
         /// </summary>
-        private void StartModelUpdateAndSelectedItemUpdateTasks(int modelUpdateDelay, int selectedItemUpdateDelay)
+        private void StartModelUpdateAndSelectedItemUpdateTasks(int modelUpdateDelay)
         {
             AssertIsForeground();
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _modelTask = ComputeModelAfterDelayAsync(_modelTask, textSnapshot, modelUpdateDelay, cancellationToken);
             _modelTask.CompletesAsyncOperation(asyncToken);
 
-            StartSelectedItemUpdateTask(selectedItemUpdateDelay);
+            StartSelectedItemUpdateTask(delay: 0);
         }
 
         private static async Task<NavigationBarModel> ComputeModelAfterDelayAsync(
