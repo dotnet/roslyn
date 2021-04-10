@@ -56,18 +56,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             Task<NavigationBarModel> modelTask, ITextSnapshot textSnapshot, int modelUpdateDelay, CancellationToken cancellationToken)
         {
             var previousModel = await modelTask.ConfigureAwait(false);
-            try
+            if (!cancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(modelUpdateDelay, cancellationToken).ConfigureAwait(false);
-                return await ComputeModelAsync(previousModel, textSnapshot, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    await Task.Delay(modelUpdateDelay, cancellationToken).ConfigureAwait(false);
+                    return await ComputeModelAsync(previousModel, textSnapshot, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
             }
-            catch (OperationCanceledException)
-            {
-                // If we canceled, then just return along whatever we have computed so far.  Note: this means the
-                // _modelTask task will never enter the canceled state.  It always represents the last successfully
-                // computed model.
-                return previousModel;
-            }
+
+            // If we canceled, then just return along whatever we have computed so far.  Note: this means the
+            // _modelTask task will never enter the canceled state.  It always represents the last successfully
+            // computed model.
+            return previousModel;
         }
 
         /// <summary>
@@ -118,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, new VersionStamp(), null);
         }
 
-        private Task _selectedItemInfoTask;
         private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new();
 
         /// <summary>
@@ -139,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var cancellationToken = _selectedItemInfoTaskCancellationSource.Token;
 
             var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartSelectedItemUpdateTask");
-            _selectedItemInfoTask = DetermineSelectedItemInfoAsync(_modelTask, delay, subjectBufferCaretPosition.Value, cancellationToken);
-            _selectedItemInfoTask.CompletesAsyncOperation(asyncToken);
+            var selectedItemInfoTask = DetermineSelectedItemInfoAsync(_modelTask, delay, subjectBufferCaretPosition.Value, cancellationToken);
+            selectedItemInfoTask.CompletesAsyncOperation(asyncToken);
         }
 
         private async Task DetermineSelectedItemInfoAsync(
@@ -150,6 +153,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             CancellationToken cancellationToken)
         {
             var lastModel = await lastModelTask.ConfigureAwait(false);
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
             var currentSelectedItem = ComputeSelectedTypeAndMember(lastModel, caretPosition, cancellationToken);
 
