@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
     [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]
-    internal class FSharpNavigationBarItemService : INavigationBarItemService
+    internal class FSharpNavigationBarItemService : INavigationBarItemService2
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IFSharpNavigationBarItemService _service;
