@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </returns>
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
-            return currentNode.GetBraces().closeBrace.IsMissing &&
+            return currentNode.GetBraces().closeBrace.IsMissing ||
                 currentNode.GetParentheses().closeParen.IsMissing;
         }
     }
