@@ -94,34 +94,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // TODO: remove .FirstOrDefault()
             var languageService = document.GetLanguageService<INavigationBarItemService>();
-            if (languageService != null)
+            if (languageService == null)
+                return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, new VersionStamp(), null);
+
+            // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
+            // the model should be only updated here
+            if (lastCompletedModel != null)
             {
-                // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
-                // the model should be only updated here
-                if (lastCompletedModel != null)
+                var semanticVersion = await document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).ConfigureAwait(false);
+                if (lastCompletedModel.SemanticVersionStamp == semanticVersion && SpanStillValid(lastCompletedModel, snapshot, cancellationToken))
                 {
-                    var semanticVersion = await document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).ConfigureAwait(false);
-                    if (lastCompletedModel.SemanticVersionStamp == semanticVersion && SpanStillValid(lastCompletedModel, snapshot, cancellationToken))
-                    {
-                        // it looks like we can re-use previous model
-                        return lastCompletedModel;
-                    }
-                }
-
-                using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
-                {
-                    var items = await languageService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-                    if (items != null)
-                    {
-                        items.Do(i => i.InitializeTrackingSpans(snapshot));
-                        var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-                        return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
-                    }
+                    // it looks like we can re-use previous model
+                    return lastCompletedModel;
                 }
             }
 
-            return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, new VersionStamp(), null);
+            using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
+            {
+                var items = await languageService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+                if (items != null)
+                {
+                    items.Do(i => i.InitializeTrackingSpans(snapshot));
+                    var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
+                    return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
+                }
+            }
         }
 
         /// <summary>
@@ -163,6 +161,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var currentSelectedItem = ComputeSelectedTypeAndMember(lastModel, caretPosition, cancellationToken);
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
+            // After we switch to the main thread, we may discover the previous work on the main thread canceled us and
+            // enqueued another task to determine the selected item.  Bail out and let that task proceed.
+            if (cancellationToken.IsCancellationRequested)
+                return;
 
             AssertIsForeground();
 
