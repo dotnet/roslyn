@@ -335,14 +335,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var documentId in documentIds)
             {
-                if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
+                if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentBaseActiveStatements))
                 {
                     var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                     var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, document, cancellationToken).ConfigureAwait(false);
-                    if (baseDocument != null)
+                    if (baseDocument != null && document != null)
                     {
-                        spans.Add(documentActiveStatements.SelectAsArray(s => (s.Span, s.Flags)));
-                        continue;
+                        // Calculate diff with no prior knowledge of active statement spans.
+                        // Translates active statements in the last committed solution snapshot to the current solution.
+                        // Do not cache this result, it's only needed when entering a break mode.
+                        // Optimize for the common case of the identical document.
+                        if (baseDocument == document)
+                        {
+                            spans.Add(documentBaseActiveStatements.SelectAsArray(s => (s.Span, s.Flags)));
+                            continue;
+                        }
+
+                        var analyzer = document.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+
+                        var analysis = await analyzer.AnalyzeDocumentAsync(
+                            baseDocument.Project,
+                            documentBaseActiveStatements,
+                            document,
+                            newActiveStatementSpans: ImmutableArray<TextSpan>.Empty,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (!analysis.ActiveStatements.IsDefault)
+                        {
+                            spans.Add(analysis.ActiveStatements.SelectAsArray(s => (s.Span, s.Flags)));
+                            continue;
+                        }
                     }
                 }
 
