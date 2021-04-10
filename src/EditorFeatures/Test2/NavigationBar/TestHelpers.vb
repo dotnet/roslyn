@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim model As New NavigationBarModel(items, VersionStamp.Create(), service)
+                Dim model As New NavigationBarModel(items.ToImmutableArray(), VersionStamp.Create(), service)
                 Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.GetTextBuffer().CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
 
                 Dim isCaseSensitive = document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive
