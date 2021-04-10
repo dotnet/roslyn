@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determine whether this node is structurally equivalent to another.
         /// </summary>
-        public bool IsEquivalentTo(SyntaxNode other)
+        public bool IsEquivalentTo([NotNullWhen(true)] SyntaxNode other)
         {
             if (this == other)
             {
@@ -360,10 +360,10 @@ namespace Microsoft.CodeAnalysis
         /// Incrementally identical nodes can also appear within the same syntax tree, or syntax trees that did not arise
         /// from <see cref="SyntaxTree.WithChangedText"/>.  This can happen as the parser is allowed to construct parse
         /// trees from shared nodes for efficiency.  In all these cases though, it will still remain true that the incrementally
-        /// identical nodes will have different parents and nd may occur at different positions in their respective trees.
+        /// identical nodes will have different parents and may occur at different positions in their respective trees.
         /// </remarks>
-        public bool IsIncrementallyIdenticalTo(SyntaxNode other)
-            => this.Green != null && this.Green == other.Green;
+        public bool IsIncrementallyIdenticalTo([NotNullWhen(true)] SyntaxNode? other)
+            => this.Green != null && this.Green == other?.Green;
 
         /// <summary>
         /// Determines whether the node represents a language construct that was actually parsed
