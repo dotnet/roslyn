@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             var currentSelectedItem = ComputeSelectedTypeAndMember(lastModel, caretPosition, cancellationToken);
 
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // After we switch to the main thread, we may discover the previous work on the main thread canceled us and
             // enqueued another task to determine the selected item.  Bail out and let that task proceed.
