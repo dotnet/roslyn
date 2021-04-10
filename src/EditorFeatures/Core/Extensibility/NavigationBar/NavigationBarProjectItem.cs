@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor
             => Hash.Combine(Text,
                Hash.Combine((int)Glyph,
                Hash.Combine(Workspace,
-               Hash.Combine(DocumentId, Language.GetHashCode()))));
+               Hash.Combine(DocumentId,
+                            Language.GetHashCode()))));
     }
 }
