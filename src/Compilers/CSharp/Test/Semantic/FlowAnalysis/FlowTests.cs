@@ -3749,22 +3749,45 @@ struct S
 class C
 {
     int? M0(object obj) => null;
-    void M(C? c, object? obj)
+
+    void M1(C? c, object? obj)
     {
         int x, y;
         _ = (c?.M0(x = y = 0) == (int?)obj)
             ? x.ToString() // 1
             : y.ToString(); // 2
     }
+
+    void M2(C? c, object? obj)
+    {
+        int x, y;
+        _ = (c?.M0(x = y = 0) == (int?)null)
+            ? x.ToString() // 3
+            : y.ToString();
+    }
+
+    void M3(C? c, object? obj)
+    {
+        int x, y;
+        _ = (c?.M0(x = y = 0) == null)
+            ? x.ToString() // 4
+            : y.ToString();
+    }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,15): error CS0165: Use of unassigned local variable 'x'
+                // (12,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(11, 15),
-                // (12,15): error CS0165: Use of unassigned local variable 'y'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 15),
+                // (13,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 2
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(12, 15)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(13, 15),
+                // (20,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(20, 15),
+                // (28,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(28, 15)
                 );
         }
 
@@ -3902,6 +3925,82 @@ class C
                 // (11,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(11, 15)
+                );
+        }
+
+        [Fact]
+        public void EqualsCondAccess_18()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    public static bool operator ==(C? left, C? right) => false;
+    public static bool operator !=(C? left, C? right) => false;
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+
+    public C M0(out int x, out int y) { x = 42; y = 42; return this; }
+
+    public void M1(C? c)
+    {
+        int x, y;
+        _ = c?.M0(out x, out y) != null
+            ? x.ToString() // 1
+            : y.ToString(); // 2
+    }
+
+    public void M2(C? c)
+    {
+        int x, y;
+        _ = c?.M0(out x, out y) == null
+            ? x.ToString() // 3
+            : y.ToString(); // 4
+    }
+
+    public void M3(C? c)
+    {
+        int x, y;
+        _ = null != c?.M0(out x, out y)
+            ? x.ToString() // 5
+            : y.ToString(); // 6
+    }
+
+    public void M4(C? c)
+    {
+        int x, y;
+        _ = null == c?.M0(out x, out y)
+            ? x.ToString() // 7
+            : y.ToString(); // 8
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (17,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(17, 15),
+                // (18,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(18, 15),
+                // (25,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(25, 15),
+                // (26,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(26, 15),
+                // (33,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 5
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(33, 15),
+                // (34,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 6
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(34, 15),
+                // (41,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 7
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(41, 15),
+                // (42,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 8
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(42, 15)
                 );
         }
 
