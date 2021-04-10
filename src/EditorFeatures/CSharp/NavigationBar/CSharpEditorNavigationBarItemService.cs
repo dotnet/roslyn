@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigationBar;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 {
@@ -28,16 +30,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         protected override async Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree!.Equals(syntaxTree));
-
-            if (location == null)
-                location = symbol.Locations.FirstOrDefault();
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var location =
+                symbol.Locations.FirstOrDefault(l => Equals(l.SourceTree, syntaxTree)) ??
+                symbol.Locations.FirstOrDefault(l => l.SourceTree != null);
 
             if (location == null)
                 return null;
 
-            return new VirtualTreePoint(location.SourceTree!, location.SourceTree!.GetText(cancellationToken), location.SourceSpan.Start);
+            var tree = location.SourceTree;
+            Contract.ThrowIfNull(tree);
+
+            return new VirtualTreePoint(tree, tree.GetText(cancellationToken), location.SourceSpan.Start);
         }
 
         protected override Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
