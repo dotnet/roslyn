@@ -668,6 +668,11 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
 
             return nullableWarnings;
         }
+
+        protected override ParseOptions CreateParseOptions()
+        {
+            return ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
+        }
     }
 }
 ```
