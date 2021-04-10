@@ -3639,18 +3639,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                     explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
 
-                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
+                var baseToStringMethod = getBaseToStringMethod();
+
+                if (baseToStringMethod is { IsSealed: true })
                 {
-                    var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
-                    members.Add(toStringMethod);
+                    if (baseToStringMethod.ContainingModule != this.ContainingModule && !this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
+                    {
+                        var languageVersion = ((CSharpParseOptions)this.Locations[0].SourceTree!.Options).LanguageVersion;
+                        var requiredVersion = MessageID.IDS_FeatureSealedToStringInRecord.RequiredVersion();
+                        diagnostics.Add(
+                            ErrorCode.ERR_InheritingFromRecordWithSealedToString,
+                            this.Locations[0],
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(requiredVersion));
+                    }
                 }
                 else
                 {
-                    var toStringMethod = (MethodSymbol)existingToStringMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                    if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
                     {
-                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, toStringMethod.Locations[0], toStringMethod);
+                        var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                        members.Add(toStringMethod);
                     }
+                    else
+                    {
+                        var toStringMethod = (MethodSymbol)existingToStringMethod;
+                        if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                        {
+                            MessageID.IDS_FeatureSealedToStringInRecord.CheckFeatureAvailability(
+                                diagnostics,
+                                this.DeclaringCompilation,
+                                toStringMethod.Locations[0]);
+                        }
+                    }
+                }
+
+                MethodSymbol? getBaseToStringMethod()
+                {
+                    var objectToString = this.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString);
+                    var currentBaseType = this.BaseTypeNoUseSiteDiagnostics;
+                    while (currentBaseType is not null)
+                    {
+                        foreach (var member in currentBaseType.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectToString))
+                        {
+                            if (member is not MethodSymbol method)
+                                continue;
+
+                            if (method.GetLeastOverriddenMethod(null) == objectToString)
+                                return method;
+                        }
+
+                        currentBaseType = currentBaseType.BaseTypeNoUseSiteDiagnostics;
+                    }
+
+                    return null;
                 }
             }
 
