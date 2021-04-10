@@ -152,11 +152,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             SnapshotPoint caretPosition,
             CancellationToken cancellationToken)
         {
+            // First wait the delay before doing any other work.  That way if we get canceled due to other events (like
+            // the user moving around), we don't end up doing anything, and the next task can take over.
+            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+
             var lastModel = await lastModelTask.ConfigureAwait(false);
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
             var currentSelectedItem = ComputeSelectedTypeAndMember(lastModel, caretPosition, cancellationToken);
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
