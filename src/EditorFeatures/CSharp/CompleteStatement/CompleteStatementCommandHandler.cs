@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var delimiters = startingNode.GetParentheses();
             if (delimiters == default)
             {
-                delimiters = startingNode.GetBraces();
+                delimiters = startingNode.GetBrackets();
             }
 
             var (openingDelimiter, closingDelimiter) = delimiters;
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </returns>
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
-            return currentNode.GetBraces().closeBrace.IsMissing ||
+            return currentNode.GetBrackets().closeBrace.IsMissing ||
                 currentNode.GetParentheses().closeParen.IsMissing;
         }
     }
