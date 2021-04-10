@@ -303,6 +303,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 (var sources, var diagnostics) = context.ToImmutableAndFree();
+                diagnostics = FilterDiagnostics(compilation, diagnostics, cancellationToken);
+
                 stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
                 diagnosticsBag?.AddRange(diagnostics);
             }
@@ -436,6 +438,20 @@ namespace Microsoft.CodeAnalysis
 
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
+        }
+
+        private static ImmutableArray<Diagnostic> FilterDiagnostics(Compilation compilation, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        {
+            DiagnosticBag filteredDiagnostics = DiagnosticBag.GetInstance();
+            foreach (var diag in diagnostics)
+            {
+                var filtered = compilation.Options.FilterDiagnostic(diag, cancellationToken);
+                if (filtered is object)
+                {
+                    filteredDiagnostics.Add(filtered);
+                }
+            }
+            return filteredDiagnostics.ToReadOnlyAndFree();
         }
 
         internal static string GetFilePathPrefixForGenerator(ISourceGenerator generator)
