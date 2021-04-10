@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class SemanticClassificationBufferTaggerProvider : ForegroundThreadAffinitizedObject, ITaggerProvider
+    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider : ForegroundThreadAffinitizedObject, ITaggerProvider
     {
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IForegroundNotificationService _notificationService;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public SemanticClassificationBufferTaggerProvider(
+        public CopyPasteAndPrintingClassificationBufferTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
