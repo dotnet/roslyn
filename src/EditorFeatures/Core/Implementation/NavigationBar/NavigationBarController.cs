@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 {
                     var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
                     var snapshot = _subjectBuffer.CurrentSnapshot;
-                    item.Spans = item.TrackingSpans.Select(ts => ts.GetSpan(snapshot).Span.ToTextSpan()).ToList();
+                    item.Spans = item.TrackingSpans.SelectAsArray(ts => ts.GetSpan(snapshot).Span.ToTextSpan());
                     var view = _presenter.TryGetCurrentView();
 
                     if (navBarService is INavigationBarItemService2 navBarService2)

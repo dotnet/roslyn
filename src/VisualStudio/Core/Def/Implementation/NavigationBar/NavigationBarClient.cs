@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
                     var currentTypeItem = GetCurrentTypeItem();
 
                     pcEntries = currentTypeItem != null
-                        ? (uint)currentTypeItem.ChildItems.Count
+                        ? (uint)currentTypeItem.ChildItems.Length
                         : 0;
 
                     break;

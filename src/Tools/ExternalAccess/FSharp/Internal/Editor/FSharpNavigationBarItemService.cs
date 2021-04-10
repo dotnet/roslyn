@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public async Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            if (item.Spans.Count > 0)
+            if (!item.Spans.IsEmpty)
             {
                 var span = item.Spans.First();
                 var workspace = document.Project.Solution.Workspace;
