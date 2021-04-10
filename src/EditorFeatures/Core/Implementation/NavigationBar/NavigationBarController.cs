@@ -32,13 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     /// </remarks>
     internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, INavigationBarController
     {
-        private static readonly NavigationBarModel EmptyModel = new(
-            ImmutableArray<NavigationBarItem>.Empty,
-            semanticVersionStamp: default,
-            itemService: null!);
-
-        private static readonly NavigationBarSelectedTypeAndMember EmptySelectedInfo = new(typeItem: null, memberItem: null);
-
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
         private readonly IWaitIndicator _waitIndicator;
@@ -48,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private Workspace? _workspace;
 
         /// <summary>
-        /// Latest model and selected items produced once <see cref="_selectedItemInfoTask"/> completes and presents the
-        /// single item to the view.  These can then be read in when the dropdown is expanded and we want to show all
-        /// items.
+        /// Latest model and selected items produced once <see cref="DetermineSelectedItemInfoAsync"/> completes and
+        /// presents the single item to the view.  These can then be read in when the dropdown is expanded and we want
+        /// to show all items.
         /// </summary>
         private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _latestModelAndSelectedInfo_OnlyAccessOnUIThread;
 
@@ -82,10 +75,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             subjectBuffer.PostChanged += OnSubjectBufferPostChanged;
 
             // Initialize the tasks to be an empty model so we never have to deal with a null case.
-            _modelTask = Task.FromResult(EmptyModel);
-            _selectedItemInfoTask = Task.FromResult(EmptySelectedInfo);
+            _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(
+                ImmutableArray<NavigationBarItem>.Empty,
+                semanticVersionStamp: default,
+                itemService: null!);
+            _latestModelAndSelectedInfo_OnlyAccessOnUIThread.selectedInfo = new(typeItem: null, memberItem: null);
 
-            _latestModelAndSelectedInfo_OnlyAccessOnUIThread = (EmptyModel, EmptySelectedInfo);
+            _modelTask = Task.FromResult(_latestModelAndSelectedInfo_OnlyAccessOnUIThread.model);
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
