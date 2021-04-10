@@ -147,11 +147,6 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return _metadataReferenceInfo;
         }
 
-        public OutputKind GetOutputKind() =>
-            (PdbReader.DebugMetadataHeader is { } header && !header.EntryPoint.IsNil)
-            ? OutputKind.ConsoleApplication
-            : OutputKind.DynamicallyLinkedLibrary;
-
         public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
 
         public (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
@@ -233,6 +228,11 @@ namespace Microsoft.CodeAnalysis.Rebuild
         public byte[]? GetPublicKey()
         {
             var metadataReader = PeReader.GetMetadataReader();
+            if (!metadataReader.IsAssembly)
+            {
+                return null;
+            }
+
             var blob = metadataReader.GetAssemblyDefinition().PublicKey;
             if (blob.IsNil)
             {
@@ -387,6 +387,8 @@ namespace Microsoft.CodeAnalysis.Rebuild
             blobReader = default;
             return false;
         }
+
+        public bool HasEmbeddedPdb => PeReader.ReadDebugDirectory().Any(entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
 
         private static ImmutableArray<(string, string)> ParseCompilationOptions(BlobReader blobReader)
         {
