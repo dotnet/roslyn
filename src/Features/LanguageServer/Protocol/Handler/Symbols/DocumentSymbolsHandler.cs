@@ -65,30 +65,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 foreach (var item in navBarItems)
                 {
                     // only top level ones
-                    var symbol = await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false);
-                    if (symbol != null)
-                    {
-                        symbols.Add(symbol);
-                    }
+                    symbols.AddIfNotNull(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
                 }
             }
             else
             {
                 foreach (var item in navBarItems)
                 {
-                    var symbol = GetSymbolInformation(item, compilation, tree, document, text, cancellationToken, containerName: null);
-                    if (symbol != null)
-                    {
-                        symbols.Add(symbol);
-                    }
+                    symbols.AddIfNotNull(GetSymbolInformation(item, compilation, tree, document, text, cancellationToken, containerName: null));
 
                     foreach (var childItem in item.ChildItems)
                     {
-                        var childSymbol = GetSymbolInformation(childItem, compilation, tree, document, text, cancellationToken, item.Text);
-                        if (childSymbol != null)
-                        {
-                            symbols.Add(childSymbol);
-                        }
+                        symbols.AddIfNotNull(GetSymbolInformation(childItem, compilation, tree, document, text, cancellationToken, item.Text));
                     }
                 }
             }
@@ -170,11 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 using var _ = ArrayBuilder<DocumentSymbol>.GetInstance(out var list);
                 foreach (var item in items)
                 {
-                    var symbol = await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false);
-                    if (symbol != null)
-                    {
-                        list.Add(symbol);
-                    }
+                    list.AddIfNotNull(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
                 }
 
                 return list.ToArray();
