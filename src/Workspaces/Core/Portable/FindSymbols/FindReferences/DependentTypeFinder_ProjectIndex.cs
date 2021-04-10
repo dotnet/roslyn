@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         switch (info.Kind)
                         {
                             case DeclaredSymbolInfoKind.Class:
+                            case DeclaredSymbolInfoKind.Record:
                                 classesThatMayDeriveFromSystemObject.Add(document, info);
                                 break;
                             case DeclaredSymbolInfoKind.Enum:

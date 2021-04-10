@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         node.Kind() switch
                         {
                             SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
-                            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Class,
+                            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
                             SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
                             SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
                             _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),

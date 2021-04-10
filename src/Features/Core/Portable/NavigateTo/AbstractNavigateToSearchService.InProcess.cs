@@ -287,6 +287,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             switch (declaredSymbolInfo.Kind)
             {
                 case DeclaredSymbolInfoKind.Class:
+                case DeclaredSymbolInfoKind.Record:
                     return NavigateToItemKind.Class;
                 case DeclaredSymbolInfoKind.Constant:
                     return NavigateToItemKind.Constant;
@@ -354,6 +355,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     {
                         case NavigateToItemKind.Class:
                             lookupTable[(int)DeclaredSymbolInfoKind.Class] = true;
+                            lookupTable[(int)DeclaredSymbolInfoKind.Record] = true;
                             break;
                         case NavigateToItemKind.Constant:
                             lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;
