@@ -96,10 +96,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private static SymbolInformation GetSymbolInformation(NavigationBarItem item, Compilation compilation, SyntaxTree tree, Document document,
             SourceText text, CancellationToken cancellationToken, string containerName = null)
         {
-            if (item.Spans.Count == 0)
-            {
+            if (item.Spans.IsEmpty)
                 return null;
-            }
 
             var location = GetLocation(item, compilation, tree, cancellationToken);
 

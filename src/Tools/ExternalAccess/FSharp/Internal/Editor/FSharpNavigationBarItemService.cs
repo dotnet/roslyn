@@ -2,22 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Linq;
-using System.Composition;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             {
                 var span = item.Spans.First();
                 var workspace = document.Project.Solution.Workspace;
-                var navigationService = workspace.Services.GetService<IFSharpDocumentNavigationService>();
+                var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                 }
                 else
                 {
-                    var notificationService = workspace.Services.GetService<INotificationService>();
+                    var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                     notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
                 }
             }
@@ -77,27 +77,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item)
         {
-            return
-                new InternalNavigationBarItem(
-                    item.Text,
-                    FSharpGlyphHelpers.ConvertTo(item.Glyph),
-                    item.Spans,
-                    item.ChildItems?.Select(x => ConvertToNavigationBarItem(x)).ToList(),
-                    item.Indent,
-                    item.Bolded,
-                    item.Grayed);
+            var childItems = item.ChildItems ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>();
+
+            return new InternalNavigationBarItem(
+                item.Text,
+                FSharpGlyphHelpers.ConvertTo(item.Glyph),
+                item.Spans.ToImmutableArrayOrEmpty(),
+                childItems.SelectAsArray(x => ConvertToNavigationBarItem(x)),
+                item.Indent,
+                item.Bolded,
+                item.Grayed);
         }
 
         private class InternalNavigationBarItem : NavigationBarItem
         {
-            public InternalNavigationBarItem(
-                string text,
-                Glyph glyph,
-                IList<TextSpan> spans,
-                IList<NavigationBarItem> childItems,
-                int indent,
-                bool bolded,
-                bool grayed) : base(text, glyph, spans, childItems, indent, bolded, grayed)
+            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
+                : base(text, glyph, spans, childItems, indent, bolded, grayed)
             {
             }
         }

@@ -23,19 +23,25 @@ namespace Microsoft.CodeAnalysis.Editor
         public ImmutableArray<TextSpan> Spans { get; internal set; }
         internal ImmutableArray<ITrackingSpan> TrackingSpans { get; set; } = ImmutableArray<ITrackingSpan>.Empty;
 
+        // Legacy constructor for TypeScript.
+        public NavigationBarItem(string text, Glyph glyph, IList<TextSpan> spans, IList<NavigationBarItem>? childItems = null, int indent = 0, bool bolded = false, bool grayed = false)
+            : this(text, glyph, spans.ToImmutableArrayOrEmpty(), childItems.ToImmutableArrayOrEmpty(), indent, bolded, grayed)
+        {
+        }
+
         public NavigationBarItem(
             string text,
             Glyph glyph,
-            IList<TextSpan> spans,
-            IList<NavigationBarItem>? childItems = null,
+            ImmutableArray<TextSpan> spans,
+            ImmutableArray<NavigationBarItem> childItems = default,
             int indent = 0,
             bool bolded = false,
             bool grayed = false)
         {
             this.Text = text;
             this.Glyph = glyph;
-            this.Spans = spans.ToImmutableArray();
-            this.ChildItems = childItems.ToImmutableArrayOrEmpty();
+            this.Spans = spans;
+            this.ChildItems = childItems.NullToEmpty();
             this.Indent = indent;
             this.Bolded = bolded;
             this.Grayed = grayed;

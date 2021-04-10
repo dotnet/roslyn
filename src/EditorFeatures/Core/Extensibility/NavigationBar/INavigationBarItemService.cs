@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface INavigationBarItemService : ILanguageService
     {
-        Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
+        Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
 
         /// <summary>

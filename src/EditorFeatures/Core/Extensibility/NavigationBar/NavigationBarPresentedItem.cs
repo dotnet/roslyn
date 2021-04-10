@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -18,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor
         public NavigationBarPresentedItem(
             string text,
             Glyph glyph,
-            IList<TextSpan> spans,
-            IList<NavigationBarItem> childItems = null,
+            ImmutableArray<TextSpan> spans,
+            ImmutableArray<NavigationBarItem> childItems = default,
             bool bolded = false,
             bool grayed = false)
             : base(

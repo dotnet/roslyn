@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
             => throw new NotSupportedException($"Caller should call {nameof(NavigateToItemAsync)} instead");
 
-        public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
             var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);

@@ -280,8 +280,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     documentId: d.Id,
                     language: d.Project.Language)).OrderBy(projectItem => projectItem.Text).ToImmutableArray();
 
-            projectItems.Do(i => i.InitializeTrackingSpans(_subjectBuffer.CurrentSnapshot));
-
             var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             selectedProjectItem = document != null
                 ? projectItems.FirstOrDefault(p => p.Text == document.Project.Name) ?? projectItems.First()
@@ -298,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             NavigationBarItem? newLeft = null;
             NavigationBarItem? newRight = null;
             using var _1 = ArrayBuilder<NavigationBarItem>.GetInstance(out var listOfLeft);
-            var listOfRight = new List<NavigationBarItem>();
+            using var _2 = ArrayBuilder<NavigationBarItem>.GetInstance(out var listOfRight);
 
             if (oldRight != null)
             {
@@ -311,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (oldLeft != null)
             {
-                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight, oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
+                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
                 {
                     TrackingSpans = oldLeft.TrackingSpans
                 };

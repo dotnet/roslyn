@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor
             Workspace workspace,
             DocumentId documentId,
             string language)
-                : base(text, glyph, SpecializedCollections.EmptyList<TextSpan>(),
+                : base(text, glyph, ImmutableArray<TextSpan>.Empty,
                        childItems: null, indent: 0, bolded: false, grayed: false)
         {
             this.Workspace = workspace;
