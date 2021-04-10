@@ -94,32 +94,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // TODO: remove .FirstOrDefault()
             var languageService = document.GetLanguageService<INavigationBarItemService>();
-            if (languageService == null)
-                return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, new VersionStamp(), null);
-
-            // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
-            // the model should be only updated here
-            if (lastCompletedModel != null)
+            if (languageService != null)
             {
-                var semanticVersion = await document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).ConfigureAwait(false);
-                if (lastCompletedModel.SemanticVersionStamp == semanticVersion && SpanStillValid(lastCompletedModel, snapshot, cancellationToken))
+                // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
+                // the model should be only updated here
+                if (lastCompletedModel != null)
                 {
-                    // it looks like we can re-use previous model
-                    return lastCompletedModel;
+                    var semanticVersion = await document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).ConfigureAwait(false);
+                    if (lastCompletedModel.SemanticVersionStamp == semanticVersion && SpanStillValid(lastCompletedModel, snapshot, cancellationToken))
+                    {
+                        // it looks like we can re-use previous model
+                        return lastCompletedModel;
+                    }
+                }
+
+                using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
+                {
+                    var items = await languageService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+                    if (items != null)
+                    {
+                        items.Do(i => i.InitializeTrackingSpans(snapshot));
+                        var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
+                        return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
+                    }
                 }
             }
 
-            using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
-            {
-                var items = await languageService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-                if (items != null)
-                {
-                    items.Do(i => i.InitializeTrackingSpans(snapshot));
-                    var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-                    return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
-                }
-            }
+            return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, new VersionStamp(), null);
         }
 
         /// <summary>

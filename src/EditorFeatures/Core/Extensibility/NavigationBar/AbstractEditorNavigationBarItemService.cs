@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,17 +16,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-    internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService
+    internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService2
     {
         protected readonly IThreadingContext ThreadingContext;
 
         protected AbstractEditorNavigationBarItemService(IThreadingContext threadingContext)
-        {
-            ThreadingContext = threadingContext;
-        }
+            => ThreadingContext = threadingContext;
 
         protected abstract Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
         protected abstract Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
+
+        public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+            => throw new NotSupportedException($"Caller should call {nameof(NavigateToItemAsync)} instead");
 
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
