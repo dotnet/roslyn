@@ -24,11 +24,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    internal partial class SemanticClassificationBufferTaggerProvider
+    internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
     {
         private class Tagger : ForegroundThreadAffinitizedObject, IAccurateTagger<IClassificationTag>, IDisposable
         {
-            private readonly SemanticClassificationBufferTaggerProvider _owner;
+            private readonly CopyPasteAndPrintingClassificationBufferTaggerProvider _owner;
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITaggerEventSource _eventSource;
             private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
 
             public Tagger(
-                SemanticClassificationBufferTaggerProvider owner,
+                CopyPasteAndPrintingClassificationBufferTaggerProvider owner,
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener asyncListener)
                 : base(owner.ThreadingContext)

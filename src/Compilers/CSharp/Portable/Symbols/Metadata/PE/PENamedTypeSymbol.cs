@@ -560,8 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var discarededUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                return SynthesizedRecordClone.FindValidCloneMethod(this, ref discarededUseSiteInfo) != null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return SynthesizedRecordClone.FindValidCloneMethod(this, ref discardedUseSiteInfo) != null;
             }
         }
 

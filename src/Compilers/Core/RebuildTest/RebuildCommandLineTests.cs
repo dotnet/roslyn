@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public sealed partial class RebuildCommandLineTests : CSharpTestBase
     {
-        private record CommandInfo(string CommandLine, string PeFileName, string? PdbFileName);
+        private record CommandInfo(string CommandLine, string PeFileName, string? PdbFileName, string? CommandLineSuffix = null);
 
         internal static string RootDirectory => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"q:\" : "/";
         internal static string ClientDirectory => Path.Combine(RootDirectory, "compiler");
@@ -54,6 +54,44 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 filePath = Path.Combine(OutputDirectory, filePath);
                 FilePathToStreamMap.Add(filePath, new TestableFile());
             }
+        }
+
+        private static IEnumerable<CommandInfo> PermutateDllKinds(CommandInfo commandInfo)
+        {
+            yield return commandInfo with
+            {
+                CommandLine = commandInfo.CommandLine + " /target:library",
+                PeFileName = Path.ChangeExtension(commandInfo.PeFileName, "dll"),
+            };
+            yield return commandInfo with
+            {
+                CommandLine = commandInfo.CommandLine + " /target:module",
+                PeFileName = Path.ChangeExtension(commandInfo.PeFileName, "netmodule"),
+            };
+            yield return commandInfo with
+            {
+                CommandLine = commandInfo.CommandLine + " /target:winmdobj",
+                PeFileName = Path.ChangeExtension(commandInfo.PeFileName, "dll"),
+            };
+        }
+
+        private static IEnumerable<CommandInfo> PermutateExeKinds(CommandInfo commandInfo)
+        {
+            yield return commandInfo with
+            {
+                CommandLine = commandInfo.CommandLine + " /target:exe",
+                PeFileName = Path.ChangeExtension(commandInfo.PeFileName, "exe"),
+            };
+            yield return commandInfo with
+            {
+                CommandLine = commandInfo.CommandLine + " /target:winexe",
+                PeFileName = Path.ChangeExtension(commandInfo.PeFileName, "exe"),
+            };
+            yield return commandInfo with
+            {
+                CommandLine = commandInfo.CommandLine + " /target:appcontainerexe",
+                PeFileName = Path.ChangeExtension(commandInfo.PeFileName, "exe"),
+            };
         }
 
         private void VerifyRoundTrip(CommonCompiler commonCompiler, string peFilePath, string? pdbFilePath = null, CancellationToken cancellationToken = default)
@@ -104,25 +142,102 @@ class Library
     }
 }
 ");
+
+            AddSourceFile("lib2.cs", @"
+extern alias SystemRuntime;
+using System;
+
+class Library
+{
+    void Method()
+    {
+        System.Reflection.Assembly a1 = null;
+        SystemRuntime::System.Reflection.Assembly a2 = null;
+        Console.WriteLine(a1);
+        Console.WriteLine(a2);
+    }
+}
+");
+
+            AddSourceFile("lib3.cs", @"
+extern alias SystemRuntime1;
+extern alias SystemRuntime2;
+using System;
+
+class Library
+{
+    void Method()
+    {
+        System.Reflection.Assembly a1 = null;
+        SystemRuntime1::System.Reflection.Assembly a2 = null;
+        SystemRuntime2::System.Reflection.Assembly a3 = null;
+        Console.WriteLine(a1);
+        Console.WriteLine(a2);
+        Console.WriteLine(a3);
+    }
+}
+");
         }
 
         public static IEnumerable<object?[]> GetCSharpData()
         {
             var list = new List<object?[]>();
 
-            Add(Permutate(new CommandInfo("hw.cs /target:exe /debug:embedded", "test.exe", null)));
-            Add(Permutate(new CommandInfo("lib1.cs /target:library /debug:embedded", "test.dll", null)));
+            Permutate(
+                new CommandInfo("hw.cs", "test.exe", null),
+                PermutateOptimizations, PermutateExeKinds, PermutatePdbFormat);
+            Permutate(new CommandInfo("lib1.cs", "test.dll", null),
+                PermutateOptimizations, PermutateDllKinds, PermutatePdbFormat);
+            Permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll /debug:embedded", "test.dll", null),
+                PermutateOptimizations);
+            Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
+                PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
 
             return list;
 
-            IEnumerable<CommandInfo> Permutate(CommandInfo commandInfo)
+            void Permutate(CommandInfo commandInfo, params Func<CommandInfo, IEnumerable<CommandInfo>>[] permutations)
             {
                 IEnumerable<CommandInfo> e = new[] { commandInfo };
-                e = e.SelectMany(PermutateOptimizations);
-                return e;
+                foreach (var p in permutations)
+                {
+                    e = e.SelectMany(p);
+                }
+
+                Add(e);
             }
 
-            IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
+            // Permutate the alias before and after the standard references so that we make sure the 
+            // rebuild is resistent to the ordering of aliases. 
+            static IEnumerable<CommandInfo> PermutateExternAlias(CommandInfo commandInfo)
+            {
+                var alias = @" /r:SystemRuntime1=System.Runtime.dll /r:SystemRuntime2=System.Runtime.dll";
+
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + alias
+                };
+
+                yield return commandInfo with
+                {
+                    CommandLineSuffix = commandInfo.CommandLineSuffix + alias
+                };
+            }
+
+            static IEnumerable<CommandInfo> PermutatePdbFormat(CommandInfo commandInfo)
+            {
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /debug:portable",
+                    PdbFileName = "test.pdb"
+                };
+
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /debug:embedded"
+                };
+            }
+
+            static IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
             {
                 // No options at all for optimization
                 yield return commandInfo;
@@ -148,14 +263,14 @@ class Library
             {
                 foreach (var commandInfo in commandInfos)
                 {
-                    list.Add(new object?[] { commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName });
+                    list.Add(new object?[] { commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName, commandInfo.CommandLineSuffix });
                 }
             }
         }
 
         [Theory]
         [MemberData(nameof(GetCSharpData))]
-        public void CSharp(string commandLine, string peFilePath, string? pdbFilePath)
+        public void CSharp(string commandLine, string peFilePath, string? pdbFilePath, string? commandLineSuffix)
         {
             TestOutputHelper.WriteLine($"Command Line: {commandLine}");
             AddCSharpSourceFiles();
@@ -176,6 +291,11 @@ class Library
                 args.Add($"/pdb:{pdbFilePath}");
             }
 
+            if (commandLineSuffix is object)
+            {
+                args.AddRange(commandLineSuffix.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            }
+
             TestOutputHelper.WriteLine($"Final Line: {string.Join(" ", args)}");
             var compiler = new CSharpRebuildCompiler(args.ToArray());
             VerifyRoundTrip(compiler, peFilePath, pdbFilePath);
@@ -191,25 +311,45 @@ Public Module M
     End Sub
 End Module
 ");
+
+            AddSourceFile("lib1.vb", @"
+Imports System
+Public Module M
+    Public Function Add(left As Integer, right As Integer) As Integer
+        return left + right
+    End Function
+End Module
+");
         }
 
         public static IEnumerable<object?[]> GetVisualBasicData()
         {
             var list = new List<object?[]>();
 
-            Add(Permutate(new CommandInfo("hw.vb /target:exe /debug:embedded", "test.exe", null)));
+            Permutate(
+                new CommandInfo("hw.vb /debug:embedded", "test.exe", null),
+                PermutateOptimizations, PermutateRuntime, PermutateExeKinds);
+            Permutate(
+                new CommandInfo("lib1.vb /target:library /debug:embedded", "test.dll", null),
+                PermutateOptimizations, PermutateRuntime);
+            Permutate(
+                new CommandInfo(@"lib1.vb /debug:embedded /d:_MYTYPE=""Empty"" /vbruntime:Microsoft.VisualBasic.dll", "test.dll", null),
+                PermutateOptimizations, PermutateDllKinds);
 
             return list;
 
-            IEnumerable<CommandInfo> Permutate(CommandInfo commandInfo)
+            void Permutate(CommandInfo commandInfo, params Func<CommandInfo, IEnumerable<CommandInfo>>[] permutations)
             {
                 IEnumerable<CommandInfo> e = new[] { commandInfo };
-                e = e.SelectMany(PermutateOptimizations);
-                e = e.SelectMany(PermutateRuntime);
-                return e;
+                foreach (var p in permutations)
+                {
+                    e = e.SelectMany(p);
+                }
+
+                Add(e);
             }
 
-            IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
             {
                 // No options at all for optimization
                 yield return commandInfo;
@@ -231,7 +371,7 @@ End Module
                 };
             }
 
-            IEnumerable<CommandInfo> PermutateRuntime(CommandInfo commandInfo)
+            static IEnumerable<CommandInfo> PermutateRuntime(CommandInfo commandInfo)
             {
                 yield return commandInfo with
                 {
