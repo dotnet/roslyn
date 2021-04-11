@@ -320,5 +320,42 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
         }
+
+        internal async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
+            ImmutableArray<string> projectFilePaths,
+            ImmutableArray<string> targets,
+            ProjectMap? projectMap,
+            IProgress<ProjectLoadProgress>? progress,
+            ILogger? msbuildLogger,
+            CancellationToken cancellationToken)
+        {
+            var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
+
+            var reportingMode = GetReportingModeForUnrecognizedProjects();
+
+            var discoveredProjectOptions = new DiagnosticReportingOptions(
+                onPathFailure: reportingMode,
+                onLoaderFailure: reportingMode);
+
+            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
+
+            var worker = new Worker(
+                _workspaceServices,
+                _diagnosticReporter,
+                _pathResolver,
+                _projectFileLoaderRegistry,
+                buildManager,
+                requestedProjectPaths: projectFilePaths,
+                baseDirectory: Directory.GetCurrentDirectory(),
+                globalProperties: Properties,
+                targets,
+                projectMap,
+                progress,
+                requestedProjectOptions,
+                discoveredProjectOptions,
+                this.LoadMetadataForReferencedProjects);
+
+            return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }

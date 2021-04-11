@@ -144,6 +144,9 @@
   <data name="Path_for_document_0_was_null" xml:space="preserve">
     <value>Path for document '{0}' was null</value>
   </data>
+  <data name="Project_0_is_not_a_part_of_the_current_Solution" xml:space="preserve">
+    <value>Project '{0}' is not a part of the current Solution.</value>
+  </data>
   <data name="Project_already_added" xml:space="preserve">
     <value>Project already added.</value>
   </data>

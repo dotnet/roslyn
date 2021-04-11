@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -334,6 +335,80 @@ namespace Microsoft.CodeAnalysis.MSBuild
             RoslynDebug.AssertNotNull(projectResult);
             return projectResult;
         }
+
+        /// <summary>
+        /// Reload the given projects based on their contents on disk.
+        /// </summary>
+        /// <param name="projectIds">The <see cref="ProjectId" /> set to be reloaded</param>
+        /// <param name="targets">The set of targets to execute on all projects in the solution</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results..</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+        public async Task<ImmutableArray<Project>> ReloadProjectsAsync(
+            ImmutableArray<ProjectId> projectIds,
+            ImmutableArray<string> targets = default,
+            ILogger? msbuildLogger = null,
+            IProgress<ProjectLoadProgress>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (targets == default)
+            {
+                targets = Targets.Default;
+            }
+
+            using var _1 = ArrayBuilder<Project>.GetInstance(out var projectsToReload);
+            foreach (var projectId in projectIds)
+            {
+                var projectResult = this.CurrentSolution.GetProject(projectId);
+                if (projectResult is null)
+                {
+                    var message = string.Format(WorkspaceMSBuildResources.Project_0_is_not_a_part_of_the_current_Solution, projectId);
+                    throw new InvalidOperationException(message);
+                }
+
+                projectsToReload.Add(projectResult);
+            }
+
+            var projectMap = ProjectMap.Create(this.CurrentSolution);
+            var projectFilePaths = projectsToReload.SelectAsArray(p => p.FilePath);
+            // None of the project file paths should be null
+            var projects = await _loader.LoadProjectInfoAsync(projectFilePaths!, targets, projectMap, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
+
+            foreach (var project in projects)
+            {
+                this.OnProjectRemoved(project.Id);
+                this.OnProjectAdded(project);
+            }
+
+            this.UpdateReferencesAfterAdd();
+
+            projectsToReload.Clear();
+            foreach (var projectId in projectIds)
+            {
+                var projectResult = this.CurrentSolution.GetProject(projectId);
+                RoslynDebug.AssertNotNull(projectResult);
+                projectsToReload.Add(projectResult);
+            }
+
+            return projectsToReload.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Reload the given project based on its contents on disk.
+        /// </summary>
+        /// <param name="projectId">The <see cref="ProjectId" /> to be reloaded.</param>
+        /// <param name="targets">The set of targets to execute on all projects in the solution.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+        /// <returns></returns>
+        public async Task<Project> ReloadProjectAsync(
+            ProjectId projectId,
+            ImmutableArray<string> targets = default,
+            ILogger? msbuildLogger = null,
+            IProgress<ProjectLoadProgress>? progress = null,
+            CancellationToken cancellationToken = default)
+            => (await ReloadProjectsAsync(ImmutableArray.Create(projectId), targets, msbuildLogger, progress, cancellationToken).ConfigureAwait(false)).Single();
 
         #endregion
 
