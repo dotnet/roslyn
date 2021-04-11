@@ -1,1 +1,3 @@
-
+Microsoft.CodeAnalysis.MSBuild.Targets
+static Microsoft.CodeAnalysis.MSBuild.Targets.Default.get -> System.Collections.Immutable.ImmutableArray<string>
+static Microsoft.CodeAnalysis.MSBuild.Targets.Restore.get -> System.Collections.Immutable.ImmutableArray<string>
