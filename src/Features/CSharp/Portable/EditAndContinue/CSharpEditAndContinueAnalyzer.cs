@@ -663,6 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (oldNode.RawKind == newNode.RawKind)
             {
                 base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol);
+                return;
             }
 
             // When explicitly implementing a property that is represented by a positional parameter
