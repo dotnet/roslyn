@@ -56,6 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             _threadingContext = threadingContext;
 
             AnalyzerService = analyzerService;
+
+            _workspace.DocumentClosed += OnDocumentClosed;
         }
 
         public static IXamlDocumentAnalyzerService? AnalyzerService { get; private set; }
@@ -184,6 +186,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             return null;
         }
 
+        private void OnDocumentClosed(object sender, DocumentEventArgs e)
+        {
+            var filePath = e.Document.FilePath;
+            if (filePath == null)
+            {
+                return;
+            }
+
+            if (_documentIds.TryGetValue(filePath, out var documentId))
+            {
+                var document = _workspace.CurrentSolution.GetDocument(documentId);
+                if (document?.FilePath != null)
+                {
+                    var project = _xamlProjects.Values.SingleOrDefault(p => p.Id == document.Project.Id);
+                    project?.RemoveSourceFile(document.FilePath);
+                }
+                _documentIds.TryRemove(filePath, out _);
+            }
+        }
+
         private void OnProjectClosing(IVsHierarchy hierarchy)
         {
             if (_xamlProjects.TryGetValue(hierarchy, out var project))
@@ -229,20 +251,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
                 var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(newMoniker).Single(d => d.ProjectId == project.Id);
                 _documentIds[newMoniker] = documentId;
-            }
-        }
-
-        private void OnDocumentClosed(string filePath)
-        {
-            if (_documentIds.TryGetValue(filePath, out var documentId))
-            {
-                var document = _workspace.CurrentSolution.GetDocument(documentId);
-                if (document?.FilePath != null)
-                {
-                    var project = _xamlProjects.Values.SingleOrDefault(p => p.Id == document.Project.Id);
-                    project?.RemoveSourceFile(document.FilePath);
-                }
-                _documentIds.TryRemove(filePath, out _);
             }
         }
 
