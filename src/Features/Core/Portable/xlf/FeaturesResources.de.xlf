@@ -2312,13 +2312,13 @@ Obwohl die Zehntausendstel der Sekundenkomponente eines Uhrzeitwerts angezeigt w
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">Der benutzerdefinierte Formatbezeichner "f" repräsentiert die signifikanteste Stelle des Sekundenbruchteils, d. h., er stellt die Zehntelsekunden in einem Datums- und Uhrzeitwert dar.
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="needs-review-translation">Der benutzerdefinierte Formatbezeichner "f" repräsentiert die signifikanteste Stelle des Sekundenbruchteils, d. h., er stellt die Zehntelsekunden in einem Datums- und Uhrzeitwert dar.
 
 Bei Verwendung des Formatbezeichners "f" ohne weitere benutzerdefinierte Formatbezeichner wird er als Standardformatbezeichner "f" für Datum und Uhrzeit interpretiert.
 
 Bei Verwendung des Formatbezeichners "f" als Teil einer Formatzeichenfolge zur Übergabe an die ParseExact-, TryParseExact-, ParseExact- oder TryParseExact-Methode gibt die f-Formatbezeichneranzahl die Anzahl der signifikantesten Stellen des Sekundenbruchteils an, die vorhanden sein müssen, um die Zeichenfolge erfolgreich zu analysieren.</target>
-        <note />
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
