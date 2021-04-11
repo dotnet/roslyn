@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
-            foreach (var entry in _states)
-                foreach (var item in entry)
-                    yield return (item.item, item.state);
+            return _states.SelectMany(s => s).GetEnumerator();
         }
 
         public IStateTable Compact()
@@ -72,15 +70,15 @@ namespace Microsoft.CodeAnalysis
 
             private Exception? _exception = null;
 
-            public void AddEntries(ImmutableArray<(T, EntryState)> values)
+            public void AddEntries(ImmutableArray<T> values, EntryState state)
             {
-                _states.Add(values);
+                _states.Add(values.SelectAsArray(v => (v, state)));
             }
 
-            public void AddEntriesFromPreviousTable(NodeStateTable<T> previousTable)
+            public void AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
             {
                 Debug.Assert(previousTable._states.Length > _states.Count);
-                var previousEntries = previousTable._states[_states.Count];
+                var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
                 _states.Add(previousEntries);
             }
 
