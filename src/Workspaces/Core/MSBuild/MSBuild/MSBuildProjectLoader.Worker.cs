@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private readonly ImmutableDictionary<string, string> _globalProperties;
 
             /// <summary>
+            /// Set of targets to execute
+            /// </summary>
+            private readonly ImmutableArray<string> _targets;
+
+            /// <summary>
             /// Map of <see cref="ProjectId"/>s, project paths, and output file paths.
             /// </summary>
             private readonly ProjectMap _projectMap;
@@ -79,6 +84,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 ImmutableArray<string> requestedProjectPaths,
                 string baseDirectory,
                 ImmutableDictionary<string, string> globalProperties,
+                ImmutableArray<string> targets,
                 ProjectMap? projectMap,
                 IProgress<ProjectLoadProgress>? progress,
                 DiagnosticReportingOptions requestedProjectOptions,
@@ -93,6 +99,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _baseDirectory = baseDirectory;
                 _requestedProjectPaths = requestedProjectPaths;
                 _globalProperties = globalProperties;
+                _targets = targets;
                 _projectMap = projectMap ?? ProjectMap.Create();
                 _progress = progress;
                 _requestedProjectOptions = requestedProjectOptions;
@@ -203,7 +210,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     ProjectLoadOperation.Build,
                     projectPath,
                     targetFramework: null,
-                    () => projectFile.GetProjectFileInfosAsync(cancellationToken)
+                    () => projectFile.GetProjectFileInfosAsync(_targets, cancellationToken)
                 ).ConfigureAwait(false);
 
                 var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(projectFileInfos.Length);
