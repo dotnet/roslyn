@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol)
         {
             // Compiler generated methods of records have a declaring syntax reference to the record declaration itself
-            // but their explicitly implement counterparts reference the actual member. Compiler generated properties
+            // but their explicitly implemented counterparts reference the actual member. Compiler generated properties
             // of records reference the parameter that names them.
             //
             // Since there is no useful "old" syntax node for these members, we can't compute declaration or body edits
