@@ -3031,7 +3031,7 @@ class C { }";
             buildManager.StartBatchBuild();
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
-            var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
+            var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(Targets.Default, CancellationToken.None)).Single();
             buildManager.EndBatchBuild();
 
             var commandLineParser = workspace.Services

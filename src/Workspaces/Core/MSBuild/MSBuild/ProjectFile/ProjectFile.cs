@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
         protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
-        public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(ImmutableArray<string> targets, CancellationToken cancellationToken)
         {
             if (_loadedProject is null)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
                     _loadedProject.ReevaluateIfNecessary();
 
-                    var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+                    var projectFileInfo = await BuildProjectFileInfoAsync(targets, cancellationToken).ConfigureAwait(false);
 
                     results.Add(projectFileInfo);
                 }
@@ -91,20 +91,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+                var projectFileInfo = await BuildProjectFileInfoAsync(targets, cancellationToken).ConfigureAwait(false);
                 projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath, Log);
                 return ImmutableArray.Create(projectFileInfo);
             }
         }
 
-        private async Task<ProjectFileInfo> BuildProjectFileInfoAsync(CancellationToken cancellationToken)
+        private async Task<ProjectFileInfo> BuildProjectFileInfoAsync(ImmutableArray<string> targets, CancellationToken cancellationToken)
         {
             if (_loadedProject is null)
             {
                 return ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath, Log);
             }
 
-            var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
+            var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, targets, cancellationToken).ConfigureAwait(false);
 
             return project != null
                 ? CreateProjectFileInfo(project)
