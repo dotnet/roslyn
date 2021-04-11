@@ -269,13 +269,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public string GetQuickInfo()
-            => ExecuteOnActiveView(view =>
+        {
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
                 var session = broker.GetSession(view);
+
+                using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+                while (session.State != QuickInfoSessionState.Visible)
+                {
+                    cts.Token.ThrowIfCancellationRequested();
+                    await Task.Delay(50, cts.Token).ConfigureAwait(true);
+                }
+
                 return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
             });
+        }
 
         public void VerifyTags(string tagTypeName, int expectedCount)
             => ExecuteOnActiveView(view =>

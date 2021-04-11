@@ -71,7 +71,7 @@ namespace BuildValidator
         {
             _logger.LogInformation("Locating source files");
 
-            var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
+            var sources = ImmutableArray.CreateBuilder<ResolvedSource>(sourceFileInfos.Length);
             var isError = false;
             foreach (var sourceFileInfo in sourceFileInfos)
             {
@@ -86,7 +86,7 @@ namespace BuildValidator
                 }
             }
 
-            return isError ? null : sources.ToImmutable();
+            return isError ? null : sources.MoveToImmutable();
         }
     }
 }
