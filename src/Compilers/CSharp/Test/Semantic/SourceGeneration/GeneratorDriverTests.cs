@@ -1460,7 +1460,7 @@ class C { }
 //another",
                 new[] { (gen001, TextSpan.FromBounds(34, 37)), (gen001, TextSpan.FromBounds(77, 80)) },
                 Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(2, 3),
-                Diagnostic("GEN001", "ano").WithLocation(2, 3));
+                Diagnostic("GEN001", "ano").WithLocation(4, 3));
 
             void verifyDiagnosticsWithSource(string source, (Diagnostic, TextSpan)[] reportDiagnostics, params DiagnosticDescription[] expected)
             {
