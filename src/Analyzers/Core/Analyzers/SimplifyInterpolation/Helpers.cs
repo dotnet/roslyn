@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 !invocation.Instance.Type!.IsRefLikeType)
             {
                 if (invocation.Arguments.Length == 1
-                    || (invocation.Arguments.Length == 2 && IsInvariantCultureReference(invocation.Arguments[1].Value) && IsInsideFormattableStringInvariant(invocation)))
+                    || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
                 {
                     if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
                        invocation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 }
 
                 if (IsObjectToStringOverride(invocation.TargetMethod)
-                    || (invocation.Arguments.Length == 1 && IsInvariantCultureReference(invocation.Arguments[0].Value) && IsInsideFormattableStringInvariant(invocation)))
+                    || (invocation.Arguments.Length == 1 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 0)))
                 {
                     // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
                     // Just remove entirely.
@@ -143,6 +143,12 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             return method.ContainingType.SpecialType == SpecialType.System_Object
                 && method.Name == nameof(ToString);
+        }
+
+        private static bool UsesInvariantCultureReferenceInsideFormattableStringInvariant(IInvocationOperation invocation, int formatProviderArgumentIndex)
+        {
+            return IsInvariantCultureReference(invocation.Arguments[formatProviderArgumentIndex].Value)
+                && IsInsideFormattableStringInvariant(invocation);
         }
 
         private static bool IsInvariantCultureReference(IOperation operation)
