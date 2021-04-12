@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             _workspace = workspace;
             _correspondingDesignTimeSolutionVersion = -1;
-            _enabled = workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RazorLspEditorFeatureFlag) == true;
+            _enabled = workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RazorLspEditorFeatureFlag);
         }
 
         private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)
