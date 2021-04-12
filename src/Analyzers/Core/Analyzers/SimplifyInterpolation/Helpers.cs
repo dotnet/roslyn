@@ -117,13 +117,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     }
                 }
 
-                var method = invocation.TargetMethod;
-                while (method.OverriddenMethod != null)
-                {
-                    method = method.OverriddenMethod;
-                }
-
-                if ((method.ContainingType.SpecialType == SpecialType.System_Object && method.Name == nameof(ToString))
+                if (IsObjectToStringOverride(invocation.TargetMethod)
                     || (invocation.Arguments.Length == 1 && IsInvariantCultureReference(invocation.Arguments[0].Value) && IsInsideFormattableStringInvariant(invocation)))
                 {
                     // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
@@ -140,6 +134,15 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             unwrapped = expression;
             formatString = null;
+        }
+
+        private static bool IsObjectToStringOverride(IMethodSymbol method)
+        {
+            while (method.OverriddenMethod is not null)
+                method = method.OverriddenMethod;
+
+            return method.ContainingType.SpecialType == SpecialType.System_Object
+                && method.Name == nameof(ToString);
         }
 
         private static bool IsInvariantCultureReference(IOperation operation)
