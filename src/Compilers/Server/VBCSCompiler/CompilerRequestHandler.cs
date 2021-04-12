@@ -142,14 +142,22 @@ Run Compilation for {request.RequestId}
             }
 
             Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            var outputString = output.ToString();
-            Logger.Log(@$"End {request.RequestId} {request.Language} compiler run
+            try
+            {
+                TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+                int returnCode = compiler.Run(output, cancellationToken);
+                var outputString = output.ToString();
+                Logger.Log(@$"End {request.RequestId} {request.Language} compiler run
 Return code: {returnCode}
 Output:
 {outputString}");
-            return new CompletedBuildResponse(returnCode, utf8output, outputString);
+                return new CompletedBuildResponse(returnCode, utf8output, outputString);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex, $"Running compilation for {request.RequestId}");
+                throw;
+            }
         }
     }
 }

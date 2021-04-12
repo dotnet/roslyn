@@ -260,26 +260,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Write the request
                 try
                 {
-                    logger.Log("Begin writing request");
+                    logger.Log($"Begin writing request for {request.RequestId}");
                     await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
-                    logger.Log("End writing request");
+                    logger.Log($"End writing request for {request.RequestId}");
                 }
                 catch (Exception e)
                 {
-                    logger.LogException(e, "Error writing build request.");
+                    logger.LogException(e, $"Error writing build request for {request.RequestId}");
                     return new RejectedBuildResponse($"Error writing build request: {e.Message}");
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
                 var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-                logger.Log("Begin reading response");
+                logger.Log($"Begin reading response for {request.RequestId}");
 
                 var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
                 var monitorTask = MonitorDisconnectAsync(pipeStream, request.RequestId, logger, serverCts.Token);
                 await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
 
-                logger.Log("End reading response");
+                logger.Log($"End reading response for {request.RequestId}");
 
                 if (responseTask.IsCompleted)
                 {
@@ -290,13 +290,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                     catch (Exception e)
                     {
-                        logger.LogException(e, "Error reading response");
+                        logger.LogException(e, $"Reading response for {request.RequestId}");
                         response = new RejectedBuildResponse($"Error reading response: {e.Message}");
                     }
                 }
                 else
                 {
-                    logger.LogError("Client disconnect");
+                    logger.LogError($"Client disconnect for {request.RequestId}");
                     response = new RejectedBuildResponse($"Client disconnected");
                 }
 
