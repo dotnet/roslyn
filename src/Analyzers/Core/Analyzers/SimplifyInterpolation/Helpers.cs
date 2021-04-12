@@ -161,19 +161,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             {
                 if (member.Name == nameof(CultureInfo.InvariantCulture))
                 {
-                    return SymbolEqualityComparer.Default.Equals(
-                        member.ContainingType,
-                        operation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.Globalization.CultureInfo).FullName!));
+                    return IsType<System.Globalization.CultureInfo>(member.ContainingType, operation.SemanticModel);
                 }
 
                 if (member.Name == "InvariantInfo")
                 {
-                    return SymbolEqualityComparer.Default.Equals(
-                            member.ContainingType,
-                            operation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.Globalization.NumberFormatInfo).FullName!))
-                        || SymbolEqualityComparer.Default.Equals(
-                            member.ContainingType,
-                            operation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.Globalization.DateTimeFormatInfo).FullName!));
+                    return IsType<System.Globalization.NumberFormatInfo>(member.ContainingType, operation.SemanticModel)
+                        || IsType<System.Globalization.DateTimeFormatInfo>(member.ContainingType, operation.SemanticModel);
                 }
             }
 
@@ -192,7 +186,12 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 {
                     TargetMethod: { Name: nameof(FormattableString.Invariant), ContainingType: var containingType },
                 },
-            } && SymbolEqualityComparer.Default.Equals(containingType, operation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.FormattableString).FullName!));
+            } && IsType<System.FormattableString>(containingType, operation.SemanticModel);
+        }
+
+        private static bool IsType<T>(INamedTypeSymbol type, SemanticModel semanticModel)
+        {
+            return SymbolEqualityComparer.Default.Equals(type, semanticModel.Compilation.GetTypeByMetadataName(typeof(T).FullName!));
         }
 
         private static IEnumerable<IOperation> AncestorsAndSelf(IOperation operation)
