@@ -360,5 +360,23 @@ public class C
     }}
 }}");
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingIntegerAndStringIndex(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System;
+
+public class C
+{{
+    private static bool IsS(char[] ch, int count)
+    {{
+        return count == 1 [|{logicalOperator}|] ch[0] == 'S';
+    }}
+}}");
+        }
     }
 }
