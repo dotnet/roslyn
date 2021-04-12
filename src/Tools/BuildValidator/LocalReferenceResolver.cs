@@ -93,8 +93,6 @@ namespace BuildValidator
                 return false;
             }
 
-            using var fileStream = File.OpenRead(assemblyInfo.FilePath);
-
             // This is deliberately using an ordinal comparison here. The name of the assembly is written out 
             // into the PDB. Rebuild will only succeed if the provided reference has the same name with the
             // same casing
@@ -105,7 +103,7 @@ namespace BuildValidator
             }
 
             metadataReference = MetadataReference.CreateFromStream(
-                fileStream,
+                File.OpenRead(assemblyInfo.FilePath),
                 filePath: filePath,
                 properties: new MetadataReferenceProperties(
                     kind: MetadataImageKind.Assembly,
@@ -121,14 +119,15 @@ namespace BuildValidator
                 return true;
             }
 
-            if (_nameMap.TryGetValue(metadataReferenceInfo.FileName, out var list))
+            if (_nameMap.TryGetValue(metadataReferenceInfo.FileName, out var _))
             {
-                // File name has already been searched for and it was not found so no more searching
-                // required
+                // The file name of this reference has already been searched for and none of them 
+                // had the correct MVID (else the _mvidMap lookup would succeed). No reason to do 
+                // more work here.
                 return false;
             }
 
-            list = new List<AssemblyInfo>();
+            var list = new List<AssemblyInfo>();
 
             foreach (var directory in _indexDirectories)
             {

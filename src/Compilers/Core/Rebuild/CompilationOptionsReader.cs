@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
         public IEnumerable<EmbeddedSourceTextInfo> GetEmbeddedSourceTextInfo()
             => GetSourceTextInfoCore()
                 .Select(x => ResolveEmbeddedSource(x.DocumentHandle, x.SourceTextInfo))
-                .Where(x => x is object)!;
+                .WhereNotNull();
 
         private IEnumerable<(DocumentHandle DocumentHandle, SourceTextInfo SourceTextInfo)> GetSourceTextInfoCore()
         {
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             {
                 // todo: IVT and EncodedStringText.Create?
                 var embeddedText = SourceText.From(stream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: sourceTextInfo.HashAlgorithm, canBeEmbedded: true);
-                return new EmbeddedSourceTextInfo(sourceTextInfo, embeddedText, compressedHash is object ? compressedHash.ToImmutableArray() : ImmutableArray<byte>.Empty);
+                return new EmbeddedSourceTextInfo(sourceTextInfo, embeddedText, compressedHash?.ToImmutableArray() ?? ImmutableArray<byte>.Empty);
             }
         }
 
@@ -296,23 +296,23 @@ namespace Microsoft.CodeAnalysis.Rebuild
             {
                 var sourceFileCount = GetSourceFileCount();
                 var builder = ImmutableArray.CreateBuilder<SyntaxTree>(sourceFileCount);
-                foreach (var tuple in GetSourceTextInfoCore())
+                foreach (var (documentHandle, sourceTextInfo) in GetSourceTextInfoCore())
                 {
                     SourceText sourceText;
-                    if (ResolveEmbeddedSource(tuple.DocumentHandle, tuple.SourceTextInfo) is { } embeddedSourceTextInfo)
+                    if (ResolveEmbeddedSource(documentHandle, sourceTextInfo) is { } embeddedSourceTextInfo)
                     {
                         sourceText = embeddedSourceTextInfo.SourceText;
                     }
                     else
                     {
-                        sourceText = resolver.ResolveSourceText(tuple.SourceTextInfo);
-                        if (!sourceText.GetChecksum().SequenceEqual(tuple.SourceTextInfo.Hash))
+                        sourceText = resolver.ResolveSourceText(sourceTextInfo);
+                        if (!sourceText.GetChecksum().SequenceEqual(sourceTextInfo.Hash))
                         {
                             throw new InvalidOperationException();
                         }
                     }
 
-                    var syntaxTree = createSyntaxTreeFunc(tuple.SourceTextInfo.OriginalSourceFilePath, sourceText);
+                    var syntaxTree = createSyntaxTreeFunc(sourceTextInfo.OriginalSourceFilePath, sourceText);
                     builder.Add(syntaxTree);
                 }
 
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                     }
 
                     if (!(
-                        (metadataReferenceInfo.ExternAlias is null && metadataReference.Properties.Aliases.IsDefaultOrEmpty) ||
+                        (metadataReferenceInfo.ExternAlias is null && metadataReference.Properties.Aliases.IsEmpty) ||
                         (metadataReferenceInfo.ExternAlias == metadataReference.Properties.Aliases.SingleOrDefault())
                         ))
                     {
