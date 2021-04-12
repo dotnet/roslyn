@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -63,17 +66,21 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                                 .SelectAsArray(interpolation.Syntax.SyntaxTree.GetLocation);
         }
 
-        private static IOperation Unwrap(IOperation expression)
+        [return: NotNullIfNotNull("expression")]
+        private static IOperation? Unwrap(IOperation? expression, bool towardsParent = false)
         {
             while (true)
             {
+                if (towardsParent && expression?.Parent is null)
+                    return expression;
+
                 switch (expression)
                 {
                     case IParenthesizedOperation parenthesized:
-                        expression = parenthesized.Operand;
+                        expression = towardsParent ? expression.Parent : parenthesized.Operand;
                         continue;
                     case IConversionOperation { IsImplicit: true } conversion:
-                        expression = conversion.Operand;
+                        expression = towardsParent ? expression.Parent : conversion.Operand;
                         continue;
                     default:
                         return expression;
@@ -92,19 +99,22 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 !syntaxFacts.IsBaseExpression(invocation.Instance!.Syntax) &&
                 !invocation.Instance.Type!.IsRefLikeType)
             {
-                if (invocation.Arguments.Length == 1 &&
-                    invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
-                    invocation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
-                    invocation.Instance.Type.Implements(systemIFormattable))
+                if (invocation.Arguments.Length == 1
+                    || (invocation.Arguments.Length == 2 && IsInvariantCultureReference(invocation.Arguments[1].Value) && IsInsideFormattableStringInvariant(invocation)))
                 {
-                    unwrapped = invocation.Instance;
-                    formatString = value;
+                    if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
+                       invocation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
+                       invocation.Instance.Type.Implements(systemIFormattable))
+                    {
+                        unwrapped = invocation.Instance;
+                        formatString = value;
 
-                    var unwrappedSyntax = GetPreservedInterpolationExpressionSyntax<TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(unwrapped);
-                    unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(unwrappedSyntax.FullSpan)
-                        .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
-                    return;
+                        var unwrappedSyntax = GetPreservedInterpolationExpressionSyntax<TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(unwrapped);
+                        unnecessarySpans.AddRange(invocation.Syntax.Span
+                            .Subtract(unwrappedSyntax.FullSpan)
+                            .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
+                        return;
+                    }
                 }
 
                 var method = invocation.TargetMethod;
@@ -113,8 +123,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     method = method.OverriddenMethod;
                 }
 
-                if (method.ContainingType.SpecialType == SpecialType.System_Object &&
-                    method.Name == nameof(ToString))
+                if ((method.ContainingType.SpecialType == SpecialType.System_Object && method.Name == nameof(ToString))
+                    || (invocation.Arguments.Length == 1 && IsInvariantCultureReference(invocation.Arguments[0].Value) && IsInsideFormattableStringInvariant(invocation)))
                 {
                     // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
                     // Just remove entirely.
@@ -130,6 +140,35 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             unwrapped = expression;
             formatString = null;
+        }
+
+        private static bool IsInvariantCultureReference(IOperation operation)
+        {
+            return Unwrap(operation) is IPropertyReferenceOperation { Member: { Name: nameof(CultureInfo.InvariantCulture), ContainingType: var containingType } }
+                && SymbolEqualityComparer.Default.Equals(
+                    containingType,
+                    operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.CultureInfo).FullName!));
+        }
+
+        private static bool IsInsideFormattableStringInvariant(IOperation operation)
+        {
+            var interpolatedStringOperation = AncestorsAndSelf(operation).OfType<IInterpolatedStringOperation>().FirstOrDefault();
+
+            return Unwrap(interpolatedStringOperation?.Parent, towardsParent: true) is IArgumentOperation
+            {
+                Parent: IInvocationOperation
+                {
+                    TargetMethod: { Name: nameof(FormattableString.Invariant), ContainingType: var containingType },
+                },
+            } && SymbolEqualityComparer.Default.Equals(containingType, operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.FormattableString).FullName!));
+        }
+
+        private static IEnumerable<IOperation> AncestorsAndSelf(IOperation operation)
+        {
+            for (var current = operation; current is not null; current = current.Parent)
+            {
+                yield return current;
+            }
         }
 
         private static TextSpan GetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxToken formatToken)
