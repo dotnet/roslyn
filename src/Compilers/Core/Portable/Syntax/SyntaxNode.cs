@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis
         /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
         /// and the incremental parser is able to take the node from the original tree and use it in its entirety in the
         /// new tree.  In this case, the <see cref="SyntaxNode.ToFullString()"/> of each node will be the same, though 
-        /// will have different parents, and may occur at different positions in their respective trees.  If two nodes are
+        /// they could have different parents, and may occur at different positions in their respective trees.  If two nodes are
         /// incrementally identical, all children of each node will be incrementally identical as well.
         /// </summary>
         /// <remarks>
