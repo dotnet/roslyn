@@ -118,7 +118,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public async Task TestSwitchExpression()
+        public async Task TestSelectionOfSwitchExpressionArm()
         {
             await TestInRegularAndScript1Async(
 @"class Program
@@ -134,10 +134,47 @@ class C
     int Foo(int x) => x switch
     {
         1 => 1,
-        _ => NewMethod(x)
+        _ => {|Rename:NewMethod|}(x)
     };
+    private static int NewMethod(int x) => 1 + x;
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+        }
 
-    private static int NewMethod(x) => 1 + x;
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestSelectionOfSwitchExpressionArmContainingVariables()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+    sequence switch
+    {
+        Array { Length: 0 } => default(T),
+        Array { Length: 1 } array => [|(T)array.GetValue(0)|],
+        Array { Length: 2 } array => (T)array.GetValue(1),
+        Array array => (T)array.GetValue(2),
+        _ => throw new NotImplementedException(),
+    };
+}",
+@"using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+    sequence switch
+    {
+        Array { Length: 0 } => default(T),
+        Array { Length: 1 } array => {|Rename:NewMethod|}<T>(array),
+        Array { Length: 2 } array => (T)array.GetValue(1),
+        Array array => (T)array.GetValue(2),
+        _ => throw new NotImplementedException(),
+    };
+    private static T NewMethod<T>(Array array) => (T)array.GetValue(0);
 }",
 new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
         }
