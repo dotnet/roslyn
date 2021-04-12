@@ -98,6 +98,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
         }
 
         [Fact]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void MultipleSpecialCharacterItemMetaDataCreatesSections()
         {
             ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/{file1}.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });

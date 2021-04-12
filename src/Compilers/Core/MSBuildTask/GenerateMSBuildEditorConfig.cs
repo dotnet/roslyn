@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 // write the section for this item
                 builder.AppendLine()
-                       .Append("[")
-                       .Append(EncodeString(group.Key))
-                       .AppendLine("]");
+                       .Append("[");
+                EncodeString(builder, group.Key);
+                builder.AppendLine("]");
 
                 foreach (var item in group)
                 {
@@ -108,26 +108,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // processor. We encode the special characters in these strings
         // before writing them here.
 
-        private static string EncodeString(string p)
+        private static void EncodeString(StringBuilder builder, string p)
         {
-            StringBuilder builder = new StringBuilder();
-            for (var i = 0; i < p.Length; i++)
+            foreach (var c in p)
             {
-                builder.Append(p[i] switch
+                if (c is '*' or '?' or '{' or ',' or ';' or '}' or '[' or ']' or '#')
                 {
-                    '*' => "\\*",
-                    '?' => "\\?",
-                    '{' => "\\{",
-                    ',' => "\\,",
-                    ';' => "\\;",
-                    '}' => "\\}",
-                    '[' => "\\[",
-                    ']' => "\\]",
-                    '#' => "\\#",
-                    var @default => @default
-                });
+                    builder.Append("\\");
+                }
+                builder.Append(c);
             }
-            return builder.ToString();
         }
 
         /// <remarks>

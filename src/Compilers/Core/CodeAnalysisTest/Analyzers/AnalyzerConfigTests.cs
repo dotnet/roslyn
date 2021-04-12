@@ -58,6 +58,7 @@ my_prop = my_val
         }
 
         [Fact]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void ConfigWithEscapedValues()
         {
             var config = ParseConfigFile(@"is_global = true
