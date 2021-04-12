@@ -259,12 +259,12 @@ Example:
 
 | PDB Key                | Format                                  | Default   | Description  |
 | ---------------------- | --------------------------------------- | --------- | ------------ |
-| language               | `CSharp|Visual Basic`                   | required  | Language name. |
+| language               | `CSharp\|Visual Basic`                   | required  | Language name. |
 | compiler-version       | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | Full version with SHA |
 | runtime-version        | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | [runtime version](#runtime-version) |
 | source-file-count      | int32                                   | required    | Count of files in the document table that are source files |
-| optimization           | `(debug|debug-plus|release|release-debug-plus)` | `'debug'` | [optimization](#optimization) |
-| portability-policy     | `(0|1|2|3)`                             | `0`       | [portability policy](#portability-policy) |
+| optimization           | `(debug\|debug-plus\|release\|release-debug-plus)` | `'debug'` | [optimization](#optimization) |
+| portability-policy     | `(0\|1\|2\|3)`                          | `0`       | [portability policy](#portability-policy) |
 | default-encoding       | string                                  | none      | [file encoding](#file-encoding) |
 | fallback-encoding      | string                                  | none      | [file encoding](#file-encoding) |
 | output-kind            | string                                  | require   | The value passed to `/target` |
@@ -278,9 +278,9 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-r
 | ---------------------- | --------------------------------------- | --------- | ------------ |
 | language-version       | `[0-9]+(\.[0-9]+)?`                     | required  | [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
 | define                 | `,`-separated identifier list           | empty     | [define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option) |
-| checked                | `(True|False)`                          | `False`   | [checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option) |
-| nullable               | `(Disable|Warnings|Annotations|Enable)` | `Disable` | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
-| unsafe                 | `(True|False)`                          | `False`   | [unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option) |
+| checked                | `(True\|False)`                         | `False`   | [checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option) |
+| nullable               | `(Disable\|Warnings\|Annotations\|Enable)` | `Disable` | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
+| unsafe                 | `(True\|False)`                         | `False`   | [unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option) |
 
 #### Options For Visual Basic
 
@@ -290,12 +290,12 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/refe
 | ---------------------- | ------------------------------------------ | -------- | ----------- |
 | language-version       | `[0-9]+(\.[0-9]+)?`                        | required | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
 | define                 | `,`-separated list of name `=` value pairs | empty    | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
-| checked                | `(True|False)`                             | `False`  | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
-| option-strict          | `(Off|Custom|On)`                          | required | [option strict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
-| option-infer           | `(True|False)`                             | required | [option infer](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optioninfer) |
-| option-compare-text    | `(True|False)`                             | required | [option compare](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optioncompare) |
-| option-explicit        | `(True|False)`                             | required | [option explicit](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionexplicit) |
-| embed-runtime          | `(True|False)`                             | required | Whether or not the VB runtime was embedded into the PE |
+| checked                | `(True\|False)`                            | `False`  | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
+| option-strict          | `(Off\|Custom\|On)`                        | required | [option strict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
+| option-infer           | `(True\|False)`                            | required | [option infer](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optioninfer) |
+| option-compare-text    | `(True\|False)`                            | required | [option compare](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optioncompare) |
+| option-explicit        | `(True\|False)`                            | required | [option explicit](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionexplicit) |
+| embed-runtime          | `(True\|False)`                            | required | Whether or not the VB runtime was embedded into the PE |
 | global-namespaces      | `,` -separated identifier list             | empty    | [imports](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/imports)
 | root-namespace         | string                                     | empty    | [root namespace](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/rootnamespace)
 
