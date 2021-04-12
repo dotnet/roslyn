@@ -621,8 +621,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var document = solution.GetDocument(documentId);
+
                 if (document != null)
-                    await PublishDiagnosticsAsync(_diagnosticService, document, cancellationToken).ConfigureAwait(false);
+                {
+                    // If this is a `pull` client, and `pull` diagnostics is on, then we should not `publish` (push) the
+                    // diagnostics here. 
+                    var diagnosticMode = document.IsRazorDocument()
+                        ? InternalDiagnosticsOptions.RazorDiagnosticMode
+                        : InternalDiagnosticsOptions.NormalDiagnosticMode;
+                    if (_workspace.IsPushDiagnostics(diagnosticMode))
+                        await PublishDiagnosticsAsync(_diagnosticService, document, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
