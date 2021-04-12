@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public CompileTimeSolutionProvider(Workspace workspace)
         {
             _workspace = workspace;
+            _correspondingDesignTimeSolutionVersion = -1;
         }
 
         private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)
