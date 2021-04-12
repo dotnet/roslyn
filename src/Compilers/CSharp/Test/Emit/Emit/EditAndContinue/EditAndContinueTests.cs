@@ -10612,6 +10612,31 @@ namespace N
 
             using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
+            // Verify full metadata contains expected rows.
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "EmbeddedAttribute", "NullableAttribute", "NullableContextAttribute", "IsExternalInit", "R");
+            CheckNames(reader0, reader0.GetMethodDefNames(),
+                /* EmbeddedAttribute */".ctor",
+                /* NullableAttribute */ ".ctor",
+                /* NullableContextAttribute */".ctor",
+                /* IsExternalInit */".ctor",
+                /* R: */
+                ".ctor",
+                "get_EqualityContract",
+                "get_X",
+                "set_X",
+                "ToString",
+                "PrintMembers",
+                "op_Inequality",
+                "op_Equality",
+                "GetHashCode",
+                "Equals",
+                "Equals",
+                "<Clone>$",
+                ".ctor",
+                "Deconstruct");
+
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
@@ -10624,6 +10649,34 @@ namespace N
                 "Microsoft: {CodeAnalysis}",
                 "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
                 "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "PrintMembers");
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default)); // R.PrintMembers
+
+            CheckEncMap(reader1,
+                Handle(19, TableIndex.TypeRef),
+                Handle(20, TableIndex.TypeRef),
+                Handle(21, TableIndex.TypeRef),
+                Handle(10, TableIndex.MethodDef),
+                Handle(3, TableIndex.StandAloneSig),
+                Handle(4, TableIndex.TypeSpec),
+                Handle(2, TableIndex.AssemblyRef));
         }
 
         [Fact]
