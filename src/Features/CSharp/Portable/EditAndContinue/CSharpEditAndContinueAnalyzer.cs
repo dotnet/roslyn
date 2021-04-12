@@ -702,6 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 newNode is MethodDeclarationSyntax &&
                 !oldSymbol.GetParameters().Select(p => p.Name).SequenceEqual(newSymbol.GetParameters().Select(p => p.Name)))
             {
+                // TODO: Remove this requirement with https://github.com/dotnet/roslyn/issues/52563
                 // Explicitly implemented methods must have parameter names that match the compiler generated versions
                 // exactly otherwise symbol matching won't work for them.
                 // We don't need to worry about parameter types, because if they were different then we wouldn't get here

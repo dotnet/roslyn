@@ -1730,6 +1730,8 @@ record C
         [Fact]
         public void Record_ImplementSynthesized_WrongParameterName()
         {
+            // TODO: Remove this requirement with https://github.com/dotnet/roslyn/issues/52563
+
             var src1 = "record C { }";
             var src2 = @"
 record C

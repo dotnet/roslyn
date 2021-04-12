@@ -3224,6 +3224,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
 
                         // When explicitly implementing the copy constructor of a record the parameter name must match for symbol matching to work
+                        // TODO: Remove this requirement with https://github.com/dotnet/roslyn/issues/52563
                         if (oldCtor != null &&
                             !IsRecordDeclaration(newDeclaration) &&
                             oldCtor.DeclaringSyntaxReferences.Length == 0 &&
