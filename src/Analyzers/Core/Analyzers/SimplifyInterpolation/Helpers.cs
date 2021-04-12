@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
                 {
                     if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
-                       FindType<System.IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
-                       invocation.Instance.Type.Implements(systemIFormattable))
+                        FindType<System.IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
+                        invocation.Instance.Type.Implements(systemIFormattable))
                     {
                         unwrapped = invocation.Instance;
                         formatString = value;
