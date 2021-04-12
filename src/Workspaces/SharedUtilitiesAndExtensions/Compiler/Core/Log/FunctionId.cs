@@ -514,5 +514,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Intellicode_UnknownIntent = 485,
 
         LSP_CompletionListCacheMiss = 486,
+
+        InheritanceMargin_TargetsMenuOpen = 487,
+        InheritanceMargin_NavigateToTarget = 488,
     }
 }

@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().OnSourceFileUpdated(document);
+                await GetLocalService().OnSourceFileUpdatedAsync(document, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
