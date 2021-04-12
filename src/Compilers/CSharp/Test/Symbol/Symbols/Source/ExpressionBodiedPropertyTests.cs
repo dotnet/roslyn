@@ -1,10 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
@@ -14,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         public void Syntax01()
         {
             // Language feature enabled by default
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateCompilation(@"
 class C
 {
     public int P => 1;
@@ -33,22 +38,23 @@ class C
             comp.VerifyDiagnostics(
     // (4,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
     //     public int P { get; } => 1;
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5)
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5)
     );
         }
 
         [Fact]
         public void Syntax03()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilation(@"
 interface C
 {
     int P => 1;
-}");
+}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-    // (4,14): error CS0531: 'C.P.get': interface members cannot have a definition
-    //     int P => 1;
-    Diagnostic(ErrorCode.ERR_InterfaceMemberHasBody, "1").WithArguments("C.P.get").WithLocation(4, 14));
+                // (4,14): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     int P => 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 14)
+                );
         }
 
         [Fact]
@@ -77,7 +83,7 @@ class C
     // (4,29): error CS0500: 'C.P.get' cannot declare a body because it is marked abstract
     //    public abstract int P => 1;
     Diagnostic(ErrorCode.ERR_AbstractHasBody, "1").WithArguments("C.P.get").WithLocation(4, 29),
-    // (4,29): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract class 'C'
+    // (4,29): error CS0513: 'C.P.get' is abstract but it is contained in non-abstract type 'C'
     //    public abstract int P => 1;
     Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "1").WithArguments("C.P.get", "C").WithLocation(4, 29));
         }
@@ -170,7 +176,7 @@ interface I
     // (4,20): error CS1514: { expected
     //     int this[int i];
     Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(4, 20),
-    // (4,20): error CS1014: A get or set accessor expected
+    // (4,20): error CS1014: A get, set or init accessor expected
     //     int this[int i];
     Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(4, 20),
     // (5,2): error CS1513: } expected
@@ -206,7 +212,7 @@ class C
     // (4,24): error CS1597: Semicolon after method or accessor block is not valid
     //     int P { get; set; }; => 2;
     Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(4, 24),
-    // (4,26): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+    // (4,26): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
     //     int P { get; set; }; => 2;
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 26));
         }
@@ -330,10 +336,10 @@ class C : B
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public void P => System.Console.WriteLine(""foo"");
+    public void P => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics(
     // (4,17): error CS0547: 'C.P': property or indexer cannot have void type
-    //     public void P => System.Console.WriteLine("foo");
+    //     public void P => System.Console.WriteLine("goo");
     Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "P").WithArguments("C.P").WithLocation(4, 17));
         }
 
@@ -343,11 +349,11 @@ class C
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public int P => System.Console.WriteLine(""foo"");
+    public int P => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics(
     // (4,21): error CS0029: Cannot implicitly convert type 'void' to 'int'
-    //     public int P => System.Console.WriteLine("foo");
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""foo"")").WithArguments("void", "int").WithLocation(4, 21));
+    //     public int P => System.Console.WriteLine("goo");
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""goo"")").WithArguments("void", "int").WithLocation(4, 21));
         }
 
         [Fact]
@@ -370,7 +376,7 @@ internal interface K
 class C : I, J, K
 {
     public int P => 10;
-    string I.Q { get { return ""foo""; } }
+    string I.Q { get { return ""goo""; } }
     string J.Q { get { return ""bar""; } }
     public decimal D { get { return P; } }
 }");
@@ -410,7 +416,7 @@ abstract class A
 }
 abstract class B : A
 {
-    protected sealed override string Z => ""foo"";
+    protected sealed override string Z => ""goo"";
     protected abstract string Y { get; }
 }    
 class C : B
@@ -441,8 +447,8 @@ class C : B
 4
 2
 8
-foo
-foo8
+goo
+goo8
 18");
         }
 
@@ -503,6 +509,89 @@ class C
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
             Assert.Equal(RefKind.Ref, p.GetMethod.RefKind);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedProperty()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int P => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("P");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
+            Assert.False(p.ReturnsByRef);
+            Assert.False(p.GetMethod.ReturnsByRef);
+            Assert.True(p.ReturnsByRefReadonly);
+            Assert.True(p.GetMethod.ReturnsByRefReadonly);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedIndexer()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int this[in int arg] => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("this[]");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
+            Assert.Equal(RefKind.In, p.GetMethod.Parameters[0].RefKind);
+            Assert.False(p.ReturnsByRef);
+            Assert.False(p.GetMethod.ReturnsByRef);
+            Assert.True(p.ReturnsByRefReadonly);
+            Assert.True(p.GetMethod.ReturnsByRefReadonly);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedIndexer1()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int this[in int arg] => ref field;
+}");
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var c = global.GetTypeMember("C");
+
+            var p = c.GetMember<SourcePropertySymbol>("this[]");
+            Assert.Null(p.SetMethod);
+            Assert.NotNull(p.GetMethod);
+            Assert.False(p.GetMethod.IsImplicitlyDeclared);
+            Assert.True(p.IsExpressionBodied);
+            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
+            Assert.Equal(RefKind.In, p.GetMethod.Parameters[0].RefKind);
+            Assert.False(p.ReturnsByRef);
+            Assert.False(p.GetMethod.ReturnsByRef);
+            Assert.True(p.ReturnsByRefReadonly);
+            Assert.True(p.GetMethod.ReturnsByRefReadonly);
         }
     }
 }

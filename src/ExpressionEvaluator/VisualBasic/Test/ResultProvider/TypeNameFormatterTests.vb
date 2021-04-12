@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -269,8 +271,8 @@ End Namespace
         <WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>
         <Fact>
         Public Sub DynamicAttribute_ValidFlags()
-            Assert.Equal("Object", GetType(Object).GetTypeName({True}))
-            Assert.Equal("Object()", GetType(Object()).GetTypeName({False, True}))
+            Assert.Equal("Object", GetType(Object).GetTypeName(MakeCustomTypeInfo(True)))
+            Assert.Equal("Object()", GetType(Object()).GetTypeName(MakeCustomTypeInfo(False, True)))
         End Sub
 
         <WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")>

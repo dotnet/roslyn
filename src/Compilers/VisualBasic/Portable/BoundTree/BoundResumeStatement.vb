@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -12,13 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Label  ' Resume Label
     End Enum
 
-    Friend Partial Class BoundResumeStatement
+    Partial Friend Class BoundResumeStatement
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, Optional isNext As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, Optional isNext As Boolean = False)
             Me.New(syntax, If(isNext, ResumeStatementKind.Next, ResumeStatementKind.Plain), Nothing, Nothing)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             Me.New(syntax, ResumeStatementKind.Label, label, labelExpressionOpt, hasErrors)
             Debug.Assert(labelExpressionOpt IsNot Nothing)
         End Sub

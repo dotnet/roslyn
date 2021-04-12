@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
@@ -98,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Me._session.Start(GetLinkedEditSpans(e.Before, token), e)
         End Sub
 
-        Private Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
+        Private Shared Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
             Dim startToken = GetBeginToken(token.Parent)
             If startToken.Kind = SyntaxKind.None Then
                 startToken = GetCorrespondingBeginToken(token)
@@ -139,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 Return False
             End If
 
-            Dim root = _previousDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = _previousDocument.GetSyntaxRootSynchronously(cancellationToken)
             token = root.FindToken(textChange.OldPosition)
 
             If Not IsChangeOnCorrectToken(token) Then
@@ -150,11 +152,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Function
 
         Private Shared Function IsChangeOnSameLine(snapshot As ITextSnapshot, change As ITextChange) As Boolean
-            ' changes on same line
-            Return snapshot.GetLineNumberFromPosition(change.NewPosition) = snapshot.GetLineNumberFromPosition(change.NewEnd)
+            Return snapshot.AreOnSameLine(change.NewPosition, change.NewEnd)
         End Function
 
-        Private Function IsChangeOnCorrectToken(token As SyntaxToken) As Boolean
+        Private Shared Function IsChangeOnCorrectToken(token As SyntaxToken) As Boolean
             Select Case token.Kind
                 Case SyntaxKind.StructureKeyword, SyntaxKind.EnumKeyword, SyntaxKind.InterfaceKeyword,
                      SyntaxKind.ClassKeyword, SyntaxKind.ModuleKeyword, SyntaxKind.NamespaceKeyword,
@@ -177,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Return False
         End Function
 
-        Private Function CorrespondingBeginTokenExist(token As SyntaxToken) As Boolean
+        Private Shared Function CorrespondingBeginTokenExist(token As SyntaxToken) As Boolean
             Dim pairToken = GetCorrespondingBeginToken(token)
 
             Dim hasValidToken = pairToken.Kind <> SyntaxKind.None AndAlso Not pairToken.IsMissing AndAlso token.ValueText = pairToken.ValueText
@@ -192,18 +193,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Return False
         End Function
 
-        Private Function GetCorrespondingBeginToken(token As SyntaxToken) As SyntaxToken
+        Private Shared Function GetCorrespondingBeginToken(token As SyntaxToken) As SyntaxToken
             If token.Parent.Parent Is Nothing Then
                 Return New SyntaxToken()
             End If
 
             Dim beginNode = token.Parent.Parent.TypeSwitch(
-                        Function(context As TypeBlockSyntax) context.BlockStatement,
-                        Function(context As EnumBlockSyntax) context.EnumStatement,
-                        Function(context As NamespaceBlockSyntax) context.NamespaceStatement,
-                        Function(context As MethodBlockBaseSyntax) context.BlockStatement,
-                        Function(context As MultiLineLambdaExpressionSyntax) context.SubOrFunctionHeader,
-                        Function(dontCare As SyntaxNode) CType(Nothing, SyntaxNode))
+                Function(context As TypeBlockSyntax) context.BlockStatement,
+                Function(context As EnumBlockSyntax) context.EnumStatement,
+                Function(context As NamespaceBlockSyntax) context.NamespaceStatement,
+                Function(context As MethodBlockBaseSyntax) context.BlockStatement,
+                Function(context As MultiLineLambdaExpressionSyntax) context.SubOrFunctionHeader,
+                Function(dontCare As SyntaxNode) CType(Nothing, SyntaxNode))
 
             If beginNode Is Nothing Then
                 Return New SyntaxToken()
@@ -212,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Return GetBeginToken(beginNode)
         End Function
 
-        Private Function IsChangeOnEndToken(token As SyntaxToken) As Boolean
+        Private Shared Function IsChangeOnEndToken(token As SyntaxToken) As Boolean
             Dim endBlockStatement = TryCast(token.Parent, EndBlockStatementSyntax)
             If endBlockStatement Is Nothing Then
                 Return False
@@ -221,27 +222,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Return endBlockStatement.BlockKeyword = token
         End Function
 
-        Private Function CorrespondingEndTokenExist(token As SyntaxToken) As Boolean
+        Private Shared Function CorrespondingEndTokenExist(token As SyntaxToken) As Boolean
             Dim pairToken = GetCorrespondingEndToken(token)
 
             Return pairToken.Kind <> SyntaxKind.None AndAlso Not pairToken.IsMissing AndAlso token.ValueText = pairToken.ValueText
         End Function
 
-        Private Function GetCorrespondingEndToken(token As SyntaxToken) As SyntaxToken
+        Private Shared Function GetCorrespondingEndToken(token As SyntaxToken) As SyntaxToken
             If token.Parent.Parent Is Nothing Then
                 Return New SyntaxToken()
             End If
 
             Return token.Parent.Parent.TypeSwitch(
-                        Function(context As TypeBlockSyntax) context.EndBlockStatement.BlockKeyword,
-                        Function(context As EnumBlockSyntax) context.EndEnumStatement.BlockKeyword,
-                        Function(context As NamespaceBlockSyntax) context.EndNamespaceStatement.BlockKeyword,
-                        Function(context As MethodBlockBaseSyntax) context.EndBlockStatement.BlockKeyword,
-                        Function(context As MultiLineLambdaExpressionSyntax) context.EndSubOrFunctionStatement.BlockKeyword,
-                        Function(dontCare As SyntaxNode) New SyntaxToken())
+                Function(context As TypeBlockSyntax) context.EndBlockStatement.BlockKeyword,
+                Function(context As EnumBlockSyntax) context.EndEnumStatement.BlockKeyword,
+                Function(context As NamespaceBlockSyntax) context.EndNamespaceStatement.BlockKeyword,
+                Function(context As MethodBlockBaseSyntax) context.EndBlockStatement.BlockKeyword,
+                Function(context As MultiLineLambdaExpressionSyntax) context.EndSubOrFunctionStatement.BlockKeyword,
+                Function(dontCare As SyntaxNode) New SyntaxToken())
         End Function
 
-        Private Function IsChangeOnBeginToken(token As SyntaxToken) As Boolean
+        Private Shared Function IsChangeOnBeginToken(token As SyntaxToken) As Boolean
             Dim pairToken = GetBeginToken(token.Parent)
 
             Dim hasValidToken = pairToken.Kind <> SyntaxKind.None AndAlso Not pairToken.IsMissing AndAlso token = pairToken
@@ -256,31 +257,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Return False
         End Function
 
-        Private Function BeginStatementIsInValidForm(node As SyntaxNode) As Boolean
+        Private Shared Function BeginStatementIsInValidForm(node As SyntaxNode) As Boolean
             ' turns out in malformed code, parser would pair some constructs together even if user wouldn't consider them being
             ' paired. So, rather than the feature being very naive, we will make sure begin construct have at least some valid shape.
             Return node.TypeSwitch(
-                        Function(context As TypeStatementSyntax) Not context.Identifier.IsMissing,
-                        Function(context As EnumStatementSyntax) Not context.Identifier.IsMissing,
-                        Function(context As NamespaceStatementSyntax) context.Name IsNot Nothing,
-                        Function(context As MethodStatementSyntax) Not context.Identifier.IsMissing,
-                        Function(context As AccessorStatementSyntax) Not context.DeclarationKeyword.IsMissing,
-                        Function(context As LambdaHeaderSyntax) True,
-                        Function(dontCare As SyntaxNode) False)
+                Function(context As TypeStatementSyntax) Not context.Identifier.IsMissing,
+                Function(context As EnumStatementSyntax) Not context.Identifier.IsMissing,
+                Function(context As NamespaceStatementSyntax) context.Name IsNot Nothing,
+                Function(context As MethodStatementSyntax) Not context.Identifier.IsMissing,
+                Function(context As AccessorStatementSyntax) Not context.DeclarationKeyword.IsMissing,
+                Function(context As LambdaHeaderSyntax) True,
+                Function(dontCare As SyntaxNode) False)
         End Function
 
-        Private Function GetBeginToken(node As SyntaxNode) As SyntaxToken
+        Private Shared Function GetBeginToken(node As SyntaxNode) As SyntaxToken
             Return node.TypeSwitch(
-                        Function(context As TypeStatementSyntax) context.DeclarationKeyword,
-                        Function(context As EnumStatementSyntax) context.EnumKeyword,
-                        Function(context As NamespaceStatementSyntax) context.NamespaceKeyword,
-                        Function(context As MethodStatementSyntax) context.DeclarationKeyword,
-                        Function(context As LambdaHeaderSyntax) context.DeclarationKeyword,
-                        Function(context As AccessorStatementSyntax) context.DeclarationKeyword,
-                        Function(dontCare As SyntaxNode) New SyntaxToken())
+                Function(context As TypeStatementSyntax) context.DeclarationKeyword,
+                Function(context As EnumStatementSyntax) context.EnumKeyword,
+                Function(context As NamespaceStatementSyntax) context.NamespaceKeyword,
+                Function(context As MethodStatementSyntax) context.DeclarationKeyword,
+                Function(context As LambdaHeaderSyntax) context.DeclarationKeyword,
+                Function(context As AccessorStatementSyntax) context.DeclarationKeyword,
+                Function(dontCare As SyntaxNode) New SyntaxToken())
         End Function
 
-        Private Function IsChangeOnCorrectText(snapshot As ITextSnapshot, position As Integer) As Boolean
+        Private Shared Function IsChangeOnCorrectText(snapshot As ITextSnapshot, position As Integer) As Boolean
             Dim line = snapshot.GetLineFromPosition(position)
 
             Dim text = line.GetText()
@@ -307,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Return AutomaticEndConstructSet.Contains(textUnderPosition)
         End Function
 
-        Private Function GetStartIndexOfWord(text As String, position As Integer) As Integer
+        Private Shared Function GetStartIndexOfWord(text As String, position As Integer) As Integer
             For index = position To 0 Step -1
                 If Not Char.IsLetter(text(index)) Then
                     Return index + 1
@@ -317,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Return 0
         End Function
 
-        Private Function GetEndIndexOfWord(text As String, position As Integer) As Integer
+        Private Shared Function GetEndIndexOfWord(text As String, position As Integer) As Integer
             For index = position To text.Length - 1
                 If Not Char.IsLetter(text(index)) Then
                     Return index - 1

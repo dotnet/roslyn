@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -17,25 +21,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            var syntaxTree = context.SyntaxTree;
             return
                 IsValidContextInForEachClause(context) ||
                 IsValidContextInFromClause(context, cancellationToken) ||
                 IsValidContextInJoinClause(context, cancellationToken) ||
+                IsInParameterModifierContext(position, context) ||
+                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
+                context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsTypeParameterVarianceContext();
         }
 
-        private bool IsValidContextInForEachClause(CSharpSyntaxContext context)
+        private static bool IsInParameterModifierContext(int position, CSharpSyntaxContext context)
         {
-            // cases:
-            //   foreach (var v |
-            //   foreach (var v i|
-
-            var token = context.TargetToken;
-
-            if (token.Kind() == SyntaxKind.IdentifierToken)
+            if (context.SyntaxTree.IsParameterModifierContext(
+                    position, context.LeftToken, includeOperators: true, out var parameterIndex, out var previousModifier))
             {
-                var statement = token.GetAncestor<ForEachStatementSyntax>();
-                if (statement != null && token == statement.Identifier)
+                if (previousModifier == SyntaxKind.None)
+                {
+                    return true;
+                }
+
+                if (previousModifier == SyntaxKind.ThisKeyword &&
+                    parameterIndex == 0 &&
+                    context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
                 {
                     return true;
                 }
@@ -44,7 +54,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidContextInFromClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContextInForEachClause(CSharpSyntaxContext context)
+        {
+            // cases:
+            //   foreach (var v |
+            //   foreach (var v i|
+            //   foreach (var (x, y) |
+
+            var token = context.TargetToken;
+
+            if (token.Kind() == SyntaxKind.IdentifierToken)
+            {
+                if (token.Parent is ForEachStatementSyntax statement && token == statement.Identifier)
+                {
+                    return true;
+                }
+            }
+            else if (token.Kind() == SyntaxKind.CloseParenToken)
+            {
+                var statement = token.GetAncestor<ForEachVariableStatementSyntax>();
+                if (statement != null && token.Span.End == statement.Variable.Span.End)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsValidContextInFromClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var token = context.TargetToken;
 
@@ -61,8 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     }
                 }
 
-                var fromClause = token.Parent as FromClauseSyntax;
-                if (fromClause != null)
+                if (token.Parent is FromClauseSyntax fromClause)
                 {
                     // case:
                     //   from int x |
@@ -76,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidContextInJoinClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContextInJoinClause(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var token = context.TargetToken;
 
@@ -95,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     // case:
                     //   join x |
                     if (joinClause.Type != null &&
-                        joinClause.Type.IsKind(SyntaxKind.IdentifierName) &&
-                        token == ((IdentifierNameSyntax)joinClause.Type).Identifier &&
+                        joinClause.Type.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax joinIdentifier) &&
+                        token == joinIdentifier.Identifier &&
                         !joinClause.Type.IsPotentialTypeName(context.SemanticModel, cancellationToken))
                     {
                         return true;

@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -15,64 +16,34 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly IList<INamespaceOrTypeSymbol> _members;
 
         public CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members)
-            : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), name)
+            : base(null, null, default, Accessibility.NotApplicable, default, name)
         {
             _members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
         }
 
-        public override bool IsNamespace
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsNamespace => true;
 
-        public override bool IsType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsType => false;
 
         protected override CodeGenerationSymbol Clone()
-        {
-            return new CodeGenerationNamespaceSymbol(this.Name, _members);
-        }
+            => new CodeGenerationNamespaceSymbol(this.Name, _members);
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Namespace;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Namespace;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitNamespace(this);
-        }
+            => visitor.VisitNamespace(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitNamespace(this);
-        }
+            => visitor.VisitNamespace(this);
 
         public new IEnumerable<INamespaceOrTypeSymbol> GetMembers()
-        {
-            return _members;
-        }
+            => _members;
 
         IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name)
-        {
-            return GetMembers().Where(m => m.Name == name);
-        }
+            => GetMembers().Where(m => m.Name == name);
 
         public IEnumerable<INamespaceSymbol> GetNamespaceMembers()
-        {
-            return GetMembers().OfType<INamespaceSymbol>();
-        }
+            => GetMembers().OfType<INamespaceSymbol>();
 
         public bool IsGlobalNamespace
         {
@@ -82,23 +53,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public NamespaceKind NamespaceKind
-        {
-            get { return NamespaceKind.Module; }
-        }
+        public NamespaceKind NamespaceKind => NamespaceKind.Module;
 
-        public Compilation ContainingCompilation
-        {
-            get { return null; }
-        }
+        public Compilation ContainingCompilation => null;
 
-        public INamedTypeSymbol ImplicitType
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public static INamedTypeSymbol ImplicitType => null;
 
         public ImmutableArray<INamespaceSymbol> ConstituentNamespaces
         {

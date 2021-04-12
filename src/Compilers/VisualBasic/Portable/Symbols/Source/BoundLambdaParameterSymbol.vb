@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.ObjectModel
@@ -16,21 +18,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits LambdaParameterSymbol
 
         Private _lambdaSymbol As LambdaSymbol
-        Private ReadOnly _syntaxNode As VisualBasicSyntaxNode
+        Private ReadOnly _syntaxNode As SyntaxNode
 
         Public Sub New(
             name As String,
             ordinal As Integer,
             type As TypeSymbol,
             isByRef As Boolean,
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             location As Location
         )
             MyBase.New(name, ordinal, type, isByRef, location)
             _syntaxNode = syntaxNode
         End Sub
 
-        Public ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Public ReadOnly Property Syntax As SyntaxNode
             Get
                 Return _syntaxNode
             End Get

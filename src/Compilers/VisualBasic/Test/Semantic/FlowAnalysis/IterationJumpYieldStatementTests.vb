@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Linq
@@ -69,7 +71,7 @@ End Module
       <compilation name="TestBreakStatement">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as integer
         while true 
 [|
@@ -105,7 +107,7 @@ end class
       <compilation name="TestContinueStatement">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as integer
         while true 
 [|
@@ -141,7 +143,7 @@ end class
       <compilation name="TestLoopWithConstantBooleanFalse">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as integer
 [|
         while false  
@@ -171,7 +173,7 @@ end class
       <compilation name="TestLoopWithConstantBooleanTrue">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as integer
 [|
         while true 
@@ -202,7 +204,7 @@ end sub
       <compilation name="TestLoopWithConstantBooleanXor">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x
 [|
         while true xor false 
@@ -233,7 +235,7 @@ end class
       <compilation name="TestLoopWithConstantBooleanNew">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
 
         dim x as integer
 [|
@@ -265,7 +267,7 @@ end class
       <compilation name="TestLoopWithAssignmentInBody">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as boolean
 [|
         while not x
@@ -298,7 +300,7 @@ end class
           <file name="a.b">
 Imports System
 Class C
-    Shared Sub Foo()
+    Shared Sub Goo()
 [|
         While DayOfWeek.Sunday = 0
         End While
@@ -317,7 +319,7 @@ End Class
       <compilation name="TestLoopWithConstantNaNComparison">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as integer
 [|
         while not 0 > double.NaN
@@ -348,7 +350,7 @@ end class
       <compilation name="TestLoopWithConstantNaNComparison2">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as integer
 [|
         while double.NaN &lt;&gt; double.NaN
@@ -379,7 +381,7 @@ end class
       <compilation name="TestLoopWithConstantStringEquality">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as integer
 [|
         while """" = """" + nothing
@@ -410,7 +412,7 @@ end class
       <compilation name="TestLoopWithEmptyBlockAfterIt">
           <file name="a.b">
 class C
-    shared sub Foo()
+    shared sub Goo()
         dim x as integer
 [|
         while true 
@@ -753,7 +755,7 @@ end class
 Option Infer On
 
 Class C1
-  public shared function foo() as Integer()
+  public shared function goo() as Integer()
     return new Integer() {1,2,3}
   end function
 End Class
@@ -1351,7 +1353,7 @@ End Module
         <WorkItem(543462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543462")>
         <Fact()>
         Public Sub NextStatementSyntaxInForEach()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -1615,7 +1617,7 @@ end module
       <compilation name="TestReturnStatementWithParenthesizedExpression">
           <file name="a.b">
 module C
-    function Foo() as integer
+    function Goo() as integer
         dim x as integer = 1, y as integer = x
         [|
         return (y) + 1
@@ -1645,7 +1647,7 @@ end module
       <compilation name="TestReturnStatementWithExpression">
           <file name="a.b">
 module C
-    function Foo() as integer
+    function Goo() as integer
         dim x as integer = 0
 [|
         x = 1

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -10,11 +12,11 @@ namespace Roslyn.Utilities
     {
         private static partial class Singleton
         {
-            internal sealed class Collection<T> : ICollection<T>, IReadOnlyCollection<T>
+            internal sealed class List<T> : IReadOnlyList<T>, IList<T>, IReadOnlyCollection<T>
             {
                 private readonly T _loneValue;
 
-                public Collection(T value)
+                public List(T value)
                 {
                     _loneValue = value;
                 }
@@ -39,15 +41,9 @@ namespace Roslyn.Utilities
                     array[arrayIndex] = _loneValue;
                 }
 
-                public int Count
-                {
-                    get { return 1; }
-                }
+                public int Count => 1;
 
-                public bool IsReadOnly
-                {
-                    get { return true; }
-                }
+                public bool IsReadOnly => true;
 
                 public bool Remove(T item)
                 {
@@ -62,6 +58,44 @@ namespace Roslyn.Utilities
                 IEnumerator IEnumerable.GetEnumerator()
                 {
                     return GetEnumerator();
+                }
+
+                public T this[int index]
+                {
+                    get
+                    {
+                        if (index != 0)
+                        {
+                            throw new IndexOutOfRangeException();
+                        }
+
+                        return _loneValue;
+                    }
+
+                    set
+                    {
+                        throw new NotSupportedException();
+                    }
+                }
+
+                public int IndexOf(T item)
+                {
+                    if (Equals(_loneValue, item))
+                    {
+                        return 0;
+                    }
+
+                    return -1;
+                }
+
+                public void Insert(int index, T item)
+                {
+                    throw new NotSupportedException();
+                }
+
+                public void RemoveAt(int index)
+                {
+                    throw new NotSupportedException();
                 }
             }
         }

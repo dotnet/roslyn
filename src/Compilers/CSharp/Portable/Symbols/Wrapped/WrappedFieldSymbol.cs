@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -41,16 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingField.IsImplicitlyDeclared; }
         }
 
-        internal override abstract TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
-
-        public override abstract ImmutableArray<CustomModifier> CustomModifiers
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            get;
-        }
-
-        public override abstract Symbol ContainingSymbol
-        {
-            get;
+            get { return _underlyingField.FlowAnalysisAnnotations; }
         }
 
         public override Accessibility DeclaredAccessibility
@@ -60,8 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingField.DeclaredAccessibility;
             }
         }
-
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
 
         public override string Name
         {
@@ -100,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasPointerType => _underlyingField.HasPointerType;
+
         internal override bool IsMarshalledExplicitly
         {
             get
@@ -124,17 +120,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsFixedSizeBuffer
+        {
+            get
+            {
+                return _underlyingField.IsFixedSizeBuffer;
+            }
+        }
+
         internal override int? TypeLayoutOffset
         {
             get
             {
                 return _underlyingField.TypeLayoutOffset;
             }
-        }
-
-        public override abstract Symbol AssociatedSymbol
-        {
-            get;
         }
 
         public override bool IsReadOnly

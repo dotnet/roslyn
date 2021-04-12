@@ -1,16 +1,18 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.ComponentModelHost
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsTextBufferCoordinator
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
@@ -18,17 +20,25 @@ Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
     Friend Class VisualBasicContainedLanguage
-        Inherits ContainedLanguage(Of VisualBasicPackage, VisualBasicLanguageService, VisualBasicProject)
+        Inherits ContainedLanguage
         Implements IVsContainedLanguageStaticEventBinding
 
         Public Sub New(bufferCoordinator As IVsTextBufferCoordinator,
                 componentModel As IComponentModel,
-                project As VisualBasicProject,
+                project As VisualStudioProject,
                 hierarchy As IVsHierarchy,
                 itemid As UInteger,
-                languageService As VisualBasicLanguageService,
-                sourceCodeKind As SourceCodeKind)
-            MyBase.New(bufferCoordinator, componentModel, project, hierarchy, itemid, languageService, sourceCodeKind, VisualBasicHelperFormattingRule.Instance)
+                languageServiceGuid As Guid)
+
+            MyBase.New(
+                bufferCoordinator,
+                componentModel,
+                componentModel.GetService(Of VisualStudioWorkspace)(),
+                project.Id,
+                project,
+                ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
+                languageServiceGuid,
+                VisualBasicHelperFormattingRule.Instance)
         End Sub
 
         Public Function AddStaticEventBinding(pszClassName As String,
@@ -36,10 +46,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                               pszObjectName As String,
                                               pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.AddStaticEventBinding
             Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
-                BasicVSResources.Intellisense,
+                BasicVSResources.IntelliSense,
                 allowCancel:=False,
                 action:=Sub(c)
-                            Dim visualStudioWorkspace = ComponentModel.GetService(Of visualStudioWorkspace)()
+                            Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
                             Dim document = GetThisDocument()
                             ContainedLanguageStaticEventBinding.AddStaticEventBinding(
                                 document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.CancellationToken)
@@ -74,7 +84,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 pszEventHandlerName,
                 itemidInsertionPoint,
                 useHandlesClause:=True,
-                additionalFormattingRule:=New LineAdjustmentFormattingRule(),
+                additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1
@@ -91,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                         ppbstrMemberIDs As IntPtr) As Integer Implements IVsContainedLanguageStaticEventBinding.GetStaticEventBindingsForObject
             Dim members As Integer
             Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
-                BasicVSResources.Intellisense,
+                BasicVSResources.IntelliSense,
                 allowCancel:=False,
                 action:=Sub(c)
                             Dim eventNamesAndMemberNamesAndIds = ContainedLanguageStaticEventBinding.GetStaticEventBindings(
@@ -112,10 +122,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                  pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.RemoveStaticEventBinding
 
             Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
-                BasicVSResources.Intellisense,
+                BasicVSResources.IntelliSense,
                 allowCancel:=False,
                 action:=Sub(c)
-                            Dim visualStudioWorkspace = ComponentModel.GetService(Of visualStudioWorkspace)()
+                            Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
                             Dim document = GetThisDocument()
                             ContainedLanguageStaticEventBinding.RemoveStaticEventBinding(
                                 document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.CancellationToken)
@@ -124,11 +134,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         End Function
 
         Private Class VisualBasicHelperFormattingRule
-            Inherits AbstractFormattingRule
+            Inherits CompatAbstractFormattingRule
 
-            Public Shared Shadows Instance As IFormattingRule = New VisualBasicHelperFormattingRule()
+            Public Shared Shadows Instance As AbstractFormattingRule = New VisualBasicHelperFormattingRule()
 
-            Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
+            Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
                 ' we need special behavior for VB due to @Helper code generation weird-ness.
                 ' this will looking for code gen specific style to make it not so expansive
                 If IsEndHelperPattern(node) Then
@@ -140,7 +150,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                     Return
                 End If
 
-                MyBase.AddIndentBlockOperations(list, node, optionSet, nextOperation)
+                MyBase.AddIndentBlockOperationsSlow(list, node, nextOperation)
             End Sub
 
             Private Shared Function IsHelperSubLambda(multiLineLambda As MultiLineLambdaExpressionSyntax) As Boolean

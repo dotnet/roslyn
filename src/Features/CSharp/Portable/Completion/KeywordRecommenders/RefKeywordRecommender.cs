@@ -1,9 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -37,9 +42,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             };
 
         /// <summary>
-        /// Same as <see cref="SyntaxKindSet.AllGlobalMemberModifiers"/> with ref specific exclusions
+        /// Same as <see cref="SyntaxKindSet.AllGlobalMemberModifiers"/> with ref-specific exclusions
         /// </summary>
         private static readonly ISet<SyntaxKind> RefGlobalMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+            {
+                // SyntaxKind.AsyncKeyword,    // async local functions cannot be byref
+                SyntaxKind.ExternKeyword,
+                SyntaxKind.InternalKeyword,
+                SyntaxKind.NewKeyword,
+                SyntaxKind.OverrideKeyword,
+                SyntaxKind.PublicKeyword,
+                SyntaxKind.PrivateKeyword,
+                SyntaxKind.ReadOnlyKeyword,
+                SyntaxKind.StaticKeyword,
+                SyntaxKind.UnsafeKeyword,
+                SyntaxKind.VolatileKeyword,
+            };
+
+        /// <summary>
+        /// Same as <see cref="SyntaxKindSet.AllGlobalMemberModifiers"/> with ref-specific exclusions for C# script
+        /// </summary>
+        private static readonly ISet<SyntaxKind> RefGlobalMemberScriptModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 // SyntaxKind.AsyncKeyword,    // async methods cannot be byref
                 SyntaxKind.ExternKeyword,
@@ -58,28 +81,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
             return
-                syntaxTree.IsParameterModifierContext(position, context.LeftToken, cancellationToken) ||
-                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                IsRefParameterModifierContext(position, context) ||
+                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
+                IsValidContextForType(context, cancellationToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
                 IsValidNewByRefContext(syntaxTree, position, context, cancellationToken);
         }
 
-        private bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsRefParameterModifierContext(int position, CSharpSyntaxContext context)
+        {
+            if (context.SyntaxTree.IsParameterModifierContext(
+                    position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
+            {
+                if (previousModifier == SyntaxKind.None)
+                {
+                    return true;
+                }
+
+                if (previousModifier == SyntaxKind.ThisKeyword &&
+                    parameterIndex == 0 &&
+                    context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
-                IsValidRefDeclarationOrAssignmentContext(syntaxTree, position, context, cancellationToken) ||
+                IsValidRefExpressionContext(context) ||
                 context.IsDelegateReturnTypeContext ||
-                syntaxTree.IsGlobalMemberDeclarationContext(position, RefGlobalMemberModifiers, cancellationToken) ||
+                syntaxTree.IsGlobalMemberDeclarationContext(position, syntaxTree.IsScript() ? RefGlobalMemberScriptModifiers : RefGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: RefMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
         }
 
-        private static bool IsValidRefDeclarationOrAssignmentContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidRefExpressionContext(CSharpSyntaxContext context)
         {
             // {
             //     ref var x ...
@@ -90,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // 
-            //  ref Foo(int x, ...
+            //  ref Goo(int x, ...
             // 
             if (context.IsGlobalStatementContext)
             {
@@ -107,27 +152,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 case SyntaxKind.ReturnKeyword:
                     return true;
 
-                    // {
+                // {
                 //     () => ref ...
                 // 
                 case SyntaxKind.EqualsGreaterThanToken:
                     return true;
 
                 // {
-                //     for(ref var x ...
-                // 
+                //     for (ref var x ...
+                //
+                //     foreach (ref var x ...
+                //
                 case SyntaxKind.OpenParenToken:
                     var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.IsKind(SyntaxKind.ForKeyword);
+                    return previous.IsKind(SyntaxKind.ForKeyword)
+                        || previous.IsKind(SyntaxKind.ForEachKeyword);
 
                 // {
                 //     ref var x = ref
                 // 
                 case SyntaxKind.EqualsToken:
-                    return token.Parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
+                    var parent = token.Parent;
+                    return parent?.Kind() == SyntaxKind.SimpleAssignmentExpression
+                        || parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
+
+                // {
+                //     var x = true ?
+                //     var x = true ? ref y :
+                case SyntaxKind.QuestionToken:
+                case SyntaxKind.ColonToken:
+                    return token.Parent?.Kind() == SyntaxKind.ConditionalExpression;
             }
 
             return false;
+        }
+
+        private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
         }
     }
 }

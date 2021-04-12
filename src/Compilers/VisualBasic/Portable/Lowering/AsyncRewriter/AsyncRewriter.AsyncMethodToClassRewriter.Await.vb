@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -6,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -56,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.MakeAssignmentStatement(rewrittenGetAwaiter, awaiterTemp, builder))
 
                 ' hidden sequence point facilitates EnC method remapping, see explanation on SynthesizedLocalKind.Awaiter
-                builder.AddStatement(F.HiddenSequencePoint())
+                builder.AddStatement(SyntheticBoundNodeFactory.HiddenSequencePoint())
 
                 ' STMT:   If Not $awaiterTemp.IsCompleted Then <await-for-incomplete-task>
                 Dim awaitForIncompleteTask As BoundStatement = Me.GenerateAwaitForIncompleteTask(awaiterTemp)
@@ -73,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.AddStatement(
                         Me.F.If(
                             condition:=Me.F.Convert(Me.F.SpecialType(SpecialType.System_Boolean), rewrittenIsCompleted),
-                            thenClause:=Me.F.Block(),
+                            thenClause:=Me.F.StatementList(),
                             elseClause:=awaitForIncompleteTask))
                 Else
                     ' regular case
@@ -131,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), awaiterField, True),
-                        If(awaiterField.Type = awaiterTemp.Type,
+                        If(TypeSymbol.Equals(awaiterField.Type, awaiterTemp.Type, TypeCompareKind.ConsiderEverything),
                            DirectCast(Me.F.Local(awaiterTemp, False), BoundExpression),
                            Me.F.Convert(awaiterFieldType, Me.F.Local(awaiterTemp, False)))))
 
@@ -209,12 +212,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' STMT:   this.builder.AwaitUnsafeOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
                         '  or
                         ' STMT:   this.builder.AwaitOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
+                        Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Me.F.Diagnostics, Me.CompilationState.Compilation.Assembly)
                         Dim useUnsafeOnCompleted As Boolean =
                             Conversions.IsWideningConversion(
                                 Conversions.ClassifyDirectCastConversion(
                                     awaiterType,
                                     ICriticalNotifyCompletion,
-                                    useSiteDiagnostics:=Nothing))
+                                    useSiteInfo:=useSiteInfo))
+
+                        Me.F.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
                         blockBuilder.Add(
                             Me.F.ExpressionStatement(
@@ -253,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Local(awaiterTemp, True),
-                        If(awaiterTemp.Type = awaiterField.Type,
+                        If(TypeSymbol.Equals(awaiterTemp.Type, awaiterField.Type, TypeCompareKind.ConsiderEverything),
                            DirectCast(Me.F.Field(Me.F.Me(), awaiterField, False), BoundExpression),
                            Me.F.Convert(awaiterTemp.Type, Me.F.Field(Me.F.Me(), awaiterField, False)))))
 

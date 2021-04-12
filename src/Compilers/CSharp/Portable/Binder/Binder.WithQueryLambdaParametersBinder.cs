@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            protected override BoundExpression BindRangeVariable(SimpleNameSyntax node, RangeVariableSymbol qv, DiagnosticBag diagnostics)
+            protected override BoundExpression BindRangeVariable(SimpleNameSyntax node, RangeVariableSymbol qv, BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(!qv.IsTransparent);
 
@@ -43,19 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the range variable maps directly to a use of the parameter of that name
                         var value = base.parameterMap[qv.Name];
                         Debug.Assert(value.Count == 1);
-                        translation = new BoundParameter(node, value.Single()) { WasCompilerGenerated = true };
+                        translation = new BoundParameter(node, value.Single());
                     }
                     else
                     {
                         // if the query variable map for this variable is non empty, we always start with the current
                         // lambda's first parameter, which is a transparent identifier.
                         Debug.Assert(base.lambdaSymbol.Parameters[0].Name.StartsWith(transparentIdentifierPrefix, StringComparison.Ordinal));
-                        translation = new BoundParameter(node, base.lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
+                        translation = new BoundParameter(node, base.lambdaSymbol.Parameters[0]);
                         for (int i = path.Length - 1; i >= 0; i--)
                         {
+                            translation.WasCompilerGenerated = true;
                             var nextField = path[i];
                             translation = SelectField(node, translation, nextField, diagnostics);
-                            translation.WasCompilerGenerated = true;
                         }
                     }
 
@@ -65,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.BindRangeVariable(node, qv, diagnostics);
             }
 
-            private BoundExpression SelectField(SimpleNameSyntax node, BoundExpression receiver, string name, DiagnosticBag diagnostics)
+            private BoundExpression SelectField(SimpleNameSyntax node, BoundExpression receiver, string name, BindingDiagnosticBag diagnostics)
             {
                 var receiverType = receiver.Type as NamedTypeSymbol;
                 if ((object)receiverType == null || !receiverType.IsAnonymousType)
@@ -82,24 +86,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node,
                         LookupResultKind.Empty,
                         ImmutableArray.Create<Symbol>(receiver.ExpressionSymbol),
-                        ImmutableArray.Create<BoundNode>(receiver),
+                        ImmutableArray.Create(BindToTypeForErrorRecovery(receiver)),
                         new ExtendedErrorTypeSymbol(this.Compilation, "", 0, info));
                 }
 
                 LookupResult lookupResult = LookupResult.GetInstance();
                 LookupOptions options = LookupOptions.MustBeInstance;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
-                diagnostics.Add(node, useSiteDiagnostics);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteInfo, basesBeingResolved: null, options: options);
+                diagnostics.Add(node, useSiteInfo);
 
-                var result = BindMemberOfType(node, node, name, 0, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
-                result.WasCompilerGenerated = true;
+                var result = BindMemberOfType(node, node, name, 0, indexed: false, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
                 lookupResult.Free();
                 return result;
             }
 
             internal override void LookupSymbolsInSingleBinder(
-                LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+                LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(result.IsClear);
 
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var rangeVariable in _parameterMap[name])
                 {
-                    result.MergeEqual(originalBinder.CheckViability(rangeVariable, arity, options, null, diagnose, ref useSiteDiagnostics));
+                    result.MergeEqual(originalBinder.CheckViability(rangeVariable, arity, options, null, diagnose, ref useSiteInfo));
                 }
             }
 

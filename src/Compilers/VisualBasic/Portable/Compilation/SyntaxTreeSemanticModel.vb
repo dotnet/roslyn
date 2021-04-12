@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -7,7 +9,8 @@ Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -28,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _ignoresAccessibility As Boolean
 
         ' maps from a higher-level binder to an appropriate SemanticModel for the construct (such as a method, or initializer).
-        Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of Tuple(Of Binder, Boolean), MemberSemanticModel)()
+        Private ReadOnly _semanticModelCache As New ConcurrentDictionary(Of (binder As Binder, ignoresAccessibility As Boolean), MemberSemanticModel)()
 
         Friend Sub New(compilation As VisualBasicCompilation, sourceModule As SourceModuleSymbol, syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False)
             _compilation = compilation
@@ -50,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
-        Friend Overrides ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Root As SyntaxNode
             Get
                 Return DirectCast(_syntaxTree.GetRoot(), VisualBasicSyntaxNode)
             End Get
@@ -133,27 +136,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, _syntaxTree, span, includeEarlierStages:=False, cancellationToken:=cancellationToken)
         End Function
 
-        ' PERF: These shared variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
-        Private Shared ReadOnly s_methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(DirectCast(key.Item1, SubOrFunctionBodyBinder), key.Item2)
-        Private Shared ReadOnly s_initializerSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) InitializerSemanticModel.Create(DirectCast(key.Item1, DeclarationInitializerBinder), key.Item2)
-        Private Shared ReadOnly s_attributeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) AttributeSemanticModel.Create(DirectCast(key.Item1, AttributeBinder), key.Item2)
+        ' PERF: These variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
+        Private ReadOnly _methodBodySemanticModelCreator As Func(Of (binder As Binder, ignoresAccessibility As Boolean), MemberSemanticModel) = Function(key As (binder As Binder, ignoresAccessibility As Boolean)) MethodBodySemanticModel.Create(Me, DirectCast(key.binder, SubOrFunctionBodyBinder), key.ignoresAccessibility)
+        Private ReadOnly _initializerSemanticModelCreator As Func(Of (binder As Binder, ignoresAccessibility As Boolean), MemberSemanticModel) = Function(key As (binder As Binder, ignoresAccessibility As Boolean)) InitializerSemanticModel.Create(Me, DirectCast(key.binder, DeclarationInitializerBinder), key.ignoresAccessibility)
+        Private ReadOnly _attributeSemanticModelCreator As Func(Of (binder As Binder, ignoresAccessibility As Boolean), MemberSemanticModel) = Function(key As (binder As Binder, ignoresAccessibility As Boolean)) AttributeSemanticModel.Create(Me, DirectCast(key.binder, AttributeBinder), key.ignoresAccessibility)
 
         Public Function GetMemberSemanticModel(binder As Binder) As MemberSemanticModel
 
             If TypeOf binder Is MethodBodyBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd((binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
             End If
 
             If TypeOf binder Is DeclarationInitializerBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_initializerSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd((binder, IgnoresAccessibility), _initializerSemanticModelCreator)
             End If
 
             If TypeOf binder Is AttributeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_attributeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd((binder, IgnoresAccessibility), _attributeSemanticModelCreator)
             End If
 
             If TypeOf binder Is TopLevelCodeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd((binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
             End If
 
             Return Nothing
@@ -166,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return model
         End Function
 
-        Friend Function GetMemberSemanticModel(node As VisualBasicSyntaxNode) As MemberSemanticModel
+        Friend Function GetMemberSemanticModel(node As SyntaxNode) As MemberSemanticModel
             Return GetMemberSemanticModel(node.SpanStart)
         End Function
 
@@ -268,9 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim binder As Binder = GetEnclosingBinder(node.SpanStart)
 
             If binder IsNot Nothing Then
-                Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-                Dim bound As BoundExpression = binder.BindExpression(node, diagnostics)
-                diagnostics.Free()
+                Dim bound As BoundExpression = binder.BindExpression(node, BindingDiagnosticBag.Discarded)
 
                 Dim newSymbolInfo = GetSymbolInfoForNode(options, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
 
@@ -350,11 +351,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            Dim model As MemberSemanticModel
+
+            Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
+            If methodBlock IsNot Nothing Then
+                ' Trying to get the MemberSemanticModel for a MethodBlock will end up returning
+                ' nothing.  That's because trying to get Binder for the MethodBlock will actually
+                ' return the binder for the containing type.  To avoid this we ask for the model
+                ' passing in a position at the end of the method's starting block-statement.
+                ' This will cause it to try to get the interior MemberSemanticModel.
+                model = GetMemberSemanticModel(methodBlock.BlockStatement.EndPosition)
+            Else
+                model = Me.GetMemberSemanticModel(node)
+            End If
 
             If model IsNot Nothing Then
-                Return model.GetOperationWorker(node, options, cancellationToken)
+                Return model.GetOperationWorker(node, cancellationToken)
             Else
                 Return Nothing
             End If
@@ -441,24 +454,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetTypeOrNamespaceSymbolNotInMember(expression As TypeSyntax) As Symbol
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-            Try
-                ' Set up the binding context.
-                Dim binder As Binder = GetEnclosingBinder(expression.SpanStart)
+            ' Set up the binding context.
+            Dim binder As Binder = GetEnclosingBinder(expression.SpanStart)
 
-                ' Attempt to bind the type or namespace
-                Dim resultSymbol As Symbol
-                If SyntaxFacts.IsInTypeOnlyContext(expression) Then
-                    resultSymbol = binder.BindTypeOrAliasSyntax(expression, diagnostics)
-                Else
-                    resultSymbol = binder.BindNamespaceOrTypeOrAliasSyntax(expression, diagnostics)
-                End If
+            ' Attempt to bind the type or namespace
+            Dim resultSymbol As Symbol
+            If SyntaxFacts.IsInTypeOnlyContext(expression) Then
+                resultSymbol = binder.BindTypeOrAliasSyntax(expression, BindingDiagnosticBag.Discarded)
+            Else
+                resultSymbol = binder.BindNamespaceOrTypeOrAliasSyntax(expression, BindingDiagnosticBag.Discarded)
+            End If
 
-                ' Create the result.
-                Return resultSymbol
-            Finally
-                diagnostics.Free()
-            End Try
+            ' Create the result.
+            Return resultSymbol
         End Function
 
         ' Get the symbol info of reference from 'cref' or 'name' attribute value
@@ -593,10 +601,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isTopLevel As Boolean
                 If node.Kind = SyntaxKind.CrefReference Then
                     isTopLevel = True
-                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, CrefReferenceSyntax), preserveAlias, Nothing, Nothing)
+                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, CrefReferenceSyntax), preserveAlias, Nothing, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                 Else
                     isTopLevel = node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.CrefReference
-                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, TypeSyntax), preserveAlias, Nothing, Nothing)
+                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, TypeSyntax), preserveAlias, Nothing, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                 End If
 
                 If isTopLevel Then
@@ -625,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return symbols
             Else
-                Return docCommentBinder.BindXmlNameAttributeValue(DirectCast(node, IdentifierNameSyntax), useSiteDiagnostics:=Nothing)
+                Return docCommentBinder.BindXmlNameAttributeValue(DirectCast(node, IdentifierNameSyntax), useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             End If
         End Function
 
@@ -692,60 +700,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetImplementedMemberAndResultKind(symbolBuilder As ArrayBuilder(Of Symbol), memberName As QualifiedNameSyntax) As LookupResultKind
             Debug.Assert(symbolBuilder.Count = 0)
 
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
             Dim resultKind As LookupResultKind = LookupResultKind.Good
-            Try
 
-                ' Set up the binding context.
-                Dim binder As Binder = GetEnclosingBinder(memberName.SpanStart)
+            ' Set up the binding context.
+            Dim binder As Binder = GetEnclosingBinder(memberName.SpanStart)
 
-                ' Figure out the symbol this implements clause is on, and bind the syntax for it.
-                Dim implementingMemberSyntax = TryCast(memberName.Parent.Parent, MethodBaseSyntax)
-                If implementingMemberSyntax IsNot Nothing Then
-                    Dim implementingMember = GetDeclaredSymbol(implementingMemberSyntax)
+            ' Figure out the symbol this implements clause is on, and bind the syntax for it.
+            Dim implementingMemberSyntax = TryCast(memberName.Parent.Parent, MethodBaseSyntax)
+            If implementingMemberSyntax IsNot Nothing Then
+                Dim implementingMember = GetDeclaredSymbol(implementingMemberSyntax)
 
-                    If implementingMember IsNot Nothing Then
-                        Select Case implementingMember.Kind
-                            Case SymbolKind.Method
-                                ImplementsHelper.FindExplicitlyImplementedMember(Of MethodSymbol)(
-                                                        DirectCast(implementingMember, MethodSymbol),
-                                                        DirectCast(implementingMember, MethodSymbol).ContainingType,
-                                                        memberName,
-                                                        binder,
-                                                        diagnostics,
-                                                        symbolBuilder,
-                                                        resultKind)
+                If implementingMember IsNot Nothing Then
+                    Select Case implementingMember.Kind
+                        Case SymbolKind.Method
+                            ImplementsHelper.FindExplicitlyImplementedMember(Of MethodSymbol)(
+                                                    DirectCast(implementingMember, MethodSymbol),
+                                                    DirectCast(implementingMember, MethodSymbol).ContainingType,
+                                                    memberName,
+                                                    binder,
+                                                    BindingDiagnosticBag.Discarded,
+                                                    symbolBuilder,
+                                                    resultKind)
 
-                            Case SymbolKind.Property
-                                ImplementsHelper.FindExplicitlyImplementedMember(Of PropertySymbol)(
-                                                        DirectCast(implementingMember, PropertySymbol),
-                                                        DirectCast(implementingMember, PropertySymbol).ContainingType,
-                                                        memberName,
-                                                        binder,
-                                                        diagnostics,
-                                                        symbolBuilder,
-                                                        resultKind)
+                        Case SymbolKind.Property
+                            ImplementsHelper.FindExplicitlyImplementedMember(Of PropertySymbol)(
+                                                    DirectCast(implementingMember, PropertySymbol),
+                                                    DirectCast(implementingMember, PropertySymbol).ContainingType,
+                                                    memberName,
+                                                    binder,
+                                                    BindingDiagnosticBag.Discarded,
+                                                    symbolBuilder,
+                                                    resultKind)
 
-                            Case SymbolKind.Event
-                                ImplementsHelper.FindExplicitlyImplementedMember(Of EventSymbol)(
-                                                        DirectCast(implementingMember, EventSymbol),
-                                                        DirectCast(implementingMember, EventSymbol).ContainingType,
-                                                        memberName,
-                                                        binder,
-                                                        diagnostics,
-                                                        symbolBuilder,
-                                                        resultKind)
+                        Case SymbolKind.Event
+                            ImplementsHelper.FindExplicitlyImplementedMember(Of EventSymbol)(
+                                                    DirectCast(implementingMember, EventSymbol),
+                                                    DirectCast(implementingMember, EventSymbol).ContainingType,
+                                                    memberName,
+                                                    binder,
+                                                    BindingDiagnosticBag.Discarded,
+                                                    symbolBuilder,
+                                                    resultKind)
 
-                            Case Else
-                                Throw ExceptionUtilities.UnexpectedValue(implementingMember.Kind)
-                        End Select
-                    End If
+                        Case Else
+                            Throw ExceptionUtilities.UnexpectedValue(implementingMember.Kind)
+                    End Select
                 End If
+            End If
 
-                Return resultKind
-            Finally
-                diagnostics.Free()
-            End Try
+            Return resultKind
         End Function
 
         Private Function GetHandledEventOrContainerSymbolsAndResultKind(eventSymbolBuilder As ArrayBuilder(Of Symbol),
@@ -766,16 +769,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If implementingMember IsNot Nothing Then
                     Dim methodSym = DirectCast(implementingMember, SourceMemberMethodSymbol)
 
-                    Dim diagbag = DiagnosticBag.GetInstance()
                     methodSym.BindSingleHandlesClause(handlesClause,
                                                       binder,
-                                                      diagbag,
+                                                      BindingDiagnosticBag.Discarded,
                                                       eventSymbolBuilder,
                                                       containerSymbolBuilder,
                                                       propertySymbolBuilder,
                                                       resultKind)
-
-                    diagbag.Free()
                 End If
             End If
 
@@ -820,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SymbolInfoFactory.Create(symbols, resultKind)
         End Function
 
-        ' Get the symbol info of an withevents sourcing property in a handles clause.
+        ' Get the symbol info of a withevents sourcing property in a handles clause.
         Private Function GetHandlesPropertySymbolInfo(handlesClause As HandlesClauseItemSyntax, options As SymbolInfoOptions) As SymbolInfo
             Dim builder As ArrayBuilder(Of Symbol) = ArrayBuilder(Of Symbol).GetInstance()
             Dim resultKind As LookupResultKind = GetHandledEventOrContainerSymbolsAndResultKind(eventSymbolBuilder:=Nothing,
@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function CheckSymbolLocationsAgainstSyntax(symbol As NamedTypeSymbol, nodeToCheck As VisualBasicSyntaxNode) As NamedTypeSymbol
             For Each location In symbol.Locations
-                If location.SourceTree Is Me.SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan.Start) Then
+                If location.SourceTree Is Me.SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan) Then
                     Return symbol
                 End If
             Next
@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Case SyntaxKind.CompilationUnit
                                     namespaceToLookInForImplicitType = Me._sourceModule.RootNamespace
                                 Case SyntaxKind.NamespaceBlock
-                                    namespaceToLookInForImplicitType = GetDeclaredSymbol(DirectCast(statementSyntax.Parent, NamespaceBlockSyntax))
+                                    namespaceToLookInForImplicitType = GetDeclaredSymbol(DirectCast(statementSyntax.Parent, NamespaceBlockSyntax), cancellationToken)
                             End Select
 
                             If namespaceToLookInForImplicitType IsNot Nothing Then
@@ -1063,7 +1063,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SymbolKind.Method
                                 Return GetParameterSymbol(DirectCast(symbol, MethodSymbol).Parameters, parameter)
                             Case SymbolKind.Event
-                                Return GetParameterSymbol(DirectCast(symbol, EventSymbol).DelegateParameters, parameter)
+                                Dim eventSymbol As EventSymbol = DirectCast(symbol, EventSymbol)
+                                Dim type = TryCast(eventSymbol.Type, NamedTypeSymbol)
+
+                                If type?.AssociatedSymbol Is eventSymbol Then
+                                    Return GetParameterSymbol(type.DelegateInvokeMethod.Parameters, parameter)
+                                End If
+
+                                Return Nothing
+
                             Case SymbolKind.Property
                                 Return GetParameterSymbol(DirectCast(symbol, PropertySymbol).Parameters, parameter)
                             Case SymbolKind.NamedType
@@ -1215,7 +1223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given an FieldInitializerSyntax, get the corresponding symbol of anonymous type creation.
+        ''' Given a FieldInitializerSyntax, get the corresponding symbol of anonymous type creation.
         ''' </summary>
         ''' <param name="fieldInitializerSyntax">The anonymous object creation field initializer syntax.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
@@ -1260,7 +1268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given an CollectionRangeVariableSyntax, get the corresponding symbol.
+        ''' Given a CollectionRangeVariableSyntax, get the corresponding symbol.
         ''' </summary>
         ''' <param name="rangeVariableSyntax">The range variable syntax that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
@@ -1310,7 +1318,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim aliasName As String = declarationSyntax.Alias.Identifier.ValueText
 
             If Not String.IsNullOrEmpty(aliasName) Then
-                Dim sourceFile = Me._sourceModule.GetSourceFile(Me.SyntaxTree)
+                Dim sourceFile = Me._sourceModule.TryGetSourceFile(Me.SyntaxTree)
+                Debug.Assert(sourceFile IsNot Nothing)
 
                 Dim aliasImports As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition) = sourceFile.AliasImportsOpt
                 Dim symbol As AliasAndImportsClausePosition = Nothing
@@ -1326,9 +1335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' If the alias name was in the map but the location didn't match, then the syntax declares a duplicate alias.
                     ' We'll return a new AliasSymbol to improve the API experience.
                     Dim binder As Binder = GetEnclosingBinder(declarationSyntax.SpanStart)
-                    Dim discardedDiagnostics = DiagnosticBag.GetInstance()
-                    Dim targetSymbol As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(declarationSyntax.Name, discardedDiagnostics)
-                    discardedDiagnostics.Free()
+                    Dim targetSymbol As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(declarationSyntax.Name, BindingDiagnosticBag.Discarded)
                     If targetSymbol IsNot Nothing Then
                         Return New AliasSymbol(binder.Compilation, binder.ContainingNamespaceOrType, aliasName, targetSymbol, declarationSyntax.GetLocation())
                     End If
@@ -1412,6 +1419,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ParentModel As SemanticModel
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ContainingModelOrSelf As SemanticModel
+            Get
+                Return Me
             End Get
         End Property
 

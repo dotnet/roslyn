@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 
@@ -12,8 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
-            : base(name, syntaxReference, nameLocation)
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name, syntaxReference, nameLocation, diagnostics)
         {
             _children = children;
         }
@@ -53,18 +58,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasExternAliases,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
         {
             // By far the most common case is "no usings and no extern aliases", so optimize for
             // that to minimize space. The other cases are not frequent enough to warrant their own
             // custom types.
             if (!hasUsings && !hasExternAliases)
             {
-                return new SingleNamespaceDeclaration(name, syntaxReference, nameLocation, children);
+                return new SingleNamespaceDeclaration(
+                    name, syntaxReference, nameLocation, children, diagnostics);
             }
             else
             {
-                return new SingleNamespaceDeclarationEx(name, hasUsings, hasExternAliases, syntaxReference, nameLocation, children);
+                return new SingleNamespaceDeclarationEx(
+                    name, hasUsings, hasExternAliases, syntaxReference, nameLocation, children, diagnostics);
             }
         }
     }

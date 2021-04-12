@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -7,6 +9,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Text
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -80,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isMyBase As Boolean = Not methodContainingType.Equals(containingType)
             Debug.Assert(isMyBase OrElse receiver.Kind = BoundKind.MyClassReference)
 
-            Dim syntax As VisualBasicSyntaxNode = Me.CurrentMethod.Syntax
+            Dim syntax As SyntaxNode = Me.CurrentMethod.Syntax
 
 
             ' generate and register wrapper method
@@ -89,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' register a new method
             If Me.CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                Me.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapperMethod)
+                Me.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapperMethod.GetCciAdapter())
             End If
 
             ' generate method body
@@ -165,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Sub New(containingType As InstanceTypeSymbol,
                            methodToWrap As MethodSymbol,
                            wrapperName As String,
-                           syntax As VisualBasicSyntaxNode)
+                           syntax As SyntaxNode)
 
                 MyBase.New(syntax, containingType, wrapperName, False)
 

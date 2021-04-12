@@ -1,20 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class PartialTypeCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New PartialTypeCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(PartialTypeCompletionProvider)
         End Function
 
         <WorkItem(578224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578224")>
@@ -53,9 +48,6 @@ Partial Class $$</text>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestPartialGenericClassCommitOnParen() As Task
-            ' TODO(DustinCa): This is testing the wrong behavior and will need to be updated to the commented expected
-            ' result when https://github.com/dotnet/roslyn/issues/4137 is fixed.
-
             Dim text = <text>Class Bar
 End Class
                            
@@ -70,17 +62,22 @@ End Class
 Partial Class C(Of Bar)
 End Class
 
-Partial Class C(Of Bar)(</text>
+Partial Class C(</text>
 
-            '            Dim expected = <text>Class Bar
-            'End Class
+            Await VerifyProviderCommitAsync(text.Value, "C(Of Bar)", expected.Value, "("c, SourceCodeKind.Regular)
+        End Function
 
-            'Partial Class C(Of Bar)
-            'End Class
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/11569"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPartialClassWithSameMemberName() As Task
+            Dim text = <text>Partial Class C(Of T)
+    Sub C()
+    End Sub
+End Class
 
-            'Partial Class C(</text>
+Partial Class $$C(Of T)
+End Class</text>
 
-            Await VerifyProviderCommitAsync(text.Value, "C(Of Bar)", expected.Value, "("c, "", SourceCodeKind.Regular)
+            Await VerifyItemExistsAsync(text.Value, "C(Of T)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -101,7 +98,22 @@ End Class
 
 Partial Class C(Of Bar)</text>
 
-            Await VerifyProviderCommitAsync(text.Value, "C(Of Bar)", expected.Value, Nothing, "", SourceCodeKind.Regular)
+            Await VerifyProviderCommitAsync(text.Value, "C(Of Bar)", expected.Value, Nothing, SourceCodeKind.Regular)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPartialGenericClassCommitOnSpace() As Task
+            Dim text = <text>Partial Class C(Of T)
+End Class
+
+Partial Class $$</text>
+
+            Dim expected = <text>Partial Class C(Of T)
+End Class
+
+Partial Class C(Of T) </text>
+
+            Await VerifyProviderCommitAsync(text.Value, "C(Of T)", expected.Value, " "c, SourceCodeKind.Regular)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -109,7 +121,7 @@ Partial Class C(Of Bar)</text>
             Dim text = <text>Partial Class C
 End Class
 
-Partial Protected Class $$</text>
+Partial Friend Class $$</text>
 
             Await VerifyItemExistsAsync(text.Value, "C")
         End Function
@@ -167,7 +179,7 @@ Partial Structure $$</text>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestPartialClassesInSameNamespace() As Task
             Dim text = <text>Namespace N
-    Partial Class Foo
+    Partial Class Goo
 
     End Class
 End Namespace
@@ -177,18 +189,42 @@ Namespace N
 
 End Namespace</text>
 
-            Await VerifyItemExistsAsync(text.Value, "Foo")
+            Await VerifyItemExistsAsync(text.Value, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotPartialClassesAcrossDifferentNamespaces() As Task
             Dim text = <text>Namespace N
-    Partial Class Foo
+    Partial Class Goo
 
     End Class
 End Namespace
 
 Partial Class $$</text>
+
+            Await VerifyNoItemsExistAsync(text.Value)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotPartialClassesInOuterNamespaces() As Task
+            Dim text = <text>Partial Class C
+
+End Class
+
+Namespace N
+    Partial Class $$
+End Namespace
+</text>
+
+            Await VerifyNoItemsExistAsync(text.Value)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNotPartialClassesInOuterClass() As Task
+            Dim text = <text>Partial Class C
+    Partial Class $$
+End Class
+</text>
 
             Await VerifyNoItemsExistAsync(text.Value)
         End Function
@@ -225,6 +261,66 @@ End Class
 Partial Class '$$</text>
 
             Await VerifyNoItemsExistAsync(text.Value)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPartialClassWithReservedName() As Task
+            Dim text = <text>Partial Class [Class]
+End Class
+
+Partial Class $$</text>
+
+            Dim expected = <text>Partial Class [Class]
+End Class
+
+Partial Class [Class]</text>
+
+            Await VerifyProviderCommitAsync(text.Value, "Class", expected.Value, Nothing, SourceCodeKind.Regular)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPartialGenericClassWithReservedName() As Task
+            Dim text = <text>Partial Class [Class](Of T)
+End Class
+
+Partial Class $$</text>
+
+            Dim expected = <text>Partial Class [Class](Of T)
+End Class
+
+Partial Class [Class](Of T)</text>
+
+            Await VerifyProviderCommitAsync(text.Value, "Class(Of T)", expected.Value, Nothing, SourceCodeKind.Regular)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPartialGenericClassWithReservedNameCommittedWithParen() As Task
+            Dim text = <text>Partial Class [Class](Of T)
+End Class
+
+Partial Class $$</text>
+
+            Dim expected = <text>Partial Class [Class](Of T)
+End Class
+
+Partial Class [Class](</text>
+
+            Await VerifyProviderCommitAsync(text.Value, "Class(Of T)", expected.Value, "("c, SourceCodeKind.Regular)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPartialGenericInterfaceWithVariance() As Task
+            Dim text = <text>Partial Interface G(Of Out T)
+End Interface
+
+Partial Interface $$</text>
+
+            Dim expected = <text>Partial Interface G(Of Out T)
+End Interface
+
+Partial Interface G(Of Out T)</text>
+
+            Await VerifyProviderCommitAsync(text.Value, "G(Of Out T)", expected.Value, Nothing, SourceCodeKind.Regular)
         End Function
 
     End Class

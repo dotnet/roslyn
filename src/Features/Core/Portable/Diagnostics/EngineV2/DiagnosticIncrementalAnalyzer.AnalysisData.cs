@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -13,52 +18,54 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Simple data holder for local diagnostics for an analyzer
         /// </summary>
-        private struct DocumentAnalysisData
+        private readonly struct DocumentAnalysisData
         {
-            public static readonly DocumentAnalysisData Empty = new DocumentAnalysisData(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
+            public static readonly DocumentAnalysisData Empty = new(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
 
             /// <summary>
-            /// Version of the Items
+            /// Version of the diagnostic data.
             /// </summary>
             public readonly VersionStamp Version;
 
             /// <summary>
-            /// Current data that matches the version
+            /// Current data that matches the version.
             /// </summary>
             public readonly ImmutableArray<DiagnosticData> Items;
 
             /// <summary>
-            /// When present, This hold onto last data we broadcast to outer world
+            /// Last set of data we broadcasted to outer world, or <see langword="default"/>.
             /// </summary>
             public readonly ImmutableArray<DiagnosticData> OldItems;
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> items)
             {
-                this.Version = version;
-                this.Items = items;
+                Debug.Assert(!items.IsDefault);
+
+                Version = version;
+                Items = items;
+                OldItems = default;
             }
 
-            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems) :
-                this(version, newItems)
+            public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
+                : this(version, newItems)
             {
-                this.OldItems = oldItems;
+                Debug.Assert(!oldItems.IsDefault);
+                OldItems = oldItems;
             }
 
             public DocumentAnalysisData ToPersistData()
-            {
-                return new DocumentAnalysisData(Version, Items);
-            }
+                => new(Version, Items);
 
             public bool FromCache
             {
-                get { return this.OldItems.IsDefault; }
+                get { return OldItems.IsDefault; }
             }
         }
 
         /// <summary>
         /// Data holder for all diagnostics for a project for an analyzer
         /// </summary>
-        private struct ProjectAnalysisData
+        private readonly struct ProjectAnalysisData
         {
             /// <summary>
             /// ProjectId of this data
@@ -73,14 +80,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Current data that matches the version
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> Result;
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
 
             /// <summary>
-            /// When present, This hold onto last data we broadcast to outer world
+            /// When present, holds onto last data we broadcasted to outer world.
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> OldResult;
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? OldResult;
 
-            public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
+            public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {
                 ProjectId = projectId;
                 Version = version;
@@ -92,32 +99,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectAnalysisData(
                 ProjectId projectId,
                 VersionStamp version,
-                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> oldResult,
-                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> newResult) :
-                this(projectId, version, newResult)
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
+                : this(projectId, version, newResult)
             {
-                this.OldResult = oldResult;
+                OldResult = oldResult;
             }
 
-            public AnalysisResult GetResult(DiagnosticAnalyzer analyzer)
-            {
-                return GetResultOrEmpty(Result, analyzer, ProjectId, Version);
-            }
+            public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
+                => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
 
-            public bool FromCache
-            {
-                get { return this.OldResult == null; }
-            }
-
-            public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
+            public static async Task<ProjectAnalysisData> CreateAsync(IPersistentStorageService persistentService, Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 VersionStamp? version = null;
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalysisResult>();
+                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
                 foreach (var stateSet in stateSets)
                 {
-                    var state = stateSet.GetProjectState(project.Id);
-                    var result = await state.GetAnalysisDataAsync(project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var state = stateSet.GetOrCreateProjectState(project.Id);
+                    var result = await state.GetAnalysisDataAsync(persistentService, project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfFalse(project.Id == result.ProjectId);
 
                     if (!version.HasValue)
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!version.HasValue)
                 {
                     // there is no saved data to return.
-                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
+                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                 }
 
                 return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());

@@ -1,20 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioMetadataReferenceManager
     {
-        private class RecoverableMetadataValueSource : ValueSource<AssemblyMetadata>
+        private sealed class RecoverableMetadataValueSource : ValueSource<Optional<AssemblyMetadata>>
         {
             private readonly WeakReference<AssemblyMetadata> _weakValue;
             private readonly List<ITemporaryStreamStorage> _storages;
@@ -29,10 +31,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _lifetimeMap = lifetimeMap;
             }
 
-            public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
+            public IEnumerable<ITemporaryStreamStorage> GetStorages()
+                => _storages;
+
+            public override bool TryGetValue(out Optional<AssemblyMetadata> value)
             {
-                AssemblyMetadata value;
-                if (_weakValue.TryGetTarget(out value))
+                if (_weakValue.TryGetTarget(out var target))
+                {
+                    value = target;
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+
+            public override Task<Optional<AssemblyMetadata>> GetValueAsync(CancellationToken cancellationToken)
+                => Task.FromResult(GetValue(cancellationToken));
+
+            public override Optional<AssemblyMetadata> GetValue(CancellationToken cancellationToken)
+            {
+                if (_weakValue.TryGetTarget(out var value))
                 {
                     return value;
                 }
@@ -42,14 +61,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private AssemblyMetadata RecoverMetadata()
             {
-                var moduleBuilder = ImmutableArray.CreateBuilder<ModuleMetadata>(_storages.Count);
+                var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance(_storages.Count);
 
                 foreach (var storage in _storages)
                 {
                     moduleBuilder.Add(GetModuleMetadata(storage));
                 }
 
-                var metadata = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
+                var metadata = AssemblyMetadata.Create(moduleBuilder.ToImmutableAndFree());
                 _weakValue.SetTarget(metadata);
 
                 return metadata;
@@ -68,22 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // memory management.
                 _lifetimeMap.Add(metadata, stream);
                 return metadata;
-            }
-
-            public override bool TryGetValue(out AssemblyMetadata value)
-            {
-                if (_weakValue.TryGetTarget(out value))
-                {
-                    return true;
-                }
-
-                value = default(AssemblyMetadata);
-                return false;
-            }
-
-            public override Task<AssemblyMetadata> GetValueAsync(CancellationToken cancellationToken)
-            {
-                return Task.FromResult(this.GetValue(cancellationToken));
             }
         }
     }

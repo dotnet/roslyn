@@ -1,6 +1,11 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -8,18 +13,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
     internal class SplitStringLiteralOptions
     {
-        public const string FeatureName = "SplitStringLiteral";
-
-        public static PerLanguageOption<bool> Enabled =
-            new PerLanguageOption<bool>(FeatureName, nameof(Enabled), defaultValue: true);
+        public static PerLanguageOption2<bool> Enabled =
+            new(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 
-    [ExportOptionProvider, Shared]
+    [ExportOptionProvider(LanguageNames.CSharp), Shared]
     internal class SplitStringLiteralOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
-            SplitStringLiteralOptions.Enabled);
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SplitStringLiteralOptionsProvider()
+        {
+        }
 
-        public IEnumerable<IOption> GetOptions() => _options;
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            SplitStringLiteralOptions.Enabled);
     }
 }

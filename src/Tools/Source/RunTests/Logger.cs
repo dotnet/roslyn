@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +24,26 @@ namespace RunTests
             {
                 s_hasErrors = true;
                 s_lines.Add($"Error {ex.Message}: {line}");
-                s_lines.Add(ex.StackTrace);
+                s_lines.Add(ex.StackTrace ?? "");
+            }
+        }
+
+        internal static void Log(string message, Exception ex)
+        {
+            lock (s_lines)
+            {
+                s_lines.Add(message);
+                s_lines.Add(ex.Message);
+                s_lines.Add(ex.StackTrace ?? "");
+            }
+        }
+
+        internal static void Log(Exception ex)
+        {
+            lock (s_lines)
+            {
+                s_lines.Add(ex.Message);
+                s_lines.Add(ex.StackTrace ?? "");
             }
         }
 
@@ -34,13 +55,22 @@ namespace RunTests
             }
         }
 
-        internal static void Finish(string logDir)
+        internal static void Clear()
         {
-            var logFilePath = Path.Combine(logDir, "runtests.log");
             lock (s_lines)
             {
-                File.WriteAllLines(logFilePath, s_lines.ToArray());
                 s_lines.Clear();
+            }
+        }
+
+        internal static void WriteTo(TextWriter textWriter)
+        {
+            lock (s_lines)
+            {
+                foreach (var line in s_lines)
+                {
+                    textWriter.WriteLine(line);
+                }
             }
         }
     }

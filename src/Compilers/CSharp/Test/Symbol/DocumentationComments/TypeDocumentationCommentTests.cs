@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public TypeDocumentationCommentTests()
         {
-            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"enum Color { Red, Blue, Green }
+            _compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"enum Color { Red, Blue, Green }
 namespace Acme
 {
 	interface IProcess {...}
@@ -132,7 +136,7 @@ class A
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
     }

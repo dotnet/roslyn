@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -27,18 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly ITextBuffer _subjectBuffer;
 
             /// <summary>
-            /// If we get more than this many differences, then we just issue it as a single change
-            /// notification.  The number has been completely made up without any data to support it.
-            /// 
-            /// Internal for testing purposes.
-            /// </summary>
-            internal const int CoalesceDifferenceCount = 10;
-
-            /// <summary>
             /// The worker we use to do work on the appropriate background or foreground thread.
             /// </summary>
             private readonly IAsynchronousOperationListener _listener;
             private readonly IForegroundNotificationService _notificationService;
+            private readonly CancellationToken _cancellationToken;
 
             /// <summary>
             /// We keep track of the last time we reported a span, so that if things have been idle for
@@ -54,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             // a list that will be updated all at once the timer actually runs.
             private bool _notificationRequestEnqueued;
             private readonly SortedDictionary<int, NormalizedSnapshotSpanCollection> _snapshotVersionToSpansMap =
-                new SortedDictionary<int, NormalizedSnapshotSpanCollection>();
+                new();
 
             /// <summary>
             /// True if we are currently suppressing UI updates.  While suppressed we still continue
@@ -66,19 +62,23 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public bool IsPaused { get; private set; }
             private int _lastPausedTime;
 
-            private readonly Action<SnapshotSpan> _reportChangedSpan;
+            private readonly Action<NormalizedSnapshotSpanCollection> _notifyEditorNow;
 
             public BatchChangeNotifier(
+                IThreadingContext threadingContext,
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener listener,
                 IForegroundNotificationService notificationService,
-                Action<SnapshotSpan> reportChangedSpan)
+                Action<NormalizedSnapshotSpanCollection> notifyEditorNow,
+                CancellationToken cancellationToken)
+                : base(threadingContext)
             {
-                Contract.ThrowIfNull(reportChangedSpan);
+                Contract.ThrowIfNull(notifyEditorNow);
                 _subjectBuffer = subjectBuffer;
                 _listener = listener;
                 _notificationService = notificationService;
-                _reportChangedSpan = reportChangedSpan;
+                _cancellationToken = cancellationToken;
+                _notifyEditorNow = notifyEditorNow;
             }
 
             public void Pause()
@@ -149,15 +149,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // RecomputeTags. We must eventually notify the editor about these changes so that the
                     // UI reaches parity with our internal model.  Also, if we cancel it, then
                     // 'reportTagsScheduled' will stay 'true' forever and we'll never notify the UI.
-                    _notificationService.RegisterNotification(() =>
-                    {
-                        AssertIsForeground();
+                    _notificationService.RegisterNotification(
+                        () =>
+                        {
+                            AssertIsForeground();
 
-                        // First, clear the flag.  That way any new changes we hear about will enqueue a task
-                        // to run at a later point.
-                        _notificationRequestEnqueued = false;
-                        this.NotifyEditor();
-                    }, (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _listener.BeginAsyncOperation("EnqueueNotificationRequest"));
+                            // First, clear the flag.  That way any new changes we hear about will enqueue a task
+                            // to run at a later point.
+                            _notificationRequestEnqueued = false;
+                            this.NotifyEditor();
+                        },
+                        (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds,
+                        _listener.BeginAsyncOperation("EnqueueNotificationRequest"),
+                        _cancellationToken);
                 }
             }
 
@@ -188,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         var snapshot = snapshotAndSpans.Key;
                         var normalizedSpans = snapshotAndSpans.Value;
 
-                        this.NotifyEditorNow(normalizedSpans);
+                        _notifyEditorNow(normalizedSpans);
                     }
                 }
 
@@ -198,44 +202,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // reset paused time
                 _lastPausedTime = Environment.TickCount;
-            }
-
-            private void NotifyEditorNow(NormalizedSnapshotSpanCollection normalizedSpans)
-            {
-                this.AssertIsForeground();
-
-                using (Logger.LogBlock(FunctionId.Tagger_BatchChangeNotifier_NotifyEditorNow, CancellationToken.None))
-                {
-                    if (normalizedSpans.Count == 0)
-                    {
-                        return;
-                    }
-
-                    normalizedSpans = CoalesceSpans(normalizedSpans);
-
-                    // Don't use linq here.  It's a hotspot.
-                    foreach (var span in normalizedSpans)
-                    {
-                        _reportChangedSpan(span);
-                    }
-                }
-            }
-
-            internal static NormalizedSnapshotSpanCollection CoalesceSpans(NormalizedSnapshotSpanCollection normalizedSpans)
-            {
-                var snapshot = normalizedSpans.First().Snapshot;
-
-                // Coalesce the spans if there are a lot of them.
-                if (normalizedSpans.Count > CoalesceDifferenceCount)
-                {
-                    // Spans are normalized.  So to find the whole span we just go from the
-                    // start of the first span to the end of the last span.
-                    normalizedSpans = new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(
-                        normalizedSpans.First().Start,
-                        normalizedSpans.Last().End));
-                }
-
-                return normalizedSpans;
             }
         }
     }

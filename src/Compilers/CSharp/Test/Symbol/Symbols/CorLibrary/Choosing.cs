@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CorLibrary.GuidTest2.exe,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                TestMetadata.Net40.mscorlib
             });
 
             Assert.Same(assemblies[1], assemblies[0].Modules[0].CorLibrary());
@@ -24,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")]
         public void Bug760148_1()
         {
-            var corLib = CreateCompilation(@"
+            var corLib = CreateEmptyCompilation(@"
 namespace System
 {
     public class Object
@@ -38,7 +42,7 @@ namespace System
             Assert.False(obj.IsErrorType());
             Assert.Same(corLib.Assembly, obj.ContainingAssembly);
 
-            var consumer = CreateCompilation(@"
+            var consumer = CreateEmptyCompilation(@"
 public class Test
 {
 }
@@ -50,7 +54,7 @@ public class Test
         [Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")]
         public void Bug760148_2()
         {
-            var corLib = CreateCompilation(@"
+            var corLib = CreateEmptyCompilation(@"
 namespace System
 {
     class Object
@@ -59,7 +63,7 @@ namespace System
 }
 ", options: TestOptions.ReleaseDll);
 
-            var consumer = CreateCompilation(@"
+            var consumer = CreateEmptyCompilation(@"
 public class Test
 {
 }

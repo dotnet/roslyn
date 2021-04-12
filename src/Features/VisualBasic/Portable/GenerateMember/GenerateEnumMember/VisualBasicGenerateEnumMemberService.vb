@@ -1,9 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,6 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateEnumMember
     <ExportLanguageService(GetType(IGenerateEnumMemberService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateEnumMemberService
         Inherits AbstractGenerateEnumMemberService(Of VisualBasicGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax)
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function IsIdentifierNameGeneration(node As SyntaxNode) As Boolean
             Return TypeOf node Is IdentifierNameSyntax

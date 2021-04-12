@@ -1,7 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
@@ -10,31 +12,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private class AsyncDocumentWorkItemQueue : AsyncWorkItemQueue<DocumentId>
             {
-                private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>>();
+                private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new();
 
-                public AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) :
-                    base(progressReporter, workspace)
+                public AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                    : base(progressReporter, workspace)
                 {
                 }
 
-                protected override int WorkItemCount_NoLock
-                {
-                    get
-                    {
-                        return _documentWorkQueue.Count;
-                    }
-                }
+                protected override int WorkItemCount_NoLock => _documentWorkQueue.Count;
 
                 protected override bool TryTake_NoLock(DocumentId key, out WorkItem workInfo)
                 {
-                    workInfo = default(WorkItem);
-
-                    var documentMap = default(Dictionary<DocumentId, WorkItem>);
-                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out documentMap) &&
+                    workInfo = default;
+                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out var documentMap) &&
                         documentMap.TryGetValue(key, out workInfo))
                     {
                         documentMap.Remove(key);
@@ -52,13 +46,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service,
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service,
                     out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
                     if (_documentWorkQueue.Count == 0)
                     {
-                        workItem = default(WorkItem);
+                        workItem = default;
                         return false;
                     }
 
@@ -68,11 +62,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return true;
                     }
 
-                    return Contract.FailWithReturn<bool>("how?");
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 private DocumentId GetBestDocumentId_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService)
                 {
                     var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
 
@@ -81,17 +75,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // explicitly iterate so that we can use struct enumerator.
                     // Return the first normal priority work item we find.  If we don't
                     // find any, then just return the first low prio item we saw.
-                    DocumentId lowPriorityDocumentId = null;
-                    foreach (var pair in documentMap)
+                    DocumentId? lowPriorityDocumentId = null;
+                    foreach (var (documentId, workItem) in documentMap)
                     {
-                        var workItem = pair.Value;
                         if (workItem.IsLowPriority)
                         {
-                            lowPriorityDocumentId = pair.Key;
+                            lowPriorityDocumentId = documentId;
                         }
                         else
                         {
-                            return pair.Key;
+                            return documentId;
                         }
                     }
 
@@ -101,21 +94,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)
                 {
-                    // now document work
-                    var existingWorkItem = default(WorkItem);
+                    Contract.ThrowIfNull(item.DocumentId);
+
                     Cancel_NoLock(item.DocumentId);
 
                     // see whether we need to update
                     var key = item.DocumentId;
-                    var documentMap = default(Dictionary<DocumentId, WorkItem>);
-                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out documentMap) &&
-                        documentMap.TryGetValue(key, out existingWorkItem))
+
+                    // now document work
+                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out var documentMap) &&
+                        documentMap.TryGetValue(key, out var existingWorkItem))
                     {
                         // TODO: should I care about language when replace it?
-                        Contract.Requires(existingWorkItem.Language == item.Language);
+                        Debug.Assert(existingWorkItem.Language == item.Language);
 
                         // replace it
-                        documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.Analyzers, item.IsRetry, item.AsyncToken);
+                        documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.IsRetry, item.AsyncToken);
                         return false;
                     }
 

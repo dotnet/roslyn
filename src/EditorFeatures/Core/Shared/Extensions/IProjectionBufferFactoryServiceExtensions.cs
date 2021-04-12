@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class IProjectionBufferFactoryServiceExtensions
     {
-        private const string RoslynPreviewContentType = nameof(RoslynPreviewContentType);
+        public const string RoslynPreviewContentType = nameof(RoslynPreviewContentType);
 
         /// <summary>
         /// Hack to get view taggers working on our preview surfaces.  We need to define
@@ -28,21 +30,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         [Name(RoslynPreviewContentType)]
         [BaseDefinition("text")]
         [BaseDefinition("projection")]
-        public static readonly ContentTypeDefinition RoslynPreviewContentTypeDefinition;
+        public static readonly ContentTypeDefinition? RoslynPreviewContentTypeDefinition;
 
-        public static IElisionBuffer CreateElisionBufferWithoutIndentation(
+        public static IProjectionBuffer CreateProjectionBufferWithoutIndentation(
             this IProjectionBufferFactoryService factoryService,
             IEditorOptions editorOptions,
+            IContentType? contentType = null,
             params SnapshotSpan[] exposedSpans)
         {
-            return factoryService.CreateElisionBufferWithoutIndentation(
+            return factoryService.CreateProjectionBufferWithoutIndentation(
                 editorOptions,
+                contentType,
                 (IEnumerable<SnapshotSpan>)exposedSpans);
         }
 
-        public static IElisionBuffer CreateElisionBufferWithoutIndentation(
+        public static IProjectionBuffer CreateProjectionBufferWithoutIndentation(
             this IProjectionBufferFactoryService factoryService,
             IEditorOptions editorOptions,
+            IContentType? contentType,
             IEnumerable<SnapshotSpan> exposedSpans)
         {
             var spans = new NormalizedSnapshotSpanCollection(exposedSpans);
@@ -57,36 +62,57 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     spans.Select(s => s.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive)));
             }
 
-            var elisionBuffer = factoryService.CreateElisionBuffer(null, spans, ElisionBufferOptions.None);
+            contentType ??= factoryService.ProjectionContentType;
+            var projectionBuffer = factoryService.CreateProjectionBuffer(
+                projectionEditResolver: null,
+                sourceSpans: Array.Empty<object>(),
+                options: ProjectionBufferOptions.None,
+                contentType: contentType);
 
             if (spans.Count > 0)
             {
-                var snapshot = spans.First().Snapshot;
-                var buffer = snapshot.TextBuffer;
+                var finalSpans = new List<object>();
 
                 // We need to figure out the shorted indentation level of the exposed lines.  We'll
                 // then remove that indentation from all lines.
                 var indentationColumn = DetermineIndentationColumn(editorOptions, spans);
 
-                var spansToElide = new List<Span>();
-
                 foreach (var span in spans)
                 {
+                    var snapshot = span.Snapshot;
                     var startLineNumber = snapshot.GetLineNumberFromPosition(span.Start);
                     var endLineNumber = snapshot.GetLineNumberFromPosition(span.End);
 
                     for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
                     {
+                        // Compute the span clamped to this line
                         var line = snapshot.GetLineFromLineNumber(lineNumber);
-                        var lineOffsetOfColumn = line.GetLineOffsetFromColumn(indentationColumn, editorOptions);
-                        spansToElide.Add(Span.FromBounds(line.Start, line.Start + lineOffsetOfColumn));
+                        var finalSpanStart = Math.Max(line.Start, span.Start);
+                        var finalSpanEnd = Math.Min(line.EndIncludingLineBreak, span.End);
+
+                        // We'll only offset if our span doesn't already start at the start of the line. See the similar exclusion in
+                        // DetermineIndentationColumn that this matches.
+                        if (line.Start == finalSpanStart)
+                        {
+                            finalSpanStart += line.GetLineOffsetFromColumn(indentationColumn, editorOptions);
+
+                            // Paranoia: what if the indentation reversed our ordering?
+                            if (finalSpanStart > finalSpanEnd)
+                            {
+                                finalSpanStart = finalSpanEnd;
+                            }
+                        }
+
+                        // We don't expect edits to happen while this projection buffer is active. We'll choose EdgeExclusive so
+                        // if they do we don't end up in any cases where there is overlapping source spans.
+                        finalSpans.Add(snapshot.CreateTrackingSpan(Span.FromBounds(finalSpanStart, finalSpanEnd), SpanTrackingMode.EdgeExclusive));
                     }
                 }
 
-                elisionBuffer.ElideSpans(new NormalizedSpanCollection(spansToElide));
+                projectionBuffer.InsertSpans(0, finalSpans);
             }
 
-            return elisionBuffer;
+            return projectionBuffer;
         }
 
         private static int DetermineIndentationColumn(
@@ -179,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             IEditorOptions editorOptions,
             ITextSnapshot snapshot,
             string separator,
-            object suffixOpt,
+            object? suffixOpt,
             params LineSpan[] exposedLineSpans)
         {
             return CreateProjectionBuffer(
@@ -211,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             IEditorOptions editorOptions,
             ITextSnapshot snapshot,
             string separator,
-            object suffixOpt,
+            object? suffixOpt,
             bool trim,
             params LineSpan[] exposedLineSpans)
         {
@@ -306,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private static IList<SnapshotSpan> CreateSnapshotSpans(ITextSnapshot snapshot, LineSpan lineSpan)
         {
             var result = new List<SnapshotSpan>();
-            for (int i = lineSpan.Start; i < lineSpan.End; i++)
+            for (var i = lineSpan.Start; i < lineSpan.End; i++)
             {
                 var line = snapshot.GetLineFromLineNumber(i);
                 result.Add(line.Extent);

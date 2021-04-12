@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -67,14 +72,14 @@ namespace Microsoft.CodeAnalysis
             return _factory.GetMDArrayTypeSymbol(this.moduleSymbol, rank, elementType, customModifiers, sizes, lowerBounds);
         }
 
-        protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
-        {
-            return _factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType, countOfCustomModifiersPrecedingByRef);
-        }
-
         protected TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
+        }
+
+        protected TypeSymbol MakeFunctionPointerTypeSymbol(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamInfos)
+        {
+            return _factory.MakeFunctionPointerTypeSymbol(callingConvention, retAndParamInfos);
         }
 
         protected TypeSymbol GetSpecialType(SpecialType specialType)
@@ -90,11 +95,6 @@ namespace Microsoft.CodeAnalysis
         protected TypeSymbol GetEnumUnderlyingType(TypeSymbol type)
         {
             return _factory.GetEnumUnderlyingType(this.moduleSymbol, type);
-        }
-
-        protected bool IsVolatileModifierType(TypeSymbol type)
-        {
-            return _factory.IsVolatileModifierType(this.moduleSymbol, type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)
@@ -208,8 +208,8 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (int rank in fullName.ArrayRanks)
                 {
-                    Debug.Assert(rank > 0);
-                    container = rank == 1 ?
+                    Debug.Assert(rank >= 0);
+                    container = rank == 0 ?
                                 GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) :
                                 GetMDArrayTypeSymbol(rank, container, default(ImmutableArray<ModifierInfo<TypeSymbol>>), ImmutableArray<int>.Empty, default(ImmutableArray<int>));
                 }

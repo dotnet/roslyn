@@ -1,15 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
-Imports System.Composition
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
@@ -33,11 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
         End Function
 
         Public Shared Function IsValidSymbol(symbol As ISymbol, semanticModel As SemanticModel) As Boolean
-            ' We want to still generate a method even if this is a Namespace symbol because unknown method calls without
-            ' parenthesis are bound as namespaces by the VB compiler.
-            Return symbol.Kind = SymbolKind.Namespace Or AreSpecialOptionsActive(semanticModel)
+            ' We want to still generate a method even if this is a Namespace or NamedType symbol because unknown method calls without
+            ' parenthesis are bound as namespaces or named types by the VB compiler.
+            Return symbol.Kind = SymbolKind.Namespace Or symbol.Kind = SymbolKind.NamedType Or AreSpecialOptionsActive(semanticModel)
         End Function
     End Class
 End Namespace
-
 

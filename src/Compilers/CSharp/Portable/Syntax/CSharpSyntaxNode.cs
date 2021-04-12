@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     //to defer the realization of strings. Often diagnostics generated while binding
     //in service of a SemanticModel API are never realized. So this
     //deferral can result in meaningful savings of strings.
-    public abstract partial class CSharpSyntaxNode : SyntaxNode, IMessageSerializable
+    public abstract partial class CSharpSyntaxNode : SyntaxNode, IFormattable
     {
-        internal CSharpSyntaxNode(GreenNode green, SyntaxNode parent, int position)
+        internal CSharpSyntaxNode(GreenNode green, SyntaxNode? parent, int position)
             : base(green, parent, position)
         {
         }
@@ -37,27 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal override AbstractSyntaxNavigator Navigator
-        {
-            get
-            {
-                return SyntaxNavigator.Instance;
-            }
-        }
-
-        //TODO: move to common
-        /// <summary>
-        /// Creates a clone of a red node that can be used as a root of given syntaxTree.
-        /// New node has no parents, position == 0, and syntaxTree as specified.
-        /// </summary>
-        internal static T CloneNodeAsRoot<T>(T node, SyntaxTree syntaxTree) where T : SyntaxNode
-        {
-            var clone = (T)node.Green.CreateRed(null, 0);
-            clone._syntaxTree = syntaxTree;
-
-            return clone;
-        }
-
         /// <summary>
         /// Returns a non-null <see cref="SyntaxTree"/> that owns this node.
         /// If this node was created with an explicit non-null <see cref="SyntaxTree"/>, returns that tree.
@@ -68,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var result =  this._syntaxTree ?? ComputeSyntaxTree(this);
+                var result = this._syntaxTree ?? ComputeSyntaxTree(this);
                 Debug.Assert(result != null);
                 return result;
             }
@@ -76,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SyntaxTree ComputeSyntaxTree(CSharpSyntaxNode node)
         {
-            ArrayBuilder<CSharpSyntaxNode> nodes = null;
-            SyntaxTree tree = null;
+            ArrayBuilder<CSharpSyntaxNode>? nodes = null;
+            SyntaxTree? tree = null;
 
             // Find the nearest parent with a non-null syntax tree
             while (true)
@@ -115,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var n in nodes)
                 {
-                    var existingTree =  n._syntaxTree;
+                    var existingTree = n._syntaxTree;
                     if (existingTree != null)
                     {
                         Debug.Assert(existingTree == tree, "how could this node belong to a different tree?");
@@ -132,26 +112,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return tree;
         }
 
-        public abstract TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
+        public abstract TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor);
 
         public abstract void Accept(CSharpSyntaxVisitor visitor);
 
         /// <summary>
         /// The node that contains this node in its Children collection.
         /// </summary>
-        internal new CSharpSyntaxNode Parent
+        internal new CSharpSyntaxNode? Parent
         {
             get
             {
-                return (CSharpSyntaxNode)base.Parent;
+                return (CSharpSyntaxNode?)base.Parent;
             }
         }
 
-        internal new CSharpSyntaxNode ParentOrStructuredTriviaParent
+        internal new CSharpSyntaxNode? ParentOrStructuredTriviaParent
         {
             get
             {
-                return (CSharpSyntaxNode)base.ParentOrStructuredTriviaParent;
+                return (CSharpSyntaxNode?)base.ParentOrStructuredTriviaParent;
             }
         }
 
@@ -169,38 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (SyntaxKind)this.Green.RawKind;
         }
 
-        protected override string KindText
-        {
-            get
-            {
-                return this.Kind().ToString();
-            }
-        }
-
         /// <summary>
         /// The language name that this node is syntax of.
         /// </summary>
         public override string Language
         {
             get { return LanguageNames.CSharp; }
-        }
-
-        internal bool HasErrors
-        {
-            get
-            {
-                if (!this.ContainsDiagnostics)
-                {
-                    return false;
-                }
-
-                return HasErrorsSlow();
-            }
-        }
-
-        private bool HasErrorsSlow()
-        {
-            return new Syntax.InternalSyntax.SyntaxDiagnosticInfoList(this.Green).Any((info) => info.Severity == DiagnosticSeverity.Error);
         }
 
         /// <summary>
@@ -221,83 +175,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lastToken.TrailingTrivia;
         }
 
-        internal Location Location
-        {
-            get
-            {
-                // CSharpSyntaxNode always has a non-null SyntaxTree, however the tree might be rooted at a node which is not a CompilationUnit.
-                // These kind of nodes may be seen during binding in couple of scenarios:
-                //   (a) Compiler synthesized syntax nodes (e.g. missing nodes, qualified names for command line using directives, etc.)
-                //   (b) Speculatively binding syntax nodes through the semantic model.
-                //
-                // For scenario (a), we need to ensure that we return NoLocation for generating location agnostic compiler diagnostics.
-                // For scenario (b), at present, we do not expose the diagnostics for speculative binding, hence we can return NoLocation.
-                // In future, if we decide to support this, we will need some mechanism to distinguish between scenarios (a) and (b) here.
-
-                var tree = (CSharpSyntaxTree)SyntaxTree;
-                Debug.Assert(tree != null);
-                return !tree.SupportsLocations ? NoLocation.Singleton : new SourceLocation(this);
-            }
-        }
-
-        /// <summary>
-        /// Returns the string representation of this node, not including its leading and trailing trivia.
-        /// </summary>
-        /// <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
-        /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
-        public sealed override string ToString()
-        {
-            return this.Green.ToString();
-        }
-
-        /// <summary>
-        /// Returns full string representation of this node including its leading and trailing trivia.
-        /// </summary>
-        /// <returns>The full string representation of this node including its leading and trailing trivia.</returns>
-        /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
-        public sealed override string ToFullString()
-        {
-            return this.Green.ToFullString();
-        }
-
-        /// <summary>
-        /// Writes the full text of this node to the specified TextWriter.
-        /// </summary>
-        public override void WriteTo(System.IO.TextWriter writer)
-        {
-            this.Green.WriteTo(writer, true, true);
-        }
-
-#region serialization
-
-
-        private static readonly RecordingObjectBinder s_defaultBinder = new ConcurrentRecordingObjectBinder();
-
-        /// <summary>
-        /// Serialize the syntax node into a byte stream.
-        /// </summary>
-        public override void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
-
-            if (!stream.CanWrite)
-            {
-                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeWritten);
-            }
-
-            using (var writer = new ObjectWriter(stream, GetDefaultObjectWriterData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
-            {
-                writer.WriteValue(this.Green);
-            }
-        }
+        #region serialization
 
         /// <summary>
         /// Deserialize a syntax node from the byte stream.
         /// </summary>
-        public static SyntaxNode DeserializeFrom(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public static SyntaxNode DeserializeFrom(Stream stream, CancellationToken cancellationToken = default)
         {
             if (stream == null)
             {
@@ -306,118 +189,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!stream.CanRead)
             {
-                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeReadFrom);
+                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
-            using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
+            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
+
+            if (reader == null)
             {
-                var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
-                return root.CreateRed();
+                throw new ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, nameof(stream));
             }
+
+            var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
+            return root.CreateRed();
         }
 
-        private static ObjectWriterData s_defaultObjectWriterData;
-        private static ObjectWriterData GetDefaultObjectWriterData()
-        {
-            if (s_defaultObjectWriterData == null)
-            {
-                var data = new ObjectWriterData(GetSerializationData());
-                Interlocked.CompareExchange(ref s_defaultObjectWriterData, data, null);
-            }
-
-            return s_defaultObjectWriterData;
-        }
-
-        private static ObjectReaderData s_defaultObjectReaderData;
-        private static ObjectReaderData GetDefaultObjectReaderData()
-        {
-            if (s_defaultObjectReaderData == null)
-            {
-                var data = new ObjectReaderData(GetSerializationData());
-                Interlocked.CompareExchange(ref s_defaultObjectReaderData, data, null);
-            }
-
-            return s_defaultObjectReaderData;
-        }
-
-        private static IEnumerable<object> s_serializationData;
-
-        private static IEnumerable<object> GetSerializationData()
-        {
-            if (s_serializationData == null)
-            {
-                var data =
-                    // known assemblies names and types (not in generated list)
-                    new object[] {
-                        typeof(object).GetTypeInfo().Assembly.FullName, // mscorlib
-                        typeof(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName, // Roslyn.Compilers
-                        typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode).GetTypeInfo().Assembly.FullName, // Roslyn.Compilers.CSharp 
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.MissingTokenWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifier),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierExtended),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierWithTrailingTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<string>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<string>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<int>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<int>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<long>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<long>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<double>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<double>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxList.WithTwoChildren)
-                    }
-                    .Concat(
-                        Syntax.InternalSyntax.SyntaxFactory.GetNodeTypes()) // known types (generated)
-                    .Concat(
-                        Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GetWellKnownTokens()) // known tokens
-                    .Concat(
-                        Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) // known trivia
-                    .Concat(
-                        new object[] {   // other
-                            " ",
-                            typeof(Microsoft.CodeAnalysis.SyntaxAnnotation),
-                            typeof(Microsoft.CodeAnalysis.DiagnosticInfo),
-                            typeof(Microsoft.CodeAnalysis.CSharp.SyntaxDiagnosticInfo), // serialization names & types
-                            typeof(Microsoft.CodeAnalysis.CSharp.MessageProvider),
-                            "messageProvider",
-                            "errorCode",
-                            "argumentCount",
-                            "offset",
-                            "width",
-                        })
-                    .ToImmutableArray();
-
-                System.Threading.Interlocked.CompareExchange(ref s_serializationData, data, null);
-            }
-
-            return s_serializationData;
-        }
-#endregion
-
-        /// <summary>
-        /// Determines whether this node is structurally equivalent to another.
-        /// </summary>
-        internal bool IsEquivalentTo(CSharpSyntaxNode other)
-        {
-            if (this == other)
-            {
-                return true;
-            }
-
-            if (other == null)
-            {
-                return false;
-            }
-
-            return this.Green.IsEquivalentTo(other.Green);
-        }
+        #endregion
 
         /// <summary>
         /// Gets a <see cref="Location"/> for this node.
@@ -447,19 +233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.SyntaxTree.GetDiagnostics(this);
         }
 
-        internal sealed override SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode body)
-        {
-            return LambdaUtilities.TryGetCorrespondingLambdaBody(body, this);
-        }
+        #region Directives
 
-        internal override SyntaxNode GetLambda()
-        {
-            return LambdaUtilities.GetLambda(this);
-        }
-
-#region Directives
-
-        internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool> filter = null)
+        internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool>? filter = null)
         {
             return ((SyntaxNodeOrToken)this).GetDirectives<DirectiveTriviaSyntax>(filter);
         }
@@ -467,15 +243,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the first directive of the tree rooted by this node.
         /// </summary>
-        public DirectiveTriviaSyntax GetFirstDirective(Func<DirectiveTriviaSyntax, bool> predicate = null)
+        public DirectiveTriviaSyntax? GetFirstDirective(Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             foreach (var child in this.ChildNodesAndTokens())
             {
                 if (child.ContainsDirectives)
                 {
-                    if (child.IsNode)
+                    if (child.AsNode(out var node))
                     {
-                        var d = child.AsNode().GetFirstDirective(predicate);
+                        var d = node.GetFirstDirective(predicate);
                         if (d != null)
                         {
                             return d;
@@ -490,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (tr.IsDirective)
                             {
-                                var d = (DirectiveTriviaSyntax)tr.GetStructure();
+                                var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                                 if (predicate == null || predicate(d))
                                 {
                                     return d;
@@ -507,15 +283,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the last directive of the tree rooted by this node.
         /// </summary>
-        public DirectiveTriviaSyntax GetLastDirective(Func<DirectiveTriviaSyntax, bool> predicate = null)
+        public DirectiveTriviaSyntax? GetLastDirective(Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             foreach (var child in this.ChildNodesAndTokens().Reverse())
             {
                 if (child.ContainsDirectives)
                 {
-                    if (child.IsNode)
+                    if (child.AsNode(out var node))
                     {
-                        var d = child.AsNode().GetLastDirective(predicate);
+                        var d = node.GetLastDirective(predicate);
                         if (d != null)
                         {
                             return d;
@@ -530,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (tr.IsDirective)
                             {
-                                var d = (DirectiveTriviaSyntax)tr.GetStructure();
+                                var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                                 if (predicate == null || predicate(d))
                                 {
                                     return d;
@@ -544,29 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#endregion
+        #endregion
 
-#region Node Lookup
-
-        /// <summary>
-        /// Returns child node or token that contains given position.
-        /// </summary>
-        public override SyntaxNodeOrToken ChildThatContainsPosition(int position)
-        {
-            //PERF: it is very important to keep this method fast.
-
-            if (!FullSpan.Contains(position))
-            {
-                throw new ArgumentOutOfRangeException(nameof(position));
-            }
-
-            SyntaxNodeOrToken childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(this, position);
-            Debug.Assert(childNodeOrToken.FullSpan.Contains(position), "ChildThatContainsPosition's return value does not contain the requested position.");
-            return childNodeOrToken;
-        }
-#endregion
-
-#region Token Lookup
+        #region Token Lookup
 
         /// <summary>
         /// Gets the first token of the tree rooted by this node.
@@ -591,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="stepInto">Steps into trivia if this is not null.  Only trivia for which this delegate returns
         /// true are included.</param> 
         /// <returns></returns>
-        internal SyntaxToken GetFirstToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
+        internal SyntaxToken GetFirstToken(Func<SyntaxToken, bool>? predicate, Func<SyntaxTrivia, bool>? stepInto = null)
         {
             return SyntaxNavigator.Instance.GetFirstToken(this, predicate, stepInto);
         }
@@ -648,12 +404,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(trivia.HasStructure);
-            SyntaxToken triviaToken = ((CSharpSyntaxNode)trivia.GetStructure()).FindTokenInternal(position);
+            SyntaxToken triviaToken = ((CSharpSyntaxNode)trivia.GetStructure()!).FindTokenInternal(position);
 
             // CONSIDER: We might want to use the trivia token anywhere within a doc comment.
             // Otherwise, we'll fall back on the enclosing scope outside of name and cref
             // attribute values.
-            CSharpSyntaxNode curr = (CSharpSyntaxNode)triviaToken.Parent;
+            CSharpSyntaxNode? curr = (CSharpSyntaxNode?)triviaToken.Parent;
             while (curr != null)
             {
                 // Don't return a trivia token unless we're in the scope of a cref or name attribute.
@@ -670,9 +426,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return nonTriviaToken;
         }
 
-#endregion
+        #endregion
 
-#region Trivia Lookup
+        #region Trivia Lookup
 
         /// <summary>
         /// Finds a descendant trivia of this node at the specified position, where the position is
@@ -699,9 +455,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.FindTrivia(position, findInsideTrivia);
         }
 
-#endregion
+        #endregion
 
-#region SyntaxNode members
+        #region SyntaxNode members
 
         /// <summary>
         /// Determine if this node is structurally equivalent to another.
@@ -710,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         protected override bool EquivalentToCore(SyntaxNode other)
         {
-            return IsEquivalentTo(other as CSharpSyntaxNode);
+            throw ExceptionUtilities.Unreachable;
         }
 
         protected override SyntaxTree SyntaxTreeCore
@@ -722,54 +478,54 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected internal override SyntaxNode ReplaceCore<TNode>(
-            IEnumerable<TNode> nodes = null,
-            Func<TNode, TNode, SyntaxNode> computeReplacementNode = null,
-            IEnumerable<SyntaxToken> tokens = null,
-            Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken = null,
-            IEnumerable<SyntaxTrivia> trivia = null,
-            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia = null)
+            IEnumerable<TNode>? nodes = null,
+            Func<TNode, TNode, SyntaxNode>? computeReplacementNode = null,
+            IEnumerable<SyntaxToken>? tokens = null,
+            Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken = null,
+            IEnumerable<SyntaxTrivia>? trivia = null,
+            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia = null)
         {
-            return SyntaxReplacer.Replace(this, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia);
+            return SyntaxReplacer.Replace(this, nodes, computeReplacementNode, tokens, computeReplacementToken, trivia, computeReplacementTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceNodeInListCore(SyntaxNode originalNode, IEnumerable<SyntaxNode> replacementNodes)
         {
-            return SyntaxReplacer.ReplaceNodeInList(this, originalNode, replacementNodes);
+            return SyntaxReplacer.ReplaceNodeInList(this, originalNode, replacementNodes).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertNodesInListCore(SyntaxNode nodeInList, IEnumerable<SyntaxNode> nodesToInsert, bool insertBefore)
         {
-            return SyntaxReplacer.InsertNodeInList(this, nodeInList, nodesToInsert, insertBefore);
+            return SyntaxReplacer.InsertNodeInList(this, nodeInList, nodesToInsert, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceTokenInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens)
         {
-            return SyntaxReplacer.ReplaceTokenInList(this, originalToken, newTokens);
+            return SyntaxReplacer.ReplaceTokenInList(this, originalToken, newTokens).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertTokensInListCore(SyntaxToken originalToken, IEnumerable<SyntaxToken> newTokens, bool insertBefore)
         {
-            return SyntaxReplacer.InsertTokenInList(this, originalToken, newTokens, insertBefore);
+            return SyntaxReplacer.InsertTokenInList(this, originalToken, newTokens, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode ReplaceTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia)
         {
-            return SyntaxReplacer.ReplaceTriviaInList(this, originalTrivia, newTrivia);
+            return SyntaxReplacer.ReplaceTriviaInList(this, originalTrivia, newTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode InsertTriviaInListCore(SyntaxTrivia originalTrivia, IEnumerable<SyntaxTrivia> newTrivia, bool insertBefore)
         {
-            return SyntaxReplacer.InsertTriviaInList(this, originalTrivia, newTrivia, insertBefore);
+            return SyntaxReplacer.InsertTriviaInList(this, originalTrivia, newTrivia, insertBefore).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
-        protected internal override SyntaxNode RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
+        protected internal override SyntaxNode? RemoveNodesCore(IEnumerable<SyntaxNode> nodes, SyntaxRemoveOptions options)
         {
-            return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options);
+            return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected internal override SyntaxNode NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia)
         {
-            return SyntaxNormalizer.Normalize(this, indentation, eol, elasticTrivia);
+            return SyntaxNormalizer.Normalize(this, indentation, eol, elasticTrivia).AsRootOfNewTreeWithOptionsFrom(this.SyntaxTree);
         }
 
         protected override bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false)
@@ -777,6 +533,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.AreEquivalent(this, (CSharpSyntaxNode)node, topLevel);
         }
 
-#endregion
+        internal override bool ShouldCreateWeakList()
+        {
+            if (this.Kind() == SyntaxKind.Block)
+            {
+                var parent = this.Parent;
+                if (parent is MemberDeclarationSyntax || parent is AccessorDeclarationSyntax)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
+
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
+        {
+            return ToString();
+        }
     }
 }

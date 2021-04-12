@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -117,6 +121,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Called when visiting a <see cref="FunctionPointerTypeSymbol"/>; Override this with specific
+        /// implementation; Calling <see cref="DefaultVisit"/>  if it's not overridden
+        /// </summary>
+        /// <param name="symbol">The visited symbol</param>
+        /// <param name="argument">Additional argument</param>
+        /// <returns></returns>
+        public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSymbol symbol, TArgument argument)
+        {
+            return DefaultVisit(symbol, argument);
+        }
+
+        /// <summary>
         /// Called when visiting an <see cref="ErrorTypeSymbol" /> 
         /// Error symbol is created when there is compiler error; Override this with specific
         /// implementation; Calling <see cref="DefaultVisit" /> if it's not overridden 
@@ -149,6 +165,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="argument">Additional argument</param>
         /// <returns></returns>
         public virtual TResult VisitDynamicType(DynamicTypeSymbol symbol, TArgument argument)
+        {
+            return DefaultVisit(symbol, argument);
+        }
+
+        /// <summary>
+        /// Called when visiting a <see cref="DiscardSymbol" />; Override this with specific
+        /// implementation; Calling <see cref="DefaultVisit" /> if it's not overridden 
+        /// </summary>
+        /// <param name="symbol">The visited symbol</param>
+        /// <param name="argument">Additional argument</param>
+        /// <returns></returns>
+        public virtual TResult VisitDiscard(DiscardSymbol symbol, TArgument argument)
         {
             return DefaultVisit(symbol, argument);
         }

@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
@@ -43,12 +48,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestIdenticalEditAfterIsolatedChanges()
         {
             TestLinkedFileSet(
-                "a b c d e",
-                new List<string> { "a zzz c xx e", "a b c xx e" },
-                @"a zzz c xx e",
+                "a; b; c; d; e;",
+                new List<string> { "a; zzz; c; xx; e;", "a; b; c; xx; e;" },
+                @"a; zzz; c; xx; e;",
                 LanguageNames.CSharp);
         }
 
@@ -60,10 +66,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 "a b c d e",
                 new List<string> { "a b y d e", "a b z d e" },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
 a b c d e
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 a b z d e
 */
 a b y d e",
@@ -78,10 +84,10 @@ a b y d e",
                 "a b c d e",
                 new List<string> { "a q1 c z1 e", "a q2 c z2 e" },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
 a b c d e
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 a q2 c z2 e
 */
 a q1 c z1 e",
@@ -110,11 +116,11 @@ Four"
                 },
                 @"One
 
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
 Two
 Three
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 TwoZ
 ThreeZ
 */
@@ -126,46 +132,47 @@ Four",
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestTwoConflictsOnSeparatedLines()
         {
             TestLinkedFileSet(
-                @"One
-Two
-Three
-Four
-Five",
+                @"One;
+Two;
+Three;
+Four;
+Five;",
                 new List<string>
                 {
-                    @"One
-TwoY
-Three
-FourY
-Five",
-                    @"One
-TwoZ
-Three
-FourZ
-Five"
+                    @"One;
+TwoY;
+Three;
+FourY;
+Five;",
+                    @"One;
+TwoZ;
+Three;
+FourZ;
+Five;"
                 },
-                @"One
+                @"One;
 
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
-Two
-" + WorkspacesResources.AfterHeader + @"
-TwoZ
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
+Two;
+" + WorkspacesResources.After_colon + @"
+TwoZ;
 */
-TwoY
-Three
+TwoY;
+Three;
 
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.BeforeHeader + @"
-Four
-" + WorkspacesResources.AfterHeader + @"
-FourZ
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Before_colon + @"
+Four;
+" + WorkspacesResources.After_colon + @"
+FourZ;
 */
-FourY
-Five",
+FourY;
+Five;",
                 LanguageNames.CSharp);
         }
 
@@ -183,15 +190,15 @@ Five",
                     @"",
                 },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName2") + @"
-" + WorkspacesResources.BeforeHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName2") + @"
+" + WorkspacesResources.Before_colon + @"
 A
-" + WorkspacesResources.AfterHeader + @"
+" + WorkspacesResources.After_colon + @"
 C
 */
 
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName3") + @"
-" + WorkspacesResources.RemovedHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName3") + @"
+" + WorkspacesResources.Removed_colon + @"
 A
 */
 B",
@@ -210,8 +217,8 @@ B",
                     @"B",
                 },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.AddedHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Added_colon + @"
 B
 */
 A",
@@ -230,8 +237,8 @@ A",
                     @"B",
                 },
                 @"
-' " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @" 
-' " + WorkspacesResources.AddedHeader + @"
+' " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @" 
+' " + WorkspacesResources.Added_colon + @"
 ' B
 A",
                 LanguageNames.VisualBasic);
@@ -249,8 +256,8 @@ A",
                     @"",
                 },
                 @"
-/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
-" + WorkspacesResources.RemovedHeader + @"
+/* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
+" + WorkspacesResources.Removed_colon + @"
 A
 */
 B",
@@ -269,8 +276,8 @@ B",
                     @"",
                 },
                 @"
-' " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @" 
-' " + WorkspacesResources.RemovedHeader + @"
+' " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @" 
+' " + WorkspacesResources.Removed_colon + @"
 ' A
 B",
                 LanguageNames.VisualBasic);

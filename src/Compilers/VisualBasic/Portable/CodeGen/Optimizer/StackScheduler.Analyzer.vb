@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' it will affect inference of stack behavior
         ''' it will also affect when expressions can be dup-reused
         '''     Example:
-        '''         Foo(x, ref x)     x cannot be duped as it is used in different context  
+        '''         Goo(x, ref x)     x cannot be duped as it is used in different context  
         ''' </summary>
         Private Enum ExprContext
             None
@@ -40,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Private ReadOnly _container As Symbol
 
             Private _counter As Integer = 0
-            Private ReadOnly _evalStack As ArrayBuilder(Of ValueTuple(Of BoundExpression, ExprContext))
+            Private ReadOnly _evalStack As ArrayBuilder(Of (expression As BoundExpression, context As ExprContext))
             Private ReadOnly _debugFriendly As Boolean
 
             Private _context As ExprContext = ExprContext.None
@@ -145,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Private Sub PushEvalStack(result As BoundExpression, context As ExprContext)
                 Debug.Assert(result IsNot Nothing OrElse context = ExprContext.None)
-                _evalStack.Add(ValueTuple.Create(result, context))
+                _evalStack.Add((result, context))
             End Sub
 
             Private Function StackDepth() As Integer
@@ -195,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     Return result
 
-                Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                Catch ex As InsufficientExecutionStackException
                     Throw New CancelledByStackGuardException(ex, node)
                 End Try
             End Function
@@ -531,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' this assert will fire if code relies on implicit CLR coercions 
                 ' - i.e assigns int value to a short local.
                 ' in that case we should force lhs to be a real local
-                Debug.Assert(node.ByRefLocal.Type.IsSameTypeIgnoringCustomModifiers(node.LValue.Type),
+                Debug.Assert(node.ByRefLocal.Type.IsSameTypeIgnoringAll(node.LValue.Type),
                              "cannot use stack when assignment involves implicit coercion of the value")
 
                 RecordVarWrite(storedAssignmentLocal.LocalSymbol)
@@ -601,7 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' this assert will fire if code relies on implicit CLR coercions 
                     ' - i.e assigns int value to a short local.
                     ' in that case we should force lhs to be a real local
-                    Debug.Assert(node.Left.Type.IsSameTypeIgnoringCustomModifiers(node.Right.Type),
+                    Debug.Assert(node.Left.Type.IsSameTypeIgnoringAll(node.Right.Type),
                                  "cannot use stack when assignment involves implicit coercion of the value")
 
                     Debug.Assert(Not isIndirect, "indirect assignment is a read, not a write")
@@ -613,26 +616,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             ''' <summary>
-            ''' indirect assignment is assignment to a value referenced indirectly
-            ''' it may only happen if lhs is a reference (must be a parameter or a local)
-            '''       1) lhs is a reference (must be a parameter or a local)
-            '''       2) it is not a ref/out assignment where the reference itself would be assigned
+            ''' VB uses a special node to assign references.
+            ''' BoundAssignment is used only to assign values.
+            ''' therefore an indirect assignment may only happen if lhs is a reference
             ''' </summary>
-            Friend Shared Function IsIndirectAssignment(node As BoundAssignmentOperator) As Boolean
-                If Not IsByRefLocalOrParameter(node.Left) Then
-                    Return False
-                End If
-                Return Not IsByRefLocalOrParameter(node.Right)
+            Private Shared Function IsIndirectAssignment(node As BoundAssignmentOperator) As Boolean
+                Return IsByRefVariable(node.Left)
             End Function
 
-            Private Shared Function IsByRefLocalOrParameter(node As BoundExpression) As Boolean
+            Private Shared Function IsByRefVariable(node As BoundExpression) As Boolean
                 Select Case node.Kind
                     Case BoundKind.Parameter
                         Return DirectCast(node, BoundParameter).ParameterSymbol.IsByRef
                     Case BoundKind.Local
                         Return DirectCast(node, BoundLocal).LocalSymbol.IsByRef
-                    Case Else
+                    Case BoundKind.Call
+                        Return DirectCast(node, BoundCall).Method.ReturnsByRef
+                    Case BoundKind.Sequence
+                        Debug.Assert(Not IsByRefVariable(DirectCast(node, BoundSequence).ValueOpt))
                         Return False
+
+                    Case BoundKind.PseudoVariable
+                        Return True
+                    Case BoundKind.ReferenceAssignment
+                        Return True
+                    Case BoundKind.ValueTypeMeReference
+                        Return True
+
+                    Case BoundKind.ModuleVersionId,
+                        BoundKind.InstrumentationPayloadRoot
+                        ' same as static fields
+                        Return False
+
+                    Case BoundKind.FieldAccess,
+                         BoundKind.ArrayAccess
+                        ' fields are never byref
+                        Return False
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
             End Function
 
@@ -677,7 +699,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim rewrittenArguments As ImmutableArray(Of BoundExpression) = VisitArguments(node.Arguments, method.Parameters)
 
                 Debug.Assert(node.MethodGroupOpt Is Nothing)
-                Return node.Update(method, node.MethodGroupOpt, receiver, rewrittenArguments, node.ConstantValueOpt, node.SuppressObjectClone, node.Type)
+                Return node.Update(
+                    method,
+                    node.MethodGroupOpt,
+                    receiver,
+                    rewrittenArguments,
+                    node.DefaultArguments,
+                    node.ConstantValueOpt,
+                    isLValue:=node.IsLValue,
+                    suppressObjectClone:=node.SuppressObjectClone,
+                    type:=node.Type)
             End Function
 
             Private Function VisitArguments(arguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of BoundExpression)
@@ -717,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Debug.Assert(node.InitializerOpt Is Nothing)
                 Me._counter += 1
 
-                Return node.Update(constructor, rewrittenArguments, Nothing, node.Type)
+                Return node.Update(constructor, rewrittenArguments, node.DefaultArguments, Nothing, node.Type)
             End Function
 
             Public Overrides Function VisitArrayAccess(node As BoundArrayAccess) As BoundNode
@@ -760,7 +791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     receiver = Nothing
                 End If
 
-                Return node.Update(receiver, field, node.IsLValue, node.SuppressVirtualCalls, node.ConstantsInProgressOpt, node.Type)
+                Return node.Update(receiver, field, node.IsLValue, node.SuppressVirtualCalls, constantsInProgressOpt:=Nothing, node.Type)
             End Function
 
             Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
@@ -1239,9 +1270,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Private Function EvalStackHasLocal(local As LocalSymbol) As Boolean
                 Dim top = _evalStack.Last()
 
-                Return top.Item2 = If(Not local.IsByRef, ExprContext.Value, ExprContext.Address) AndAlso
-                   top.Item1.Kind = BoundKind.Local AndAlso
-                   DirectCast(top.Item1, BoundLocal).LocalSymbol = local
+                Return top.context = If(Not local.IsByRef, ExprContext.Value, ExprContext.Address) AndAlso
+                   top.expression.Kind = BoundKind.Local AndAlso
+                   DirectCast(top.expression, BoundLocal).LocalSymbol = local
             End Function
 
             Private Sub RecordVarWrite(local As LocalSymbol)

@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Composition;
@@ -17,6 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceService(typeof(IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService()
+        {
+        }
+
         public CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
         {
             if (projectId == null)
@@ -43,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _assemblyIdentity = assemblyIdentity;
             }
 
-            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+            public override void Apply(Microsoft.CodeAnalysis.Workspace workspace, CancellationToken cancellationToken = default)
             {
                 var visualStudioWorkspace = (VisualStudioWorkspaceImpl)workspace;
                 if (!visualStudioWorkspace.TryAddReferenceToProject(_projectId, "*" + _assemblyIdentity.GetDisplayName()))
@@ -52,27 +62,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // We'll pop up the Add Reference dialog to let the user figure this out themselves.
                     // This is the same approach done in CVBErrorFixApply::ApplyAddMetaReferenceFix
 
-                    var uiHierarchy = visualStudioWorkspace.GetHierarchy(_projectId) as IVsUIHierarchy;
-                    OLECMD[] command = new OLECMD[1];
-                    command[0].cmdID = (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE;
-
-                    if (ErrorHandler.Succeeded(uiHierarchy.QueryStatusCommand((uint)VSConstants.VSITEMID.Root, VSConstants.VSStd2K, 1, command, IntPtr.Zero)))
+                    if (visualStudioWorkspace.GetHierarchy(_projectId) is IVsUIHierarchy uiHierarchy)
                     {
-                        if ((((OLECMDF)command[0].cmdf) & OLECMDF.OLECMDF_ENABLED) != 0)
+                        var command = new OLECMD[1];
+                        command[0].cmdID = (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE;
+
+                        if (ErrorHandler.Succeeded(uiHierarchy.QueryStatusCommand((uint)VSConstants.VSITEMID.Root, VSConstants.VSStd2K, 1, command, IntPtr.Zero)))
                         {
-                            uiHierarchy.ExecCommand((uint)VSConstants.VSITEMID.Root, VSConstants.VSStd2K, (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE, 0, IntPtr.Zero, IntPtr.Zero);
+                            if ((((OLECMDF)command[0].cmdf) & OLECMDF.OLECMDF_ENABLED) != 0)
+                            {
+                                uiHierarchy.ExecCommand((uint)VSConstants.VSITEMID.Root, VSConstants.VSStd2K, (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE, 0, IntPtr.Zero, IntPtr.Zero);
+                            }
                         }
                     }
                 }
             }
 
             public override string Title
-            {
-                get
-                {
-                    return string.Format(ServicesVSResources.AddAReference, _assemblyIdentity.GetDisplayName());
-                }
-            }
+                => string.Format(ServicesVSResources.Add_a_reference_to_0, _assemblyIdentity.GetDisplayName());
         }
     }
 }

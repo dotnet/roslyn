@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -83,9 +87,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TextSpan00()
         {
             TextSpan span = new TextSpan(0, 0);
-            Assert.Equal(span.Start, 0);
-            Assert.Equal(span.End, 0);
-            Assert.Equal(span.Length, 0);
+            Assert.Equal(0, span.Start);
+            Assert.Equal(0, span.End);
+            Assert.Equal(0, span.Length);
             Assert.Equal("[0..0)", span.ToString());
             Assert.True(span.IsEmpty);
         }
@@ -94,9 +98,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TextSpan01()
         {
             TextSpan span = new TextSpan(0, 1);
-            Assert.Equal(span.Start, 0);
-            Assert.Equal(span.End, 1);
-            Assert.Equal(span.Length, 1);
+            Assert.Equal(0, span.Start);
+            Assert.Equal(1, span.End);
+            Assert.Equal(1, span.Length);
             Assert.Equal("[0..1)", span.ToString());
             Assert.False(span.IsEmpty);
             span.GetHashCode();
@@ -106,9 +110,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TextSpan02()
         {
             TextSpan span = new TextSpan(15, 1485);
-            Assert.Equal(span.Start, 15);
-            Assert.Equal(span.End, 1500);
-            Assert.Equal(span.Length, 1485);
+            Assert.Equal(15, span.Start);
+            Assert.Equal(1500, span.End);
+            Assert.Equal(1485, span.Length);
             Assert.Equal("[15..1500)", span.ToString());
         }
 
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TextSpan03()
         {
             TextSpan span = new TextSpan(0, int.MaxValue - 1);
-            Assert.Equal(span.Start, 0);
+            Assert.Equal(0, span.Start);
             Assert.Equal(span.End, int.MaxValue - 1);
             Assert.Equal(span.Length, int.MaxValue - 1);
         }
@@ -198,12 +202,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TextSpan span2 = new TextSpan(0, 10);
 
             Assert.True(span1.Equals(span2));
-            Assert.NotNull(span1);
+            Assert.NotEqual(default, span1);
             Assert.True(span1 == span2, span1.ToString() + " : " + span2.ToString());
             Assert.False(span1 != span2, span1.ToString() + " : " + span2.ToString());
 
             Assert.True(span2.Equals(span1));
-            Assert.NotNull(span2);
+            Assert.NotEqual(default, span2);
             Assert.True(span2 == span1, span2.ToString() + " : " + span1.ToString());
             Assert.False(span2 != span1, span2.ToString() + " : " + span1.ToString());
         }

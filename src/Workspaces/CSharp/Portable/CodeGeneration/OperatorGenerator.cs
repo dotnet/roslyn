@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -19,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var methodDeclaration = GenerateOperatorDeclaration(method, GetDestination(destination), options);
+            var methodDeclaration = GenerateOperatorDeclaration(
+                method, options, destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 
@@ -28,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static OperatorDeclarationSyntax GenerateOperatorDeclaration(
             IMethodSymbol method,
-            CodeGenerationDestination destination,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<OperatorDeclarationSyntax>(method, options);
             if (reusableSyntax != null)
@@ -37,39 +43,62 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var declaration = GenerateOperatorDeclarationWorker(method, destination, options);
+            var declaration = GenerateOperatorDeclarationWorker(method, options, parseOptions);
+            declaration = UseExpressionBodyIfDesired(options, declaration, parseOptions);
 
             return AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options));
         }
 
+        private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
+            CodeGenerationOptions options, OperatorDeclarationSyntax declaration, ParseOptions parseOptions)
+        {
+            if (declaration.ExpressionBody == null)
+            {
+                var expressionBodyPreference = options.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
+                if (declaration.Body.TryConvertToArrowExpressionBody(
+                        declaration.Kind(), parseOptions, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
+                {
+                    return declaration.WithBody(null)
+                                      .WithExpressionBody(expressionBody)
+                                      .WithSemicolonToken(semicolonToken);
+                }
+            }
+
+            return declaration;
+        }
+
         private static OperatorDeclarationSyntax GenerateOperatorDeclarationWorker(
             IMethodSymbol method,
-            CodeGenerationDestination destination,
-            CodeGenerationOptions options)
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             var hasNoBody = !options.GenerateMethodBodies || method.IsExtern;
 
             var operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName);
             if (operatorSyntaxKind == SyntaxKind.None)
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.CannotCodeGenUnsupportedOperator, method.Name), nameof(method));
+                throw new ArgumentException(string.Format(WorkspacesResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), nameof(method));
             }
 
             var operatorToken = SyntaxFactory.Token(operatorSyntaxKind);
 
-            return SyntaxFactory.OperatorDeclaration(
+            var operatorDecl = SyntaxFactory.OperatorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), options),
-                modifiers: GenerateModifiers(method),
+                modifiers: GenerateModifiers(),
                 returnType: method.ReturnType.GenerateTypeSyntax(),
                 operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
                 operatorToken: operatorToken,
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, options: options),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+
+            operatorDecl = UseExpressionBodyIfDesired(options, operatorDecl, parseOptions);
+            return operatorDecl;
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol method)
+        private static SyntaxTokenList GenerateModifiers()
         {
             return SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),

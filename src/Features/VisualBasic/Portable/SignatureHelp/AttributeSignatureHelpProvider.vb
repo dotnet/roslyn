@@ -1,9 +1,12 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.DocumentationComments
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -14,6 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     <ExportSignatureHelpProvider("AttributeSignatureHelpProvider", LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class AttributeSignatureHelpProvider
         Inherits AbstractVisualBasicSignatureHelpProvider
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
             Return ch = "("c OrElse ch = ","c
@@ -62,24 +70,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
             Dim accessibleConstructors = attributeType.InstanceConstructors.
-                                                       Where(Function(c) c.IsAccessibleWithin(within)).
+                                                       WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
                                                        FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                                       Sort(symbolDisplayService, semanticModel, attribute.SpanStart)
+                                                       Sort(semanticModel, attribute.SpanStart)
 
             If Not accessibleConstructors.Any() Then
                 Return Nothing
             End If
 
-            Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
+            Dim symbolInfo = semanticModel.GetSymbolInfo(attribute, cancellationToken)
+            Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol)
+
             Return CreateSignatureHelpItems(accessibleConstructors.Select(
-                Function(c) Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
+                Function(c) Convert(c, within, attribute, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
         End Function
 
         Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
@@ -93,14 +103,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Overloads Function Convert(constructor As IMethodSymbol,
+        Private Overloads Shared Function Convert(constructor As IMethodSymbol,
                                            within As ISymbol,
                                            attribute As AttributeSyntax,
                                            semanticModel As SemanticModel,
-                                           symbolDisplayService As ISymbolDisplayService,
                                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                           documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                           cancellationToken As CancellationToken) As SignatureHelpItem
+                                           documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = attribute.SpanStart
             Dim namedParameters = constructor.ContainingType.GetAttributeNamedParameters(semanticModel.Compilation, within).
                                                              OrderBy(Function(s) s.Name).
@@ -111,26 +119,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim item = CreateItem(
                 constructor, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 isVariadic,
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
-                GetPostambleParts(constructor),
-                GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormattingService, cancellationToken))
+                GetPostambleParts(),
+                GetParameters(constructor, semanticModel, position, namedParameters, documentationCommentFormattingService))
             Return item
         End Function
 
-        Private Function GetParameters(constructor As IMethodSymbol,
+        Private Shared Function GetParameters(constructor As IMethodSymbol,
                                        semanticModel As SemanticModel,
                                        position As Integer,
                                        namedParameters As List(Of ISymbol),
-                                       documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                       cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpParameter)
-            Dim result = New List(Of SignatureHelpParameter)
+                                       documentationCommentFormattingService As IDocumentationCommentFormattingService) As IList(Of SignatureHelpSymbolParameter)
+            Dim result = New List(Of SignatureHelpSymbolParameter)
 
             For Each parameter In constructor.Parameters
-                result.Add(Convert(parameter, semanticModel, position, documentationCommentFormattingService, cancellationToken))
+                result.Add(Convert(parameter, semanticModel, position, documentationCommentFormattingService))
             Next
 
             For i = 0 To namedParameters.Count - 1
@@ -148,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 displayParts.Add(Punctuation(SyntaxKind.ColonEqualsToken))
                 displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position))
 
-                result.Add(New SignatureHelpParameter(
+                result.Add(New SignatureHelpSymbolParameter(
                     namedParameter.Name,
                     isOptional:=True,
                     documentationFactory:=namedParameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
@@ -171,14 +178,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Private Shared Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
             Return result
         End Function
 
-        Private Function GetPostambleParts(method As IMethodSymbol) As IEnumerable(Of SymbolDisplayPart)
+        Private Shared Function GetPostambleParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class

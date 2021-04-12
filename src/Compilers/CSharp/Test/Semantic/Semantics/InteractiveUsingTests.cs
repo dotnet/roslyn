@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -73,7 +77,7 @@ using T = Type;
 class Type { }
 ";
 
-            var sub = CreateSubmission(source);
+            var sub = (Compilation)CreateSubmission(source);
             sub.VerifyDiagnostics();
 
             var typeSymbol = sub.ScriptClass.GetMember("Type");
@@ -84,7 +88,7 @@ class Type { }
 
             var aliasSymbol = model.GetDeclaredSymbol(syntax);
             Assert.Equal(SymbolKind.Alias, aliasSymbol.Kind);
-            Assert.Equal(typeSymbol, ((AliasSymbol)aliasSymbol).Target);
+            Assert.Equal(typeSymbol, ((IAliasSymbol)aliasSymbol).Target);
 
             Assert.Equal(typeSymbol, model.GetSymbolInfo(syntax.Name).Symbol);
 
@@ -106,7 +110,7 @@ class Type { }
             var sub4 = CreateSubmission("using C1 = C; typeof(C1)", previous: sub3);
             sub4.VerifyDiagnostics();
 
-            var typeSymbol = sub3.ScriptClass.GetMember("C");
+            var typeSymbol = ((Compilation)sub3).ScriptClass.GetMember("C");
 
             var tree = sub4.SyntaxTrees.Single();
             var model = sub4.GetSemanticModel(tree);
@@ -114,7 +118,7 @@ class Type { }
 
             var aliasSymbol = model.GetDeclaredSymbol(syntax);
             Assert.Equal(SymbolKind.Alias, aliasSymbol.Kind);
-            Assert.Equal(typeSymbol, ((AliasSymbol)aliasSymbol).Target);
+            Assert.Equal(typeSymbol, ((IAliasSymbol)aliasSymbol).Target);
 
             Assert.Equal(typeSymbol, model.GetSymbolInfo(syntax.Name).Symbol);
 
@@ -135,7 +139,7 @@ using System;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int32").WithArguments("Int32").WithLocation(2, 11)
             };
 
-            CreateCompilationWithMscorlib(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateCompilation(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -154,7 +158,7 @@ using I = Int32;
 
             var options = TestOptions.DebugDll.WithUsings("System");
 
-            CreateCompilationWithMscorlib(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateCompilation(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source, options: options).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -172,7 +176,7 @@ using J = I;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(3, 11)
             };
 
-            CreateCompilationWithMscorlib(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateCompilation(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -186,7 +190,7 @@ using J = I;
             Assert.Equal(SpecialType.System_Int16, GetSpeculativeType(sub2, "A").SpecialType);
 
             var sub3 = CreateSubmission("class A { }", previous: sub2);
-            Assert.Equal(sub3.ScriptClass, GetSpeculativeType(sub3, "A").ContainingType);
+            Assert.Equal(((Compilation)sub3).ScriptClass, GetSpeculativeType(sub3, "A").ContainingType);
 
             var sub4 = CreateSubmission("using A = System.Int64; typeof(A)", previous: sub3);
             Assert.Equal(SpecialType.System_Int64, GetSpeculativeType(sub4, "A").SpecialType);
@@ -205,7 +209,7 @@ class Type
 }
 ";
 
-            var sub = CreateSubmission(source);
+            var sub = (Compilation)CreateSubmission(source);
             sub.VerifyDiagnostics();
 
             Assert.Equal(sub.ScriptClass.GetMember("Type"), GetSpeculativeSymbol(sub, "Field").ContainingType);
@@ -225,7 +229,7 @@ class Type
             var sub4 = CreateSubmission("using static C;", previous: sub3);
             sub4.VerifyDiagnostics();
 
-            var typeSymbol = sub3.ScriptClass.GetMember("C");
+            var typeSymbol = ((Compilation)sub3).ScriptClass.GetMember("C");
 
             Assert.Equal(typeSymbol, GetSpeculativeSymbol(sub4, "CC").ContainingType);
         }
@@ -244,7 +248,7 @@ using System.IO;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Path").WithArguments("Path").WithLocation(2, 14)
             };
 
-            CreateCompilationWithMscorlib(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateCompilation(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -263,7 +267,7 @@ using static Path;
 
             var options = TestOptions.DebugDll.WithUsings("System");
 
-            CreateCompilationWithMscorlib(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateCompilation(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source, options: options).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -315,8 +319,8 @@ namespace B
 }}
 ";
 
-            var lib1 = CreateCompilationWithMscorlib(string.Format(libSourceTemplate, 1), assemblyName: "Lib1").EmitToImageReference();
-            var lib2 = CreateCompilationWithMscorlib(string.Format(libSourceTemplate, 2), assemblyName: "Lib2").EmitToImageReference();
+            var lib1 = CreateCompilation(string.Format(libSourceTemplate, 1), assemblyName: "Lib1").EmitToImageReference();
+            var lib2 = CreateCompilation(string.Format(libSourceTemplate, 2), assemblyName: "Lib2").EmitToImageReference();
 
             var options = TestOptions.DebugDll.WithUsings("B");
 
@@ -485,7 +489,7 @@ t = typeof(File); // global using exposed
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Valid()
         {
             const string libSource = @"
@@ -508,7 +512,7 @@ namespace NOuter
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var lib = CreateCompilation(libSource).EmitToImageReference();
             var refs = new[] { lib };
 
             var submissions = new[]
@@ -532,7 +536,7 @@ namespace NOuter
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Invalid()
         {
             const string libSource = @"
@@ -549,7 +553,7 @@ namespace NOuter
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var lib = CreateCompilation(libSource).EmitToImageReference();
             var refs = new[] { lib };
 
             CreateSubmission("using NInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
@@ -573,21 +577,21 @@ namespace NOuter
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 14));
         }
 
-        private static Symbol GetSpeculativeSymbol(CSharpCompilation comp, string name)
+        private static ISymbol GetSpeculativeSymbol(Compilation comp, string name)
         {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            return (Symbol)model.GetSpeculativeSymbolInfo(
+            return model.GetSpeculativeSymbolInfo(
                 tree.Length,
                 SyntaxFactory.IdentifierName(name),
                 SpeculativeBindingOption.BindAsExpression).Symbol;
         }
 
-        private static TypeSymbol GetSpeculativeType(CSharpCompilation comp, string name)
+        private static ITypeSymbol GetSpeculativeType(Compilation comp, string name)
         {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            return (TypeSymbol)model.GetSpeculativeTypeInfo(
+            return model.GetSpeculativeTypeInfo(
                 tree.Length,
                 SyntaxFactory.IdentifierName(name),
                 SpeculativeBindingOption.BindAsTypeOrNamespace).Type;

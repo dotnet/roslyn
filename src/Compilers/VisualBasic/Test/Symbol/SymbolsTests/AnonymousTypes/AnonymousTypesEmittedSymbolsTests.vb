@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Runtime.CompilerServices
@@ -27,7 +29,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(sources:=compilationDef, references:={})
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source:=compilationDef, references:={})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30002: Type 'System.Void' is not defined.
@@ -64,7 +66,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`3")
                                                   Assert.NotNull(type)
@@ -90,7 +92,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
                                                   Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType_", StringComparison.Ordinal)).ToList()
@@ -132,7 +134,7 @@ End Structure
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
                                                   Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType", StringComparison.Ordinal)).ToList()
@@ -177,7 +179,7 @@ End Class
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
                                                   Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType", StringComparison.Ordinal)).ToList()
@@ -225,7 +227,7 @@ End Class
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef, TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll})
+                             references:={SystemCoreRef, TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll})
         End Sub
 
         <Fact>
@@ -258,7 +260,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             Dim position = compilationDef.<file>.Value.IndexOf("Dim v2", StringComparison.Ordinal) - 1
@@ -292,7 +294,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`1")
                                                   Assert.NotNull(type)
@@ -304,30 +306,31 @@ End Module
         End Sub
 
         <Fact>
+        <WorkItem(48417, "https://github.com/dotnet/roslyn/issues/48417")>
         Public Sub CheckPropertyFieldAndAccessorsNamesTest()
             Dim compilationDef =
     <compilation name="CheckPropertyFieldAndAccessorsNamesTest">
         <file name="b.vb">
 Module ModuleB
     Sub Test1(x As Integer)
-        Dim v1 As Object = New With { .aa = 1 }.aa
-        Dim v2 As Object = New With { Key .AA = "a" }.aa
+        Dim v1 As Object = New With { .aab = 1 }.aab
+        Dim v2 As Object = New With { Key .AAB = "a" }.aab
     End Sub
 End Module
         </file>
         <file name="a.vb">
 Module ModuleA
     Sub Test1(x As Integer)
-        Dim v1 As Object = New With { .Aa = 1 }.aa
-        Dim v2 As Object = New With { Key .aA = "A" }.aa
+        Dim v1 As Object = New With { .Aab = 1 }.aab
+        Dim v2 As Object = New With { Key .aAB = "A" }.aab
     End Sub
 End Module
         </file>
         <file name="c.vb">
 Module ModuleC
     Sub Test1(x As Integer)
-        Dim v1 As Object = New With { .AA = 1 }.aa
-        Dim v2 As Object = New With { Key .aa = "A" }.aa
+        Dim v1 As Object = New With { .AAb = 1 }.aab
+        Dim v2 As Object = New With { Key .aaB = "A" }.aab
     End Sub
 End Module
         </file>
@@ -336,15 +339,16 @@ End Module
             ' Cycle to hopefully get different order of files
             For i = 0 To 50
                 CompileAndVerify(compilationDef,
-                                 additionalRefs:={SystemCoreRef},
+                                 references:={SystemCoreRef},
+                                 options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                  symbolValidator:=Sub(m As ModuleSymbol)
                                                       Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`1")
                                                       Assert.NotNull(type)
-                                                      CheckPropertyAccessorsAndField(m, type, "aa", type.TypeParameters(0), False)
+                                                      CheckPropertyAccessorsAndField(m, type, "aab", type.TypeParameters(0), False)
 
                                                       type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_1`1")
                                                       Assert.NotNull(type)
-                                                      CheckPropertyAccessorsAndField(m, type, "AA", type.TypeParameters(0), True)
+                                                      CheckPropertyAccessorsAndField(m, type, "AAB", type.TypeParameters(0), True)
                                                   End Sub)
             Next
         End Sub
@@ -365,7 +369,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`3")
                                                   Assert.NotNull(type)
@@ -402,7 +406,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`3")
                                                   Assert.NotNull(type)
@@ -433,7 +437,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`3")
                                                   Assert.NotNull(type)
@@ -460,7 +464,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`3")
                                                   Assert.NotNull(type)
@@ -499,7 +503,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`3")
                                                   Assert.NotNull(type)
@@ -530,7 +534,7 @@ End Module
     </compilation>
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim type = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`3")
                                                   Assert.NotNull(type)
@@ -574,7 +578,7 @@ End Module
             Dim position = compilationDef.<file>.Value.IndexOf("'POSITION", StringComparison.Ordinal)
 
             CompileAndVerify(compilationDef,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                                         Dim compilation = m.DeclaringCompilation
                                                         Dim tree = compilation.SyntaxTrees(0)
@@ -583,6 +587,8 @@ End Module
                                                         Dim node0 = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectCreationExpression).AsNode(), ExpressionSyntax)
                                                         Dim info0 = model.GetSemanticInfoSummary(node0)
                                                         Assert.NotNull(info0.Type)
+                                                        Assert.IsType(GetType(AnonymousTypeManager.AnonymousTypePublicSymbol), info0.Type)
+                                                        Assert.False(DirectCast(info0.Type, INamedTypeSymbol).IsSerializable)
 
                                                         Dim expr1 = SyntaxFactory.ParseExpression(<text>New With { .aa = 1, .BB = "", .CCC = new SSS() }</text>.Value)
                                                         Dim info1 = model.GetSpeculativeTypeInfo(position, expr1, SpeculativeBindingOption.BindAsExpression)
@@ -624,7 +630,7 @@ End Module
         </file>
     </compilation>
 
-            Dim testModule = CreateCompilationWithMscorlibAndVBRuntime(moduleDef, TestOptions.ReleaseModule)
+            Dim testModule = CreateCompilationWithMscorlib40AndVBRuntime(moduleDef, TestOptions.ReleaseModule)
 
             Dim compilationDef =
     <compilation>
@@ -634,7 +640,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(moduleDef, {testModule.EmitToImageReference()}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(moduleDef, {testModule.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             Assert.Equal(1, compilation.Assembly.Modules(1).GlobalNamespace.GetTypeMembers("VB$AnonymousDelegate_0<TestModule>", 2).Length)
             Assert.Equal(1, compilation.Assembly.Modules(1).GlobalNamespace.GetTypeMembers("VB$AnonymousType_0<TestModule>", 1).Length)
@@ -643,8 +649,7 @@ End Module
 #Region "Utils"
 
         Private Shared Sub CheckPropertyAccessorsAndField(m As ModuleSymbol, type As NamedTypeSymbol, propName As String, propType As TypeSymbol, isKey As Boolean)
-            Dim prop = DirectCast(type.GetMember(propName), PropertySymbol)
-            Assert.NotNull(prop)
+            Dim prop = type.GetMembers().OfType(Of PropertySymbol)().Single()
             Assert.Equal(propType, prop.Type)
             Assert.Equal(propName, prop.Name)
             Assert.Equal(propName, prop.MetadataName)
@@ -678,7 +683,16 @@ End Module
                 Assert.Null(prop.SetMethod)
             End If
 
-            Assert.Equal(0, type.GetMembers("$" & propName).Length)
+            Dim field = type.GetMembers().OfType(Of FieldSymbol)().Single()
+            Assert.Equal(propType, field.Type)
+            Assert.Equal("$" & propName, field.Name)
+            Assert.Equal("$" & propName, field.MetadataName)
+            Assert.Equal(Accessibility.Private, field.DeclaredAccessibility)
+
+            Dim parameter = type.Constructors.Single().Parameters(0)
+            Assert.Equal(propType, parameter.Type)
+            Assert.Equal(propName, parameter.Name)
+            Assert.Equal(propName, parameter.MetadataName)
         End Sub
 
         Private Shared Sub CheckMethod(m As ModuleSymbol, method As MethodSymbol,
@@ -693,6 +707,7 @@ End Module
 
             Assert.NotNull(method)
             Assert.Equal(name, method.Name)
+            Assert.Equal(name, method.MetadataName)
             Assert.Equal(paramCount, method.ParameterCount)
 
             If isSub Then
@@ -734,7 +749,8 @@ End Module
 
 #End Region
 
-        <Fact, WorkItem(1319, "https: //github.com/dotnet/roslyn/issues/1319")>
+        <WorkItem(1319, "https://github.com/dotnet/roslyn/issues/1319")>
+        <ConditionalFact(GetType(DesktopOnly), Reason:=ConditionalSkipReason.NetModulesNeedDesktop)>
         Public Sub MultipleNetmodulesWithAnonymousTypes()
             Dim compilationDef1 =
     <compilation>
@@ -779,15 +795,15 @@ End Class
         </file>
     </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib(compilationDef1, options:=TestOptions.ReleaseModule.WithModuleName("A"))
+            Dim comp1 = CreateCompilationWithMscorlib40(compilationDef1, options:=TestOptions.ReleaseModule.WithModuleName("A"))
             comp1.VerifyDiagnostics()
             Dim ref1 = comp1.EmitToImageReference()
 
-            Dim comp2 = CreateCompilationWithMscorlibAndReferences(compilationDef2, {ref1}, options:=TestOptions.ReleaseModule.WithModuleName("B"))
+            Dim comp2 = CreateCompilationWithMscorlib40AndReferences(compilationDef2, {ref1}, options:=TestOptions.ReleaseModule.WithModuleName("B"))
             comp2.VerifyDiagnostics()
             Dim ref2 = comp2.EmitToImageReference()
 
-            Dim comp3 = CreateCompilationWithMscorlibAndReferences(compilationDef3, {ref1, ref2}, options:=TestOptions.ReleaseExe.WithModuleName("C"))
+            Dim comp3 = CreateCompilationWithMscorlib40AndReferences(compilationDef3, {ref1, ref2}, options:=TestOptions.ReleaseExe.WithModuleName("C"))
             comp3.VerifyDiagnostics()
 
             Dim mA = comp3.Assembly.Modules(1)

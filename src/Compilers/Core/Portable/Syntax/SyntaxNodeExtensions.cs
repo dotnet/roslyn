@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -257,12 +259,12 @@ namespace Microsoft.CodeAnalysis
         /// <param name="root">The root node from which to remove a descendant node from.</param>
         /// <param name="node">The node to remove.</param>
         /// <param name="options">Options that determine how the node's trivia is treated.</param>
-        public static TRoot RemoveNode<TRoot>(this TRoot root,
+        public static TRoot? RemoveNode<TRoot>(this TRoot root,
             SyntaxNode node,
             SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
         {
-            return (TRoot)root.RemoveNodesCore(new[] { node }, options);
+            return (TRoot?)root.RemoveNodesCore(new[] { node }, options);
         }
 
         /// <summary>
@@ -272,13 +274,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="root">The root node from which to remove a descendant node from.</param>
         /// <param name="nodes">The nodes to remove.</param>
         /// <param name="options">Options that determine how the nodes' trivia is treated.</param>
-        public static TRoot RemoveNodes<TRoot>(
+        public static TRoot? RemoveNodes<TRoot>(
             this TRoot root,
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
         {
-            return (TRoot)root.RemoveNodesCore(nodes, options);
+            return (TRoot?)root.RemoveNodesCore(nodes, options);
         }
 
         internal const string DefaultIndentation = "    ";
@@ -332,6 +334,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new token from this token without leading or trailing trivia.
+        /// </summary>
+        public static SyntaxToken WithoutTrivia(this SyntaxToken token)
+            => token.WithTrailingTrivia(default(SyntaxTriviaList))
+                    .WithLeadingTrivia(default(SyntaxTriviaList));
+
+        /// <summary>
         /// Creates a new node from this node with the leading trivia replaced.
         /// </summary>
         public static TSyntax WithLeadingTrivia<TSyntax>(
@@ -348,7 +357,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static TSyntax WithLeadingTrivia<TSyntax>(
             this TSyntax node,
-            IEnumerable<SyntaxTrivia> trivia) where TSyntax : SyntaxNode
+            IEnumerable<SyntaxTrivia>? trivia) where TSyntax : SyntaxNode
         {
             var first = node.GetFirstToken(includeZeroWidth: true);
             var newFirst = first.WithLeadingTrivia(trivia);
@@ -362,7 +371,7 @@ namespace Microsoft.CodeAnalysis
             this TSyntax node
             ) where TSyntax : SyntaxNode
         {
-            return node.WithLeadingTrivia((IEnumerable<SyntaxTrivia>)null);
+            return node.WithLeadingTrivia((IEnumerable<SyntaxTrivia>?)null);
         }
 
         /// <summary>
@@ -370,9 +379,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static TSyntax WithLeadingTrivia<TSyntax>(
             this TSyntax node,
-            params SyntaxTrivia[] trivia) where TSyntax : SyntaxNode
+            params SyntaxTrivia[]? trivia) where TSyntax : SyntaxNode
         {
-            return node.WithLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+            return node.WithLeadingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
         /// <summary>
@@ -392,7 +401,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static TSyntax WithTrailingTrivia<TSyntax>(
             this TSyntax node,
-            IEnumerable<SyntaxTrivia> trivia) where TSyntax : SyntaxNode
+            IEnumerable<SyntaxTrivia>? trivia) where TSyntax : SyntaxNode
         {
             var last = node.GetLastToken(includeZeroWidth: true);
             var newLast = last.WithTrailingTrivia(trivia);
@@ -402,11 +411,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new node from this node with the trailing trivia removed.
         /// </summary>
-        public static TSyntax WithoutTrailingTrivia<TSyntax>(
-            this TSyntax node
-            ) where TSyntax : SyntaxNode
+        public static TSyntax WithoutTrailingTrivia<TSyntax>(this TSyntax node) where TSyntax : SyntaxNode
         {
-            return node.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)null);
+            return node.WithTrailingTrivia((IEnumerable<SyntaxTrivia>?)null);
         }
 
         /// <summary>
@@ -414,9 +421,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static TSyntax WithTrailingTrivia<TSyntax>(
             this TSyntax node,
-            params SyntaxTrivia[] trivia) where TSyntax : SyntaxNode
+            params SyntaxTrivia[]? trivia) where TSyntax : SyntaxNode
         {
-            return node.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+            return node.WithTrailingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
+        }
+
+        /// <summary>
+        /// Attaches the node to a SyntaxTree that the same options as <paramref name="oldTree"/>
+        /// </summary>
+        [return: NotNullIfNotNull("node")]
+        internal static SyntaxNode? AsRootOfNewTreeWithOptionsFrom(this SyntaxNode? node, SyntaxTree oldTree)
+        {
+            return node != null ? oldTree.WithRootAndOptions(node, oldTree.Options).GetRoot() : null;
         }
     }
 }

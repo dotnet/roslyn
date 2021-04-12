@@ -1,41 +1,38 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions
 {
     internal interface IErrorReportingService : IWorkspaceService
     {
-        void ShowErrorInfoForCodeFix(string codefixName, Action OnEnable, Action OnEnableAndIgnore, Action OnClose);
-        void ShowErrorInfo(string message, params ErrorReportingUI[] items);
-    }
+        /// <summary>
+        /// Name of the host to be used in error messages (e.g. "Visual Studio").
+        /// </summary>
+        string HostDisplayName { get; }
 
-    internal struct ErrorReportingUI
-    {
-        public readonly string Title;
-        public readonly UIKind Kind;
-        public readonly Action Action;
-        public readonly bool CloseAfterAction;
+        /// <summary>
+        /// Show global error info.
+        ///
+        /// this kind error info should be something that affects whole roslyn such as
+        /// background compilation is disabled due to memory issue and etc
+        /// </summary>
+        void ShowGlobalErrorInfo(string message, params InfoBarUI[] items);
 
-        public ErrorReportingUI(string title, UIKind kind, Action action, bool closeAfterAction = true)
-        {
-            Contract.ThrowIfNull(title);
+        void ShowDetailedErrorInfo(Exception exception);
 
-            Title = title;
-            Kind = kind;
-            Action = action;
-            CloseAfterAction = closeAfterAction;
-        }
+        /// <summary>
+        /// Shows info-bar reporting ServiceHub process crash.
+        /// "Unfortunately a process used by Visual Studio has encountered an unrecoverable error".
+        /// 
+        /// Obsolete - will remove once we remove JsonRpcConnection.
+        /// https://github.com/dotnet/roslyn/issues/45859
+        /// </summary>
+        void ShowRemoteHostCrashedErrorInfo(Exception? exception);
 
-        public bool IsDefault => Title == null;
-
-        internal enum UIKind
-        {
-            Button,
-            HyperLink,
-            Close
-        }
+        void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception);
     }
 }

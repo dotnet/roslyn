@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -287,7 +291,7 @@ class C : B
         private const string TypeWithIndexers = @"
 public class C
 {
-    public static int Foo(int x)
+    public static int Goo(int x)
     {
         System.Console.Write(x + "","");
         return x * 10;
@@ -338,34 +342,34 @@ class Test
 
         //// Normal
 
-        x = c[C.Foo(1), C.Foo(2)];
+        x = c[C.Goo(1), C.Goo(2)];
         System.Console.WriteLine();
 
         //// Named parameters
 
-        x = c[C.Foo(1), y: C.Foo(2)]; //NB: Dev10 gets this wrong (2,1,10,20)
+        x = c[C.Goo(1), y: C.Goo(2)]; //NB: Dev10 gets this wrong (2,1,10,20)
         System.Console.WriteLine();
 
-        x = c[x: C.Foo(1), y: C.Foo(2)];
+        x = c[x: C.Goo(1), y: C.Goo(2)];
         System.Console.WriteLine();
 
-        x = c[y: C.Foo(2), x: C.Foo(1)];
+        x = c[y: C.Goo(2), x: C.Goo(1)];
         System.Console.WriteLine();
 
         //// Optional parameters
 
-        x = c[C.Foo(1)];
+        x = c[C.Goo(1)];
         System.Console.WriteLine();
 
-        x = c[x: C.Foo(1)];
+        x = c[x: C.Goo(1)];
         System.Console.WriteLine();
 
         //// Parameter arrays
 
-        x = c[C.Foo(1), C.Foo(2), C.Foo(3)];
+        x = c[C.Goo(1), C.Goo(2), C.Goo(3)];
         System.Console.WriteLine();
 
-        x = c[new int[] { C.Foo(1), C.Foo(2), C.Foo(3) }];
+        x = c[new int[] { C.Goo(1), C.Goo(2), C.Goo(3) }];
         System.Console.WriteLine();
     }
 }
@@ -458,7 +462,7 @@ class Test
   IL_003f:  ldc.i4.3
   IL_0040:  newarr     ""int""
   IL_0045:  dup
-  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_004b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0050:  callvirt   ""int C.this[params int[]].get""
   IL_0055:  pop
@@ -466,7 +470,7 @@ class Test
   IL_0057:  ldc.i4.3
   IL_0058:  newarr     ""int""
   IL_005d:  dup
-  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0063:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0068:  callvirt   ""int C.this[params int[]].get""
   IL_006d:  pop
@@ -487,34 +491,34 @@ class Test
 
         //// Normal
 
-        c[C.Foo(1), C.Foo(2)] = C.Foo(3);
+        c[C.Goo(1), C.Goo(2)] = C.Goo(3);
         System.Console.WriteLine();
 
         //// Named parameters
 
-        c[C.Foo(1), y: C.Foo(2)] = C.Foo(3);
+        c[C.Goo(1), y: C.Goo(2)] = C.Goo(3);
         System.Console.WriteLine();
 
-        c[x: C.Foo(1), y: C.Foo(2)] = C.Foo(3); //NB: dev10 gets this wrong (2,1,3,10,20,30,)
+        c[x: C.Goo(1), y: C.Goo(2)] = C.Goo(3); //NB: dev10 gets this wrong (2,1,3,10,20,30,)
         System.Console.WriteLine();
 
-        c[y: C.Foo(2), x: C.Foo(1)] = C.Foo(3);
+        c[y: C.Goo(2), x: C.Goo(1)] = C.Goo(3);
         System.Console.WriteLine();
 
         //// Optional parameters
 
-        c[C.Foo(1)] = C.Foo(3);
+        c[C.Goo(1)] = C.Goo(3);
         System.Console.WriteLine();
 
-        c[x: C.Foo(1)] = C.Foo(3);
+        c[x: C.Goo(1)] = C.Goo(3);
         System.Console.WriteLine();
 
         //// Parameter arrays
 
-        c[C.Foo(1), C.Foo(2), C.Foo(3)] = C.Foo(4);
+        c[C.Goo(1), C.Goo(2), C.Goo(3)] = C.Goo(4);
         System.Console.WriteLine();
 
-        c[new int[] { C.Foo(1), C.Foo(2), C.Foo(3) }] = C.Foo(4);
+        c[new int[] { C.Goo(1), C.Goo(2), C.Goo(3) }] = C.Goo(4);
         System.Console.WriteLine();
     }
 }
@@ -606,7 +610,7 @@ class Test
   IL_003f:  ldc.i4.3
   IL_0040:  newarr     ""int""
   IL_0045:  dup
-  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_004b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0050:  ldc.i4.4
   IL_0051:  callvirt   ""void C.this[params int[]].set""
@@ -614,7 +618,7 @@ class Test
   IL_0057:  ldc.i4.3
   IL_0058:  newarr     ""int""
   IL_005d:  dup
-  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0063:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0068:  ldc.i4.4
   IL_0069:  callvirt   ""void C.this[params int[]].set""
@@ -635,34 +639,34 @@ class Test
 
         //// Normal
 
-        c[C.Foo(1), C.Foo(2)]++;
+        c[C.Goo(1), C.Goo(2)]++;
         System.Console.WriteLine();
 
         //// Named parameters
 
-        c[C.Foo(1), y: C.Foo(2)]++;
+        c[C.Goo(1), y: C.Goo(2)]++;
         System.Console.WriteLine();
 
-        c[x: C.Foo(1), y: C.Foo(2)]++; //NB: dev10 gets this wrong (2,1,10,20,10,20,-29,)
+        c[x: C.Goo(1), y: C.Goo(2)]++; //NB: dev10 gets this wrong (2,1,10,20,10,20,-29,)
         System.Console.WriteLine();
 
-        c[y: C.Foo(2), x: C.Foo(1)]++;
+        c[y: C.Goo(2), x: C.Goo(1)]++;
         System.Console.WriteLine();
 
         //// Optional parameters
 
-        c[C.Foo(1)]++;
+        c[C.Goo(1)]++;
         System.Console.WriteLine();
 
-        c[x: C.Foo(1)]++;
+        c[x: C.Goo(1)]++;
         System.Console.WriteLine();
 
         //// Parameter arrays
 
-        c[C.Foo(1), C.Foo(2), C.Foo(3)]++;
+        c[C.Goo(1), C.Goo(2), C.Goo(3)]++;
         System.Console.WriteLine();
 
-        c[new int[] { C.Foo(1), C.Foo(2), C.Foo(3) }]++;
+        c[new int[] { C.Goo(1), C.Goo(2), C.Goo(3) }]++;
         System.Console.WriteLine();
     }
 }
@@ -800,7 +804,7 @@ class Test
   IL_0084:  ldc.i4.3
   IL_0085:  newarr     ""int""
   IL_008a:  dup
-  IL_008b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_008b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0090:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0095:  stloc.3
   IL_0096:  ldloc.2
@@ -818,7 +822,7 @@ class Test
   IL_00aa:  ldc.i4.3
   IL_00ab:  newarr     ""int""
   IL_00b0:  dup
-  IL_00b1:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00b1:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00b6:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00bb:  stloc.3
   IL_00bc:  ldloc.2
@@ -848,34 +852,34 @@ class Test
 
         //// Normal
 
-        c[C.Foo(1), C.Foo(2)] += C.Foo(3);
+        c[C.Goo(1), C.Goo(2)] += C.Goo(3);
         System.Console.WriteLine();
 
         //// Named parameters
 
-        c[C.Foo(1), y: C.Foo(2)] += C.Foo(3);
+        c[C.Goo(1), y: C.Goo(2)] += C.Goo(3);
         System.Console.WriteLine();
 
-        c[x: C.Foo(1), y: C.Foo(2)] += C.Foo(3); //NB: dev10 gets this wrong (2,1,10,20,3,10,20,0,)
+        c[x: C.Goo(1), y: C.Goo(2)] += C.Goo(3); //NB: dev10 gets this wrong (2,1,10,20,3,10,20,0,)
         System.Console.WriteLine();
 
-        c[y: C.Foo(2), x: C.Foo(1)] += C.Foo(3);
+        c[y: C.Goo(2), x: C.Goo(1)] += C.Goo(3);
         System.Console.WriteLine();
 
         //// Optional parameters
 
-        c[C.Foo(1)] += C.Foo(3);
+        c[C.Goo(1)] += C.Goo(3);
         System.Console.WriteLine();
 
-        c[x: C.Foo(1)] += C.Foo(3);
+        c[x: C.Goo(1)] += C.Goo(3);
         System.Console.WriteLine();
 
         //// Parameter arrays
 
-        c[C.Foo(1), C.Foo(2), C.Foo(3)] += C.Foo(4);
+        c[C.Goo(1), C.Goo(2), C.Goo(3)] += C.Goo(4);
         System.Console.WriteLine();
 
-        c[new int[] { C.Foo(1), C.Foo(2), C.Foo(3) }] += C.Foo(4);
+        c[new int[] { C.Goo(1), C.Goo(2), C.Goo(3) }] += C.Goo(4);
         System.Console.WriteLine();
     }
 }
@@ -1030,7 +1034,7 @@ class Test
   IL_00a2:  ldc.i4.3
   IL_00a3:  newarr     ""int""
   IL_00a8:  dup
-  IL_00a9:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00a9:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00ae:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00b3:  stloc.2
   IL_00b4:  ldloc.1
@@ -1047,7 +1051,7 @@ class Test
   IL_00cb:  ldc.i4.3
   IL_00cc:  newarr     ""int""
   IL_00d1:  dup
-  IL_00d2:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00d2:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00d7:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00dc:  stloc.2
   IL_00dd:  ldloc.1
@@ -1078,7 +1082,7 @@ class Test
 
     static void Main()
     {
-        NewC()[y: C.Foo(1), x: NewC()[C.Foo(2)]] = NewC()[x: C.Foo(3), y: NewC()[C.Foo(4)]] += NewC()[C.Foo(5), C.Foo(6), NewC()[C.Foo(7)]]++;
+        NewC()[y: C.Goo(1), x: NewC()[C.Goo(2)]] = NewC()[x: C.Goo(3), y: NewC()[C.Goo(4)]] += NewC()[C.Goo(5), C.Goo(6), NewC()[C.Goo(7)]]++;
         System.Console.WriteLine();
     }
 }
@@ -1125,6 +1129,58 @@ class Test
   IL_0022:  call       ""void System.Console.WriteLine(int)""
   IL_0027:  ret
 }
+");
+        }
+
+        [Fact]
+        public void IndexerOverrideNotAllAccessors_DefaultParameterValues()
+        {
+            var text = @"
+using System;
+
+class Base
+{
+    public virtual int this[int x, int y = 1]
+    {
+        get
+        {
+            Console.WriteLine(""Base.get y: "" + y);
+            return y;
+        }
+        set { Console.WriteLine(""Base.set y: "" + y); }
+    }
+}
+
+class Override : Base
+{
+    public override int this[int x, int y = 2]
+    {
+        set { Console.WriteLine(""Override.set y: "" + y); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Base b = new Base();
+        _ = b[0];
+        b[0] = 0;
+
+        Override o = new Override();
+        _ = o[0];
+        o[0] = 0;
+        o[0] += 0;
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput:
+@"Base.get y: 1
+Base.set y: 1
+Base.get y: 1
+Override.set y: 2
+Base.get y: 1
+Override.set y: 1
 ");
         }
 

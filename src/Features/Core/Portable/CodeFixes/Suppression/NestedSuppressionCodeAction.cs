@@ -1,30 +1,34 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract class NestedSuppressionCodeAction : CodeAction
     {
-        private readonly string _title;
-
         protected NestedSuppressionCodeAction(string title)
-        {
-            _title = title;
-        }
+            => Title = title;
 
-        public sealed override string Title => _title;
+        // Put suppressions at the end of everything.
+        internal override CodeActionPriority Priority => CodeActionPriority.Lowest;
+
+        public sealed override string Title { get; }
 
         protected abstract string DiagnosticIdForEquivalenceKey { get; }
 
         public override string EquivalenceKey => Title + DiagnosticIdForEquivalenceKey;
 
         public static bool IsEquivalenceKeyForGlobalSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.SuppressWithGlobalSuppressMessage);
+            equivalenceKey.StartsWith(FeaturesResources.in_Suppression_File);
         public static bool IsEquivalenceKeyForPragmaWarning(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.SuppressWithPragma);
+            equivalenceKey.StartsWith(FeaturesResources.in_Source);
         public static bool IsEquivalenceKeyForRemoveSuppression(string equivalenceKey) =>
-            equivalenceKey.StartsWith(FeaturesResources.RemoveSuppressionEquivalenceKeyPrefix);
+            equivalenceKey.StartsWith(FeaturesResources.Remove_Suppression);
+        public static bool IsEquivalenceKeyForLocalSuppression(string equivalenceKey) =>
+            equivalenceKey.StartsWith(FeaturesResources.in_Source_attribute);
     }
 }

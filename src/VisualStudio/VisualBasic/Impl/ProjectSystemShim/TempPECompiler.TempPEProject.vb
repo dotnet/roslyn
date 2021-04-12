@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -15,36 +17,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Private Class TempPEProject
             Implements IVbCompilerProject
 
-            Private ReadOnly _tempPECompiler As TempPECompiler
             Private ReadOnly _compilerHost As IVbCompilerHost
             Private ReadOnly _references As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
             Private ReadOnly _files As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
 
-            Private _compilerOptions As ConvertedVisualBasicProjectOptions
+            Private _parseOptions As VisualBasicParseOptions
+            Private _compilationOptions As VisualBasicCompilationOptions
+            Private _outputPath As String
+            Private _runtimeLibraries As ImmutableArray(Of String)
 
-            Public Sub New(tempPECompiler As TempPECompiler, compilerHost As IVbCompilerHost)
-                _tempPECompiler = tempPECompiler
+            Public Sub New(compilerHost As IVbCompilerHost)
                 _compilerHost = compilerHost
             End Sub
 
             Public Function CompileAndGetErrorCount(metadataService As IMetadataService) As Integer
                 Dim trees = _files.Select(Function(path)
                                               Using stream = FileUtilities.OpenRead(path)
-                                                  Return SyntaxFactory.ParseSyntaxTree(SourceText.From(stream), options:=_compilerOptions.ParseOptions, path:=path)
+                                                  Return SyntaxFactory.ParseSyntaxTree(SourceText.From(stream), options:=_parseOptions, path:=path)
                                               End Using
                                           End Function)
 
-                Dim metadataReferences = _references.Concat(_compilerOptions.RuntimeLibraries) _
+                Dim metadataReferences = _references.Concat(_runtimeLibraries) _
                                                       .Distinct(StringComparer.InvariantCultureIgnoreCase) _
                                                       .Select(Function(path) metadataService.GetReference(path, MetadataReferenceProperties.Assembly))
 
                 Dim c = VisualBasicCompilation.Create(
-                    Path.GetFileName(_compilerOptions.OutputPath),
+                    Path.GetFileName(_outputPath),
                     trees,
                     metadataReferences,
-                    _compilerOptions.CompilationOptions.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
+                    _compilationOptions.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
-                Dim emitResult = c.Emit(_compilerOptions.OutputPath)
+                Dim emitResult = c.Emit(_outputPath)
 
                 Return emitResult.Diagnostics.Where(Function(d) d.Severity = DiagnosticSeverity.Error).Count()
             End Function
@@ -194,7 +197,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End Sub
 
             Public Sub SetCompilerOptions(ByRef pCompilerOptions As VBCompilerOptions) Implements IVbCompilerProject.SetCompilerOptions
-                _compilerOptions = New ConvertedVisualBasicProjectOptions(pCompilerOptions, _compilerHost, Array.Empty(Of GlobalImport)(), ImmutableArray(Of String).Empty, projectDirectoryOpt:=Nothing, ruleSetOpt:=Nothing)
+                _runtimeLibraries = VisualBasicProject.OptionsProcessor.GetRuntimeLibraries(_compilerHost, pCompilerOptions)
+                _outputPath = PathUtilities.CombinePathsUnchecked(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
+                _parseOptions = VisualBasicProject.OptionsProcessor.ApplyVisualBasicParseOptionsFromCompilerOptions(VisualBasicParseOptions.Default, pCompilerOptions)
+
+                ' Note that we pass a "default" compilation options with DLL set as output kind; the Apply method will figure out what the right one is and fix it up
+                _compilationOptions = VisualBasicProject.OptionsProcessor.ApplyCompilationOptionsFromVBCompilerOptions(
+                    New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, parseOptions:=_parseOptions), pCompilerOptions)
             End Sub
 
             Public Sub SetModuleAssemblyName(wszName As String) Implements IVbCompilerProject.SetModuleAssemblyName

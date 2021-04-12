@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -27,35 +28,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = projectGroup.Key;
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var documentGroup in projectGroup)
+                if (project.SupportsCompilation)
                 {
-                    var document = documentGroup.Key;
-                    await AddSymbolsAsync(document, documentGroup, result, cancellationToken).ConfigureAwait(false);
-                }
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                GC.KeepAlive(compilation);
+                    foreach (var documentGroup in projectGroup)
+                    {
+                        var document = documentGroup.Key;
+                        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        AddSymbols(semanticModel, documentGroup, result);
+                    }
+
+                    // Keep compilation alive so that GetSemanticModelAsync remains cheap
+                    GC.KeepAlive(compilation);
+                }
             }
 
             return result;
         }
 
-        private static async Task AddSymbolsAsync(
-            Document document,
+        private static void AddSymbols(
+            SemanticModel semanticModel,
             IEnumerable<ReferenceLocation> references,
-            Dictionary<ISymbol, List<Location>> result,
-            CancellationToken cancellationToken)
+            Dictionary<ISymbol, List<Location>> result)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             foreach (var reference in references)
             {
                 var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
                 if (containingSymbol != null)
                 {
-                    List<Location> locations;
-                    if (!result.TryGetValue(containingSymbol, out locations))
+                    if (!result.TryGetValue(containingSymbol, out var locations))
                     {
                         locations = new List<Location>();
                         result.Add(containingSymbol, locations);

@@ -1,10 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel
 Imports System.Globalization
 Imports System.IO
 Imports System.Xml
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Moq
 Imports Roslyn.Utilities
 
@@ -30,19 +34,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             For Each location In _locations
                 Dim installedExtensionMock As New Mock(Of IMockInstalledExtension)(MockBehavior.Strict)
 
-                Dim contentMock = New MockContent(_contentType, location)
                 installedExtensionMock.SetupGet(Function(m) m.Content).Returns(
-                    SpecializedCollections.SingletonEnumerable(Of MockContent)(contentMock))
+                    New MockContent() {
+                        New MockContent(_contentType, location)
+                    })
 
-                installedExtensionMock.Setup(Function(m) m.GetContentLocation(contentMock)).Returns(Function()
-                                                                                                        If contentMock.RelativePath.IndexOf("$RootFolder$") >= 0 Then
-                                                                                                            Return contentMock.RelativePath.Replace("$RootFolder$", "ResolvedRootFolder")
-                                                                                                        ElseIf contentMock.RelativePath.IndexOf("$ShellFolder$") >= 0 Then
-                                                                                                            Return contentMock.RelativePath.Replace("$ShellFolder$", "ResolvedShellFolder")
-                                                                                                        Else
-                                                                                                            Return Path.Combine("\InstallPath", contentMock.RelativePath)
-                                                                                                        End If
-                                                                                                    End Function)
+                installedExtensionMock.Setup(Function(m) m.GetContentLocation(It.IsAny(Of MockContent))).Returns(
+                    Function(content As MockContent)
+                        If content.RelativePath.IndexOf("$RootFolder$") >= 0 Then
+                            Return content.RelativePath.Replace("$RootFolder$", Path.Combine(TempRoot.Root, "ResolvedRootFolder"))
+                        ElseIf content.RelativePath.IndexOf("$ShellFolder$") >= 0 Then
+                            Return content.RelativePath.Replace("$ShellFolder$", Path.Combine(TempRoot.Root, "ResolvedShellFolder"))
+                        Else
+                            Return Path.Combine(TempRoot.Root, "InstallPath", content.RelativePath)
+                        End If
+                    End Function)
 
                 Dim headerMock As New Mock(Of IMockHeader)(MockBehavior.Strict)
                 headerMock.SetupGet(Function(h) h.LocalizedName).Returns("Vsix")

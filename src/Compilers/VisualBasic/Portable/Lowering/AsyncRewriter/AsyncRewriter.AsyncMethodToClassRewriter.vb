@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -67,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            slotAllocatorOpt As VariableSlotAllocator,
                            nextFreeHoistedLocalSlot As Integer,
                            owner As AsyncRewriter,
-                           diagnostics As DiagnosticBag)
+                           diagnostics As BindingDiagnosticBag)
 
                 MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
 
@@ -95,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' to find the previous awaiter field.
                 If Not Me._awaiterFields.TryGetValue(awaiterType, result) Then
                     Dim slotIndex As Integer = -1
-                    If Me.SlotAllocatorOpt Is Nothing OrElse Not Me.SlotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.CompilationState.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics), F.Diagnostics, slotIndex) Then
+                    If Me.SlotAllocatorOpt Is Nothing OrElse Not Me.SlotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.CompilationState.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag), F.Diagnostics.DiagnosticBag, slotIndex) Then
                         slotIndex = _nextAwaiterId
                         _nextAwaiterId = _nextAwaiterId + 1
                     End If
@@ -154,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.F.Try(
                         Me.F.Block(
                             ImmutableArray(Of LocalSymbol).Empty,
-                            Me.F.HiddenSequencePoint(),
+                            SyntheticBoundNodeFactory.HiddenSequencePoint(),
                             Me.Dispatch(),
                             rewrittenBody
                         ),
@@ -162,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Me.F.Catch(
                                 exceptionLocal,
                                 Me.F.Block(
-                                    Me.F.HiddenSequencePoint(),
+                                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
                                     Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)),
                                     Me.F.ExpressionStatement(
                                         Me._owner.GenerateMethodCall(
@@ -185,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     bodyBuilder.Add(stateDone)
                 Else
                     bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))
-                    bodyBuilder.Add(Me.F.HiddenSequencePoint())
+                    bodyBuilder.Add(SyntheticBoundNodeFactory.HiddenSequencePoint())
                 End If
 
                 ' STMT: builder.SetResult([RetVal])
@@ -196,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Me._owner._builderType,
                             "SetResult",
                             If(Me._asyncMethodKind = AsyncMethodKind.GenericTaskFunction,
-                               {Me.F.Local(Me._exprRetValue, False)}, SpecializedCollections.EmptyArray(Of BoundExpression)()))))
+                               {Me.F.Local(Me._exprRetValue, False)}, Array.Empty(Of BoundExpression)()))))
 
                 ' STMT:   ReturnLabel: ' for the forced exit from the method, such as return from catch block above
                 bodyBuilder.Add(Me.F.Label(Me._exitLabel))

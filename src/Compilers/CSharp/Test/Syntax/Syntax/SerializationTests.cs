@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var droot = CSharpSyntaxNode.DeserializeFrom(stream);
             var dtext = droot.ToFullString();
 
-            Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
+            Assert.True(droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
         }
 
         [Fact]
@@ -49,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(text, dtext);
             Assert.Equal(1, droot.Errors().Length);
-            Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
+            Assert.True(droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
             Assert.Equal(root.Errors()[0].GetMessage(), droot.Errors()[0].GetMessage());
         }
 
@@ -60,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation = new SyntaxAnnotation();
             var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation);
-            Assert.Equal(true, root.ContainsAnnotations);
-            Assert.Equal(true, root.HasAnnotation(annotation));
+            Assert.True(root.ContainsAnnotations);
+            Assert.True(root.HasAnnotation(annotation));
 
             var stream = new MemoryStream();
             root.SerializeTo(stream);
@@ -72,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var dtext = droot.ToFullString();
 
             Assert.Equal(text, dtext);
-            Assert.Equal(true, droot.ContainsAnnotations);
-            Assert.Equal(true, droot.HasAnnotation(annotation));
-            Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
+            Assert.True(droot.ContainsAnnotations);
+            Assert.True(droot.HasAnnotation(annotation));
+            Assert.True(droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
         }
 
         [Fact]
@@ -84,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation = new SyntaxAnnotation();
             var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation, annotation);
-            Assert.Equal(true, root.ContainsAnnotations);
-            Assert.Equal(true, root.HasAnnotation(annotation));
+            Assert.True(root.ContainsAnnotations);
+            Assert.True(root.HasAnnotation(annotation));
 
             var stream = new MemoryStream();
             root.SerializeTo(stream);
@@ -96,9 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var dtext = droot.ToFullString();
 
             Assert.Equal(text, dtext);
-            Assert.Equal(true, droot.ContainsAnnotations);
-            Assert.Equal(true, droot.HasAnnotation(annotation));
-            Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
+            Assert.True(droot.ContainsAnnotations);
+            Assert.True(droot.HasAnnotation(annotation));
+            Assert.True(droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
         }
 
         [Fact]
@@ -108,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation = new SyntaxAnnotation("TestAnnotation", "this is a test");
             var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation);
-            Assert.Equal(true, root.ContainsAnnotations);
-            Assert.Equal(true, root.HasAnnotation(annotation));
+            Assert.True(root.ContainsAnnotations);
+            Assert.True(root.HasAnnotation(annotation));
 
             var stream = new MemoryStream();
             root.SerializeTo(stream);
@@ -120,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var dtext = droot.ToFullString();
 
             Assert.Equal(text, dtext);
-            Assert.Equal(true, droot.ContainsAnnotations);
-            Assert.Equal(true, droot.HasAnnotation(annotation));
-            Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
+            Assert.True(droot.ContainsAnnotations);
+            Assert.True(droot.HasAnnotation(annotation));
+            Assert.True(droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
 
             var dannotation = droot.GetAnnotations("TestAnnotation").SingleOrDefault();
             Assert.NotNull(dannotation);
@@ -137,11 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation1 = new SyntaxAnnotation("annotation1");
             var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1);
-            Assert.Equal(true, root.ContainsAnnotations);
-            Assert.Equal(true, root.HasAnnotation(annotation1));
+            Assert.True(root.ContainsAnnotations);
+            Assert.True(root.HasAnnotation(annotation1));
             var removedRoot = root.WithoutAnnotations(annotation1);
-            Assert.Equal(false, removedRoot.ContainsAnnotations);
-            Assert.Equal(false, removedRoot.HasAnnotation(annotation1));
+            Assert.False(removedRoot.ContainsAnnotations);
+            Assert.False(removedRoot.HasAnnotation(annotation1));
 
             var stream = new MemoryStream();
             removedRoot.SerializeTo(stream);
@@ -150,19 +154,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var droot = CSharpSyntaxNode.DeserializeFrom(stream);
 
-            Assert.Equal(false, droot.ContainsAnnotations);
-            Assert.Equal(false, droot.HasAnnotation(annotation1));
+            Assert.False(droot.ContainsAnnotations);
+            Assert.False(droot.HasAnnotation(annotation1));
 
             var annotation2 = new SyntaxAnnotation("annotation2");
 
             var doubleAnnoRoot = droot.WithAdditionalAnnotations(annotation1, annotation2);
-            Assert.Equal(true, doubleAnnoRoot.ContainsAnnotations);
-            Assert.Equal(true, doubleAnnoRoot.HasAnnotation(annotation1));
-            Assert.Equal(true, doubleAnnoRoot.HasAnnotation(annotation2));
+            Assert.True(doubleAnnoRoot.ContainsAnnotations);
+            Assert.True(doubleAnnoRoot.HasAnnotation(annotation1));
+            Assert.True(doubleAnnoRoot.HasAnnotation(annotation2));
             var removedDoubleAnnoRoot = doubleAnnoRoot.WithoutAnnotations(annotation1, annotation2);
-            Assert.Equal(false, removedDoubleAnnoRoot.ContainsAnnotations);
-            Assert.Equal(false, removedDoubleAnnoRoot.HasAnnotation(annotation1));
-            Assert.Equal(false, removedDoubleAnnoRoot.HasAnnotation(annotation2));
+            Assert.False(removedDoubleAnnoRoot.ContainsAnnotations);
+            Assert.False(removedDoubleAnnoRoot.HasAnnotation(annotation1));
+            Assert.False(removedDoubleAnnoRoot.HasAnnotation(annotation2));
 
             stream = new MemoryStream();
             removedRoot.SerializeTo(stream);
@@ -171,9 +175,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             droot = CSharpSyntaxNode.DeserializeFrom(stream);
 
-            Assert.Equal(false, droot.ContainsAnnotations);
-            Assert.Equal(false, droot.HasAnnotation(annotation1));
-            Assert.Equal(false, droot.HasAnnotation(annotation2));
+            Assert.False(droot.ContainsAnnotations);
+            Assert.False(droot.HasAnnotation(annotation1));
+            Assert.False(droot.HasAnnotation(annotation2));
         }
 
         [Fact]
@@ -183,11 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation1 = new SyntaxAnnotation("MyAnnotationId", "SomeData");
             var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1, annotation1);
-            Assert.Equal(true, root.ContainsAnnotations);
-            Assert.Equal(true, root.HasAnnotation(annotation1));
+            Assert.True(root.ContainsAnnotations);
+            Assert.True(root.HasAnnotation(annotation1));
             var removedRoot = root.WithoutAnnotations(annotation1);
-            Assert.Equal(false, removedRoot.ContainsAnnotations);
-            Assert.Equal(false, removedRoot.HasAnnotation(annotation1));
+            Assert.False(removedRoot.ContainsAnnotations);
+            Assert.False(removedRoot.HasAnnotation(annotation1));
 
             var stream = new MemoryStream();
             removedRoot.SerializeTo(stream);
@@ -196,11 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var droot = CSharpSyntaxNode.DeserializeFrom(stream);
 
-            Assert.Equal(false, droot.ContainsAnnotations);
-            Assert.Equal(false, droot.HasAnnotation(annotation1));
+            Assert.False(droot.ContainsAnnotations);
+            Assert.False(droot.HasAnnotation(annotation1));
         }
 
-        private static void RoundTrip(string text)
+        private static void RoundTrip(string text, bool expectRecursive = true)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var root = tree.GetCompilationUnitRoot();
@@ -210,11 +214,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             root.SerializeTo(stream);
 
             stream.Position = 0;
-
             var newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
             var newText = newRoot.ToFullString();
 
-            Assert.Equal(true, newRoot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
+            Assert.True(newRoot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
             Assert.Equal(originalText, newText);
         }
 
@@ -285,40 +288,20 @@ class C { }");
             Assert.True(newRoot.ContainsDirectives);
         }
 
-#if false
         [Fact]
-        public void RoundTripBigSyntaxNode()
+        public void RoundTripDeepSyntaxNode()
         {
-            var path = Path.GetFullPath(@"..\..\open\compilers\csharp\source\syntax\generated.cs");
-            var text = File.ReadAllText(path);
+            // trees with excessively deep expressions tend to overflow the stack when using recursive encoding.
+            // test that the tree is successfully serialized using non-recursive encoding.
+            var text = @"
+public class C
+{
+    public string B = " + string.Join(" + ", Enumerable.Range(0, 1000).Select(i => "\"" + i.ToString() + "\"").ToArray()) + @";
+}";
 
-            var parseStart = DateTime.UtcNow;
-            var tree = SyntaxTree.ParseCompilationUnit(text);
-            var parseEnd = DateTime.UtcNow;
-
-            var root = tree.GetCompilationUnitRoot();
-
-            var stream = new MemoryStream();
-
-            var serializeStart = DateTime.UtcNow;
-            root.SerializeTo(stream);
-            var serializeEnd = DateTime.UtcNow;
-
-            stream.Position = 0;
-
-            var deserializeStart = DateTime.UtcNow;
-            var droot = CSharpSyntaxNode.DeserializeFrom(stream);
-            var deserializeEnd = DateTime.UtcNow;
-
-            var dtext = droot.ToString();
-
-            Assert.Equal(text, dtext);
-            Assert.Equal(true, droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
-
-            var parseTime = (parseEnd - parseStart).TotalMilliseconds;
-            var serializeTime = (serializeEnd - serializeStart).TotalMilliseconds;
-            var deserializeTime = (deserializeEnd - deserializeStart).TotalMilliseconds;
+            // serialization should fail to encode stream using recursive object encoding and
+            // succeed with non-recursive object encoding.
+            RoundTrip(text, expectRecursive: false);
         }
-#endif
     }
 }

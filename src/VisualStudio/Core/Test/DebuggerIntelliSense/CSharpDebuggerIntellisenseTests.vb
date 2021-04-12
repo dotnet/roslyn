@@ -1,19 +1,19 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
+    <[UseExportProvider]>
     Public Class CSharpDebuggerIntellisenseTests
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function CompletionOnTypeCharacter() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -34,11 +34,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function CompletionOnTypeCharacterInImmediateWindow() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -59,17 +58,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function LocalsInBlockAfterInstructionPointer() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
     [|{|]
         int x = 3;
-        string bar = "foo";
+        string bar = "goo";
     }
 }</Document>
                            </Project>
@@ -89,17 +87,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function CompletionAfterReturn() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
     [|{|]
         int x = 3;
-        string bar = "foo";
+        string bar = "goo";
     }
 }</Document>
                            </Project>
@@ -117,21 +114,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("bar")
                 state.SendTab()
-                Assert.Equal("    bar", state.GetCurrentViewLineText())
+                Assert.Equal("bar", state.GetCurrentViewLineText())
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function ExecutedUnexecutedLocals() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -139,9 +135,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                        </Workspace>
 
             Using state = TestState.CreateCSharpTestState(text, False)
-                state.SendTypeChars("foo")
+                state.SendTypeChars("goo")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("foo")
+                Await state.AssertSelectedCompletionItem("goo")
                 state.SendTab()
                 state.SendTypeChars(".ToS")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -149,6 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 For i As Integer = 0 To 7
                     state.SendBackspace()
                 Next
+                Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("green")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -160,11 +157,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub Locals1()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function Locals1() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -184,13 +180,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainAll("variable1", "variable2")
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub Locals2()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function Locals2() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -210,13 +205,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertCompletionItemsContainAll("variable1", "variable2")
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub Locals3()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function Locals3() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -234,16 +228,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
+                Await state.AssertCompletionItemsDoNotContainAny("variable1")
                 Await state.AssertCompletionItemsContainAll("variable2")
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub Locals4()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function Locals4() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -261,16 +254,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
+                Await state.AssertCompletionItemsDoNotContainAny("variable1")
                 Await state.AssertCompletionItemsContainAll("variable2")
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub Locals5()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function Locals5() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -288,16 +280,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
+                Await state.AssertCompletionItemsDoNotContainAny("variable1")
                 Await state.AssertCompletionItemsContainAll("variable2")
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub Locals6()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function Locals6() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main()
@@ -315,22 +306,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("variable")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("variable1")
-                Await state.AssertCompletionItemsContainNone("variable2")
+                Await state.AssertCompletionItemsDoNotContainAny("variable1")
+                Await state.AssertCompletionItemsDoNotContainAny("variable2")
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub SignatureHelpInParameterizedConstructor()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function SignatureHelpInParameterizedConstructor() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -342,13 +332,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSignatureHelpSession()
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub SignatureHelpInMethodCall()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function SignatureHelpInMethodCall() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void something(string z, int b)
@@ -357,8 +346,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -370,13 +359,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSignatureHelpSession()
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub SignatureHelpInGenericMethodCall()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function SignatureHelpInGenericMethodCall() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void something&lt;T&gt;(&lt;T&gt; z, int b)
@@ -386,8 +374,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -399,19 +387,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSignatureHelpSession()
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function InstructionPointerInForeach() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
     {
         int OOO = 3;
-        foreach (var z in "foo")
+        foreach (var z in "goo")
         {
             [|var q = 1;|]
         }
@@ -421,17 +408,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                        </Workspace>
 
             Using state = TestState.CreateCSharpTestState(text, False)
-                Await VerifyCompletionAndDotAfter("q", state)
-                Await VerifyCompletionAndDotAfter("OOO", state)
+                Await state.VerifyCompletionAndDotAfter("q")
+                Await state.VerifyCompletionAndDotAfter("OOO")
             End Using
         End Function
 
         <WorkItem(531165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531165")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub ClassDesigner1()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function ClassDesigner1() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static int STATICINT;
@@ -451,16 +437,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Using state = TestState.CreateCSharpTestState(text, False)
                 state.SendTypeChars("STATICI")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionItemsContainNone("STATICINT")
+                Await state.AssertCompletionItemsDoNotContainAny("STATICINT")
             End Using
-        End Sub
+        End Function
 
         <WorkItem(531167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531167")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub ClassDesigner2()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function ClassDesigner2() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>$$</Document>
                                <Document>class Program
 {
     static void Main(string[] args)
@@ -479,11 +464,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertNoCompletionSession()
             End Using
-        End Sub
+        End Function
 
         <WorkItem(1124544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124544")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub CompletionUsesContextBufferPositions()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function CompletionUsesContextBufferPositions() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>
@@ -636,14 +621,12 @@ $$</Document>
                 state.SendTab()
                 Assert.Equal("args", state.GetCurrentViewLineText())
             End Using
-        End Sub
+        End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-        Public Async Sub CompletionOnTypeCharacterInLinkedFileContext()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function CompletionOnTypeCharacterInLinkedFileContext() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document>
-123123123123123123123123123 + $$</Document>
                                <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                            </Project>
                            <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
@@ -659,26 +642,119 @@ $$</Document>
                        </Workspace>
 
             Using state = TestState.CreateCSharpTestState(text, True)
+                state.TextView.TextBuffer.Insert(0, "123123123123123123123123123 + ")
                 state.SendTypeChars("arg")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("123123123123123123123123123 + arg", state.GetCurrentViewLineText())
                 state.SendTab()
                 Assert.Contains("args", state.GetCurrentViewLineText())
             End Using
-        End Sub
-
-        Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Task
-            state.SendTypeChars(item)
-            Await state.WaitForAsynchronousOperationsAsync()
-            Await state.AssertSelectedCompletionItem(item)
-            state.SendTab()
-            state.SendTypeChars(".")
-            Await state.WaitForAsynchronousOperationsAsync()
-            Await state.AssertCompletionSession()
-            For i As Integer = 0 To item.Length
-                state.SendBackspace()
-            Next
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function TypeNumberAtStartOfViewDoesNotCrash() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+	{
+		static void Main(string[] args)
+		[|{|]
+
+		}
+	}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("4")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function BuilderSettingRetainedBetweenComputations_Watch() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow:=False)
+                state.SendTypeChars("args")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("args", state.GetCurrentViewLineText())
+                Await state.AssertCompletionSession()
+                Assert.True(state.HasSuggestedItem())
+                state.SendToggleCompletionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.HasSuggestedItem())
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.HasSuggestedItem())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function BuilderSettingRetainedBetweenComputations_Watch_Immediate() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow:=True)
+                state.SendTypeChars("args")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("args", state.GetCurrentViewLineText())
+                Await state.AssertCompletionSession()
+                Assert.True(state.HasSuggestedItem())
+                state.SendToggleCompletionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.HasSuggestedItem())
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.HasSuggestedItem())
+            End Using
+        End Function
+
+        <WorkItem(1163608, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163608")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function TestItemDescription() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendTypeChars("arg")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("args")
+                Dim description = Await state.GetSelectedItemDescriptionAsync()
+                Assert.Contains("args", description.Text)
+                state.SendTab()
+                Assert.Contains("args", state.GetCurrentViewLineText())
+            End Using
+        End Function
     End Class
 End Namespace

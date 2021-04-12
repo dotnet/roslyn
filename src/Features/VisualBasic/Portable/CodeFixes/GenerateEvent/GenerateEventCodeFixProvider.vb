@@ -1,6 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -8,7 +12,6 @@ Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateEvent), [Shared]>
@@ -16,16 +19,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
     Partial Friend Class GenerateEventCodeFixProvider
         Inherits CodeFixProvider
 
-        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'foo' cannot implement 'E' because there is no matching event on interface 'MyInterface'.
+        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'goo' cannot implement 'E' because there is no matching event on interface 'MyInterface'.
         Friend Const BC30590 As String = "BC30590" ' error BC30590: Event 'MyEvent' cannot be found.
         Friend Const BC30456 As String = "BC30456" ' error BC30456: 'x' is not a member of 'y'.
         Friend Const BC30451 As String = "BC30451" ' error BC30451: 'x' is not declared, it may be inaccessible due to its protection level.
+
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30401, BC30590, BC30456, BC30451)
             End Get
         End Property
+
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported by this code fix
+            ' https://github.com/dotnet/roslyn/issues/34474
+            Return Nothing
+        End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
@@ -59,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Next
         End Function
 
-        Private Async Function GenerateEventFromAddRemoveHandlerAsync(document As Document, handlerStatement As AddRemoveHandlerStatementSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromAddRemoveHandlerAsync(document As Document, handlerStatement As AddRemoveHandlerStatementSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim handlerExpression = GetHandlerExpression(handlerStatement)
@@ -99,51 +113,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 Return Nothing
             End If
 
-            Return Await GenerateCodeAction(document, semanticModel, delegateSymbol, actualEventName, targetType, cancellationToken).ConfigureAwait(False)
+            Return Await GenerateCodeActionAsync(document, semanticModel, delegateSymbol, actualEventName, targetType, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function GenerateCodeAction(document As Document, semanticModel As SemanticModel, delegateSymbol As IMethodSymbol, actualEventName As String, targetType As INamedTypeSymbol, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateCodeActionAsync(document As Document, semanticModel As SemanticModel, delegateSymbol As IMethodSymbol, actualEventName As String, targetType As INamedTypeSymbol, cancellationToken As CancellationToken) As Task(Of CodeAction)
             Dim codeGenService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ICodeGenerationService)
-            Dim semanticFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ISemanticFactsService)
             Dim syntaxFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ISyntaxFactsService)
 
             Dim eventHandlerName As String = actualEventName + "Handler"
-            Dim existingSymbols = Await SymbolFinder.FindSourceDeclarationsAsync(
+            Dim existingSymbols = Await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                 document.Project.Solution, eventHandlerName, Not syntaxFactService.IsCaseSensitive, SymbolFilter.Type, cancellationToken).ConfigureAwait(False)
 
             If existingSymbols.Any(Function(existingSymbol) existingSymbol IsNot Nothing _
-                                                   AndAlso existingSymbol.ContainingNamespace Is targetType.ContainingNamespace) Then
+                                                   AndAlso Equals(existingSymbol.ContainingNamespace, targetType.ContainingNamespace)) Then
                 ' There already exists a delegate that matches the event handler name
                 Return Nothing
             End If
 
-            If semanticFactService.SupportsParameterizedEvents Then
+            ' We also need to generate the delegate type
+            Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
+                attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
+                returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
+                refKind:=RefKind.None, name:=eventHandlerName,
+                parameters:=delegateSymbol.GetParameters())
 
-                ' We also need to generate the delegate type
-                Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(Nothing, Accessibility.Public, Nothing,
-                                                                                        semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                                                                                        name:=eventHandlerName,
-                                                                                        parameters:=delegateSymbol.GetParameters())
+            Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
+                attributes:=ImmutableArray(Of AttributeData).Empty,
+                accessibility:=Accessibility.Public, modifiers:=Nothing,
+                explicitInterfaceImplementations:=Nothing,
+                type:=delegateType, name:=actualEventName)
 
-                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                                                                                    accessibility:=Accessibility.Public, modifiers:=Nothing,
-                                                                                    explicitInterfaceSymbol:=Nothing,
-                                                                                    type:=delegateType, name:=actualEventName,
-                                                                                    parameterList:=TryCast(delegateSymbol, IMethodSymbol).Parameters)
+            ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
+            ' instead of an 'As' clause.
+            delegateType.AssociatedSymbol = generatedEvent
 
-                Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedEvent, delegateType, codeGenService, CodeGenerationOptions.Default)
-            Else
-                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                                                accessibility:=Accessibility.Public, modifiers:=Nothing,
-                                                explicitInterfaceSymbol:=Nothing,
-                                                type:=Nothing, name:=actualEventName,
-                                                parameterList:=delegateSymbol.GetParameters())
-
-                Return New GenerateEventCodeAction(document.Project.Solution, TryCast(targetType, INamedTypeSymbol), generatedEvent, Nothing, codeGenService, CodeGenerationOptions.Default)
-            End If
+            Return New GenerateEventCodeAction(
+                document.Project.Solution, targetType, generatedEvent,
+                codeGenService, CodeGenerationOptions.Default)
         End Function
 
-        Private Function GetHandlerExpression(handlerStatement As AddRemoveHandlerStatementSyntax) As ExpressionSyntax
+        Private Shared Function GetHandlerExpression(handlerStatement As AddRemoveHandlerStatementSyntax) As ExpressionSyntax
             Dim unaryExpression = TryCast(handlerStatement.DelegateExpression.DescendantNodesAndSelf().Where(Function(n) n.IsKind(SyntaxKind.AddressOfExpression)).FirstOrDefault, UnaryExpressionSyntax)
             If unaryExpression Is Nothing Then
                 Return handlerStatement.DelegateExpression
@@ -152,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End If
         End Function
 
-        Private Function TryGetDelegateSymbol(handlerExpression As ExpressionSyntax, semanticModel As SemanticModel, ByRef delegateSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryGetDelegateSymbol(handlerExpression As ExpressionSyntax, semanticModel As SemanticModel, ByRef delegateSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Boolean
             delegateSymbol = TryCast(semanticModel.GetSymbolInfo(handlerExpression, cancellationToken).GetAnySymbol(), IMethodSymbol)
             If delegateSymbol Is Nothing Then
                 Dim typeSymbol = TryCast(semanticModel.GetTypeInfo(handlerExpression, cancellationToken).Type, INamedTypeSymbol)
@@ -170,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Return True
         End Function
 
-        Private Function ResolveTargetType(ByRef targetType As INamedTypeSymbol, semanticModel As SemanticModel) As Boolean
+        Private Shared Function ResolveTargetType(ByRef targetType As INamedTypeSymbol, semanticModel As SemanticModel) As Boolean
             If targetType Is Nothing OrElse
                 Not (targetType.TypeKind = TypeKind.Class OrElse targetType.TypeKind = TypeKind.Interface) OrElse
                 targetType.IsAnonymousType Then
@@ -186,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Return True
         End Function
 
-        Private Function TryGetNameAndTargetType(eventExpression As ExpressionSyntax, containingSymbol As INamedTypeSymbol, semanticModel As SemanticModel, ByRef targetType As INamedTypeSymbol, ByRef actualEventName As String, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryGetNameAndTargetType(eventExpression As ExpressionSyntax, containingSymbol As INamedTypeSymbol, semanticModel As SemanticModel, ByRef targetType As INamedTypeSymbol, ByRef actualEventName As String, cancellationToken As CancellationToken) As Boolean
 
             Dim eventType As INamedTypeSymbol = Nothing
             If TypeOf eventExpression Is IdentifierNameSyntax Then
@@ -224,81 +233,83 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Return TypeOf node Is HandlesClauseItemSyntax OrElse TypeOf node Is QualifiedNameSyntax OrElse TypeOf node Is AddRemoveHandlerStatementSyntax
         End Function
 
-        Private Async Function GenerateEventFromImplementsAsync(document As Document, node As QualifiedNameSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromImplementsAsync(document As Document, node As QualifiedNameSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
             If node.Right.IsMissing Then
                 Return Nothing
             End If
 
             ' We must be trying to implement an event
-            If node.IsParentKind(SyntaxKind.ImplementsClause) AndAlso node.Parent.IsParentKind(SyntaxKind.EventStatement) Then
-                ' Does this name already bind?
-                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                Dim nameToGenerate = semanticModel.GetSymbolInfo(node).Symbol
-
-                If nameToGenerate IsNot Nothing Then
-                    Return Nothing
-                End If
-
-                Dim targetType = TryCast(Await SymbolFinder.FindSourceDefinitionAsync(semanticModel.GetSymbolInfo(node.Left).Symbol, document.Project.Solution, cancellationToken).ConfigureAwait(False), INamedTypeSymbol)
-                If targetType Is Nothing OrElse (targetType.TypeKind <> TypeKind.Interface AndAlso targetType.TypeKind <> TypeKind.Class) Then
-                    Return Nothing
-                End If
-
-                Dim boundEvent = TryCast(semanticModel.GetDeclaredSymbol(node.Parent.Parent, cancellationToken), IEventSymbol)
-                If boundEvent Is Nothing Then
-                    Return Nothing
-                End If
-
-                Dim codeGenService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ICodeGenerationService)
-
-                Dim actualEventName = node.Right.Identifier.ValueText
-
-                Dim semanticFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ISemanticFactsService)
-
-                If semanticFactService.SupportsParameterizedEvents Then
-                    ' If we support parameterized events (C#) and it's an event declaration with a parameter list
-                    ' (not a type), we need to generate a delegate type in the C# file.
-                    Dim eventSyntax = node.GetAncestor(Of EventStatementSyntax)()
-
-                    If eventSyntax.ParameterList IsNot Nothing Then
-                        Dim eventType = TryCast(boundEvent.Type, INamedTypeSymbol)
-                        If eventType Is Nothing Then
-                            Return Nothing
-                        End If
-
-                        Dim returnType = If(eventType.DelegateInvokeMethod IsNot Nothing,
-                                            eventType.DelegateInvokeMethod.ReturnType,
-                                            semanticModel.Compilation.GetSpecialType(SpecialType.System_Void))
-
-                        Dim parameters As IList(Of IParameterSymbol) = If(eventType.DelegateInvokeMethod IsNot Nothing,
-                                            eventType.DelegateInvokeMethod.Parameters,
-                                            SpecializedCollections.EmptyList(Of IParameterSymbol)())
-
-                        Dim eventHandlerType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(eventType.GetAttributes(),
-                                                        eventType.DeclaredAccessibility,
-                                                        Nothing,
-                                                        returnType,
-                                                        actualEventName + "EventHandler",
-                                                        eventType.TypeParameters,
-                                                        parameters)
-
-                        Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(boundEvent.GetAttributes(), boundEvent.DeclaredAccessibility,
-                                                                       modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceSymbol:=Nothing,
-                                                                       name:=actualEventName,
-                                                                       parameterList:=boundEvent.GetParameters())
-                        Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedEvent, eventHandlerType, codeGenService, New CodeGenerationOptions())
-                    End If
-                End If
-
-                ' C# with no delegate type or VB
-                Dim generatedMember = CodeGenerationSymbolFactory.CreateEventSymbol(boundEvent, name:=actualEventName)
-                Return New GenerateEventCodeAction(document.Project.Solution, targetType, generatedMember, Nothing, codeGenService, New CodeGenerationOptions())
+            If Not node.IsParentKind(SyntaxKind.ImplementsClause) OrElse Not node.Parent.IsParentKind(SyntaxKind.EventStatement) Then
+                Return Nothing
             End If
 
-            Return Nothing
+            ' Does this name already bind?
+            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+            Dim nameToGenerate = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol
+
+            If nameToGenerate IsNot Nothing Then
+                Return Nothing
+            End If
+
+            Dim targetType = TryCast(Await SymbolFinder.FindSourceDefinitionAsync(semanticModel.GetSymbolInfo(node.Left, cancellationToken).Symbol, document.Project.Solution, cancellationToken).ConfigureAwait(False), INamedTypeSymbol)
+            If targetType Is Nothing OrElse (targetType.TypeKind <> TypeKind.Interface AndAlso targetType.TypeKind <> TypeKind.Class) Then
+                Return Nothing
+            End If
+
+            Dim boundEvent = TryCast(semanticModel.GetDeclaredSymbol(node.Parent.Parent, cancellationToken), IEventSymbol)
+            If boundEvent Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim codeGenService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ICodeGenerationService)
+
+            Dim actualEventName = node.Right.Identifier.ValueText
+
+            ' If we support parameterized events (C#) and it's an event declaration with a parameter list
+            ' (not a type), we need to generate a delegate type in the C# file.
+            Dim eventSyntax = node.GetAncestor(Of EventStatementSyntax)()
+
+            If eventSyntax.ParameterList IsNot Nothing Then
+                Dim eventType = TryCast(boundEvent.Type, INamedTypeSymbol)
+                If eventType Is Nothing Then
+                    Return Nothing
+                End If
+
+                Dim returnType = If(eventType.DelegateInvokeMethod IsNot Nothing,
+                    eventType.DelegateInvokeMethod.ReturnType,
+                    semanticModel.Compilation.GetSpecialType(SpecialType.System_Void))
+
+                Dim parameters = If(eventType.DelegateInvokeMethod IsNot Nothing,
+                    eventType.DelegateInvokeMethod.Parameters,
+                    ImmutableArray(Of IParameterSymbol).Empty)
+
+                Dim eventHandlerType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
+                    eventType.GetAttributes(), eventType.DeclaredAccessibility,
+                    modifiers:=Nothing, returnType:=returnType, refKind:=RefKind.None,
+                    name:=actualEventName + "EventHandler",
+                    typeParameters:=eventType.TypeParameters, parameters:=parameters)
+
+                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
+                    boundEvent.GetAttributes(), boundEvent.DeclaredAccessibility,
+                    modifiers:=Nothing, type:=eventHandlerType, explicitInterfaceImplementations:=Nothing,
+                    name:=actualEventName)
+
+                ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
+                ' instead of an 'As' clause.
+                eventHandlerType.AssociatedSymbol = generatedEvent
+
+                Return New GenerateEventCodeAction(
+                        document.Project.Solution, targetType, generatedEvent,
+                        codeGenService, New CodeGenerationOptions())
+            Else
+                ' Event with no parameters.
+                Dim generatedMember = CodeGenerationSymbolFactory.CreateEventSymbol(boundEvent, name:=actualEventName)
+                Return New GenerateEventCodeAction(
+                    document.Project.Solution, targetType, generatedMember, codeGenService, New CodeGenerationOptions())
+            End If
         End Function
 
-        Private Async Function GenerateEventFromHandlesAsync(document As Document, handlesClauseItem As HandlesClauseItemSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromHandlesAsync(document As Document, handlesClauseItem As HandlesClauseItemSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
             If handlesClauseItem.IsMissing OrElse handlesClauseItem.EventContainer.IsMissing OrElse handlesClauseItem.EventMember.IsMissing Then
                 Return Nothing
             End If
@@ -312,7 +323,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End If
 
             Dim targetType As INamedTypeSymbol = Nothing
-
 
             Dim keywordEventContainer = TryCast(handlesClauseItem.EventContainer, KeywordEventContainerSyntax)
             If keywordEventContainer IsNot Nothing Then
@@ -348,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             ' Our target type may be from a CSharp file, in which case we should resolve it to our VB compilation.
             Dim originalTargetType = targetType
-            targetType = DirectCast(targetType.GetSymbolKey().Resolve(semanticModel.Compilation).Symbol, INamedTypeSymbol)
+            targetType = DirectCast(targetType.GetSymbolKey(cancellationToken).Resolve(semanticModel.Compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
 
             If targetType Is Nothing Then
                 Return Nothing
@@ -374,30 +384,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             Dim actualEventName = handlesClauseItem.EventMember.Identifier.ValueText
 
-            Dim semanticFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(originalTargetType.Language).GetService(Of ISemanticFactsService)
+            ' We need to generate the delegate, too.
+            Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
+                attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
+                returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
+                refKind:=RefKind.None, name:=actualEventName + "Handler",
+                parameters:=boundMethod.GetParameters())
 
-            If semanticFactService.SupportsParameterizedEvents Then
-                ' We need to generate the delegate, too.
-                Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(Nothing, Accessibility.Public, Nothing, semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                                                                    name:=actualEventName + "Handler",
-                                                                    parameters:=boundMethod.GetParameters())
+            Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
+                attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
+                explicitInterfaceImplementations:=Nothing,
+                type:=delegateType, name:=actualEventName)
 
-                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                                                            accessibility:=Accessibility.Public, modifiers:=Nothing,
-                                                            explicitInterfaceSymbol:=Nothing,
-                                                            type:=delegateType, name:=actualEventName,
-                                                            parameterList:=TryCast(boundMethod, IMethodSymbol).Parameters)
+            ' Point the delegate back at the event symbol.  This way the generators know to generate parameters
+            ' instead of an 'As' clause.
+            delegateType.AssociatedSymbol = generatedEvent
 
-                Return New GenerateEventCodeAction(document.Project.Solution, originalTargetType, generatedEvent, delegateType, codeGenService, New CodeGenerationOptions())
-            Else
-                Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
-                                                accessibility:=Accessibility.Public, modifiers:=Nothing,
-                                                explicitInterfaceSymbol:=Nothing,
-                                                type:=Nothing, name:=actualEventName,
-                                                parameterList:=boundMethod.GetParameters())
-
-                Return New GenerateEventCodeAction(document.Project.Solution, TryCast(originalTargetType, INamedTypeSymbol), generatedEvent, Nothing, codeGenService, CodeGenerationOptions.Default)
-            End If
+            Return New GenerateEventCodeAction(
+                document.Project.Solution, originalTargetType, generatedEvent,
+                codeGenService, New CodeGenerationOptions())
         End Function
     End Class
 End Namespace

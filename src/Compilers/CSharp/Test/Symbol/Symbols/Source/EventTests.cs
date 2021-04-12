@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -33,10 +37,10 @@ class main1
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
 
             var actualSymbols = comp.Assembly.GlobalNamespace.GetMembers();
-            var actual = string.Join(", ", actualSymbols.Select(symbol => symbol.Name).OrderBy(name => name));
+            var actual = string.Join(", ", actualSymbols.Where(s => !s.IsImplicitlyDeclared).Select(symbol => symbol.Name).OrderBy(name => name));
             Assert.Equal("main1, Test1", actual);
         }
 
@@ -51,7 +55,7 @@ class C1
     event @out @in;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateCompilation(Parse(text));
             NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
             //EventSymbol ein = c1.GetMembers("in").Single();
             //Assert.Equal("in", ein.Name);
@@ -70,7 +74,7 @@ class C
     public virtual event System.Action E;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
@@ -109,7 +113,7 @@ class C
     internal static event System.Action E;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
@@ -147,7 +151,7 @@ class C
     protected event System.Action E { add { } remove { } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
@@ -182,7 +186,7 @@ class C
     private static event System.Action E { add { } remove { } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
@@ -227,7 +231,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
 
@@ -299,10 +303,10 @@ public class E
             compVerifier.VerifyDiagnostics(DiagnosticDescription.None);
             var semanticModel = compVerifier.Compilation.GetSemanticModel(compVerifier.Compilation.SyntaxTrees.Single());
 
-            var eventSymbol1 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_1*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as EventSymbol;
+            var eventSymbol1 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_1*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as IEventSymbol;
             Assert.NotNull(eventSymbol1);
 
-            var eventSymbol2 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_2*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as EventSymbol;
+            var eventSymbol2 = semanticModel.LookupSymbols(text.IndexOf("/*anchorE_2*/", StringComparison.Ordinal), name: "E1").SingleOrDefault() as IEventSymbol;
             Assert.NotNull(eventSymbol2);
         }
 
@@ -317,7 +321,7 @@ class C
     internal event D FieldLikeEvent;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             NamedTypeSymbol type01 = comp.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
             var fevent = type01.GetMembers("FieldLikeEvent").Single() as EventSymbol;
             Assert.NotNull(fevent.AddMethod);
@@ -348,23 +352,24 @@ class A
                 Assert.Equal("System.Action<dynamic>", e2.Type.ToTestDisplayString());
                 Assert.Equal("System.Action<dynamic>", p.Type.ToTestDisplayString());
 
-                Assert.Equal(1, e1.AddMethod.ParameterTypes.Length);
-                Assert.Equal("System.Action<dynamic>", e1.AddMethod.ParameterTypes[0].ToTestDisplayString());
+                Assert.Equal(1, e1.AddMethod.ParameterTypesWithAnnotations.Length);
+                Assert.Equal("System.Action<dynamic>", e1.AddMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
 
-                Assert.Equal(1, e1.RemoveMethod.ParameterTypes.Length);
-                Assert.Equal("System.Action<dynamic>", e1.RemoveMethod.ParameterTypes[0].ToTestDisplayString());
+                Assert.Equal(1, e1.RemoveMethod.ParameterTypesWithAnnotations.Length);
+                Assert.Equal("System.Action<dynamic>", e1.RemoveMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
 
-                Assert.Equal(1, e2.AddMethod.ParameterTypes.Length);
-                Assert.Equal("System.Action<dynamic>", e2.AddMethod.ParameterTypes[0].ToTestDisplayString());
+                Assert.Equal(1, e2.AddMethod.ParameterTypesWithAnnotations.Length);
+                Assert.Equal("System.Action<dynamic>", e2.AddMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
 
-                Assert.Equal(1, e2.RemoveMethod.ParameterTypes.Length);
-                Assert.Equal("System.Action<dynamic>", e2.RemoveMethod.ParameterTypes[0].ToTestDisplayString());
+                Assert.Equal(1, e2.RemoveMethod.ParameterTypesWithAnnotations.Length);
+                Assert.Equal("System.Action<dynamic>", e2.RemoveMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
 
                 Assert.Equal(1, e1.GetAttributes(AttributeDescription.DynamicAttribute).Count());
                 Assert.Equal(1, e2.GetAttributes(AttributeDescription.DynamicAttribute).Count());
                 Assert.Equal(1, p.GetAttributes(AttributeDescription.DynamicAttribute).Count());
             };
-            CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef }, symbolValidator: validator);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef });
+            CompileAndVerify(comp, symbolValidator: validator);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -375,7 +380,7 @@ public class A
 {
     public event System.Action<dynamic> E1;
 }";
-            var libComp = CreateCompilationWithMscorlib(text: source).VerifyDiagnostics(
+            var libComp = CreateEmptyCompilation(source, new[] { MscorlibRef }).VerifyDiagnostics(
                 // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public event System.Action<dynamic> E1;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32),
@@ -392,7 +397,7 @@ public class A
 {
     public event System.Action<dynamic> E1 { add {} remove {} }
 }";
-            var libComp = CreateCompilationWithMscorlib(text: source).VerifyDiagnostics(
+            var libComp = CreateEmptyCompilation(source, references: new[] { MscorlibRef }).VerifyDiagnostics(
                 // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public event System.Action<dynamic> E1 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32));
@@ -408,7 +413,7 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef }).VerifyDiagnostics();
+            var libComp = CreateCompilation(source: libText).VerifyDiagnostics();
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -439,7 +444,7 @@ class LambdaConsumer
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef },
+            CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef },
                                                     expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
         }
 
@@ -453,7 +458,7 @@ public class C {
     public void RaiseEvent() => _e1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilation(source: libText);
             libComp.VerifyDiagnostics();
             var libAssemblyRef = libComp.EmitToImageReference();
 
@@ -485,7 +490,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef }, 
+            var compilationVerifier = CompileAndVerify(source: source, references: new[] { TargetFrameworkUtil.StandardCSharpReference, libAssemblyRef },
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -499,7 +504,7 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilation(libText);
             var libCompRef = new CSharpCompilationReference(libComp);
             var source = @"
 class D
@@ -512,8 +517,10 @@ class D
     }
 }";
             var expectedOutput = "Print method ran.";
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libCompRef },
-                                                    expectedOutput: expectedOutput);
+            var compilationVerifier = CompileAndVerify(source: source,
+                references: new[] { libCompRef },
+                targetFramework: TargetFramework.StandardAndCSharp,
+                expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -526,7 +533,7 @@ public class C
     public virtual event System.Action<dynamic> E2 { add { System.Console.WriteLine(""Not called""); } remove {} }
     public virtual event System.Action<object> E3 { add { System.Console.WriteLine(""Not called""); } remove {} }
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilation(source: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
             var source = @"
 class B : C
@@ -569,8 +576,11 @@ Printed: Alice
 Printed: Bob
 Printed: Charlie
 ";
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef, libAssemblyRef },
-                                                    expectedOutput: expectedOutput);
+            var compilationVerifier = CompileAndVerify(
+                source: source,
+                targetFramework: TargetFramework.StandardAndCSharp,
+                references: new[] { libAssemblyRef },
+                expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -582,7 +592,7 @@ public class CL1
     public virtual event System.Action<dynamic> E1 { add {} remove {} }
     public virtual event System.Action<dynamic> E2 { add {} remove {} }
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilation(source: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -602,7 +612,7 @@ public class CL2 : CL1
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
+            CompileAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -614,7 +624,7 @@ public class CL1
     public virtual event System.Action<dynamic> E1;
     public virtual event System.Action<dynamic> E2;
 }";
-            var libComp = CreateCompilationWithMscorlib(text: libText, references: new[] { MscorlibRef, SystemCoreRef });
+            var libComp = CreateCompilation(source: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -634,7 +644,7 @@ public class CL2 : CL1
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
+            CompileAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -798,18 +808,52 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef, CompileIL(ilSource) }, 
+            var compVerifier = CompileAndVerify(source, new[] { TargetFrameworkUtil.StandardCSharpReference, CompileIL(ilSource) },
                                                 expectedOutput: "Event raised");
 
-            var comp = compVerifier.Compilation;
+            var comp = (CSharpCompilation)compVerifier.Compilation;
             var classSymbol = (PENamedTypeSymbol)comp.GetTypeByMetadataName("C");
             var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
             Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
         }
+
+        [Fact]
+        public void StaticEventDoesNotRequireInstanceReceiver()
+        {
+            var source = @"using System;
+class C
+{
+    public static event EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): warning CS0067: The event 'C.E' is never used
+                //     public static event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 38));
+            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            Assert.False(eventSymbol.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceEventRequiresInstanceReceiver()
+        {
+            var source = @"using System;
+class C
+{
+    public event EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (4,31): warning CS0067: The event 'C.E' is never used
+                //     public event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
+            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            Assert.True(eventSymbol.RequiresInstanceReceiver);
+        }
+
         #endregion
 
         #region Error cases
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979
+        [WorkItem(39979, "https://github.com/dotnet/roslyn/issues/39979")]
         public void VoidEvent()
         {
             var text =
@@ -822,7 +866,7 @@ class C
     event void E;
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (3,11): error CS1547: Keyword 'void' cannot be used in this context
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (7,11): error CS1547: Keyword 'void' cannot be used in this context
@@ -863,7 +907,7 @@ class OtherType
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,9): error CS0079: The event 'DeclaringType.e' can only appear on the left hand side of += or -=
                 //         e = null; //CS0079
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "e").WithArguments("DeclaringType.e"),
@@ -892,7 +936,7 @@ class C
     }
     public virtual event Action<int> f;
 
-    void Foo()
+    void Goo()
     {
         e = null; //CS0079
         f = null; //fine
@@ -908,7 +952,7 @@ class D : C
         remove { }
     }
 
-    void Foo()
+    void Goo()
     {
         e = null; //fine
         f = null; //CS0070 (since the least-overridden event is field-like)
@@ -924,14 +968,14 @@ class E : D
     }
     public sealed override event Action<int> f;
 
-    void Foo()
+    void Goo()
     {
         e = null; //CS0079
         f = null; //fine
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (17,9): error CS0079: The event 'C.e' can only appear on the left hand side of += or -=
                 //         e = null; //CS0079
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "e").WithArguments("C.e"),
@@ -974,7 +1018,7 @@ class C
 
 class D
 {
-    void Foo(C c)
+    void Goo(C c)
     {
         c.e1 = null; //CS0122
         c.e2 = null; //CS0122
@@ -990,7 +1034,7 @@ class D
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (21,11): error CS0122: 'C.e1' is inaccessible due to its protection level
                 //         c.e1 = null; //CS0122
                 Diagnostic(ErrorCode.ERR_BadAccess, "e1").WithArguments("C.e1"),
@@ -1085,7 +1129,7 @@ class E : Interface
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (2,7): error CS0535: 'C' does not implement interface member 'Interface.raise_e(object, object)'
                 // class C : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("C", "Interface.raise_e(object, object)"),
@@ -1136,7 +1180,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (15,9): error CS0023: Operator '++' cannot be applied to operand of type 'System.Action'
                 //         E++; //CS0023
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "E++").WithArguments("++", "System.Action"),
@@ -1200,7 +1244,7 @@ class D
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (12,11): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
                 //         c.E = a; //CS0070
                 Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C"),
@@ -1261,7 +1305,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,9): error CS1593: Delegate 'System.Action' does not take 1 arguments
                 //         E += x => { };
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "E += x => { }").WithArguments("System.Action", "1"),
@@ -1302,7 +1346,7 @@ struct S
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,5): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller
                 //     S(int unused1, int unused2)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.E"),
@@ -1336,7 +1380,7 @@ struct S
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (17,9): error CS1612: Cannot modify the return value of 'S.Make()' because it is not a variable
                 //         Make().P += 1; // CS1612
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "Make()").WithArguments("S.Make()"),
@@ -1376,7 +1420,7 @@ struct S
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,9): error CS1612: Cannot modify the return value of 'S.Property' because it is not a variable
                 //         Property.E = null;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "Property").WithArguments("S.Property"),
@@ -1395,16 +1439,21 @@ class C
 {
     event System.Action E { remove { } } //CS0065
 
-    void Foo()
+    void Goo()
     {
         E += null; //no separate error
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            var expected = new[] {
                 // (4,25): error CS0065: 'C.E': event property must have both add and remove accessors
                 //     event System.Action E { remove { } }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E")
+                };
+
+            CreateCompilation(text).VerifyDiagnostics(expected).VerifyEmitDiagnostics(expected);
+
+            CreateCompilation(text).VerifyEmitDiagnostics(expected);
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -1419,7 +1468,7 @@ interface i1
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent"));
         }
 
@@ -1525,7 +1574,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (7,11): error CS1545: Property, indexer, or event 'Base.Event1' is not supported by the language; try directly calling accessor methods 'Base.Event0.add' or 'Base.Event7.add'
                 //         b.Event1 += null;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Event1").WithArguments("Base.Event1", "Base.Event0.add", "Base.Event7.add"),
@@ -1612,7 +1661,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (7,11): error CS0571: 'Base.Event2.add': cannot explicitly call operator or accessor
                 //         b.add_Event2(null);
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "add_Event2").WithArguments("Base.Event2.add"));
@@ -1707,7 +1756,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
                 // (6,11): error CS1545: Property, indexer, or event 'Base.Event1' is not supported by the language; try directly calling accessor methods 'Base.add_Event1(System.Action)' or 'Base.remove_Event(System.Action<int>)'
                 //         b.Event1 += null;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Event1").WithArguments("Base.Event1", "Base.add_Event1(System.Action)", "Base.remove_Event(System.Action<int>)"),
@@ -1793,7 +1842,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
@@ -1847,7 +1896,7 @@ class Program {
     }
 }
 ";
-            CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics();
+            CreateCompilation(cSharpSource).VerifyDiagnostics();
         }
 
         [WorkItem(538956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538956")]
@@ -1872,7 +1921,7 @@ class Program {
     }
 }
 ";
-            CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics();
+            CreateCompilation(cSharpSource).VerifyDiagnostics();
         }
 
         [WorkItem(538992, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538992")]
@@ -1890,7 +1939,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics(
+            CreateCompilation(cSharpSource).VerifyDiagnostics(
                 // (8,10): error CS0119: 'Program' is a 'type', which is not valid in the given context
                 //         (Program).E();
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type"));
@@ -1906,7 +1955,7 @@ class Outer
     {
     }
 
-    class Foo
+    class Goo
     {
         public static event System.Action Q { add { } remove { } }
 
@@ -1920,10 +1969,10 @@ class Outer
     }
 }
 ";
-            CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics(
-                // (16,17): error CS0079: The event 'Outer.Foo.Q' can only appear on the left hand side of += or -=
+            CreateCompilation(cSharpSource).VerifyDiagnostics(
+                // (16,17): error CS0079: The event 'Outer.Goo.Q' can only appear on the left hand side of += or -=
                 //                 Q();
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Q").WithArguments("Outer.Foo.Q"));
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Q").WithArguments("Outer.Goo.Q"));
         }
 
         [WorkItem(542461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542461")]
@@ -1987,7 +2036,7 @@ namespace TestEvents
 }
 
 ";
-            CreateCompilationWithMscorlib(cSharpSource).VerifyDiagnostics(
+            CreateCompilation(cSharpSource).VerifyDiagnostics(
                 // (9,43): error CS0066: 'MyCollections.ListWithChangedEvent.Changed': event must be of a delegate type
                 //         public event ListWithChangedEvent Changed;
                 Diagnostic(ErrorCode.ERR_EventNotDelegate, "Changed").WithArguments("MyCollections.ListWithChangedEvent.Changed"),
@@ -2010,7 +2059,7 @@ class A
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,5): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"),
 
@@ -2061,7 +2110,7 @@ class A
         b.E2(); // B.E2 invalid, should not hide A.E2
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5, 11): error CS0079: The event 'B.E1' can only appear on the left hand side of += or -=
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E1").WithArguments("B.E1").WithLocation(5, 11));
@@ -2071,7 +2120,7 @@ class A
         [Fact]
         public void InvalidEventDeclarations()
         {
-            CreateCompilationWithMscorlib("event this").VerifyDiagnostics(
+            CreateCompilation("event this").VerifyDiagnostics(
                 // (1,7): error CS1031: Type expected
                 // event this
                 Diagnostic(ErrorCode.ERR_TypeExpected, "this"),
@@ -2085,7 +2134,7 @@ class A
                 // event this
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
 
-            CreateCompilationWithMscorlib("event System.Action E<T>").VerifyDiagnostics(
+            CreateCompilation("event System.Action E<T>").VerifyDiagnostics(
                 // (1,21): error CS7002: Unexpected use of a generic name
                 // event System.Action E<T>
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "E"),
@@ -2099,7 +2148,7 @@ class A
                 // event System.Action E<T>
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("<invalid-global-code>.E"));
 
-            CreateCompilationWithMscorlib("event").VerifyDiagnostics(
+            CreateCompilation("event").VerifyDiagnostics(
                 // (1,6): error CS1031: Type expected
                 // event
                 Diagnostic(ErrorCode.ERR_TypeExpected, ""),
@@ -2113,7 +2162,7 @@ class A
                 // event
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
 
-            CreateCompilationWithMscorlib("event System.Action ").VerifyDiagnostics(
+            CreateCompilation("event System.Action ").VerifyDiagnostics(
                 // (1,21): error CS1001: Identifier expected
                 // event System.Action 
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
@@ -2127,19 +2176,19 @@ class A
                 // event System.Action 
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
 
-            CreateCompilationWithMscorlib("event System.Action System.IFormattable.").VerifyDiagnostics(
+            CreateCompilation("event System.Action System.IFormattable.").VerifyDiagnostics(
                 // (1,40): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "."),
-                // (1,21): error CS0540: '<invalid-global-code>.': containing type does not implement interface 'System.IFormattable'
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(1, 40),
+                // (1,41): error CS1001: Identifier expected
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 41),
+                // (1,21): error CS0540: '<invalid-global-code>.': containing type does not implement interface 'IFormattable'
+                // event System.Action System.IFormattable.
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable").WithLocation(1, 21),
                 // (1,41): error CS0539: '<invalid-global-code>.' in explicit interface declaration is not a member of interface
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>."),
-                // (1,41): error CS0065: '<invalid-global-code>.': event property must have both add and remove accessors
-                // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -2196,7 +2245,7 @@ class Derived2 : Base
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, new[] { CompileIL(il) });
+            var comp = CreateCompilation(source, new[] { CompileIL(il) });
             comp.VerifyDiagnostics(
                 // (6,41): warning CS0067: The event 'Derived1.E' is never used
                 //     public override event Action<int[]> E;
@@ -2213,15 +2262,15 @@ class Derived2 : Base
             var event1 = derived1.GetMember<EventSymbol>("E");
             Assert.Equal(baseEventType, event1.Type);
             Assert.Equal(baseEventType, event1.AssociatedField.Type);
-            Assert.Equal(baseEventType, event1.AddMethod.ParameterTypes.Single());
-            Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypes.Single());
+            Assert.Equal(baseEventType, event1.AddMethod.ParameterTypesWithAnnotations.Single().Type);
+            Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypesWithAnnotations.Single().Type);
 
             var derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
             var event2 = derived2.GetMember<EventSymbol>("E");
             Assert.Equal(baseEventType, event2.Type);
             Assert.Null(event2.AssociatedField);
-            Assert.Equal(baseEventType, event2.AddMethod.ParameterTypes.Single());
-            Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypes.Single());
+            Assert.Equal(baseEventType, event2.AddMethod.ParameterTypesWithAnnotations.Single().Type);
+            Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypesWithAnnotations.Single().Type);
         }
 
         [Fact]
@@ -2278,7 +2327,7 @@ class Derived2 : Base
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, new[] { CompileIL(il) });
+            var comp = CreateCompilation(source, new[] { CompileIL(il) });
             comp.VerifyDiagnostics(
                 // (6,34): warning CS0067: The event 'Derived1.E' is never used
                 //     public override event Action E;
@@ -2321,7 +2370,7 @@ class Derived2 : Base
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0065: 'Base.E': event property must have both add and remove accessors
                 //     public virtual event Action E { } // Missing accessors.
@@ -2355,7 +2404,7 @@ public abstract class A
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilation(source);
 
             var typeA = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             var eventE = typeA.GetMember<EventSymbol>("E");
@@ -2386,9 +2435,9 @@ namespace ConsoleApplication3
             remove { base.MyEvent -= value; } // error
         }
 
-        public void Foo()
+        public void Goo()
         {
-            base.MyEvent += Foo; // error
+            base.MyEvent += Goo; // error
         }
     }
 
@@ -2401,17 +2450,36 @@ namespace ConsoleApplication3
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,19): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
                 //             add { base.MyEvent += value; } // error
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(14, 19),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent += value").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(14, 19),
                 // (15,22): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
                 //             remove { base.MyEvent -= value; } // error
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(15, 22),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent -= value").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(15, 22),
                 // (20,13): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
-                //             base.MyEvent += Foo; // error
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(20, 13)
+                //             base.MyEvent += Goo; // error
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent += Goo").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(20, 13)
                 );
+        }
+
+        [Fact, WorkItem(40092, "https://github.com/dotnet/roslyn/issues/40092")]
+        public void ExternEventInitializer()
+        {
+            var text = @"
+delegate void D();
+
+class Test
+{
+#pragma warning disable 414 // The field '{0}' is assigned but its value is never used
+#pragma warning disable 626 // Method, operator, or accessor '{0}' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+    public extern event D e = null; // 1
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,27): error CS8760: 'Test.e': extern event cannot have initializer
+                //     public extern event D e = null; // 1
+                Diagnostic(ErrorCode.ERR_ExternEventInitializer, "e").WithArguments("Test.e").WithLocation(8, 27));
         }
 
         #endregion

@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../ScriptingResources.resx">
+    <body>
+      <trans-unit id="CannotSetLanguageSpecificOption">
+        <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
+        <target state="translated">옵션이 다른 언어에 대해 이미 구성되어 있으므로 {0} 특정 옵션 {1}을(를) 설정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackOverflowWhileEvaluating">
+        <source>!&lt;Stack overflow while evaluating object&gt;</source>
+        <target state="translated">!&lt;개체를 평가하는 동안 스택 오버플로가 발생함&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantAssignTo">
+        <source>Can't assign '{0}' to '{1}'.</source>
+        <target state="translated">'{0}'을(를) '{1}'에 할당할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedAnAssemblyReference">
+        <source>Expected an assembly reference.</source>
+        <target state="translated">어셈블리 참조가 필요합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisplayNameOrPathCannotBe">
+        <source>Display name or path cannot be empty.</source>
+        <target state="translated">표시 이름이나 경로는 비워 둘 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected</source>
+        <target state="translated">절대 경로가 필요합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalsNotAssignable">
+        <source>The globals of type '{0}' is not assignable to '{1}'</source>
+        <target state="translated">'{0}' 형식의 전역 변수는 '{1}'에 할당할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartingStateIncompatible">
+        <source>Starting state was incompatible with script.</source>
+        <target state="translated">시작 상태가 스크립트와 호환되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name</source>
+        <target state="translated">잘못된 어셈블리 이름</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assemblyName</source>
+        <target state="translated">assemblyName의 잘못된 문자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ScriptRequiresGlobalVariables">
+        <source>The script requires access to global variables but none were given</source>
+        <target state="translated">스크립트에서 전역 변수에 액세스해야 하지만 전역 변수가 제공되지 않았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalVariablesWithoutGlobalType">
+        <source>Global variables passed to a script without a global type</source>
+        <target state="translated">전역 변수가 전역 형식 없이 스크립트에 전달되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalError">
+        <source>+ additional {0} error</source>
+        <target state="translated">외 {0}개의 추가 오류</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalErrors">
+        <source>+ additional {0} errors</source>
+        <target state="translated">외 {0}개의 추가 오류</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AtFileLine">
+        <source> at {0} : {1}</source>
+        <target state="translated"> 위치: {0} : {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetReadOnlyVariable">
+        <source>Cannot set a read-only variable</source>
+        <target state="translated">읽기 전용 변수를 설정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetConstantVariable">
+        <source>Cannot set a constant variable</source>
+        <target state="translated">상수 변수를 설정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpPrompt">
+        <source>Type "#help" for more information.</source>
+        <target state="translated">자세한 내용을 보려면 "#help"를 입력하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpText">
+        <source>Keyboard shortcuts:
+  Enter         If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Escape        Clear the current submission.
+  UpArrow       Replace the current submission with a previous submission.
+  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+  Ctrl-C        Exit the REPL.
+REPL commands:
+  #help         Display help on available commands and key bindings.
+Script directives:
+  #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".
+  #load         Load specified script file and execute it, e.g. #load "myScript.csx".</source>
+        <target state="translated">바로 가기 키:
+  Enter         현재 제출이 완료된 것으로 보이는 경우 평가하고 그렇지 않으면 새 줄을 삽입합니다.
+  Esc        현재 제출을 지웁니다.
+  위쪽 화살표       현재 제출을 이전 제출로 바꿉니다.
+  아래쪽 화살표     현재 제출을 이후 제출로 바꿉니다(미리 뒤로 이동한 후).
+  Ctrl-C        REPL을 종료합니다.
+REPL 명령:
+  #help         사용 가능한 명령 및 키 바인딩에 대한 도움말을 표시합니다.
+스크립트 지시문:
+  #r            지정한 어셈블리 및 모든 해당 종속성에 대한 메타데이터 참조를 추가합니다(예: #r "myLib.dll").
+  #load         지정한 스크립트 파일을 로드하고 실행합니다(예: #load "myScript.csx").</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoaded">
+        <source>Assembly '{0}, Version={1}' has already been loaded from '{2}'. A different assembly with the same name and version can't be loaded: '{3}'.</source>
+        <target state="translated">어셈블리 '{0}, 버전={1}'이(가) '{2}'에서 이미 로드되었습니다. 이름과 버전이 같은 다른 어셈블리를 로드할 수 없습니다. '{3}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoadedNotSigned">
+        <source>Assembly '{0}' has already been loaded from '{1}'. A different assembly with the same name can't be loaded unless it's signed: '{2}'.</source>
+        <target state="translated">'{0}' 어셈블리가 '{1}'에서 이미 로드되었습니다. 이름이 같은 다른 어셈블리는 서명되지 않은 경우 로드할 수 없습니다. '{2}'.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

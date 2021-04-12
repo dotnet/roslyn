@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -27,10 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _originalParam = originalParam;
         }
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
+        public override bool IsImplicitlyDeclared => true;
+
+        public override bool IsDiscard => _originalParam.IsDiscard;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -70,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.DefaultValueFromAttributes; }
         }
 
-        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams)
+        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
         {
             return new SourceClonedParameterSymbol(
-                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, countOfCustomModifiersPrecedingByRef, newIsParams),
+                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, newRefCustomModifiers, newIsParams),
                 this.ContainingSymbol,
                 this.Ordinal,
                 _suppressOptional);
@@ -81,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwarded
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _originalParam.Type; }
+            get { return _originalParam.TypeWithAnnotations; }
         }
 
         public override RefKind RefKind
@@ -116,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.Name; }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return _originalParam.CustomModifiers; }
+            get { return _originalParam.RefCustomModifiers; }
         }
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
@@ -149,6 +152,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerMemberName
         {
             get { return _originalParam.IsCallerMemberName; }
+        }
+
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return FlowAnalysisAnnotations.None; }
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get { return ImmutableHashSet<string>.Empty; }
         }
 
         #endregion

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -6,10 +8,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundBinaryOperator
+    Partial Friend Class BoundBinaryOperator
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             operatorKind As BinaryOperatorKind,
             left As BoundExpression,
             right As BoundExpression,
@@ -17,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             type As TypeSymbol,
             Optional hasErrors As Boolean = False
         )
-            Me.New(syntax, operatorKind, left, right, checked, ConstantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors)
+            Me.New(syntax, operatorKind, left, right, checked, constantValueOpt:=Nothing, type:=type, hasErrors:=hasErrors)
 
         End Sub
 
@@ -26,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ValidateConstantValue()
             Left.AssertRValue()
             Right.AssertRValue()
-            Debug.Assert(HasErrors OrElse Left.Type.IsSameTypeIgnoringCustomModifiers(Right.Type) OrElse
+            Debug.Assert(HasErrors OrElse Left.Type.IsSameTypeIgnoringAll(Right.Type) OrElse
                          (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.LeftShift OrElse
                          (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.RightShift OrElse
                          (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.Is OrElse

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -18,16 +21,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ushort _maxStack;
         private readonly ImmutableArray<Cci.ILocalDefinition> _locals;
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
+        private readonly bool _areLocalsZeroed;
 
         // Debug information emitted to Release & Debug PDBs supporting the debugger, EEs and other tools:
-        private readonly SequencePointList _sequencePoints;
-        private readonly DebugDocumentProvider _debugDocumentProvider;
+        private readonly ImmutableArray<Cci.SequencePoint> _sequencePoints;
         private readonly ImmutableArray<Cci.LocalScope> _localScopes;
         private readonly Cci.IImportScope _importScopeOpt;
         private readonly string _stateMachineTypeNameOpt;
-        private readonly ImmutableArray<Cci.StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
+        private readonly ImmutableArray<StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
         private readonly bool _hasDynamicLocalVariables;
-        private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
+        private readonly StateMachineMoveNextBodyDebugInfo _stateMachineMoveNextDebugInfoOpt;
 
         // Debug information emitted to Debug PDBs supporting EnC:
         private readonly DebugId _methodId;
@@ -36,7 +39,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<ClosureDebugInfo> _closureDebugInfo;
 
         // Data used when emitting EnC delta:
-        private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
+        private readonly ImmutableArray<Cci.ITypeReference?> _stateMachineAwaiterSlots;
+
+        // Data used when emitting Dynamic Analysis resource:
+        private readonly DynamicAnalysisMethodBodyData _dynamicAnalysisDataOpt;
 
         public MethodBody(
             ImmutableArray<byte> ilBits,
@@ -47,30 +53,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
             SequencePointList sequencePoints,
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers,
+            bool areLocalsZeroed,
+            bool hasStackalloc,
             ImmutableArray<Cci.LocalScope> localScopes,
             bool hasDynamicLocalVariables,
             Cci.IImportScope importScopeOpt,
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             string stateMachineTypeNameOpt,
-            ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
+            ImmutableArray<StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
-            ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots,
-            Cci.AsyncMethodBodyDebugInfo asyncMethodDebugInfo)
+            ImmutableArray<Cci.ITypeReference?> stateMachineAwaiterSlots,
+            StateMachineMoveNextBodyDebugInfo stateMachineMoveNextDebugInfoOpt,
+            DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt)
         {
             Debug.Assert(!locals.IsDefault);
             Debug.Assert(!exceptionHandlers.IsDefault);
             Debug.Assert(!localScopes.IsDefault);
 
             _ilBits = ilBits;
-            _asyncMethodDebugInfo = asyncMethodDebugInfo;
             _maxStack = maxStack;
             _parent = parent;
             _methodId = methodId;
             _locals = locals;
-            _sequencePoints = sequencePoints;
-            _debugDocumentProvider = debugDocumentProvider;
             _exceptionHandlers = exceptionHandlers;
+            _areLocalsZeroed = areLocalsZeroed;
+            HasStackalloc = hasStackalloc;
             _localScopes = localScopes;
             _hasDynamicLocalVariables = hasDynamicLocalVariables;
             _importScopeOpt = importScopeOpt;
@@ -80,37 +88,40 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
             _stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
             _stateMachineAwaiterSlots = stateMachineAwaiterSlots;
+            _stateMachineMoveNextDebugInfoOpt = stateMachineMoveNextDebugInfoOpt;
+            _dynamicAnalysisDataOpt = dynamicAnalysisDataOpt;
+            _sequencePoints = GetSequencePoints(sequencePoints, debugDocumentProvider);
         }
 
-        void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
+        private static ImmutableArray<Cci.SequencePoint> GetSequencePoints(SequencePointList? sequencePoints, DebugDocumentProvider debugDocumentProvider)
         {
-            throw ExceptionUtilities.Unreachable;
+            if (sequencePoints == null || sequencePoints.IsEmpty)
+            {
+                return ImmutableArray<Cci.SequencePoint>.Empty;
+            }
+
+            var sequencePointsBuilder = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            sequencePoints.GetSequencePoints(debugDocumentProvider, sequencePointsBuilder);
+            return sequencePointsBuilder.ToImmutableAndFree();
         }
+
+        DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => _dynamicAnalysisDataOpt;
 
         ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions => _exceptionHandlers;
 
-        bool Cci.IMethodBody.LocalsAreZeroed => true;
+        bool Cci.IMethodBody.AreLocalsZeroed => _areLocalsZeroed;
 
         ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables => _locals;
 
         Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition => _parent;
 
-        Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo => _asyncMethodDebugInfo;
+        StateMachineMoveNextBodyDebugInfo Cci.IMethodBody.MoveNextBodyInfo => _stateMachineMoveNextDebugInfoOpt;
 
         ushort Cci.IMethodBody.MaxStack => _maxStack;
 
         public ImmutableArray<byte> IL => _ilBits;
 
-        public void GetSequencePoints(ArrayBuilder<Cci.SequencePoint> builder)
-        {
-            if (HasAnySequencePoints)
-            {
-                _sequencePoints.GetSequencePoints(_debugDocumentProvider, builder);
-            }
-        }
-
-        public bool HasAnySequencePoints
-            => _sequencePoints != null && !_sequencePoints.IsEmpty;
+        public ImmutableArray<Cci.SequencePoint> SequencePoints => _sequencePoints;
 
         ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes => _localScopes;
 
@@ -121,13 +132,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         string Cci.IMethodBody.StateMachineTypeName => _stateMachineTypeNameOpt;
 
-        ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
+        ImmutableArray<StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
             => _stateMachineHoistedLocalScopes;
 
         ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
             => _stateMachineHoistedLocalSlots;
 
-        ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots
+        ImmutableArray<Cci.ITypeReference?> Cci.IMethodBody.StateMachineAwaiterSlots
             => _stateMachineAwaiterSlots;
 
         bool Cci.IMethodBody.HasDynamicLocalVariables => _hasDynamicLocalVariables;
@@ -137,5 +148,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => _lambdaDebugInfo;
 
         public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => _closureDebugInfo;
+
+        /// <summary>
+        /// True if there's a stackalloc somewhere in the method.
+        /// </summary>
+        public bool HasStackalloc { get; }
     }
 }

@@ -1,12 +1,19 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
@@ -18,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {
-        private static readonly ObjectFormatter s_formatter = new TestCSharpObjectFormatter();
+        private static readonly TestCSharpObjectFormatter s_formatter = new TestCSharpObjectFormatter();
 
         [Fact]
         public void Objects()
@@ -65,6 +72,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
+        public void TupleType()
+        {
+            var tup = new Tuple<int, int>(1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+        [Fact]
+        public void ValueTupleType()
+        {
+            (int, int) tup = (1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+        [Fact]
+        public void ArrayMethodParameters()
+        {
+            var result = s_formatter.FormatMethodSignature(Signatures.Arrays);
+            Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(int[], int[,], int[,,])", result);
+        }
+
+        [Fact]
         public void ArrayOfInt32_NoMembers()
         {
             object o = new int[4] { 3, 4, 5, 6 };
@@ -89,26 +117,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerDisplay_ParseSimpleMemberName()
         {
-            Test_ParseSimpleMemberName("foo", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("foo  ", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("   foo", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("   foo   ", name: "foo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("goo", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("goo  ", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("   goo", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("   goo   ", name: "goo", callable: false, nq: false);
 
-            Test_ParseSimpleMemberName("foo()", name: "foo", callable: true, nq: false);
-            Test_ParseSimpleMemberName("\nfoo (\r\n)", name: "foo", callable: true, nq: false);
-            Test_ParseSimpleMemberName(" foo ( \t) ", name: "foo", callable: true, nq: false);
+            Test_ParseSimpleMemberName("goo()", name: "goo", callable: true, nq: false);
+            Test_ParseSimpleMemberName("\ngoo (\r\n)", name: "goo", callable: true, nq: false);
+            Test_ParseSimpleMemberName(" goo ( \t) ", name: "goo", callable: true, nq: false);
 
-            Test_ParseSimpleMemberName("foo,nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo  ,nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo(),nq", name: "foo", callable: true, nq: true);
-            Test_ParseSimpleMemberName("  foo \t( )   ,nq", name: "foo", callable: true, nq: true);
-            Test_ParseSimpleMemberName("  foo \t( )   , nq", name: "foo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("goo,nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo  ,nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo(),nq", name: "goo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("  goo \t( )   ,nq", name: "goo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("  goo \t( )   , nq", name: "goo", callable: true, nq: true);
 
-            Test_ParseSimpleMemberName("foo,  nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo(,nq", name: "foo(", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo),nq", name: "foo)", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo ( ,nq", name: "foo (", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo ) ,nq", name: "foo )", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo,  nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo(,nq", name: "goo(", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo),nq", name: "goo)", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo ( ,nq", name: "goo (", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo ) ,nq", name: "goo )", callable: false, nq: true);
 
             Test_ParseSimpleMemberName(",nq", name: "", callable: false, nq: true);
             Test_ParseSimpleMemberName("  ,nq", name: "", callable: false, nq: true);
@@ -254,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10816")]
         public void DebuggerProxy_Recursive()
         {
             string str;
@@ -271,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
 
             // TODO: better overflow handling
-            Assert.Equal("!<Stack overflow while evaluating object>", str);
+            Assert.Equal(ScriptingResources.StackOverflowWhileEvaluating, str);
         }
 
         [Fact]
@@ -301,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
 
             str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal(str, "object[5] { 1, { ... }, ListNode { data={ ... }, next=ListNode { data=object[4] { 7, ListNode { ... }, 8, { ... } }, next=ListNode { ... } } }, object[5] { 4, 5, { ... }, 6, ListNode { data=null, next=null } }, 3 }");
+            Assert.Equal("object[5] { 1, { ... }, ListNode { data={ ... }, next=ListNode { data=object[4] { 7, ListNode { ... }, 8, { ... } }, next=ListNode { ... } } }, object[5] { 4, 5, { ... }, 6, ListNode { data=null, next=null } }, 3 }", str);
         }
 
         [Fact]
@@ -342,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("LongMembers { LongNa...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 20).FormatObject(obj, SeparateLinesOptions);
-            Assert.Equal("LongMembers {\r\n  LongName0123456789...\r\n  LongValue: \"012345...\r\n}\r\n", str);
+            Assert.Equal($"LongMembers {{{Environment.NewLine}  LongName0123456789...{Environment.NewLine}  LongValue: \"012345...{Environment.NewLine}}}{Environment.NewLine}", str);
         }
 
         [Fact]
@@ -411,14 +439,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_IEnumerable()
+        public void DebuggerProxy_FrameworkTypes_IEnumerable_Core()
         {
             string str;
             object obj;
 
-            obj = Enumerable.Range(0, 10);
+            obj = Range_Core(0, 10);
             str = s_formatter.FormatObject(obj, SingleLineOptions);
+
+            Assert.Equal("ObjectFormatterTests.CoreRangeIterator(Count = 10)", str);
+        }
+
+        // This method and the class below emulate the behaviour of Enumerable.Range
+        // in .NET Core. We use a custom type since not all runtime implementations
+        // (e.g. Mono) apply precisely the same attributes, but we want to test behavior
+        // under a specific set of attributes.
+        private static IEnumerable<int> Range_Core(int start, int count)
+            => new CoreRangeIterator(start, count);
+
+        [DebuggerDisplay("Count = {CountForDebugger}")]
+        private class CoreRangeIterator : IEnumerable<int>
+        {
+            private readonly int _start;
+            private readonly int _end;
+
+            private int CountForDebugger => _end - _start;
+
+            public CoreRangeIterator(int start, int count)
+                => (_start, _end) = (start, start + count);
+
+            public IEnumerator<int> GetEnumerator() => null;
+            IEnumerator IEnumerable.GetEnumerator() => null;
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_IEnumerable_Framework()
+        {
+            string str;
+            object obj;
+
+            obj = Range_Framework(0, 10);
+            str = s_formatter.FormatObject(obj, SingleLineOptions);
+
             Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+        }
+
+        // These methods emulate the .NET Framework Enumerable.Range method
+        private static IEnumerable<int> Range_Framework(int start, int count)
+            => RangeIterator(start, count);
+
+        private static IEnumerable<int> RangeIterator(int start, int count)
+        {
+            for (var i = 0; i < count; i++)
+                yield return start + i;
         }
 
         [Fact]
@@ -427,7 +500,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             string str;
             object obj;
 
-            obj = Enumerable.Range(0, 10).Where(i => { if (i == 5) throw new Exception("xxx"); return i < 7; });
+            obj = Enumerable.Range(0, 10).Where(i =>
+            {
+                if (i == 5)
+                    throw new Exception("xxx");
+                return i < 7;
+            });
             str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal("Enumerable.WhereEnumerableIterator<int> { 0, 1, 2, 3, 4, !<Exception> ... }", str);
         }
@@ -666,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("ReadOnlyCollection<int>(3) { 1, 2, 3 }", str);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void DebuggerProxy_FrameworkTypes_Lazy()
         {
             var obj = new Lazy<int[]>(() => new int[] { 1, 2 }, LazyThreadSafetyMode.None);
@@ -698,43 +776,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        public void TaskMethod()
+        private void TaskMethod()
         {
         }
 
         [Fact]
+        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
-            var obj = new System.Threading.Tasks.Task(TaskMethod);
+            var obj = new MockDesktopTask(TaskMethod);
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
             Assert.Equal(
-                @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"") { AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=*, Status=Created }",
-                FilterDisplayString(str));
+                "MockDesktopTask(Id = 1234, Status = Created, Method = \"Void TaskMethod()\") " +
+                "{ AsyncState=null, CancellationPending=false, CreationOptions=None, Exception=null, Id=1234, Status=Created }",
+                str);
 
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
-            AssertMembers(FilterDisplayString(str), @"Task(Id = *, Status = Created, Method = ""Void TaskMethod()"")",
+            AssertMembers(str, "MockDesktopTask(Id = 1234, Status = Created, Method = \"Void TaskMethod()\")",
                 "AsyncState: null",
                 "CancellationPending: false",
                 "CreationOptions: None",
                 "Exception: null",
-                "Id: *",
+                "Id: 1234",
                 "Status: Created"
             );
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_SpinLock()
+        public void DebuggerProxy_FrameworkTypes_SpinLock1()
         {
-            var obj = new SpinLock();
+            var obj = new MockDesktopSpinLock(false);
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal("SpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=false, OwnerThreadID=0 }", str);
+            Assert.Equal("MockDesktopSpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=!<InvalidOperationException>, OwnerThreadID=null }", str);
 
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
-            AssertMembers(str, "SpinLock(IsHeld = false)",
+            AssertMembers(str, "MockDesktopSpinLock(IsHeld = false)",
                 "IsHeld: false",
-                "IsHeldByCurrentThread: false",
+                "IsHeldByCurrentThread: !<InvalidOperationException>",
+                "OwnerThreadID: null"
+            );
+        }
+
+        [Fact]
+        public void DebuggerProxy_FrameworkTypes_SpinLock2()
+        {
+            var obj = new MockDesktopSpinLock(true);
+
+            var str = s_formatter.FormatObject(obj, SingleLineOptions);
+            Assert.Equal("MockDesktopSpinLock(IsHeld = false) { IsHeld=false, IsHeldByCurrentThread=true, OwnerThreadID=0 }", str);
+
+            str = s_formatter.FormatObject(obj, SeparateLinesOptions);
+            AssertMembers(str, "MockDesktopSpinLock(IsHeld = false)",
+                "IsHeld: false",
+                "IsHeldByCurrentThread: true",
                 "OwnerThreadID: 0"
             );
         }
@@ -744,17 +840,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new DiagnosticBag();
             obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_AbstractAndExtern, "bar"), NoLocation.Singleton);
-            obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_BadExternIdentifier, "foo"), NoLocation.Singleton);
+            obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_BadExternIdentifier, "goo"), NoLocation.Singleton);
 
             using (new EnsureEnglishUICulture())
             {
                 var str = s_formatter.FormatObject(obj, SingleLineOptions);
-                Assert.Equal("DiagnosticBag(Count = 2) { =error CS0180: 'bar' cannot be both extern and abstract, =error CS1679: Invalid extern alias for '/reference'; 'foo' is not a valid identifier }", str);
+                Assert.Equal("DiagnosticBag(Count = 2) { =error CS0180: 'bar' cannot be both extern and abstract, =error CS1679: Invalid extern alias for '/reference'; 'goo' is not a valid identifier }", str);
 
                 str = s_formatter.FormatObject(obj, SeparateLinesOptions);
                 AssertMembers(str, "DiagnosticBag(Count = 2)",
                      ": error CS0180: 'bar' cannot be both extern and abstract",
-                     ": error CS1679: Invalid extern alias for '/reference'; 'foo' is not a valid identifier"
+                     ": error CS1679: Invalid extern alias for '/reference'; 'goo' is not a valid identifier"
                 );
             }
         }
@@ -825,7 +921,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
         {
             try
@@ -837,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 const string filePath = @"z:\Fixture.cs";
 
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10006)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10036)}
 ";
@@ -846,7 +944,9 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
         {
             try
@@ -859,7 +959,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture.Method<char>
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10012)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10057)}
 ";
@@ -868,7 +968,9 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
         {
             try
@@ -881,7 +983,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10021)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10079)}
 ";
@@ -890,7 +992,9 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
         {
             try
@@ -903,7 +1007,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method<char>
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10027)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10101)}
 ";
@@ -922,6 +1026,7 @@ $@"Exception of type 'System.Exception' was thrown.
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
             try
@@ -959,7 +1064,9 @@ $@"'object' does not contain a definition for 'x'
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
         {
             try
@@ -973,7 +1080,7 @@ $@"'object' does not contain a definition for 'x'
                 const string filePath = @"z:\Fixture.cs";
 
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method(ref char, out System.DateTime){string.Format(ScriptingResources.AtFileLine, filePath, 10155)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_RefOutParameters(){string.Format(ScriptingResources.AtFileLine, filePath, 10172)}
 ";
@@ -982,7 +1089,9 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()
         {
             try
@@ -996,7 +1105,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show ParametersFixture.Method<char>(ref char)
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method<U>(ref U){string.Format(ScriptingResources.AtFileLine, filePath, 10161)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericRefParameter(){string.Format(ScriptingResources.AtFileLine, filePath, 10194)}
 ";

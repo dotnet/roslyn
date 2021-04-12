@@ -1,8 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
+Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -12,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' rename. The position given with the $$ mark in the tests is just the symbol that is renamed;
     ''' there is no fancy logic applied to it.
     ''' </summary>
+    <[UseExportProvider]>
     Partial Public Class RenameEngineTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -20,9 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
         <WorkItem(543661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543661")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CannotRenameNamespaceAlias()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameNamespaceAlias(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                    <Workspace>
                        <Project Language="C#" CommonReferences="true">
@@ -37,13 +40,273 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                }
                             </Document>
                        </Project>
-                   </Workspace>, renameTo:="Sys2")
+                   </Workspace>, host:=host, renameTo:="Sys2")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInaccessibleMember1(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void Main()
+    {
+        D.[|field|] = 8;
+    }
+}
+ 
+class D
+{
+    private static int [|$$field|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="_field")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInaccessibleMember2(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void Main()
+    {
+        D.[|$$field|] = 8;
+    }
+}
+ 
+class D
+{
+    private static int [|field|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="_field")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNonAttribute1(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+[[|NotAnAttribute|]]
+class C
+{
+}
+ 
+class [|$$NotAnAttribute|]
+{
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNonAttribute2(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+[[|$$NotAnAttribute|]]
+class C
+{
+}
+ 
+class [|NotAnAttribute|]
+{
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWrongArity1(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class [|$$List|]&lt;T&gt;
+{
+}
+ 
+class C
+{
+    [|List|]&lt;int,string&gt; list;
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWrongArity2(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class [|List|]&lt;T&gt;
+{
+}
+ 
+class C
+{
+    [|$$List|]&lt;int,string&gt; list;
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNotCreatable1(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+abstract class [|A|]
+{
+}
+ 
+class C
+{
+    void M()
+    {
+        var v = new [|$$A|]();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNotCreatable2(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+abstract class [|$$A|]
+{
+}
+ 
+class C
+{
+    void M()
+    {
+        var v = new [|A|]();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocable1(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void M()
+    {
+        var [|$$v|] = "";
+        {|unresolved:v|}();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+
+                result.AssertLabeledSpansAre("unresolved", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocable2(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void M()
+    {
+        var [|v|] = "";
+        {|unresolved:$$v|}();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+
+                result.AssertLabeledSpansAre("unresolved", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticInstance1(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    static void M()
+    {
+        var v = [|$$N|];
+    }
+
+    int [|N|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticInstance2(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    static void M()
+    {
+        var v = [|N|];
+    }
+
+    int [|$$N|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, host:=host, renameTo:="X")
             End Using
         End Sub
 
         <WorkItem(813409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813409")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameTypeDoesNotRenameGeneratedConstructorCalls()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeDoesNotRenameGeneratedConstructorCalls(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                    <Workspace>
                        <Project Language="C#" CommonReferences="true">
@@ -55,14 +318,14 @@ struct [|$$Type|]
 }
                             </Document>
                        </Project>
-                   </Workspace>, renameTo:="U")
+                   </Workspace>, host:=host, renameTo:="U")
 
             End Using
         End Sub
 
         <WorkItem(856078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/856078")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub UnmodifiedDocumentsAreNotCheckedOutBySourceControl()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub UnmodifiedDocumentsAreNotCheckedOutBySourceControl(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -79,7 +342,7 @@ class C2
 }
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="def")
+                    </Workspace>, host:=host, renameTo:="def")
 
                 Dim originalDocument = result.ConflictResolution.OldSolution.Projects.First().Documents.Where(Function(d) d.FilePath = "Test2.cs").Single()
                 Dim newDocument = result.ConflictResolution.NewSolution.Projects.First().Documents.Where(Function(d) d.FilePath = "Test2.cs").Single()
@@ -89,29 +352,29 @@ class C2
         End Sub
 
         <WorkItem(773400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773400")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ReferenceConflictInsideDelegateLocalNotRenamed()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ReferenceConflictInsideDelegateLocalNotRenamed(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
 class C
 {
-    public delegate void Foo(int x);
-    public void FooMeth(int x)
+    public delegate void Goo(int x);
+    public void GooMeth(int x)
     {
  
     }
     public void Sub()
     {
-        Foo {|DeclConflict:x|} = new Foo(FooMeth);
+        Goo {|DeclConflict:x|} = new Goo(GooMeth);
         int [|$$z|] = 1; // Rename z to x
         x({|unresolve2:z|});
     }
 }
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="x")
+                    </Workspace>, host:=host, renameTo:="x")
 
                 result.AssertLabeledSpansAre("DeclConflict", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("unresolve2", "x", type:=RelatedLocationType.UnresolvedConflict)
@@ -119,8 +382,8 @@ class C
         End Sub
 
         <WorkItem(773673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773673")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMoreThanOneTokenInUnResolvedStatement()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMoreThanOneTokenInUnResolvedStatement(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -138,7 +401,7 @@ class {|unresolve3:$$D|} // Rename to C
 }
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="C")
+                    </Workspace>, host:=host, renameTo:="C")
 
                 result.AssertLabeledSpansAre("DeclConflict", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("unresolve1", type:=RelatedLocationType.UnresolvedConflict)
@@ -147,8 +410,8 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInvocationExpressionAcrossProjects()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocationExpressionAcrossProjects(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -166,21 +429,20 @@ class {|unresolve3:$$D|} // Rename to C
                         <Document FilePath="Test2.cs">
                             public class B
                             {
-                                void foo()
+                                void goo()
                                 {
                                     [|ClassA|].Bar();
                                 }
                             }
                          </Document>
                     </Project>
-                </Workspace>, renameTo:="A")
-
+                </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInvocationExpressionAcrossProjectsWithPartialClass()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocationExpressionAcrossProjectsWithPartialClass(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -203,20 +465,20 @@ class {|unresolve3:$$D|} // Rename to C
                         <Document FilePath="Test2.cs">
                             public class B
                             {
-                                void foo()
+                                void goo()
                                 {
                                     [|ClassA|].Bar();
                                 }
                             }
                          </Document>
                     </Project>
-                </Workspace>, renameTo:="A")
+                </Workspace>, host:=host, renameTo:="A")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInvocationExpressionAcrossProjectsWithConflictResolve()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocationExpressionAcrossProjectsWithConflictResolve(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -245,22 +507,22 @@ class {|unresolve3:$$D|} // Rename to C
 
                             public class B
                             {
-                                void foo()
+                                void goo()
                                 {
                                     {|resolve2:ClassA|}.Bar();
                                 }
                             }
                          </Document>
                     </Project>
-                </Workspace>, renameTo:="A")
+                </Workspace>, host:=host, renameTo:="A")
 
                 result.AssertLabeledSpansAre("resolve", "global::A", RelatedLocationType.ResolvedNonReferenceConflict)
                 result.AssertLabeledSpansAre("resolve2", "X.A.Bar();", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RollBackExpandedConflicts_WithinInvocationExpression()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RollBackExpandedConflicts_WithinInvocationExpression(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                             <Workspace>
                                 <Project Language="C#" CommonReferences="true">
@@ -280,7 +542,7 @@ class {|unresolve3:$$D|} // Rename to C
 
                                     </Document>
                                 </Project>
-                            </Workspace>, renameTo:="a")
+                            </Workspace>, host:=host, renameTo:="a")
 
                 result.AssertLabeledSpansAre("conflict1", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("conflict2", type:=RelatedLocationType.UnresolvedConflict)
@@ -288,8 +550,8 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RollBackExpandedConflicts_WithinQuery()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RollBackExpandedConflicts_WithinQuery(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                             <Workspace>
                                 <Project Language="Visual Basic" CommonReferences="true">
@@ -300,16 +562,15 @@ class {|unresolve3:$$D|} // Rename to C
                                         End Class
                                     </Document>
                                 </Project>
-                            </Workspace>, renameTo:="y")
-
+                            </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("conflict1", "y", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("conflict2", "y", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverloadCSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOverloadCSharp(host As RenameTestHost)
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -323,31 +584,30 @@ class {|unresolve3:$$D|} // Rename to C
 
                                         class Program
                                         {
-                                            public void [|$$foo|]()
+                                            public void [|$$goo|]()
                                             {
-                                                [|foo|]();
+                                                [|goo|]();
                                             }
 
-                                            public void [|foo|]&lt;T&gt;()
+                                            public void [|goo|]&lt;T&gt;()
                                             {
-                                                [|foo|]&lt;T&gt;();
+                                                [|goo|]&lt;T&gt;();
                                             }
 
-                                            public void [|foo|](int i)
+                                            public void [|goo|](int i)
                                             {
-                                                [|foo|](i);
+                                                [|goo|](i);
                                             }
                                         }
                                     </Document>
                                 </Project>
-                            </Workspace>, renameTo:="BarBaz", changedOptionSet:=changingOptions)
-
+                            </Workspace>, host:=host, renameTo:="BarBaz", changedOptionSet:=changingOptions)
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOverloadVisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOverloadVisualBasic(host As RenameTestHost)
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -363,32 +623,31 @@ class {|unresolve3:$$D|} // Rename to C
 
                                             End Sub
 
-                                            Public Sub [|$$foo|]()
-                                                [|foo|]()
+                                            Public Sub [|$$goo|]()
+                                                [|goo|]()
                                             End Sub
 
-                                            Public Sub [|foo|](Of T)()
-                                                [|foo|](Of T)()
+                                            Public Sub [|goo|](Of T)()
+                                                [|goo|](Of T)()
                                             End Sub
 
-                                            Public Sub [|foo|](s As String)
-                                                [|foo|](s)
+                                            Public Sub [|goo|](s As String)
+                                                [|goo|](s)
                                             End Sub
 
-                                            Public Shared Sub [|foo|](d As Double)
-                                                [|foo|](d)
+                                            Public Shared Sub [|goo|](d As Double)
+                                                [|goo|](d)
                                             End Sub
                                         End Class
                                     </Document>
                                 </Project>
-                            </Workspace>, renameTo:="BarBaz", changedOptionSet:=changingOptions)
-
+                            </Workspace>, host:=host, renameTo:="BarBaz", changedOptionSet:=changingOptions)
 
             End Using
         End Sub
 
-        <Fact, WorkItem(761929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761929"), Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictCheckInInvocationCSharp()
+        <Theory, WorkItem(761929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761929"), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictCheckInInvocationCSharp(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -414,14 +673,13 @@ class {|unresolve3:$$D|} // Rename to C
                         }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
             End Using
         End Sub
 
-        <Fact, WorkItem(761922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761922"), Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictCheckInInvocationVisualBasic()
+        <Theory, WorkItem(761922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761922"), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictCheckInInvocationVisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -440,48 +698,45 @@ class {|unresolve3:$$D|} // Rename to C
                         End Namespace
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameType()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameType(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
 
-                            class [|$$Foo|]
+                            class [|$$Goo|]
                             {
                                 void Blah()
                                 {
-                                    {|stmt1:Foo|} f = new {|stmt1:Foo|}();
+                                    {|stmt1:Goo|} f = new {|stmt1:Goo|}();
                                 }
                             }
 
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameTypeAcrossFiles()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeAcrossFiles(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-                    <Project Language="C#">
+                    <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|$$Foo|]
+                            class [|$$Goo|]
                             {
                                 void Blah()
                                 {
-                                    {|stmt1:Foo|} f = new {|stmt1:Foo|}();
+                                    {|stmt1:Goo|} f = new {|stmt1:Goo|}();
                                 }
                             }
                         </Document>
@@ -490,33 +745,67 @@ class {|unresolve3:$$D|} // Rename to C
                             {
                                 void Blah()
                                 {
-                                    {|stmt2:Foo|} f = new {|stmt2:Foo|}();
+                                    {|stmt2:Goo|} f = new {|stmt2:Goo|}();
                                 }
                             }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameTypeAcrossProjectsAndLanguages()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeAcrossFiles_WithoutCommonReferences(host As RenameTestHost)
+            ' without a reference to mscorlib, compiler can't find types like System.Void.  This causes it to have
+            ' overload resolution errors for `new Goo();` which causes rename to not update the constructor calls.  This
+            ' should not normally ever hit a realistic user scenario.  The test exists just to document our behavior
+            ' here.
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#">
+                        <Document>
+                            class [|$$Goo|]
+                            {
+                                void Blah()
+                                {
+                                    {|stmt1:Goo|} f = new {|conflict:Goo|}();
+                                }
+                            }
+                        </Document>
+                        <Document>
+                            class FogBar
+                            {
+                                void Blah()
+                                {
+                                    {|stmt2:Goo|} f = new {|conflict:Goo|}();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="BarBaz")
+
+                result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeAcrossProjectsAndLanguages(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document>
                             namespace N
                             {
-                                 public class [|$$Foo|]
+                                 public class [|$$Goo|]
                                  {
                                      void Blah()
                                      {
-                                         {|csstmt1:Foo|} f = new {|csstmt1:Foo|}();
+                                         {|csstmt1:Goo|} f = new {|csstmt1:Goo|}();
                                      }
                                  }
                             }
@@ -528,116 +817,110 @@ class {|unresolve3:$$D|} // Rename to C
                             Imports N
                             Class FogBar
                                 Sub Blah()
-                                   Dim f = new {|vbstmt1:Foo|}()
+                                   Dim f = new {|vbstmt1:Goo|}()
                                 End Sub
                             End Class
                          </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("csstmt1", "BarBaz", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("vbstmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpTypeFromConstructorDefinition()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpTypeFromConstructorDefinition(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|Foo|]
+                            class [|Goo|]
                             {
-                                [|$$Foo|]()
+                                [|$$Goo|]()
                                 {
                                 }
                             
                                 void Blah()
                                 {
-                                    {|stmt1:Foo|} f = new {|stmt1:Foo|}();
+                                    {|stmt1:Goo|} f = new {|stmt1:Goo|}();
                                 }
                             }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpTypeFromConstructorUse()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpTypeFromConstructorUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|Foo|]
+                            class [|Goo|]
                             {
-                                [|Foo|]()
+                                [|Goo|]()
                                 {
                                 }
                             
                                 void Blah()
                                 {
-                                    {|stmt1:Foo|} f = new {|stmt1:$$Foo|}();
+                                    {|stmt1:Goo|} f = new {|stmt1:$$Goo|}();
                                 }
                             }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="Bar", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpTypeFromDestructor()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpTypeFromDestructor(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|Foo|]
+                            class [|Goo|]
                             {
-                                ~[|$$Foo|]()
+                                ~[|$$Goo|]()
                                 {
                                 }
                             }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpTypeFromSynthesizedConstructorUse()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpTypeFromSynthesizedConstructorUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                               class [|Foo|]
+                               class [|Goo|]
                                {
                                    void Blah()
                                    {
-                                       {|stmt1:Foo|} f = new {|stmt1:$$Foo|}();
+                                       {|stmt1:Goo|} f = new {|stmt1:$$Goo|}();
                                    }
                                }
                            </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="Bar", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpPredefinedTypeVariables1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpPredefinedTypeVariables1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -648,20 +931,19 @@ class {|unresolve3:$$D|} // Rename to C
                                     {
                                         static void Main(string[] args)
                                         {
-                                            System.Int32 {|stmt1:$$foofoo|} = 23;
+                                            System.Int32 {|stmt1:$$goofoo|} = 23;
                                         }
                                     }
                                 </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpPredefinedTypeVariables2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpPredefinedTypeVariables2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -672,20 +954,19 @@ class {|unresolve3:$$D|} // Rename to C
                                     {
                                         static void Main(string[] args)
                                         {
-                                            Int32 {|stmt1:$$foofoo|} = 23;
+                                            Int32 {|stmt1:$$goofoo|} = 23;
                                         }
                                     }
                                 </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpPredefinedTypeVariables3()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpPredefinedTypeVariables3(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -701,15 +982,14 @@ class {|unresolve3:$$D|} // Rename to C
                                     }
                                 </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicPredefinedTypeVariables1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicPredefinedTypeVariables1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -721,15 +1001,14 @@ class {|unresolve3:$$D|} // Rename to C
                             End Module
                                 </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicPredefinedTypeVariables2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicPredefinedTypeVariables2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -741,15 +1020,14 @@ class {|unresolve3:$$D|} // Rename to C
                             End Module
                                 </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicPredefinedTypeVariables3()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicPredefinedTypeVariables3(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -761,15 +1039,15 @@ class {|unresolve3:$$D|} // Rename to C
                             End Module
                                 </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(539801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539801")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpEnumMemberToContainingEnumName()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpEnumMemberToContainingEnumName(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -780,16 +1058,15 @@ class {|unresolve3:$$D|} // Rename to C
                                 };
                            </Document>
                     </Project>
-                </Workspace>, renameTo:="Test")
-
+                </Workspace>, host:=host, renameTo:="Test")
 
             End Using
         End Sub
 
         <WorkItem(539801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539801")>
         <WorkItem(5886, "https://github.com/dotnet/roslyn/pull/5886")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpEnumToEnumMemberName()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpEnumToEnumMemberName(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -800,80 +1077,73 @@ class {|unresolve3:$$D|} // Rename to C
                             };
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="TestEnum")
-
+                </Workspace>, host:=host, renameTo:="TestEnum")
 
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicTypeFromConstructorUse()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicTypeFromConstructorUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Class [|Foo|]
+                            Class [|Goo|]
                                 Public Sub New()
                                 End Sub
 
                                 Public Sub Blah()
-                                    Dim x = New {|stmt1:$$Foo|}()
+                                    Dim x = New {|stmt1:$$Goo|}()
                                 End Sub
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicTypeFromSynthesizedConstructorUse()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicTypeFromSynthesizedConstructorUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                           Class [|Foo|]
+                           Class [|Goo|]
                                Public Sub Blah()
-                                   Dim x = New {|stmt1:$$Foo|}()
+                                   Dim x = New {|stmt1:$$Goo|}()
                                End Sub
                            End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameNamespace()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNamespace(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Namespace [|$$FooNamespace|]
+                            Namespace [|$$GooNamespace|]
                             End Namespace
                         </Document>
                         <Document>
-                            namespace [|FooNamespace|] { }
+                            namespace [|GooNamespace|] { }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBazNamespace")
-
+                </Workspace>, host:=host, renameTo:="BarBazNamespace")
 
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicEnum()
+        <Theory, WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicEnum(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -884,16 +1154,14 @@ class {|unresolve3:$$D|} // Rename to C
                            End Enum
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicEnumMember()
+        <Theory, WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicEnumMember(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -904,21 +1172,19 @@ class {|unresolve3:$$D|} // Rename to C
                            End Enum
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(539525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539525")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub DoNothingRename()
+        <Theory, WorkItem(539525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539525")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub DoNothingRename(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                           class Foo
+                           class Goo
                            {
                                void [|$$Blah|]()
                                {
@@ -926,16 +1192,14 @@ class {|unresolve3:$$D|} // Rename to C
                            }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Blah")
-
+                </Workspace>, host:=host, renameTo:="Blah")
 
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharpBugfix553631()
+        <Theory, WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharpBugfix553631(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -944,26 +1208,25 @@ class Program
 {
     void Main(string[] args)
     {
-        string {|stmt1:$$s|} = Foo&lt;string, string&gt;();
+        string {|stmt1:$$s|} = Goo&lt;string, string&gt;();
     }
  
-    string Foo&lt;T, S&gt;()
+    string Goo&lt;T, S&gt;()
     {
-        Return Foo &lt;T, S&gt;();
+        Return Goo &lt;T, S&gt;();
     }
 }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Blah")
+                </Workspace>, host:=host, renameTo:="Blah")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="Blah", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VisualBasicBugfix553631()
+        <Theory, WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VisualBasicBugfix553631(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -978,53 +1241,50 @@ Class Program
     End Sub
 
     Public Sub Bar()
-        Dim {|stmt1:$$e|} As String = Foo(Of String)()
+        Dim {|stmt1:$$e|} As String = Goo(Of String)()
     End Sub
 
-    Public Function Foo(Of A)() As String
+    Public Function Goo(Of A)() As String
     End Function
 End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Blah")
+                </Workspace>, host:=host, renameTo:="Blah")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="Blah", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExtensionMethod()
+        <Theory, WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtensionMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
                             public static class C
                             {
-                                public static void [|$$Foo|](this string s) { }
+                                public static void [|$$Goo|](this string s) { }
                             }
                             
                             class Program
                             {
                                 static void Main()
                                 {
-                                    "".{|stmt1:Foo|}();
+                                    "".{|stmt1:Goo|}();
                                 }
                             }
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542202")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpIndexerNamedArgument1()
+        <Theory, WorkItem(542202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542202")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpIndexerNamedArgument1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1033,24 +1293,22 @@ End Class
                             {
                                 int this[int x = 5, int [|y|] = 7] { get { return 0; } set { } }
  
-                                void Foo()
+                                void Goo()
                                 {
                                     var y = this[{|stmt1:$$y|}: 1];
                                 }
                             }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCSharpIndexerNamedArgument2()
+        <Theory, WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCSharpIndexerNamedArgument2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1059,23 +1317,22 @@ End Class
                             {
                                 int this[int [|$$x|]] { set { } }
 
-                                void Foo()
+                                void Goo()
                                 {
                                     this[{|stmt1:x|}: 1] = 0;
                                 }
                             }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameRangeVariable()
+        <Theory, WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameRangeVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1093,16 +1350,15 @@ End Class
                             }
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicParameterizedPropertyNamedArgument()
+        <Theory, WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicParameterizedPropertyNamedArgument(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1116,23 +1372,21 @@ End Class
                                     End Set
                                 End Property
 
-                                Sub Foo()
+                                Sub Goo()
                                     Me({|stmt1:x|}:=1) = 0
                                 End Sub
                             End Class
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameIndexerParameterFromDeclaration()
+        <Theory, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameIndexerParameterFromDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1146,18 +1400,16 @@ class Program
     }
 }                       </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameIndexerParameterFromUseInsideGetAccessor()
+        <Theory, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameIndexerParameterFromUseInsideGetAccessor(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1171,18 +1423,16 @@ class Program
     }
 }                       </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameIndexerParameterFromUseInsideSetAccessor()
+        <Theory, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameIndexerParameterFromUseInsideSetAccessor(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1196,18 +1446,16 @@ class Program
     }
 }                       </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="BarBaz", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialMethodParameter()
+        <Theory, WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialMethodParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1217,27 +1465,55 @@ using System;
 
 public partial class Test
 {
-    partial void Foo(object [|$$o|])
+    partial void Goo(object [|$$o|])
     {
     }
 }
 
 partial class Test
 {
-    partial void Foo(object [|o|]);
+    partial void Goo(object [|o|]);
 }
 
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
+            End Using
+        End Sub
+
+        <Theory, WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethodParameter(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+
+using System;
+
+public partial class Test
+{
+    public partial void Goo(object [|$$o|])
+    {
+    }
+}
+
+partial class Test
+{
+    public partial void Goo(object [|o|]);
+}
+
+                       </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(528820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528820")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVisualBasicAnonymousKey()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVisualBasicAnonymousKey(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1253,16 +1529,15 @@ partial class Test
                             End Module
                            </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
-
+                </Workspace>, host:=host, renameTo:="y")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542543")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameIncludesPreviouslyInvalidReference()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameIncludesPreviouslyInvalidReference(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1280,16 +1555,15 @@ partial class Test
 
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="x")
-
+                </Workspace>, host:=host, renameTo:="x")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(543027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543027")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameVariableInQueryAsUsingStatement()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVariableInQueryAsUsingStatement(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -1316,17 +1590,17 @@ class MyManagedType : System.IDisposable
 }
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
+                </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="y", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", replacement:="y", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(543169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543169")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub LambdaWithOutParameter()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub LambdaWithOutParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -1347,16 +1621,16 @@ class D
 }
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
+                </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("stmt1", replacement:="y", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(543567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543567")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CascadeBetweenOverridingProperties()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CascadeBetweenOverridingProperties(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
@@ -1385,16 +1659,15 @@ Class M
 End Class
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-
-                result.AssertLabeledSpansAre("stmt1", "Foo", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(529799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529799")>
-        Public Sub CascadeBetweenImplementedInterfaceEvent()
+        Public Sub CascadeBetweenImplementedInterfaceEvent(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
@@ -1402,51 +1675,49 @@ End Class
 Class C
     Event E([|$$x|] As Integer)
 
-    Sub Foo()
+    Sub Goo()
         RaiseEvent E({|stmt1:x|}:=1)
     End Sub
 End Class
 
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
-
+                </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("stmt1", "y", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(543567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543567")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CascadeBetweenEventParameters()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CascadeBetweenEventParameters(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
 using System;
 
-interface IFoo
+interface IGoo
 {
-    event EventHandler [|$$Foo|];
+    event EventHandler [|$$Goo|];
 }
 
-class Bar : IFoo
+class Bar : IGoo
 {
-    public event EventHandler [|Foo|];
+    public event EventHandler [|Goo|];
 }
 
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(531260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531260")>
-        Public Sub DoNotCascadeToMetadataSymbols()
+        Public Sub DoNotCascadeToMetadataSymbols(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1459,100 +1730,94 @@ class Bar : IFoo
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="CloneImpl")
-
+                </Workspace>, host:=host, renameTo:="CloneImpl")
 
             End Using
         End Sub
 
         <WorkItem(545473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545473")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialTypeParameter_CSharp1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialTypeParameter_CSharp1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
 partial class Class1
 {
-    partial void foo<$$[|T|]>([|T|] x);
-    partial void foo<[|T|]>([|T|] x)
+    partial void goo<$$[|T|]>([|T|] x);
+    partial void goo<[|T|]>([|T|] x)
     {
     }
 }]]></Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(545473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545473")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialTypeParameter_CSharp2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialTypeParameter_CSharp2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
 partial class Class1
 {
-    partial void foo<[|T|]>([|T|] x);
-    partial void foo<$$[|T|]>([|T|] x)
+    partial void goo<[|T|]>([|T|] x);
+    partial void goo<$$[|T|]>([|T|] x)
     {
     }
 }]]></Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
-
-
-            End Using
-        End Sub
-
-        <WorkItem(545472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545472")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialTypeParameter_VB1()
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="Visual Basic" CommonReferences="true">
-                        <Document><![CDATA[
-Public Module Module1
-    Partial Private Sub Foo(Of [|$$T|] As Class)(x as [|T|])
-    End Sub
-    Private Sub foo(Of [|T|] As Class)(x as [|T|])
-    End Sub
-End Module
-]]></Document>
-                    </Project>
-                </Workspace>, renameTo:="BarBaz")
-
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(545472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545472")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialTypeParameter_VB2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialTypeParameter_VB1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
 Public Module Module1
-    Partial Private Sub Foo(Of [|T|] As Class)(x as [|T|])
+    Partial Private Sub Goo(Of [|$$T|] As Class)(x as [|T|])
     End Sub
-    Private Sub foo(Of [|$$T|] As Class)(x as [|T|])
+    Private Sub goo(Of [|T|] As Class)(x as [|T|])
     End Sub
 End Module
 ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
+            End Using
+        End Sub
+
+        <WorkItem(545472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545472")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialTypeParameter_VB2(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document><![CDATA[
+Public Module Module1
+    Partial Private Sub Goo(Of [|T|] As Class)(x as [|T|])
+    End Sub
+    Private Sub goo(Of [|$$T|] As Class)(x as [|T|])
+    End Sub
+End Module
+]]></Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(529163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529163")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1566,49 +1831,44 @@ End Module
                                 End Namespace
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="N")
-
-
+                </Workspace>, host:=host, renameTo:="N")
             End Using
         End Sub
 
         <WorkItem(529163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529163")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516_2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            namespace Foo
+                            namespace Goo
                             {
                                 class B
                                 { }
                             }
 
-                            namespace Foo.[|$$B|]
+                            namespace Goo.[|$$B|]
                             { }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="N")
-
+                </Workspace>, host:=host, renameTo:="N")
 
             End Using
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialMethods_1_CS()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialMethods_1_CS(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            partial class Foo
+                            partial class Goo
                             {
                                 partial void [|F|]();
                             }
-                            partial class Foo
+                            partial class Goo
                             {
                                 partial void [|$$F|]()
                                 {
@@ -1617,25 +1877,48 @@ End Module
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
             End Using
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialMethods_2_CS()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethods_1_CS(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            partial class Foo
+                            partial class Goo
+                            {
+                                public partial void [|F|]();
+                            }
+                            partial class Goo
+                            {
+                                public partial void [|$$F|]()
+                                {
+                                    throw new System.Exception("F");
+                                }
+                            }
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Bar")
+
+            End Using
+        End Sub
+
+        <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialMethods_2_CS(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            partial class Goo
                             {
                                 partial void [|$$F|]();
                             }
-                            partial class Foo
+                            partial class Goo
                             {
                                 partial void [|F|]()
                                 {
@@ -1644,64 +1927,81 @@ End Module
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
-
+                </Workspace>, host:=host, renameTo:="Bar")
             End Using
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialMethods_1_VB()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExtendedPartialMethods_2_CS(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            partial class Goo
+                            {
+                                public partial void [|$$F|]();
+                            }
+                            partial class Goo
+                            {
+                                public partial void [|F|]()
+                                {
+                                    throw new System.Exception("F");
+                                }
+                            }
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Bar")
+            End Using
+        End Sub
+
+        <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialMethods_1_VB(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            partial class Foo
+                            partial class Goo
                                 partial private sub [|F|]()
                             end class
-                            partial class Foo
+                            partial class Goo
                                 private sub [|$$F|]()
                                     throw new System.Exception("F")
                                 end sub
                             end class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
             End Using
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamePartialMethods_2_VB()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamePartialMethods_2_VB(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            partial class Foo
+                            partial class Goo
                                 partial private sub [|$$F|]()
                             end class
-                            partial class Foo
+                            partial class Goo
                                 private sub [|F|]()
                                     throw new System.Exception("F")
                                 end sub
                             end class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
             End Using
         End Sub
 
         <WorkItem(530740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530740")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug530740()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug530740(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1722,25 +2022,23 @@ End Module
  
                             class A
                             {
-                                static void Foo(int x) { Console.WriteLine("int"); }
-                                static void Foo(MyInt x) { Console.WriteLine("MyInt"); }
+                                static void Goo(int x) { Console.WriteLine("int"); }
+                                static void Goo(MyInt x) { Console.WriteLine("MyInt"); }
                                 static void Main()
                                 {
-                                    Foo((MyInt)0);
+                                    Goo((MyInt)0);
                                 }
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="MyInt")
-
+                </Workspace>, host:=host, renameTo:="MyInt")
 
             End Using
         End Sub
 
         <WorkItem(530082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530082")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMethodThatImplementsInterfaceMethod()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodThatImplementsInterfaceMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1748,32 +2046,30 @@ End Module
                             Imports System
 
                             Interface I
-                                Sub Foo(Optional x As Integer = 0)
+                                Sub Goo(Optional x As Integer = 0)
                             End Interface
 
                             Class C
                                 Implements I
 
                                 Shared Sub Main()
-                                    DirectCast(New C(), I).Foo()
+                                    DirectCast(New C(), I).Goo()
                                 End Sub
 
-                                Private Sub [|$$I_Foo|](Optional x As Integer = 0) Implements I.Foo
+                                Private Sub [|$$I_Goo|](Optional x As Integer = 0) Implements I.Goo
                                     Console.WriteLine("test")
                                 End Sub
                             End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
-
+                </Workspace>, host:=host, renameTo:="Goo")
 
             End Using
         End Sub
 
         <WorkItem(529874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529874")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub DoNotRemoveAttributeSuffixOn__Attribute()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub DoNotRemoveAttributeSuffixOn__Attribute(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1787,16 +2083,14 @@ End Module
 
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="＿Attribute")
-
+                </Workspace>, host:=host, renameTo:="＿Attribute")
 
             End Using
         End Sub
 
         <WorkItem(553315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553315")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameEventParameterOnUsage()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameEventParameterOnUsage(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1804,37 +2098,34 @@ End Module
                             Class C
                             Event E([|x|] As Integer)
  
-                            Sub Foo()
+                            Sub Goo()
                                 RaiseEvent E({|stmt1:$$x|}:=1)
                             End Sub
                         End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
-
+                </Workspace>, host:=host, renameTo:="bar")
 
                 result.AssertLabeledSpansAre("stmt1", "bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCompilerGeneratedBackingFieldForNonCustomEvent()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCompilerGeneratedBackingFieldForNonCustomEvent(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             Class B
                                 Event [|$$X|]() ' Rename X to Y
-                                Sub Foo()
+                                Sub Goo()
                                     {|stmt1:XEvent|}()
                                 End Sub
                             End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "YEvent", RelatedLocationType.NoConflict)
             End Using
@@ -1842,16 +2133,16 @@ End Module
 
         <WorkItem(576607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576607")>
         <WorkItem(529819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCompilerGeneratedEventHandlerForNonCustomEvent()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCompilerGeneratedEventHandlerForNonCustomEvent(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             Class B
                                 Event [|$$X|]() ' Rename X to Y
-                                Sub Foo()
+                                Sub Goo()
                                     Dim y = New B.{|stmt1:XEventHandler|}(AddressOf bar)
                                 End Sub
 
@@ -1860,41 +2151,39 @@ End Module
                             End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "YEventHandler", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(576966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576966")>
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharpRenameParenthesizedFunctionName()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharpRenameParenthesizedFunctionName(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
                         class C
                         {
-                            void [|$$Foo|]()
+                            void [|$$Goo|]()
                             {
-                                (({|stmt1:Foo|}))();
+                                (({|stmt1:Goo|}))();
                             }
                         }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VisualBasicAwaitAsIdentifierInAsyncShouldBeEscaped()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VisualBasicAwaitAsIdentifierInAsyncShouldBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -1902,24 +2191,24 @@ End Module
                             Imports System
                             Module M
                                 Async Function methodIt() As Task(Of String)
-                                    Dim a As Func(Of String) = AddressOf {|stmt1:Foo|}
+                                    Dim a As Func(Of String) = AddressOf {|stmt1:Goo|}
                                 End Function
 
-                                Function [|$$Foo|]() As String
+                                Function [|$$Goo|]() As String
                                 End Function
                             End Module
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Await")
+                </Workspace>, host:=host, renameTo:="Await")
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "[Await]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharpAwaitAsIdentifierInAsyncMethodShouldBeEscaped0()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharpAwaitAsIdentifierInAsyncMethodShouldBeEscaped0(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1932,29 +2221,28 @@ class M
 {
     async public Task<string> methodIt()
     {
-        Func<string> a = {|stmt1:Foo|};
+        Func<string> a = {|stmt1:Goo|};
         return null;
     }
 
-    public static string [|$$Foo|]()
+    public static string [|$$Goo|]()
     {
         return "";
     }
 }
 ]]>
-
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="await")
+                </Workspace>, host:=host, renameTo:="await")
 
                 result.AssertLabeledSpansAre("stmt1", "@await", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1966,29 +2254,28 @@ class s
 {
     public void abc()
     {
-        Func<Task> sin = async () => { {|stmt1:Foo|}(); };
+        Func<Task> sin = async () => { {|stmt1:Goo|}(); };
     }
 
-    public int [|$$Foo|]()
+    public int [|$$Goo|]()
     {
         return 0;
     }
 
 }
 ]]>
-
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="await")
+                </Workspace>, host:=host, renameTo:="await")
 
                 result.AssertLabeledSpansAre("stmt1", "@await", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped1()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -2000,30 +2287,28 @@ class s
 {
     public void abc()
     {
-        Func<int, Task<int>> sink2 = (async c => { return {|stmt2:Foo|}(); });
+        Func<int, Task<int>> sink2 = (async c => { return {|stmt2:Goo|}(); });
     }
 
-    public int [|$$Foo|]()
+    public int [|$$Goo|]()
     {
         return 0;
     }
 
 }
 ]]>
-
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="await")
-
+                </Workspace>, host:=host, renameTo:="await")
 
                 result.AssertLabeledSpansAre("stmt2", "@await", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(601123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601123")>
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldNotBeEscaped()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldNotBeEscaped(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -2035,29 +2320,27 @@ class s
 {
     public void abc()
     {
-        Func<int, int> sink4 = ((c) => { return {|stmt3:Foo|}(); });
+        Func<int, int> sink4 = ((c) => { return {|stmt3:Goo|}(); });
     }
 
-    public int [|$$Foo|]()
+    public int [|$$Goo|]()
     {
         return 0;
     }
 
 }
 ]]>
-
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="await")
-
+                </Workspace>, host:=host, renameTo:="await")
 
                 result.AssertLabeledSpansAre("stmt3", "await", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VBRoundTripMissingModuleName_1()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VBRoundTripMissingModuleName_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -2066,29 +2349,28 @@ class s
 
                         Module Program
                             Sub Main()
-                                Dim mybar As N.{|stmt1:Foo|} = New {|stmt1:Foo|}()
+                                Dim mybar As N.{|stmt1:Goo|} = New {|stmt1:Goo|}()
                             End Sub
                         End Module
 
                         Namespace N
                             Module X
-                                Class [|$$Foo|]
+                                Class [|$$Goo|]
                                 End Class
                             End Module
 
                         End Namespace
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VBRoundTripMissingModuleName_2()
+        <Theory()>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VBRoundTripMissingModuleName_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -2097,29 +2379,28 @@ class s
 
                         Module Program
                             Sub Main()
-                                N.{|stmt1:Foo|}()
+                                N.{|stmt1:Goo|}()
                             End Sub
                         End Module
 
                         Namespace N
                             Module X
-                                Sub [|$$Foo|]()
+                                Sub [|$$Goo|]()
                                 End Sub
                             End Module
 
                         End Namespace
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(603767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603767")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug603767_RenamePartialAttributeDeclarationWithDifferentCasingAndCSharpUsage()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug603767_RenamePartialAttributeDeclarationWithDifferentCasingAndCSharpUsage(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2142,84 +2423,82 @@ class s
                             class C { }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="XATTRIBUTe")
-
+                </Workspace>, host:=host, renameTo:="XATTRIBUTe")
 
                 result.AssertLabeledSpansAre("resolved", "XATTRIBUTe", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(603371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603371")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug603371_VisualBasicRenameAttributeToGlobal()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug603371_VisualBasicRenameAttributeToGlobal(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
                             Imports System
 
-                            &lt;{|escaped:Foo|}&gt;
-                            Class {|escaped:$$Foo|} ' Rename Foo to Global
+                            &lt;{|escaped:Goo|}&gt;
+                            Class {|escaped:$$Goo|} ' Rename Goo to Global
                                 Inherits Attribute
                             End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Global")
+                </Workspace>, host:=host, renameTo:="Global")
 
                 result.AssertLabeledSpecialSpansAre("escaped", "[Global]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(603371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603371")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug603371_VisualBasicRenameAttributeToGlobal_2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug603371_VisualBasicRenameAttributeToGlobal_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
                             Imports System
 
-                            &lt;{|escaped:Foo|}&gt;
-                            Class {|escaped:$$Foo|} ' Rename Foo to Global
+                            &lt;{|escaped:Goo|}&gt;
+                            Class {|escaped:$$Goo|} ' Rename Goo to Global
                                 Inherits Attribute
                             End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="[global]")
+                </Workspace>, host:=host, renameTo:="[global]")
 
                 result.AssertLabeledSpansAre("escaped", "[global]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(602494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602494")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug602494_RenameOverrideWithNoOverriddenMember()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug602494_RenameOverrideWithNoOverriddenMember(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
                             class C1
                             {
-                                override void [|$$Foo|]() {}
+                                override void [|$$Goo|]() {}
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
             End Using
         End Sub
 
         <WorkItem(576607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576607")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug576607()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug576607(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Class B
     Event [|$$X|]()
-    Sub Foo()
+    Sub Goo()
         Dim y = New {|stmt1:XEventHandler|}(AddressOf bar)
     End Sub
 
@@ -2228,16 +2507,15 @@ Class B
 End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Baz")
-
+                </Workspace>, host:=host, renameTo:="Baz")
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "BazEventHandler", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2259,16 +2537,15 @@ End Class
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Z")
-
+                </Workspace>, host:=host, renameTo:="Z")
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor_2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2290,16 +2567,15 @@ End Class
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Z")
-
+                </Workspace>, host:=host, renameTo:="Z")
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "Get_Z", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor_3()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor_3(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2329,8 +2605,7 @@ End Class
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Z")
-
+                </Workspace>, host:=host, renameTo:="Z")
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "Get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "Set_Z", RelatedLocationType.NoConflict)
@@ -2338,8 +2613,8 @@ End Class
         End Sub
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2374,8 +2649,7 @@ End Class
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Z")
-
+                </Workspace>, host:=host, renameTo:="Z")
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2383,8 +2657,8 @@ End Class
         End Sub
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2421,8 +2695,7 @@ End Class
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Z")
-
+                </Workspace>, host:=host, renameTo:="Z")
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2432,8 +2705,8 @@ End Class
         End Sub
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_3()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_3(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2470,8 +2743,7 @@ End Class
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Z")
-
+                </Workspace>, host:=host, renameTo:="Z")
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2481,8 +2753,8 @@ End Class
         End Sub
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_4()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_4(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2536,8 +2808,7 @@ End Class
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Z")
-
+                </Workspace>, host:=host, renameTo:="Z")
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2547,8 +2818,8 @@ End Class
         End Sub
 
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_5()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_5(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2595,8 +2866,7 @@ End Class
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Z")
-
+                </Workspace>, host:=host, renameTo:="Z")
 
                 result.AssertLabeledSpecialSpansAre("getaccessor", "get_Z", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("setaccessor", "set_Z", RelatedLocationType.NoConflict)
@@ -2606,8 +2876,8 @@ End Class
         End Sub
 
         <WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug610120_CrossLanguageOverrideImplicitPropertyAccessorConflictWithVBProperty()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug610120_CrossLanguageOverrideImplicitPropertyAccessorConflictWithVBProperty(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2657,7 +2927,7 @@ End Class
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
+                </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("conflict", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("getaccessorstmt", "get_y", RelatedLocationType.UnresolvedConflict)
@@ -2669,8 +2939,8 @@ End Class
         End Sub
 
         <WorkItem(612380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612380")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug612380_CrossLanguageOverrideImplicitPropertyAccessorCascadesToInterface()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug612380_CrossLanguageOverrideImplicitPropertyAccessorCascadesToInterface(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2716,7 +2986,7 @@ End Class
                             }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
+                </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("conflict", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("declconflict", "y", RelatedLocationType.UnresolvedConflict)
@@ -2726,8 +2996,8 @@ End Class
         End Sub
 
         <WorkItem(866094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866094")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug866094()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug866094(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -2750,12 +3020,12 @@ End Class
                             }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="X")
+                </Workspace>, host:=host, renameTo:="X")
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameDynamicallyBoundFunction()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameDynamicallyBoundFunction(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -2776,16 +3046,15 @@ class A
 }                 
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("Stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529989")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharp_RenameToIdentifierWithUnicodeEscaping()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharp_RenameToIdentifierWithUnicodeEscaping(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -2799,39 +3068,37 @@ public class A
 }                 
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="M\u0061in")
-
+                </Workspace>, host:=host, renameTo:="M\u0061in")
 
                 result.AssertLabeledSpansAre("stmt1", "M\u0061in", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(576966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576966")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharp_RenameParenthesizedMethodNames()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharp_RenameParenthesizedMethodNames(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 class C
 {
-    void [|$$Foo|]()
+    void [|$$Goo|]()
     {
-        (({|stmt1:Foo|}))();
+        (({|stmt1:Goo|}))();
     }
 }
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
-
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("stmt1", "Bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(632052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632052")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharp_RenameParameterUsedInObjectInitializer()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CSharp_RenameParameterUsedInObjectInitializer(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -2851,8 +3118,7 @@ class C
 }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="n")
-
+                </Workspace>, host:=host, renameTo:="n")
 
                 result.AssertLabeledSpansAre("stmt1", "n", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", "n", RelatedLocationType.NoConflict)
@@ -2860,8 +3126,8 @@ class C
         End Sub
 
         <WorkItem(624092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624092")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub LocationsIssue()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub LocationsIssue(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -2872,7 +3138,6 @@ namespace N
 }
                         </Document>
                     </Project>
-
                     <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -2892,15 +3157,14 @@ Module Program
 End Module
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="D")
-
+                </Workspace>, host:=host, renameTo:="D")
 
                 result.AssertLabeledSpansAre("resolved", "Dim c = New N.M.D()", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameParam1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameParam1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -2919,15 +3183,14 @@ class Program
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="pargs")
-
+                    </Workspace>, host:=host, renameTo:="pargs")
 
             End Using
         End Sub
 
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameParam1_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameParam1_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -2942,14 +3205,13 @@ Class Program
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="pargs")
-
+                    </Workspace>, host:=host, renameTo:="pargs")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameParam2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameParam2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -2969,7 +3231,7 @@ End Class]]>
                                 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="if")
+                    </Workspace>, host:=host, renameTo:="if")
 
                 result.AssertLabeledSpecialSpansAre("Resolve", "@if", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("ResolveWithoutAt", "if", RelatedLocationType.NoConflict)
@@ -2977,8 +3239,8 @@ End Class]]>
         End Sub
 
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameParam2_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameParam2_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -2993,14 +3255,14 @@ Class Program
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="[If]")
+                    </Workspace>, host:=host, renameTo:="[If]")
 
                 result.AssertLabeledSpansAre("Resolve", <![CDATA[[If]]]>.Value, RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameTypeParam1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeParam1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -3018,18 +3280,18 @@ class B<[|T|]>
     /// <typeparam name="P"></typeparam>
     /// <param name="x"></param>
     /// <param name="z"></param>
-    [|T|] Foo<U, P>(U x, [|T|] z) { return z; }
+    [|T|] Goo<U, P>(U x, [|T|] z) { return z; }
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameTypeParam1_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeParam1_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -3046,21 +3308,20 @@ Class B(Of [|T|])
     ''' <typeparam name="P"></typeparam>
     ''' <param name="x"></param>
     ''' <param name="z"></param>
-    Private Function Foo(Of U, P)(x As U, z As [|T|]) As [|T|]
+    Private Function Goo(Of U, P)(x As U, z As [|T|]) As [|T|]
         Return z
     End Function
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
-
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
         <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug624310_VBCascadeLambdaParameterInFieldInitializer()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug624310_VBCascadeLambdaParameterInFieldInitializer(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -3076,15 +3337,15 @@ End Class]]>
                             End Module
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="z")
+                </Workspace>, host:=host, renameTo:="z")
 
                 result.AssertLabeledSpansAre("fieldinit", "z", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug624310_CSNoCascadeLambdaParameterInFieldInitializer()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug624310_CSNoCascadeLambdaParameterInFieldInitializer(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -3097,15 +3358,15 @@ class Program
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="z")
+                </Workspace>, host:=host, renameTo:="z")
 
                 result.AssertLabeledSpansAre("fieldinit", "z", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug633582_CSDoNotAddParenthesesInExpansionForParenthesizedBinaryExpression()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug633582_CSDoNotAddParenthesesInExpansionForParenthesizedBinaryExpression(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -3126,30 +3387,30 @@ class Program
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="xxx")
+                </Workspace>, host:=host, renameTo:="xxx")
 
                 result.AssertLabeledSpansAre("stmt", "xxx", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(622086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622086")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9412")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameExplicitInterfaceImplementation()
+        <Theory(Skip:="https://github.com/dotnet/roslyn/issues/9412")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug622086_CSRenameExplicitInterfaceImplementation(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
 namespace X
 {
-    interface [|$$IFoo|]
+    interface [|$$IGoo|]
     {
         void Clone();
     }
 
-    class Baz : [|IFoo|]
+    class Baz : [|IGoo|]
     {
-        void [|IFoo|].Clone()
+        void [|IGoo|].Clone()
         {
 
         }
@@ -3158,16 +3419,15 @@ namespace X
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="IFooEx")
+                </Workspace>, host:=host, renameTo:="IGooEx")
             End Using
         End Sub
 
         <WorkItem(8139, "https://github.com/dotnet/roslyn/issues/8139")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExplicitInterfaceImplementationFromDifferentProject()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExplicitInterfaceImplementationFromDifferentProject(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <ProjectReference>Project2</ProjectReference>
                         <Document>
@@ -3185,7 +3445,6 @@ class Program
 }
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <Document>
 public class Class1 : IInterface
@@ -3199,17 +3458,15 @@ public interface IInterface
 }
                         </Document>
                     </Project>
-
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
             End Using
         End Sub
 
         <WorkItem(529803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529803")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingEventCascadesToCSUsingEventHandlerDelegate()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingEventCascadesToCSUsingEventHandlerDelegate(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3223,7 +3480,6 @@ Class C
 End Class
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3246,20 +3502,17 @@ class Program : IA
 }
                         </Document>
                     </Project>
-
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529803")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3273,7 +3526,6 @@ Class C
 End Class
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3296,20 +3548,17 @@ class Program : IA
 }
                         </Document>
                     </Project>
-
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529803")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3323,7 +3572,6 @@ Class C
 End Class
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3346,20 +3594,17 @@ class Program : IA
 }
                         </Document>
                     </Project>
-
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(655621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655621")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_3()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_3(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3367,7 +3612,6 @@ Public Interface IA
 End Interface
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3378,20 +3622,17 @@ class C
 }
                         </Document>
                     </Project>
-
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(655621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655621")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_4()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_4(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3399,7 +3640,6 @@ Public Interface IA
 End Interface
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3410,20 +3650,17 @@ class C
 }
                         </Document>
                     </Project>
-
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(655621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655621"), WorkItem(762094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762094")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_5()
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_5(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Public Interface IA
@@ -3431,7 +3668,6 @@ Public Interface IA
 End Interface
                         </Document>
                     </Project>
-
                     <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -3441,22 +3677,19 @@ Class C
 Class C
                         </Document>
                     </Project>
-
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpecialSpansAre("handler", "YEventHandler", type:=RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameVarNotSupported()
-            Assert.ThrowsAny(Of ArgumentException)(Sub()
-                                                       Dim result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
-                        <Document><![CDATA[
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug622086_CSRenameVarNotSupported(host As RenameTestHost)
+            Dim result = RenameEngineResult.Create(_outputHelper,
+<Workspace>
+    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+        <Document><![CDATA[
 using System;
 
 namespace X
@@ -3471,14 +3704,13 @@ namespace X
 }
 ]]>]
                         </Document>
-                    </Project>
-                </Workspace>, renameTo:="Int32")
-                                                   End Sub)
+    </Project>
+</Workspace>, host:=host, renameTo:="Int32", expectFailure:=True)
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameCustomTypeNamedVarSupported()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug622086_CSRenameCustomTypeNamedVarSupported(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -3501,21 +3733,19 @@ namespace X
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="bar")
-
+                </Workspace>, host:=host, renameTo:="bar")
 
                 result.AssertLabeledSpansAre("stmt", "bar", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameDynamicNotSupported()
-            Assert.ThrowsAny(Of ArgumentException)(Sub()
-                                                       Dim result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
-                        <Document><![CDATA[
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug622086_CSRenameDynamicNotSupported(host As RenameTestHost)
+            Dim result = RenameEngineResult.Create(_outputHelper,
+<Workspace>
+    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+        <Document><![CDATA[
 using System;
 
 namespace X
@@ -3530,171 +3760,111 @@ namespace X
 }
 ]]>]
                         </Document>
-                    </Project>
-                </Workspace>, renameTo:="Int32")
-                                                   End Sub)
+    </Project>
+</Workspace>, host:=host, renameTo:="Int32", expectFailure:=True)
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToVarSupported()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug622086_CSRenameToVarNotSupportedNoConflictsWithOtherVar(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
-class [|Program|]
+class {|Conflict:Program|}
 {
     static void Main(string[] args)
     {
-        {|stmt:$$Program|} x = null;
+        {|Conflict:$$Program|} x = null;
+        var y = 23;
     }
 }
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="var")
+                </Workspace>, host:=host, renameTo:="var")
 
-
-                result.AssertLabeledSpansAre("stmt", "var", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToVarSupportedButConflictsWithOtherVar()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug622086_CSRenameToDynamicNotSupported(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
-class [|Program|]
+class {|Conflict:Program|}
 {
     static void Main(string[] args)
     {
-        {|stmt:$$Program|} x = null;
-        {|conflict:var|} y = 23;
+        {|Conflict:$$Program|} x = null;
     }
 }
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="var")
+                </Workspace>, host:=host, renameTo:="dynamic")
 
-
-                result.AssertLabeledSpansAre("stmt", "var", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToVarSupportedButDoesntConflictsWithOtherVarOfSameType()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug622086_CSRenameToDynamicNotSupported2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
-class [|Program|]
+class {|Conflict:Program|}
 {
     static void Main(string[] args)
     {
-        {|stmt1:$$Program|} x = null;
-        var y = new {|stmt2:Program|}();
+        {|Conflict:$$Program|} x = null;
+        dynamic y = 23;
     }
 }
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="var")
+                </Workspace>, host:=host, renameTo:="dynamic")
 
-
-                result.AssertLabeledSpansAre("stmt1", "var", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("stmt2", "var", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToDynamicSupported()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub Bug622086_CSRenameToDynamicSupportedButConflictsWithOtherDynamic_2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
-class [|Program|]
+class {|Conflict:Program|}
 {
     static void Main(string[] args)
     {
-        {|stmt:$$Program|} x = null;
+        {|Conflict:$$Program|} x = null;
+        dynamic y = new {|Conflict:Program|}();
     }
 }
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="dynamic")
+                </Workspace>, host:=host, renameTo:="dynamic")
 
-
-                result.AssertLabeledSpansAre("stmt", "dynamic", RelatedLocationType.NoConflict)
-            End Using
-        End Sub
-
-        <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToDynamicSupportedButConflictsWithOtherDynamic_1()
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
-                        <Document><![CDATA[
-class [|Program|]
-{
-    static void Main(string[] args)
-    {
-        {|stmt:$$Program|} x = null;
-        {|conflict:dynamic|} y = 23;
-    }
-}
-]]>]
-                        </Document>
-                    </Project>
-                </Workspace>, renameTo:="dynamic")
-
-
-                result.AssertLabeledSpansAre("stmt", "dynamic", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
-            End Using
-        End Sub
-
-        <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug622086_CSRenameToDynamicSupportedButConflictsWithOtherDynamic_2()
-            Using result = RenameEngineResult.Create(_outputHelper,
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
-                        <Document><![CDATA[
-class [|Program|]
-{
-    static void Main(string[] args)
-    {
-        {|stmt1:$$Program|} x = null;
-        {|conflict:dynamic|} y = new {|stmt2:Program|}();
-    }
-}
-]]>]
-                        </Document>
-                    </Project>
-                </Workspace>, renameTo:="dynamic")
-
-
-                result.AssertLabeledSpansAre("stmt1", "dynamic", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("stmt2", "dynamic", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(608988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608988")>
         <WorkItem(608989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608989")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameNamespaceInVbFromCSharReference()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNamespaceInVbFromCSharReference(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 Namespace [|N|]
@@ -3703,24 +3873,21 @@ Namespace [|N|]
 End Namespace
                         </Document>
                     </Project>
-
                     <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
 class Y : [|$$N|].X { }
                         </Document>
                     </Project>
-
-                </Workspace>, renameTo:="Foo")
-
+                </Workspace>, host:=host, renameTo:="Goo")
 
             End Using
         End Sub
 
 #Region "Cref"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameTypeFromCref()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeFromCref(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -3736,15 +3903,14 @@ class [|Program|]
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
-
+                </Workspace>, host:=host, renameTo:="y")
 
             End Using
         End Sub
 
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameTypeFromCref_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeFromCref_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
@@ -3758,14 +3924,13 @@ End Class
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMemberFromCref()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMemberFromCref(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -3781,15 +3946,14 @@ class Program
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
-
+                </Workspace>, host:=host, renameTo:="y")
 
             End Using
         End Sub
 
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMemberFromCref_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMemberFromCref_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
@@ -3803,14 +3967,13 @@ End Class
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Y")
-
+                </Workspace>, host:=host, renameTo:="Y")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefFromMember()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefFromMember(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -3826,15 +3989,14 @@ class Program
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
-
+                </Workspace>, host:=host, renameTo:="y")
 
             End Using
         End Sub
 
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefFromMember_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefFromMember_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
@@ -3848,15 +4010,14 @@ End Class
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="y")
-
+                </Workspace>, host:=host, renameTo:="y")
 
             End Using
         End Sub
 
         <WorkItem(546952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546952")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameIncludingCrefContainingAttribute()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameIncludingCrefContainingAttribute(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -3864,17 +4025,17 @@ End Class
                             <![CDATA[
 using System;
 /// <summary>
-/// <see cref="{|yAttribute:FooAttribute|}" />
+/// <see cref="{|yAttribute:GooAttribute|}" />
 /// </summary>
-[{|y:Foo|}]
-class {|yAttribute:F$$ooAttribute|} : Attribute
+[{|y:Goo|}]
+class {|yAttribute:G$$ooAttribute|} : Attribute
 {
 }
 
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="yAttribute")
+                </Workspace>, host:=host, renameTo:="yAttribute")
 
                 result.AssertLabeledSpansAre("yAttribute", replacement:="yAttribute", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("y", replacement:="y", type:=RelatedLocationType.NoConflict)
@@ -3883,24 +4044,24 @@ class {|yAttribute:F$$ooAttribute|} : Attribute
 
         <WorkItem(546952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546952")>
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameIncludingCrefContainingAttribute_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameIncludingCrefContainingAttribute_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                         <Document>
                             <![CDATA[
 ''' <summary>
-''' <see cref="{|YAttribute:$$FooAttribute|}" />
+''' <see cref="{|YAttribute:$$GooAttribute|}" />
 ''' </summary>
-<{|Y:Foo|}>
-Class {|YAttribute:FooAttribute|}
+<{|Y:Goo|}>
+Class {|YAttribute:GooAttribute|}
 	Inherits Attribute
 End Class
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="YAttribute")
+                </Workspace>, host:=host, renameTo:="YAttribute")
 
                 result.AssertLabeledSpansAre("YAttribute", replacement:="YAttribute", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Y", replacement:="Y", type:=RelatedLocationType.NoConflict)
@@ -3908,8 +4069,8 @@ End Class
         End Sub
 
         <WorkItem(546952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546952")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameFromCrefContainingAttribute()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameFromCrefContainingAttribute(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -3917,17 +4078,17 @@ End Class
                             <![CDATA[
 using System;
 /// <summary>
-/// <see cref="{|yAttribute:FooA$$ttribute|}" />
+/// <see cref="{|yAttribute:GooA$$ttribute|}" />
 /// </summary>
-[{|y:Foo|}]
-class {|yAttribute:FooAttribute|} : Attribute
+[{|y:Goo|}]
+class {|yAttribute:GooAttribute|} : Attribute
 {
 }
 
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="yAttribute")
+                </Workspace>, host:=host, renameTo:="yAttribute")
 
                 result.AssertLabeledSpansAre("yAttribute", replacement:="yAttribute", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("y", replacement:="y", type:=RelatedLocationType.NoConflict)
@@ -3935,8 +4096,8 @@ class {|yAttribute:FooAttribute|} : Attribute
         End Sub
 
         <WorkItem(546952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546952"), WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameFromCrefContainingAttribute_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameFromCrefContainingAttribute_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
@@ -3944,15 +4105,15 @@ class {|yAttribute:FooAttribute|} : Attribute
                             <![CDATA[
 Imports System
 ''' <summary>
-''' <see cref="{|yAttribute:FooA$$ttribute|}" />
+''' <see cref="{|yAttribute:GooA$$ttribute|}" />
 ''' </summary>
-<{|y:Foo|}>
-Class {|yAttribute:FooAttribute|} : Inherits Attribute
+<{|y:Goo|}>
+Class {|yAttribute:GooAttribute|} : Inherits Attribute
 End Class
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="yAttribute")
+                </Workspace>, host:=host, renameTo:="yAttribute")
 
                 result.AssertLabeledSpansAre("yAttribute", replacement:="yAttribute", type:=RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("y", replacement:="y", type:=RelatedLocationType.NoConflict)
@@ -3960,8 +4121,8 @@ End Class
         End Sub
 
         <WorkItem(531015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531015")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefTypeParameter()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefTypeParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
@@ -3971,15 +4132,15 @@ End Class
 class C<T> { }
 ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="K")
+                </Workspace>, host:=host, renameTo:="K")
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
         <WorkItem(640373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640373")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4006,15 +4167,15 @@ class Tester
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="if")
+                    </Workspace>, host:=host, renameTo:="if")
 
                 result.AssertLabeledSpecialSpansAre("Resolve", "@if", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(640373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640373")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref1_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref1_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4037,15 +4198,15 @@ Class Tester
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="If")
+                    </Workspace>, host:=host, renameTo:="If")
 
                 result.AssertLabeledSpecialSpansAre("Resolve1", "[If]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("Resolve2", "If", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4070,18 +4231,17 @@ class Tester
         }
     }
 }]]>
-
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="y")
+                    </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("Stmt1", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Stmt2", "y", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref2_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref2_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4102,10 +4262,9 @@ Class Tester
         End Set
     End Property
 End Class]]>
-
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="y")
+                    </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("Stmt1", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Stmt2", "y", RelatedLocationType.NoConflict)
@@ -4113,8 +4272,8 @@ End Class]]>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref3()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref3(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4125,17 +4284,17 @@ class C<[|$$T|]>
     /// <see cref="C{T}"/>
     /// </summary>
     /// <param name="x"></param>
-    void Foo(C<dynamic> x, C<string> y) { }
+    void Goo(C<dynamic> x, C<string> y) { }
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref3_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref3_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4145,19 +4304,18 @@ Class C(Of [|$$T|])
     ''' <see cref="C(Of [|T|])"/>
     ''' </summary>
     ''' <param name="x"></param>
-    Sub Foo(x As C(Of Object), y As C(Of String))
+    Sub Goo(x As C(Of Object), y As C(Of String))
     End Sub
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
-
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref4()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref4(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4169,18 +4327,17 @@ class C<T>
     /// <see cref="C{T}.Bar(T)" />
     /// </summary>
     /// <param name="x"></param>
-    void Foo(C<dynamic> x, C<string> y) { }
+    void Goo(C<dynamic> x, C<string> y) { }
     void Bar(T x) { }
 }]]>
-
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref4_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref4_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4191,21 +4348,20 @@ Class C(Of [|T|])
     ''' <see cref="C(Of [|T|]).Bar(Of [|T|])" />
     ''' </summary>
     ''' <param name="x"></param>
-    Sub Foo(x As C(Of Object), y As C(Of String))
+    Sub Goo(x As C(Of Object), y As C(Of String))
     End Sub
     Sub Bar(x As [|T|])
     End Sub
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
-
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref5()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref5(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4216,18 +4372,18 @@ class {|Resolve:C|}<T>
     /// <see cref="{|Resolve:C|}{T}"/>
     /// </summary>
     /// <param name="x"></param>
-    void Foo({|Resolve:$$C|}<dynamic> x, {|Resolve:C|}<string> y) { }
+    void Goo({|Resolve:$$C|}<dynamic> x, {|Resolve:C|}<string> y) { }
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="string")
+                    </Workspace>, host:=host, renameTo:="string")
 
                 result.AssertLabeledSpecialSpansAre("Resolve", "@string", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref5_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref5_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4237,19 +4393,19 @@ Class {|Resolve:C|}(Of T)
     ''' <see cref="{|Resolve:C|}(Of T)"/>
     ''' </summary>
     ''' <param name="x"></param>
-    Sub Foo(x As {|Resolve:$$C|}(Of Object), y As {|Resolve:C|}(Of String))
+    Sub Goo(x As {|Resolve:$$C|}(Of Object), y As {|Resolve:C|}(Of String))
     End Sub
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="String")
+                    </Workspace>, host:=host, renameTo:="String")
 
                 result.AssertLabeledSpecialSpansAre("Resolve", "[String]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref6()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref6(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4261,7 +4417,7 @@ namespace Test
     /// </summary>
     class C
     {
-        void Foo() { }
+        void Goo() { }
     }
 }
 class [|C|]
@@ -4270,14 +4426,13 @@ class [|C|]
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
-
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref6_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref6_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4287,7 +4442,7 @@ Namespace Test
     ''' <seealso cref="Global.[|$$C|]"/>
     ''' </summary>
     Class C
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Class
 End Namespace
@@ -4296,14 +4451,13 @@ Class [|C|]
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
-
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref7()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref7(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4341,14 +4495,13 @@ namespace Test
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="C")
-
+                    </Workspace>, host:=host, renameTo:="C")
 
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref7_VisualBasic()
+        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref7_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4379,14 +4532,13 @@ Namespace Test
 End Namespace]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="C")
-
+                    </Workspace>, host:=host, renameTo:="C")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref8()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref8(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4413,14 +4565,13 @@ class B : C, I
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
-
+                    </Workspace>, host:=host, renameTo:="Goo")
 
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref8_VisualBasic()
+        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref8_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4444,81 +4595,79 @@ Class B : Inherits C : Implements I
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
-
+                    </Workspace>, host:=host, renameTo:="Goo")
 
             End Using
         End Sub
 
-        <WpfFact(Skip:="640502"), Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref9()
+        <WpfTheory(Skip:="640502"), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref9(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
 interface I
 {
-    void [|Foo|]();
+    void [|Goo|]();
 }
 abstract class C
 {
-    public void [|Foo|]() { }
+    public void [|Goo|]() { }
 }
 
 class B : C, I
 {
     /// <summary>
-    /// <see cref="I.[|Foo|]()"/>
-    /// <see cref="[|Foo|]()"/>
-    /// <see cref="C.[|Foo|]()"/>
+    /// <see cref="I.[|Goo|]()"/>
+    /// <see cref="[|Goo|]()"/>
+    /// <see cref="C.[|Goo|]()"/>
     /// </summary>
     public void Bar()
     {
-        [|$$Foo|]();
+        [|$$Goo|]();
     }
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Baz")
-
+                    </Workspace>, host:=host, renameTo:="Baz")
 
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref9_VisualBasic()
+        <Theory(), CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref9_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
 Interface I
-    Sub {|Interface:Foo|}()
+    Sub {|Interface:Goo|}()
 End Interface
 MustInherit Class C
-    Public Sub [|Foo|]()
+    Public Sub [|Goo|]()
     End Sub
 End Class
 Class B : Inherits C : Implements I
     ''' <summary>
-    ''' <see cref="I.{|Interface:Foo|}()"/>
-    ''' <see cref="[|Foo|]()"/>
-    ''' <see cref="C.[|Foo|]()"/>
+    ''' <see cref="I.{|Interface:Goo|}()"/>
+    ''' <see cref="[|Goo|]()"/>
+    ''' <see cref="C.[|Goo|]()"/>
     ''' </summary>
-    Public Sub Bar() Implements I.Foo
-        [|$$Foo|]()
+    Public Sub Bar() Implements I.Goo
+        [|$$Goo|]()
     End Sub
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Baz")
+                    </Workspace>, host:=host, renameTo:="Baz")
 
-                result.AssertLabeledSpansAre("Interface", "Foo")
+                result.AssertLabeledSpansAre("Interface", "Goo")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref10()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref10(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4530,7 +4679,7 @@ class C
     /// <see cref="[|Del|]"/>
     /// <see cref="B.Del" />
     /// </summary>
-    void Foo()
+    void Goo()
     {
         [|Del|] d;
     }
@@ -4545,14 +4694,13 @@ class C
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bel")
-
+                    </Workspace>, host:=host, renameTo:="Bel")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref10_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref10_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4563,7 +4711,7 @@ Class C
     ''' <see cref="[|Del|]"/>
     ''' <see cref="B.Del" />
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
         Dim d As [|Del|]
     End Sub
     Class B
@@ -4576,14 +4724,13 @@ Class C
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bel")
-
+                    </Workspace>, host:=host, renameTo:="Bel")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref11()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref11(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4603,14 +4750,13 @@ class Test
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bel")
-
+                    </Workspace>, host:=host, renameTo:="Bel")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref11_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref11_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4626,14 +4772,13 @@ Class Test
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bel")
-
+                    </Workspace>, host:=host, renameTo:="Bel")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref12()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref12(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4650,7 +4795,7 @@ class Program
     {   
     }
 
-    static void [|$$Foo|]()
+    static void [|$$Goo|]()
     {
     }
 }
@@ -4660,15 +4805,14 @@ class Bar
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bar")
-
+                    </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("resolve", "global::Bar", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref12_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref12_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4683,7 +4827,7 @@ Class Program
     Shared Sub Main(args As String())
     End Sub
 
-    Shared Sub [|$$Foo|]()
+    Shared Sub [|$$Goo|]()
     End Sub
 End Class
 
@@ -4691,15 +4835,14 @@ Class Bar
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bar")
-
+                    </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("resolve", "Global.Bar", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref13()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref13(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4726,15 +4869,14 @@ public class Bar
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bar")
-
+                    </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("resolve", "global::Bar", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref13_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref13_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4756,15 +4898,14 @@ Public Class Bar
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bar")
-
+                    </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("resolve", "Global.Bar", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref14()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref14(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4778,7 +4919,7 @@ public class A
             /// <summary>
             /// <see cref=" {|resolve:D|}"/>
             /// </summary>
-            static void [|$$foo|]()
+            static void [|$$goo|]()
             {
 
             }
@@ -4793,15 +4934,14 @@ public class A
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
-
+                    </Workspace>, host:=host, renameTo:="D")
 
                 result.AssertLabeledSpansAre("resolve", "B.D", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref14_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref14_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4812,7 +4952,7 @@ Public Class A
             ''' <summary>
             ''' <see cref="{|resolve:D|}"/>
             ''' </summary>
-            Shared Sub [|$$foo|]()
+            Shared Sub [|$$goo|]()
             End Sub
         End Class
         Public Class D
@@ -4821,16 +4961,15 @@ Public Class A
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
-
+                    </Workspace>, host:=host, renameTo:="D")
 
                 result.AssertLabeledSpansAre("resolve", "B.D", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673562")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref15()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref15(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4853,16 +4992,15 @@ namespace N
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="N")
-
+                    </Workspace>, host:=host, renameTo:="N")
 
                 result.AssertLabeledSpansAre("Resolve", "global::N", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673562")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref15_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref15_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4882,16 +5020,15 @@ Namespace N
 End Namespace]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="N")
-
+                    </Workspace>, host:=host, renameTo:="N")
 
                 result.AssertLabeledSpansAre("Resolve", "Global.N.C", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673667"), WorkItem(760850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760850")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref17()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref17(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4915,16 +5052,15 @@ class P
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="a")
-
+                    </Workspace>, host:=host, renameTo:="a")
 
                 result.AssertLabeledSpansAre("Resolve", "P.a", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673667"), WorkItem(760850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760850")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref17_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref17_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -4946,16 +5082,15 @@ Class P
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="a")
-
+                    </Workspace>, host:=host, renameTo:="a")
 
                 result.AssertLabeledSpansAre("Resolve", "P.a", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673667")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCref18()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCref18(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -4980,15 +5115,14 @@ namespace N
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="N")
-
+                    </Workspace>, host:=host, renameTo:="N")
 
                 result.AssertLabeledSpansAre("Resolve", "global::N", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefWithUsing1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefWithUsing1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5013,16 +5147,15 @@ namespace N1
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="R1")
-
+                    </Workspace>, host:=host, renameTo:="R1")
 
                 result.AssertLabeledSpansAre("Resolve", "C1", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefWithUsing1_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefWithUsing1_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5047,15 +5180,14 @@ End Namespace
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="R1")
-
+                    </Workspace>, host:=host, renameTo:="R1")
 
                 result.AssertLabeledSpansAre("Resolve", "C1.C2", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefWithUsing2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefWithUsing2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5085,16 +5217,15 @@ namespace N2
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="R1")
-
+                    </Workspace>, host:=host, renameTo:="R1")
 
                 result.AssertLabeledSpansAre("Resolve", "global::N1", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(767163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767163")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefWithUsing2_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefWithUsing2_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5122,15 +5253,14 @@ End Namespace
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="R1")
-
+                    </Workspace>, host:=host, renameTo:="R1")
 
                 result.AssertLabeledSpansAre("Resolve", "Global.N1.C1.C2", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefWithInterface()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefWithInterface(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5139,14 +5269,14 @@ namespace N
 {
     interface [|I|]
     {
-        void Foo();
+        void Goo();
     }
     class C : [|I|]
     {
         /// <summary>
-        /// <see cref="{|Resolve:$$I|}.Foo"/>
+        /// <see cref="{|Resolve:$$I|}.Goo"/>
         /// </summary>
-        public void Foo() { }
+        public void Goo() { }
         class K
         {
 
@@ -5155,8 +5285,7 @@ namespace N
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="K")
-
+                    </Workspace>, host:=host, renameTo:="K")
 
                 result.AssertLabeledSpansAre("Resolve", "N.K", RelatedLocationType.ResolvedReferenceConflict)
             End Using
@@ -5164,21 +5293,21 @@ namespace N
 
         <WorkItem(767163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767163")>
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefWithInterface_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefWithInterface_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
 Namespace N
     Interface [|I|]
-        Sub Foo()
+        Sub Goo()
     End Interface
     Class C : Implements {|Resolve1:I|}
         ''' <summary>
-        ''' <see cref="{|Resolve2:$$I|}.Foo"/>
+        ''' <see cref="{|Resolve2:$$I|}.Goo"/>
         ''' </summary>
-        Public Sub Foo() Implements {|Resolve1:I|}.Foo
+        Public Sub Goo(host as TestHost) Implements {|Resolve1:I|}.Goo
         End Sub
         Class K
         End Class
@@ -5186,16 +5315,15 @@ Namespace N
 End Namespace]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="K")
-
+                    </Workspace>, host:=host, renameTo:="K")
 
                 result.AssertLabeledSpansAre("Resolve1", "N.K", RelatedLocationType.ResolvedReferenceConflict)
-                result.AssertLabeledSpansAre("Resolve2", "N.K.Foo", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("Resolve2", "N.K.Goo", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefCrossAssembly()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefCrossAssembly(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5204,17 +5332,17 @@ End Namespace]]>
 class D : [|N|].C
 {
     /// <summary>
-    /// <see cref="{|Resolve:N|}.C.Foo"/>
+    /// <see cref="{|Resolve:N|}.C.Goo"/>
     /// </summary>
     public void Sub()
     {
-        Foo();
+        Goo();
     }
     class R
     {
         class C
         {
-            public void Foo() { }
+            public void Goo() { }
         }
     }
 
@@ -5225,23 +5353,22 @@ class D : [|N|].C
                             <Document>
 Namespace [|$$N|]
     Public Class C
-        Public Sub Foo()
+        Public Sub Goo()
 
         End Sub
     End Class
 End Namespace
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="R")
-
+                    </Workspace>, host:=host, renameTo:="R")
 
                 result.AssertLabeledSpansAre("Resolve", "global::R", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(767163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767163")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCrefCrossAssembly_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameCrefCrossAssembly_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5249,14 +5376,14 @@ End Namespace
                             <Document><![CDATA[
 Class D : Inherits {|Resolve1:N|}.C
     ''' <summary>
-    ''' <see cref="{|Resolve2:N|}.C.Foo"/>
+    ''' <see cref="{|Resolve2:N|}.C.Goo"/>
     ''' </summary>
     Public Sub Subroutine()
-        Foo()
+        Goo()
     End Sub
     Class R
         Class C
-            Public Sub Foo()
+            Public Sub Goo()
             End Sub
         End Class
     End Class
@@ -5269,22 +5396,21 @@ namespace [|$$N|]
 {
     public class C
     {
-        public void Foo() { }
+        public void Goo() { }
     }
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="R")
-
+                    </Workspace>, host:=host, renameTo:="R")
 
                 result.AssertLabeledSpansAre("Resolve1", "Global.R", RelatedLocationType.ResolvedReferenceConflict)
-                result.AssertLabeledSpansAre("Resolve2", "Global.R.C.Foo", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("Resolve2", "Global.R.C.Goo", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673809")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameStaticConstructorInsideCref1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticConstructorInsideCref1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5305,15 +5431,14 @@ class [|P|]
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Q")
-
+                    </Workspace>, host:=host, renameTo:="Q")
 
             End Using
         End Sub
 
         <WorkItem(673809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673809")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameStaticConstructorInsideCref1_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticConstructorInsideCref1_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5332,14 +5457,13 @@ Class [|$$P|]
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Q")
-
+                    </Workspace>, host:=host, renameTo:="Q")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameStaticConstructorInsideCref2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticConstructorInsideCref2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5360,15 +5484,14 @@ class [|P|]
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Q")
-
+                    </Workspace>, host:=host, renameTo:="Q")
 
             End Using
         End Sub
 
         <WorkItem(673809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673809")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameStaticConstructorInsideCref2_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticConstructorInsideCref2_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5387,14 +5510,13 @@ Class [|P|]
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Q")
-
+                    </Workspace>, host:=host, renameTo:="Q")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInheritanceCref1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInheritanceCref1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5416,13 +5538,13 @@ class Q : P
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="y")
+                    </Workspace>, host:=host, renameTo:="y")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInheritanceCref1_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInheritanceCref1_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5440,16 +5562,15 @@ Class Q : Inherits P
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="y")
-
+                    </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("Resolve", "P.y", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673858"), WorkItem(666167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666167")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameGenericTypeCrefWithConflict()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameGenericTypeCrefWithConflict(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5481,16 +5602,15 @@ namespace N
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="K")
-
+                    </Workspace>, host:=host, renameTo:="K")
 
                 result.AssertLabeledSpansAre("Resolve", "N.C{int}", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673858"), WorkItem(666167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666167"), WorkItem(768000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768000")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameGenericTypeCrefWithConflict_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameGenericTypeCrefWithConflict_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5518,16 +5638,15 @@ Namespace N
 End Namespace]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="K")
-
+                    </Workspace>, host:=host, renameTo:="K")
 
                 result.AssertLabeledSpansAre("Resolve", "N.C(Of Integer).D(Of Integer)", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 #End Region
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameNestedNamespaceToParent1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNestedNamespaceToParent1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5541,15 +5660,14 @@ namespace N
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="N")
-
+                    </Workspace>, host:=host, renameTo:="N")
 
             End Using
         End Sub
 
         <WorkItem(673641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673641")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameNestedNamespaceToParent2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNestedNamespaceToParent2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5558,7 +5676,7 @@ namespace N
 {
     class C
     {
-        void Foo()
+        void Goo()
         {
             {|Resolve:N|}.C x;
         }
@@ -5570,16 +5688,15 @@ namespace N
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="N")
-
+                    </Workspace>, host:=host, renameTo:="N")
 
                 result.AssertLabeledSpansAre("Resolve", "global::N.C x;", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
         <WorkItem(673809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673809")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameStaticConstructor()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticConstructor(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5596,15 +5713,14 @@ class [|Simple|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="P")
-
+                    </Workspace>, host:=host, renameTo:="P")
 
             End Using
         End Sub
 
         <WorkItem(675882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675882")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub SingleOnlyLocalDeclarationInsideLambdaRecurseInfinitely()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub SingleOnlyLocalDeclarationInsideLambdaRecurseInfinitely(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5621,15 +5737,14 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="xx")
-
+                    </Workspace>, host:=host, renameTo:="xx")
 
             End Using
         End Sub
 
         <WorkItem(641231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641231")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameDontReplaceBaseConstructorToken_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameDontReplaceBaseConstructorToken_CSharp(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5652,14 +5767,14 @@ class Program
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="P")
+                    </Workspace>, host:=host, renameTo:="P")
 
             End Using
         End Sub
 
         <WorkItem(641231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641231")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameDontReplaceBaseConstructorToken_VisualBasic()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameDontReplaceBaseConstructorToken_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
@@ -5683,14 +5798,14 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
         <WorkItem(674762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674762")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMergedNamespaceAcrossProjects()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMergedNamespaceAcrossProjects(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -5709,14 +5824,14 @@ class Y : [|N|].X { }
 namespace [|N|] { }
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
         <WorkItem(674764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674764")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMergedNamespaceAcrossProjects_1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMergedNamespaceAcrossProjects_1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -5735,14 +5850,14 @@ class Y : [|$$N|].X { }
 namespace [|N|] { }
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
         <WorkItem(716278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716278")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMainWithoutAssertFailureVB()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMainWithoutAssertFailureVB(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -5759,14 +5874,14 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
         <WorkItem(716278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716278")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMainWithoutAssertFailureCSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMainWithoutAssertFailureCSharp(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -5785,14 +5900,14 @@ class Program
 }
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="D")
+                </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
         <WorkItem(719062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719062")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameEscapedIdentifierToUnescapedIdentifier()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameEscapedIdentifierToUnescapedIdentifier(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -5809,14 +5924,14 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
 
             End Using
         End Sub
 
         <WorkItem(719062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719062")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameEscapedIdentifierToUnescapedIdentifierKeyword()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameEscapedIdentifierToUnescapedIdentifierKeyword(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -5833,15 +5948,15 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="do")
+                    </Workspace>, host:=host, renameTo:="do")
 
                 result.AssertLabeledSpecialSpansAre("iden1", "[do]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameEscapedTypeNew()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameEscapedTypeNew(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -5857,13 +5972,13 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
             End Using
         End Sub
 
         <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameConstructorInCref()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameConstructorInCref(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -5876,13 +5991,13 @@ class [|C|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="D")
+                    </Workspace>, host:=host, renameTo:="D")
             End Using
         End Sub
 
         <WorkItem(1009633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009633")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameWithTryCatchBlock1()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWithTryCatchBlock1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -5899,13 +6014,13 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="msg2")
+                    </Workspace>, host:=host, renameTo:="msg2")
             End Using
         End Sub
 
         <WorkItem(1009633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009633")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameWithTryCatchBlock2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWithTryCatchBlock2(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -5922,15 +6037,58 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="msg2")
+                    </Workspace>, host:=host, renameTo:="msg2")
+            End Using
+        End Sub
+
+        <WorkItem(8297, "https://github.com/dotnet/roslyn/issues/8297")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVBClassNamedNew(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+Class [|[$$New]|]
+    Sub New()
+    End Sub
+End Class
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="New2")
+            End Using
+        End Sub
+
+        <WorkItem(25655, "https://github.com/dotnet/roslyn/issues/25655")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameClassWithNoCompilationProjectReferencingProject(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="NoCompilation" CommonReferences="false">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            // a no-compilation document
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                        <Document>
+                            public class [|$$A|]
+                            {
+                                public [|A|]()
+                                {
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="B")
             End Using
         End Sub
 
 #Region "Rename in strings/comments"
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStrings()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStrings(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, False)
@@ -5952,15 +6110,15 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStrings_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStrings_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, False)
@@ -5984,15 +6142,15 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInComments()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInComments(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6014,7 +6172,7 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "' NewProgram PROGRAM! NewProgram!")
@@ -6023,8 +6181,8 @@ End Module
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInComments_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInComments_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6047,7 +6205,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "// NewProgram PROGRAM! NewProgram!")
@@ -6055,8 +6213,8 @@ public class [|$$Program|]
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInComments_XmlName()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInComments_XmlName(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6072,15 +6230,15 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "NewProgram")
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInComments_XmlName2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInComments_XmlName2(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, False)
@@ -6098,15 +6256,15 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 Assert.Equal(1, result.ConflictResolution.RelatedLocations.Count)
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInComments_XmlName_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInComments_XmlName_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6123,15 +6281,15 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "NewProgram")
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInComments_XmlName_CSharp2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInComments_XmlName_CSharp2(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, False)
@@ -6151,15 +6309,15 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 Assert.Equal(1, result.ConflictResolution.RelatedLocations.Count)
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6182,7 +6340,7 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6192,8 +6350,8 @@ End Module
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6216,7 +6374,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6225,8 +6383,8 @@ public class [|$$Program|]
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_SmallerReplacementString()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_SmallerReplacementString(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6248,7 +6406,7 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="P", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="P", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """P P!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " P PROGRAM! P!")
@@ -6258,8 +6416,8 @@ End Module
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_SmallerReplacementString_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_SmallerReplacementString_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6282,7 +6440,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="P", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="P", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """P P!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " P PROGRAM! P!")
@@ -6291,8 +6449,8 @@ public class [|$$Program|]
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_AnotherSourceFile()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_AnotherSourceFile(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6304,7 +6462,6 @@ Module [|$$Program|]
 End Module
 ]]>
                             </Document>
-
                             <Document><![CDATA[
 Class AnotherFile
     ''' <summary>
@@ -6320,7 +6477,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="P", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="P", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """P P!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " P PROGRAM! P!")
@@ -6330,8 +6487,8 @@ End Class
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_AnotherSourceFile_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_AnotherSourceFile_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6344,7 +6501,6 @@ public class [|$$Program|]
 }
 ]]>
                             </Document>
-
                             <Document><![CDATA[
 public class AnotherFile
 {
@@ -6361,7 +6517,7 @@ public class AnotherFile
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6370,8 +6526,8 @@ public class AnotherFile
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_AnotherProject()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_AnotherProject(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6384,7 +6540,6 @@ End Class
 ]]>
                             </Document>
                         </Project>
-
                         <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                             <ProjectReference>Project1</ProjectReference>
                             <Document><![CDATA[
@@ -6405,7 +6560,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6415,8 +6570,8 @@ End Class
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_AnotherProject_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_AnotherProject_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6450,7 +6605,7 @@ public class AnotherFile
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6459,8 +6614,8 @@ public class AnotherFile
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_AnotherProject2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_AnotherProject2(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6476,7 +6631,6 @@ End Namespace
 ]]>
                             </Document>
                         </Project>
-
                         <Project Language="Visual Basic" AssemblyName="ReferencingProjectButSymbolNotVisible" CommonReferences="true">
                             <ProjectReference>Project1</ProjectReference>
                             <Document><![CDATA[
@@ -6500,7 +6654,6 @@ End Class
 ]]>
                             </Document>
                         </Project>
-
                         <Project Language="Visual Basic" AssemblyName="NotReferencingProject" CommonReferences="true">
                             <Document><![CDATA[
 ' Renames should not occur in non-referencing projects.
@@ -6523,15 +6676,15 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 Assert.Equal(1, result.ConflictResolution.RelatedLocations.Count)
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_AnotherProject_CSharp2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_AnotherProject_CSharp2(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6591,15 +6744,15 @@ public class NotReferencingProject
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
 
                 Assert.Equal(1, result.ConflictResolution.RelatedLocations.Count)
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_WithResolvableConflict()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_WithResolvableConflict(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6608,7 +6761,7 @@ public class NotReferencingProject
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
 Module M
-    Public Sub [|$$Foo|](Of T)(ByVal x As T) {|RenameInComment1:' Rename Foo to Bar|}
+    Public Sub [|$$Goo|](Of T)(ByVal x As T) {|RenameInComment1:' Rename Goo to Bar|}
     End Sub
 End Module
 
@@ -6620,29 +6773,29 @@ Class C
                                                  End Sub
     End Class
     Public Sub Test()
-        {|stmt1:Foo|}("1")
+        {|stmt1:Goo|}("1")
 
-        {|RenameInComment2:' Foo FOO! Foo!|}
-        Dim renamed = {|RenameInString:"Foo Foo!"|}    {|RenameInComment3:' Foo|}
-        Dim notRenamed = "FOO! Foo1 FooFoo"
+        {|RenameInComment2:' Goo GOO! Goo!|}
+        Dim renamed = {|RenameInString:"Goo Goo!"|}    {|RenameInComment3:' Goo|}
+        Dim notRenamed = "GOO! Goo1 GooGoo"
     End Sub
 End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bar", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="Bar", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansAre("stmt1", "Call Global.M.Bar(""1"")", RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", "' Rename Bar to Bar")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """Bar Bar!""")
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "' Bar FOO! Bar!")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "' Bar GOO! Bar!")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment3", "' Bar")
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_WithResolvableConflict_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_WithResolvableConflict_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6650,12 +6803,12 @@ End Class
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
-class Foo
+class Goo
 {
-    int foo;
+    int goo;
     void Blah(int [|$$bar|])
     {
-        {|stmt2:foo|} = {|stmt1:bar|};
+        {|stmt2:goo|} = {|stmt1:bar|};
 
 		{|RenameInComment:// bar BAR! bar!|}
 		var renamed = {|RenameInString:"bar bar!"|};
@@ -6667,18 +6820,18 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="goo", changedOptionSet:=renamingOptions)
 
-                result.AssertLabeledSpansAre("stmt1", "this.foo = foo;", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("stmt2", "this.foo = foo;", RelatedLocationType.ResolvedNonReferenceConflict)
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """foo foo!""")
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// foo BAR! foo!")
+                result.AssertLabeledSpansAre("stmt1", "this.goo = goo;", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt2", "this.goo = goo;", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """goo goo!""")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// goo BAR! goo!")
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_WithUnresolvableConflict()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_WithUnresolvableConflict(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6688,29 +6841,29 @@ End Class
                             <Document><![CDATA[
 Option Explicit Off
 Module Program
-    Function [|$$Foo|]
+    Function [|$$Goo|]
         {|Conflict:Bar|} = 1
 
-        {|RenameInComment1:' Foo FOO! Foo!|}
-        Dim renamed = {|RenameInString:"Foo Foo!"|}    {|RenameInComment2:' Foo|}
-        Dim notRenamed = "FOO! Foo1 FooFoo"
+        {|RenameInComment1:' Goo GOO! Goo!|}
+        Dim renamed = {|RenameInString:"Goo Goo!"|}    {|RenameInComment2:' Goo|}
+        Dim notRenamed = "GOO! Goo1 GooGoo"
     End Function
 End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Bar", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="Bar", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """Bar Bar!""")
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", "' Bar FOO! Bar!")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", "' Bar GOO! Bar!")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "' Bar")
             End Using
         End Sub
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInStringsAndComments_WithUnresolvableConflict_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInStringsAndComments_WithUnresolvableConflict_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
@@ -6718,7 +6871,7 @@ End Module
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
-class {|Conflict:foo|}
+class {|Conflict:goo|}
 {
     int [|$$bar|];
 
@@ -6729,12 +6882,12 @@ class {|Conflict:foo|}
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="goo", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
 
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """foo foo!""")
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// foo BAR! foo!")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """goo goo!""")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// goo BAR! goo!")
             End Using
         End Sub
 
@@ -6742,8 +6895,8 @@ class {|Conflict:foo|}
 
 #Region "Rename In NameOf"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMethodWithNameof_NoOverloads_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_NoOverloads_CSharp(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6758,13 +6911,13 @@ class C
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Mo")
+                    </Workspace>, host:=host, renameTo:="Mo")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMethodWithNameof_WithOverloads_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_WithOverloads_CSharp(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6783,13 +6936,13 @@ class C
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Mo")
+                    </Workspace>, host:=host, renameTo:="Mo")
 
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameMethodWithNameof_WithOverloads_WithRenameOverloadsOption_CSharp()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_WithOverloads_WithRenameOverloadsOption_CSharp(host As RenameTestHost)
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameOverloads, True)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -6810,11 +6963,60 @@ class C
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Mo", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="Mo", changedOptionSet:=renamingOptions)
 
             End Using
         End Sub
 #End Region
 
+        <WpfTheory>
+        <WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub HandleProjectsWithoutCompilations(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                        <Document>
+                            public interface IGoo
+                            {
+                                void [|$$Goo|]();
+                            }
+                            public class C : IGoo
+                            {
+                                public void [|Goo|]() {}
+                            }
+                        </Document>
+                    </Project>
+                    <Project Language="NoCompilation" CommonReferences="false">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            // a no-compilation document
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Cat")
+            End Using
+        End Sub
+
+        <WorkItem(44070, "https://github.com/dotnet/roslyn/issues/44070")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameTypeParameterFromCRef(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    /// <summary>
+    /// <see cref="Goo{$${|Complex:{|unresolved:X|}|}}(X)"/>
+    /// </summary>
+    void Goo<T>(T t) { }
+}]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="D")
+
+                result.AssertLabeledSpansAre("Complex", "C.Goo{D}(X)", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace

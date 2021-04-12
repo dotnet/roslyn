@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.IO;
 using System.Linq;
@@ -13,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private static SemanticModel GetSemanticModelWithIgnoreAccessibility()
         {
-            var compilationA = CreateCompilationWithMscorlib(@"
+            var compilationA = CreateCompilation(@"
 namespace N
 {
     class A
@@ -26,7 +30,7 @@ namespace N
 
             var referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream());
 
-            var compilationB = CreateCompilationWithMscorlib(@"
+            var compilationB = CreateCompilation(@"
 using A = N.A;
 
 class B 
@@ -53,6 +57,12 @@ class B
             Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
             Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).Symbol.Name);
             Assert.NotEmpty(semanticModel.LookupSymbols(position, name: "A"));
+
+            semanticModel = semanticModel.Compilation.GetSemanticModel(semanticModel.SyntaxTree);
+            Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
+            Assert.Null(semanticModel.GetSymbolInfo(invocation).Symbol);
+            Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).CandidateSymbols.Single().Name);
+            Assert.Equal(CandidateReason.Inaccessible, semanticModel.GetSymbolInfo(invocation).CandidateReason);
         }
 
         [Fact]
@@ -79,7 +89,7 @@ class B
 
 
             SemanticModel speculativeSemanticModel;
-            var statement = SyntaxFactory.ParseStatement("var foo = new A().M();");
+            var statement = SyntaxFactory.ParseStatement("var goo = new A().M();");
 
             semanticModel.TryGetSpeculativeSemanticModel(position, statement, out speculativeSemanticModel);
             var creationExpression =
@@ -109,7 +119,7 @@ class C
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single().Body;
@@ -124,7 +134,7 @@ class C
         [Fact]
         public void TestExtensionMethodInInternalClass()
         {
-            var compilationA = CreateCompilationWithMscorlibAndSystemCore(@"
+            var compilationA = CreateCompilationWithMscorlib40AndSystemCore(@"
 public class A
 {
     A M() { return new A(); }
@@ -144,7 +154,7 @@ internal static class E
 
             var referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream());
 
-            var compilationB = CreateCompilationWithMscorlib(@"
+            var compilationB = CreateCompilation(@"
 class B 
 {
     void Main() 
@@ -173,7 +183,7 @@ class B
         [Fact]
         public void TestGetSpeculativeSemanticModelForPropertyAccessorBody()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateCompilation(@"
 class R
 {
     private int _p;

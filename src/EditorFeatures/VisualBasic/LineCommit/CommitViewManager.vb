@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
@@ -51,8 +53,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim newBuffer = If(newSnapshotPoint.HasValue, newSnapshotPoint.Value.Snapshot.TextBuffer, Nothing)
 
             _waitIndicator.Wait(
-                VBEditorResources.LineCommit,
-                VBEditorResources.CommittingLine,
+                VBEditorResources.Line_commit,
+                VBEditorResources.Committing_line,
                 allowCancel:=True,
                 action:=
                 Sub(waitContext)
@@ -64,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                     ' We're in the same snapshot. Are we on the same line?
                     Dim commitBufferManager = _commitBufferManagerFactory.CreateForBuffer(newBuffer)
-                    If commitBufferManager.IsMovementBetweenStatements(oldSnapshotPoint.Value, newSnapshotPoint.Value, waitContext.CancellationToken) Then
+                    If CommitBufferManager.IsMovementBetweenStatements(oldSnapshotPoint.Value, newSnapshotPoint.Value, waitContext.CancellationToken) Then
                         CommitBufferForCaretMovement(oldBuffer, e, waitContext.CancellationToken)
                     End If
                 End Sub)
@@ -78,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             If commitBufferManager.HasDirtyRegion Then
                 ' In projection buffer scenarios, the text undo history is associated with the surface buffer, so the
                 ' following line's usage of the surface buffer is correct
-                Using transaction = _textUndoHistoryRegistry.GetHistory(_view.TextBuffer).CreateTransaction(VBEditorResources.VisualBasicPrettyList)
+                Using transaction = _textUndoHistoryRegistry.GetHistory(_view.TextBuffer).CreateTransaction(VBEditorResources.Visual_Basic_Pretty_List)
                     Dim beforeUndoPrimitive As New BeforeCommitCaretMoveUndoPrimitive(buffer, _textBufferAssociatedViewService, e.OldPosition)
                     transaction.AddUndo(beforeUndoPrimitive)
 
@@ -112,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private Sub OnLostAggregateFocus(sender As Object, e As EventArgs)
             _waitIndicator.Wait(
                 "Commit",
-                VBEditorResources.CommittingLine,
+                VBEditorResources.Committing_line,
                 allowCancel:=True,
                 action:=
                 Sub(waitContext)

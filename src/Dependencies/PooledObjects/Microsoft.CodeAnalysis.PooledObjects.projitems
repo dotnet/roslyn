@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>c1930979-c824-496b-a630-70f5369a636f</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.PooledObjects</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ObjectPool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledDelegates.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledHashSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledStringBuilder.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+</Project>

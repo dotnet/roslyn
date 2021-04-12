@@ -1,14 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -17,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' TODO: Need to estimate amount of elements for this map and pass that value to the constructor.
         Protected ReadOnly m_AssemblyOrModuleSymbolToModuleRefMap As New ConcurrentDictionary(Of Symbol, Microsoft.Cci.IModuleReference)()
         Private ReadOnly _genericInstanceMap As New ConcurrentDictionary(Of Symbol, Object)()
-        Private ReadOnly _reportedErrorTypesMap As New ConcurrentSet(Of ErrorTypeSymbol)()
+        Private ReadOnly _reportedErrorTypesMap As New ConcurrentSet(Of TypeSymbol)()
 
         Private ReadOnly _embeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
         Public Overrides ReadOnly Property EmbeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
@@ -108,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             namedTypeSymbol As NamedTypeSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag,
             Optional fromImplements As Boolean = False,
             Optional needDeclaration As Boolean = False
@@ -120,17 +119,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Anonymous type being translated
             If namedTypeSymbol.IsAnonymousType Then
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol)
+            ElseIf namedTypeSymbol.IsTupleType Then
+                Debug.Assert(Not needDeclaration)
+                namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType
+
+                CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics)
             End If
 
             ' Substitute error types with a special singleton object.
             ' Unreported bad types can come through NoPia embedding, for example.
             If namedTypeSymbol.OriginalDefinition.Kind = SymbolKind.ErrorType Then
                 Dim errorType = DirectCast(namedTypeSymbol.OriginalDefinition, ErrorTypeSymbol)
-                Dim diagInfo = If(errorType.GetUseSiteErrorInfo(), errorType.ErrorInfo)
+                Dim diagInfo = If(errorType.GetUseSiteInfo().DiagnosticInfo, errorType.ErrorInfo)
 
                 If diagInfo Is Nothing AndAlso namedTypeSymbol.Kind = SymbolKind.ErrorType Then
                     errorType = DirectCast(namedTypeSymbol, ErrorTypeSymbol)
-                    diagInfo = If(errorType.GetUseSiteErrorInfo(), errorType.ErrorInfo)
+                    diagInfo = If(errorType.GetUseSiteInfo().DiagnosticInfo, errorType.ErrorInfo)
                 End If
 
                 ' Try to decrease noise by not complaining about the same type over and over again.
@@ -152,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If namedTypeSymbol.IsUnboundGenericType Then
                     namedTypeSymbol = namedTypeSymbol.OriginalDefinition
                 Else
-                    Return namedTypeSymbol
+                    Return DirectCast(GetCciAdapter(namedTypeSymbol), Microsoft.Cci.INamedTypeReference)
                 End If
 
             ElseIf Not needDeclaration Then
@@ -195,21 +199,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             End If
 
-            If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics)
+            Return If(_embeddedTypesManagerOpt?.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics), namedTypeSymbol.GetCciAdapter())
+        End Function
+
+        Private Function GetCciAdapter(symbol As Symbol) As Object
+            Return _genericInstanceMap.GetOrAdd(symbol, Function(s) s.GetCciAdapter())
+        End Function
+
+        Private Sub CheckTupleUnderlyingType(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
+            ' check that underlying type of a ValueTuple is indeed a value type (or error)
+            ' this should never happen, in theory,
+            ' but if it does happen we should make it a failure.
+            ' NOTE: declaredBase could be null for interfaces
+            Dim declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics
+            If declaredBase IsNot Nothing AndAlso declaredBase.SpecialType = SpecialType.System_ValueType Then
+                Return
             End If
 
-            Return namedTypeSymbol
-        End Function
+            ' Try to decrease noise by not complaining about the same type over and over again.
+            If Not _reportedErrorTypesMap.Add(namedTypeSymbol) Then
+                Return
+            End If
+
+            Dim location = If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())
+            If declaredBase IsNot Nothing Then
+                Dim diagnosticInfo = declaredBase.GetUseSiteInfo().DiagnosticInfo
+                If diagnosticInfo IsNot Nothing Then
+                    diagnostics.Add(diagnosticInfo, location)
+                    Return
+                End If
+            End If
+
+            diagnostics.Add(
+                New VBDiagnostic(
+                    ErrorFactory.ErrorInfo(ERRID.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
+                    location))
+        End Sub
 
         Friend Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference
             Debug.Assert(param Is param.OriginalDefinition)
-            Return [param]
+            Return [param].GetCciAdapter()
         End Function
 
         Friend NotOverridable Overrides Function Translate(
             typeSymbol As TypeSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag
         ) As Microsoft.Cci.ITypeReference
             Debug.Assert(diagnostics IsNot Nothing)
@@ -228,18 +262,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             fieldSymbol As FieldSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag,
             Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.IFieldReference
             Debug.Assert(fieldSymbol Is fieldSymbol.OriginalDefinition OrElse
-                                            Not fieldSymbol.Equals(fieldSymbol.OriginalDefinition))
+                         Not fieldSymbol.Equals(fieldSymbol.OriginalDefinition))
+            Debug.Assert(Not fieldSymbol.IsTupleField, "tuple fields should be rewritten to underlying by now")
 
             Me.ProcessReferencedSymbol(fieldSymbol)
 
             If fieldSymbol IsNot fieldSymbol.OriginalDefinition Then
                 Debug.Assert(Not needDeclaration)
-                Return fieldSymbol
+                Return DirectCast(GetCciAdapter(fieldSymbol), Microsoft.Cci.IFieldReference)
 
             ElseIf Not needDeclaration AndAlso IsOrInGenericType(fieldSymbol.ContainingType) Then
 
@@ -256,10 +291,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol, syntaxNodeOpt, diagnostics)
+                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
             End If
 
-            Return fieldSymbol
+            Return fieldSymbol.GetCciAdapter()
         End Function
 
         Public Shared Function MemberVisibility(symbol As Symbol) As Microsoft.Cci.TypeMemberVisibility
@@ -325,26 +360,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate(
             methodSymbol As MethodSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag,
             Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.IMethodReference
-            Dim container As NamedTypeSymbol = methodSymbol.ContainingType
-
+            Debug.Assert(Not methodSymbol.IsDefaultValueTypeConstructor())
             Debug.Assert(methodSymbol Is methodSymbol.OriginalDefinition OrElse
                                             Not methodSymbol.Equals(methodSymbol.OriginalDefinition))
+
+            Dim container As NamedTypeSymbol = methodSymbol.ContainingType
 
             ' Method of anonymous type being translated
             If container.IsAnonymousType Then
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol)
+
+            ElseIf methodSymbol.IsTupleMethod Then
+                Debug.Assert(Not needDeclaration)
+                Debug.Assert(container.IsTupleType)
+                container = container.TupleUnderlyingType
+                methodSymbol = methodSymbol.TupleUnderlyingMethod
             End If
+
+            Debug.Assert(Not container.IsTupleType)
 
             Me.ProcessReferencedSymbol(methodSymbol)
 
             If methodSymbol.OriginalDefinition IsNot methodSymbol Then
 
                 Debug.Assert(Not needDeclaration)
-                Return methodSymbol
+                Return DirectCast(GetCciAdapter(methodSymbol), Microsoft.Cci.IMethodReference)
 
             ElseIf Not needDeclaration Then
                 Dim methodIsGeneric As Boolean = methodSymbol.IsGenericMethod
@@ -376,10 +420,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
             End If
 
-            Return methodSymbol
+            Return methodSymbol.GetCciAdapter()
         End Function
 
         Friend Overloads Function TranslateOverriddenMethodReference(methodSymbol As MethodSymbol, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Microsoft.Cci.IMethodReference
@@ -403,9 +447,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(methodSymbol.IsDefinition)
 
                 If _embeddedTypesManagerOpt IsNot Nothing Then
-                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
                 Else
-                    methodRef = methodSymbol
+                    methodRef = methodSymbol.GetCciAdapter()
                 End If
             End If
 
@@ -419,7 +463,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(params.All(Function(p) mustBeTranslated = MustBeWrapped(p)), "either all or no parameters need translating")
 
             If (Not mustBeTranslated) Then
+#If DEBUG Then
+                Return params.SelectAsArray(Of Cci.IParameterTypeInformation)(Function(p) p.GetCciAdapter())
+#Else
                 Return StaticCast(Of Microsoft.Cci.IParameterTypeInformation).From(params)
+#End If
             End If
 
             Return TranslateAll(params)
@@ -471,8 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overloads Function Translate(symbol As ArrayTypeSymbol) As Microsoft.Cci.IArrayTypeReference
-            Return symbol
+            Return DirectCast(GetCciAdapter(symbol), Microsoft.Cci.IArrayTypeReference)
         End Function
-
     End Class
 End Namespace

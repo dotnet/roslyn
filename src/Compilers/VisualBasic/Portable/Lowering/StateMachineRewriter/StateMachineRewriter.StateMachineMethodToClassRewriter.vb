@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -62,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
-            Private _nextFreeHoistedLocalSlot As Integer
+            Private ReadOnly _nextFreeHoistedLocalSlot As Integer
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
@@ -71,16 +74,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
                            slotAllocatorOpt As VariableSlotAllocator,
                            nextFreeHoistedLocalSlot As Integer,
-                           Diagnostics As DiagnosticBag)
+                           diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(slotAllocatorOpt, F.CompilationState, Diagnostics, preserveOriginalLocals:=False)
+                MyBase.New(slotAllocatorOpt, F.CompilationState, diagnostics, preserveOriginalLocals:=False)
 
                 Debug.Assert(F IsNot Nothing)
                 Debug.Assert(stateField IsNot Nothing)
                 Debug.Assert(hoistedVariables IsNot Nothing)
                 Debug.Assert(initialProxies IsNot Nothing)
                 Debug.Assert(nextFreeHoistedLocalSlot >= 0)
-                Debug.Assert(Diagnostics IsNot Nothing)
+                Debug.Assert(diagnostics IsNot Nothing)
 
                 Me.F = F
                 Me.StateField = stateField
@@ -122,11 +125,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
-                Dim oldSyntax As VisualBasicSyntaxNode = Me.F.Syntax
+            Friend Overrides Function FramePointer(syntax As SyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
+                Dim oldSyntax As SyntaxNode = Me.F.Syntax
                 Me.F.Syntax = syntax
                 Dim result = Me.F.Me()
-                Debug.Assert(frameClass = result.Type)
+                Debug.Assert(TypeSymbol.Equals(frameClass, result.Type, TypeCompareKind.ConsiderEverything))
                 Me.F.Syntax = oldSyntax
                 Return result
             End Function
@@ -177,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return node
                 End If
 
-                Dim oldSyntax As VisualBasicSyntaxNode = Me.F.Syntax
+                Dim oldSyntax As SyntaxNode = Me.F.Syntax
                 Me.F.Syntax = node.Syntax
                 Dim result As BoundNode = MyBase.Visit(node)
                 Me.F.Syntax = oldSyntax
@@ -201,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                     If local.IsByRef Then
-                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.AwaitSpill)
+                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.Spill)
                         Continue For
                     End If
 
@@ -297,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me._currentFinalizerState})
 
                         Dim skipFinalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("skipFinalizer")
-                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(),
+                        tryBlock = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(),
                                               Me.Dispatch(),
                                               Me.F.Goto(skipFinalizer),
                                               Me.F.Label(finalizer),
@@ -308,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               Me.F.Label(skipFinalizer),
                                               tryBlock)
                     Else
-                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(), Me.Dispatch(), tryBlock)
+                        tryBlock = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(), Me.Dispatch(), tryBlock)
                     End If
 
                     If oldDispatches Is Nothing Then
@@ -326,17 +329,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim catchBlocks As ImmutableArray(Of BoundCatchBlock) = Me.VisitList(node.CatchBlocks)
                 Dim finallyBlockOpt As BoundBlock = If(node.FinallyBlockOpt Is Nothing, Nothing,
                                                        Me.F.Block(
-                                                           Me.F.HiddenSequencePoint(),
+                                                           SyntheticBoundNodeFactory.HiddenSequencePoint(),
                                                            Me.F.If(
                                                                condition:=Me.F.IntLessThan(
                                                                    Me.F.Local(Me.CachedState, False),
                                                                    Me.F.Literal(StateMachineStates.FirstUnusedState)),
                                                                thenClause:=DirectCast(Me.Visit(node.FinallyBlockOpt), BoundBlock)),
-                                                           Me.F.HiddenSequencePoint()))
+                                                           SyntheticBoundNodeFactory.HiddenSequencePoint()))
 
                 Dim result As BoundStatement = node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.ExitLabelOpt)
                 If dispatchLabel IsNot Nothing Then
-                    result = Me.F.Block(Me.F.HiddenSequencePoint(), Me.F.Label(dispatchLabel), result)
+                    result = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(), Me.F.Label(dispatchLabel), result)
                 End If
 
                 Return result
@@ -363,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim newLocal As LocalSymbol = Nothing
                 If Not LocalMap.TryGetValue(local, newLocal) Then
                     Dim newType = VisitType(local.Type)
-                    If newType = local.Type Then
+                    If TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything) Then
                         ' keeping same local
                         newLocal = local
                     Else

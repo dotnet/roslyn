@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -235,7 +239,7 @@ class Test<T>
     static string s;
 }";
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: option).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term 'int'
                 //         s = nameof(int);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 20),
@@ -523,7 +527,7 @@ class Program
     [Obsolete(""Please do not use this method: "" + nameof(Program.Old), true)]
     static void Old() { }
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 EntryMethodName
 Correct
 Correct");
@@ -532,7 +536,7 @@ Correct");
         [Fact]
         public void TestNameofLowerLangVersion()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     Program(string s = nameof(Program))
@@ -541,22 +545,24 @@ class Program
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
 
             comp.VerifyDiagnostics(
-                // (4,24): error CS8026: Feature 'nameof operator' is not available in C# 5.  Please use language version 6 or greater.
+                // (4,24): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                 //     Program(string s = nameof(Program))
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(Program)").WithArguments("nameof operator", "6").WithLocation(4, 24)
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
+        [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void TestNameofIndexerName()
         {
             var source = @"
+using System.Linq;
 class C
 {
     public static void Main(string[] args)
     {
         var t = typeof(C);
-        foreach (var m in t.GetMethods())
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t).OrderBy(m => m.Name))
         {
             System.Console.WriteLine(m.Name);
         }
@@ -568,13 +574,10 @@ class C
         get { return 0; }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"Main
-Other
-get__Other
-ToString
-Equals
-GetHashCode
-GetType");
+            CompileAndVerify(source, expectedOutput:
+@"get__Other
+Main
+Other");
         }
 
         [Fact]
@@ -610,7 +613,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -634,7 +637,7 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -653,11 +656,11 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );
@@ -675,14 +678,14 @@ class Program
         nameof(N);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
-                    // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5.  Please use language version 6 or greater.
+                    // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(N)").WithArguments("nameof operator", "6").WithLocation(7, 9),
-                    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );
@@ -695,19 +698,19 @@ class Program
             var source =
 @"public class SomeClass
 {
-    public const string FooName = nameof(SomeClass.Foo);
-    public static int Foo()
+    public const string GooName = nameof(SomeClass.Goo);
+    public static int Goo()
     {
         return 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
-            Assert.Equal("Foo", symbolInfo.CandidateSymbols[0].Name);
+            Assert.Equal("Goo", symbolInfo.CandidateSymbols[0].Name);
         }
 
         [Fact]
@@ -717,20 +720,20 @@ class Program
             var source =
 @"public class SomeClass
 {
-    public const string FooName = nameof(SomeClass.Foo);
-    public static int Foo()
+    public const string GooName = nameof(SomeClass.Goo);
+    public static int Goo()
     {
         return 1;
     }
-    public static string Foo()
+    public static string Goo()
     {
         return string.Empty;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
@@ -757,7 +760,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (13,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //         Use(nameof(a.Extension));
@@ -804,7 +807,7 @@ namespace N1
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (22,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //                 Use(nameof(a.Extension));
@@ -841,9 +844,9 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                // (14,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(14, 22)
                 );
@@ -874,7 +877,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,22): error CS0572: 'Nested': cannot reference a type through an expression; try 'A.Nested' instead
                 //         Use(nameof(a.Nested));
@@ -923,7 +926,7 @@ namespace N1
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (21,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //                 Use(nameof(A.Extension));
@@ -956,7 +959,7 @@ public class Program
     private static void Use(object o) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (9,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
@@ -995,9 +998,9 @@ public class Program
     private static void Use(object o) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                // (16,22): error CS1061: 'A' does not contain a definition for 'Extension' and no accessible extension method 'Extension' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         Use(nameof(a.Extension));
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Extension").WithArguments("A", "Extension").WithLocation(16, 22)
                 );
@@ -1025,7 +1028,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1057,7 +1060,7 @@ public class Program
         SS = SS + S1 + S2;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1074,7 +1077,7 @@ public class Program
 {
     public string S = nameof(Class.Method);
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (8,36): error CS0122: 'Class.Method()' is inaccessible due to its protection level
                 //     public string S = nameof(Class.Method);
@@ -1100,7 +1103,7 @@ public class Program
 {
     public string S = nameof(I3.Property);
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (13,33): error CS0229: Ambiguity between 'I1.Property' and 'I2.Property'
                 //     public string S = nameof(I3.Property);
@@ -1128,7 +1131,7 @@ public class Program
     }
     private static void Use(object o) {}
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1208,8 +1211,8 @@ class Other {
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
-            CompileAndVerify(compilation, expectedOutput: 
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
+            CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
 
@@ -1247,7 +1250,7 @@ unsafe struct Struct1
   }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, null,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true)).VerifyDiagnostics(
+                TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //     return nameof(MessageType);
                 Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "MessageType").WithLocation(14, 19),
@@ -1257,6 +1260,253 @@ unsafe struct Struct1
                 // (26,23): error CS1503: Argument 1: cannot convert from 'char*' to 'char[]'
                 //         return nameof(myStruct.MessageType);
                 Diagnostic(ErrorCode.ERR_BadArgType, "myStruct.MessageType").WithArguments("1", "char*", "char[]").WithLocation(26, 23));
+        }
+
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessInsideNameOf()
+        {
+            var source =
+@"
+using System;
+
+struct MyType
+{
+  public static string a = nameof(MyType.normalField);
+  public static string b = nameof(MyType.fixedField);
+  public static string c = nameof(fixedField);
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+
+  public MyType(int i) {
+      this.normalField = i;
+  }
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.a + "" "");
+        Console.Write(MyType.b + "" "");
+        Console.Write(MyType.c);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(12696, "https://github.com/dotnet/roslyn/issues/12696")]
+        public void FixedFieldAccessFromInnerClass()
+        {
+            var source =
+@"
+using System;
+
+public struct MyType
+{
+  public static class Inner
+  {
+     public static string a = nameof(normalField);
+     public static string b = nameof(fixedField);
+  }
+
+  public int normalField;
+  public unsafe fixed short fixedField[6];
+}
+
+class EntryPoint
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(MyType.Inner.a + "" "");
+        Console.Write(MyType.Inner.b);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
+            CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PassingNameOfToInShouldCopy()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    public static void Main()
+    {
+        M(nameof(Main));
+    }
+    private static void M(in string value)
+    {
+        System.Console.WriteLine(value);
+    }
+}", expectedOutput: "Main");
+        }
+
+        [Fact, WorkItem(20600, "https://github.com/dotnet/roslyn/issues/20600")]
+        public void PermitInstanceQualifiedFromType()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        new C().M();
+        new C<int>().M();
+        System.Console.WriteLine(""passed"");
+    }
+}
+class C
+{
+    public string Instance1 = null;
+    public static string Static1 = null;
+    public string Instance2 => string.Empty;
+    public static string Static2 => string.Empty;
+      
+    public void M()
+    {
+        nameof(C.Instance1).Verify(""Instance1"");
+        nameof(C.Instance1.Length).Verify(""Length"");
+        nameof(C.Static1).Verify(""Static1"");
+        nameof(C.Static1.Length).Verify(""Length"");
+        nameof(C.Instance2).Verify(""Instance2"");
+        nameof(C.Instance2.Length).Verify(""Length"");
+        nameof(C.Static2).Verify(""Static2"");
+        nameof(C.Static2.Length).Verify(""Length"");
+    }
+}
+class C<T>
+{
+    public string Instance1 = null;
+    public static string Static1 = null;
+    public string Instance2 => string.Empty;
+    public static string Static2 => string.Empty;
+
+    public void M()
+    {
+        nameof(C<string>.Instance1).Verify(""Instance1"");
+        nameof(C<string>.Instance1.Length).Verify(""Length"");
+        nameof(C<string>.Static1).Verify(""Static1"");
+        nameof(C<string>.Static1.Length).Verify(""Length"");
+        nameof(C<string>.Instance2).Verify(""Instance2"");
+        nameof(C<string>.Instance2.Length).Verify(""Length"");
+        nameof(C<string>.Static2).Verify(""Static2"");
+        nameof(C<string>.Static2.Length).Verify(""Length"");
+    }
+}
+public static class Extensions
+{
+    public static void Verify(this string actual, string expected)
+    {
+        if (expected != actual) throw new System.Exception($""expected={expected}; actual={actual}"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
+        }
+
+        [Fact]
+        public void TestDynamicWhenNotDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M() => nameof(dynamic);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics(
+                // (4,33): error CS0103: The name 'dynamic' does not exist in the current context
+                //     static string M() => nameof(dynamic);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(4, 33)
+            );
+        }
+
+        [Fact]
+        public void TestNintWhenDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M(object nint) => nameof(nint);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestDynamicWhenDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M(object dynamic) => nameof(dynamic);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestTypeArguments()
+        {
+            var source = @"
+interface I<T> { }
+class Program
+{
+    static string F1() => nameof(I<int>);
+    static string F2() => nameof(I<nint>);
+    static string F3() => nameof(I<dynamic>);
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestNameOfTypeOf()
+        {
+            var source = @"
+class Program
+{
+    static string F1() => nameof(typeof(int));
+    static string F2() => nameof(typeof(nint));
+    static string F3() => nameof(typeof(dynamic));
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics(
+                // (4,34): error CS8081: Expression does not have a name.
+                //     static string F1() => nameof(typeof(int));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(int)").WithLocation(4, 34),
+                // (5,34): error CS8081: Expression does not have a name.
+                //     static string F2() => nameof(typeof(nint));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(nint)").WithLocation(5, 34),
+                // (6,34): error CS1962: The typeof operator cannot be used on the dynamic type
+                //     static string F3() => nameof(typeof(dynamic));
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(6, 34));
+        }
+
+        [Fact]
+        public void TestNameOfNintWhenTheyAreIdentifierNames()
+        {
+            var source = @"
+public class C 
+{
+    public string nint;
+    public void nameof(string x)
+    {
+        nameof(nint);
+    }
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
         }
     }
 }

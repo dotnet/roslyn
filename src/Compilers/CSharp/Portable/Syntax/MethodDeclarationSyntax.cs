@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return this.TypeParameterList == null ? 0 : this.TypeParameterList.Parameters.Count;
             }
-        }
-
-        public MethodDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-            return Update(attributeLists, modifiers, this.RefKeyword, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
         }
     }
 }
@@ -42,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFactory.MethodDeclaration(
                 attributeLists,
                 modifiers,
-                default(SyntaxToken),
                 returnType,
                 explicitInterfaceSpecifier,
                 identifier,
@@ -50,24 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 constraintClauses,
                 body,
-                default(ArrowExpressionClauseSyntax),
-                semicolonToken);
-        }
-
-        public static MethodDeclarationSyntax MethodDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-            return SyntaxFactory.MethodDeclaration(
-                attributeLists,
-                modifiers,
-                default(SyntaxToken),
-                returnType,
-                explicitInterfaceSpecifier,
-                identifier,
-                typeParameterList,
-                parameterList,
-                constraintClauses,
-                body,
-                expressionBody,
+                null,
                 semicolonToken);
         }
     }

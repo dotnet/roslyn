@@ -1,31 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal interface IEditAndContinueWorkspaceService : IWorkspaceService
+    internal interface IEditAndContinueWorkspaceService : IWorkspaceService, IActiveStatementSpanProvider
     {
-        EditSession EditSession { get; }
-        DebuggingSession DebuggingSession { get; }
+        ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
+        ValueTask<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken);
+        ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
 
-        event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
-        void OnBeforeDebuggingStateChanged(DebuggingState before, DebuggingState after);
+        void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze);
+        void DiscardSolutionUpdate();
 
-        void StartDebuggingSession(Solution currentSolution);
+        void OnSourceFileUpdated(Document document);
 
-        void StartEditSession(
-            Solution currentSolution,
-            IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatementSpan>> activeStatements,
-            ImmutableDictionary<ProjectId, ProjectReadOnlyReason> projects,
-            bool stoppedAtException);
+        ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken);
+        void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze);
+        void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze);
 
-        void EndEditSession();
-        void EndDebuggingSession();
-
-        bool IsProjectReadOnly(ProjectId id, out SessionReadOnlyReason sessionReason, out ProjectReadOnlyReason projectReason);
+        ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken);
+        ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken);
     }
 }

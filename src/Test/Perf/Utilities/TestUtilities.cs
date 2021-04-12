@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -96,7 +101,7 @@ namespace Roslyn.Test.Performance.Utilities
         public static void ShellOutVital(
                 string file,
                 string args,
-                string workingDirectory,
+                string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
             var result = ShellOut(file, args, workingDirectory, cancellationToken);
@@ -113,9 +118,14 @@ namespace Roslyn.Test.Performance.Utilities
         public static ProcessResult ShellOut(
                 string file,
                 string args,
-                string workingDirectory,
+                string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (workingDirectory == null)
+            {
+                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            }
+
             var tcs = new TaskCompletionSource<ProcessResult>();
             var startInfo = new ProcessStartInfo(file, args);
             startInfo.RedirectStandardOutput = true;
@@ -181,11 +191,6 @@ namespace Roslyn.Test.Performance.Utilities
         /// </summary>
         public static string StdoutFrom(string program, string args = "", string workingDirectory = null)
         {
-            if (workingDirectory == null)
-            {
-                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            }
-
             var result = ShellOut(program, args, workingDirectory);
             if (result.Failed)
             {
@@ -242,6 +247,5 @@ namespace Roslyn.Test.Performance.Utilities
                 }
             }
         }
-
     }
 }

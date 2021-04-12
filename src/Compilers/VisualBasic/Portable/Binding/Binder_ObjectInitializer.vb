@@ -1,21 +1,21 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class Binder
+    Partial Friend Class Binder
         Private Function BindObjectCreationExpression(
             node As ObjectCreationExpressionSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
+
+            DisallowNewOnTupleType(node.Type, diagnostics)
             Dim type As TypeSymbol = Me.BindTypeSyntax(node.Type, diagnostics)
 
             ' When the type is an error still try to bind the arguments for better data flow analysis and 
@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    extendedErrorType.CandidateSymbols(0).Kind = SymbolKind.NamedType Then
                     ' Continue binding with candidate symbol as the target type, but suppress any additional diagnostics
                     type = DirectCast(extendedErrorType.CandidateSymbols(0), TypeSymbol)
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 Else
-                    Dim argumentDiagnostics = DiagnosticBag.GetInstance()
+                    Dim argumentDiagnostics = BindingDiagnosticBag.Discarded
                     Dim boundArguments As ImmutableArray(Of BoundExpression) = Nothing
                     Dim argumentNames As ImmutableArray(Of String) = Nothing
                     Dim argumentNamesLocations As ImmutableArray(Of Location) = Nothing
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' We also want to put into the bound bad expression node all bound arguments as 
                     ' r-values AND bound type which will be used for semantic info
-                    Dim boundNodes = ArrayBuilder(Of BoundNode).GetInstance()
+                    Dim boundNodes = ArrayBuilder(Of BoundExpression).GetInstance()
 
                     ' Add all bound arguments as r-values
                     For Each arg In boundArguments
@@ -61,12 +61,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return BindObjectCreationExpression(node.Type, node.ArgumentList, type, node, diagnostics, Nothing)
         End Function
 
+        Private Shared Sub DisallowNewOnTupleType(type As TypeSyntax, diagnostics As BindingDiagnosticBag)
+            If type.Kind = SyntaxKind.TupleType Then
+                diagnostics.Add(ERRID.ERR_NewWithTupleTypeSyntax, type.Location)
+            End If
+        End Sub
+
         Friend Function BindObjectCreationExpression(
             typeNode As TypeSyntax,
             argumentListOpt As ArgumentListSyntax,
             type0 As TypeSymbol,
             node As ObjectCreationExpressionSyntax,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             asNewVariablePlaceholderOpt As BoundWithLValueExpressionPlaceholder
         ) As BoundExpression
 
@@ -90,14 +96,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             For Each constructor In ctors
                                 If constructor.ParameterCount = 0 Then
                                     '  the first parameterless constructor will do the job
-                                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                                    If IsAccessible(constructor, useSiteDiagnostics) Then
+                                    Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                                    If IsAccessible(constructor, useSiteInfo) Then
                                         ' if not accessible, just clear symbol information
                                         constructorSymbol = constructor
-                                        ReportUseSiteError(diagnostics, node, constructorSymbol)
+                                        ReportUseSite(diagnostics, node, constructorSymbol)
                                     End If
 
-                                    diagnostics.Add(node, useSiteDiagnostics)
+                                    diagnostics.Add(node, useSiteInfo)
                                     Exit For
                                 End If
                             Next
@@ -115,7 +121,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            New BoundMethodGroup(typeNode, Nothing,
                                                              ImmutableArray.Create(constructorSymbol), LookupResultKind.Good, Nothing,
                                                              QualificationKind.QualifiedViaTypeName)),
-                                        ImmutableArray(Of BoundExpression).Empty,
+                                        arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                        defaultArguments:=BitVector.Null,
                                         BindObjectCollectionOrMemberInitializer(node,
                                                                                 type0,
                                                                                 asNewVariablePlaceholderOpt,
@@ -148,10 +155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindObjectCreationExpression(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             type As TypeSymbol,
             arguments As ImmutableArray(Of BoundExpression),
-            diagnostics As DiagnosticBag) As BoundExpression
+            diagnostics As BindingDiagnosticBag) As BoundExpression
             Return BindObjectCreationExpression(
                 typeNode:=syntax,
                 argumentListOpt:=Nothing,
@@ -167,8 +174,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function MergeBoundChildNodesWithObjectInitializerForBadNode(
             boundArguments As ImmutableArray(Of BoundExpression),
             objectInitializerExpression As BoundObjectInitializerExpressionBase
-        ) As ImmutableArray(Of BoundNode)
-            Dim boundChildNodesForError = StaticCast(Of BoundNode).From(boundArguments)
+        ) As ImmutableArray(Of BoundExpression)
+            Dim boundChildNodesForError = boundArguments
 
             If objectInitializerExpression IsNot Nothing Then
                 boundChildNodesForError = boundChildNodesForError.Add(objectInitializerExpression)
@@ -178,14 +185,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindObjectCreationExpression(
-            typeNode As VisualBasicSyntaxNode,
+            typeNode As SyntaxNode,
             argumentListOpt As ArgumentListSyntax,
             type0 As TypeSymbol,
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             objectInitializerExpressionOpt As BoundObjectInitializerExpressionBase,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             callerInfoOpt As VisualBasicSyntaxNode
         ) As BoundExpression
 
@@ -193,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorReported As Boolean = False        ' was an error already reported?
             Dim type As NamedTypeSymbol = Nothing
 
-            Debug.Assert(objectInitializerExpressionOpt Is Nothing OrElse objectInitializerExpressionOpt.Type = type0)
+            Debug.Assert(objectInitializerExpressionOpt Is Nothing OrElse TypeSymbol.Equals(objectInitializerExpressionOpt.Type, type0, TypeCompareKind.ConsiderEverything))
 
             Select Case type0.TypeKind
                 Case TypeKind.Class
@@ -242,9 +249,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
 
                                 ' Check accessibility
-                                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                                Dim isInAccessible As Boolean = (Me.CheckAccessibility(namedCoClass, useSiteDiagnostics) <> AccessCheckResult.Accessible)
-                                diagnostics.Add(node, useSiteDiagnostics)
+                                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                                Dim isInAccessible As Boolean = (Me.CheckAccessibility(namedCoClass, useSiteInfo) <> AccessCheckResult.Accessible)
+                                diagnostics.Add(node, useSiteInfo)
 
                                 If isInAccessible Then
                                     ' CoClass is inaccessible
@@ -343,10 +350,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constructorsGroup As BoundMethodGroup = Nothing
 
             If type IsNot Nothing AndAlso Not type.IsInterface Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim constructors As ImmutableArray(Of MethodSymbol) = GetAccessibleConstructors(type, useSiteDiagnostics)
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                Dim constructors As ImmutableArray(Of MethodSymbol) = GetAccessibleConstructors(type, useSiteInfo)
 
-                diagnostics.Add(node, useSiteDiagnostics)
+                diagnostics.Add(node, useSiteInfo)
 
                 Dim groupResultKind As LookupResultKind = LookupResultKind.Good
 
@@ -368,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Suppress any additional diagnostics
-                diagnostics = New DiagnosticBag()
+                diagnostics = BindingDiagnosticBag.Discarded
             End If
 
             If constructorsGroup Is Nothing Then
@@ -381,18 +388,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' We rely on the asserted condition when we are merging/changing result kinds below. 
                 Debug.Assert(constructorsGroup.ResultKind = LookupResultKind.Good OrElse constructorsGroup.ResultKind = LookupResultKind.Inaccessible)
 
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
                 Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodInvocationOverloadResolution(constructorsGroup,
                                                                                                                                    boundArguments,
                                                                                                                                    argumentNames,
                                                                                                                                    Me,
                                                                                                                                    callerInfoOpt,
-                                                                                                                                   useSiteDiagnostics)
+                                                                                                                                   useSiteInfo)
 
-                If diagnostics.Add(node, useSiteDiagnostics) Then
+                If diagnostics.Add(node, useSiteInfo) Then
                     If constructorsGroup.ResultKind <> LookupResultKind.Inaccessible Then
                         ' Suppress additional diagnostics
-                        diagnostics = New DiagnosticBag()
+                        diagnostics = BindingDiagnosticBag.Discarded
                     End If
                 End If
 
@@ -401,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Create and report the diagnostic.
                     If results.Candidates.Length = 0 Then
                         results = OverloadResolution.MethodInvocationOverloadResolution(constructorsGroup, boundArguments, argumentNames, Me, includeEliminatedCandidates:=True, callerInfoOpt:=callerInfoOpt,
-                                                                                        useSiteDiagnostics:=useSiteDiagnostics)
+                                                                                        useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                     End If
 
                     ' NOTE: current services implementation expects all diagnostics to be associated with type node, not with a node itself
@@ -420,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' 3) LookupResultKind from constructorsGroup
 
                     ' Let's preserve two worst since we only have two locations to store them.
-                    Dim children = ArrayBuilder(Of BoundNode).GetInstance()
+                    Dim children = ArrayBuilder(Of BoundExpression).GetInstance()
 
 #If DEBUG Then
                     Dim foundGroup As Boolean = False
@@ -455,21 +462,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim methodResult = results.BestResult.Value
 
-                    boundArguments = PassArguments(typeNode, methodResult, boundArguments, diagnostics)
+                    Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(typeNode, methodResult, boundArguments, diagnostics)
+                    boundArguments = argumentInfo.Arguments
 
-                    ReportDiagnosticsIfObsolete(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
 
                     ' If a coclass was instantiated, convert the class to the interface type.
                     If type0.IsInterfaceType() Then
                         Debug.Assert(type.Equals(DirectCast(type0, NamedTypeSymbol).CoClassType))
                         ApplyImplicitConversion(node, type0, New BoundRValuePlaceholder(node, type), diagnostics)
                     Else
-                        Debug.Assert(type = type0)
+                        Debug.Assert(TypeSymbol.Equals(type, type0, TypeCompareKind.ConsiderEverything))
                     End If
 
                     ' If the type was not creatable, create a bad expression so that semantic model results can reflect that.
                     If resultKind <> LookupResultKind.Good Then
-                        Dim children = ArrayBuilder(Of BoundNode).GetInstance()
+                        Dim children = ArrayBuilder(Of BoundExpression).GetInstance()
 
                         children.Add(constructorsGroup)
                         children.AddRange(boundArguments)
@@ -487,25 +495,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol),
                                                                              constructorsGroup,
                                                                              boundArguments,
+                                                                             argumentInfo.DefaultArguments,
                                                                              objectInitializerExpressionOpt,
                                                                              type0)
                     End If
                 End If
             End If
 
-            Debug.Assert(resultExpression.Type.IsSameTypeIgnoringCustomModifiers(type0))
+            Debug.Assert(resultExpression.Type.IsSameTypeIgnoringAll(type0))
             Debug.Assert(LookupResult.WorseResultKind(resultKind, resultExpression.ResultKind) = resultExpression.ResultKind)
 
             Return resultExpression
         End Function
 
         Private Function BindNoPiaObjectCreationExpression(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             [interface] As TypeSymbol,
             coClass As NamedTypeSymbol,
             boundArguments As ImmutableArray(Of BoundExpression),
             initializerOpt As BoundObjectInitializerExpressionBase,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Dim hasErrors = False
 
@@ -523,10 +532,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Note: Dev11 silently drops any arguments and does not report an error.
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_NoArgumentCountOverloadCandidates1, "New")
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance()
-                children.AddRange(boundArguments)
-                children.Add(expr)
-                Return BadExpression(node, children.ToImmutableAndFree(), expr.Type)
+                Dim children = boundArguments.Add(expr)
+                Return BadExpression(node, children, expr.Type)
             End If
 
             Return expr
@@ -543,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntaxNode As ObjectCreationExpressionSyntax,
             initializedObjectType As TypeSymbol,
             asNewVariablePlaceholderOpt As BoundWithLValueExpressionPlaceholder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundObjectInitializerExpressionBase
 
             If syntaxNode.Initializer Is Nothing Then
@@ -571,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             objectCreationSyntax As ObjectCreationExpressionSyntax,
             initializedObjectType As TypeSymbol,
             asNewVariablePlaceholderOpt As BoundWithLValueExpressionPlaceholder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundObjectInitializerExpression
 
             Dim memberInitializerSyntax = DirectCast(objectCreationSyntax.Initializer, ObjectMemberInitializerSyntax)
@@ -630,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The temporary error messages should only be shown if binding the member access itself failed, or the bound
             ' member access is usable for the initialization (non shared, writable field or property).
             ' Otherwise more specific diagnostics will be shown .
-            Dim memberBindingDiagnostics = DiagnosticBag.GetInstance
+            Dim memberBindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             For Each fieldInitializer In memberInitializerSyntax.Initializers
                 ' NamedFieldInitializerSyntax is derived from FieldInitializerSyntax, which has this optional keyword as a member
@@ -656,12 +663,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       target,
                                                       diagnostics)
 
+                        Dim propertyAccess = TryCast(target, BoundPropertyAccess)
+
+                        If propertyAccess IsNot Nothing Then
+                            Debug.Assert(propertyAccess.AccessKind = PropertyAccessKind.Unknown)
+                            ' See if we can reclassify access as writable given that this is an object initializer.
+                            ' This is needed to accommodate init-only properties.
+                            If propertyAccess.AccessKind <> PropertyAccessKind.Get AndAlso Not propertyAccess.IsWriteable AndAlso
+                               propertyAccess.PropertySymbol.IsWritable(propertyAccess.ReceiverOpt, Me, isKnownTargetOfObjectMemberInitializer:=True) Then
+
+                                propertyAccess = propertyAccess.Update(propertyAccess.PropertySymbol, propertyAccess.PropertyGroupOpt, propertyAccess.AccessKind, isWriteable:=True,
+                                                                       propertyAccess.IsLValue, propertyAccess.ReceiverOpt, propertyAccess.Arguments, propertyAccess.DefaultArguments,
+                                                                       propertyAccess.Type)
+                                target = propertyAccess
+                            End If
+                        End If
+
                         If Not target.HasErrors Then
                             Dim isShared As Boolean
                             If target.Kind = BoundKind.FieldAccess Then
                                 isShared = DirectCast(target, BoundFieldAccess).FieldSymbol.IsShared
                             Else
-                                Dim [property] = DirectCast(target, BoundPropertyAccess).PropertySymbol
+                                Dim [property] = propertyAccess.PropertySymbol
                                 ' Treat extension properties as Shared in this context so we generate
                                 ' an error (BC30991) that such properties cannot be used in an initializer.
                                 ' Currently, there is only one extension property, InternalXmlHelper.Value:
@@ -698,11 +721,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         target = BadExpression(namedFieldInitializer,
                                                target,
-                                               LookupResultKind.Empty,
-                                               ErrorTypeSymbol.UnknownResultType)
+                                               ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                     End If
                 Else
-                    target = BadExpression(namedFieldInitializer, ErrorTypeSymbol.UnknownResultType)
+                    target = BadExpression(namedFieldInitializer, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 End If
 
                 ' in contrast to Dev10 Roslyn continues to bind the initialization value even if the receiver had errors.
@@ -713,7 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 memberAssignments.Add(assignmentOperator)
 
                 ' assert that the conversion really happened.
-                Debug.Assert(DirectCast(memberAssignments.Last, BoundAssignmentOperator).Right.Type = DirectCast(memberAssignments.Last, BoundAssignmentOperator).Left.Type)
+                Debug.Assert(TypeSymbol.Equals(DirectCast(memberAssignments.Last, BoundAssignmentOperator).Right.Type, DirectCast(memberAssignments.Last, BoundAssignmentOperator).Left.Type, TypeCompareKind.ConsiderEverything))
 
                 memberBindingDiagnostics.Clear()
             Next
@@ -738,7 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindCollectionInitializer(
             objectCreationSyntax As ObjectCreationExpressionSyntax,
             initializedObjectType As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundCollectionInitializerExpression
 
             Dim collectionInitializerSyntax = DirectCast(objectCreationSyntax.Initializer, ObjectCollectionInitializerSyntax)
@@ -748,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim unusedExpression As BoundExpression = Nothing
             Dim unusedLValuePlaceholder As BoundLValuePlaceholder = Nothing
             Dim unusedRValuePlaceholder As BoundRValuePlaceholder = Nothing
-            Dim temporaryDiagnostics = DiagnosticBag.GetInstance
+            Dim temporaryDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
             Dim matchesDesignPattern As Boolean = False
 
             ' From Dev10:
@@ -779,13 +801,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 matchesDesignPattern = True
 
             Else
-                Dim ienumerableUseSiteDiagnostics = DiagnosticBag.GetInstance
+                Dim ienumerableUseSiteDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                 Dim ienumerable = GetSpecialType(SpecialType.System_Collections_IEnumerable,
                                                  objectCreationSyntax,
                                                  ienumerableUseSiteDiagnostics)
 
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                If IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteDiagnostics) Then
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                If IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteInfo) Then
                     diagnostics.AddRange(ienumerableUseSiteDiagnostics)
                     matchesDesignPattern = True
 
@@ -795,7 +817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      ErrorFactory.ErrorInfo(ERRID.ERR_NotACollection1, collectionType.Name))
                 End If
 
-                diagnostics.Add(collectionInitializerSyntax, useSiteDiagnostics)
+                diagnostics.Add(collectionInitializerSyntax, useSiteInfo)
 
                 ienumerableUseSiteDiagnostics.Free()
             End If
@@ -863,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             topLevelInitializer As ExpressionSyntax,
             placeholder As BoundWithLValueExpressionPlaceholder,
             result As LookupResult,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
 
             Dim arguments = ArrayBuilder(Of BoundExpression).GetInstance
@@ -888,9 +910,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim methodGroup As BoundMethodGroup = CreateBoundMethodGroup(topLevelInitializer,
                                                                              result,
                                                                              LookupOptions.AllMethodsOfAnyArity,
+                                                                             diagnostics.AccumulatesDependencies,
                                                                              placeholder,
                                                                              Nothing,
-                                                                             QualificationKind.QualifiedViaValue)
+                                                                             QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
 
                 Dim invocation = BindInvocationExpression(topLevelInitializer, topLevelInitializer,
                                                           TypeCharacter.None,
@@ -901,12 +924,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           callerInfoOpt:=topLevelInitializer)
                 invocation.SetWasCompilerGenerated()
 
+                If invocation.Kind = BoundKind.LateInvocation Then
+                    invocation = DirectCast(invocation, BoundLateInvocation).SetLateBoundAccessKind(LateBoundAccessKind.Call)
+                End If
+
                 Return invocation
             Else
                 Return New BoundBadExpression(topLevelInitializer,
                                               LookupResultKind.Empty,
                                               ImmutableArray(Of Symbol).Empty,
-                                              StaticCast(Of BoundNode).From(arguments.ToImmutableAndFree),
+                                              arguments.ToImmutableAndFree,
                                               ErrorTypeSymbol.UnknownResultType,
                                               hasErrors:=True).MakeCompilerGenerated()
             End If
@@ -917,7 +944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Special binder for binding ObjectInitializers. 
     ''' This binder stores a reference to the receiver of the initialization, because fields in an object initializer can be 
-    ''' referenced with an omitted left expression in an member access expression (e.g. .Fieldname = .OtherFieldname).
+    ''' referenced with an omitted left expression in a member access expression (e.g. .Fieldname = .OtherFieldname).
     ''' </summary>
     Friend Class ObjectInitializerBinder
         Inherits Binder
@@ -935,7 +962,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected Friend Overrides Function TryBindOmittedLeftForMemberAccess(
             node As MemberAccessExpressionSyntax,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             accessingBinder As Binder,
             ByRef wholeMemberAccessExpressionBound As Boolean
         ) As BoundExpression
@@ -943,7 +970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _receiver
         End Function
 
-        Protected Friend Overrides Function TryBindOmittedLeftForXmlMemberAccess(node As XmlMemberAccessExpressionSyntax, diagnostics As DiagnosticBag, accessingBinder As Binder) As BoundExpression
+        Protected Friend Overrides Function TryBindOmittedLeftForXmlMemberAccess(node As XmlMemberAccessExpressionSyntax, diagnostics As BindingDiagnosticBag, accessingBinder As Binder) As BoundExpression
             Return _receiver
         End Function
 
@@ -953,13 +980,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function TryBindOmittedLeftForDictionaryAccess(
                     node As MemberAccessExpressionSyntax,
                     accessingBinder As Binder,
-                    diagnostics As DiagnosticBag
+                    diagnostics As BindingDiagnosticBag
                 ) As BoundExpression
 
             Return _receiver
         End Function
 
-        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
+        Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As BindingDiagnosticBag) As BoundExpression
             Return Nothing
         End Function
     End Class

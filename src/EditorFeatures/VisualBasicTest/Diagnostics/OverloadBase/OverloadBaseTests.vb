@@ -1,40 +1,141 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace NS
     Public Class OverloadBaseTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New OverloadBaseCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New OverloadBaseCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddOverload)>
         Public Async Function TestAddOverloadsToProperty() As Task
-            Await TestAsync(
-            NewLines("Class Application \n Shared Property Current As Application \n End Class \n Class App : Inherits Application \n [|Shared Property Current As App|] \n End Class"),
-            NewLines("Class Application \n Shared Property Current As Application \n End Class \n Class App : Inherits Application \n Overloads Shared Property Current As App \n End Class"))
+            Await TestInRegularAndScriptAsync(
+"Class Application
+    Shared Property Current As Application
+End Class
+Class App : Inherits Application
+    [|Shared Property Current As App|]
+End Class",
+"Class Application
+    Shared Property Current As Application
+End Class
+Class App : Inherits Application
+    Overloads Shared Property Current As App
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddOverload)>
         Public Async Function TestAddOverloadsToFunction() As Task
-            Await TestAsync(
-            NewLines("Class Application \n Shared Function Test() As Integer \n Return 1 \n End Function \n End Class \n Class App : Inherits Application \n [|Shared Function Test() As Integer \n Return 2 \n End Function|] \n End Class"),
-            NewLines("Class Application \n Shared Function Test() As Integer \n Return 1 \n End Function \n End Class \n Class App : Inherits Application \n Overloads Shared Function Test() As Integer \n Return 2 \n End Function \n End Class"))
+            Await TestInRegularAndScriptAsync(
+"Class Application
+    Shared Function Test() As Integer
+        Return 1
+    End Function
+End Class
+Class App : Inherits Application
+    [|Shared Function Test() As Integer
+        Return 2
+    End Function|]
+End Class",
+"Class Application
+    Shared Function Test() As Integer
+        Return 1
+    End Function
+End Class
+Class App : Inherits Application
+    Overloads Shared Function Test() As Integer
+        Return 2
+    End Function
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddOverload)>
         Public Async Function TestAddOverloadsToSub() As Task
-            Await TestAsync(
-            NewLines("Class Application \n Shared Sub Test() \n End Sub \n End Class \n Class App : Inherits Application \n [|Shared Sub Test() \n End Sub|] \n End Class"),
-            NewLines("Class Application \n Shared Sub Test() \n End Sub \n End Class \n Class App : Inherits Application \n Overloads Shared Sub Test() \n End Sub \n End Class"))
+            Await TestInRegularAndScriptAsync(
+"Class Application
+    Shared Sub Test()
+    End Sub
+End Class
+Class App : Inherits Application
+    [|Shared Sub Test()
+    End Sub|]
+End Class",
+"Class Application
+    Shared Sub Test()
+    End Sub
+End Class
+Class App : Inherits Application
+    Overloads Shared Sub Test()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddShadows)>
+        Public Async Function TestAddShadowsToProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Application
+    Shared Sub Current()
+    End Sub
+End Class
+Class App : Inherits Application
+    [|Shared Property Current As App|]
+End Class",
+"Class Application
+    Shared Sub Current()
+    End Sub
+End Class
+Class App : Inherits Application
+    Shared Shadows Property Current As App
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddShadows)>
+        Public Async Function TestAddShadowsToFunction() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Application
+    Shared Property Test As Integer
+End Class
+Class App : Inherits Application
+    [|Shared Function Test() As Integer
+        Return 2
+    End Function|]
+End Class",
+"Class Application
+    Shared Property Test As Integer
+End Class
+Class App : Inherits Application
+    Shared Shadows Function Test() As Integer
+        Return 2
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddShadows)>
+        Public Async Function TestAddShadowsToSub() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Application
+    Shared Property Test As Integer
+End Class
+Class App : Inherits Application
+    [|Shared Sub Test()
+    End Sub|]
+End Class",
+"Class Application
+    Shared Property Test As Integer
+End Class
+Class App : Inherits Application
+    Shared Shadows Sub Test()
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

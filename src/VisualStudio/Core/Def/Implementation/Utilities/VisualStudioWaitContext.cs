@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -29,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             IVsThreadedWaitDialogFactory dialogFactory,
             string title,
             string message,
-            bool allowCancel, 
+            bool allowCancel,
             bool showProgress)
         {
             _title = title;
@@ -38,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             _cancellationTokenSource = new CancellationTokenSource();
 
             this.ProgressTracker = showProgress
-                ? new ProgressTracker((_1, _2) => UpdateDialog())
+                ? new ProgressTracker((_1, _2, _3) => UpdateDialog())
                 : new ProgressTracker();
 
             _dialog = CreateDialog(dialogFactory, showProgress);
@@ -48,8 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         private IVsThreadedWaitDialog3 CreateDialog(
             IVsThreadedWaitDialogFactory dialogFactory, bool showProgress)
         {
-            IVsThreadedWaitDialog2 dialog2;
-            Marshal.ThrowExceptionForHR(dialogFactory.CreateInstance(out dialog2));
+            Marshal.ThrowExceptionForHR(dialogFactory.CreateInstance(out var dialog2));
             Contract.ThrowIfNull(dialog2);
 
             var dialog3 = (IVsThreadedWaitDialog3)dialog2;
@@ -58,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
             dialog3.StartWaitDialogWithCallback(
                 szWaitCaption: _title,
-                szWaitMessage: _message,
+                szWaitMessage: this.ProgressTracker.Description ?? _message,
                 szProgressText: null,
                 varStatusBmpAnim: null,
                 szStatusBarText: null,
@@ -112,26 +115,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private void UpdateDialog()
         {
-            bool hasCancelled;
-            _dialog.UpdateProgress(
-                _message,
+            ((IVsThreadedWaitDialog2)_dialog).UpdateProgress(
+                this.ProgressTracker.Description ?? _message,
                 szProgressText: null,
                 szStatusBarText: null,
                 iCurrentStep: this.ProgressTracker.CompletedItems,
                 iTotalSteps: this.ProgressTracker.TotalItems,
                 fDisableCancel: !_allowCancel,
-                pfCanceled: out hasCancelled);
+                pfCanceled: out _);
         }
 
         public void Dispose()
         {
-            int canceled;
-            _dialog.EndWaitDialog(out canceled);
+            _dialog.EndWaitDialog(out var canceled);
 
+            // Let the global operation object know that we completed with/without user cancelling.  If the user
+            // canceled, we won't call 'Done', and so calling 'Dispose' will log that we didn't complete fully.
             if (canceled == 0)
-            {
                 _registration.Done();
-            }
 
             _registration.Dispose();
         }

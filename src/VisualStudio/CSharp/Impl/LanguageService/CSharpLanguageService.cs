@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -14,12 +18,13 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     [ExcludeFromCodeCoverage]
     [Guid(Guids.CSharpLanguageServiceIdString)]
-    internal partial class CSharpLanguageService : AbstractLanguageService<CSharpPackage, CSharpLanguageService, CSharpProjectShim>
+    internal partial class CSharpLanguageService : AbstractLanguageService<CSharpPackage, CSharpLanguageService>
     {
         internal CSharpLanguageService(CSharpPackage package)
             : base(package)
@@ -54,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             get
             {
-                return CSharpVSResources.C;
+                return CSharpVSResources.CSharp;
             }
         }
 

@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -10,49 +11,47 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractObjectCreationCompletionProvider : AbstractSymbolCompletionProvider
+    internal abstract class AbstractObjectCreationCompletionProvider<TSyntaxContext> : AbstractSymbolCompletionProvider<TSyntaxContext>
+        where TSyntaxContext : SyntaxContext
     {
         /// <summary>
         /// Return null if not in object creation type context.
         /// </summary>
-        protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
+        protected abstract SyntaxNode? GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
+        protected abstract override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols);
 
-        private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
-
-        protected override CompletionItem CreateItem(string displayText, string insertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan span, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            TSyntaxContext context,
+            SupportedPlatformData? supportedPlatformData)
         {
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
-                insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
-                span: span,
+                displayTextSuffix: displayTextSuffix,
+                symbols: symbols.SelectAsArray(t => t.symbol),
+                // Always preselect
+                rules: GetCompletionItemRules(symbols).WithMatchPriority(MatchPriority.Preselect),
                 contextPosition: context.Position,
-                descriptionPosition: position,
-                symbols: symbols,
-                supportedPlatforms: supportedPlatformData,
-                matchPriority: MatchPriority.Preselect, // Always preselect
-                tags: s_Tags,
-                rules: GetCompletionItemRules(symbols, context));
+                insertionText: insertionText,
+                filterText: GetFilterText(symbols[0].symbol, displayText, context),
+                supportedPlatforms: supportedPlatformData);
         }
 
-        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
+            CompletionContext? completionContext, TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyEnumerable<ISymbol>();
-        }
-
-        protected override Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
+            var newExpression = GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
-            {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
             var type = typeInferenceService.InferType(
@@ -60,38 +59,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Unwrap an array type fully.  We only want to offer the underlying element type in the
             // list of completion items.
-            bool isArray = false;
-            while (type is IArrayTypeSymbol)
-            {
-                isArray = true;
-                type = ((IArrayTypeSymbol)type).ElementType;
-            }
+            var isArray = type is IArrayTypeSymbol;
+            while (type is IArrayTypeSymbol arrayType)
+                type = arrayType.ElementType;
 
             if (type == null)
-            {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             // Unwrap nullable
             if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                type = type.GetTypeArguments().FirstOrDefault();
-            }
+                type = type.GetTypeArguments().Single();
 
             if (type.SpecialType == SpecialType.System_Void)
-            {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             if (type.ContainsAnonymousType())
-            {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             if (!type.CanBeReferencedByName)
-            {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
             // In this case we do want to allow them to preselect certain types in the completion
@@ -103,29 +89,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     type.TypeKind == TypeKind.Dynamic ||
                     type.IsAbstract)
                 {
-                    return SpecializedTasks.EmptyEnumerable<ISymbol>();
+                    return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
                 }
 
-                if (type.TypeKind == TypeKind.TypeParameter &&
-                    !((ITypeParameterSymbol)type).HasConstructorConstraint)
-                {
-                    return SpecializedTasks.EmptyEnumerable<ISymbol>();
-                }
+                if (type is ITypeParameterSymbol typeParameter && !typeParameter.HasConstructorConstraint)
+                    return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
             }
 
             if (!type.IsEditorBrowsable(options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language), context.SemanticModel.Compilation))
-            {
-                return SpecializedTasks.EmptyEnumerable<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
-            return Task.FromResult(SpecializedCollections.SingletonEnumerable((ISymbol)type));
+            // In the case of array creation, we don't offer a preselected/hard-selected item because
+            // the user may want an implicitly-typed array creation
+            return Task.FromResult(ImmutableArray.Create(((ISymbol)type, preselect: !isArray)));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context)
         {
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-            return ValueTuple.Create(displayString, displayString);
+            var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
+            return (displayString, "", displayString);
         }
     }
 }

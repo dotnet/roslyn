@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -6,12 +8,9 @@
 Option Compare Binary
 Option Strict On
 
-Imports System.Collections.ObjectModel
-Imports System.Text
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class Blender
@@ -473,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ContainsLeadingLineBreaks(node As VisualBasicSyntaxNode) As Boolean
             Dim lt = node.GetLeadingTrivia
             If lt IsNot Nothing Then
-                If lt.Kind = SyntaxKind.EndOfLineTrivia Then
+                If lt.RawKind = SyntaxKind.EndOfLineTrivia Then
                     Return True
                 End If
 

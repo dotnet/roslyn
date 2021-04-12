@@ -1,6 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Text;
+#nullable disable
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,6 +23,12 @@ namespace Microsoft.CodeAnalysis
         RemoveAdditionalDocument = 12,
         ChangeAdditionalDocument = 13,
         ChangeCompilationOptions = 14,
-        ChangeParseOptions = 15
+        ChangeParseOptions = 15,
+        ChangeDocumentInfo = 16,
+        AddAnalyzerConfigDocument = 17,
+        RemoveAnalyzerConfigDocument = 18,
+        ChangeAnalyzerConfigDocument = 19,
+        AddSolutionAnalyzerReference = 20,
+        RemoveSolutionAnalyzerReference = 21,
     }
 }

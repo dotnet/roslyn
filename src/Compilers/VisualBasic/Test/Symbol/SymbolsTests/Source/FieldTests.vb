@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub SimpleFields()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Public Structure C
@@ -48,7 +50,7 @@ End Structure
         <Fact>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub TupleAPIs()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Public Class C
@@ -62,13 +64,12 @@ End Class
             Dim fieldType = DirectCast(field.Type, INamedTypeSymbol)
 
             Assert.False(fieldType.IsTupleType)
-            Assert.True(fieldType.TupleElementTypes.IsDefault)
-            Assert.True(fieldType.TupleElementNames.IsDefault)
+            Assert.True(fieldType.TupleElements.IsDefault)
         End Sub
 
         <Fact>
         Public Sub Fields1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Public Partial Class C
@@ -176,7 +177,7 @@ End Class
         <WorkItem(537491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537491")>
         <Fact>
         Public Sub ImplicitTypedFields01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Field">
     <file name="a.vb">
 'Imports statements should go here
@@ -235,7 +236,7 @@ End namespace
 
         <Fact>
         Public Sub Bug4993()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Option Infer Off
@@ -264,7 +265,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
         <Fact>
         Public Sub Bug4993_related_StrictOn()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Option Strict On
@@ -283,7 +284,7 @@ End Class
 
         <Fact>
         Public Sub Bug4993_related_StrictOff()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Option Strict Off
@@ -303,7 +304,7 @@ End Class
         <Fact>
         Public Sub ConstFieldWithoutValueErr()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
  <compilation name="ConstFieldWithoutValueErr">
      <file name="a.vb">
 Public Class C
@@ -364,7 +365,7 @@ BC30438: Constants must have a value.
             Dim index = 0
             For Each optionStrict In {"On", "Off"}
                 For Each infer In {"On", "Off"}
-                    Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+                    Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="AAA">
             <file name="a.vb">
 Option Strict <%= optionStrict %>
@@ -407,7 +408,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             Dim index = 0
             For Each optionStrict In {"On", "Off"}
                 For Each infer In {"On", "Off"}
-                    Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+                    Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="AAA">
             <file name="a.vb">
 Option Strict <%= optionStrict %>
@@ -452,9 +453,9 @@ End Class]]>,
         ''' </summary>
         <WorkItem(546185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546185")>
         <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly))>
         Public Sub RTSpecialName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -492,14 +493,14 @@ End Module
             compilation.AssertNoErrors()
 
             ' PEVerify should not report "Field value__ ... is not marked RTSpecialName".
-            Dim verifier = New CompilationVerifier(Me, compilation)
+            Dim verifier = New CompilationVerifier(compilation)
             verifier.EmitAndVerify(
                 "Error: Field name value__ is reserved for Enums only.")
         End Sub
 
         <Fact>
         Public Sub MultipleFieldsWithBadType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Public Class C
@@ -518,7 +519,7 @@ BC30002: Type 'abcDef' is not defined.
 
         <Fact>
         Public Sub AssociatedSymbolOfSubstitutedField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Public Class C(Of T)
@@ -537,6 +538,24 @@ End Class
             Dim substitutedField = substitutedProperty.AssociatedField
             Assert.IsType(Of SubstitutedFieldSymbol)(substitutedField)
             Assert.Equal(substitutedProperty, substitutedField.AssociatedSymbol)
+        End Sub
+
+        <WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")>
+        <Fact>
+        Public Sub FixedSizeBufferFalse()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="AAA">
+    <file name="a.vb">
+Public Structure S
+    Private goo as Byte
+End Structure
+    </file>
+</compilation>)
+            Dim globalNS = compilation.SourceModule.GlobalNamespace
+            Dim s = globalNS.GetMember(Of NamedTypeSymbol)("S")
+            Dim goo = DirectCast(s.GetMember(Of FieldSymbol)("goo"), IFieldSymbol)
+
+            Assert.False(goo.IsFixedSizeBuffer)
         End Sub
 
 

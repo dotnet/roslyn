@@ -1,4 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 #region Assembly Microsoft.VisualStudio.Debugger.Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
@@ -87,7 +92,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
 
         public DkmClrValue GetClrValue()
         {
-            return InspectionContext.InspectionSession.InvokeResultProvider(MethodId.GetClrValue, r => r.GetClrValue(this));
+            return InspectionContext.InspectionSession.InvokeResultProvider(this, MethodId.GetClrValue, r => r.GetClrValue(this));
         }
     }
 }

@@ -1,117 +1,61 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
-        private readonly CodeGenerationAbstractNamedTypeSymbol _constructedFrom;
-        private readonly IList<ITypeSymbol> _typeArguments;
+        private readonly CodeGenerationNamedTypeSymbol _constructedFrom;
+        private readonly ImmutableArray<ITypeSymbol> _typeArguments;
 
         public CodeGenerationConstructedNamedTypeSymbol(
-            CodeGenerationAbstractNamedTypeSymbol constructedFrom,
-            IList<ITypeSymbol> typeArguments,
-            IList<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
-            : base(constructedFrom.ContainingType, constructedFrom.GetAttributes(),
+            CodeGenerationNamedTypeSymbol constructedFrom,
+            ImmutableArray<ITypeSymbol> typeArguments,
+            ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
+            : base(constructedFrom.ContainingAssembly, constructedFrom.ContainingType, constructedFrom.GetAttributes(),
                    constructedFrom.DeclaredAccessibility, constructedFrom.Modifiers,
-                   constructedFrom.Name, constructedFrom.SpecialType, typeMembers)
+                   constructedFrom.Name, constructedFrom.SpecialType, constructedFrom.NullableAnnotation, typeMembers)
         {
             _constructedFrom = constructedFrom;
             this.OriginalDefinition = constructedFrom.OriginalDefinition;
             _typeArguments = typeArguments;
         }
 
-        public override ImmutableArray<ITypeSymbol> TypeArguments
-        {
-            get
-            {
-                return ImmutableArray.CreateRange(_typeArguments);
-            }
-        }
+        public override ImmutableArray<ITypeSymbol> TypeArguments => _typeArguments;
 
-        public override int Arity
-        {
-            get
-            {
-                return _constructedFrom.Arity;
-            }
-        }
+        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _typeArguments.SelectAsArray(t => t.NullableAnnotation);
 
-        public override bool IsGenericType
-        {
-            get
-            {
-                return _constructedFrom.IsGenericType;
-            }
-        }
+        public override int Arity => _constructedFrom.Arity;
 
-        public override bool IsUnboundGenericType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsGenericType => _constructedFrom.IsGenericType;
 
-        public override bool IsScriptClass
-        {
-            get
-            {
-                return _constructedFrom.IsScriptClass;
-            }
-        }
+        public override bool IsUnboundGenericType => false;
 
-        public override bool IsImplicitClass
-        {
-            get
-            {
-                return _constructedFrom.IsImplicitClass;
-            }
-        }
+        public override bool IsScriptClass => _constructedFrom.IsScriptClass;
 
-        public override IEnumerable<string> MemberNames
-        {
-            get
-            {
-                return _constructedFrom.MemberNames;
-            }
-        }
+        public override bool IsImplicitClass => _constructedFrom.IsImplicitClass;
 
-        public override IMethodSymbol DelegateInvokeMethod
-        {
-            get
-            {
+        public override IEnumerable<string> MemberNames => _constructedFrom.MemberNames;
+
+        public override IMethodSymbol DelegateInvokeMethod =>
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
-                return null;
-            }
-        }
+                null;
 
-        public override INamedTypeSymbol EnumUnderlyingType
-        {
-            get
-            {
+        public override INamedTypeSymbol EnumUnderlyingType =>
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
-                return null;
-            }
-        }
+                null;
 
-        public override INamedTypeSymbol ConstructedFrom
-        {
-            get
-            {
-                return _constructedFrom;
-            }
-        }
+        protected override CodeGenerationNamedTypeSymbol ConstructedFrom => _constructedFrom;
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
-        {
-            return null;
-        }
+            => null;
 
         public override ImmutableArray<IMethodSymbol> InstanceConstructors
         {
@@ -146,25 +90,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return ImmutableArray.CreateRange(_constructedFrom.TypeMembers.Cast<INamedTypeSymbol>());
         }
 
-        public override TypeKind TypeKind
+        public override TypeKind TypeKind => _constructedFrom.TypeKind;
+
+        protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
-            get
-            {
-                return _constructedFrom.TypeKind;
-            }
+            return new CodeGenerationConstructedNamedTypeSymbol(
+                (CodeGenerationNamedTypeSymbol)_constructedFrom.WithNullableAnnotation(nullableAnnotation),
+                _typeArguments,
+                this.TypeMembers);
         }
 
-        protected override CodeGenerationSymbol Clone()
-        {
-            return new CodeGenerationConstructedNamedTypeSymbol(_constructedFrom, _typeArguments, this.TypeMembers);
-        }
-
-        public override ImmutableArray<ITypeParameterSymbol> TypeParameters
-        {
-            get
-            {
-                return _constructedFrom.TypeParameters;
-            }
-        }
+        public override ImmutableArray<ITypeParameterSymbol> TypeParameters => _constructedFrom.TypeParameters;
     }
 }

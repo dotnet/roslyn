@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -53,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 }";
             var assembly = GetUnsafeAssembly(source);
             const long ptr = 0x0;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "pfn") ? GetFunctionPointerField(v, m) : null;
+            DkmClrValue getMemberValue(DkmClrValue v, string m) => (m == "pfn") ? GetFunctionPointerField(v, m) : null;
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assembly), getMemberValue: getMemberValue);
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(ptr), type);
+                var value = type.Instantiate(ptr);
                 var evalResult = FormatResult("o", value);
                 Verify(evalResult,
                     EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Other));
@@ -89,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             public override Type GetElementType()
             {
                 return null;
+            }
+
+            public override bool IsFunctionPointer()
+            {
+                return true;
             }
         }
     }

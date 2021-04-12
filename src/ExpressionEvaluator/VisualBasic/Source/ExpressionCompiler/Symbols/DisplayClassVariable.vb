@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
@@ -15,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' A field in a display class that represents a captured variable:
     ''' either a local, a parameter, or "me".
     ''' </summary>
+    <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend NotInheritable Class DisplayClassVariable
 
         Friend ReadOnly Name As String
@@ -56,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return SubstituteFields(otherInstance, typeMap)
         End Function
 
-        Friend Function ToBoundExpression(syntax As VisualBasicSyntaxNode, isLValue As Boolean, suppressVirtualCalls As Boolean) As BoundExpression
+        Friend Function ToBoundExpression(syntax As SyntaxNode, isLValue As Boolean, suppressVirtualCalls As Boolean) As BoundExpression
             Dim expr = Me.DisplayClassInstance.ToBoundExpression(syntax)
             Dim fields = ArrayBuilder(Of FieldSymbol).GetInstance()
             fields.AddRange(Me.DisplayClassFields)
@@ -71,6 +75,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Function SubstituteFields(otherInstance As DisplayClassInstance, typeMap As TypeSubstitution) As DisplayClassVariable
             Dim otherFields = SubstituteFields(Me.DisplayClassFields, typeMap)
             Return New DisplayClassVariable(Me.Name, Me.Kind, otherInstance, otherFields)
+        End Function
+
+        Private Function GetDebuggerDisplay() As String
+            Return DisplayClassInstance.GetDebuggerDisplay(DisplayClassFields)
         End Function
 
         Private Shared Function SubstituteFields(fields As ConsList(Of FieldSymbol), typeMap As TypeSubstitution) As ConsList(Of FieldSymbol)
@@ -153,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End Get
             End Property
 
-            Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+            Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
                 Return Nothing
             End Function
 

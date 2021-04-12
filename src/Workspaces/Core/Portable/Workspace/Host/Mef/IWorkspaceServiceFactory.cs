@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
@@ -11,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     {
         /// <summary>
         /// Creates a new <see cref="IWorkspaceService"/> instance.
+        /// Returns <c>null</c> if the service is not applicable to the given workspace.
         /// </summary>
         /// <param name="workspaceServices">The <see cref="HostWorkspaceServices"/> that can be used to access other services.</param>
         IWorkspaceService CreateService(HostWorkspaceServices workspaceServices);

@@ -1,11 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -58,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     #endregion
 
-    public class PreprocessorTests
+    public class PreprocessorTests : TestBase
     {
         public PreprocessorTests()
         {
@@ -79,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private CompilationUnitSyntax Parse(string text, SourceCodeKind kind, params string[] defines)
         {
             var options = this.GetOptions(kind, defines);
+            return Parse(text, options);
+        }
+
+        private CompilationUnitSyntax Parse(string text, CSharpParseOptions options)
+        {
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options).GetCompilationUnitRoot();
         }
@@ -182,10 +193,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             Assert.Equal(exp.Text, ((DefineDirectiveTriviaSyntax)dt).Name.ValueText); // Text
                         }
-
+                        break;
+                    case SyntaxKind.ErrorDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((ErrorDirectiveTriviaSyntax)dt).EndOfDirectiveToken.ToFullString());
+                        }
+                        break;
+                    case SyntaxKind.LoadDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((LoadDirectiveTriviaSyntax)dt).File.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.UndefDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((UndefDirectiveTriviaSyntax)dt).Name.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.ReferenceDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((ReferenceDirectiveTriviaSyntax)dt).File.ValueText);
+                        }
                         break;
                     case SyntaxKind.LineDirectiveTrivia:
-                        var ld = dt as LineDirectiveTriviaSyntax;
+                        var ld = (LineDirectiveTriviaSyntax)dt;
 
                         // default number = 0 - no number
                         if (exp.Number == -1)
@@ -217,7 +251,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             Assert.NotEqual(SyntaxKind.None, ld.File.Kind());
                             Assert.Equal(exp.Text, ld.File.Value);
                         }
+                        break;
+                    case SyntaxKind.NullableDirectiveTrivia:
+                        var nn = (NullableDirectiveTriviaSyntax)dt;
+                        var setting = nn.SettingToken;
+                        var target = nn.TargetToken;
+                        if (null == exp.Text)
+                        {
+                            Assert.True(setting.IsMissing);
+                            Assert.True(target.IsMissing);
+                        }
+                        else
+                        {
+                            var actualText = setting.ValueText;
+                            if (!string.IsNullOrEmpty(target.ValueText))
+                            {
+                                actualText += " " + target.ValueText;
+                            }
 
+                            Assert.Equal(exp.Text, actualText);
+                            Assert.True(target.Kind() == SyntaxKind.WarningsKeyword || target.Kind() == SyntaxKind.AnnotationsKeyword ||
+                                        target.Kind() == SyntaxKind.None);
+
+                            Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword ||
+                                        setting.Kind() == SyntaxKind.RestoreKeyword);
+                        }
+                        Assert.Equal(SyntaxKind.NullableKeyword, nn.DirectiveNameToken.Kind());
+                        Assert.True(SyntaxFacts.IsPreprocessorDirective(SyntaxKind.NullableDirectiveTrivia));
+                        Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.NullableKeyword));
+                        break;
+                    default:
+                        if (null != exp.Text)
+                        {
+                            Assert.True(false, String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
+                        }
                         break;
                 } // switch
             }
@@ -228,7 +295,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var directives = node.GetDirectives();
             Assert.Equal(1, directives.Count);
             var dt = directives[0];
-            Assert.Equal(expected.PragmaKind, directives[0].Kind());
+            VerifyDirectivePragma(dt, expected);
+        }
+
+        private void VerifyDirectivePragma(DirectiveTriviaSyntax dt, PragmaInfo expected)
+        {
+            Assert.Equal(expected.PragmaKind, dt.Kind());
 
             if (dt is PragmaWarningDirectiveTriviaSyntax)
             {
@@ -415,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Trait("Feature", "Directives")]
         public void TestNegBadDirectiveName()
         {
-            var text = @"#foo";
+            var text = @"#goo";
             var node = Parse(text);
 
             TestRoundTripping(node, text, false);
@@ -2281,13 +2353,13 @@ class A {}";
         [Trait("Feature", "Directives")]
         public void TestNegDefineWithBadTokensAfterName()
         {
-            var text = @"#define FOO(";
+            var text = @"#define GOO(";
             var node = Parse(text);
 
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
             VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "FOO" });
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "GOO" });
         }
 
         [Fact]
@@ -2556,11 +2628,11 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestNegUndefWithBadTokensAfterName()
         {
-            var text = @"#undef FOO(";
+            var text = @"#undef GOO(";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "FOO(" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "GOO" });
         }
 
         [Fact]
@@ -2584,7 +2656,7 @@ class A { }
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "1234" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 
         [Fact]
@@ -2962,6 +3034,77 @@ class A { }
             Assert.Equal(expectedErrorStringFileName, actualErrorStringFileName);
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp4, "4")]
+        [InlineData(LanguageVersion.CSharp9, "9.0")]
+        [InlineData(LanguageVersion.Latest, "latest (9.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (9.0)")]
+        [InlineData(LanguageVersion.Default, "default (9.0)")]
+        [InlineData(LanguageVersion.Preview, "preview")]
+        public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
+        {
+            var text = "#error version";
+            var node = Parse(text, new CSharpParseOptions(version));
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version"
+            });
+
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version'
+                // #error version
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version").WithArguments("version").WithLocation(1, 8),
+                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: <expectedLanguageVersion>.
+                // #error version
+                Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), expectedLanguageVersion).WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void TestErrorWithVersionNumber()
+        {
+            var text = "#error version:7.1";
+            var node = Parse(text, SourceCodeKind.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version:7.1"
+            });
+
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version:7.1'
+                // #error version:7.1
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:7.1").WithArguments("version:7.1"),
+                // (1,8): error CS8025: Feature 'version' is not available in C# 4. Please use language version 7.1 or greater.
+                // #error version:7.1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "version:7.1").WithArguments("version", "7.1").WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void TestErrorWithInvalidVersion()
+        {
+            var text = "#error version:A.B";
+            var node = Parse(text, SourceCodeKind.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version:A.B"
+            });
+
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version:A.B'
+                // #error version:A.B
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:A.B").WithArguments("version:A.B").WithLocation(1, 8)
+                );
+        }
         #endregion
 
         #region #line
@@ -3011,7 +3154,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestLineDefaultWithComment()
         {
-            var text = @"#line default // FOO";
+            var text = @"#line default // GOO";
             var node = Parse(text);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -1 });
@@ -3042,7 +3185,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestLineHiddenWithComment()
         {
-            var text = @"#line hidden // FOO";
+            var text = @"#line hidden // GOO";
             var node = Parse(text);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -2 });
@@ -3052,7 +3195,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestNegLineWithBadNumber()
         {
-            var text = @"#line Foo";
+            var text = @"#line Goo";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
@@ -3270,7 +3413,7 @@ public class Test
 		#line 50 ""gopher://test.cs""
 		#line 60 ""telnet://test.cs""
 		#line 70 ""dict://test.cs""
-		#line 80 ""file://foo.aspx""
+		#line 80 ""file://goo.aspx""
 		#line 90 ""ldap://test.cs""
 		#line 100 ""news://test.cs""
 		#line 110 ""\\ddrelqa\logs\whidbey\2003-07-01\BVT64002\fx.Xml.XSLT\TESTPROCESSED20030701082505866.xml"" // parser error
@@ -3308,7 +3451,88 @@ public class Test
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestPragmaWarningDisableWithMultipleCodes()
+        public void TestPragmaWarningEnable_Error()
+        {
+            var text = @"#pragma warning enable 114";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPWarning); // CS1634
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnable()
+        {
+            var text = @"#pragma warning enable 114";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "114" }
+            });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableNullable()
+        {
+            var text = @"#pragma warning disable nullable";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "nullable" }
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableNullable()
+        {
+            var text = @"#pragma warning enable nullable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "nullable" }
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableCSharp7_3()
+        {
+            var text = @"#pragma warning enable 114";
+            var node = Parse(text, options: TestOptions.Regular7_3);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_ErrorOverride, Status = NodeStatus.IsWarning });
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "114" }
+            });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableWithMultipleCodes_01()
         {
             var text = @"#pragma warning disable 114, CS0162, 168";
             var node = Parse(text);
@@ -3322,31 +3546,114 @@ public class Test
             });
         }
 
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableWithMultipleCodes_02()
+        {
+            var text = @"#pragma warning disable 114, nullable";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "114", "nullable" }
+            });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableWithMultipleCodes_03()
+        {
+            var text = @"#pragma warning disable nullable, 114";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "nullable", "114" }
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableWithMultipleCodes_01()
+        {
+            var text = @"#pragma warning enable 114, CS0162, 168";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "114", "CS0162", "168" }
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableWithMultipleCodes_02()
+        {
+            var text = @"#pragma warning enable 114, nullable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "114", "nullable" }
+            });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableWithMultipleCodes_03()
+        {
+            var text = @"#pragma warning enable nullable, CS0162";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "nullable", "CS0162" }
+            });
+        }
+
         [Fact, WorkItem(536701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536701"), WorkItem(530051, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530051")]
         [Trait("Feature", "Directives")]
         public void TestRegressPragmaWarningDisableWithWarningCode()
         {
-            var text = @"#pragma warning disable 440
-using global = A; // CS0440
+            var text = @"
 class A
 {
-static void Main() { }
+    static void Main(int i)
+    {
+#pragma warning disable 1633
+#pragma something // warning CS1633: Unrecognized #pragma directive
+    }
 }
 ";
             // verify that error still appears in GetDiagnostics
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var diagnostic = tree.GetDiagnostics().Single();
             Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-            Assert.Equal(440, diagnostic.Code);
+            Assert.Equal(1633, diagnostic.Code);
 
             // verify pragma information
             var node = tree.GetCompilationUnitRoot();
-            VerifyDirectivePragma(node, new PragmaInfo
+            VerifyDirectivePragma(node.GetDirectives().First(), new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "440" }
+                WarningList = new[] { "1633" }
             });
 
             // verify that GetParseDiagnostics filters disabled warning
@@ -3393,7 +3700,7 @@ static void Main() { }
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestPragmaWarningRestoreWithMultipleCodes()
+        public void TestPragmaWarningRestoreWithMultipleCodes_01()
         {
             var text = @"#pragma warning restore CS0114, 162, Something // Multiple codes";
             var node = Parse(text);
@@ -3404,6 +3711,38 @@ static void Main() { }
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
                 WarningList = new[] { "CS0114", "162", "Something" }
+            });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningRestoreWithMultipleCodes_02()
+        {
+            var text = @"#pragma warning restore CS0114, nullable";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
+                WarningList = new[] { "CS0114", "nullable" }
+            });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningRestoreWithMultipleCodes_03()
+        {
+            var text = @"#pragma warning restore nullable, CS0114";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
+                WarningList = new[] { "nullable", "CS0114" }
             });
         }
 
@@ -3428,7 +3767,7 @@ static void Main() { }
         [Trait("Feature", "Directives")]
         public void TestNegPragmaWarningWithBadStyle()
         {
-            var text = @"#pragma warning FOO";
+            var text = @"#pragma warning GOO";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
@@ -3444,7 +3783,7 @@ static void Main() { }
         [Trait("Feature", "Directives")]
         public void TestNegPragmaWarningWithBadStyleAndCodes()
         {
-            var text = @"#pragma warning FOO 114";
+            var text = @"#pragma warning GOO 114";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
@@ -3487,6 +3826,21 @@ static void Main() { }
             });
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableWithNoCodes()
+        {
+            var text = @"#pragma warning enable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword
+            });
+        }
+
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestPragmaWarningRestoreWithNoCodes()
@@ -3522,7 +3876,7 @@ static void Main() { }
         [Trait("Feature", "Directives")]
         public void TestNegPragmaWithBadToken()
         {
-            var text = @"#pragma FOO";
+            var text = @"#pragma GOO";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPragma);
@@ -3727,7 +4081,7 @@ static void Main() { }
         [Trait("Feature", "Directives")]
         public void TestReferenceWithComment()
         {
-            var text = @"#r ""bogus"" // FOO";
+            var text = @"#r ""bogus"" // GOO";
             var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo
@@ -3753,7 +4107,7 @@ static void Main() { }
         [Trait("Feature", "Directives")]
         public void TestReferenceWithoutQuotes()
         {
-            var text = @"#r Foo";
+            var text = @"#r Goo";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
@@ -3794,7 +4148,7 @@ static void Main() { }
 #r ""gopher://test.cs""
 #r ""telnet://test.cs""
 #r ""dict://test.cs""
-#r ""file://foo.aspx""
+#r ""file://goo.aspx""
 #r ""ldap://test.cs""
 #r ""news://test.cs""
 #r ""\\ddrelqa\logs\whidbey\2003-07-01\BVT64002\fx.Xml.XSLT\TESTPROCESSED20030701082505866.xml"" // comment
@@ -3871,5 +4225,209 @@ static void Main() { }
         }
 
         #endregion
+
+        #region #nullable
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableCSharp7_3()
+        {
+            var text = @"#nullable enable";
+            var node = Parse(text, options: TestOptions.Regular7_3);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7_3, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableRestore()
+        {
+            var text = @"#nullable restore";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnable()
+        {
+            var text = @"#nullable enable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisable()
+        {
+            var text = @"#nullable disable // comment";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableWarnings()
+        {
+            var text = @"#nullable enable warnings";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable warnings" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableAnnotations()
+        {
+            var text = @"#nullable enable annotations";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable annotations" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisableWarnings()
+        {
+            var text = @"#nullable disable warnings // comment";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable warnings" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisableBadTarget()
+        {
+            var text = @"#nullable disable errors";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        /// <summary>
+        /// "enable" should be a keyword within the directive only.
+        /// </summary>
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableKeyword()
+        {
+            var text =
+@"#nullable enable
+class enable
+{
+}";
+            var tree = ParseTree(text);
+            var root = tree.GetCompilationUnitRoot();
+            TestRoundTripping(root, text, false);
+            VerifyErrorCode(root); // no errors
+            VerifyDirectivesSpecial(root, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+            var nodes = root.DescendantNodes(descendIntoTrivia: true);
+            SyntaxToken token = nodes.OfType<NullableDirectiveTriviaSyntax>().Single().SettingToken;
+            Assert.Equal(SyntaxKind.EnableKeyword, token.Kind());
+            token = nodes.OfType<ClassDeclarationSyntax>().Single().Identifier;
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.ContextualKind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableWithoutDisableOrRestore()
+        {
+            var text = @"#nullable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableExtraToken()
+        {
+            var text = @"#nullable disable true";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableUnrecognizedSetting()
+        {
+            var text = @"#nullable disabled";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableUnrecognizedSettingExtraToken()
+        {
+            var text = @"#nullable disabled true";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableExcluded()
+        {
+            var text =
+@"#nullable enable
+#if false
+#nullable enable
+#endif
+#nullable disable
+";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "enable" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableExcludedUnrecognizedSetting()
+        {
+            var text =
+@"#if false
+#nullable disabled
+#endif
+";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
+        #endregion
+
+        private static string GetExpectedVersion()
+        {
+            return CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
+        }
     }
 }

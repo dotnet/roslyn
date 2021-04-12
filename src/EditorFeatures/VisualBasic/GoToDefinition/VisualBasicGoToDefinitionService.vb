@@ -1,10 +1,13 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
     <ExportLanguageService(GetType(IGoToDefinitionService), LanguageNames.VisualBasic), [Shared]>
@@ -12,12 +15,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         Inherits AbstractGoToDefinitionService
 
         <ImportingConstructor>
-        Public Sub New(<ImportMany> presenters As IEnumerable(Of Lazy(Of INavigableItemsPresenter)), <ImportMany> externalDefinitionProviders As IEnumerable(Of Lazy(Of INavigableDefinitionProvider)))
-            MyBase.New(presenters, externalDefinitionProviders)
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New(threadingContext As IThreadingContext,
+                       streamingPresenter As IStreamingFindUsagesPresenter)
+            MyBase.New(threadingContext, streamingPresenter)
         End Sub
-
-        Protected Overrides Function FindRelatedExplicitlyDeclaredSymbol(symbol As ISymbol, compilation As Compilation) As ISymbol
-            Return symbol.FindRelatedExplicitlyDeclaredSymbol(compilation)
-        End Function
     End Class
 End Namespace

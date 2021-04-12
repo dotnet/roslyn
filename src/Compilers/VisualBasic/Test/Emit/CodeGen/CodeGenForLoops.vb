@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
 
@@ -326,7 +328,8 @@ End Class
 
         End Sub
 
-        <Fact>
+        <Fact()>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub ForLoopStepIsFloatNegativeVar()
             Dim TEMP = CompileAndVerify(
 <compilation>
@@ -337,7 +340,7 @@ Public Class MyClass1
         Dim s As Double = -1.1
 
         For i As Double = 2 To 0 Step s
-            System.Console.WriteLine(i.ToString(System.Globalization.CultureInfo.InvariantCulture))
+            System.Console.WriteLine(i.ToString("G15", System.Globalization.CultureInfo.InvariantCulture))
         Next
 
     End Sub
@@ -348,11 +351,11 @@ End Class
 0.9
 ]]>).VerifyIL("MyClass1.Main", <![CDATA[
 {
-  // Code size       97 (0x61)
-  .maxstack  2
+  // Code size      102 (0x66)
+  .maxstack  3
   .locals init (Double V_0,
-  Boolean V_1,
-  Double V_2) //i
+                Boolean V_1,
+                Double V_2) //i
   IL_0000:  ldc.r8     -1.1
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
@@ -363,30 +366,31 @@ End Class
   IL_0019:  stloc.1
   IL_001a:  ldc.r8     2
   IL_0023:  stloc.2
-  IL_0024:  br.s       IL_003b
+  IL_0024:  br.s       IL_0040
   IL_0026:  ldloca.s   V_2
-  IL_0028:  call       "Function System.Globalization.CultureInfo.get_InvariantCulture() As System.Globalization.CultureInfo"
-  IL_002d:  call       "Function Double.ToString(System.IFormatProvider) As String"
-  IL_0032:  call       "Sub System.Console.WriteLine(String)"
-  IL_0037:  ldloc.2
-  IL_0038:  ldloc.0
-  IL_0039:  add
-  IL_003a:  stloc.2
-  IL_003b:  ldloc.1
-  IL_003c:  brtrue.s   IL_004f
-  IL_003e:  ldloc.2
-  IL_003f:  ldc.r8     0
-  IL_0048:  clt.un
-  IL_004a:  ldc.i4.0
-  IL_004b:  ceq
-  IL_004d:  br.s       IL_005e
-  IL_004f:  ldloc.2
-  IL_0050:  ldc.r8     0
-  IL_0059:  cgt.un
-  IL_005b:  ldc.i4.0
-  IL_005c:  ceq
-  IL_005e:  brtrue.s   IL_0026
-  IL_0060:  ret
+  IL_0028:  ldstr      "G15"
+  IL_002d:  call       "Function System.Globalization.CultureInfo.get_InvariantCulture() As System.Globalization.CultureInfo"
+  IL_0032:  call       "Function Double.ToString(String, System.IFormatProvider) As String"
+  IL_0037:  call       "Sub System.Console.WriteLine(String)"
+  IL_003c:  ldloc.2
+  IL_003d:  ldloc.0
+  IL_003e:  add
+  IL_003f:  stloc.2
+  IL_0040:  ldloc.1
+  IL_0041:  brtrue.s   IL_0054
+  IL_0043:  ldloc.2
+  IL_0044:  ldc.r8     0
+  IL_004d:  clt.un
+  IL_004f:  ldc.i4.0
+  IL_0050:  ceq
+  IL_0052:  br.s       IL_0063
+  IL_0054:  ldloc.2
+  IL_0055:  ldc.r8     0
+  IL_005e:  cgt.un
+  IL_0060:  ldc.i4.0
+  IL_0061:  ceq
+  IL_0063:  brtrue.s   IL_0026
+  IL_0065:  ret
 }
 ]]>)
 
@@ -1253,13 +1257,13 @@ Public Class MyClass1
     End Property
     Public Shared Sub Main()
     End Sub
-    Public Sub Foo()
+    Public Sub Goo()
         For i As Integer = P1(30 + i) To 30
         Next
     End Sub
 End Class
     </file>
-</compilation>, expectedOutput:="").VerifyIL("MyClass1.Foo", <![CDATA[
+</compilation>, expectedOutput:="").VerifyIL("MyClass1.Goo", <![CDATA[
 {
   // Code size       24 (0x18)
   .maxstack  3
@@ -1334,17 +1338,17 @@ Public Class MyClass1
     Public y As Integer
     Public Shared Sub Main()
     End Sub
-    Function Foo()
+    Function Goo()
         For Me.y = 1 To 10
         Next
     End Function
 End Class
     </file>
-</compilation>, expectedOutput:="").VerifyIL("MyClass1.Foo", <![CDATA[
+</compilation>, expectedOutput:="").VerifyIL("MyClass1.Goo", <![CDATA[
 {
   // Code size       33 (0x21)
   .maxstack  3
-  .locals init (Object V_0) //Foo
+  .locals init (Object V_0) //Goo
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  stfld      "MyClass1.y As Integer"
@@ -1379,24 +1383,24 @@ Public Class MyClass1
     Const global_y As Long = 20
     Public Shared Sub Main()
     End Sub
-    Function foo(ByRef x As Integer) As Integer
+    Function goo(ByRef x As Integer) As Integer
         x = x + 10
         Return x + 10
     End Function
-    sub Foo1()
-        For global_y As Integer = foo(global_y) To 30
+    sub Goo1()
+        For global_y As Integer = goo(global_y) To 30
         Next
     End sub
 End Class
     </file>
-</compilation>, expectedOutput:="").VerifyIL("MyClass1.Foo1", <![CDATA[
+</compilation>, expectedOutput:="").VerifyIL("MyClass1.Goo1", <![CDATA[
 {
   // Code size       21 (0x15)
   .maxstack  2
   .locals init (Integer V_0) //global_y
   IL_0000:  ldarg.0
   IL_0001:  ldloca.s   V_0
-  IL_0003:  call       "Function MyClass1.foo(ByRef Integer) As Integer"
+  IL_0003:  call       "Function MyClass1.goo(ByRef Integer) As Integer"
   IL_0008:  stloc.0
   IL_0009:  br.s       IL_000f
   IL_000b:  ldloc.0
@@ -1871,12 +1875,12 @@ Module Program
     End Enum
 
     Sub main()
-        For i As e1 = e1.a To e1.c Step foo()
+        For i As e1 = e1.a To e1.c Step goo()
             Console.WriteLine(i)
         Next
     End Sub
 
-    Function foo() As e1
+    Function goo() As e1
         Return 1
     End Function
 End Module
@@ -1893,7 +1897,7 @@ End Module
   .maxstack  3
   .locals init (Program.e1 V_0,
   Program.e1 V_1) //i
-  IL_0000:  call       "Function Program.foo() As Program.e1"
+  IL_0000:  call       "Function Program.goo() As Program.e1"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
@@ -1936,12 +1940,12 @@ Module Program
     End Enum
 
     Sub main()
-        For i As e1 = e1.a To e1.c Step foo()
+        For i As e1 = e1.a To e1.c Step goo()
             Console.WriteLine(i)
         Next
     End Sub
 
-    Function foo() As e1
+    Function goo() As e1
         Return 1
     End Function
 End Module
@@ -1958,7 +1962,7 @@ End Module
   .maxstack  2
   .locals init (Program.e1 V_0,
   Program.e1 V_1) //i
-  IL_0000:  call       "Function Program.foo() As Program.e1"
+  IL_0000:  call       "Function Program.goo() As Program.e1"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1

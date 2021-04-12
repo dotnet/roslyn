@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -61,29 +65,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         EnvDTE.CodeElements ICodeElementContainer<CodeParameter>.GetCollection()
-        {
-            return this.Parameters;
-        }
+            => this.Parameters;
 
         EnvDTE.CodeElements ICodeElementContainer<CodeAttribute>.GetCollection()
-        {
-            return this.Attributes;
-        }
+            => this.Attributes;
 
         internal override ImmutableArray<SyntaxNode> GetParameters()
-        {
-            return ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
-        }
+            => ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
 
         protected override object GetExtenderNames()
-        {
-            return CodeModelService.GetPropertyExtenderNames();
-        }
+            => CodeModelService.GetPropertyExtenderNames();
 
         protected override object GetExtender(string name)
-        {
-            return CodeModelService.GetPropertyExtender(name, LookupNode(), LookupSymbol());
-        }
+            => CodeModelService.GetPropertyExtender(name, LookupNode(), LookupSymbol());
 
         public override EnvDTE.vsCMElement Kind
         {
@@ -117,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                EnvDTE.CodeClass parentClass = this.Parent as EnvDTE.CodeClass;
-                if (parentClass != null)
+                if (this.Parent is EnvDTE.CodeClass parentClass)
                 {
                     return parentClass;
                 }
@@ -144,16 +137,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         private bool HasAccessorNode(MethodKind methodKind)
-        {
-            SyntaxNode accessorNode;
-            return CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out accessorNode);
-        }
+            => CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out _);
+
+        private bool IsExpressionBodiedProperty()
+            => CodeModelService.IsExpressionBodiedProperty(LookupNode());
 
         public EnvDTE.CodeFunction Getter
         {
             get
             {
-                if (!HasAccessorNode(MethodKind.PropertyGet))
+                if (!HasAccessorNode(MethodKind.PropertyGet) &&
+                    !IsExpressionBodiedProperty())
                 {
                     return null;
                 }

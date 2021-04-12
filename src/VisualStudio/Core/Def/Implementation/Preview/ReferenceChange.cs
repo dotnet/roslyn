@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -80,11 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var displayText = GetDisplayText();
             if (IsAddedReference)
             {
-                pbstrText = ServicesVSResources.PreviewChangesAddedPrefix + displayText;
+                pbstrText = ServicesVSResources.bracket_plus_bracket + displayText;
             }
             else
             {
-                pbstrText = ServicesVSResources.PreviewChangesDeletedPrefix + displayText;
+                pbstrText = ServicesVSResources.bracket_bracket + displayText;
             }
 
             tto = VSTREETEXTOPTIONS.TTO_DEFAULT;
@@ -100,7 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public sealed override int OnRequestSource(object pIUnknownTextView)
         {
-            if (pIUnknownTextView != null && Children.Changes != null && Children.Changes.Length > 0)
+            // When adding a project reference `Children` can be null, so check before looking at `Changes`
+            if (pIUnknownTextView != null && Children?.Changes != null && Children.Changes.Length > 0)
             {
                 engine.SetTextView(pIUnknownTextView);
                 UpdatePreview();
@@ -115,8 +121,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         internal sealed override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-        {
-            pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphReference;
-        }
+            => pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphReference;
     }
 }

@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,11 +11,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
-using EnvDTE;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
+using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
@@ -20,14 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private const double DefaultWidth = 400;
 
         private static readonly string s_dummyThreeLineTitle = "A" + Environment.NewLine + "A" + Environment.NewLine + "A";
-        private static readonly Size s_infiniteSize = new Size(double.PositiveInfinity, double.PositiveInfinity);
+        private static readonly Size s_infiniteSize = new(double.PositiveInfinity, double.PositiveInfinity);
 
         private readonly string _id;
         private readonly bool _logIdVerbatimInTelemetry;
-        private readonly DTE _dte;
+        private readonly IVsUIShell _uiShell;
 
         private bool _isExpanded;
-        private double _heightForThreeLineTitle;
+        private readonly double _heightForThreeLineTitle;
         private DifferenceViewerPreview _differenceViewerPreview;
 
         public PreviewPane(
@@ -39,14 +45,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             string helpLinkToolTipText,
             IReadOnlyList<object> previewContent,
             bool logIdVerbatimInTelemetry,
-            DTE dte,
-            Guid optionPageGuid = default(Guid))
+            IVsUIShell uiShell,
+            Guid optionPageGuid = default)
         {
             InitializeComponent();
 
+            Loaded += PreviewPane_Loaded;
+
             _id = id;
             _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
-            _dte = dte;
+            _uiShell = uiShell;
 
             // Initialize header portion.
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
@@ -74,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             _optionPageGuid = optionPageGuid;
 
-            if (optionPageGuid == default(Guid))
+            if (optionPageGuid == default)
             {
                 OptionsButton.Visibility = Visibility.Collapsed;
             }
@@ -82,6 +90,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             // Initialize preview (i.e. diff view) portion.
             InitializePreviewElement(previewContent);
         }
+
+        public FrameworkElement ParentElement
+        {
+            get { return (FrameworkElement)GetValue(ParentElementProperty); }
+            set { SetValue(ParentElementProperty, value); }
+        }
+
+        public static readonly DependencyProperty ParentElementProperty =
+            DependencyProperty.Register("ParentElement", typeof(FrameworkElement), typeof(PreviewPane), new PropertyMetadata(null));
+
+        private void PreviewPane_Loaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= PreviewPane_Loaded;
+            ParentElement = Parent as FrameworkElement;
+        }
+
+        public string AutomationName => ServicesVSResources.Preview_pane;
 
         private void InitializePreviewElement(IReadOnlyList<object> previewItems)
         {
@@ -181,22 +206,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 Contract.ThrowIfFalse(_differenceViewerPreview == null);
 
                 // cache the diff viewer so that we can close it when panel goes away.
-                // this is a bit wierd since we are mutating state here.
+                // this is a bit weird since we are mutating state here.
                 _differenceViewerPreview = (DifferenceViewerPreview)previewItem;
-                PreviewDockPanel.Background = _differenceViewerPreview.Viewer.InlineView.Background;
+                var viewer = (IWpfDifferenceViewer)_differenceViewerPreview.Viewer;
+                PreviewDockPanel.Background = viewer.InlineView.Background;
 
-                var previewElement = _differenceViewerPreview.Viewer.VisualElement;
+                var previewElement = viewer.VisualElement;
                 return previewElement;
             }
 
-            if (previewItem is string)
+            if (previewItem is string s)
             {
-                return GetPreviewForString((string)previewItem);
+                return GetPreviewForString(s);
             }
 
-            if (previewItem is FrameworkElement)
+            if (previewItem is FrameworkElement frameworkElement)
             {
-                return (FrameworkElement)previewItem;
+                return frameworkElement;
             }
 
             // preview item we don't know how to show to users
@@ -205,15 +231,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void InitializeHyperlinks(Uri helpLink, string helpLinkToolTipText)
         {
-            IdHyperlink.SetVSHyperLinkStyle();
-            LearnMoreHyperlink.SetVSHyperLinkStyle();
-
             IdHyperlink.Inlines.Add(_id);
             IdHyperlink.NavigateUri = helpLink;
             IdHyperlink.IsEnabled = true;
             IdHyperlink.ToolTip = helpLinkToolTipText;
 
-            LearnMoreHyperlink.Inlines.Add(string.Format(ServicesVSResources.LearnMoreLinkText, _id));
+            LearnMoreHyperlink.Inlines.Add(string.Format(ServicesVSResources.More_about_0, _id));
             LearnMoreHyperlink.NavigateUri = helpLink;
             LearnMoreHyperlink.ToolTip = helpLinkToolTipText;
         }
@@ -235,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         // worth by default.
         private void AdjustWidthAndHeight(FrameworkElement previewElement)
         {
-            var headerStackPanelWidth = double.PositiveInfinity;
+            double headerStackPanelWidth;
             var titleTextBlockHeight = double.PositiveInfinity;
             if (previewElement == null)
             {
@@ -282,9 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         }
 
         private static bool IsNormal(double size)
-        {
-            return size > 0 && !double.IsNaN(size) && !double.IsInfinity(size);
-        }
+            => size > 0 && !double.IsNaN(size) && !double.IsInfinity(size);
 
         private bool HasDescription
         {
@@ -309,11 +330,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 return;
             }
 
-            BrowserHelper.StartBrowser(e.Uri);
+            VisualStudioNavigateToLinkService.StartBrowser(e.Uri);
             e.Handled = true;
 
-            var hyperlink = sender as Hyperlink;
-            if (hyperlink == null)
+            if (!(sender is Hyperlink hyperlink))
             {
                 return;
             }
@@ -354,9 +374,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void OptionsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_optionPageGuid != default(Guid))
+            if (_optionPageGuid != default)
             {
-                _dte.ExecuteCommand("Tools.Options", _optionPageGuid.ToString());
+                ErrorHandler.ThrowOnFailure(_uiShell.PostExecCommand(
+                    VSConstants.GUID_VSStandardCommandSet97,
+                    (uint)VSConstants.VSStd97CmdID.ToolsOptions,
+                    (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT,
+                    _optionPageGuid.ToString()));
             }
         }
     }

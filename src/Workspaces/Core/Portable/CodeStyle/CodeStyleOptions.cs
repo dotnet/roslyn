@@ -1,31 +1,36 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
+    /// <inheritdoc cref="CodeStyleOptions2"/>
     public class CodeStyleOptions
     {
-        internal const string PerLanguageCodeStyleOption = "CodeStylePerLanguage";
+        /// <inheritdoc cref="CodeStyleOptions2.QualifyFieldAccess"/>
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyFieldAccess =
+            CodeStyleOptions2.QualifyFieldAccess.ToPublicOption();
 
-        /// <summary>
-        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
-        /// </summary>
-        public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyFieldAccess = new PerLanguageOption<CodeStyleOption<bool>>(PerLanguageCodeStyleOption, nameof(QualifyFieldAccess), defaultValue: CodeStyleOption<bool>.Default);
+        /// <inheritdoc cref="CodeStyleOptions2.QualifyPropertyAccess"/>
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyPropertyAccess =
+            CodeStyleOptions2.QualifyPropertyAccess.ToPublicOption();
 
-        /// <summary>
-        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in property access expressions.
-        /// </summary>
-        public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyPropertyAccess = new PerLanguageOption<CodeStyleOption<bool>>(PerLanguageCodeStyleOption, nameof(QualifyPropertyAccess), defaultValue: CodeStyleOption<bool>.Default);
+        /// <inheritdoc cref="CodeStyleOptions2.QualifyMethodAccess"/>
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyMethodAccess =
+            CodeStyleOptions2.QualifyMethodAccess.ToPublicOption();
 
-        /// <summary>
-        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in method access expressions.
-        /// </summary>
-        public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyMethodAccess = new PerLanguageOption<CodeStyleOption<bool>>(PerLanguageCodeStyleOption, nameof(QualifyMethodAccess), defaultValue: CodeStyleOption<bool>.Default);
+        /// <inheritdoc cref="CodeStyleOptions2.QualifyEventAccess"/>
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyEventAccess =
+            CodeStyleOptions2.QualifyEventAccess.ToPublicOption();
 
-        /// <summary>
-        /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in event access expressions.
-        /// </summary>
-        public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyEventAccess = new PerLanguageOption<CodeStyleOption<bool>>(PerLanguageCodeStyleOption, nameof(QualifyEventAccess), defaultValue: CodeStyleOption<bool>.Default);
+        /// <inheritdoc cref="CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration"/>
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration =
+            CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration.ToPublicOption();
+
+        /// <inheritdoc cref="CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess"/>
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess =
+            CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.ToPublicOption();
     }
 }

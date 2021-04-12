@@ -1,6 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -32,6 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName)
             Debug.Assert(type IsNot Nothing)
+
+            Dim dynamicFlags As ReadOnlyCollection(Of Byte) = Nothing
+            Dim tupleElementNames As ReadOnlyCollection(Of String) = Nothing
+            CustomTypeInfo.Decode([alias].CustomTypeInfoId, [alias].CustomTypeInfo, dynamicFlags, tupleElementNames)
+            type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNames.AsImmutableOrNull())
 
             Dim name = [alias].FullName
             Dim displayName = [alias].Name
@@ -100,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend MustOverride Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             isLValue As Boolean,
             diagnostics As DiagnosticBag) As BoundExpression
 
@@ -115,17 +123,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim conversionKind As ConversionKind
             If type.IsErrorType() Then
-                diagnostics.Add(type.GetUseSiteErrorInfo(), syntax.GetLocation())
+                diagnostics.Add(type.GetUseSiteInfo().DiagnosticInfo, syntax.GetLocation())
                 conversionKind = Nothing
             ElseIf exprType.IsErrorType() Then
-                diagnostics.Add(exprType.GetUseSiteErrorInfo(), syntax.GetLocation())
+                diagnostics.Add(exprType.GetUseSiteInfo().DiagnosticInfo, syntax.GetLocation())
                 conversionKind = Nothing
             Else
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim pair = Conversions.ClassifyConversion(exprType, type, useSiteDiagnostics)
-                Debug.Assert(useSiteDiagnostics Is Nothing, "If this happens, please add a test")
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim pair = Conversions.ClassifyConversion(exprType, type, useSiteInfo)
+                Debug.Assert(useSiteInfo.Diagnostics Is Nothing, "If this happens, please add a test")
 
-                diagnostics.Add(syntax, useSiteDiagnostics)
+                diagnostics.Add(syntax, useSiteInfo.Diagnostics)
 
                 Debug.Assert(pair.Value Is Nothing) ' Conversion method.
                 conversionKind = pair.Key

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.Cci
 {
@@ -24,8 +27,6 @@ namespace Microsoft.Cci
         {
             this.Visit(arrayTypeReference.GetElementType(Context));
         }
-
-        public abstract void Visit(IAssembly assembly);
 
         public void Visit(IEnumerable<IAssemblyReference> assemblyReferences)
         {
@@ -49,8 +50,14 @@ namespace Microsoft.Cci
 
         public virtual void Visit(ICustomAttribute customAttribute)
         {
+            IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: false);
+            if (constructor is null)
+            {
+                return;
+            }
+
             this.Visit(customAttribute.GetArguments(Context));
-            this.Visit(customAttribute.Constructor(Context));
+            this.Visit(constructor);
             this.Visit(customAttribute.GetNamedArguments(Context));
         }
 
@@ -77,7 +84,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IEventDefinition eventDefinition)
         {
-            this.Visit(eventDefinition.Accessors);
+            this.Visit(eventDefinition.GetAccessors(Context));
             this.Visit(eventDefinition.GetType(Context));
         }
 
@@ -200,20 +207,16 @@ namespace Microsoft.Cci
             this.Visit(localDefinition.Type);
         }
 
-        public virtual void Visit(IManagedPointerTypeReference managedPointerTypeReference)
-        {
-        }
-
         public virtual void Visit(IMarshallingInformation marshallingInformation)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public virtual void Visit(IMetadataConstant constant)
+        public virtual void Visit(MetadataConstant constant)
         {
         }
 
-        public virtual void Visit(IMetadataCreateArray createArray)
+        public virtual void Visit(MetadataCreateArray createArray)
         {
             this.Visit(createArray.ElementType);
             this.Visit(createArray.Elements);
@@ -246,7 +249,7 @@ namespace Microsoft.Cci
             this.Visit(namedArgument.ArgumentValue);
         }
 
-        public virtual void Visit(IMetadataTypeOf typeOf)
+        public virtual void Visit(MetadataTypeOf typeOf)
         {
             if (typeOf.TypeToGet != null)
             {
@@ -256,6 +259,11 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodBody methodBody)
         {
+            foreach (var scope in methodBody.LocalScopes)
+            {
+                this.Visit(scope.Constants);
+            }
+
             this.Visit(methodBody.LocalVariables);
             //this.Visit(methodBody.Operations);    //in Roslyn we don't break out each instruction as it's own operation.
             this.Visit(methodBody.ExceptionRegions);
@@ -271,7 +279,8 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodDefinition method)
         {
-            this.Visit(method.ReturnValueAttributes);
+            this.Visit(method.GetReturnValueAttributes(Context));
+            this.Visit(method.RefCustomModifiers);
             this.Visit(method.ReturnValueCustomModifiers);
 
             if (method.HasDeclarativeSecurity)
@@ -316,7 +325,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodReference methodReference)
         {
-            IGenericMethodInstanceReference genericMethodInstanceReference = methodReference.AsGenericMethodInstanceReference;
+            IGenericMethodInstanceReference? genericMethodInstanceReference = methodReference.AsGenericMethodInstanceReference;
             if (genericMethodInstanceReference != null)
             {
                 this.Visit(genericMethodInstanceReference);
@@ -333,7 +342,7 @@ namespace Microsoft.Cci
             this.Visit(modifiedTypeReference.UnmodifiedType);
         }
 
-        public abstract void Visit(IModule module);
+        public abstract void Visit(CommonPEModuleBuilder module);
 
         public void Visit(IEnumerable<IModuleReference> moduleReferences)
         {
@@ -412,9 +421,10 @@ namespace Microsoft.Cci
             Debug.Assert((marshalling != null || !parameterDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == parameterDefinition.IsMarshalledExplicitly);
 
             this.Visit(parameterDefinition.GetAttributes(Context));
+            this.Visit(parameterDefinition.RefCustomModifiers);
             this.Visit(parameterDefinition.CustomModifiers);
 
-            IMetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);
+            MetadataConstant? defaultValue = parameterDefinition.GetDefaultValue(Context);
             if (defaultValue != null)
             {
                 this.Visit((IMetadataExpression)defaultValue);
@@ -441,6 +451,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IParameterTypeInformation parameterTypeInformation)
         {
+            this.Visit(parameterTypeInformation.RefCustomModifiers);
             this.Visit(parameterTypeInformation.CustomModifiers);
             this.Visit(parameterTypeInformation.GetType(Context));
         }
@@ -454,6 +465,18 @@ namespace Microsoft.Cci
             this.Visit(pointerTypeReference.GetTargetType(Context));
         }
 
+        public virtual void Visit(IFunctionPointerTypeReference functionPointerTypeReference)
+        {
+            this.Visit(functionPointerTypeReference.Signature.RefCustomModifiers);
+            this.Visit(functionPointerTypeReference.Signature.ReturnValueCustomModifiers);
+            this.Visit(functionPointerTypeReference.Signature.GetType(Context));
+
+            foreach (var param in functionPointerTypeReference.Signature.GetParameters(Context))
+            {
+                this.Visit(param);
+            }
+        }
+
         public void Visit(IEnumerable<IPropertyDefinition> properties)
         {
             foreach (IPropertyDefinition property in properties)
@@ -464,7 +487,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IPropertyDefinition propertyDefinition)
         {
-            this.Visit(propertyDefinition.Accessors);
+            this.Visit(propertyDefinition.GetAccessors(Context));
             this.Visit(propertyDefinition.Parameters);
         }
 
@@ -513,7 +536,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(ITypeDefinitionMember typeMember)
         {
-            ITypeDefinition nestedType = typeMember as INestedTypeDefinition;
+            ITypeDefinition? nestedType = typeMember as INestedTypeDefinition;
             if (nestedType != null)
             {
                 this.Visit(nestedType);
@@ -542,6 +565,15 @@ namespace Microsoft.Cci
             }
         }
 
+        public void Visit(IEnumerable<TypeReferenceWithAttributes> typeRefsWithAttributes)
+        {
+            foreach (var typeRefWithAttributes in typeRefsWithAttributes)
+            {
+                this.Visit(typeRefWithAttributes.TypeRef);
+                this.Visit(typeRefWithAttributes.Attributes);
+            }
+        }
+
         public virtual void Visit(ITypeReference typeReference)
         {
             this.DispatchAsReference(typeReference);
@@ -555,56 +587,63 @@ namespace Microsoft.Cci
         /// <param name="typeReference">A reference to a type definition. Note that a type definition can serve as a reference to itself.</param>
         protected void DispatchAsReference(ITypeReference typeReference)
         {
-            INamespaceTypeReference namespaceTypeReference = typeReference.AsNamespaceTypeReference;
+            INamespaceTypeReference? namespaceTypeReference = typeReference.AsNamespaceTypeReference;
             if (namespaceTypeReference != null)
             {
                 this.Visit(namespaceTypeReference);
                 return;
             }
 
-            IGenericTypeInstanceReference genericTypeInstanceReference = typeReference.AsGenericTypeInstanceReference;
+            IGenericTypeInstanceReference? genericTypeInstanceReference = typeReference.AsGenericTypeInstanceReference;
             if (genericTypeInstanceReference != null)
             {
                 this.Visit(genericTypeInstanceReference);
                 return;
             }
 
-            INestedTypeReference nestedTypeReference = typeReference.AsNestedTypeReference;
+            INestedTypeReference? nestedTypeReference = typeReference.AsNestedTypeReference;
             if (nestedTypeReference != null)
             {
                 this.Visit(nestedTypeReference);
                 return;
             }
 
-            IArrayTypeReference arrayTypeReference = typeReference as IArrayTypeReference;
+            IArrayTypeReference? arrayTypeReference = typeReference as IArrayTypeReference;
             if (arrayTypeReference != null)
             {
                 this.Visit(arrayTypeReference);
                 return;
             }
 
-            IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
+            IGenericTypeParameterReference? genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
             if (genericTypeParameterReference != null)
             {
                 this.Visit(genericTypeParameterReference);
                 return;
             }
 
-            IGenericMethodParameterReference genericMethodParameterReference = typeReference.AsGenericMethodParameterReference;
+            IGenericMethodParameterReference? genericMethodParameterReference = typeReference.AsGenericMethodParameterReference;
             if (genericMethodParameterReference != null)
             {
                 this.Visit(genericMethodParameterReference);
                 return;
             }
 
-            IPointerTypeReference pointerTypeReference = typeReference as IPointerTypeReference;
+            IPointerTypeReference? pointerTypeReference = typeReference as IPointerTypeReference;
             if (pointerTypeReference != null)
             {
                 this.Visit(pointerTypeReference);
                 return;
             }
 
-            IModifiedTypeReference modifiedTypeReference = typeReference as IModifiedTypeReference;
+            IFunctionPointerTypeReference? functionPointerTypeReference = typeReference as IFunctionPointerTypeReference;
+            if (functionPointerTypeReference != null)
+            {
+                this.Visit(functionPointerTypeReference);
+                return;
+            }
+
+            IModifiedTypeReference? modifiedTypeReference = typeReference as IModifiedTypeReference;
             if (modifiedTypeReference != null)
             {
                 this.Visit(modifiedTypeReference);
@@ -633,14 +672,14 @@ namespace Microsoft.Cci
         /// <param name="unitReference">A reference to a unit. Note that a unit can serve as a reference to itself.</param>
         private void DispatchAsReference(IUnitReference unitReference)
         {
-            IAssemblyReference assemblyReference = unitReference as IAssemblyReference;
+            IAssemblyReference? assemblyReference = unitReference as IAssemblyReference;
             if (assemblyReference != null)
             {
                 this.Visit(assemblyReference);
                 return;
             }
 
-            IModuleReference moduleReference = unitReference as IModuleReference;
+            IModuleReference? moduleReference = unitReference as IModuleReference;
             if (moduleReference != null)
             {
                 this.Visit(moduleReference);

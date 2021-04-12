@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -28,21 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _undoPrimitive = new RollbackDetectingUndoPrimitive();
         }
 
-        public bool CanRedo
-        {
-            get
-            {
-                return _innerTransaction.CanRedo;
-            }
-        }
+        public bool CanRedo => _innerTransaction.CanRedo;
 
-        public bool CanUndo
-        {
-            get
-            {
-                return _innerTransaction.CanUndo;
-            }
-        }
+        public bool CanUndo => _innerTransaction.CanUndo;
 
         public string Description
         {
@@ -57,13 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public ITextUndoHistory History
-        {
-            get
-            {
-                return _innerTransaction.History;
-            }
-        }
+        public ITextUndoHistory History => _innerTransaction.History;
 
         public IMergeTextUndoTransactionPolicy MergePolicy
         {
@@ -78,38 +62,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public ITextUndoTransaction Parent
-        {
-            get
-            {
-                return _innerTransaction.Parent;
-            }
-        }
+        public ITextUndoTransaction Parent => _innerTransaction.Parent;
 
-        public UndoTransactionState State
-        {
-            get
-            {
-                return _innerTransaction.State;
-            }
-        }
+        public UndoTransactionState State => _innerTransaction.State;
 
-        public IList<ITextUndoPrimitive> UndoPrimitives
-        {
-            get
-            {
-                return _innerTransaction.UndoPrimitives;
-            }
-        }
+        public IList<ITextUndoPrimitive> UndoPrimitives => _innerTransaction.UndoPrimitives;
 
         public void AddUndo(ITextUndoPrimitive undo)
-        {
-            _innerTransaction.AddUndo(undo);
-        }
+            => _innerTransaction.AddUndo(undo);
 
         public void Cancel()
         {
-            bool transactionWasOpen = _transactionOpen;
+            var transactionWasOpen = _transactionOpen;
             _transactionOpen = false;
 
             // First, add an undo primitive so we can detect whether or not undo gets called
@@ -148,55 +112,33 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public void Do()
-        {
-            _innerTransaction.Do();
-        }
+            => _innerTransaction.Do();
 
         public void Undo()
-        {
-            _innerTransaction.Undo();
-        }
+            => _innerTransaction.Undo();
 
         private class RollbackDetectingUndoPrimitive : ITextUndoPrimitive
         {
             internal bool UndoCalled = false;
 
-            public bool CanRedo
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            public bool CanRedo => true;
 
-            public bool CanUndo
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            public bool CanUndo => true;
 
-            public ITextUndoTransaction Parent { get; set; }
+            public ITextUndoTransaction? Parent { get; set; }
 
             public bool CanMerge(ITextUndoPrimitive older)
-            {
-                return false;
-            }
+                => false;
 
             public void Do()
             {
             }
 
             public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
 
             public void Undo()
-            {
-                UndoCalled = true;
-            }
+                => UndoCalled = true;
         }
     }
 }

@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../CSharpScriptingResources.resx">
+    <body>
+      <trans-unit id="LogoLine1">
+        <source>Microsoft (R) Visual C# Interactive Compiler version {0}</source>
+        <target state="translated">Verze kompilátoru Microsoft (R) Visual C# Interactive {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LogoLine2">
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">Copyright (C) Microsoft Corporation. Všechna práva vyhrazena.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InteractiveHelp">
+        <source>Usage: csi [option] ... [script-file.csx] [script-argument] ...
+
+Executes script-file.csx if specified, otherwise launches an interactive REPL (Read Eval Print Loop).
+
+Options:
+  /help                          Display this usage message (alternative form: /?)
+  /version                       Display the version and exit
+  /i                             Drop to REPL after executing the specified script.
+  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative form: /reference)
+  /r:&lt;file list&gt;                 Reference metadata from the specified assembly files (alternative form: /reference)
+  /lib:&lt;path list&gt;               List of directories where to look for libraries specified by #r directive. 
+                                 (alternative forms: /libPath /libPaths)
+  /u:&lt;namespace&gt;                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
+  /langversion:?                 Display the allowed values for language version and exit
+  /langversion:&lt;string&gt;          Specify language version such as
+                                 `latest` (latest version, including minor versions),
+                                 `default` (same as `latest`),
+                                 `latestmajor` (latest version, excluding minor versions),
+                                 `preview` (latest version, including features in unsupported preview),
+                                 or specific versions like `6` or `7.1`
+  @&lt;file&gt;                        Read response file for more options
+  --                             Indicates that the remaining arguments should not be treated as options.
+</source>
+        <target state="translated">Použití: csi [možnost] ... [soubor_skriptu.csx] [argument_skriptu] ...
+
+Spustí soubor_skriptu.csx, pokud je zadaný, jinak spustí interaktivní REPL (Read Eval Print Loop).
+
+Možnosti:
+  /help                          Zobrazí tuto zprávu u použití (alternativní tvar: /?).
+  /version                       Zobrazí verzi a ukončí se.
+  /i                             Přejde k REPL po spuštění zadaného skriptu.
+  /r:&lt;file&gt;                      Odkazuje na metadata ze zadaného souboru sestavení (alternativní tvar: /reference).
+  /r:&lt;file list&gt;                 Odkazuje na metadata ze zadaných souborů sestavení (alternativní tvar: /reference).
+  /lib:&lt;path list&gt;               Seznam adresářů, kde se mají hledat knihovny zadané direktivou #r 
+                                 (alternativní tvary: /libPath /libPaths).
+  /u:&lt;namespace&gt;                 Definuje globální obor názvů using (alternativní tvary: /using, /usings, /import, /imports)
+  /langversion:?                 Zobrazí povolené hodnoty pro jazykovou verzi a ukončí se.
+  /langversion:&lt;string&gt;          Určuje jazykovou verzi, a to jako
+                                 latest (nejnovější verze, včetně podverzí),
+                                 default (stejné jako latest),
+                                 latestmajor (nejnovější verze, kromě podverzí),
+                                 preview (nejnovější verze, včetně funkcí v nepodporované verzi Preview)
+                                 nebo konkrétní verze, například 6 nebo 7.1.
+  @&lt;file&gt;                        Přečte další možnosti ze souboru odpovědi.
+  --                             Označuje, že se zbývající argumenty nemají považovat za parametry.
+</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

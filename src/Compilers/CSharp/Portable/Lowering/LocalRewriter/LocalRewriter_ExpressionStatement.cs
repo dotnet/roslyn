@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -11,39 +13,32 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {
-            var syntax = node.Syntax;
+            // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
+            // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
+            return RewriteExpressionStatement(node) ?? BoundStatementList.Synthesized(node.Syntax);
+        }
+
+        private BoundStatement? RewriteExpressionStatement(BoundExpressionStatement node, bool suppressInstrumentation = false)
+        {
             var loweredExpression = VisitUnusedExpression(node.Expression);
 
             if (loweredExpression == null)
             {
-                // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
-                // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
-                return BoundStatementList.Synthesized(syntax);
+                return null;
             }
             else
             {
-                return AddSequencePoint(node.Update(loweredExpression));
+                BoundStatement result = node.Update(loweredExpression);
+                if (!suppressInstrumentation && this.Instrument && !node.WasCompilerGenerated)
+                {
+                    result = _instrumenter.InstrumentExpressionStatement(node, result);
+                }
+
+                return result;
             }
         }
 
-        public override BoundNode VisitLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration node)
-        {
-            var syntax = node.Syntax;
-            var loweredExpression = VisitUnusedExpression(node.Assignment);
-
-            if (loweredExpression == null)
-            {
-                // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
-                // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
-                return BoundStatementList.Synthesized(syntax);
-            }
-            else
-            {
-                return AddSequencePoint(new BoundExpressionStatement(node.Syntax, loweredExpression));
-            }
-        }
-
-        private BoundExpression VisitUnusedExpression(BoundExpression expression)
+        private BoundExpression? VisitUnusedExpression(BoundExpression expression)
         {
             if (expression.HasErrors)
             {
@@ -52,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (expression.Kind)
             {
+                case BoundKind.AwaitExpression:
+                    return VisitAwaitExpression((BoundAwaitExpression)expression, used: false);
+
                 case BoundKind.AssignmentOperator:
                     // Avoid extra temporary by indicating the expression value is not used.
                     return VisitAssignmentOperator((BoundAssignmentOperator)expression, used: false);

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -17,19 +19,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
             End Get
         End Property
 
-        Public MustOverride ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
+        Public MustOverride ReadOnly Property PrefixParts As IList(Of SymbolDisplayPart)
         Public MustOverride Function GetParameterName(index As Integer) As String
         Public MustOverride Function GetParameterDocumentation(index As Integer) As String
 
-        Public Overridable Function GetParameterDisplayParts(index As Integer) As IEnumerable(Of SymbolDisplayPart)
-            Return SpecializedCollections.SingletonEnumerable(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index)))
+        Public Overridable Function GetParameterDisplayParts(index As Integer) As IList(Of SymbolDisplayPart)
+            Return {New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, GetParameterName(index))}
         End Function
 
         Public Overridable Function TryGetTypeNameParameter(syntaxNode As SyntaxNode, index As Integer) As TypeSyntax
             Return Nothing
         End Function
 
-        Public Overridable Function GetSuffix(semanticModel As SemanticModel, position As Integer, nodeToBind As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SymbolDisplayPart)
+        Public Overridable Function GetSuffix(semanticModel As SemanticModel, position As Integer, nodeToBind As SyntaxNode, cancellationToken As CancellationToken) As IList(Of SymbolDisplayPart)
             Dim suffixParts As New List(Of SymbolDisplayPart)
 
             If IncludeAsType Then
@@ -59,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                     Return suffixParts
                 End If
 
-                suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, Result))
+                suffixParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Text, Nothing, VBWorkspaceResources.result))
             End If
 
             Return suffixParts

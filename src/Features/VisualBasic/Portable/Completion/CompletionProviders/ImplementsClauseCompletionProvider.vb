@@ -1,38 +1,62 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(ImplementsClauseCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(VisualBasicSuggestionModeCompletionProvider))>
+    <[Shared]>
     Partial Friend Class ImplementsClauseCompletionProvider
-        Inherits AbstractSymbolCompletionProvider
+        Inherits AbstractSymbolCompletionProvider(Of VisualBasicSyntaxContext)
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
+
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Protected Overrides Function IsExclusive() As Boolean
             Return True
         End Function
 
-        Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Protected Overrides Async Function GetSymbolsAsync(
+                completionContext As CompletionContext,
+                syntaxContext As VisualBasicSyntaxContext,
+                position As Integer,
+                options As OptionSet,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+
+            Dim symbols = Await GetSymbolsAsync(syntaxContext, position, cancellationToken).ConfigureAwait(False)
+            Return symbols.SelectAsArray(Function(s) (s, preselect:=False))
+        End Function
+
+        Private Overloads Function GetSymbolsAsync(
+                context As VisualBasicSyntaxContext, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.TargetToken.Kind = SyntaxKind.None Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
             ' We only care about Methods, Properties, and Events
@@ -52,10 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             ' We couldn't find a declaration. Bail.
             If memberKindKeyword = Nothing Then
-                Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
-            Dim result As IEnumerable(Of ISymbol) = Nothing
+            Dim result = ImmutableArray(Of ISymbol).Empty
 
             ' Valid positions: Immediately after 'Implements, after  ., or after a ,
             If context.TargetToken.Kind = SyntaxKind.ImplementsKeyword AndAlso context.TargetToken.Parent.IsKind(SyntaxKind.ImplementsClause) Then
@@ -70,14 +94,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 result = GetDottedMembers(position, DirectCast(context.TargetToken.Parent, QualifiedNameSyntax), context.SemanticModel, memberKindKeyword, cancellationToken)
             End If
 
-            If result IsNot Nothing Then
-                Return Task.FromResult(result.Where(Function(s) MatchesMemberKind(s, memberKindKeyword)))
+            If result.Length > 0 Then
+                Return Task.FromResult(result.WhereAsArray(Function(s) MatchesMemberKind(s, memberKindKeyword)))
             End If
 
-            Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
+            Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
         End Function
 
-        Private Function MatchesMemberKind(symbol As ISymbol, memberKindKeyword As SyntaxKind) As Boolean
+        Private Shared Function MatchesMemberKind(symbol As ISymbol, memberKindKeyword As SyntaxKind) As Boolean
             If symbol.Kind = SymbolKind.Alias Then
                 symbol = DirectCast(symbol, IAliasSymbol).Target
             End If
@@ -102,15 +126,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return memberKindKeyword = SyntaxKind.EventKeyword
         End Function
 
-        Private Function GetDottedMembers(position As Integer, qualifiedName As QualifiedNameSyntax, semanticModel As SemanticModel, memberKindKeyword As SyntaxKind, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+        Private Function GetDottedMembers(position As Integer, qualifiedName As QualifiedNameSyntax, semanticModel As SemanticModel, memberKindKeyword As SyntaxKind, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
             Dim containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken)
             If containingType Is Nothing Then
-                Return Nothing
+                Return ImmutableArray(Of ISymbol).Empty
             End If
 
             Dim unimplementedInterfacesAndMembers = From item In containingType.GetAllUnimplementedMembersInThis(containingType.Interfaces, cancellationToken)
                                                     Select New With {.interface = item.Item1, .members = item.Item2.Where(Function(s) MatchesMemberKind(s, memberKindKeyword))}
-
 
             Dim interfaces = unimplementedInterfacesAndMembers.Where(Function(i) i.members.Any()) _
                                                                 .Select(Function(i) i.interface)
@@ -139,15 +162,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If container Is Nothing Then
-                Return Nothing
+                Return ImmutableArray(Of ISymbol).Empty
             End If
             Dim symbols = semanticModel.LookupSymbols(position, container)
 
-            Return New HashSet(Of ISymbol)(symbols.ToArray() _
+            Dim hashSet = New HashSet(Of ISymbol)(symbols.ToArray() _
                                            .Where(Function(s As ISymbol) interfacesAndContainers.Contains(s, SymbolEquivalenceComparer.Instance) OrElse
                                                       (TypeOf (s) Is INamespaceSymbol AndAlso namespaces.Contains(TryCast(s, INamespaceSymbol), INamespaceSymbolExtensions.EqualityComparer)) OrElse
                                                       members.Contains(s)))
-
+            Return hashSet.ToImmutableArray()
         End Function
 
         Private Function interfaceMemberGetter([interface] As ITypeSymbol, within As ISymbol) As ImmutableArray(Of ISymbol)
@@ -155,14 +178,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 .AddRange([interface].GetMembers())
         End Function
 
-        Private Function GetInterfacesAndContainers(position As Integer, node As SyntaxNode, semanticModel As SemanticModel, kind As SyntaxKind, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+        Private Function GetInterfacesAndContainers(position As Integer, node As SyntaxNode, semanticModel As SemanticModel, kind As SyntaxKind, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
             Dim containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken)
             If containingType Is Nothing Then
-                Return Nothing
+                Return ImmutableArray(Of ISymbol).Empty
             End If
 
             Dim interfaceWithUnimplementedMembers = containingType.GetAllUnimplementedMembersInThis(containingType.Interfaces, AddressOf interfaceMemberGetter, cancellationToken) _
-                                                .Where(Function(i) i.Item2.Any(Function(s) MatchesMemberKind(s, kind))) _
+                                                .Where(Function(i) i.Item2.Any(Function(interfaceOrContainer) MatchesMemberKind(interfaceOrContainer, kind))) _
                                                 .Select(Function(i) i.Item1)
 
             Dim interfacesAndContainers = New HashSet(Of ISymbol)(interfaceWithUnimplementedMembers)
@@ -170,20 +193,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 AddAliasesAndContainers(i, interfacesAndContainers, node, semanticModel)
             Next
 
-            Dim symbols = semanticModel.LookupSymbols(position)
+            Dim symbols = New HashSet(Of ISymbol)(semanticModel.LookupSymbols(position))
+            Dim availableInterfacesAndContainers = interfacesAndContainers.Where(
+                Function(interfaceOrContainer) symbols.Contains(interfaceOrContainer.OriginalDefinition)).ToImmutableArray()
 
-            Dim result = TryAddGlobalTo(interfacesAndContainers.Intersect(symbols.ToArray()))
+            Dim result = TryAddGlobalTo(availableInterfacesAndContainers)
 
             ' Even if there's not anything left to implement, we'll show the list of interfaces, 
             ' the global namespace, and the project root namespace (if any), as long as the class implements something.
             If Not result.Any() AndAlso containingType.Interfaces.Any() Then
-                Dim defaultListing = New List(Of ISymbol)(containingType.Interfaces.ToArray())
+                Dim defaultListing = New List(Of ISymbol)(containingType.Interfaces)
                 defaultListing.Add(semanticModel.Compilation.GlobalNamespace)
                 If containingType.ContainingNamespace IsNot Nothing Then
                     defaultListing.Add(containingType.ContainingNamespace)
                     AddAliasesAndContainers(containingType.ContainingNamespace, defaultListing, node, semanticModel)
                 End If
-                Return defaultListing
+                Return defaultListing.ToImmutableArray()
             End If
 
             Return result
@@ -216,21 +241,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Sub
 
-        Private Function IsGlobal(containingSymbol As ISymbol) As Boolean
+        Private Shared Function IsGlobal(containingSymbol As ISymbol) As Boolean
             Dim [namespace] = TryCast(containingSymbol, INamespaceSymbol)
             Return [namespace] IsNot Nothing AndAlso [namespace].IsGlobalNamespace
         End Function
 
-        Private Function TryAddGlobalTo(symbols As IEnumerable(Of ISymbol)) As IEnumerable(Of ISymbol)
+        Private Shared Function TryAddGlobalTo(symbols As ImmutableArray(Of ISymbol)) As ImmutableArray(Of ISymbol)
             Dim withGlobalContainer = symbols.FirstOrDefault(Function(s) s.ContainingNamespace.IsGlobalNamespace)
             If withGlobalContainer IsNot Nothing Then
-                Return symbols.Concat(SpecializedCollections.SingletonEnumerable(withGlobalContainer.ContainingNamespace))
+                Return symbols.Concat(ImmutableArray.Create(Of ISymbol)(withGlobalContainer.ContainingNamespace))
             End If
 
             Return symbols
         End Function
 
-        Private Function WalkUpQualifiedNames(token As SyntaxToken) As Boolean
+        Private Shared Function WalkUpQualifiedNames(token As SyntaxToken) As Boolean
             Dim parent = token.Parent
             While parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.QualifiedName)
                 parent = parent.Parent
@@ -239,65 +264,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.ImplementsClause)
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As VisualBasicSyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             If IsGlobal(symbol) Then
-                Return ValueTuple.Create("Global", "Global")
+                Return ("Global", "", "Global")
             End If
 
-            Dim displayText As String = Nothing
-            Dim insertionText As String = Nothing
-
-            If symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any() Then
-                displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
-                insertionText = displayText
+            If IsGenericType(symbol) Then
+                Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
+                Return (displayText, "", displayText)
             Else
-                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                    symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator,
-                    isWithinAsyncMethod:=False,
-                    syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+                Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
+            End If
+        End Function
 
-                displayText = displayAndInsertionText.Item1
-                insertionText = displayAndInsertionText.Item2
+        Private Shared Function IsGenericType(symbol As ISymbol) As Boolean
+            Return symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any()
+        End Function
+
+        Private Shared ReadOnly MinimalFormatWithoutGenerics As SymbolDisplayFormat =
+            SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.None)
+
+        Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
+
+        Protected Overrides Function CreateItem(
+                completionContext As CompletionContext,
+                displayText As String,
+                displayTextSuffix As String,
+                insertionText As String,
+                symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)),
+                context As VisualBasicSyntaxContext,
+                supportedPlatformData As SupportedPlatformData) As CompletionItem
+
+            Dim item = MyBase.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData)
+
+            If IsGenericType(symbols(0).symbol) Then
+                Dim text = symbols(0).symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
+                item = item.AddProperty(InsertionTextOnOpenParen, text)
             End If
 
-            Return ValueTuple.Create(displayText, insertionText)
+            Return item
         End Function
 
-        Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
-            Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
-            Return CompletionItemRules.Default
-        End Function
-
-        Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
-            If SymbolCompletionItem.HasSymbols(selectedItem) Then
-                Dim insertionText As String
-
-                If ch Is Nothing Then
-                    insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
-                Else
-                    Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(False)
-                    Dim position = SymbolCompletionItem.GetContextPosition(selectedItem)
-                    Dim context = Await CreateContext(document, position, cancellationToken).ConfigureAwait(False)
-                    If symbols.Length > 0 Then
-                        insertionText = GetInsertionTextAtInsertionTime(symbols(0), context, ch.Value)
-                    Else
-                        insertionText = selectedItem.DisplayText
-                    End If
+        Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
+            If ch = "("c Then
+                Dim insertionText As String = Nothing
+                If item.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
+                    Return insertionText
                 End If
-
-                Return New TextChange(selectedItem.Span, insertionText)
             End If
 
-            Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function
-
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
-        End Function
-
     End Class
 End Namespace

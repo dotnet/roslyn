@@ -1,22 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationDestructorInfo
     {
         private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationDestructorInfo> s_destructorToInfoMap =
-            new ConditionalWeakTable<IMethodSymbol, CodeGenerationDestructorInfo>();
+            new();
 
         private readonly string _typeName;
-        private readonly IList<SyntaxNode> _statements;
+        private readonly ImmutableArray<SyntaxNode> _statements;
 
         private CodeGenerationDestructorInfo(
             string typeName,
-            IList<SyntaxNode> statements)
+            ImmutableArray<SyntaxNode> statements)
         {
             _typeName = typeName;
             _statements = statements;
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static void Attach(
             IMethodSymbol destructor,
             string typeName,
-            IList<SyntaxNode> statements)
+            ImmutableArray<SyntaxNode> statements)
         {
             var info = new CodeGenerationDestructorInfo(typeName, statements);
             s_destructorToInfoMap.Add(destructor, info);
@@ -33,29 +36,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static CodeGenerationDestructorInfo GetInfo(IMethodSymbol method)
         {
-            CodeGenerationDestructorInfo info;
-            s_destructorToInfoMap.TryGetValue(method, out info);
+            s_destructorToInfoMap.TryGetValue(method, out var info);
             return info;
         }
 
-        public static IList<SyntaxNode> GetStatements(IMethodSymbol destructor)
-        {
-            return GetStatements(GetInfo(destructor));
-        }
+        public static ImmutableArray<SyntaxNode> GetStatements(IMethodSymbol destructor)
+            => GetStatements(GetInfo(destructor));
 
         public static string GetTypeName(IMethodSymbol destructor)
-        {
-            return GetTypeName(GetInfo(destructor), destructor);
-        }
+            => GetTypeName(GetInfo(destructor), destructor);
 
-        private static IList<SyntaxNode> GetStatements(CodeGenerationDestructorInfo info)
-        {
-            return info == null ? null : info._statements;
-        }
+        private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationDestructorInfo info)
+            => info?._statements ?? default;
 
         private static string GetTypeName(CodeGenerationDestructorInfo info, IMethodSymbol constructor)
-        {
-            return info == null ? constructor.ContainingType.Name : info._typeName;
-        }
+            => info == null ? constructor.ContainingType.Name : info._typeName;
     }
 }

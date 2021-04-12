@@ -1,16 +1,19 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
@@ -22,14 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// </summary>
     internal class TempPECompilerService : ICSharpTempPECompilerService
     {
-        private readonly VisualStudioWorkspace _workspace;
+        private readonly IMetadataService _metadataService;
 
-        public TempPECompilerService(VisualStudioWorkspace workspace)
-        {
-            _workspace = workspace;
-        }
+        public TempPECompilerService(IMetadataService metadataService)
+            => _metadataService = metadataService;
 
-        public void CompileTempPE(string pszOutputFileName, int sourceCount, string[] fileNames, string[] fileContents, int optionCount, string[] optionNames, object[] optionValues)
+        public int CompileTempPE(string pszOutputFileName, int sourceCount, string[] fileNames, string[] fileContents, int optionCount, string[] optionNames, object[] optionValues)
         {
             var baseDirectory = Path.GetDirectoryName(pszOutputFileName);
             var parsedArguments = ParseCommandLineArguments(baseDirectory, optionNames, optionValues);
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var trees = new List<SyntaxTree>(capacity: sourceCount);
 
-            for (int i = 0; i < fileNames.Length; i++)
+            for (var i = 0; i < fileNames.Length; i++)
             {
                 // create a parse tree w/o encoding - the tree won't be used to emit PDBs
                 trees.Add(SyntaxFactory.ParseSyntaxTree(fileContents[i], parsedArguments.ParseOptions, fileNames[i]));
@@ -48,13 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // TODO (tomat): move resolver initialization (With* methods below) to CommandLineParser.Parse
 
             var metadataResolver = new WorkspaceMetadataFileReferenceResolver(
-                _workspace.Services.GetService<IMetadataService>(),
+                _metadataService,
                 new RelativePathResolver(ImmutableArray<string>.Empty, baseDirectory: null));
 
             var compilation = CSharpCompilation.Create(
                 Path.GetFileName(pszOutputFileName),
                 trees,
-                parsedArguments.ResolveMetadataReferences(metadataResolver),
+                parsedArguments.ResolveMetadataReferences(metadataResolver).Where(m => !(m is UnresolvedMetadataReference)),
                 parsedArguments.CompilationOptions
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .WithSourceReferenceResolver(SourceFileResolver.Default)
@@ -63,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var result = compilation.Emit(pszOutputFileName);
 
-            Contract.ThrowIfFalse(result.Success);
+            return result.Success ? VSConstants.S_OK : VSConstants.S_FALSE;
         }
 
         private CSharpCommandLineArguments ParseCommandLineArguments(string baseDirectory, string[] optionNames, object[] optionValues)
@@ -72,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var arguments = new List<string>();
 
-            for (int i = 0; i < optionNames.Length; i++)
+            for (var i = 0; i < optionNames.Length; i++)
             {
                 var optionName = optionNames[i];
                 var optionValue = optionValues[i];

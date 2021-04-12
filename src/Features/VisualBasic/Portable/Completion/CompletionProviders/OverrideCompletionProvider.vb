@@ -1,15 +1,23 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(OverrideCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(CompletionListTagCompletionProvider))>
+    <[Shared]>
     Friend Class OverrideCompletionProvider
         Inherits AbstractOverrideCompletionProvider
 
@@ -17,6 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private _isSub As Boolean
         Private _isProperty As Boolean
 
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -36,22 +46,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return token.GetAncestor(Of MethodStatementSyntax)()
         End Function
 
-        Protected Overrides Function GetToken(completionItem As CompletionItem, commonTree As SyntaxTree, cancellationToken As CancellationToken) As SyntaxToken
+        Protected Overrides Function GetToken(completionItem As CompletionItem, syntaxTree As SyntaxTree, cancellationToken As CancellationToken) As SyntaxToken
             Dim tokenSpanEnd = MemberInsertionCompletionItem.GetTokenSpanEnd(completionItem)
-            Dim tree = DirectCast(commonTree, SyntaxTree)
-            Return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
+            Return syntaxTree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
         End Function
 
-
         Public Overrides Function FindStartingToken(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken
-            Dim tree = DirectCast(syntaxTree, SyntaxTree)
-            Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return token.GetPreviousTokenIfTouchingWord(position)
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
+
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.SpaceTriggerChar
 
         Public Overrides Function TryDetermineModifiers(startToken As SyntaxToken,
                                                         text As SourceText, startLine As Integer,
@@ -138,37 +147,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Public Overrides Function FilterOverrides(members As ISet(Of ISymbol), returnType As ITypeSymbol) As ISet(Of ISymbol)
+        Public Overrides Function FilterOverrides(members As ImmutableArray(Of ISymbol),
+                                                  returnType As ITypeSymbol) As ImmutableArray(Of ISymbol)
             ' Start by removing Finalize(), which we never want to show.
             Dim finalizeMethod = members.OfType(Of IMethodSymbol)().Where(Function(x) x.Name = "Finalize" AndAlso OverridesObjectMethod(x)).SingleOrDefault()
             If finalizeMethod IsNot Nothing Then
-                members.Remove(finalizeMethod)
+                members = members.Remove(finalizeMethod)
             End If
 
             If Me._isFunction Then
                 ' Function: look for non-void return types
                 Dim filteredMembers = members.OfType(Of IMethodSymbol)().Where(Function(m) Not m.ReturnsVoid)
                 If filteredMembers.Any Then
-                    Return New HashSet(Of ISymbol)(filteredMembers)
+                    Return ImmutableArray(Of ISymbol).CastUp(filteredMembers.ToImmutableArray())
                 End If
             ElseIf Me._isProperty Then
                 ' Property: return properties
                 Dim filteredMembers = members.Where(Function(m) m.Kind = SymbolKind.Property)
                 If filteredMembers.Any Then
-                    Return New HashSet(Of ISymbol)(filteredMembers)
+                    Return filteredMembers.ToImmutableArray()
                 End If
             ElseIf Me._isSub Then
                 ' Sub: look for void return types
                 Dim filteredMembers = members.OfType(Of IMethodSymbol)().Where(Function(m) m.ReturnsVoid)
                 If filteredMembers.Any Then
-                    Return New HashSet(Of ISymbol)(filteredMembers)
+                    Return ImmutableArray(Of ISymbol).CastUp(filteredMembers.ToImmutableArray())
                 End If
             End If
 
-            Return members.Where(Function(m) Not m.IsKind(SymbolKind.Event)).ToSet()
+            Return members.WhereAsArray(Function(m) Not m.IsKind(SymbolKind.Event))
         End Function
 
-        Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
+        Private Shared Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
             Dim overriddenMember = method
             Do While overriddenMember.OverriddenMethod IsNot Nothing
                 overriddenMember = overriddenMember.OverriddenMethod

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -13,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 #Region "Semantic API"
         <Fact()>
         Public Sub MultipleResourceWithDifferentType_SemanticAPI()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MultipleResourceWithDifferentType">
     <file name="a.vb">
 Option Infer On
 Imports System
 Class C1
-    Private Shared Sub foo(ByRef x1 As MyManagedClass)
+    Private Shared Sub goo(ByRef x1 As MyManagedClass)
         Using x2, x3 As New MyManagedClass(), x4, x5 As New MyManagedClass1()
             x1 = New MyManagedClass()
         End Using
@@ -50,13 +52,13 @@ End Structure
 
         <Fact()>
         Public Sub InitResourceWithFunctionCall()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Infer On
 Imports System
 Class C1
-    Private Shared Sub foo()
+    Private Shared Sub goo()
         Using x1 = NewClass1(), x2 = NewClass2
         End Using
     End Sub
@@ -91,7 +93,7 @@ End Structure
 
         <Fact()>
         Public Sub InitResource()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InitResource">
     <file name="a.vb">
 Option Infer On
@@ -99,7 +101,7 @@ Imports System
 Class C1
     Dim x As MyManagedClass1 = New MyManagedClass1()
     Dim y As MyManagedClass2 = New MyManagedClass2()
-    Private Sub foo()
+    Private Sub goo()
         Using x1 = x, x2 = y
         End Using
     End Sub
@@ -128,7 +130,7 @@ End Structure
 
         <Fact()>
         Public Sub NoVariableDeclaredInUSING()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoVariableDeclaredInUSING">
     <file name="a.vb">
 Option Infer On
@@ -136,7 +138,7 @@ Option Strict Off
 Imports System
 Class C1
     Dim f As MyManagedClass
-    Private Sub foo(p1 As MyManagedClass)
+    Private Sub goo(p1 As MyManagedClass)
         Dim x1 As MyManagedClass
         Using p1
             Using x1
@@ -165,14 +167,14 @@ End Structure
 
         <Fact()>
         Public Sub NestedUsing()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NestedUsing">
     <file name="a.vb">
 Option Infer On
 Imports System
 Class C1
     Dim x As C1
-    Private Sub foo()
+    Private Sub goo()
         Using NewClass1()
             Using x1 = x.NewClass1(), x2 = x.NewClass2()
             End Using

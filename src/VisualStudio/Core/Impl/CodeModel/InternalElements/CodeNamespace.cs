@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -57,9 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         private SyntaxNode GetNamespaceNode()
-        {
-            return LookupNode().Ancestors().Where(CodeModelService.IsNamespace).FirstOrDefault();
-        }
+            => LookupNode().Ancestors().Where(CodeModelService.IsNamespace).FirstOrDefault();
 
         public override object Parent
         {
@@ -86,14 +88,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                // Namespaces don't support comments
-                throw Exceptions.ThrowENotImpl();
+                return CodeModelService.GetComment(LookupNode());
             }
 
             set
             {
-                // Namespaces don't support comments
-                throw Exceptions.ThrowENotImpl();
+                UpdateNode(FileCodeModel.UpdateComment, value);
             }
         }
 
@@ -101,14 +101,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                // Namespaces can't have doc comments
-                return string.Empty;
+                return CodeModelService.GetDocComment(LookupNode());
             }
 
             set
             {
-                // We don't allow you to set, since you can't set things that don't exist.
-                throw Exceptions.ThrowENotImpl();
+                UpdateNode(FileCodeModel.UpdateDocComment, value);
             }
         }
 
@@ -184,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             if (codeElement == null)
             {
-                throw new ArgumentException(ServicesVSResources.ElementIsNotValid, nameof(element));
+                throw new ArgumentException(ServicesVSResources.Element_is_not_valid, nameof(element));
             }
 
             codeElement.Delete();

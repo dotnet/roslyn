@@ -1,8 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -43,16 +47,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._binderFactoryVisitorPool = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor(Me))
         End Sub
 
-        Private Function MakeBinder(node As VisualBasicSyntaxNode, position As Integer) As Binder
-            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse node.Kind = SyntaxKind.CompilationUnit Then
+        Private Function MakeBinder(node As SyntaxNode, position As Integer) As Binder
+            If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse
+               node.Kind = SyntaxKind.CompilationUnit Then
+
                 Dim visitor = _binderFactoryVisitorPool.Allocate()
                 visitor.Position = position
-                Dim result = node.Accept(visitor)
+                Dim result = visitor.Visit(node)
                 _binderFactoryVisitorPool.Free(visitor)
                 Return result
-            Else
-                Return Nothing
             End If
+
+            Return Nothing
         End Function
 
         ' Get binder for interior of a namespace block
@@ -83,12 +89,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Find the binder to use for a position in the tree. The position should have been adjusted
         ' already to be at the start of a token.
-        Public Function GetBinderForPosition(node As VisualBasicSyntaxNode, position As Integer) As Binder
+        Public Function GetBinderForPosition(node As SyntaxNode, position As Integer) As Binder
             Return GetBinderAtOrAbove(node, position)
         End Function
 
         ' Find the binder for a node or above at a given position
-        Private Function GetBinderAtOrAbove(node As VisualBasicSyntaxNode, position As Integer) As Binder
+        Private Function GetBinderAtOrAbove(node As SyntaxNode, position As Integer) As Binder
             ' Go up the tree until we find a node that has a corresponding binder.
             Do
                 Dim binder As Binder = MakeBinder(node, position)
@@ -121,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(containingBinder Is Nothing OrElse parentNode Is Nothing)
 
             Dim binder As Binder = Nothing
-            Dim nodeUsagePair = ValueTuple.Create(node, CByte(usage))
+            Dim nodeUsagePair = (node, CByte(usage))
 
             If Not _cache.TryGetValue(nodeUsagePair, binder) Then
                 ' Didn't find it in the cache, so we need to create it. But we need the containing binder first.
@@ -226,7 +232,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' When binding the inherits clause, we don't want to look to base types of our own type, to follow how actual
                         ' determination of the base type is done. This is done by using a BasesBeingResolvedBinder.
                         Debug.Assert(containingNamedTypeBinder.ContainingType IsNot Nothing)
-                        Return New BasesBeingResolvedBinder(containingBinder, ConsList(Of Symbol).Empty.Prepend(containingNamedTypeBinder.ContainingType))
+                        Return New BasesBeingResolvedBinder(containingBinder, BasesBeingResolved.Empty.PrependInheritsBeingResolved(containingNamedTypeBinder.ContainingType))
+                    Else
+                        Return containingBinder
+                    End If
+
+                Case NodeUsage.ImplementsStatement
+                    Dim containingNamedTypeBinder = TryCast(containingBinder, NamedTypeBinder)
+
+                    If containingNamedTypeBinder IsNot Nothing Then
+                        Debug.Assert(containingNamedTypeBinder.ContainingType IsNot Nothing)
+                        Return New BasesBeingResolvedBinder(containingBinder, BasesBeingResolved.Empty.PrependImplementsBeingResolved(containingNamedTypeBinder.ContainingType))
                     Else
                         Return containingBinder
                     End If
@@ -261,14 +277,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case NodeUsage.FieldOrPropertyInitializer
                     Dim fieldOrProperty As Symbol = Nothing
+                    Dim additionalFieldsOrProperties = ImmutableArray(Of Symbol).Empty
                     Dim containingNamedTypeBinder As NamedTypeBinder
 
                     Select Case node.Kind
                         Case SyntaxKind.VariableDeclarator
                             Dim declarator = DirectCast(node, VariableDeclaratorSyntax)
-                            ' Declaration should have initializer or AsNew and exactly one variable name.
+                            ' Declaration should have initializer or AsNew.
                             Debug.Assert(declarator.Initializer IsNot Nothing OrElse TryCast(declarator.AsClause, AsNewClauseSyntax) IsNot Nothing)
-                            ' more than one name may happen if there is a syntax error
+                            ' more than one name may happen if there is a syntax error or AsNew clause with multiple fields/properties
                             Debug.Assert(declarator.Names.Count > 0)
 
                             containingNamedTypeBinder = GetContainingNamedTypeBinderForMemberNode(node.Parent.Parent, containingBinder)
@@ -278,6 +295,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             Dim identifier = declarator.Names(0).Identifier
                             fieldOrProperty = containingNamedTypeBinder.ContainingType.FindFieldOrProperty(identifier.ValueText, identifier.Span, _tree)
+
+                            ' Handle multiple fields/properties initialized with AsNew clause
+                            If declarator.Names.Count > 1 Then
+                                Dim builder = ArrayBuilder(Of Symbol).GetInstance
+                                For Each name In declarator.Names.Skip(1)
+                                    identifier = name.Identifier
+                                    Dim additionalFieldOrProperty As Symbol = containingNamedTypeBinder.ContainingType.FindFieldOrProperty(identifier.ValueText, identifier.Span, _tree)
+                                    builder.Add(additionalFieldOrProperty)
+                                Next
+                                additionalFieldsOrProperties = builder.ToImmutableAndFree
+                            End If
 
                         Case SyntaxKind.EnumMemberDeclaration
                             Dim enumDeclaration = DirectCast(node, EnumMemberDeclarationSyntax)
@@ -306,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Select
 
                     If fieldOrProperty IsNot Nothing Then
-                        Return BuildInitializerBinder(containingNamedTypeBinder, fieldOrProperty)
+                        Return BuildInitializerBinder(containingNamedTypeBinder, fieldOrProperty, additionalFieldsOrProperties)
                     End If
 
                     Return Nothing
@@ -320,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim identifier = modifiedIdentifier.Identifier
                         Dim field = containingType.FindMember(identifier.ValueText, SymbolKind.Field, identifier.Span, _tree)
                         If field IsNot Nothing Then
-                            Return BuildInitializerBinder(containingNamedTypeBinder, field)
+                            Return BuildInitializerBinder(containingNamedTypeBinder, field, ImmutableArray(Of Symbol).Empty)
                         End If
                     End If
 
@@ -340,6 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Select Case methodSyntax.Kind
                             Case SyntaxKind.SubNewStatement,
                                 SyntaxKind.FunctionStatement,
+                                SyntaxKind.OperatorStatement,
                                 SyntaxKind.SubStatement,
                                 SyntaxKind.DeclareFunctionStatement,
                                 SyntaxKind.DeclareSubStatement
@@ -626,8 +655,8 @@ lAgain:
             End If
         End Function
 
-        Private Function BuildInitializerBinder(containingBinder As Binder, fieldOrProperty As Symbol) As Binder
-            Return BinderBuilder.CreateBinderForInitializer(containingBinder, fieldOrProperty)
+        Private Function BuildInitializerBinder(containingBinder As Binder, fieldOrProperty As Symbol, additionalFieldsOrProperties As ImmutableArray(Of Symbol)) As Binder
+            Return BinderBuilder.CreateBinderForInitializer(containingBinder, fieldOrProperty, additionalFieldsOrProperties)
         End Function
 
         Private Function BuildAttributeBinder(containingBinder As Binder, node As VisualBasicSyntaxNode) As Binder

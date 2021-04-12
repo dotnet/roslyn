@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -6,6 +8,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
@@ -32,11 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
         <Fact>
         Public Sub CheckSumDirectiveClashesSameTree()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -76,11 +79,11 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveClashesDifferentLength()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -112,11 +115,11 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveClashesDifferentTrees()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -129,7 +132,7 @@ End Class
         </file>
         <file name="a.vb"><![CDATA[
 Public Class D
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -154,11 +157,11 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveFullWidth()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -180,7 +183,7 @@ End Class
         End Sub
 
         <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
         Public Sub NormalizedPath_Tree()
             Dim source = <![CDATA[
 Class C
@@ -196,7 +199,7 @@ End Class
             comp.VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="b:\base\b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="90, B2, 29, 4D,  5, C7, A7, 47, 73,  0, EF, F4, 75, 92, E5, 84, E4, 4A, BB, E4, "/>
+        <file id="1" name="b:\base\b.vb" language="VB" checksumAlgorithm="SHA1" checksum="90-B2-29-4D-05-C7-A7-47-73-00-EF-F4-75-92-E5-84-E4-4A-BB-E4"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -213,7 +216,8 @@ End Class
         End Sub
 
         <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
-        <Fact>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
         Public Sub NormalizedPath_ExternalSource()
             Dim source = <![CDATA[
 Class C
@@ -246,31 +250,29 @@ End Class
             comp.VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="b:\base\line.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="2" name="q:\absolute\line.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="b:\base\b.vb" language="VB" checksumAlgorithm="SHA1" checksum="F9-90-00-9D-9E-45-97-F2-3D-67-1C-D8-47-A8-9B-DA-4A-91-AA-7F"/>
+        <file id="2" name="b:\base\line.vb" language="VB"/>
+        <file id="3" name="q:\absolute\line.vb" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" hidden="true" document="1"/>
-                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="1"/>
-                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="1"/>
-                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="1"/>
-                <entry offset="0x1d" startLine="4" startColumn="9" endLine="4" endColumn="12" document="1"/>
-                <entry offset="0x24" startLine="5" startColumn="9" endLine="5" endColumn="12" document="2"/>
-                <entry offset="0x2b" hidden="true" document="2"/>
+                <entry offset="0x0" hidden="true" document="2"/>
+                <entry offset="0x1" hidden="true" document="2"/>
+                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="2"/>
+                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="2"/>
+                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="2"/>
+                <entry offset="0x1d" startLine="4" startColumn="9" endLine="4" endColumn="12" document="2"/>
+                <entry offset="0x24" startLine="5" startColumn="9" endLine="5" endColumn="12" document="3"/>
+                <entry offset="0x2b" hidden="true" document="3"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x2c">
-                <currentnamespace name=""/>
-            </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
         <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
         Public Sub NormalizedPath_ExternalChecksum()
             Dim source = <![CDATA[
 Class C
@@ -307,34 +309,32 @@ End Class
             comp.VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="b:\base\a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DA, "/>
-        <file id="2" name="b:\base\b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DB, "/>
-        <file id="3" name="b:\base\c.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DC, "/>
-        <file id="4" name="b:\base\d.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DD, "/>
-        <file id="5" name="b:\base\e.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DE, "/>
+        <file id="1" name="b:\base\file.vb" language="VB" checksumAlgorithm="SHA1" checksum="C2-46-C6-34-F6-20-D3-FE-28-B9-D8-62-0F-A9-FB-2F-89-E7-48-23"/>
+        <file id="2" name="b:\base\a.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DA"/>
+        <file id="3" name="b:\base\b.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DB"/>
+        <file id="4" name="b:\base\c.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DC"/>
+        <file id="5" name="b:\base\d.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DD"/>
+        <file id="6" name="b:\base\e.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DE"/>
     </files>
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" hidden="true" document="1"/>
-                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="1"/>
-                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="2"/>
-                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="3"/>
-                <entry offset="0x1d" startLine="4" startColumn="9" endLine="4" endColumn="12" document="4"/>
-                <entry offset="0x24" startLine="5" startColumn="9" endLine="5" endColumn="12" document="5"/>
-                <entry offset="0x2b" hidden="true" document="5"/>
+                <entry offset="0x0" hidden="true" document="2"/>
+                <entry offset="0x1" hidden="true" document="2"/>
+                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="2"/>
+                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="3"/>
+                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="4"/>
+                <entry offset="0x1d" startLine="4" startColumn="9" endLine="4" endColumn="12" document="5"/>
+                <entry offset="0x24" startLine="5" startColumn="9" endLine="5" endColumn="12" document="6"/>
+                <entry offset="0x2b" hidden="true" document="6"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x2c">
-                <currentnamespace name=""/>
-            </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
-        <WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub NormalizedPath_NoBaseDirectory()
             Dim source = <![CDATA[
 Class C
@@ -361,26 +361,24 @@ End Class
             comp.VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DA, "/>
-        <file id="2" name="./a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="3" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="file.vb" language="VB" checksumAlgorithm="SHA1" checksum="23-C1-6B-94-B0-D4-06-26-C8-D2-82-21-63-07-53-11-4D-5A-02-BC"/>
+        <file id="2" name="a.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DA"/>
+        <file id="3" name="./a.vb" language="VB"/>
+        <file id="4" name="b.vb" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" hidden="true" document="1"/>
-                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="1"/>
-                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="2"/>
-                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="3"/>
-                <entry offset="0x1d" hidden="true" document="3"/>
+                <entry offset="0x0" hidden="true" document="2"/>
+                <entry offset="0x1" hidden="true" document="2"/>
+                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="2"/>
+                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="3"/>
+                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="4"/>
+                <entry offset="0x1d" hidden="true" document="4"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x1e">
-                <currentnamespace name=""/>
-            </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
     End Class

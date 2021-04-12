@@ -1,20 +1,16 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class AttributeSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New AttributeSignatureHelpProvider()
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(AttributeSignatureHelpProvider)
         End Function
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
@@ -23,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
             Dim markup = <Text><![CDATA[
 <My($$
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
 
@@ -52,7 +48,7 @@ End Class
 
             Dim markup = <Text><![CDATA[
 <My($$
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
 
@@ -81,7 +77,7 @@ End Class
 
             Dim markup = <Text><![CDATA[
 <My($$
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
 
@@ -119,7 +115,7 @@ End Class
 
             Dim markup = <Text><![CDATA[
 <My($$
-Public Class Foo
+Public Class Goo
 End Class
 ]]></Text>.Value
 
@@ -147,6 +143,64 @@ End Class
                                                 expectedOrderedItemsSameSolution:=expectedOrderedItemsSameSolution,
                                                 sourceLanguage:=LanguageNames.VisualBasic,
                                                 referencedLanguage:=LanguageNames.VisualBasic)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickInt() As Task
+
+            Dim markup = <Text><![CDATA[
+<My(1$$)>
+Public Class Goo
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(i As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As Byte)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As String)", String.Empty, Nothing, currentParameterIndex:=0))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickString() As Task
+
+            Dim markup = <Text><![CDATA[
+<My("Hello"$$)>
+Public Class Goo
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(i As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As Byte)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As String)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+
+            Await TestAsync(markup, expectedOrderedItems)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

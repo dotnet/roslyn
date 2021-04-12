@@ -1,10 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,15 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         {
             var codeBlocks = new List<Tuple<TextSpan, uint>>();
 
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var text = document.GetTextSynchronously(cancellationToken);
 
-            int start = 0;
+            var start = 0;
             uint cookie = 0;
 
             foreach (var line in text.Lines)
             {
-                var trivia = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetRoot(cancellationToken).FindTrivia(line.Start);
+                var trivia = document.GetSyntaxRootSynchronously(cancellationToken).FindTrivia(line.Start);
 
                 // We should only see structured trivia here
                 if (trivia.HasStructure)
@@ -32,8 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                     var directive = trivia.GetStructure();
                     if (syntaxFacts.IsDirective(directive))
                     {
-                        ExternalSourceInfo info;
-                        if (syntaxFacts.TryGetExternalSourceInfo(directive, out info))
+                        if (syntaxFacts.TryGetExternalSourceInfo(directive, out var info))
                         {
                             // Is this start of a line directive? if so, then add this new entry
                             if (info.StartLine.HasValue)

@@ -1,8 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -25,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        /// <summary>
+        /// Syntax node that is used as the scope designator. Otherwise, null.
+        /// </summary>
+        internal abstract SyntaxNode ScopeDesignatorOpt { get; }
+
         internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
 
         internal abstract bool IsImportedFromMetadata
@@ -32,10 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal virtual bool CanScheduleToStack
-        {
-            get { return !IsConst && !IsPinned; }
-        }
+        internal virtual bool CanScheduleToStack => !IsConst && !IsPinned;
 
         internal abstract SyntaxToken IdentifierToken
         {
@@ -43,12 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the type of this local.
+        /// Gets the type of this local along with its annotations.
         /// </summary>
-        public abstract TypeSymbol Type
+        public abstract TypeWithAnnotations TypeWithAnnotations
         {
             get;
         }
+
+        /// <summary>
+        /// Gets the type of this local.
+        /// </summary>
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// WARN WARN WARN: If you access this via the semantic model, things will break (since the initializer may not have been bound).
@@ -228,17 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this local variable is declared in for-initializer
-        /// </summary>
-        public bool IsFor
-        {
-            get
-            {
-                return this.DeclarationKind == LocalDeclarationKind.ForInitializerVariable;
-            }
-        }
-
-        /// <summary>
         /// Returns true if this local variable is declared as iteration variable
         /// </summary>
         public bool IsForEach
@@ -261,7 +264,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract SyntaxNode GetDeclaratorSyntax();
 
-        internal virtual bool IsWritable
+        /// <summary>
+        /// Describes whether this represents a modifiable variable. Note that
+        /// this refers to the variable, not the underlying value, so if this
+        /// variable is a ref-local, the writability refers to ref-assignment,
+        /// not assignment to the underlying storage.
+        /// </summary>
+        internal virtual bool IsWritableVariable
         {
             get
             {
@@ -322,57 +331,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null);
+        internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null);
 
-        internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
+        internal abstract ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
-        internal abstract RefKind RefKind
+        public bool IsRef => RefKind != RefKind.None;
+
+        public abstract RefKind RefKind
         {
             get;
         }
 
-        internal virtual bool IsReturnable
+        /// <summary>
+        /// Returns the scope to which a local can "escape" ref assignments or other form of aliasing
+        /// Makes sense only for locals with formal scopes - i.e. source locals
+        /// </summary>
+        internal abstract uint RefEscapeScope { get; }
+
+        /// <summary>
+        /// Returns the scope to which values of a local can "escape" via ordinary assignments
+        /// Makes sense only for ref-like locals with formal scopes - i.e. source locals
+        /// </summary>
+        internal abstract uint ValEscapeScope { get; }
+
+        /// <summary>
+        /// When a local variable's type is inferred, it may not be used in the
+        /// expression that computes its value (and type). This property returns
+        /// the expression where a reference to an inferred variable is forbidden.
+        /// </summary>
+        internal virtual SyntaxNode ForbiddenZone => null;
+
+        /// <summary>
+        /// The diagnostic code to be reported when an inferred variable is used
+        /// in its forbidden zone.
+        /// </summary>
+        internal virtual ErrorCode ForbiddenDiagnostic => ErrorCode.ERR_VariableUsedBeforeDeclaration;
+
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                // by default all locals are returnable
-                return true;
-            }
+            return new PublicModel.LocalSymbol(this);
         }
-
-        #region ILocalSymbol Members
-
-        ITypeSymbol ILocalSymbol.Type
-        {
-            get
-            {
-                return this.Type;
-            }
-        }
-
-        bool ILocalSymbol.IsFunctionValue
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public sealed override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitLocal(this);
-        }
-
-        public sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitLocal(this);
-        }
-
-        #endregion
 
         #region ILocalSymbolInternal Members
 

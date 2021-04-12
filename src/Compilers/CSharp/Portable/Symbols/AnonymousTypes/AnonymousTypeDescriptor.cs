@@ -1,17 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// Describes anonymous type in terms of fields
     /// </summary>
-    internal struct AnonymousTypeDescriptor : IEquatable<AnonymousTypeDescriptor>
+    internal readonly struct AnonymousTypeDescriptor : IEquatable<AnonymousTypeDescriptor>
     {
         /// <summary> Anonymous type location </summary>
         public readonly Location Location;
@@ -59,13 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool Equals(AnonymousTypeDescriptor desc)
         {
-            return this.Equals(desc, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false);
+            return this.Equals(desc, TypeCompareKind.ConsiderEverything);
         }
 
         /// <summary>
         /// Compares two anonymous type descriptors, takes into account fields names and types, not locations.
         /// </summary>
-        internal bool Equals(AnonymousTypeDescriptor other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal bool Equals(AnonymousTypeDescriptor other, TypeCompareKind comparison)
         {
             // Comparing keys ensures field count and field names are the same
             if (this.Key != other.Key)
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<AnonymousTypeField> otherFields = other.Fields;
             for (int i = 0; i < count; i++)
             {
-                if (!myFields[i].Type.Equals(otherFields[i].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+                if (!myFields[i].TypeWithAnnotations.Equals(otherFields[i].TypeWithAnnotations, comparison))
                 {
                     return false;
                 }
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public override bool Equals(object obj)
         {
-            return obj is AnonymousTypeDescriptor && this.Equals((AnonymousTypeDescriptor)obj, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: false);
+            return obj is AnonymousTypeDescriptor && this.Equals((AnonymousTypeDescriptor)obj, TypeCompareKind.ConsiderEverything);
         }
 
         public override int GetHashCode()
@@ -105,19 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Creates a new anonymous type descriptor based on 'this' one, 
         /// but having field types passed as an argument.
         /// </summary>
-        internal AnonymousTypeDescriptor WithNewFieldsTypes(ImmutableArray<TypeSymbol> newFieldTypes)
+        internal AnonymousTypeDescriptor WithNewFieldsTypes(ImmutableArray<TypeWithAnnotations> newFieldTypes)
         {
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(newFieldTypes.Length == this.Fields.Length);
 
-            AnonymousTypeField[] newFields = new AnonymousTypeField[this.Fields.Length];
-            for (int i = 0; i < newFields.Length; i++)
-            {
-                var field = this.Fields[i];
-                newFields[i] = new AnonymousTypeField(field.Name, field.Location, newFieldTypes[i]);
-            }
-
-            return new AnonymousTypeDescriptor(newFields.AsImmutable(), this.Location);
+            var newFields = this.Fields.SelectAsArray((field, i, types) => new AnonymousTypeField(field.Name, field.Location, types[i]), newFieldTypes);
+            return new AnonymousTypeDescriptor(newFields, this.Location);
         }
     }
 }

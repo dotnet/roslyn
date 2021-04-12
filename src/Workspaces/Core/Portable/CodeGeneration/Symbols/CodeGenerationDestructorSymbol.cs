@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+#nullable disable
+
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -11,28 +12,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         public CodeGenerationDestructorSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes) :
-            base(containingType,
+            ImmutableArray<AttributeData> attributes)
+            : base(containingType,
                  attributes,
                  Accessibility.NotApplicable,
-                 default(DeclarationModifiers),
+                 default,
                  returnType: null,
-                 returnsByRef: false,
-                 explicitInterfaceSymbolOpt: null,
+                 refKind: RefKind.None,
+                 explicitInterfaceImplementations: default,
                  name: string.Empty,
-                 typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),
-                 parameters: SpecializedCollections.EmptyList<IParameterSymbol>(),
-                 returnTypeAttributes: SpecializedCollections.EmptyList<AttributeData>())
+                 typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+                 parameters: ImmutableArray<IParameterSymbol>.Empty,
+                 returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
         {
         }
 
-        public override MethodKind MethodKind
-        {
-            get
-            {
-                return MethodKind.Destructor;
-            }
-        }
+        public override MethodKind MethodKind => MethodKind.Destructor;
 
         protected override CodeGenerationSymbol Clone()
         {

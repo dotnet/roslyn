@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' save the object initializer away to rewrite them later on and set the initializers to nothing to not rewrite them
             ' two times.
             Dim objectInitializer = node.InitializerOpt
-            node = node.Update(node.ConstructorOpt, node.Arguments, Nothing, node.Type)
+            node = node.Update(node.ConstructorOpt, node.Arguments, node.DefaultArguments, Nothing, node.Type)
 
             Dim ctor = node.ConstructorOpt
             Dim result As BoundExpression = node
@@ -24,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 result = node.Update(ctor,
                                      RewriteCallArguments(node.Arguments, ctor.Parameters, temporaries, copyBack, False),
+                                     node.DefaultArguments,
                                      Nothing,
                                      ctor.ContainingType)
 
@@ -35,13 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If node.Type.IsInterfaceType() Then
                     Debug.Assert(result.Type.Equals(DirectCast(node.Type, NamedTypeSymbol).CoClassType))
 
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(result.Type, node.Type, useSiteDiagnostics)
+                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
+                    Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(result.Type, node.Type, useSiteInfo)
                     Debug.Assert(Conversions.ConversionExists(conv))
-                    _diagnostics.Add(result, useSiteDiagnostics)
+                    _diagnostics.Add(result, useSiteInfo)
                     result = New BoundDirectCast(node.Syntax, result, conv, node.Type, Nothing)
                 Else
-                    Debug.Assert(node.Type = result.Type)
+                    Debug.Assert(node.Type.IsSameTypeIgnoringAll(result.Type))
                 End If
             End If
 
@@ -67,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If ctor IsNot Nothing Then
                 newGuid = factory.[New](ctor, factory.Literal(node.GuidString))
             Else
-                newGuid = New BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
+                newGuid = New BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
             End If
 
             Dim getTypeFromCLSID = If(factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional:=True),
@@ -76,18 +80,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If getTypeFromCLSID IsNot Nothing Then
                 callGetTypeFromCLSID = factory.Call(Nothing, getTypeFromCLSID, newGuid)
             Else
-                callGetTypeFromCLSID = New BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
+                callGetTypeFromCLSID = New BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
             End If
 
             Dim createInstance = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Activator__CreateInstance)
             Dim rewrittenObjectCreation As BoundExpression
             If createInstance IsNot Nothing AndAlso Not createInstance.ReturnType.IsErrorType() Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim conversion = Conversions.ClassifyDirectCastConversion(createInstance.ReturnType, node.Type, useSiteDiagnostics)
-                _diagnostics.Add(node, useSiteDiagnostics)
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
+                Dim conversion = Conversions.ClassifyDirectCastConversion(createInstance.ReturnType, node.Type, useSiteInfo)
+                _diagnostics.Add(node, useSiteInfo)
                 rewrittenObjectCreation = New BoundDirectCast(node.Syntax, factory.Call(Nothing, createInstance, callGetTypeFromCLSID), conversion, node.Type)
             Else
-                rewrittenObjectCreation = New BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, node.Type, hasErrors:=True)
+                rewrittenObjectCreation = New BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundExpression).Empty, node.Type, hasErrors:=True)
             End If
 
             If node.InitializerOpt Is Nothing OrElse node.InitializerOpt.HasErrors Then
@@ -116,8 +120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' even if T is known to be a value type or reference type. This matches Dev10 VB.
 
             If _inExpressionLambda Then
-                ' NOTE: is we are in expression lambda, we want to keep BoundNewT 
-                ' NOTE: node, but we need to rewrite initializers if any
+                ' NOTE: If we are in expression lambda, we want to keep BoundNewT 
+                ' NOTE: node, but we need to rewrite initializers if any.
 
                 If node.InitializerOpt IsNot Nothing Then
                     Return VisitObjectCreationInitializer(node.InitializerOpt, node, node)
@@ -138,13 +142,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 result = New BoundCall(syntax,
                                        method,
-                                       methodGroup:=Nothing,
-                                       receiver:=Nothing,
+                                       methodGroupOpt:=Nothing,
+                                       receiverOpt:=Nothing,
                                        arguments:=ImmutableArray(Of BoundExpression).Empty,
                                        constantValueOpt:=Nothing,
+                                       isLValue:=False,
+                                       suppressObjectClone:=False,
                                        type:=typeParameter)
             Else
-                result = New BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, typeParameter, hasErrors:=True)
+                result = New BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundExpression).Empty, typeParameter, hasErrors:=True)
             End If
 
             If node.InitializerOpt IsNot Nothing Then
@@ -399,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case rewrittenObjectCreationExpression.Kind
                 Case BoundKind.ObjectCreationExpression
                     Dim objCreation = DirectCast(rewrittenObjectCreationExpression, BoundObjectCreationExpression)
-                    Return objCreation.Update(objCreation.ConstructorOpt, objCreation.Arguments, rewrittenInitializer, objCreation.Type)
+                    Return objCreation.Update(objCreation.ConstructorOpt, objCreation.Arguments, objCreation.DefaultArguments, rewrittenInitializer, objCreation.Type)
 
                 Case BoundKind.NewT
                     Dim newT = DirectCast(rewrittenObjectCreationExpression, BoundNewT)

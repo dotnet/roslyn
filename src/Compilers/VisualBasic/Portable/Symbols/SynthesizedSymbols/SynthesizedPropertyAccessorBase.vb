@@ -1,10 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Partial Friend MustInherit Class SynthesizedPropertyAccessorBase(Of T As PropertySymbol)
+
+    Friend MustInherit Class SynthesizedPropertyAccessorBase(Of T As PropertySymbol)
         Inherits SynthesizedAccessor(Of T)
 
         Protected Sub New(container As NamedTypeSymbol, [property] As T)
@@ -12,5 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Friend MustOverride ReadOnly Property BackingFieldSymbol As FieldSymbol
+
+        Friend Overloads Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Return SynthesizedPropertyAccessorHelper.GetBoundMethodBody(Me, Me.BackingFieldSymbol, methodBodyBinder)
+        End Function
+
     End Class
 End Namespace

@@ -1,8 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 {
@@ -18,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private readonly bool _supportsFindAllReferences;
 
         protected SymbolListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden)
-            : base(projectId, symbol.GetStandardGlyphGroup(), symbol.GetStandardGlyphItem(), isHidden)
+            : base(projectId, symbol.GetGlyph().GetStandardGlyphGroup(), symbol.GetGlyph().GetStandardGlyphItem(), isHidden)
         {
             _symbolKey = symbol.GetSymbolKey();
             _accessibility = symbol.DeclaredAccessibility;
@@ -64,8 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         public ISymbol ResolveSymbol(Compilation compilation)
-        {
-            return _symbolKey.Resolve(compilation, ignoreAssemblyKey: false).Symbol;
-        }
+            => _symbolKey.Resolve(compilation, ignoreAssemblyKey: false).Symbol;
     }
 }

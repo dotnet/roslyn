@@ -1,21 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// An analysis that computes the set of variables that may be used
-    /// before being assigned anywhere within a method.
+    /// An analysis that computes all cases where the address is taken of a variable that has not yet been assigned
     /// </summary>
-    internal class UnassignedAddressTakenVariablesWalker : DataFlowPass
+    internal class UnassignedAddressTakenVariablesWalker : DefiniteAssignmentPass
     {
         private UnassignedAddressTakenVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
-            : base(compilation, member, node)
+            : base(compilation, member, node, strictAnalysis: true)
         {
         }
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly HashSet<PrefixUnaryExpressionSyntax> _result = new HashSet<PrefixUnaryExpressionSyntax>();
 
-        private new HashSet<PrefixUnaryExpressionSyntax> Analyze(ref bool badRegion)
+        private HashSet<PrefixUnaryExpressionSyntax> Analyze(ref bool badRegion)
         {
             // It might seem necessary to clear this.result after each Scan performed by base.Analyze, however,
             // finding new execution paths (via new backwards branches) can only make variables "less" definitely
@@ -48,15 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _result;
         }
 
-        protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
-        {
-            if (node.Parent.Kind() == SyntaxKind.AddressOfExpression)
-            {
-                _result.Add((PrefixUnaryExpressionSyntax)node.Parent);
-            }
-        }
-
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             if (node.Parent.Kind() == SyntaxKind.AddressOfExpression)
             {

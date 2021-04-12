@@ -1,9 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Threading
 Imports System.Xml.Linq
@@ -16,10 +20,162 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
+Imports Roslyn.Test.Utilities.TestHelpers
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
         Inherits BasicTestBase
+
+        Private Function WithDiagnosticOptions(
+            tree As SyntaxTree,
+            ParamArray options As (string, ReportDiagnostic)()) As VisualBasicCompilationOptions
+
+            Return TestOptions.DebugDll.
+                WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options))
+        End Function
+
+        <Fact>
+        Public Sub PerTreeVsGlobalSuppress()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            comp.AssertNoDiagnostics()
+
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
+            comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            ' Global options override syntax tree options. This is the opposite of C# behavior
+            comp.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsParseWarnings()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+
+            Dim comp = CreateCompilation({tree}, options:=TestOptions.DebugDll)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+
+
+            Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Suppress))
+            Dim comp2 = CreateCompilation({tree}, options:=options)
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsVsPragma()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+#Disable Warning BC42024
+        Dim x As Integer
+#Enable Warning BC42024
+    End Sub
+End Class")
+
+            Dim comp = CreateCompilation({tree}, options:=TestOptions.DebugDll)
+            comp.AssertNoDiagnostics()
+
+            Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Warn))
+            Dim comp2 = CreateCompilation({tree}, options:=options)
+            ' Pragma should have precedence over per-tree options
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PerTreeDiagnosticOptionsVsSpecificOptions()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+
+            Dim options = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
+                CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
+            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            comp.AssertNoDiagnostics()
+
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib45({tree}, options:=options)
+            ' Specific diagnostic options should have precedence over tree options
+            comp2.AssertNoDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub DifferentDiagnosticOptionsForTrees()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim newTree = SyntaxFactory.ParseSyntaxTree("
+Class D
+     Sub M()
+        Dim y As Integer
+    End Sub
+End Class")
+
+            Dim options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    (tree, {("BC42024", ReportDiagnostic.Suppress)}),
+                    (newTree, {("BC4024", ReportDiagnostic.Error)})))
+            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'y'.
+        Dim y As Integer
+            ~ 
+                </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TreeOptionsComparerRespected()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            ' Default provider is case insensitive
+            Dim options = WithDiagnosticOptions(tree, ("bc42024", ReportDiagnostic.Suppress))
+
+            Dim comp = CreateCompilation(tree, options:=options)
+            comp.AssertNoDiagnostics()
+
+            options = options.WithSyntaxTreeOptionsProvider(
+                New TestSyntaxTreeOptionsProvider(
+                    StringComparer.Ordinal,
+                    Nothing,
+                    (tree, {("bc42024", ReportDiagnostic.Suppress)}))
+            )
+
+            comp = CreateCompilation(tree, options:=options)
+            comp.AssertTheseDiagnostics(
+                <errors>
+BC42024: Unused local variable: 'x'.
+        Dim x As Integer
+            ~
+                </errors>)
+        End Sub
 
         <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
         <WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")>
@@ -27,6 +183,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub PublicSignWithRelativeKeyPath()
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
                     WithPublicSign(True).WithCryptoKeyFile("test.snk")
+            AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+BC37257: Option 'CryptoKeyFile' must be an absolute path.
+</errors>)
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                    WithPublicSign(True).WithCryptoKeyFile("")
+            AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+</errors>)
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath2()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                    WithPublicSign(True).WithCryptoKeyFile("""""")
             AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
 <errors>
 BC37254: Public sign was specified and requires a public key, but no public key was specified
@@ -43,28 +222,60 @@ BC37257: Option 'CryptoKeyFile' must be an absolute path.
 
         <WorkItem(538778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538778")>
         <WorkItem(537623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")>
+        <WorkItem(233669, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=233669")>
         <Fact>
         Public Sub CompilationName()
             ' report an error, rather then silently ignoring the directory
             ' (see cli partition II 22.30) 
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("C:/foo/Test.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("C:\foo\Test.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("\foo/Test.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("C:Test.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("Te" & ChrW(0) & "st.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("  " & vbTab & "  "))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create(ChrW(&HD800)))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create(""))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create(" a"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("\u2000a")) ' // U+2000 is whitespace
+            VisualBasicCompilation.Create("C:/goo/Test.exe").AssertTheseEmitDiagnostics(
+                <expected>
+BC30420: 'Sub Main' was not found in 'C:/goo/Test.exe'.
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("C:\goo\Test.exe", options:=TestOptions.ReleaseDll).AssertTheseDeclarationDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("\goo/Test.exe", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("C:Test.exe", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("Te" & ChrW(0) & "st.exe", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("  " & vbTab & "  ", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name cannot start with whitespace.
+                </expected>)
+            VisualBasicCompilation.Create(ChrW(&HD800), options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name cannot be empty.
+                </expected>)
+            VisualBasicCompilation.Create(" a", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name cannot start with whitespace.
+                </expected>)
+            VisualBasicCompilation.Create("\u2000a", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics( ' // U+2000 is whitespace
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
 
             ' other characters than directory separators are ok:
-            VisualBasicCompilation.Create(";,*?<>#!@&")
-            VisualBasicCompilation.Create("foo")
-            VisualBasicCompilation.Create(".foo")
-            VisualBasicCompilation.Create("foo ") ' can end with whitespace
-            VisualBasicCompilation.Create("....")
-            VisualBasicCompilation.Create(Nothing)
+            VisualBasicCompilation.Create(";,*?<>#!@&", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create("goo", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create(".goo", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create("goo ", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics() ' can end with whitespace
+            VisualBasicCompilation.Create("....", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create(Nothing, options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
         End Sub
 
         <Fact>
@@ -72,12 +283,12 @@ BC37257: Option 'CryptoKeyFile' must be an absolute path.
             Dim listSyntaxTree = New List(Of SyntaxTree)
             Dim listRef = New List(Of MetadataReference)
 
-            Dim s1 = "using Foo"
+            Dim s1 = "using Goo"
             Dim t1 As SyntaxTree = VisualBasicSyntaxTree.ParseText(s1)
             listSyntaxTree.Add(t1)
 
             ' System.dll
-            listRef.Add(TestReferences.NetFx.v4_0_30319.System)
+            listRef.Add(Net451.System)
             Dim ops = TestOptions.ReleaseExe
 
             ' Create Compilation with Option is not Nothing
@@ -171,7 +382,7 @@ End Namespace
     </file>
 </compilation>
 
-            comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             'IsCaseSensitive
             Assert.Equal(Of Boolean)(False, comp.IsCaseSensitive)
@@ -239,33 +450,92 @@ End Namespace
         End Sub
 
         <Fact>
+        Public Sub Emit_BadArgs()
+            Dim comp = VisualBasicCompilation.Create("Compilation", options:=TestOptions.ReleaseDll)
+
+            Assert.Throws(Of ArgumentNullException)("peStream", Sub() comp.Emit(peStream:=Nothing))
+            Assert.Throws(Of ArgumentException)("peStream", Sub() comp.Emit(peStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)))
+            Assert.Throws(Of ArgumentException)("pdbStream", Sub() comp.Emit(peStream:=New MemoryStream(), pdbStream:=New MemoryStream(), options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded)))
+
+            Assert.Throws(Of ArgumentException)("sourceLinkStream", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                sourceLinkStream:=New TestStream(canRead:=False, canWrite:=True, canSeek:=True)))
+
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=Nothing,
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=Nothing,
+                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
+
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                win32Resources:=New TestStream(canRead:=True, canWrite:=False, canSeek:=False)))
+
+            Assert.Throws(Of ArgumentException)("win32Resources", Sub() comp.Emit(
+                peStream:=New MemoryStream(),
+                win32Resources:=New TestStream(canRead:=False, canWrite:=False, canSeek:=True)))
+
+            ' we don't report an error when we can't write to the XML doc stream:
+            Assert.True(comp.Emit(
+                peStream:=New MemoryStream(),
+                pdbStream:=New MemoryStream(),
+                xmlDocumentationStream:=New TestStream(canRead:=True, canWrite:=False, canSeek:=True)).Success)
+        End Sub
+
+        <Fact>
         Public Sub EmitOptionsDiagnostics()
-            Dim c = CreateCompilationWithMscorlib({"class C {}"})
+            Dim c = CreateCompilationWithMscorlib40({"class C {}"})
             Dim stream = New MemoryStream()
 
             Dim options = New EmitOptions(
                 debugInformationFormat:=CType(-1, DebugInformationFormat),
                 outputNameOverride:=" ",
                 fileAlignment:=513,
-                subsystemVersion:=SubsystemVersion.Create(1000000, -1000000))
+                subsystemVersion:=SubsystemVersion.Create(1000000, -1000000),
+                pdbChecksumAlgorithm:=New HashAlgorithmName("invalid hash algorithm name"))
 
             Dim result = c.Emit(stream, options:=options)
 
             result.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
-                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace),
+                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments("Name cannot start with whitespace."),
                 Diagnostic(ERRID.ERR_InvalidFileAlignment).WithArguments("513"),
-                Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"))
+                Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"),
+                Diagnostic(ERRID.ERR_InvalidHashAlgorithmName).WithArguments("invalid hash algorithm name"))
 
             Assert.False(result.Success)
+        End Sub
+
+        <Fact>
+        Sub EmitOptions_PdbChecksumAndDeterminism()
+            Dim options = New EmitOptions(pdbChecksumAlgorithm:=New HashAlgorithmName())
+            Dim diagnosticBag = New DiagnosticBag()
+
+            options.ValidateOptions(diagnosticBag, MessageProvider.Instance, isDeterministic:=True)
+            diagnosticBag.Verify(
+                Diagnostic(ERRID.ERR_InvalidHashAlgorithmName).WithArguments(""))
+
+            diagnosticBag.Clear()
+
+            options.ValidateOptions(diagnosticBag, MessageProvider.Instance, isDeterministic:=False)
+            diagnosticBag.Verify()
         End Sub
 
         <Fact>
         Public Sub ReferenceAPITest()
             ' Create Compilation takes two args
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
@@ -364,7 +634,7 @@ End Namespace
         Public Sub SyntreeAPITest()
 
             Dim s1 = "using System.Linq;"
-            Dim s2 = <![CDATA[Class foo
+            Dim s2 = <![CDATA[Class goo
                         sub main
                             Public Operator
                          End Operator
@@ -373,7 +643,7 @@ End Namespace
             Dim s3 = "Imports s$ = System.Text"
             Dim s4 = <text>
                 Module Module1
-                    Sub Foo()
+                    Sub Goo()
                         for i = 0 to 100
                         next
                     end sub
@@ -536,9 +806,7 @@ End Namespace
             Assert.Equal(Of Boolean)(True, b1)
 
             Dim xt As SyntaxTree = Nothing
-            Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        b1 = comp.ContainsSyntaxTree(xt)
-                                                    End Sub)
+            Assert.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
 
             comp = comp.RemoveSyntaxTrees({t2})
             Assert.Equal(1, comp.SyntaxTrees.Length)
@@ -573,7 +841,7 @@ End Namespace
             ' Create compilation with args is disordered
             Dim comp1 = VisualBasicCompilation.Create("Compilation")
             Dim Err = "c:\file_that_does_not_exist"
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim ref1 = Net451.mscorlib
             Dim listRef = New List(Of MetadataReference)
             ' this is NOT testing Roslyn
             listRef.Add(ref1)
@@ -590,7 +858,7 @@ End Namespace
         <WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>
         <Fact()>
         Public Sub MissedModuleA()
-            Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim netModule1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="missing1">
     <file name="a.vb">
 Class C1
@@ -599,7 +867,7 @@ End Class
 </compilation>, options:=TestOptions.ReleaseModule)
             netModule1.VerifyDiagnostics()
 
-            Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim netModule2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="missing2">
         <file name="a.vb">
 Class C2
@@ -608,10 +876,10 @@ Class C2
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
+    </compilation>, references:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
             netModule2.VerifyDiagnostics()
 
-            Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim assembly = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="missing">
     <file name="a.vb">
 Class C3
@@ -620,10 +888,10 @@ Class C3
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={netModule2.EmitToImageReference()})
+</compilation>, references:={netModule2.EmitToImageReference()})
             assembly.VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingNetModuleReference).WithArguments("missing1.netmodule"))
 
-            assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            assembly = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="MissedModuleA">
     <file name="a.vb">
 Class C3
@@ -632,7 +900,7 @@ Class C3
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
+</compilation>, references:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
             assembly.VerifyDiagnostics()
 
             CompileAndVerify(assembly)
@@ -641,7 +909,7 @@ End Class
         <WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")>
         <Fact()>
         Public Sub MissedModuleB_OneError()
-            Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim netModule1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="a1">
     <file name="a.vb">
 Class C1
@@ -650,7 +918,7 @@ End Class
 </compilation>, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule1)
 
-            Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim netModule2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="a2">
         <file name="a.vb">
 Class C2
@@ -659,10 +927,10 @@ Class C2
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
+    </compilation>, references:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule2)
 
-            Dim netModule3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim netModule3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="a3">
     <file name="a.vb">
 Class C22
@@ -671,10 +939,10 @@ Class C22
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
+</compilation>, references:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule3)
 
-            Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim assembly = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="a">
     <file name="a.vb">
 Class C3
@@ -684,7 +952,7 @@ Class C3
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={netModule2.EmitToImageReference(), netModule3.EmitToImageReference()})
+</compilation>, references:={netModule2.EmitToImageReference(), netModule3.EmitToImageReference()})
 
             CompilationUtils.AssertTheseDiagnostics(assembly,
 <errors>
@@ -696,7 +964,7 @@ BC37221: Reference to 'a1.netmodule' netmodule missing.
         <WorkItem(716762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716762")>
         <Fact()>
         Public Sub MissedModuleB_NoErrorForUnmanagedModules()
-            Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim netModule1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="a1">
     <file name="a.vb">
 Imports System.Runtime.InteropServices
@@ -709,7 +977,7 @@ End Class
 </compilation>, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule1)
 
-            Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim assembly = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="a">
         <file name="a.vb">
 Class C3
@@ -717,7 +985,7 @@ Class C3
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference(expectedWarnings:={
+    </compilation>, references:={netModule1.EmitToImageReference(expectedWarnings:={
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Runtime.InteropServices")})})
 
             assembly.AssertNoDiagnostics()
@@ -726,7 +994,7 @@ End Class
         <WorkItem(715872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")>
         <Fact()>
         Public Sub MissedModuleC()
-            Dim netModule1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim netModule1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="a1">
     <file name="a.vb">
 Class C1
@@ -735,7 +1003,7 @@ End Class
 </compilation>, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule1)
 
-            Dim netModule2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim netModule2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="a1">
         <file name="a.vb">
 Class C2
@@ -743,10 +1011,10 @@ Class C2
     End Sub
 End Class
     </file>
-    </compilation>, additionalRefs:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
+    </compilation>, references:={netModule1.EmitToImageReference()}, options:=TestOptions.ReleaseModule)
             CompilationUtils.AssertNoDiagnostics(netModule2)
 
-            Dim assembly = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim assembly = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="a">
     <file name="a.vb">
 Class C3
@@ -755,7 +1023,7 @@ Class C3
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
+</compilation>, references:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
 
             CompilationUtils.AssertTheseDiagnostics(assembly,
 <errors>
@@ -788,8 +1056,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Dim csCompRef = csComp.ToMetadataReference(embedInteropTypes:=True)
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
 
             ' Add VisualBasicCompilationReference
             comp = VisualBasicCompilation.Create("Test1",
@@ -904,7 +1172,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference()})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ResourcesNet451.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -914,7 +1182,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Assert.Null(comp.GetReferencedAssemblySymbol(TestReferences.NetFx.v4_0_30319.System))
+            Assert.Null(comp.GetReferencedAssemblySymbol(Net451.System))
 
             Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()
             Assert.Null(comp.GetReferencedModuleSymbol(modRef1))
@@ -925,7 +1193,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.System
             Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
             Dim ref3 = ref2
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
@@ -953,11 +1221,11 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref2 = Net451.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
 
-            ' Replace an non-existing item with another invalid item
+            ' Replace a non-existing item with another invalid item
             Assert.Throws(Of ArgumentException)(Sub()
                                                     comp = comp.ReplaceReference(ref2, ref1)
                                                 End Sub)
@@ -965,7 +1233,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Assert.Equal(1, comp.References.Count)
         End Sub
 
-        '' Replace an non-existing item with null
+        '' Replace a non-existing item with null
         <WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")>
         <Fact>
         Public Sub NegReference4()
@@ -985,14 +1253,14 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
                End Sub)
         End Sub
 
-        '' Replace an non-existing item with another valid item
+        '' Replace a non-existing item with another valid item
         <WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")>
         <Fact>
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Dim ref1 = TestReferences.NetFx.v4_0_30319.mscorlib
-            Dim ref2 = TestReferences.NetFx.v4_0_30319.System
+            Dim ref1 = Net451.mscorlib
+            Dim ref2 = Net451.System
             Assert.Throws(Of ArgumentException)(
                 Sub()
                     comp = comp.ReplaceReference(ref1, ref2)
@@ -1001,7 +1269,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Dim s1 = "Imports System.Text"
             Dim t1 = Parse(s1)
 
-            ' Replace an non-existing item with another valid item and disorder the args
+            ' Replace a non-existing item with another valid item and disorder the args
             Assert.Throws(Of ArgumentException)(Sub()
                                                     comp.ReplaceSyntaxTree(newTree:=VisualBasicSyntaxTree.ParseText("Imports System"), oldTree:=t1)
                                                 End Sub)
@@ -1125,7 +1393,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
             Dim t3 = t2
 
             Dim csComp = CS.CSharpCompilation.Create("CompilationVB")
-            csComp = csComp.AddSyntaxTrees(t1, CS.SyntaxFactory.ParseSyntaxTree("Imports Foo"))
+            csComp = csComp.AddSyntaxTrees(t1, CS.SyntaxFactory.ParseSyntaxTree("Imports Goo"))
             ' Throw exception when cast SyntaxTree
             For Each item In csComp.SyntaxTrees
                 t3 = item
@@ -1152,9 +1420,9 @@ BC2014: the value 'From()' is invalid for option 'RootNamespace'
 BC2014: the value 'x$' is invalid for option 'RootNamespace'
 </expected>)
 
-            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("Foo.").Errors,
+            AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("Goo.").Errors,
 <expected>
-BC2014: the value 'Foo.' is invalid for option 'RootNamespace'
+BC2014: the value 'Goo.' is invalid for option 'RootNamespace'
 </expected>)
 
             AssertTheseDiagnostics(TestOptions.ReleaseExe.WithRootNamespace("_").Errors,
@@ -1200,24 +1468,331 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
         <Fact()>
         <WorkItem(543292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543292")>
-        Public Sub CompilationStackOverflow()
+        Public Sub CompilationNotSupported()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.DynamicType)
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreatePointerTypeSymbol(Nothing))
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateFunctionPointerTypeSymbol(Nothing, Nothing, Nothing, Nothing, Nothing, Nothing))
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_NoNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithoutNames = comp.CreateTupleTypeSymbol(vt2, Nothing)
+
+            Assert.True(tupleWithoutNames.IsTupleType)
+            Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
+            Assert.True(tupleWithoutNames.TupleElements.All(Function(e) e.IsImplicitlyDeclared))
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(CInt(SymbolKind.NamedType), CInt(tupleWithoutNames.Kind))
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_WithNames()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tupleWithNames = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("Alice", "Bob"))
+
+            Assert.True(tupleWithNames.IsTupleType)
+            Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithNames.ToTestDisplayString())
+            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElements.SelectAsArray(Function(e) e.Name))
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
+            Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind)
         End Sub
 
         <Fact()>
-        <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported2()
-            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of String)))
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateArrayType_DefaultArgs()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
+
+            Dim arrayType = comp.CreateArrayTypeSymbol(elementType)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation)
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, Nothing))
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, 0))
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, 1, Nothing)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation)
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=Nothing))
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateArrayTypeSymbol(elementType, rank:=0))
+
+            arrayType = comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing)
+            Assert.Equal(1, arrayType.Rank)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, arrayType.ElementNullableAnnotation)
         End Sub
 
         <Fact()>
-        <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported()
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateArrayType_ElementNullableAnnotation()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim elementType = comp.GetSpecialType(SpecialType.System_Object)
+
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=Nothing).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.None).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.NotAnnotated).ElementNullableAnnotation)
+            Assert.Equal(CodeAnalysis.NullableAnnotation.None, comp.CreateArrayTypeSymbol(elementType, elementNullableAnnotation:=CodeAnalysis.NullableAnnotation.Annotated).ElementNullableAnnotation)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType_IncorrectLengths()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
-            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=New ImmutableArray(Of String)))
+            Assert.Throws(Of ArgumentException)(
+                Function()
+                    Return compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
+                        ImmutableArray.Create("m1", "m2"))
+                End Function)
+        End Sub
+
+        <Fact>
+        Public Sub CreateAnonymousType_IncorrectLengths_IsReadOnly()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentException)(
+                Sub()
+                    compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create(DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                          DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(True))
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub CreateAnonymousType_IncorrectLengths_Locations()
+            Dim Compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentException)(
+                Sub()
+                    Compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                              DirectCast(Compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                        ImmutableArray.Create("m1", "m2"),
+                        memberLocations:=ImmutableArray.Create(Location.None))
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub CreateAnonymousType_WritableProperty()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create(DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                          DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(False, False))
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer, m2 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
+        End Sub
+
+        <Fact>
+        Public Sub CreateAnonymousType_Locations()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class X")
+            compilation = compilation.AddSyntaxTrees(tree)
+
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Dim loc2 = Location.Create(tree, New TextSpan(1, 1))
+
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                    ImmutableArray.Create(DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol),
+                                          DirectCast(compilation.GetSpecialType(SpecialType.System_Int32), ITypeSymbol)),
+                    ImmutableArray.Create("m1", "m2"),
+                    ImmutableArray.Create(False, False),
+                    ImmutableArray.Create(loc1, loc2))
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal(loc1, type.GetMembers("m1").Single().Locations.Single())
+            Assert.Equal(loc2, type.GetMembers("m2").Single().Locations.Single())
+            Assert.Equal("<anonymous type: m1 As Integer, m2 As Integer>", type.ToDisplayString())
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType_NothingArgument()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of ArgumentNullException)(
+                Function()
+                    Return compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(DirectCast(Nothing, ITypeSymbol)),
+                        ImmutableArray.Create("m1"))
+                End Function)
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType1()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1"))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: Key m1 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
+        End Sub
+
+        <Fact()>
+        Public Sub CreateMutableAnonymousType1()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32)),
+                        ImmutableArray.Create("m1"),
+                        ImmutableArray.Create(False))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(1, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: m1 As Integer>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
+        End Sub
+
+        <Fact()>
+        Public Sub CreateAnonymousType2()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Dim type = compilation.CreateAnonymousTypeSymbol(
+                        ImmutableArray.Create(Of ITypeSymbol)(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
+                        ImmutableArray.Create("m1", "m2"))
+
+            Assert.True(type.IsAnonymousType)
+            Assert.Equal(2, type.GetMembers().OfType(Of IPropertySymbol).Count())
+            Assert.Equal("<anonymous type: Key m1 As Integer, Key m2 As Boolean>", type.ToDisplayString())
+            Assert.All(type.GetMembers().OfType(Of IPropertySymbol)().Select(Function(p) p.Locations.FirstOrDefault()),
+                Sub(loc) Assert.Equal(loc, Location.None))
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_DefaultArgs()
+            Dim comp = DirectCast(CreateCompilation(""), Compilation)
+            Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Dim memberNames = ImmutableArray.Create("P", "Q")
+
+            Dim type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, Nothing, Nothing, Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberIsReadOnly:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=Nothing)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_MemberNullableAnnotations_Empty()
+            Dim comp = DirectCast(VisualBasicCompilation.Create(""), Compilation)
+            Dim type = comp.CreateAnonymousTypeSymbol(ImmutableArray(Of ITypeSymbol).Empty, ImmutableArray(Of String).Empty, memberNullableAnnotations:=ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty)
+            Assert.Equal("<empty anonymous type>", type.ToTestDisplayString())
+            AssertEx.Equal(Array.Empty(Of CodeAnalysis.NullableAnnotation)(), GetAnonymousTypeNullableAnnotations(type))
+        End Sub
+
+        <Fact()>
+        <WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")>
+        Public Sub CreateAnonymousType_MemberNullableAnnotations()
+            Dim comp = DirectCast(CreateCompilation(""), Compilation)
+            Dim memberTypes = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Dim memberNames = ImmutableArray.Create("P", "Q")
+
+            Dim type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames)
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, GetAnonymousTypeNullableAnnotations(type))
+
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated)))
+
+            type = comp.CreateAnonymousTypeSymbol(memberTypes, memberNames, memberNullableAnnotations:=ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated))
+            Assert.Equal("<anonymous type: Key P As System.Object, Key Q As System.String>", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, GetAnonymousTypeNullableAnnotations(type))
+        End Sub
+
+        Private Shared Function GetAnonymousTypeNullableAnnotations(type As ITypeSymbol) As ImmutableArray(Of CodeAnalysis.NullableAnnotation)
+            Return type.GetMembers().OfType(Of IPropertySymbol)().SelectAsArray(Function(p) p.NullableAnnotation)
+        End Function
+
+        <Fact()>
+        <WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")>
+        Public Sub ConstructTypeWithNullability()
+            Dim source =
+"Class Pair(Of T, U)
+End Class"
+            Dim comp = DirectCast(CreateCompilation(source), Compilation)
+            Dim genericType = DirectCast(comp.GetMember("Pair"), INamedTypeSymbol)
+            Dim typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of CodeAnalysis.NullableAnnotation)))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments:=Nothing, typeArgumentNullableAnnotations:=Nothing))
+
+            Dim type = genericType.Construct(typeArguments, Nothing)
+            Assert.Equal("Pair(Of System.Object, System.String)", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, type.TypeArgumentNullableAnnotations)
+
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments, ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(ImmutableArray.Create(Of ITypeSymbol)(Nothing, Nothing), Nothing))
+
+            type = genericType.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
+            Assert.Equal("Pair(Of System.Object, System.String)", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, type.TypeArgumentNullableAnnotations)
+
+            ' Type arguments from C#.
+            comp = CreateCSharpCompilation("")
+            typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Assert.Throws(Of ArgumentException)(Function() genericType.Construct(typeArguments, Nothing))
+        End Sub
+
+        <Fact()>
+        <WorkItem(37310, "https://github.com/dotnet/roslyn/issues/37310")>
+        Public Sub ConstructMethodWithNullability()
+            Dim source =
+"Class Program
+    Shared Sub M(Of T, U)
+    End Sub
+End Class"
+            Dim comp = DirectCast(CreateCompilation(source), Compilation)
+            Dim genericMethod = DirectCast(comp.GetMember("Program.M"), IMethodSymbol)
+            Dim typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of CodeAnalysis.NullableAnnotation)))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments:=Nothing, typeArgumentNullableAnnotations:=Nothing))
+
+            Dim type = genericMethod.Construct(typeArguments, Nothing)
+            Assert.Equal("Sub Program.M(Of System.Object, System.String)()", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, type.TypeArgumentNullableAnnotations)
+
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments, ImmutableArray(Of CodeAnalysis.NullableAnnotation).Empty))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(ImmutableArray.Create(Of ITypeSymbol)(Nothing, Nothing), Nothing))
+
+            type = genericMethod.Construct(typeArguments, ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.NotAnnotated))
+            Assert.Equal("Sub Program.M(Of System.Object, System.String)()", type.ToTestDisplayString())
+            AssertEx.Equal({CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None}, type.TypeArgumentNullableAnnotations)
+
+            ' Type arguments from C#.
+            comp = CreateCSharpCompilation("")
+            typeArguments = ImmutableArray.Create(Of ITypeSymbol)(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String))
+            Assert.Throws(Of ArgumentException)(Function() genericMethod.Construct(typeArguments, Nothing))
         End Sub
 
         <Fact()>
@@ -1231,7 +1806,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, OutputKind.ConsoleApplication)
+            Dim compilation = CreateCompilationWithMscorlib40(source, OutputKind.ConsoleApplication)
             compilation.VerifyDiagnostics()
 
             Dim mainMethod = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("A").GetMember(Of MethodSymbol)("Main")
@@ -1254,7 +1829,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, OutputKind.DynamicallyLinkedLibrary)
+            Dim compilation = CreateCompilationWithMscorlib40(source, OutputKind.DynamicallyLinkedLibrary)
             compilation.VerifyDiagnostics()
 
             Assert.Null(compilation.GetEntryPoint(Nothing))
@@ -1272,7 +1847,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, OutputKind.NetModule)
+            Dim compilation = CreateCompilationWithMscorlib40(source, OutputKind.NetModule)
             compilation.VerifyDiagnostics()
 
             Assert.Null(compilation.GetEntryPoint(Nothing))
@@ -1291,14 +1866,14 @@ End Class
 
             ' equivalent of vbc with no /moduleassemblyname specified:
             Dim c = VisualBasicCompilation.Create(assemblyName:=Nothing, options:=TestOptions.ReleaseModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
-            c.VerifyDiagnostics()
+            c.VerifyEmitDiagnostics()
             Assert.Null(c.AssemblyName)
             Assert.Equal("?", c.Assembly.Name)
             Assert.Equal("?", c.Assembly.Identity.Name)
 
             ' no name is allowed for assembly as well, although it isn't useful:
             c = VisualBasicCompilation.Create(assemblyName:=Nothing, options:=TestOptions.ReleaseModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
-            c.VerifyDiagnostics()
+            c.VerifyEmitDiagnostics()
             Assert.Null(c.AssemblyName)
             Assert.Equal("?", c.Assembly.Name)
             Assert.Equal("?", c.Assembly.Identity.Name)
@@ -1312,6 +1887,7 @@ End Class
         End Sub
 
         <WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")>
+        <WorkItem(17403, "https://github.com/dotnet/roslyn/issues/17403")>
         <Fact()>
         Public Sub CrossCorlibSystemObjectReturnType_Script()
             ' MinAsyncCorlibRef corlib Is used since it provides just enough corlib type definitions
@@ -1320,21 +1896,40 @@ End Class
             '
             ' In the original bug, Xamarin iOS, Android, And Mac Mobile profile corlibs were
             ' realistic cross-compilation targets.
-            Dim compilation = VisualBasicCompilation.CreateScriptCompilation(
-                "submission-assembly",
+
+            Dim AssertCompilationCorlib As Action(Of VisualBasicCompilation) =
+                Sub(compilation As VisualBasicCompilation)
+                    Assert.True(compilation.IsSubmission)
+
+                    Dim taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
+                    Dim taskOfObject = taskOfT.Construct(compilation.ObjectType)
+                    Dim entryPoint = compilation.GetEntryPoint(Nothing)
+
+                    Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly)
+                    Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly)
+                    Assert.Equal(taskOfObject, entryPoint.ReturnType)
+                End Sub
+
+            Dim firstCompilation = VisualBasicCompilation.CreateScriptCompilation(
+                "submission-assembly-1",
                 references:={MinAsyncCorlibRef},
                 syntaxTree:=Parse("? True", options:=TestOptions.Script)
             ).VerifyDiagnostics()
 
-            Assert.True(compilation.IsSubmission)
+            AssertCompilationCorlib(firstCompilation)
 
-            Dim taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
-            Dim taskOfObject = taskOfT.Construct(compilation.ObjectType)
-            Dim entryPoint = compilation.GetEntryPoint(Nothing)
+            Dim secondCompilation = VisualBasicCompilation.CreateScriptCompilation(
+                "submission-assembly-2",
+                previousScriptCompilation:=firstCompilation,
+                syntaxTree:=Parse("? False", options:=TestOptions.Script)
+            ).WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(firstCompilation, Nothing, Nothing)
+            ).VerifyDiagnostics()
 
-            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly)
-            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly)
-            Assert.Equal(taskOfObject, entryPoint.ReturnType)
+            AssertCompilationCorlib(secondCompilation)
+
+            Assert.Same(firstCompilation.ObjectType, secondCompilation.ObjectType)
+
+            Assert.Null(New VisualBasicScriptCompilationInfo(Nothing, Nothing, Nothing).WithPreviousScriptCompilation(firstCompilation).ReturnTypeOpt)
         End Sub
 
         <WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")>
@@ -1429,7 +2024,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe.WithMainTypeName("B"))
             compilation.VerifyDiagnostics()
 
             Dim mainMethod = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("B").GetMember(Of MethodSymbol)("Main")
@@ -1465,15 +2060,6 @@ End Class
 
             c2 = c1.WithOptions(New VisualBasicCompilationOptions(OutputKind.WindowsApplication))
             Assert.False(c1.ReferenceManagerEquals(c2))
-        End Sub
-
-        <Fact>
-        Public Sub ReferenceManagerReuse_WithPreviousSubmission()
-            Dim s1 = VisualBasicCompilation.CreateScriptCompilation("s1")
-            Dim s2 = VisualBasicCompilation.CreateScriptCompilation("s2")
-
-            Dim s3 = s2.WithScriptCompilationInfo(s2.ScriptCompilationInfo.WithPreviousScriptCompilation(s1))
-            Assert.True(s2.ReferenceManagerEquals(s3))
         End Sub
 
         <Fact>
@@ -1543,7 +2129,7 @@ End Class
             Dim ta = Parse("Imports System")
             Dim tb = Parse("Imports System", options:=TestOptions.Script)
             Dim tc = Parse("#r ""bar""  ' error: #r in regular code")
-            Dim tr = Parse("#r ""foo""", options:=TestOptions.Script)
+            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script)
             Dim ts = Parse("#r ""bar""", options:=TestOptions.Script)
 
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
@@ -1594,6 +2180,43 @@ End Class
             Assert.False(arc.ReferenceManagerEquals(ars))
         End Sub
 
+        <Fact>
+        Public Sub ReferenceManagerReuse_WithScriptCompilationInfo()
+            ' Note The following results would change if we optimized sharing more: https://github.com/dotnet/roslyn/issues/43397
+
+            Dim c1 = VisualBasicCompilation.CreateScriptCompilation("c1")
+            Assert.NotNull(c1.ScriptCompilationInfo)
+            Assert.Null(c1.ScriptCompilationInfo.PreviousScriptCompilation)
+
+            Dim c2 = c1.WithScriptCompilationInfo(Nothing)
+            Assert.Null(c2.ScriptCompilationInfo)
+            Assert.True(c2.ReferenceManagerEquals(c1))
+
+            Dim c3 = c2.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=Nothing, returnType:=GetType(Integer), globalsType:=Nothing))
+            Assert.NotNull(c3.ScriptCompilationInfo)
+            Assert.Null(c3.ScriptCompilationInfo.PreviousScriptCompilation)
+            Assert.True(c3.ReferenceManagerEquals(c2))
+
+            Dim c4 = c3.WithScriptCompilationInfo(Nothing)
+            Assert.Null(c4.ScriptCompilationInfo)
+            Assert.True(c4.ReferenceManagerEquals(c3))
+
+            Dim c5 = c4.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c1, returnType:=GetType(Integer), globalsType:=Nothing))
+            Assert.False(c5.ReferenceManagerEquals(c4))
+
+            Dim c6 = c5.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c1, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.True(c6.ReferenceManagerEquals(c5))
+
+            Dim c7 = c6.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=c2, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.False(c7.ReferenceManagerEquals(c6))
+
+            Dim c8 = c7.WithScriptCompilationInfo(New VisualBasicScriptCompilationInfo(previousCompilationOpt:=Nothing, returnType:=GetType(Boolean), globalsType:=Nothing))
+            Assert.False(c8.ReferenceManagerEquals(c7))
+
+            Dim c9 = c8.WithScriptCompilationInfo(Nothing)
+            Assert.True(c9.ReferenceManagerEquals(c8))
+        End Sub
+
         Private Class EvolvingTestReference
             Inherits PortableExecutableReference
 
@@ -1621,13 +2244,14 @@ End Class
             End Function
         End Class
 
-        <Fact>
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(NoUsedAssembliesValidation))>
         Public Sub MetadataConsistencyWhileEvolvingCompilation()
-            Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
-            Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
+            Dim md1 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class C : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
+            Dim md2 = AssemblyMetadata.CreateFromImage(CreateCompilationWithMscorlib40({"Public Class D : End Class"}, options:=TestOptions.ReleaseDll).EmitToArray())
             Dim reference = New EvolvingTestReference({md1, md2})
 
-            Dim c1 = CreateCompilationWithMscorlib({"Public Class Main : Public Shared C As C : End Class"}, {reference, reference}, options:=TestOptions.ReleaseDll)
+            Dim references = TargetFrameworkUtil.Mscorlib40References.AddRange({reference, reference})
+            Dim c1 = CreateEmptyCompilation({"Public Class Main : Public Shared C As C : End Class"}, references:=references, options:=TestOptions.ReleaseDll)
             Dim c2 = c1.WithAssemblyName("c2")
             Dim c3 = c2.AddSyntaxTrees(Parse("Public Class Main2 : Public Shared A As Integer : End Class"))
             Dim c4 = c3.WithOptions(New VisualBasicCompilationOptions(OutputKind.NetModule))
@@ -1652,7 +2276,7 @@ End Class
             Dim pinnedPEImage = GCHandle.Alloc(moduleBytes.ToArray(), GCHandleType.Pinned)
             Try
                 Using mdModule = ModuleMetadata.CreateFromMetadata(pinnedPEImage.AddrOfPinnedObject() + headers.MetadataStartOffset, headers.MetadataSize)
-                    Dim c = VisualBasicCompilation.Create("Foo", references:={MscorlibRef, mdModule.GetReference(display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
+                    Dim c = VisualBasicCompilation.Create("Goo", references:={MscorlibRef, mdModule.GetReference(display:="ModuleCS00")}, options:=TestOptions.ReleaseDll)
                     c.VerifyDiagnostics(Diagnostic(ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1))
                 End Using
             Finally
@@ -1664,7 +2288,7 @@ End Class
         <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim metadata = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim metadata = Net451.mscorlib
             comp = comp.AddReferences(metadata)
             Dim assemblySmb = comp.GetReferencedAssemblySymbol(metadata)
             Dim reference = comp.GetMetadataReference(assemblySmb)
@@ -1676,10 +2300,23 @@ End Class
             Assert.NotNull(reference2)
         End Sub
 
+        <WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")>
+        <Fact>
+        Public Sub GetMetadataReference_CSharpSymbols()
+            Dim comp As Compilation = CreateCompilation("")
+
+            Dim csComp = CreateCSharpCompilation("", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard))
+            Dim assembly = csComp.GetBoundReferenceManager().GetReferencedAssemblies().First().Value
+
+            Assert.Null(comp.GetMetadataReference(DirectCast(assembly.GetISymbol(), IAssemblySymbol)))
+            Assert.Null(comp.GetMetadataReference(csComp.Assembly))
+            Assert.Null(comp.GetMetadataReference(Nothing))
+        End Sub
+
 
         <Fact()>
         Public Sub EqualityOfMergedNamespaces()
-            Dim moduleComp = CompilationUtils.CreateCompilationWithoutReferences(
+            Dim moduleComp = CompilationUtils.CreateEmptyCompilation(
 <compilation>
     <file name="a.vb">
 Namespace NS1
@@ -1696,10 +2333,10 @@ Namespace NS2
     End Namespace
 End Namespace
     </file>
-</compilation>, TestOptions.ReleaseModule)
+</compilation>, options:=TestOptions.ReleaseModule)
 
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Namespace NS1
@@ -1796,8 +2433,8 @@ End Namespace
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata)))
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeApplication)))
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsApplication)))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithCryptoKeyContainer("foo")))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithCryptoKeyFile("foo.snk")))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithCryptoKeyContainer("goo")))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithCryptoKeyFile("goo.snk")))
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithDelaySign(True)))
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("a", options:=TestOptions.ReleaseDll.WithDelaySign(False)))
         End Sub
@@ -1816,7 +2453,7 @@ End Namespace
             ' TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Interactive, returnType:=GetType(Double)), expectedType:=SpecialType.System_Double, expectedHasValue:=True)
 
             Assert.False(CreateSubmission("
-Sub Foo() 
+Sub Goo() 
 End Sub
 ").HasSubmissionResult())
 
@@ -1843,5 +2480,188 @@ End Sub
 
             Assert.Throws(Of InvalidOperationException)(Function() CreateSubmission("?a + 1", previous:=s0))
         End Sub
+
+        <Fact>
+        <WorkItem(13925, "https://github.com/dotnet/roslyn/issues/13925")>
+        Public Sub RemoveAllSyntaxTreesAndEmbeddedTrees_01()
+            Dim compilation1 = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Public Module C  
+    Sub Main()
+        System.Console.WriteLine(1)
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True), references:={SystemRef})
+
+            compilation1.VerifyDiagnostics()
+
+            Dim compilation2 = compilation1.RemoveAllSyntaxTrees()
+            compilation2 = compilation2.AddSyntaxTrees(compilation1.SyntaxTrees)
+
+            compilation2.VerifyDiagnostics()
+            CompileAndVerify(compilation2, expectedOutput:="1")
+        End Sub
+
+        <Fact>
+        <WorkItem(13925, "https://github.com/dotnet/roslyn/issues/13925")>
+        Public Sub RemoveAllSyntaxTreesAndEmbeddedTrees_02()
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Module C  
+    Sub Main()
+        System.Console.WriteLine(1)
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
+
+            compilation1.VerifyDiagnostics()
+
+            Dim compilation2 = compilation1.RemoveAllSyntaxTrees()
+            compilation2 = compilation2.AddSyntaxTrees(compilation1.SyntaxTrees)
+
+            compilation2.VerifyDiagnostics()
+            CompileAndVerify(compilation2, expectedOutput:="1")
+        End Sub
+
+        <Fact, WorkItem(50696, "https://github.com/dotnet/roslyn/issues/50696")>
+        Public Sub GetWellKnownType()
+
+            Dim corlib = "
+Namespace System
+    Public Class [Object]
+    End Class
+    Public Class ValueType
+    End Class
+    Public Structure Void
+    End Structure
+End Namespace
+"
+
+
+            Dim tuple = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2)
+        Public Dim Item1 As T1
+        Public Dim Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            me.Item1 = item1
+            me.Item2 = item2
+        End Sub
+    End Structure
+End Namespace
+"
+
+            Dim corlibWithoutValueTupleRef = CreateEmptyCompilation(corlib, assemblyName:="corlibWithoutValueTupleRef").EmitToImageReference()
+            Dim corlibWithValueTupleRef = CreateEmptyCompilation(corlib + tuple, assemblyName:="corlibWithValueTupleRef").EmitToImageReference()
+
+            Dim libWithIsExternalInitRef = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="libWithIsExternalInit").EmitToImageReference()
+            Dim libWithIsExternalInitRef2 = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="libWithIsExternalInit2").EmitToImageReference()
+
+            If True Then
+                ' type in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in library
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithoutValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "libWithIsExternalInit")
+            End If
+
+            If True Then
+                ' type in corlib and in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in corlib, in library and in source
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "source")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries (corlib in middle)
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, corlibWithValueTupleRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries (corlib last)
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithValueTupleRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in two libraries, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in two libraries
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2})
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in two libraries, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
+            End If
+
+            If True Then
+                ' type in corlib and in a library
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in a library (reverse order)
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
+                AssertNoDeclarationDiagnostics(comp)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
+            End If
+
+            If True Then
+                ' type in corlib and in a library, but flag is set
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef},
+                    options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
+                AssertNoDeclarationDiagnostics(comp)
+                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                Assert.Equal("corlibWithValueTupleRef", comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
+            End If
+        End Sub
+
+        Private Shared Sub GetWellKnownType_Verify(comp As VisualBasicCompilation, expectedAssemblyName As String)
+            Assert.Equal(expectedAssemblyName, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+            Assert.Equal(expectedAssemblyName, comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
+        End Sub
+
     End Class
 End Namespace

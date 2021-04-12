@@ -1,9 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -67,63 +69,114 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim declaration = GenerateEventDeclarationWorker([event], destination, options)
 
-            Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, [event], options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, [event], options))
         End Function
 
         Private Function GenerateEventDeclarationWorker([event] As IEventSymbol,
-                                                       destination As CodeGenerationDestination,
-                                                       options As CodeGenerationOptions) As DeclarationStatementSyntax
-            ' TODO(cyrusn): Handle Add/Remove/Raise events
+                                                        destination As CodeGenerationDestination,
+                                                        options As CodeGenerationOptions) As DeclarationStatementSyntax
+
+            If options.GenerateMethodBodies AndAlso
+                ([event].AddMethod IsNot Nothing OrElse [event].RemoveMethod IsNot Nothing OrElse [event].RaiseMethod IsNot Nothing) Then
+                Return GenerateCustomEventDeclarationWorker([event], destination, options)
+            Else
+                Return GenerateNotCustomEventDeclarationWorker([event], destination, options)
+            End If
+        End Function
+
+        Private Function GenerateCustomEventDeclarationWorker(
+                [event] As IEventSymbol,
+                destination As CodeGenerationDestination,
+                options As CodeGenerationOptions) As DeclarationStatementSyntax
+            Dim addStatements = If(
+                [event].AddMethod Is Nothing,
+                New SyntaxList(Of StatementSyntax),
+                GenerateStatements([event].AddMethod))
+            Dim removeStatements = If(
+                [event].RemoveMethod Is Nothing,
+                New SyntaxList(Of StatementSyntax),
+                GenerateStatements([event].RemoveMethod))
+            Dim raiseStatements = If(
+                [event].RaiseMethod Is Nothing,
+                New SyntaxList(Of StatementSyntax),
+                GenerateStatements([event].RaiseMethod))
+
+            Dim generator As VisualBasicSyntaxGenerator = New VisualBasicSyntaxGenerator()
+
+            Dim invoke = DirectCast([event].Type, INamedTypeSymbol)?.DelegateInvokeMethod
+            Dim parameters = If(
+                invoke IsNot Nothing,
+                invoke.Parameters.Select(Function(p) generator.ParameterDeclaration(p)),
+                Nothing)
+
+            Dim result = DirectCast(generator.CustomEventDeclarationWithRaise(
+                                        [event].Name,
+                                        generator.TypeExpression([event].Type),
+                                        [event].DeclaredAccessibility,
+                                        DeclarationModifiers.From([event]),
+                                        parameters,
+                                        addStatements,
+                                        removeStatements,
+                                        raiseStatements), EventBlockSyntax)
+            result = DirectCast(
+                result.WithAttributeLists(GenerateAttributeBlocks([event].GetAttributes(), options)),
+                EventBlockSyntax)
+            result = DirectCast(result.WithModifiers(GenerateModifiers([event], destination, options)), EventBlockSyntax)
+            Dim explicitInterface = [event].ExplicitInterfaceImplementations.FirstOrDefault()
+            If (explicitInterface IsNot Nothing)
+                result = result.WithEventStatement(
+                    result.EventStatement.WithImplementsClause(GenerateImplementsClause(explicitInterface)))
+            End If
+            Return result
+        End Function
+
+        Private Function GenerateNotCustomEventDeclarationWorker(
+                [event] As IEventSymbol,
+                destination As CodeGenerationDestination,
+                options As CodeGenerationOptions) As EventStatementSyntax
             Dim eventType = TryCast([event].Type, INamedTypeSymbol)
             If eventType.IsDelegateType() AndAlso eventType.AssociatedSymbol IsNot Nothing Then
                 ' This is a declaration style event like "Event E(x As String)".  This event will
                 ' have a type that is unmentionable.  So we should not generate it as "Event E() As
                 ' SomeType", but should instead inline the delegate type into the event itself.
                 Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
+                    attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
                     modifiers:=GenerateModifiers([event], destination, options),
                     identifier:=[event].Name.ToIdentifierToken,
                     parameterList:=ParameterGenerator.GenerateParameterList(eventType.DelegateInvokeMethod.Parameters.Select(Function(p) RemoveOptionalOrParamArray(p)).ToList(), options),
                     asClause:=Nothing,
                     implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
-            ElseIf TypeOf [event] Is CodeGenerationEventSymbol AndAlso TryCast([event], CodeGenerationEventSymbol).ParameterList IsNot Nothing Then
-                ' We'll try to generate a parameter list
-                Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
-                    modifiers:=GenerateModifiers([event], destination, options),
-                    identifier:=[event].Name.ToIdentifierToken,
-                    parameterList:=ParameterGenerator.GenerateParameterList(TryCast([event], CodeGenerationEventSymbol).ParameterList.Select(Function(p) RemoveOptionalOrParamArray(p)).ToArray(), options),
-                    asClause:=Nothing,
-                    implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
-            Else
-                Return SyntaxFactory.EventStatement(
-                    attributeLists:=AttributeGenerator.GenerateAttributeBlocks([event].GetAttributes(), options),
-                    modifiers:=GenerateModifiers([event], destination, options),
-                    identifier:=[event].Name.ToIdentifierToken,
-                    parameterList:=Nothing,
-                    asClause:=GenerateAsClause([event]),
-                    implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
             End If
+
+            Return SyntaxFactory.EventStatement(
+                attributeLists:=GenerateAttributeBlocks([event].GetAttributes(), options),
+                modifiers:=GenerateModifiers([event], destination, options),
+                identifier:=[event].Name.ToIdentifierToken,
+                parameterList:=Nothing,
+                asClause:=GenerateAsClause([event]),
+                implementsClause:=GenerateImplementsClause([event].ExplicitInterfaceImplementations.FirstOrDefault()))
         End Function
 
         Private Function GenerateModifiers([event] As IEventSymbol,
                                                   destination As CodeGenerationDestination,
                                                   options As CodeGenerationOptions) As SyntaxTokenList
-            Dim tokens = New List(Of SyntaxToken)()
+            Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 
-            If destination <> CodeGenerationDestination.InterfaceType Then
-                AddAccessibilityModifiers([event].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+                If destination <> CodeGenerationDestination.InterfaceType Then
+                    AddAccessibilityModifiers([event].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
 
-                If [event].IsStatic Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    If [event].IsStatic Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    End If
+
+                    If [event].IsAbstract Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                    End If
                 End If
 
-                If [event].IsAbstract Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
-                End If
-            End If
-
-            Return SyntaxFactory.TokenList(tokens)
+                Return SyntaxFactory.TokenList(tokens)
+            End Using
         End Function
 
         Private Function GenerateAsClause([event] As IEventSymbol) As SimpleAsClauseSyntax

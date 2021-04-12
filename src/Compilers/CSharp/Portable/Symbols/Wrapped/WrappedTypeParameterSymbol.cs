@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
-using System.Threading;
-using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -74,11 +77,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsReferenceTypeFromConstraintTypes
+        {
+            get
+            {
+                return _underlyingTypeParameter.IsReferenceTypeFromConstraintTypes || CalculateIsReferenceTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
+            }
+        }
+
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get
+            {
+                return _underlyingTypeParameter.ReferenceTypeConstraintIsNullable;
+            }
+        }
+
+        public override bool HasNotNullConstraint
+        {
+            get
+            {
+                return _underlyingTypeParameter.HasNotNullConstraint;
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                return _underlyingTypeParameter.HasUnmanagedTypeConstraint;
+            }
+        }
+
         public override bool HasValueTypeConstraint
         {
             get
             {
                 return _underlyingTypeParameter.HasValueTypeConstraint;
+            }
+        }
+
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get
+            {
+                return _underlyingTypeParameter.IsValueTypeFromConstraintTypes || CalculateIsValueTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
             }
         }
 
@@ -88,11 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _underlyingTypeParameter.Variance;
             }
-        }
-
-        public override abstract Symbol ContainingSymbol
-        {
-            get;
         }
 
         public override ImmutableArray<Location> Locations
@@ -110,8 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingTypeParameter.DeclaringSyntaxReferences;
             }
         }
-
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
 
         public override string Name
         {
@@ -131,12 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingTypeParameter.EnsureAllConstraintsAreResolved();
         }
 
-        internal override abstract ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress);
-
-        internal override abstract ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress);
-
-        internal override abstract NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress);
-
-        internal override abstract TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress);
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            return _underlyingTypeParameter.GetAttributes();
+        }
     }
 }

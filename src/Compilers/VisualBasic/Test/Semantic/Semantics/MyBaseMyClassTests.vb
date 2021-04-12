@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
@@ -394,18 +396,18 @@ End Module
     <file name="a.vb">
 Imports System
 Class Base
-    Public Overridable Function Foo(x As Integer) As String
-        Return "Base.Foo(Integer)"
+    Public Overridable Function Goo(x As Integer) As String
+        Return "Base.Goo(Integer)"
     End Function
 End Class
 Class Derived
     Inherits Base
-    Public Overrides Function Foo(x As Integer) As String
-        Return "Derived.Foo(Integer)"
+    Public Overrides Function Goo(x As Integer) As String
+        Return "Derived.Goo(Integer)"
     End Function
 
-    Public FLD As String = MyClass.Foo(1)
-    Public Property PROP As String = MyClass.Foo(1)
+    Public FLD As String = MyClass.Goo(1)
+    Public Property PROP As String = MyClass.Goo(1)
 
     Public Shared Sub Main()
         Console.WriteLine(New Derived2().FLD)
@@ -414,16 +416,16 @@ Class Derived
 End Class
 Class Derived2
     Inherits Derived
-    Public Overloads Function Foo(x As Integer) As String
-        Return "Derived2.Foo(Integer)"
+    Public Overloads Function Goo(x As Integer) As String
+        Return "Derived2.Goo(Integer)"
     End Function
 End Class
     </file>
 </compilation>
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
-Derived.Foo(Integer)
-Derived.Foo(Integer)
+Derived.Goo(Integer)
+Derived.Goo(Integer)
 ]]>)
         End Sub
 
@@ -434,18 +436,18 @@ Derived.Foo(Integer)
     <file name="a.vb">
 Imports System
 Class Base
-    Public Overridable Function Foo(x As Integer) As String
-        Return "Base.Foo(Integer)"
+    Public Overridable Function Goo(x As Integer) As String
+        Return "Base.Goo(Integer)"
     End Function
 End Class
 Class Derived
     Inherits Base
-    Public Overrides Function Foo(x As Integer) As String
-        Return "Derived.Foo(Integer)"
+    Public Overrides Function Goo(x As Integer) As String
+        Return "Derived.Goo(Integer)"
     End Function
 
-    Public FLD As String = MyBase.Foo(1)
-    Public Property PROP As String = MyBase.Foo(1)
+    Public FLD As String = MyBase.Goo(1)
+    Public Property PROP As String = MyBase.Goo(1)
 
     Public Shared Sub Main()
         Console.WriteLine(New Derived().FLD)
@@ -456,8 +458,8 @@ End Class
 </compilation>
             CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
-Base.Foo(Integer)
-Base.Foo(Integer)
+Base.Goo(Integer)
+Base.Goo(Integer)
 ]]>)
         End Sub
 
@@ -3990,7 +3992,7 @@ End Module
 
             Dim verifier = CompileAndVerify(compilationDef,
                              options:=TestOptions.DebugDll,
-                             additionalRefs:={SystemCoreRef})
+                             references:={SystemCoreRef})
 
 
             Dim _assembly = Assembly.Load(verifier.EmittedAssemblyData.ToArray())

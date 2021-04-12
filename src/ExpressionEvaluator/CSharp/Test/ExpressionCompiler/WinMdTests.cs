@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -10,12 +14,12 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
+            var compilation0 = CreateEmptyCompilation(
                 source,
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
@@ -79,7 +83,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
+            var compilation0 = CreateEmptyCompilation(
                 source,
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
@@ -112,15 +116,15 @@ class C
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.WindowsData)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.WindowsStorage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 "Windows.Storage");
         }
 
@@ -130,15 +134,15 @@ class C
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.WindowsData)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.WindowsStorage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 "Windows.Storage");
         }
 
@@ -149,15 +153,15 @@ class C
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.WindowsData)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.WindowsStorage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 "Windows");
         }
 
@@ -173,7 +177,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, compileReferences, TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(source, compileReferences, TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtimeReferences, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -226,10 +230,10 @@ class C
                     var metadataDecoder = new MetadataDecoder(module);
                     SignatureHeader signatureHeader;
                     BadImageFormatException metadataException;
-                    var parameters = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out metadataException, allowByRefReturn: true);
-                    Assert.Equal(parameters.Length, 5);
+                    var parameters = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out metadataException);
+                    Assert.Equal(5, parameters.Length);
                     var actualReturnType = parameters[0].Type;
-                    Assert.Equal(actualReturnType.TypeKind, TypeKind.Class); // not error
+                    Assert.Equal(TypeKind.Class, actualReturnType.TypeKind); // not error
                     var expectedReturnType = compilation.GetMember("Windows.Storage.StorageFolder");
                     Assert.Equal(expectedReturnType, actualReturnType);
                     Assert.Equal(storageAssemblyName, actualReturnType.ContainingAssembly.Name);
@@ -242,7 +246,7 @@ class C
         /// and referencing runtime assembly.
         /// </summary>
         [WorkItem(1116143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")]
-        [ConditionalFact(typeof(OSVersionWin8))]
+        [ConditionalFact(typeof(OSVersionWin8), typeof(IsRelease))] // https://github.com/dotnet/roslyn/issues/25702
         public void AssemblyQualifiedName()
         {
             var source =
@@ -252,7 +256,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var compilation = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             WithRuntimeInstance(compilation, new[] { MscorlibRef }.Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")), runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -302,7 +306,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var compilation = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             WithRuntimeInstance(compilation, new[] { MscorlibRef }.Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Foundation", "Windows.UI", "Windows.UI.Xaml")), runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -336,7 +340,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var compilation = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             WithRuntimeInstance(compilation, new[] { MscorlibRef }.Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI", "Windows.UI.Xaml")), runtime =>
             {
                 string errorMessage;

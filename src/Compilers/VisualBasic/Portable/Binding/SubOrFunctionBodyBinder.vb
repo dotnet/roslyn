@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -16,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _methodSymbol As MethodSymbol
         Protected ReadOnly _parameterMap As Dictionary(Of String, Symbol)
 
-        Public Sub New(methodOrLambdaSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder)
+        Public Sub New(methodOrLambdaSymbol As MethodSymbol, root As SyntaxNode, containingBinder As Binder)
             MyBase.New(root, containingBinder)
 
             _methodSymbol = methodOrLambdaSymbol
@@ -48,6 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
+            End Get
+        End Property
+
         Public MustOverride Overrides Function GetLocalForFunctionValue() As LocalSymbol
 
         Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
@@ -55,17 +63,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             ' Parameters always have arity 0 and are not namespaces or types.
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly Or LookupOptions.MustNotBeLocalOrParameter)) = 0 Then
                 Dim parameterSymbol As Symbol = Nothing
                 If _parameterMap.TryGetValue(name, parameterSymbol) Then
-                    lookupResult.SetFrom(CheckViability(parameterSymbol, arity, options, Nothing, useSiteDiagnostics))
+                    lookupResult.SetFrom(CheckViability(parameterSymbol, arity, options, Nothing, useSiteInfo))
                 End If
             Else
-                MyBase.LookupInSingleBinder(lookupResult, name, arity, options, originalBinder, useSiteDiagnostics)
+                MyBase.LookupInSingleBinder(lookupResult, name, arity, options, originalBinder, useSiteInfo)
             End If
         End Sub
 
@@ -75,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' UNDONE: additional filtering based on options?
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly)) = 0 Then
                 For Each param In _parameterMap.Values
-                    If originalBinder.CanAddLookupSymbolInfo(param, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(param, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(param, param.Name, 0)
                     End If
                 Next

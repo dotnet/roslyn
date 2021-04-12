@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -34,14 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         protected override EnvDTE.CodeElements GetCollection()
-        {
-            return GetCollection<CodeAttributeArgument>(this.Parent);
-        }
+            => GetCollection<CodeAttributeArgument>(this.Parent);
 
         internal override SyntaxNode LookupNode()
         {
-            SyntaxNode node;
-            if (!TryLookupNode(out node))
+            if (!TryLookupNode(out var node))
             {
                 throw Exceptions.ThrowEUnexpected();
             }
@@ -52,15 +53,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         internal override bool TryLookupNode(out SyntaxNode node)
         {
             node = null;
-            
+
             var attributeNode = _parentHandle.Value.LookupNode();
             if (attributeNode == null)
             {
                 return false;
             }
 
-            SyntaxNode attributeArgumentNode;
-            if (!CodeModelService.TryGetAttributeArgumentNode(attributeNode, _index, out attributeArgumentNode))
+            if (!CodeModelService.TryGetAttributeArgumentNode(attributeNode, _index, out var attributeArgumentNode))
             {
                 return false;
             }
@@ -108,8 +108,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         public new void Delete()
-        {
-            base.Delete();
-        }
+            => base.Delete();
     }
 }

@@ -1,8 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.FindSymbols.Finders
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -12,42 +14,61 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
     Friend Class VisualBasicReferenceFinder
         Implements ILanguageServiceReferenceFinder
 
-        Public Function DetermineCascadedSymbolsAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
+        Public Function DetermineCascadedSymbolsAsync(
+                symbol As ISymbol,
+                project As Project,
+                cascadeDirection As FindReferencesCascadeDirection,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, cascadeDirection As FindReferencesCascadeDirection))) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
             If symbol.Kind = SymbolKind.Property Then
-                Return DetermineCascadedSymbolsAsync(DirectCast(symbol, IPropertySymbol), project, cancellationToken)
+                Return DetermineCascadedSymbolsAsync(DirectCast(symbol, IPropertySymbol), project, cascadeDirection, cancellationToken)
             ElseIf symbol.Kind = SymbolKind.NamedType Then
-                Return DetermineCascadedSymbolsAsync(DirectCast(symbol, INamedTypeSymbol), project, cancellationToken)
+                Return DetermineCascadedSymbolsAsync(DirectCast(symbol, INamedTypeSymbol), project, cascadeDirection, cancellationToken)
             Else
-                Return Task.FromResult(Of IEnumerable(Of ISymbol))(Nothing)
+                Return SpecializedTasks.EmptyImmutableArray(Of (symbol As ISymbol, cascadeDirection As FindReferencesCascadeDirection))()
             End If
         End Function
 
-        Private Async Function DetermineCascadedSymbolsAsync([property] As IPropertySymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Private Shared Async Function DetermineCascadedSymbolsAsync(
+                [property] As IPropertySymbol,
+                project As Project,
+                cascadeDirection As FindReferencesCascadeDirection,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, cascadeDirection As FindReferencesCascadeDirection)))
+
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim relatedSymbol = [property].FindRelatedExplicitlyDeclaredSymbol(compilation)
 
             Return If([property].Equals(relatedSymbol),
-                SpecializedCollections.EmptyEnumerable(Of ISymbol),
-                SpecializedCollections.SingletonEnumerable(relatedSymbol))
+                ImmutableArray(Of (symbol As ISymbol, cascadeDirection As FindReferencesCascadeDirection)).Empty,
+                ImmutableArray.Create((relatedSymbol, cascadeDirection)))
         End Function
 
-        Private Async Function DetermineCascadedSymbolsAsync(namedType As INamedTypeSymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Private Shared Async Function DetermineCascadedSymbolsAsync(
+                namedType As INamedTypeSymbol,
+                project As Project,
+                cascadeDirection As FindReferencesCascadeDirection,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, cascadeDirection As FindReferencesCascadeDirection)))
+
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
 
             ' If this is a WinForms project, then the VB 'my' feature may have synthesized 
             ' a property that would return an instance of the main Form type for the project.
             ' Search for such properties and cascade to them as well.
-            Return GetMatchingMyPropertySymbols(namedType, DirectCast(compilation, VisualBasicCompilation), cancellationToken).Distinct().ToList()
-        End Function
 
-        Private Function GetMatchingMyPropertySymbols(namedType As INamedTypeSymbol, compilation As VisualBasicCompilation, cancellationToken As CancellationToken) As IEnumerable(Of IPropertySymbol)
-            Return From childNamespace In compilation.RootNamespace.GetNamespaceMembers()
-                   Where childNamespace.IsMyNamespace(compilation)
-                   From type In childNamespace.GetAllTypes(cancellationToken)
-                   Where type.Name = "MyForms"
-                   From childProperty In type.GetMembers().OfType(Of IPropertySymbol)
-                   Where childProperty.IsImplicitlyDeclared AndAlso childProperty.Type.Equals(namedType)
-                   Select childProperty
+            Dim matchingMyPropertySymbols =
+                From childNamespace In compilation.RootNamespace.GetNamespaceMembers()
+                Where childNamespace.IsMyNamespace(compilation)
+                From type In childNamespace.GetAllTypes(cancellationToken)
+                Where type.Name = "MyForms"
+                From childProperty In type.GetMembers().OfType(Of IPropertySymbol)
+                Where childProperty.IsImplicitlyDeclared AndAlso childProperty.Type.Equals(namedType)
+                Select (DirectCast(childProperty, ISymbol), cascadeDirection)
+
+            Return matchingMyPropertySymbols.Distinct().ToImmutableArray()
         End Function
     End Class
 End Namespace

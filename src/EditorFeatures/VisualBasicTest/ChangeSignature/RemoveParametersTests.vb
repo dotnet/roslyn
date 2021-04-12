@@ -1,18 +1,20 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestRemoveParameters1() As Task
 
             Dim markup = <Text><![CDATA[
@@ -94,11 +96,8 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestChangeSignatureCommandDisabledInSubmission() As Task
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
-
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Public Sub TestChangeSignatureCommandDisabledInSubmission()
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
@@ -108,30 +107,47 @@ End Module
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                exportProvider:=exportProvider)
+                composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New ChangeSignatureCommandHandler()
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
+                Dim handler = New VisualBasicChangeSignatureCommandHandler(workspace.ExportProvider.GetExportedValue(Of IThreadingContext)())
 
-                Dim state = handler.GetCommandState(New Commands.ReorderParametersCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                Dim state = handler.GetCommandState(New ReorderParametersCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
 
-                delegatedToNext = False
-                state = handler.GetCommandState(New Commands.RemoveParametersCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                state = handler.GetCommandState(New RemoveParametersCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
             End Using
+        End Sub
+
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestRemoveParameters_DoNotAddUnnecessaryParensToInvocation() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub M(Optional s As String = "str")
+        $$M
+        M()
+        M("test")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = Array.Empty(Of Integer)()
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M()
+        M
+        M()
+        M()
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+
         End Function
     End Class
 End Namespace

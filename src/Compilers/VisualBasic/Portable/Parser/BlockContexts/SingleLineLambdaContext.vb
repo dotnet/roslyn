@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
@@ -82,16 +84,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             End Select
 
-            Return PrevBlock
-        End Function
-
-        Friend Overrides Function ProcessElseAsStatementTerminator() As BlockContext
-            ' Else from outer If terminates the lambda.
-            Return PrevBlock
-        End Function
-
-        Friend Overrides Function ProcessOtherAsStatementTerminator() As BlockContext
-            ' Other non-terminator terminates the lambda.
             Return PrevBlock
         End Function
 

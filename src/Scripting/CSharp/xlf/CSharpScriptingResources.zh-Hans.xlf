@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpScriptingResources.resx">
+    <body>
+      <trans-unit id="LogoLine1">
+        <source>Microsoft (R) Visual C# Interactive Compiler version {0}</source>
+        <target state="translated">Microsoft (R) Visual C# 交互窗口编译器版本 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LogoLine2">
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">版权所有(C) Microsoft Corporation。保留所有权利。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InteractiveHelp">
+        <source>Usage: csi [option] ... [script-file.csx] [script-argument] ...
+
+Executes script-file.csx if specified, otherwise launches an interactive REPL (Read Eval Print Loop).
+
+Options:
+  /help                          Display this usage message (alternative form: /?)
+  /version                       Display the version and exit
+  /i                             Drop to REPL after executing the specified script.
+  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative form: /reference)
+  /r:&lt;file list&gt;                 Reference metadata from the specified assembly files (alternative form: /reference)
+  /lib:&lt;path list&gt;               List of directories where to look for libraries specified by #r directive. 
+                                 (alternative forms: /libPath /libPaths)
+  /u:&lt;namespace&gt;                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
+  /langversion:?                 Display the allowed values for language version and exit
+  /langversion:&lt;string&gt;          Specify language version such as
+                                 `latest` (latest version, including minor versions),
+                                 `default` (same as `latest`),
+                                 `latestmajor` (latest version, excluding minor versions),
+                                 `preview` (latest version, including features in unsupported preview),
+                                 or specific versions like `6` or `7.1`
+  @&lt;file&gt;                        Read response file for more options
+  --                             Indicates that the remaining arguments should not be treated as options.
+</source>
+        <target state="translated">用法: csi [option] ... [script-file.csx] [script-argument] ...
+
+如果指定了 script-file.csx，则执行此脚本，否则启动交互式 REPL (读取 Eval 打印循环)。
+
+选项:
+  /help                          显示此用法消息(替代形式: /?)
+  /version                       显示版本和退出
+  /i                             执行指定脚本后拖放到 REPL。
+  /r:&lt;文件&gt;                      从某个指定程序集文件引用元数据(替代形式: /reference)
+  /r:&lt;文件列表&gt;                 从多个指定程序集文件引用元数据(替代形式: /reference)
+  /lib:&lt;路径列表&gt;               在其中查找 #r 指令所指定的库的目录列表。
+                                 (替代形式: /libPath、/libPaths)
+  /u:&lt;命名空间&gt;                 定义全局命名空间 using (替代形式: /using、/usings、/import、/imports)
+  /langversion:?                 显示语言版本的允许值并退出
+  /langversion:&lt;字符串&gt;          指定语言版本，例如
+                                 `latest` (最新版本，包括次要版本)、
+                                 `default` (与 `latest` 相同)、
+                                 `latestmajor` (最新版本，不包括次要版本)、
+                                 `preview` (最新版本，包括不受支持的预览版中的功能)
+                                或特定版本，如 `6` 或 `7.1`
+  @&lt;文件&gt;                        读取响应文件以了解更多选项
+  --                             表示剩余参数不应作为选项。
+</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

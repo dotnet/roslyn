@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.InternalUtilities
 {
@@ -11,6 +14,8 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
     /// Thread-safe.
     /// </summary>
     internal class ConcurrentLruCache<K, V>
+        where K : notnull
+        where V : notnull
     {
         private readonly int _capacity;
 
@@ -23,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         private readonly Dictionary<K, CacheValue> _cache;
         private readonly LinkedList<K> _nodeList;
         // This is a naive course-grained lock, it can probably be optimized
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = new();
 
         public ConcurrentLruCache(int capacity)
         {
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 
         private void MoveNodeToTop(LinkedListNode<K> node)
         {
-            if (!object.ReferenceEquals(_nodeList.First, node))
+            if (!ReferenceEquals(_nodeList.First, node))
             {
                 _nodeList.Remove(node);
                 _nodeList.AddFirst(node);
@@ -96,8 +101,8 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             Debug.Assert(_capacity > 0);
             var lastNode = _nodeList.Last;
-            _nodeList.Remove(lastNode);
-            _cache.Remove(lastNode.Value);
+            _nodeList.Remove(lastNode!);
+            _cache.Remove(lastNode!.Value);
         }
 
         private void UnsafeAddNodeToTop(K key, V value)
@@ -112,8 +117,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         /// </summary>
         private void UnsafeAdd(K key, V value, bool throwExceptionIfKeyExists)
         {
-            CacheValue result;
-            if (_cache.TryGetValue(key, out result))
+            if (_cache.TryGetValue(key, out var result))
             {
                 if (throwExceptionIfKeyExists)
                 {
@@ -140,8 +144,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             get
             {
-                V value;
-                if (TryGetValue(key, out value))
+                if (TryGetValue(key, out var value))
                 {
                     return value;
                 }
@@ -159,7 +162,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
             }
         }
 
-        public bool TryGetValue(K key, out V value)
+        public bool TryGetValue(K key, [MaybeNullWhen(returnValue: false)] out V value)
         {
             lock (_lockObject)
             {
@@ -170,10 +173,9 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         /// <summary>
         /// Doesn't lock.
         /// </summary>
-        public bool UnsafeTryGetValue(K key, out V value)
+        public bool UnsafeTryGetValue(K key, [MaybeNullWhen(returnValue: false)] out V value)
         {
-            CacheValue result;
-            if (_cache.TryGetValue(key, out result))
+            if (_cache.TryGetValue(key, out var result))
             {
                 MoveNodeToTop(result.Node);
                 value = result.Value;
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
             }
             else
             {
-                value = default(V);
+                value = default!;
                 return false;
             }
         }
@@ -190,8 +192,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             lock (_lockObject)
             {
-                V result;
-                if (UnsafeTryGetValue(key, out result))
+                if (UnsafeTryGetValue(key, out var result))
                 {
                     return result;
                 }
@@ -207,8 +208,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             lock (_lockObject)
             {
-                V result;
-                if (UnsafeTryGetValue(key, out result))
+                if (UnsafeTryGetValue(key, out var result))
                 {
                     return result;
                 }
@@ -225,8 +225,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             lock (_lockObject)
             {
-                V result;
-                if (UnsafeTryGetValue(key, out result))
+                if (UnsafeTryGetValue(key, out var result))
                 {
                     return result;
                 }

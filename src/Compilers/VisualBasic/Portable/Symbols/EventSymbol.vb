@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -57,6 +59,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property RemoveMethod As MethodSymbol
 
         Public MustOverride ReadOnly Property RaiseMethod As MethodSymbol
+
+        ''' <summary>
+        ''' True if the event itself Is excluded from code coverage instrumentation.
+        ''' True for source events marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        ''' </summary>
+        Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Return False
+            End Get
+        End Property
 
         ''' <summary>
         '''  True if this symbol has a special name (metadata flag SpecialName is set).
@@ -152,20 +164,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns the list of custom modifiers, if any, associated with the return type of the event. 
-        ''' </summary>
-        Friend ReadOnly Property DelegateReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
-            Get
-                Dim invoke = DelegateInvokeMethod()
-                If invoke IsNot Nothing Then
-                    Return invoke.ReturnTypeCustomModifiers
-                Else
-                    Return ImmutableArray(Of CustomModifier).Empty
-                End If
-            End Get
-        End Property
-
-        ''' <summary>
         ''' Can be null in error cases.
         ''' </summary>
         Private Function DelegateInvokeMethod() As MethodSymbol
@@ -186,18 +184,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Use-site Diagnostics"
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return MyBase.GetUseSiteErrorInfo()
+                Return New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return Me.OriginalDefinition.GetUseSiteInfo()
         End Function
 
-        Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Debug.Assert(Me.IsDefinition)
             ' Check event type.
-            Dim errorInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim useSiteInfo = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
+            Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
 
             If errorInfo IsNot Nothing Then
                 Select Case errorInfo.Code
@@ -207,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' TODO: Perhaps the error wording could be changed a bit to say "type of event..." ?
                         '
                         ' Reference required to assembly '{0}' containing the definition for event '{1}'. Add one to your project.
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssemblyEvent3, errorInfo.Arguments(0), Me)
+                        useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssemblyEvent3, errorInfo.Arguments(0), Me))
 
                     Case ERRID.ERR_UnreferencedModule3
                         ' NOTE: interestingly the error in Dev10 and thus here refers to the definition of the event
@@ -215,11 +214,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' TODO: Perhaps the error wording could be changed a bit to say "type of event..." ?
                         '
                         ' Reference required to module '{0}' containing the definition for event '{1}'. Add one to your project.
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModuleEvent3, errorInfo.Arguments(0), Me)
+                        useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModuleEvent3, errorInfo.Arguments(0), Me))
 
                     Case ERRID.ERR_UnsupportedType1
                         If errorInfo.Arguments(0).Equals(String.Empty) Then
-                            errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                            useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
                         End If
 
                     Case Else
@@ -229,9 +228,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' If the member is in an assembly with unified references, 
                 ' we check if its definition depends on a type from a unified reference.
                 errorInfo = Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
+                If errorInfo IsNot Nothing Then
+                    Debug.Assert(errorInfo.Severity = DiagnosticSeverity.Error)
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                End If
             End If
 
-            Return errorInfo
+            Return useSiteInfo
         End Function
 
         Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
@@ -242,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
                 Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedEvent1)
             End Get
         End Property
@@ -255,9 +258,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ''' <summary>
+        ''' Is this an event of a tuple type?
+        ''' </summary>
+        Public Overridable ReadOnly Property IsTupleEvent() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' If this is an event of a tuple type, return corresponding underlying event from the
+        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' </summary>
+        Public Overridable ReadOnly Property TupleUnderlyingEvent() As EventSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Private ReadOnly Property IEventSymbol_Type As ITypeSymbol Implements IEventSymbol.Type
             Get
                 Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IEventSymbol_NullableAnnotation As NullableAnnotation Implements IEventSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
             End Get
         End Property
 
@@ -313,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitEvent(Me)
         End Function
 
-        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(obj As Object) As Boolean
             Dim other As EventSymbol = TryCast(obj, EventSymbol)
             If Nothing Is other Then
                 Return False
@@ -323,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
-            Return Me.ContainingType = other.ContainingType AndAlso Me.OriginalDefinition Is other.OriginalDefinition
+            Return TypeSymbol.Equals(Me.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso Me.OriginalDefinition Is other.OriginalDefinition
         End Function
 
         Public Overrides Function GetHashCode() As Integer

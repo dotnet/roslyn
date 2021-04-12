@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.DiaSymReader;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
@@ -36,9 +39,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         internal static RuntimeInstance Create(
             Compilation compilation,
-            IEnumerable<MetadataReference> references = null,
-            DebugInformationFormat debugFormat = 0,
-            bool includeLocalSignatures = true)
+            IEnumerable<MetadataReference> references,
+            DebugInformationFormat debugFormat,
+            bool includeLocalSignatures,
+            bool includeIntrinsicAssembly)
         {
             var module = compilation.ToModuleInstance(debugFormat, includeLocalSignatures);
 
@@ -47,7 +51,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 references = ExpressionCompilerTestHelpers.GetEmittedReferences(compilation, module.GetMetadataReader());
             }
 
-            references = references.Concat(new[] { ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
+            if (includeIntrinsicAssembly)
+            {
+                references = references.Concat(new[] { ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
+            }
 
             return Create(module, references, debugFormat);
         }

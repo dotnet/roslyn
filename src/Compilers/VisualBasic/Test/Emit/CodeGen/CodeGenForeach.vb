@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
 
@@ -91,7 +93,7 @@ End Class
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   IL_0012:  ldc.i4.0
@@ -711,7 +713,7 @@ Class C
         For Each x In str
             System.Console.WriteLine(x)
         Next
-        For Each var In "foo"
+        For Each var In "goo"
             If Not var.[GetType]().Equals(GetType(Char)) Then
                 System.Console.WriteLine("False")
             End If
@@ -913,7 +915,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), additionalRefs:={LinqAssemblyRef}, expectedOutput:=<![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), references:={LinqAssemblyRef}, expectedOutput:=<![CDATA[
 1
 2
 3
@@ -927,7 +929,7 @@ End Class
     IL_0000:  ldc.i4.3
     IL_0001:  newarr     "Integer"
     IL_0006:  dup
-    IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
+    IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
     IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
     IL_0011:  ldsfld     "C._Closure$__.$I1-0 As System.Func(Of Integer, String)"
     IL_0016:  brfalse.s  IL_001f
@@ -1962,13 +1964,13 @@ Option Infer On
 Imports System.Collections
 Class Program
     Public  Shared Sub Main()
-        Foo(sub(x)
+        Goo(sub(x)
                 For Each y In x
                 Next
             end sub )
     End Sub
 
-    Public Shared Sub Foo(a As System.Action(Of IEnumerable))
+    Public Shared Sub Goo(a As System.Action(Of IEnumerable))
         System.Console.WriteLine(1)
     End Sub
 
@@ -2273,7 +2275,7 @@ Class C1(Of S As {IEnumerator, IDisposable})
         Dim myCustomCollection As Custom(Of S) = nothing
 
         For Each element In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class 
@@ -2302,7 +2304,7 @@ End Class
   IL_0013:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
   IL_0018:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_001d:  pop
-  IL_001e:  ldstr      "foo"
+  IL_001e:  ldstr      "goo"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"
   IL_0028:  ldloca.s   V_1
   IL_002a:  constrained. "S"
@@ -2346,7 +2348,7 @@ Class C1(Of S As {IEnumerator, IDisposable, Structure})
         Dim myCustomCollection As Custom(Of S) = nothing
 
         For Each element In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class 
@@ -2375,7 +2377,7 @@ End Class
   IL_0013:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
   IL_0018:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_001d:  pop
-  IL_001e:  ldstr      "foo"
+  IL_001e:  ldstr      "goo"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"
   IL_0028:  ldloca.s   V_1
   IL_002a:  constrained. "S"
@@ -2520,7 +2522,7 @@ Module Program
 End Module
 </file>
 </compilation>,
-            additionalRefs:={LinqAssemblyRef},
+            references:={LinqAssemblyRef},
             expectedOutput:="123")
 
         End Sub
@@ -2771,7 +2773,7 @@ Module m1
         for j = 0 to 2
             ' test lifting of control variable in loop body and lifting of control variable when used 
             ' in the collection expression itself.
-            for each i as integer in (function(a) foo())(i)
+            for each i as integer in (function(a) goo())(i)
                 x(i) = sub() console.write(i.toString &amp; " ")
             next
 
@@ -2783,7 +2785,7 @@ Module m1
         next j
     End Sub
 
-    function foo() as IEnumerable(of Integer)
+    function goo() as IEnumerable(of Integer)
         return new list(of integer) from {1, 2, 3}
     end function
 End Module
@@ -3041,7 +3043,7 @@ End Class
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     "Integer"
   IL_0006:  dup
-  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E"
+  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
   IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0011:  stloc.0
   .try

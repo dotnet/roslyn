@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -74,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' rewrite the original using body only once here.
             Dim currentBody = DirectCast(Visit(node.Body), BoundBlock)
-            Dim locals As ImmutableArray(Of LocalSymbol)
+            Dim locals As ImmutableArray(Of LocalSymbol) = node.Locals
             Dim placeholderInfo As ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)
 
             ' the initialization expressions (variable declaration & expression case) will be rewritten in 
@@ -83,50 +86,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not node.ResourceList.IsDefault Then
                 ' Case "Using <variable declarations>"  
 
-                Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance
-                Dim hasMultipleResources = node.ResourceList.Length > 1
-
                 ' the try statements will be nested. To avoid re-rewriting we're iterating through the resource list in reverse
                 For declarationIndex = node.ResourceList.Length - 1 To 0 Step -1
                     Dim localDeclaration = node.ResourceList(declarationIndex)
-                    Dim syntaxForSequencePoint = If(hasMultipleResources, localDeclaration.Syntax.Parent, Nothing)
 
                     If localDeclaration.Kind = BoundKind.LocalDeclaration Then
                         Dim localVariableDeclaration = DirectCast(localDeclaration, BoundLocalDeclaration)
 
                         placeholderInfo = node.UsingInfo.PlaceholderInfo(localVariableDeclaration.LocalSymbol.Type)
-                        currentBody = RewriteSingleUsingToTryFinally(blockSyntax,
-                                                                     syntaxForSequencePoint,
+                        currentBody = RewriteSingleUsingToTryFinally(node,
+                                                                     declarationIndex,
                                                                      localVariableDeclaration.LocalSymbol,
                                                                      localVariableDeclaration.InitializerOpt,
                                                                      placeholderInfo,
                                                                      currentBody)
-
-                        localsBuilder.Add(localVariableDeclaration.LocalSymbol)
                     Else
                         Dim localAsNewDeclaration = DirectCast(localDeclaration, BoundAsNewLocalDeclarations)
-                        syntaxForSequencePoint = If(hasMultipleResources, localAsNewDeclaration.Syntax, Nothing)
 
                         Dim variableCount = localAsNewDeclaration.LocalDeclarations.Length
 
                         placeholderInfo = node.UsingInfo.PlaceholderInfo(localAsNewDeclaration.LocalDeclarations.First.LocalSymbol.Type)
 
                         For initializedVariableIndex = localAsNewDeclaration.LocalDeclarations.Length - 1 To 0 Step -1
-                            currentBody = RewriteSingleUsingToTryFinally(blockSyntax,
-                                                                         syntaxForSequencePoint,
+                            currentBody = RewriteSingleUsingToTryFinally(node,
+                                                                         declarationIndex,
                                                                          localAsNewDeclaration.LocalDeclarations(initializedVariableIndex).LocalSymbol,
                                                                          localAsNewDeclaration.Initializer,
                                                                          placeholderInfo,
                                                                          currentBody)
-                            localsBuilder.Add(localAsNewDeclaration.LocalDeclarations(initializedVariableIndex).LocalSymbol)
                         Next
                     End If
                 Next
-
-                ' we are adding the locals to the builder in reverse order. Therefore we need to reverse the array to have
-                ' the same forward declaration order in IL as Dev10 did.
-                localsBuilder.ReverseContents()
-                locals = localsBuilder.ToImmutableAndFree()
             Else
                 ' Case "Using <expression>"
                 Debug.Assert(node.ResourceExpressionOpt IsNot Nothing)
@@ -139,14 +129,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                             SynthesizedLocalKind.Using,
                                                                             blockSyntax.UsingStatement)
 
-                currentBody = RewriteSingleUsingToTryFinally(blockSyntax,
-                                                             Nothing,
+                currentBody = RewriteSingleUsingToTryFinally(node,
+                                                             0, ' There is only one resource - the expression
                                                              tempResourceSymbol,
                                                              initializationExpression,
                                                              placeholderInfo,
                                                              currentBody)
 
-                locals = ImmutableArray.Create(tempResourceSymbol)
+                locals = locals.Add(tempResourceSymbol)
             End If
 
             RestoreUnstructuredExceptionHandlingContext(node, saveState)
@@ -162,12 +152,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          locals,
                                          statements)
 
-            If GenerateDebugInfo Then
+            Dim prologue As BoundStatement = Nothing
+
+            If Instrument(node) Then
                 ' create a sequence point that contains the whole using statement as the first reachable sequence point
                 ' of the using statement. The resource variables are not yet in scope.
-                Return New BoundStatementList(node.UsingInfo.UsingStatementSyntax, ImmutableArray.Create(Of BoundStatement)(
-                                                    New BoundSequencePoint(node.UsingInfo.UsingStatementSyntax.UsingStatement, Nothing),
-                                                    currentBody))
+                prologue = _instrumenterOpt.CreateUsingStatementPrologue(node)
+            End If
+
+            If prologue IsNot Nothing Then
+                Return New BoundStatementList(node.UsingInfo.UsingStatementSyntax, ImmutableArray.Create(Of BoundStatement)(prologue, currentBody))
             Else
                 Return New BoundStatementList(node.UsingInfo.UsingStatementSyntax, ImmutableArray.Create(Of BoundStatement)(currentBody))
             End If
@@ -192,13 +186,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The new bound block containing the assignment of the initialization and the try/finally statement with
         ''' the passed body.</returns>
         Private Function RewriteSingleUsingToTryFinally(
-            syntaxNode As UsingBlockSyntax,
-            syntaxForSequencePoint As VisualBasicSyntaxNode,
+            node As BoundUsingStatement,
+            resourceIndex As Integer,
             localSymbol As LocalSymbol,
             initializationExpression As BoundExpression,
             ByRef placeholderInfo As ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression),
             currentBody As BoundBlock
         ) As BoundBlock
+            Dim syntaxNode = DirectCast(node.Syntax, UsingBlockSyntax)
             Dim resourceType = localSymbol.Type
             Dim boundResourceLocal As BoundLocal = New BoundLocal(syntaxNode, localSymbol, isLValue:=True, type:=resourceType)
 
@@ -212,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' because there are a lot of hidden sequence points between the dispose call and the "end using" in Roslyn
             ' (caused by emitting try catch), we need to add a sequence point after each call with the syntax of the end using
             ' to match the Dev10 debugging experience.
-            Dim newBody = DirectCast(InsertEndBlockSequencePoint(currentBody, Nothing), BoundBlock)
+            Dim newBody = DirectCast(Concat(currentBody, SyntheticBoundNodeFactory.HiddenSequencePoint()), BoundBlock)
 
             ' assign initialization to variable
             Dim boundResourceInitializationAssignment As BoundStatement = New BoundAssignmentOperator(syntaxNode,
@@ -220,8 +215,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                       VisitAndGenerateObjectCloneIfNeeded(initializationExpression, suppressObjectClone:=True),
                                                                                                       suppressObjectClone:=True,
                                                                                                       type:=resourceType).ToStatement
-            If GenerateDebugInfo AndAlso syntaxForSequencePoint IsNot Nothing Then
-                boundResourceInitializationAssignment = New BoundSequencePoint(syntaxForSequencePoint, boundResourceInitializationAssignment)
+
+            Dim instrument As Boolean = Me.Instrument(node)
+
+            If instrument Then
+                boundResourceInitializationAssignment = _instrumenterOpt.InstrumentUsingStatementResourceCapture(node, resourceIndex, boundResourceInitializationAssignment)
             End If
 
             ' create if statement with dispose call
@@ -229,15 +227,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     VisitExpressionNode(disposeCondition), True,
                                                                     VisitExpressionNode(disposeConversion))
 
-            Dim finallyStatements As ImmutableArray(Of BoundStatement)
-            If GenerateDebugInfo Then
+            Dim disposePrologue As BoundStatement = Nothing
+
+            If instrument Then
                 ' The block should start with a sequence point that points to the "End Using" statement. This is required in order to
                 ' highlight the end using when someone step next after the last statement of the original body and in case an exception
                 ' was thrown.
-                finallyStatements = ImmutableArray.Create(Of BoundStatement)(New BoundSequencePoint(
-                                                                                    syntaxNode.EndUsingStatement,
-                                                                                    Nothing),
-                                                                                disposeCall)
+                disposePrologue = _instrumenterOpt.CreateUsingStatementDisposePrologue(node)
+            End If
+
+            Dim finallyStatements As ImmutableArray(Of BoundStatement)
+            If disposePrologue IsNot Nothing Then
+                finallyStatements = ImmutableArray.Create(Of BoundStatement)(disposePrologue, disposeCall)
             Else
                 finallyStatements = ImmutableArray.Create(Of BoundStatement)(disposeCall)
             End If

@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -14,14 +15,15 @@ namespace Roslyn.Utilities
     /// Used when a collection usually contains a single item but sometimes might contain multiple.
     /// </remarks>
     internal struct OneOrMany<T>
+        where T : notnull
     {
-        private readonly T _one;
+        private readonly T? _one;
         private readonly ImmutableArray<T> _many;
 
         public OneOrMany(T one)
         {
             _one = one;
-            _many = default(ImmutableArray<T>);
+            _many = default;
         }
 
         public OneOrMany(ImmutableArray<T> many)
@@ -31,7 +33,7 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(many));
             }
 
-            _one = default(T);
+            _one = default;
             _many = many;
         }
 
@@ -46,7 +48,7 @@ namespace Roslyn.Utilities
                         throw new IndexOutOfRangeException();
                     }
 
-                    return _one;
+                    return _one!;
                 }
                 else
                 {
@@ -68,7 +70,7 @@ namespace Roslyn.Utilities
             var builder = ArrayBuilder<T>.GetInstance();
             if (_many.IsDefault)
             {
-                builder.Add(_one);
+                builder.Add(_one!);
             }
             else
             {
@@ -76,6 +78,51 @@ namespace Roslyn.Utilities
             }
             builder.Add(one);
             return new OneOrMany<T>(builder.ToImmutableAndFree());
+        }
+
+        public bool Contains(T item)
+        {
+            RoslynDebug.Assert(item != null);
+            if (Count == 1)
+            {
+                return item.Equals(_one);
+            }
+
+            var iter = GetEnumerator();
+            while (iter.MoveNext())
+            {
+                if (item.Equals(iter.Current))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public OneOrMany<T> RemoveAll(T item)
+        {
+            if (_many.IsDefault)
+            {
+                return item.Equals(_one) ? default : this;
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance();
+            var iter = GetEnumerator();
+            while (iter.MoveNext())
+            {
+                if (!item.Equals(iter.Current))
+                {
+                    builder.Add(iter.Current);
+                }
+            }
+
+            if (builder.Count == 0)
+            {
+                return default;
+            }
+
+            return builder.Count == Count ? this : new OneOrMany<T>(builder.ToImmutableAndFree());
         }
 
         public Enumerator GetEnumerator()
@@ -110,11 +157,13 @@ namespace Roslyn.Utilities
     internal static class OneOrMany
     {
         public static OneOrMany<T> Create<T>(T one)
+            where T : notnull
         {
             return new OneOrMany<T>(one);
         }
 
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
+            where T : notnull
         {
             return new OneOrMany<T>(many);
         }

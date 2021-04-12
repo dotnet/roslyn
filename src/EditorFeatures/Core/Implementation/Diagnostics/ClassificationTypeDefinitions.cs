@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.StandardClassification;
@@ -15,19 +19,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         [Name(UnnecessaryCode)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition UnnecessaryCodeTypeDefinition { get; set; }
-
-        [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = UnnecessaryCode)]
-        [Name(UnnecessaryCode)]
-        [Order(After = Priority.High)]
-        [UserVisible(false)]
-        private class UnnecessaryCodeFormatDefinition : ClassificationFormatDefinition
-        {
-            private UnnecessaryCodeFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UnnecessaryCode;
-                this.ForegroundOpacity = 0.6;
-            }
-        }
     }
 }

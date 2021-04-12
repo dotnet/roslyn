@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
@@ -32,13 +34,25 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestManyEmptyWords()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
-            TestNameCompliance(namingStyle, "_____")
+            TestNameNoncomplianceAndFixedNames(namingStyle, "_____", "_")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestPascalCaseMultiplePrefixAndSuffixFixes()
             Dim namingStyle = CreateNamingStyle(prefix:="p_", suffix:="_s", capitalizationScheme:=Capitalization.PascalCase)
             TestNameNoncomplianceAndFixedNames(namingStyle, "_", "p_s", "p___s")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestPrefixAndCommonPrefix()
+            Dim namingStyle = CreateNamingStyle(prefix:="Test_", suffix:="_z", capitalizationScheme:=Capitalization.PascalCase)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "Test_m_BaseName", "Test_M_BaseName_z", "Test_BaseName_z")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestCommonPrefixAndPrefix()
+            Dim namingStyle = CreateNamingStyle(prefix:="Test_", suffix:="_z", capitalizationScheme:=Capitalization.PascalCase)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "m_Test_BaseName", "Test_BaseName_z")
         End Sub
 #End Region
 
@@ -90,6 +104,18 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_t_", capitalizationScheme:=Capitalization.PascalCase)
             TestNameCompliance(namingStyle, "Pascal_t_Case")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestPascalCaseAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
+            TestNameCompliance(namingStyle, "私の家_2nd")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestPascalCaseWithWordSeperation()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.PascalCase)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "thisIsMyMethod", "This_Is_My_Method")
+        End Sub
 #End Region
 
 #Region "camelCase"
@@ -139,6 +165,18 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Public Sub TestCamelCaseIgnoresSeeminglyNoncompliantWordSeparator()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_t_", capitalizationScheme:=Capitalization.CamelCase)
             TestNameCompliance(namingStyle, "camel_t_Case")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestCamelCaseAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.CamelCase)
+            TestNameCompliance(namingStyle, "私の家_2nd")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestCamelCaseWithWordSeperation()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.CamelCase)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "ThisIsMyMethod", "this_Is_My_Method")
         End Sub
 #End Region
 
@@ -190,6 +228,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_T_", capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCompliance(namingStyle, "First_T_upper")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestFirstUpperAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
+            TestNameCompliance(namingStyle, "私の家")
+        End Sub
 #End Region
 
 #Region "ALLUPPER"
@@ -234,6 +278,19 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_t_", capitalizationScheme:=Capitalization.AllUpper)
             TestNameCompliance(namingStyle, "ALL_t_UPPER")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestAllUpperAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllUpper)
+            TestNameCompliance(namingStyle, "私AB23CのDE家")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestAllUpperWithWordSeperation()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.AllUpper)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "ThisIsMyMethod", "THIS_IS_MY_METHOD")
+        End Sub
+
 #End Region
 
 #Region "alllower"
@@ -277,6 +334,18 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Public Sub TestAllLowerIgnoresSeeminglyNoncompliantWordSeparator()
             Dim namingStyle = CreateNamingStyle(wordSeparator:="_T_", capitalizationScheme:=Capitalization.AllLower)
             TestNameCompliance(namingStyle, "all_T_lower")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestAllLowerAllowsUncasedCharacters()
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.AllLower)
+            TestNameCompliance(namingStyle, "私ab23cのde家")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Sub TestAllLowerWithWordSeperation()
+            Dim namingStyle = CreateNamingStyle(wordSeparator:="_", capitalizationScheme:=Capitalization.AllLower)
+            TestNameNoncomplianceAndFixedNames(namingStyle, "ThisIsMyMethod", "this_is_my_method")
         End Sub
 #End Region
     End Class

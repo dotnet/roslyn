@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -46,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property HasSpecialName As Boolean
+        Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
                 Return False
             End Get
@@ -152,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' VB language that are represented as methods. This property allow distinguishing those things
         ''' without having to decode the name of the method.
         ''' </summary>
-        Public NotOverridable Overrides ReadOnly Property MethodKind As MethodKind
+        Public Overrides ReadOnly Property MethodKind As MethodKind
             Get
                 Return MethodKind.Ordinary
             End Get
@@ -179,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return VisualBasic.VisualBasicSyntaxTree.Dummy.GetRoot()
             End Get
@@ -313,6 +315,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             Return ImmutableArray(Of VisualBasicAttributeData).Empty
         End Function
@@ -324,6 +332,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides ReadOnly Property IsIterator As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
             Get
                 Return False
             End Get

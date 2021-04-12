@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Roslyn.Utilities
@@ -18,9 +21,9 @@ namespace Roslyn.Utilities
         /// <returns>The new value referenced by <paramref name="target"/>. Note that this is
         /// nearly always more useful than the usual return from <see cref="Interlocked.CompareExchange{T}(ref T, T, T)"/>
         /// because it saves another read to <paramref name="target"/>.</returns>
-        public static T Initialize<T>(ref T target, T value) where T : class
+        public static T Initialize<T>([NotNull] ref T? target, T value) where T : class
         {
-            Debug.Assert((object)value != null);
+            RoslynDebug.Assert((object?)value != null);
             return Interlocked.CompareExchange(ref target, value, null) ?? value;
         }
 
@@ -36,11 +39,12 @@ namespace Roslyn.Utilities
         /// <returns>The new value referenced by <paramref name="target"/>. Note that this is
         /// nearly always more useful than the usual return from <see cref="Interlocked.CompareExchange{T}(ref T, T, T)"/>
         /// because it saves another read to <paramref name="target"/>.</returns>
-        public static T Initialize<T>(ref T target, T initializedValue, T uninitializedValue) where T : class
+        [return: NotNullIfNotNull(parameterName: "initializedValue")]
+        public static T Initialize<T>(ref T target, T initializedValue, T uninitializedValue) where T : class?
         {
-            Debug.Assert((object)initializedValue != uninitializedValue);
+            Debug.Assert((object?)initializedValue != uninitializedValue);
             T oldValue = Interlocked.CompareExchange(ref target, initializedValue, uninitializedValue);
-            return (object)oldValue == uninitializedValue ? initializedValue : oldValue;
+            return (object?)oldValue == uninitializedValue ? initializedValue : oldValue;
         }
 
         /// <summary>

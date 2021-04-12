@@ -1,103 +1,89 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
 {
     [ExportHighlighter(LanguageNames.CSharp)]
-    internal class LoopHighlighter : AbstractKeywordHighlighter<SyntaxNode>
+    internal class LoopHighlighter : AbstractKeywordHighlighter
     {
-        protected override IEnumerable<TextSpan> GetHighlights(
-            SyntaxNode node, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LoopHighlighter()
         {
-            var loop = node.GetAncestorsOrThis<SyntaxNode>()
-                           .FirstOrDefault(ancestor => ancestor.IsContinuableConstruct());
-
-            if (loop != null)
-            {
-                return KeywordHighlightsForLoop(loop);
-            }
-
-            return SpecializedCollections.EmptyEnumerable<TextSpan>();
         }
 
-        private IEnumerable<TextSpan> KeywordHighlightsForLoop(SyntaxNode loopNode)
+        protected override bool IsHighlightableNode(SyntaxNode node)
+            => node.IsContinuableConstruct();
+
+        protected override void AddHighlightsForNode(
+            SyntaxNode node, List<TextSpan> spans, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
-
-            switch (loopNode.Kind())
+            switch (node)
             {
-                case SyntaxKind.DoStatement:
-                    HighlightDoStatement((DoStatementSyntax)loopNode, spans);
+                case DoStatementSyntax doStatement:
+                    HighlightDoStatement(doStatement, spans);
                     break;
-                case SyntaxKind.ForStatement:
-                    HighlightForStatement((ForStatementSyntax)loopNode, spans);
+                case ForStatementSyntax forStatement:
+                    HighlightForStatement(forStatement, spans);
                     break;
-
-                case SyntaxKind.ForEachStatement:
-                    HighlightForEachStatement((ForEachStatementSyntax)loopNode, spans);
+                case CommonForEachStatementSyntax forEachStatement:
+                    HighlightForEachStatement(forEachStatement, spans);
                     break;
-
-                case SyntaxKind.WhileStatement:
-                    HighlightWhileStatement((WhileStatementSyntax)loopNode, spans);
+                case WhileStatementSyntax whileStatement:
+                    HighlightWhileStatement(whileStatement, spans);
                     break;
             }
 
-            HighlightRelatedKeywords(loopNode, spans, true, true);
-
-            return spans;
+            HighlightRelatedKeywords(node, spans, highlightBreaks: true, highlightContinues: true);
         }
 
-        private void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)
+        private static void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)
         {
             spans.Add(statement.DoKeyword.Span);
             spans.Add(statement.WhileKeyword.Span);
             spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
         }
 
-        private void HighlightForStatement(ForStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.ForKeyword.Span);
-        }
+        private static void HighlightForStatement(ForStatementSyntax statement, List<TextSpan> spans)
+            => spans.Add(statement.ForKeyword.Span);
 
-        private void HighlightForEachStatement(ForEachStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.ForEachKeyword.Span);
-        }
+        private static void HighlightForEachStatement(CommonForEachStatementSyntax statement, List<TextSpan> spans)
+            => spans.Add(statement.ForEachKeyword.Span);
 
-        private void HighlightWhileStatement(WhileStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.WhileKeyword.Span);
-        }
+        private static void HighlightWhileStatement(WhileStatementSyntax statement, List<TextSpan> spans)
+            => spans.Add(statement.WhileKeyword.Span);
 
         /// <summary>
         /// Finds all breaks and continues that are a child of this node, and adds the appropriate spans to the spans list.
         /// </summary>
-        private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans, bool highlightBreaks, bool highlightContinues)
+        private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans,
+            bool highlightBreaks, bool highlightContinues)
         {
             Debug.Assert(highlightBreaks || highlightContinues);
 
-            if (highlightBreaks && node is BreakStatementSyntax)
+            if (highlightBreaks && node is BreakStatementSyntax breakStatement)
             {
-                var statement = (BreakStatementSyntax)node;
-                spans.Add(statement.BreakKeyword.Span);
-                spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
+                spans.Add(breakStatement.BreakKeyword.Span);
+                spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
             }
-            else if (highlightContinues && node is ContinueStatementSyntax)
+            else if (highlightContinues && node is ContinueStatementSyntax continueStatement)
             {
-                var statement = (ContinueStatementSyntax)node;
-                spans.Add(statement.ContinueKeyword.Span);
-                spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
+                spans.Add(continueStatement.ContinueKeyword.Span);
+                spans.Add(EmptySpan(continueStatement.SemicolonToken.Span.End));
             }
             else
             {

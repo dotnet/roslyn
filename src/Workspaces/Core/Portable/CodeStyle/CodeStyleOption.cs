@@ -1,89 +1,76 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Xml.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    /// <summary>
-    /// Represents a code style option and an associated notification option.
-    /// </summary>
-    public class CodeStyleOption<T>
+    /// <inheritdoc cref="CodeStyleOption2{T}"/>
+    public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
+        static CodeStyleOption()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption<T>), ReadFrom);
+        }
 
-        private const int SerializationVersion = 1;
+        private readonly CodeStyleOption2<T> _codeStyleOptionImpl;
+        public static CodeStyleOption<T> Default => new(default, NotificationOption.Silent);
+
+        internal CodeStyleOption(CodeStyleOption2<T> codeStyleOptionImpl)
+            => _codeStyleOptionImpl = codeStyleOptionImpl;
 
         public CodeStyleOption(T value, NotificationOption notification)
+            : this(new CodeStyleOption2<T>(value, (NotificationOption2)notification))
         {
-            Value = value;
-            Notification = notification;
         }
 
-        public T Value { get; set; }
+        public T Value
+        {
+            get => _codeStyleOptionImpl.Value;
+            set => _codeStyleOptionImpl.Value = value;
+        }
 
-        public NotificationOption Notification { get; set; }
+        bool IObjectWritable.ShouldReuseInSerialization => _codeStyleOptionImpl.ShouldReuseInSerialization;
+        object ICodeStyleOption.Value => this.Value;
+        NotificationOption2 ICodeStyleOption.Notification => _codeStyleOptionImpl.Notification;
+        ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
+        ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption<T>(Value, (NotificationOption)notification);
+        ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
+            => this is TCodeStyleOption ? this : (ICodeStyleOption)_codeStyleOptionImpl;
+        ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => this;
 
-        public XElement ToXElement() => 
-            new XElement(nameof(CodeStyleOption<T>), // `nameof()` returns just "CodeStyleOption"
-                new XAttribute(nameof(SerializationVersion), SerializationVersion),
-                new XAttribute("Type", typeof(T).Name),
-                new XAttribute(nameof(Value), Value),
-                new XAttribute(nameof(DiagnosticSeverity), Notification.Value));
+        public NotificationOption Notification
+        {
+            get => (NotificationOption)_codeStyleOptionImpl.Notification;
+            set => _codeStyleOptionImpl.Notification = (NotificationOption2)(value ?? throw new ArgumentNullException(nameof(value)));
+        }
+
+        internal CodeStyleOption2<T> UnderlyingOption => _codeStyleOptionImpl;
+
+        public XElement ToXElement() => _codeStyleOptionImpl.ToXElement();
 
         public static CodeStyleOption<T> FromXElement(XElement element)
-        {
-            var typeAttribute = element.Attribute("Type");
-            var valueAttribute = element.Attribute(nameof(Value));
-            var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int)element.Attribute(nameof(SerializationVersion));
+            => new(CodeStyleOption2<T>.FromXElement(element));
 
-            if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
-            {
-                // data from storage is corrupt, or nothing has been stored yet.
-                return Default;
-            }
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+            => _codeStyleOptionImpl.WriteTo(writer);
 
-            if (version != SerializationVersion)
-            {
-                return Default;
-            }
+        internal static CodeStyleOption<object> ReadFrom(ObjectReader reader)
+            => new(CodeStyleOption2<T>.ReadFrom(reader));
 
-            var parser = GetParser(typeAttribute.Value);
-            var value = (T)parser(valueAttribute.Value);
-            var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), severityAttribute.Value);
+        public bool Equals(CodeStyleOption<T> other)
+            => _codeStyleOptionImpl.Equals(other?._codeStyleOptionImpl);
 
-            NotificationOption notificationOption;
-            switch (severity)
-            {
-                case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.None;
-                    break;
-                case DiagnosticSeverity.Info:
-                    notificationOption = NotificationOption.Suggestion;
-                    break;
-                case DiagnosticSeverity.Warning:
-                    notificationOption = NotificationOption.Warning;
-                    break;
-                case DiagnosticSeverity.Error:
-                    notificationOption = NotificationOption.Error;
-                    break;
-                default:
-                    throw new ArgumentException(nameof(element));
-            }
+        public override bool Equals(object obj)
+            => obj is CodeStyleOption<T> option &&
+               Equals(option);
 
-            return new CodeStyleOption<T>(value, notificationOption);
-        }
-
-        private static Func<string, object> GetParser(string type)
-        {
-            switch (type)
-            {
-                case nameof(Boolean):
-                    return v => bool.Parse(v);
-                default:
-                    throw new ArgumentException(nameof(type));
-            }
-        }
+        public override int GetHashCode()
+            => _codeStyleOptionImpl.GetHashCode();
     }
 }

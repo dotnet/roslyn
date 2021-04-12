@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Text
@@ -147,6 +149,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     builder.Append("Friend")
                 Case Accessibility.ProtectedOrFriend
                     builder.Append("Protected Friend")
+                Case Accessibility.ProtectedAndFriend
+                    builder.Append("Private Protected")
                 Case Accessibility.Public
                     builder.Append("Public")
             End Select
@@ -209,15 +213,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 builder.Append(type.ToDisplayString(s_prototypeFullNameFormat))
             End If
         End Sub
-
-        Private Shared Function AreValidEventPrototypeFlags(flags As PrototypeFlags) As Boolean
-            ' Unsupported flags for events
-            If (flags And PrototypeFlags.Initializer) <> 0 Then
-                Return False
-            End If
-
-            Return AreValidPrototypeFlags(flags)
-        End Function
 
         Private Shared Function AreValidFunctionPrototypeFlags(flags As PrototypeFlags) As Boolean
             ' Unsupported flags for functions

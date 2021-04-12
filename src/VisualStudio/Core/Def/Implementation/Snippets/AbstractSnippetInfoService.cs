@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,15 +8,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
-using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     internal abstract class AbstractSnippetInfoService : ForegroundThreadAffinitizedObject, ISnippetInfoService, IVsExpansionEvents
     {
         private readonly Guid _languageGuidForSnippets;
-        private readonly IVsExpansionManager _expansionManager;
+        private IVsExpansionManager? _expansionManager;
 
         /// <summary>
         /// Initialize these to empty values. When returning from <see cref="GetSnippetsIfAvailable "/> 
@@ -38,27 +38,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         // Guard the snippets and snippetShortcut fields so that returned result sets are always
         // complete.
-        protected object cacheGuard = new object();
+        protected object cacheGuard = new();
 
-        private readonly AggregateAsynchronousOperationListener _waiter;
+        private readonly IAsynchronousOperationListener _waiter;
+        private readonly IThreadingContext _threadingContext;
 
         public AbstractSnippetInfoService(
-            Shell.SVsServiceProvider serviceProvider,
+            IThreadingContext threadingContext,
+            Shell.IAsyncServiceProvider serviceProvider,
             Guid languageGuidForSnippets,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
-            AssertIsForeground();
+            _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
+            _languageGuidForSnippets = languageGuidForSnippets;
+            _threadingContext = threadingContext;
 
-            if (serviceProvider != null)
+            _threadingContext.RunWithShutdownBlockAsync((_) => InitializeAndPopulateSnippetsCacheAsync(serviceProvider));
+        }
+
+        private async Task InitializeAndPopulateSnippetsCacheAsync(Shell.IAsyncServiceProvider asyncServiceProvider)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var textManager = (IVsTextManager2?)await asyncServiceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
+            Assumes.Present(textManager);
+
+            if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
             {
-                var textManager = (IVsTextManager2)serviceProvider.GetService(typeof(SVsTextManager));
-                if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
-                {
-                    ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
-                    _waiter = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Snippets);
-                    _languageGuidForSnippets = languageGuidForSnippets;
-                    PopulateSnippetCaches();
-                }
+                ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
+                await PopulateSnippetCacheAsync().ConfigureAwait(false);
             }
         }
 
@@ -68,16 +76,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (_expansionManager != null)
             {
-                PopulateSnippetCaches();
+                _threadingContext.RunWithShutdownBlockAsync((_) => PopulateSnippetCacheAsync());
             }
 
             return VSConstants.S_OK;
         }
 
-        public int OnAfterSnippetsKeyBindingChange([ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")]uint dwCmdGuid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")]uint dwCmdId, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")]int fBound)
-        {
-            return VSConstants.S_OK;
-        }
+        public int OnAfterSnippetsKeyBindingChange([ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")] uint dwCmdGuid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")] uint dwCmdId, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")] int fBound)
+            => VSConstants.S_OK;
 
         public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
         {
@@ -105,49 +111,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         public virtual bool ShouldFormatSnippet(SnippetInfo snippetInfo)
+            => false;
+
+        private async Task PopulateSnippetCacheAsync()
         {
-            return false;
-        }
+            using var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
+            RoslynDebug.Assert(_expansionManager != null);
 
-        private void PopulateSnippetCaches()
-        {
-            Debug.Assert(_expansionManager != null);
-
-            // If the expansion manager is an IExpansionManager, then we can use the asynchronous
-            // population mechanism it provides. Otherwise, getting snippet information from the
-            // IVsExpansionManager must be done synchronously on the UI thread.
-
-            // IExpansionManager was introduced in Visual Studio 2015 Update 1, but will be enabled
-            // by default for the first time in Visual Studio 2015 Update 2. However, the platform
-            // still supports returning the IVsExpansionManager if a major problem in the 
-            // IExpansionManager is discovered, so we must continue supporting the fallback.            
-
-            var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
-
-            var asyncExpansionManager = _expansionManager as IExpansionManager;
-            if (asyncExpansionManager != null)
-            {
-                // Call the asynchronous IExpansionManager API from a background thread
-                Task.Factory.StartNew(async () => await PopulateSnippetCacheAsync(asyncExpansionManager).ConfigureAwait(false),
-                                CancellationToken.None,
-                                TaskCreationOptions.None,
-                                TaskScheduler.Default).CompletesAsyncOperation(token);
-
-            }
-            else
-            {
-                // Call the synchronous IVsExpansionManager API from the UI thread
-                Task.Factory.StartNew(() => PopulateSnippetCacheOnForeground(_expansionManager),
-                                CancellationToken.None,
-                                TaskCreationOptions.None,
-                                ForegroundTaskScheduler).CompletesAsyncOperation(token);                
-            }
-        }
-
-        private async Task PopulateSnippetCacheAsync(IExpansionManager expansionManager)
-        {
-            AssertIsBackground();
-
+            // In Dev14 Update2+ the platform always provides an IExpansion Manager
+            var expansionManager = (IExpansionManager)_expansionManager;
+            // Call the asynchronous IExpansionManager API from a background thread
+            await TaskScheduler.Default;
             var expansionEnumerator = await expansionManager.EnumerateExpansionsAsync(
                 _languageGuidForSnippets,
                 0, // shortCutOnly
@@ -159,31 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             // The rest of the process requires being on the UI thread, see the explanation on
             // PopulateSnippetCacheFromExpansionEnumeration for details
-            await Task.Factory.StartNew(() => PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                ForegroundTaskScheduler).ConfigureAwait(false);
-        }
-
-        /// <remarks>
-        /// Changes to the <see cref="IVsExpansionManager.EnumerateExpansions"/> invocation
-        /// should also be made to the IExpansionManager.EnumerateExpansionsAsync
-        /// invocation in <see cref="PopulateSnippetCacheAsync(IExpansionManager)"/>.
-        /// </remarks>
-        private void PopulateSnippetCacheOnForeground(IVsExpansionManager expansionManager)
-        {
-            AssertIsForeground();
-
-            IVsExpansionEnumeration expansionEnumerator = null;
-            expansionManager.EnumerateExpansions(
-                _languageGuidForSnippets,
-                fShortCutOnly: 0,
-                bstrTypes: null,
-                iCountTypes: 0,
-                fIncludeNULLType: 1,
-                fIncludeDuplicates: 1, // Allows snippets with the same title but different shortcuts
-                pEnum: out expansionEnumerator);
-
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator);
         }
 
@@ -199,14 +149,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// eventually calls into the native CExpansionEnumeratorShim::Next method, which has the
         /// same contract of expecting a non-null rgelt that it can drop expansion data into. When
         /// we call from the UI thread, this transition from managed code to the
-        /// CExpansionEnumeratorShim` goes smoothly and everything works.
+        /// CExpansionEnumeratorShim goes smoothly and everything works.
         ///
         /// When we call from a background thread, the COM marshaller has to move execution to the
         /// UI thread, and as part of this process it uses the interface as defined in the idl to
         /// set up the appropriate arguments to pass. The same parameter from the idl is defined as
         ///    [out, size_is(celt), length_is(*pceltFetched)] VsExpansion **rgelt
         ///
-        /// Because rgelt is specified as an `out` parameter, the marshaller is discarding the
+        /// Because rgelt is specified as an <c>out</c> parameter, the marshaller is discarding the
         /// pointer we passed and substituting the null reference. This then causes a null
         /// reference exception in the shim. Calling from the UI thread avoids this marshaller.
         /// </remarks>
@@ -229,21 +179,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             AssertIsForeground();
 
             var snippetListBuilder = ImmutableArray.CreateBuilder<SnippetInfo>();
-
-            uint count = 0;
-            uint fetched = 0;
-            VsExpansion snippetInfo = new VsExpansion();
-            IntPtr[] pSnippetInfo = new IntPtr[1];
+            var snippetInfo = new VsExpansion();
+            var pSnippetInfo = new IntPtr[1];
 
             try
             {
                 // Allocate enough memory for one VSExpansion structure. This memory is filled in by the Next method.
                 pSnippetInfo[0] = Marshal.AllocCoTaskMem(Marshal.SizeOf(snippetInfo));
-                expansionEnumerator.GetCount(out count);
+
+                expansionEnumerator.GetCount(out var count);
 
                 for (uint i = 0; i < count; i++)
                 {
-                    expansionEnumerator.Next(1, pSnippetInfo, out fetched);
+                    expansionEnumerator.Next(1, pSnippetInfo, out var fetched);
                     if (fetched > 0)
                     {
                         // Convert the returned blob of data into a structure that can be read in managed code.
@@ -283,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return expansion;
         }
 
-        private static void ConvertToStringAndFree(ref IntPtr ptr, ref string str)
+        private static void ConvertToStringAndFree(ref IntPtr ptr, ref string? str)
         {
             if (ptr != IntPtr.Zero)
             {

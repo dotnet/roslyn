@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public RefKind RefKind { get; }
         public bool IsParams { get; }
         public ITypeSymbol Type { get; }
+        public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
         public bool IsOptional { get; }
         public int Ordinal { get; }
 
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationParameterSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             RefKind refKind,
             bool isParams,
             ITypeSymbol type,
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool isOptional,
             bool hasDefaultValue,
             object defaultValue)
-            : base(containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name)
         {
             this.RefKind = refKind;
             this.IsParams = isParams;
@@ -47,46 +49,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.ExplicitDefaultValue);
         }
 
-        public new IParameterSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new IParameterSymbol OriginalDefinition => this;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Parameter;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Parameter;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitParameter(this);
-        }
+            => visitor.VisitParameter(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitParameter(this);
-        }
+            => visitor.VisitParameter(this);
 
-        public bool IsThis
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsThis => false;
 
-        public ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray.Create<CustomModifier>();
+
+        public ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray.Create<CustomModifier>();
+
+        public bool IsDiscard => false;
     }
 }

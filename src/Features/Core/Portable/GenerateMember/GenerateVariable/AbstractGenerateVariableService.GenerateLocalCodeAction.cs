@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 get
                 {
-                    var text = FeaturesResources.GenerateLocal;
+                    var text = FeaturesResources.Generate_local_0;
 
                     return string.Format(
                         text,
@@ -39,21 +43,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var newRoot = await GetNewRoot(cancellationToken).ConfigureAwait(false);
+                var newRoot = await GetNewRootAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(newRoot);
 
                 return newDocument;
             }
 
-            private async Task<SyntaxNode> GetNewRoot(CancellationToken cancellationToken)
+            private async Task<SyntaxNode> GetNewRootAsync(CancellationToken cancellationToken)
             {
-                SyntaxNode newRoot;
-
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, _document.Options, semanticModel, cancellationToken, out newRoot))
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, documentOptions, semanticModel, cancellationToken, out var newRoot))
                 {
                     return newRoot;
                 }

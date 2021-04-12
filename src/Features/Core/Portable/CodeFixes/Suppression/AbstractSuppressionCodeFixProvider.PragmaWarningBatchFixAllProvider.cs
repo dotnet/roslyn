@@ -1,37 +1,39 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
+#nullable disable
+
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         /// <summary>
         /// Batch fixer for pragma suppress code action.
         /// </summary>
-        internal sealed class PragmaWarningBatchFixAllProvider : BatchFixAllProvider
+        internal sealed class PragmaWarningBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
         {
             private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
 
             public PragmaWarningBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-            {
-                _suppressionFixProvider = suppressionFixProvider;
-            }
+                => _suppressionFixProvider = suppressionFixProvider;
 
-            public override async Task AddDocumentFixesAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix,
+            protected override async Task AddDocumentFixesAsync(
+                Document document, ImmutableArray<Diagnostic> diagnostics,
+                ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
                 FixAllState fixAllState, CancellationToken cancellationToken)
             {
-                var pragmaActionsBuilder = ImmutableArray.CreateBuilder<IPragmaBasedCodeAction>();
-                var pragmaDiagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
+                var pragmaActionsBuilder = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance();
+                var pragmaDiagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
 
                 foreach (var diagnostic in diagnostics.Where(d => d.Location.IsInSource && !d.IsSuppressed))
                 {
@@ -56,10 +58,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(
                         _suppressionFixProvider, document,
-                        pragmaActionsBuilder.ToImmutable(), pragmaDiagnosticsBuilder.ToImmutable(), 
+                        pragmaActionsBuilder.ToImmutableAndFree(),
+                        pragmaDiagnosticsBuilder.ToImmutableAndFree(),
                         fixAllState, cancellationToken);
 
-                    addFix(pragmaBatchFix);
+                    fixes.Add((diagnostic: null, pragmaBatchFix));
                 }
             }
         }

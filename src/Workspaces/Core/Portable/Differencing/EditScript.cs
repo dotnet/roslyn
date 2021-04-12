@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
@@ -27,30 +29,15 @@ namespace Microsoft.CodeAnalysis.Differencing
             _edits = edits.AsImmutable();
         }
 
-        public ImmutableArray<Edit<TNode>> Edits
-        {
-            get { return _edits; }
-        }
+        public ImmutableArray<Edit<TNode>> Edits => _edits;
 
-        public Match<TNode> Match
-        {
-            get { return _match; }
-        }
+        public Match<TNode> Match => _match;
 
-        private TreeComparer<TNode> Comparer
-        {
-            get { return _match.Comparer; }
-        }
+        private TreeComparer<TNode> Comparer => _match.Comparer;
 
-        private TNode Root1
-        {
-            get { return _match.OldRoot; }
-        }
+        private TNode Root1 => _match.OldRoot;
 
-        private TNode Root2
-        {
-            get { return _match.NewRoot; }
-        }
+        private TNode Root2 => _match.NewRoot;
 
         private void AddUpdatesInsertsMoves(List<Edit<TNode>> edits)
         {
@@ -68,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             do
             {
-                IEnumerable<TNode> children = queue.Dequeue();
-                foreach (TNode child in children)
+                var children = queue.Dequeue();
+                foreach (var child in children)
                 {
                     ProcessNode(edits, child);
 
@@ -86,14 +73,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         private void ProcessNode(List<Edit<TNode>> edits, TNode x)
         {
             Debug.Assert(Comparer.TreesEqual(x, Root2));
-
             // NOTE:  
             // Our implementation differs from the algorithm described in the paper in following:
             // - We don't update M' and T1 since we don't need the final matching and the transformed tree.
             // - Insert and Move edits don't need to store the offset of the nodes relative to their parents,
             //   so we don't calculate those. Thus we don't need to implement FindPos.
             // - We don't mark nodes "in order" since the marks are only needed by FindPos.
-
             // a) 
             // Let x be the current node in the breadth-first search of T2. 
             // Let y = parent(x).
@@ -101,12 +86,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             //
             // NOTE:
             // If we needed z then we would need to be updating M' as we encounter insertions.
-
-            TNode w;
-            bool hasPartner = _match.TryGetPartnerInTree1(x, out w);
-
-            TNode y;
-            bool hasParent = Comparer.TryGetParent(x, out y);
+            var hasPartner = _match.TryGetPartnerInTree1(x, out var w);
+            var hasParent = Comparer.TryGetParent(x, out var y);
 
             if (!hasPartner)
             {
@@ -114,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 //   i. k := FindPos(x)
                 //  ii. Append INS((w, a, value(x)), z, k) to E for a new identifier w.
                 // iii. Add (w, x) to M' and apply INS((w, a, value(x)), z, k) to T1.          
-                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, oldNode: default(TNode), newNode: x));
+                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, oldNode: default, newNode: x));
 
                 // NOTE:
                 // We don't update M' here.
@@ -123,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 // c) else if x is not a root
                 // i. Let w be the partner of x in M', and let v = parent(w) in T1.
-                TNode v = Comparer.GetParent(w);
+                var v = Comparer.GetParent(w);
 
                 // ii. if value(w) != value(x)
                 // A. Append UPD(w, value(x)) to E
@@ -175,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (!_match.HasPartnerInTree2(w))
                 {
-                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default(TNode)));
+                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default));
                 }
             }
         }
@@ -202,8 +183,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             List<TNode> s1 = null;
             foreach (var e in wChildren)
             {
-                TNode pw;
-                if (_match.TryGetPartnerInTree2(e, out pw) && Comparer.GetParent(pw).Equals(x))
+                if (_match.TryGetPartnerInTree2(e, out var pw) && Comparer.GetParent(pw).Equals(x))
                 {
                     if (s1 == null)
                     {
@@ -217,8 +197,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             List<TNode> s2 = null;
             foreach (var e in xChildren)
             {
-                TNode px;
-                if (_match.TryGetPartnerInTree1(e, out px) && Comparer.GetParent(px).Equals(w))
+                if (_match.TryGetPartnerInTree1(e, out var px) && Comparer.GetParent(px).Equals(w))
                 {
                     if (s2 == null)
                     {
@@ -252,12 +231,11 @@ namespace Microsoft.CodeAnalysis.Differencing
             //       NOTE: We don't mark nodes "in order".
             foreach (var a in s1)
             {
-                TNode b;
 
                 // (a,b) in M
                 // => b in S2 since S2 == { b | parent(b) == x && parent(partner(b)) == w }
                 // (a,b) not in S
-                if (_match.TryGetPartnerInTree2(a, out b) &&
+                if (_match.TryGetPartnerInTree2(a, out var b) &&
                     Comparer.GetParent(b).Equals(x) &&
                     !ContainsPair(s, a, b))
                 {
@@ -270,9 +248,6 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         private static bool ContainsPair(Dictionary<TNode, TNode> dict, TNode a, TNode b)
-        {
-            TNode value;
-            return dict.TryGetValue(a, out value) && value.Equals(b);
-        }
+            => dict.TryGetValue(a, out var value) && value.Equals(b);
     }
 }

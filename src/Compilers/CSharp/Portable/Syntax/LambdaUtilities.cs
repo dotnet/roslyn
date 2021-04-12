@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -46,7 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxNode GetLambda(SyntaxNode lambdaBody)
         {
+            Debug.Assert(lambdaBody.Parent is object);
             var lambda = lambdaBody.Parent;
+            if (lambda.IsKind(SyntaxKind.ArrowExpressionClause))
+            {
+                // In case of expression bodied local functions there is a three level hierarchy: 
+                // LocalFunctionStatement -> ArrowExpressionClause -> Expression.
+                // And the lambda is the LocalFunctionStatement.
+                lambda = lambda.Parent;
+                Debug.Assert(lambda.IsKind(SyntaxKind.LocalFunctionStatement));
+            }
+
             Debug.Assert(IsLambda(lambda));
             return lambda;
         }
@@ -54,10 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// See SyntaxNode.GetCorrespondingLambdaBody.
         /// </summary>
-        internal static SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
+        internal static SyntaxNode? TryGetCorrespondingLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
         {
-            var oldLambda = oldBody.Parent;
-            switch (oldLambda.Kind())
+            Debug.Assert(oldBody.Parent is object);
+
+            switch (newLambda.Kind())
             {
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -85,26 +100,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return IsReducedSelectOrGroupByClause(selectClause, selectClause.Expression) ? null : selectClause.Expression;
 
                 case SyntaxKind.JoinClause:
-                    var oldJoin = (JoinClauseSyntax)oldLambda;
+                    var oldJoin = (JoinClauseSyntax)oldBody.Parent;
                     var newJoin = (JoinClauseSyntax)newLambda;
                     Debug.Assert(oldJoin.LeftExpression == oldBody || oldJoin.RightExpression == oldBody);
                     return (oldJoin.LeftExpression == oldBody) ? newJoin.LeftExpression : newJoin.RightExpression;
 
                 case SyntaxKind.GroupClause:
-                    var oldGroup = (GroupClauseSyntax)oldLambda;
+                    var oldGroup = (GroupClauseSyntax)oldBody.Parent;
                     var newGroup = (GroupClauseSyntax)newLambda;
                     Debug.Assert(oldGroup.GroupExpression == oldBody || oldGroup.ByExpression == oldBody);
                     return (oldGroup.GroupExpression == oldBody) ?
                         (IsReducedSelectOrGroupByClause(newGroup, newGroup.GroupExpression) ? null : newGroup.GroupExpression) : newGroup.ByExpression;
 
                 case SyntaxKind.LocalFunctionStatement:
-                    var newLocalFunction = (LocalFunctionStatementSyntax)newLambda;
-                    return (SyntaxNode)newLocalFunction.Body ?? newLocalFunction.ExpressionBody;
+                    return GetLocalFunctionBody((LocalFunctionStatementSyntax)newLambda);
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(oldLambda.Kind());
+                    throw ExceptionUtilities.UnexpectedValue(newLambda.Kind());
             }
         }
+
+        public static SyntaxNode GetNestedFunctionBody(SyntaxNode nestedFunction)
+            => nestedFunction switch
+            {
+                AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax => anonymousFunctionExpressionSyntax.Body,
+                LocalFunctionStatementSyntax localFunctionStatementSyntax => (CSharpSyntaxNode?)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody!.Expression,
+                _ => throw ExceptionUtilities.UnexpectedValue(nestedFunction),
+            };
 
         public static bool IsNotLambdaBody(SyntaxNode node)
         {
@@ -132,7 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.LocalFunctionStatement:
                     var localFunction = (LocalFunctionStatementSyntax)parent;
-                    return localFunction.Body == node || localFunction.ExpressionBody == node;
+                    return localFunction.Body == node;
+
+                case SyntaxKind.ArrowExpressionClause:
+                    var arrowExpressionClause = (ArrowExpressionClauseSyntax)parent;
+                    return arrowExpressionClause.Expression == node && arrowExpressionClause.Parent is LocalFunctionStatementSyntax;
 
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)parent;
@@ -199,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken sourceIdentifier;
             QueryBodySyntax containingBody;
 
+            Debug.Assert(selectOrGroupClause.Parent!.Parent is object);
             var containingQueryOrContinuation = selectOrGroupClause.Parent.Parent;
             if (containingQueryOrContinuation.IsKind(SyntaxKind.QueryExpression))
             {
@@ -253,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If the specified node represents a lambda returns a node (or nodes) that represent its body (bodies).
         /// </summary>
-        public static bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode lambdaBody1, out SyntaxNode lambdaBody2)
+        public static bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? lambdaBody1, out SyntaxNode? lambdaBody2)
         {
             lambdaBody1 = null;
             lambdaBody2 = null;
@@ -320,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case SyntaxKind.LocalFunctionStatement:
-                    var localFunction = (LocalFunctionStatementSyntax)node;
-                    lambdaBody1 = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
+                    lambdaBody1 = GetLocalFunctionBody((LocalFunctionStatementSyntax)node);
                     return true;
             }
 
@@ -361,21 +387,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (node.Kind())
             {
+                case SyntaxKind.CompilationUnit:
                 case SyntaxKind.Block:
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.ArrowExpressionClause:  // expression-bodied member
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.UsingStatement:
 
                 // ctor parameter captured by a lambda in a ctor initializer
                 case SyntaxKind.ConstructorDeclaration:
-                    return true;
-
-                // With the introduction of pattern-matching, many nodes now contain top-level
-                // expressions that may introduce pattern variables.
-                case SyntaxKind.EqualsValueClause:
                     return true;
 
                 // Due to pattern-matching, any statement that contains an expression may introduce a scope.
@@ -386,14 +409,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.ReturnStatement:
-                case SyntaxKind.ThisConstructorInitializer:
-                case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.WhileStatement:
                 case SyntaxKind.YieldReturnStatement:
                     return true;
 
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                    // With dynamic analysis instrumentation, a type declaration can be the syntax associated
+                    // with the analysis payload local of a synthesized constructor.
+                    // If the synthesized constructor includes an initializer with a lambda,
+                    // that lambda needs a closure that captures the analysis payload of the constructor.
+                    return true;
+
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.AwaitExpression:
+                    // These translate into a BoundSpillSequence, which is then translated into a block
+                    // containing temps required for spilling subexpressions. That block has the syntax of the switch
+                    // expression or await expression.
+                    return true;
+
                 default:
+                    // With the introduction of pattern-matching, many nodes now contain top-level
+                    // expressions that may introduce pattern variables.
+                    if (node.Parent != null)
+                    {
+                        switch (node.Parent.Kind())
+                        {
+                            case SyntaxKind.EqualsValueClause:
+                                return true;
+
+                            case SyntaxKind.ForStatement:
+                                SeparatedSyntaxList<ExpressionSyntax> incrementors = ((ForStatementSyntax)node.Parent).Incrementors;
+                                if (incrementors.FirstOrDefault() == node)
+                                {
+                                    return true;
+                                }
+                                break;
+                        }
+                    }
+
                     break;
             }
 
@@ -409,6 +465,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Given a node that represents a variable declaration, lambda or a closure scope return the position to be used to calculate 
+        /// the node's syntax offset with respect to its containing member.
+        /// </summary>
+        internal static int GetDeclaratorPosition(SyntaxNode node)
+        {
+            // To differentiate between nested switch expressions that start at the same offset, use the offset of the `switch` keyword.
+            return (node is SwitchExpressionSyntax switchExpression) ? switchExpression.SwitchKeyword.SpanStart : node.SpanStart;
+        }
+
+        private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)
+        {
+            return (SyntaxNode?)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody!.Expression;
         }
     }
 }

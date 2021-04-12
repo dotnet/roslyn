@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _slot = slot;
         }
 
-        public Cci.IMetadataConstant CompileTimeValue
+        public MetadataConstant CompileTimeValue
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
@@ -35,9 +36,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags
+        public ImmutableArray<bool> DynamicTransformFlags
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return ImmutableArray<bool>.Empty; }
+        }
+
+        public ImmutableArray<string> TupleElementNames
+        {
+            get { return ImmutableArray<string>.Empty; }
         }
 
         /// <remarks>
@@ -45,8 +51,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// may be replaced by an interesting local in a later stage.
         /// </remarks>
         public LocalVariableAttributes PdbAttributes => LocalVariableAttributes.DebuggerHidden;
-
-        public bool IsDynamic => false;
 
         public bool IsPinned
         {
@@ -65,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Location Location => Location.None;
 
-        public string Name => null;
+        public string? Name => null;
 
         public int SlotIndex => _slot;
 

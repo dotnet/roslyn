@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -23,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.M")
@@ -53,7 +56,7 @@ End Class"
         End SyncLock
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M", atLineNumber:=999)
@@ -126,7 +129,7 @@ End Class"
     Sub M(o As Object)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -240,8 +243,8 @@ End Class"
         End SyncLock
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp, references:=Nothing, includeLocalSignatures:=False, validator:=
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp, references:=Nothing, includeLocalSignatures:=False, includeIntrinsicAssembly:=True, validator:=
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M", atLineNumber:=999)
 
@@ -294,7 +297,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -337,7 +340,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -385,7 +388,7 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.F", atLineNumber:=999)
@@ -467,7 +470,7 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.F", atLineNumber:=888)
@@ -545,7 +548,7 @@ Class C
         M(E.A)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugExe)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -598,7 +601,7 @@ Class P
         C(Of Object).M(Of String)()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugExe)
 
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -657,7 +660,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.M", atLineNumber:=999)
@@ -727,6 +730,7 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__2-1.$VB$Local_w As Integer""
   IL_0006:  ret
 }")
+                    locals.Free()
                 End Sub)
         End Sub
 
@@ -750,7 +754,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C._Closure$__2-0._Lambda$__1")
@@ -806,7 +810,17 @@ End Class
   IL_0000:  ldarg.1
   IL_0001:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(2), "<>m2", "y", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(2), "<>m2", "x", expectedILOpt:=
+"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C._Closure$__2-0 V_0, //$VB$Closure_0
+                Object V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C._Closure$__2-1.$VB$Local_x As Object""
+  IL_0006:  ret
+}")
+                    VerifyLocal(testData, typeName, locals(3), "<>m3", "y", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -816,15 +830,50 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__2-0.$VB$Local_y As Object""
   IL_0006:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(3), "<>m3", "x", expectedILOpt:=
+                    locals.Free()
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub CapturedLocalInNestedLambda()
+            Const source =
+"Imports System
+Class C
+    Shared Sub M()
+    End Sub
+    Shared Sub F(a As Action)
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim testData As New CompilationTestData()
+                    Dim errorMessage As String = Nothing
+                    context.CompileExpression(
+"F(Sub()
+        Dim x As Integer
+        Dim y As New Func(Of Integer)(Function() x)
+        y.Invoke()
+    End Sub)",
+                        errorMessage,
+                        testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
-  // Code size        7 (0x7)
-  .maxstack  1
-  .locals init (C._Closure$__2-0 V_0, //$VB$Closure_0
-                Object V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C._Closure$__2-1.$VB$Local_x As Object""
-  IL_0006:  ret
+  // Code size       42 (0x2a)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Action""
+  IL_0005:  brfalse.s  IL_000e
+  IL_0007:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Action""
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     ""<>x._Closure$__.$I As <>x._Closure$__""
+  IL_0013:  ldftn      ""Sub <>x._Closure$__._Lambda$__0-0()""
+  IL_0019:  newobj     ""Sub System.Action..ctor(Object, System.IntPtr)""
+  IL_001e:  dup
+  IL_001f:  stsfld     ""<>x._Closure$__.$I0-0 As System.Action""
+  IL_0024:  call       ""Sub C.F(System.Action)""
+  IL_0029:  ret
 }")
                 End Sub)
         End Sub
@@ -854,7 +903,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C._Closure$__._Lambda$__1-0")
@@ -865,7 +914,8 @@ End Class
 
                     Assert.Equal(locals.Count, 4)
 
-                    VerifyLocal(testData, typeName, locals(0), "<>m0", "x2", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "x1")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "x2", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -876,9 +926,8 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__1-0.$VB$Local_x2 As Object""
   IL_0006:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(1), "<>m1", "x3")
-                    VerifyLocal(testData, typeName, locals(2), "<>m2", "x4")
-                    VerifyLocal(testData, typeName, locals(3), "<>m3", "x1")
+                    VerifyLocal(testData, typeName, locals(2), "<>m2", "x3")
+                    VerifyLocal(testData, typeName, locals(3), "<>m3", "x4")
 
                     context = CreateMethodContext(runtime, methodName:="C._Closure$__1-0._Lambda$__1")
                     testData = New CompilationTestData()
@@ -888,7 +937,8 @@ End Class
 
                     Assert.Equal(locals.Count, 6)
 
-                    VerifyLocal(testData, typeName, locals(0), "<>m0", "y2", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "y1")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "y2", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -899,8 +949,7 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__1-1.$VB$Local_y2 As Object""
   IL_0006:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(1), "<>m1", "y3")
-                    VerifyLocal(testData, typeName, locals(2), "<>m2", "y1")
+                    VerifyLocal(testData, typeName, locals(2), "<>m2", "y3")
                     VerifyLocal(testData, typeName, locals(3), "<>m3", "x2")
                     VerifyLocal(testData, typeName, locals(4), "<>m4", "x3", expectedILOpt:=
 "{
@@ -923,7 +972,8 @@ End Class
 
                     Assert.Equal(locals.Count, 7)
 
-                    VerifyLocal(testData, typeName, locals(0), "<>m0", "z2", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "z1")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "z2", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -934,7 +984,6 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__1-2.$VB$Local_z2 As Object""
   IL_0006:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(1), "<>m1", "z1")
                     VerifyLocal(testData, typeName, locals(2), "<>m2", "y2")
                     VerifyLocal(testData, typeName, locals(3), "<>m3", "y3")
                     VerifyLocal(testData, typeName, locals(4), "<>m4", "x2")
@@ -1011,7 +1060,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C._Closure$__1-0._Lambda$__0")
@@ -1055,7 +1104,7 @@ Class A (Of T)
 End Class
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="A.B.M")
@@ -1200,7 +1249,7 @@ Class C(Of T As Class)
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C._Closure$__1-0._Lambda$__0")
@@ -1260,8 +1309,8 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_2_F.MoveNext", atLineNumber:=999)
                     Dim testData As New CompilationTestData()
@@ -1315,8 +1364,8 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_1_F.MoveNext", atLineNumber:=999)
                     Dim testData As New CompilationTestData()
@@ -1385,12 +1434,12 @@ Structure S(Of T As Class)
     End Function
 End Structure
 "
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
 
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="S.VB$StateMachine_2_F.MoveNext")
                     Dim testData As New CompilationTestData()
@@ -1476,12 +1525,12 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
 
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_2_M.MoveNext")
                     Dim testData As New CompilationTestData()
@@ -1530,6 +1579,7 @@ End Class
         <WorkItem(997613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997613")>
         <WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
+        <WorkItem(12219, "https://github.com/dotnet/roslyn/issues/12219")>
         <Fact>
         Public Sub AsyncAndLambda()
             Const source =
@@ -1552,7 +1602,7 @@ Class C
         Return x
     End Function
 End Class"
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
@@ -1567,7 +1617,7 @@ End Class"
                     Assert.Equal(2, locals.Count)
                     VerifyLocal(testData, typeName, locals(0), "<>m0", "x", expectedILOpt:=
 "{
-  // Code size        7 (0x7)
+  // Code size       12 (0xc)
   .maxstack  1
   .locals init (Integer V_0,
                 Integer V_1,
@@ -1576,8 +1626,9 @@ End Class"
                 C.VB$StateMachine_3_M V_4,
                 System.Exception V_5)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$Local_x As Integer""
-  IL_0006:  ret
+  IL_0001:  ldfld      ""C.VB$StateMachine_3_M.$VB$ResumableLocal_$VB$Closure_$0 As C._Closure$__3-0""
+  IL_0006:  ldfld      ""C._Closure$__3-0.$VB$Local_x As Integer""
+  IL_000b:  ret
 }")
                     VerifyLocal(testData, typeName, locals(1), "<>m1", "y", expectedILOpt:=
 "{
@@ -1611,12 +1662,12 @@ Class C
         End Function
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
 
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")
                     Dim testData As New CompilationTestData()
@@ -1663,8 +1714,8 @@ End Structure"
     Shared Sub M(a As A, b As B, c As C)
     End Sub
 End Class"
-            Dim comp0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll)
-            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll, references:={comp0.EmitToImageReference()})
+            Dim comp0 = CreateCompilationWithMscorlib40({source0}, options:=TestOptions.DebugDll, assemblyName:="Test")
+            Dim comp1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.DebugDll, references:={comp0.EmitToImageReference()}, assemblyName:="Test")
 
             ' no reference to compilation0
             WithRuntimeInstance(comp1, {MscorlibRef},
@@ -1697,7 +1748,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.M", atLineNumber:=999)
@@ -1732,7 +1783,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
 
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -1764,6 +1815,7 @@ End Class
   IL_0009:  newobj     ""Sub Date..ctor(Long)""
   IL_000e:  ret
 }")
+                    locals.Free()
                 End Sub)
         End Sub
 
@@ -1777,7 +1829,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -1803,6 +1855,7 @@ End Class
   IL_0006:  newobj     ""Sub Decimal..ctor(Integer, Integer, Integer, Boolean, Byte)""
   IL_000b:  ret
 }")
+                    locals.Free()
                 End Sub)
         End Sub
 
@@ -1816,7 +1869,7 @@ Class C
         Dim [Namespace] = ""NS""
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.M")
@@ -1906,7 +1959,7 @@ End Module
 }
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {TestMetadata.Net40.SystemCore, TestMetadata.Net40.MicrosoftVisualBasic}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "M.VB$StateMachine_0_F.MoveNext")
@@ -1946,7 +1999,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_1_I.MoveNext")
@@ -1966,6 +2019,7 @@ End Class
                     Dim typeVariablesType = DirectCast(method.ReturnType, NamedTypeSymbol)
                     Assert.Equal("T", typeVariablesType.TypeParameters.Single().Name)
                     Assert.Equal("T", typeVariablesType.TypeArguments.Single().Name)
+                    locals.Free()
                 End Sub)
         End Sub
 
@@ -1995,7 +2049,7 @@ Class C
         Yield local
     End Function
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim displayClassName As String
@@ -2080,7 +2134,7 @@ Class C
         Return local
     End Function
 End Class"
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, options:=TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim displayClassName As String
@@ -2151,7 +2205,7 @@ Class C
         Dim g As Func(Of T, T) = Function(ti) ti
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim displayClassName As String
@@ -2231,7 +2285,7 @@ Class C
         Return local 
     End Function
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim typeName As String = Nothing
@@ -2334,7 +2388,7 @@ Class C(Of T)
         Return x
     End Function
 End Class"
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, options:=TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim displayClassName As String
@@ -2422,7 +2476,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -2479,11 +2533,12 @@ Class C
         End Try
     End Function
 End Class"
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_2_M.MoveNext", atLineNumber:=999)
                     Dim testData = New CompilationTestData()
@@ -2538,11 +2593,11 @@ Class C
         Yield o
     End Function
 End Class"
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_2_M.MoveNext", atLineNumber:=999)
                     Dim testData = New CompilationTestData()
@@ -2605,8 +2660,8 @@ Class C
 End Class
 "
 
-            Dim libRef = CreateCompilationWithMscorlib({libSource}, options:=TestOptions.DebugDll).EmitToImageReference()
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, SystemRef}, TestOptions.DebugDll)
+            Dim libRef = CreateCompilationWithMscorlib40({libSource}, options:=TestOptions.DebugDll).EmitToImageReference()
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, SystemRef}, TestOptions.DebugDll)
 
             ' Referencing SystemCoreRef and SystemXmlLinqRef will cause Microsoft.VisualBasic.Embedded to be compiled
             ' and it depends on EditorBrowsableAttribute.
@@ -2638,7 +2693,7 @@ Class C
         Await F(Sub() G(s))
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
@@ -2694,11 +2749,11 @@ Class C
 #End ExternalSource
 End Class
 "
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 MakeSources(source),
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, methodName:="C.VB$StateMachine_1_M.MoveNext", atLineNumber:=999)
                     Dim testData As New CompilationTestData()
@@ -2763,7 +2818,7 @@ End Class
 }
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
 
@@ -2864,7 +2919,7 @@ End Class
 }
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
 
@@ -2951,7 +3006,7 @@ End Class
 }
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
 
@@ -3033,7 +3088,7 @@ End Class
 }
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
 
@@ -3094,7 +3149,7 @@ End Class
 }
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
 
@@ -3145,7 +3200,7 @@ End Class
 }
 "
 
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {SystemCoreRef, MsvbRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
 
@@ -3176,7 +3231,7 @@ Module Module1
         Const a = 1
     End Sub
 End Module"
-            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {MsvbRef}, options:=TestOptions.DebugExe)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim badConst = New MockSymUnmanagedConstant(
@@ -3184,7 +3239,7 @@ End Module"
                         1,
                         Function(bufferLength As Integer, ByRef count As Integer, name() As Byte)
                             count = 0
-                            Return DiaSymReader.SymUnmanagedReaderExtensions.E_NOTIMPL
+                            Return HResult.E_NOTIMPL
                         End Function)
 
                     Dim debugInfo = New MethodDebugInfoBytes.Builder(constants:={badConst}).Build()
@@ -3192,6 +3247,78 @@ End Module"
 
                     GetLocals(runtime, "Module1.Main", debugInfo, locals, count:=0)
 
+                    locals.Free()
+                End Sub)
+        End Sub
+
+        <WorkItem(298297, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=298297")>
+        <Fact>
+        Public Sub OrderOfArguments_ArgumentsOnly()
+            Const source = "
+Imports System.Collections.Generic
+Class C
+    Iterator Shared Function F(y As Object, x As Object) As IEnumerable(Of Object)
+        Yield x
+    #ExternalSource(""test"", 999)
+        DummySequencePoint()
+    #End ExternalSource
+        Yield y
+    End Function
+
+    Shared Sub DummySequencePoint()
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib40({source}, {MsvbRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context As EvaluationContext
+                    context = CreateMethodContext(runtime, "C.VB$StateMachine_1_F.MoveNext", atLineNumber:=999)
+                    Dim unused As String = Nothing
+                    Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+                    context.CompileGetLocals(locals, argumentsOnly:=True, typeName:=unused, testData:=Nothing)
+                    Assert.Equal(2, locals.Count)
+                    ' The order must confirm the order of the arguments in the method signature.
+                    Dim typeName As String = Nothing
+                    Dim testData As CompilationTestData = Nothing
+                    Assert.Equal("y", locals(0).LocalName)
+                    Assert.Equal("x", locals(1).LocalName)
+                    locals.Free()
+                End Sub)
+        End Sub
+
+        ''' <summary>
+        ''' CompileGetLocals should skip locals with errors.
+        ''' </summary>
+        <WorkItem(535899, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=535899")>
+        <Fact>
+        Public Sub SkipPseudoVariablesWithUseSiteErrors()
+            Const source =
+"Class C
+    Shared Sub M(x As Object)
+        Dim y As Object
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim aliases = ImmutableArray.Create(ReturnValueAlias(1, "UnknownType, UnknownAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"))
+                    Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+                    Dim typeName As String = Nothing
+                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim testData = New CompilationTestData()
+                    context.CompileGetLocals(
+                        locals,
+                        argumentsOnly:=False,
+                        aliases:=aliases,
+                        diagnostics:=diagnostics,
+                        typeName:=typeName,
+                        testData:=testData)
+                    diagnostics.Verify()
+                    diagnostics.Free()
+                    Assert.Equal(2, locals.Count)
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "x")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "y")
                     locals.Free()
                 End Sub)
         End Sub
@@ -3223,8 +3350,8 @@ End Module"
                 {
                     {methodToken, debugInfo}
                 }.ToImmutableDictionary())
-            Dim context = EvaluationContext.CreateMethodContext(
-                Nothing,
+            Dim context = CreateMethodContext(
+                New AppDomain(),
                 blocks,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
@@ -3232,7 +3359,8 @@ End Module"
                 methodToken,
                 methodVersion:=1,
                 ilOffset:=0,
-                localSignatureToken:=localSignatureToken)
+                localSignatureToken:=localSignatureToken,
+                kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
             Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=Nothing, testData:=Nothing)
 

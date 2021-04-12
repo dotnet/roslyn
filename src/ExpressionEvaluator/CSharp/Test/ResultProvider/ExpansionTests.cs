@@ -1,7 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -57,9 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Verify(FormatResult("new Decimal()", CreateDkmClrValue(new Decimal())), EvalResult("new Decimal()", "0", "decimal", "new Decimal()", editableValue: "0M"));
             // System.DateTime
             // Set currentCulture to en-US for the test to pass in all locales
-            using (new CultureContext("en-US"))
+            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
-                Verify(FormatResult("new DateTime()", CreateDkmClrValue(new DateTime())), EvalResult("new DateTime()", "{1/1/0001 12:00:00 AM}", "System.DateTime", "new DateTime()", DkmEvaluationResultFlags.Expandable));
+                // Skipped due to https://github.com/dotnet/roslyn/issues/21944
+                //Verify(FormatResult("new DateTime()", CreateDkmClrValue(new DateTime())), EvalResult("new DateTime()", "{1/1/0001 12:00:00 AM}", "System.DateTime", "new DateTime()", DkmEvaluationResultFlags.Expandable));
             }
 
             // System.String
@@ -106,12 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             }
 
             Verify(resultsBuilder.ToArrayAndFree(),
-                EvalResult("F1", "null", "object", "(new C()).F1"),
-                EvalResult("F2", "null", "object", "(new C()).F2"),
-                EvalResult("F3", "null", "object", "(new C()).F3"),
-                EvalResult("P1", "null", "object", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P2", "null", "object", "(new C()).P2", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P3", "null", "object", "(new C()).P3", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F1", "null", "object", "(new C()).F1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F2", "null", "object", "(new C()).F2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F3", "null", "object", "(new C()).F3", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P1", "null", "object", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P2", "null", "object", "(new C()).P2", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P3", "null", "object", "(new C()).P3", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         /// <summary>
@@ -149,10 +155,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             builder.AddRange(GetItems(enumContext, 2, 0));
 
             Verify(builder.ToArrayAndFree(),
-                EvalResult("P1", "null", "object", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P2", "null", "object", "(new C()).P2", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("F2", "null", "object", "(new C()).F2"),
-                EvalResult("F2", "null", "object", "(new C()).F2"));
+                EvalResult("P1", "null", "object", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P2", "null", "object", "(new C()).P2", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F2", "null", "object", "(new C()).F2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F2", "null", "object", "(new C()).F2", DkmEvaluationResultFlags.CanFavorite));
         }
 
         /// <summary>
@@ -176,12 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var evalResult = FormatResult("o", value);
             DkmEvaluationResultEnumContext enumContext;
             var children = GetChildren(evalResult, 100, null, out enumContext);
-            Assert.Equal(enumContext.Count, 4);
+            Assert.Equal(4, enumContext.Count);
             Verify(children,
-                EvalResult("F1", "null", "object", "o.F1"),
-                EvalResult("F2", "null", "object", "o.F2"),
-                EvalResult("F3", "null", "object", "o.F3"),
-                EvalResult("F4", "null", "object", "o.F4"));
+                EvalResult("F1", "null", "object", "o.F1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F2", "null", "object", "o.F2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F3", "null", "object", "o.F3", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F4", "null", "object", "o.F4", DkmEvaluationResultFlags.CanFavorite));
         }
 
         /// <summary>
@@ -205,12 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var evalResult = FormatResult("o", value);
             DkmEvaluationResultEnumContext enumContext;
             var children = GetChildren(evalResult, 0, null, out enumContext);
-            Assert.Equal(enumContext.Count, 4);
+            Assert.Equal(4, enumContext.Count);
             Verify(children);
             children = GetItems(enumContext, 2, 4);
             Verify(children,
-                EvalResult("F3", "null", "object", "o.F3"),
-                EvalResult("F4", "null", "object", "o.F4"));
+                EvalResult("F3", "null", "object", "o.F3", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("F4", "null", "object", "o.F4", DkmEvaluationResultFlags.CanFavorite));
             children = GetItems(enumContext, 4, 1);
             Verify(children);
             children = GetItems(enumContext, 6, 2);
@@ -239,9 +245,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("c", "null", "C", "(new C()).c"),
-                EvalResult("o", "null", "object", "(new C()).o"),
-                EvalResult("s", "null", "string", "(new C()).s"));
+                EvalResult("c", "null", "C", "(new C()).c", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("o", "null", "object", "(new C()).o", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("s", "null", "string", "(new C()).s", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -277,16 +283,16 @@ class P
                 EvalResult(rootExpr, "{P}", "P", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("a", "{C}", "A {C}", "(new P()).a", DkmEvaluationResultFlags.Expandable),
-                EvalResult("b", "{C}", "B {C}", "(new P()).b", DkmEvaluationResultFlags.Expandable),
-                EvalResult("c", "{C}", "C", "(new P()).c", DkmEvaluationResultFlags.Expandable),
-                EvalResult("o", "{C}", "object {C}", "(new P()).o", DkmEvaluationResultFlags.Expandable));
+                EvalResult("a", "{C}", "A {C}", "(new P()).a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("b", "{C}", "B {C}", "(new P()).b", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("c", "{C}", "C", "(new P()).c", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("o", "{C}", "object {C}", "(new P()).o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
 
             // B b = new C();
             Verify(GetChildren(children[1]),
-                EvalResult("F", "null", "object", "(new P()).b.F"),
-                EvalResult("P", "null", "object", "(new P()).b.P", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("Q", "null", "object", "(new P()).b.Q", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "null", "object", "(new P()).b.F", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P", "null", "object", "(new P()).b.P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Q", "null", "object", "(new P()).b.Q", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -319,10 +325,10 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("a", "{B}", "IA {B}", "(new C()).a", DkmEvaluationResultFlags.Expandable));
+                EvalResult("a", "{B}", "IA {B}", "(new C()).a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             children = GetChildren(children[0]);
             Verify(children,
-                EvalResult("F", "4", "object {int}", "((A)(new C()).a).F"));
+                EvalResult("F", "4", "object {int}", "((A)(new C()).a).F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -352,7 +358,7 @@ class C : I<I<string>>
             var children = GetChildren(evalResult, 2, null, out enumContext);
             Verify(children,
                 EvalResult("I<I<string>>.P2", "2", "int", "((I<I<string>>)(new C())).P2", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P1", "1", "int", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P1", "1", "int", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -384,7 +390,7 @@ class C : I<bool>, I<char>
             Verify(children,
                 EvalResult("I<bool>.P2", "2", "int", "((I<bool>)(new C())).P2", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("I<char>.P2", "3", "int", "((I<char>)(new C())).P2", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P1", "1", "int", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P1", "1", "int", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -444,7 +450,7 @@ class C : I<bool>, I<char>
             DkmEvaluationResultEnumContext enumContext;
             var children = GetChildren(evalResult, 3, null, out enumContext);
             Verify(children,
-                EvalResult("Q", "1", "int", "(new C()).Q", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("Q", "1", "int", "(new C()).Q", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -472,9 +478,9 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("a", "{B}", "A {B}", "(new C()).a", DkmEvaluationResultFlags.None),
-                EvalResult("b", "{B}", "B", "(new C()).b", DkmEvaluationResultFlags.None),
-                EvalResult("o", "{B}", "object {B}", "(new C()).o", DkmEvaluationResultFlags.None));
+                EvalResult("a", "{B}", "A {B}", "(new C()).a", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("b", "{B}", "B", "(new C()).b", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("o", "{B}", "object {B}", "(new C()).o", DkmEvaluationResultFlags.CanFavorite));
 
             // A a = new B();
             var more = GetChildren(children[0]);
@@ -512,24 +518,24 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("o", "{S}", "object {S}", "(new C()).o", DkmEvaluationResultFlags.Expandable),
-                EvalResult("s", "{S}", "S", "(new C()).s", DkmEvaluationResultFlags.Expandable),
-                EvalResult("v", "{S}", "System.ValueType {S}", "(new C()).v", DkmEvaluationResultFlags.Expandable));
+                EvalResult("o", "{S}", "object {S}", "(new C()).o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("s", "{S}", "S", "(new C()).s", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("v", "{S}", "System.ValueType {S}", "(new C()).v", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
 
             // object o = new S();
             var more = GetChildren(children[0]);
             Verify(more,
-                EvalResult("F", "null", "object", "((S)(new C()).o).F"));
+                EvalResult("F", "null", "object", "((S)(new C()).o).F", DkmEvaluationResultFlags.CanFavorite));
 
             // S s = new S();
             more = GetChildren(children[1]);
             Verify(more,
-                EvalResult("F", "null", "object", "(new C()).s.F"));
+                EvalResult("F", "null", "object", "(new C()).s.F", DkmEvaluationResultFlags.CanFavorite));
 
             // System.ValueType v = new S();
             more = GetChildren(children[2]);
             Verify(more,
-                EvalResult("F", "null", "object", "((S)(new C()).v).F"));
+                EvalResult("F", "null", "object", "((S)(new C()).v).F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -576,10 +582,10 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("e", "B", "E", "(new C()).e", editableValue: "E.B"),
-                EvalResult("f", "0", "F", "(new C()).f", editableValue: "0"),
-                EvalResult("g", "else | fi", "if", "(new C()).g", editableValue: "@if.@else | @if.fi"),
-                EvalResult("h", "5", "if", "(new C()).h", editableValue: "5"));
+                EvalResult("e", "B", "E", "(new C()).e", DkmEvaluationResultFlags.CanFavorite, editableValue: "E.B"),
+                EvalResult("f", "0", "F", "(new C()).f", DkmEvaluationResultFlags.CanFavorite, editableValue: "0"),
+                EvalResult("g", "else | fi", "if", "(new C()).g", DkmEvaluationResultFlags.CanFavorite, editableValue: "@if.@else | @if.fi"),
+                EvalResult("h", "5", "if", "(new C()).h", DkmEvaluationResultFlags.CanFavorite, editableValue: "5"));
         }
 
         [Fact]
@@ -613,18 +619,52 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("e1", "A", "E?", "(new C()).e1", editableValue: "E.A"),
-                EvalResult("e2", "null", "E?", "(new C()).e2"),
-                EvalResult("o1", "{S}", "object {S}", "(new C()).o1", DkmEvaluationResultFlags.Expandable),
-                EvalResult("o2", "null", "object", "(new C()).o2"),
-                EvalResult("s1", "{S}", "S?", "(new C()).s1", DkmEvaluationResultFlags.Expandable),
-                EvalResult("s2", "null", "S?", "(new C()).s2"));
+                EvalResult("e1", "A", "E?", "(new C()).e1", DkmEvaluationResultFlags.CanFavorite, editableValue: "E.A"),
+                EvalResult("e2", "null", "E?", "(new C()).e2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("o1", "{S}", "object {S}", "(new C()).o1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("o2", "null", "object", "(new C()).o2", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("s1", "{S}", "S?", "(new C()).s1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("s2", "null", "S?", "(new C()).s2", DkmEvaluationResultFlags.CanFavorite));
             // object o1 = new System.Nullable<S>(default(S));
             Verify(GetChildren(children[2]),
-                EvalResult("F", "null", "object", "((S)(new C()).o1).F"));
+                EvalResult("F", "null", "object", "((S)(new C()).o1).F", DkmEvaluationResultFlags.CanFavorite));
             // S? s1 = new S();
             Verify(GetChildren(children[4]),
-                EvalResult("F", "1", "object {int}", "(new C()).s1.F"));
+                EvalResult("F", "1", "object {int}", "(new C()).s1.F", DkmEvaluationResultFlags.CanFavorite));
+        }
+
+        [Fact]
+        public void NullableProperty()
+        {
+            var source =
+@"
+class R
+{
+    public int? A { get; set; }
+    public int? B { get; set; }
+}
+class C
+{
+    R r = new R();
+    public C()
+    {
+        r.A = 1;
+        r.B = null;
+    }
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("C");
+            var value = CreateDkmClrValue(Activator.CreateInstance(type));
+            var rootExpr = "new C()";
+            var evalResult = FormatResult(rootExpr, value);
+            Verify(evalResult,
+                EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("r", "{R}", "R", "(new C()).r", flags: DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
+            Verify(GetChildren(children[0]),
+                EvalResult("A", "1", "int?", "(new C()).r.A", flags: DkmEvaluationResultFlags.CanFavorite, category: DkmEvaluationResultCategory.Property),
+                EvalResult("B", "null", "int?", "(new C()).r.B", flags: DkmEvaluationResultFlags.CanFavorite, category: DkmEvaluationResultCategory.Property));
         }
 
         [Fact]
@@ -665,8 +705,8 @@ class C
         /// This tests the managed address-of functionality.  When you take the address
         /// of a managed object, what you get back is an IntPtr*.  As in dev12, this
         /// exposes two pointers, the one to the IntPtr and the one to the actual data
-        /// (in the IntPtr).  For example, if you have a string "str", then "&str" yields
-        /// an IntPtr*.  The pointer is to the "string&" (typed as IntPtr, since Roslyn
+        /// (in the IntPtr).  For example, if you have a string "str", then "&amp;str" yields
+        /// an IntPtr*.  The pointer is to the "string&amp;" (typed as IntPtr, since Roslyn
         /// doesn't have a representation for reference types) and the IntPtr is a pointer
         /// to the actual string object on the heap.
         /// </summary>
@@ -707,11 +747,47 @@ unsafe class C
                 string fullName = string.Format("*({0}).p", rootExpr);
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult(fullName, "{4}", "System.IntPtr", fullName, DkmEvaluationResultFlags.Expandable));
+                    EvalResult(fullName, IntPtr.Size == 8 ? "0x0000000000000004" : "0x00000004", "System.IntPtr", fullName, DkmEvaluationResultFlags.None));
+            }
+        }
+
+        [Fact]
+        public void UIntPtrPointer()
+        {
+            var source = @"
+using System;
+
+unsafe class C
+{
+    internal C(ulong p)
+    {
+        this.p = (UIntPtr*)p;
+    }
+    UIntPtr* p;
+    UIntPtr* q;
+}";
+            var assembly = GetUnsafeAssembly(source);
+            unsafe
+            {
+                // NOTE: We're depending on endian-ness to put
+                // the interesting bytes first when we run this
+                // test as 32-bit.
+                ulong i = 4;
+                ulong p = (ulong)&i;
+                var type = assembly.GetType("C");
+                var rootExpr = string.Format("new C({0})", p);
+                var value = CreateDkmClrValue(type.Instantiate(p));
+                var evalResult = FormatResult(rootExpr, value);
+                Verify(evalResult,
+                    EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("p", PointerToString(new UIntPtr(p)), "System.UIntPtr*", string.Format("({0}).p", rootExpr), DkmEvaluationResultFlags.Expandable),
+                    EvalResult("q", PointerToString(UIntPtr.Zero), "System.UIntPtr*", string.Format("({0}).q", rootExpr)));
+                string fullName = string.Format("*({0}).p", rootExpr);
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult("m_value", PointerToString(new IntPtr(i)), "void*", string.Format("({0}).m_value", fullName)),
-                    EvalResult("Static members", null, "", "System.IntPtr", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+                    EvalResult(fullName, UIntPtr.Size == 8 ? "0x0000000000000004" : "0x00000004", "System.UIntPtr", fullName, DkmEvaluationResultFlags.None));
             }
         }
 
@@ -846,11 +922,11 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("a", "null", "A", "(new C()).a", DkmEvaluationResultFlags.Expandable),
-                EvalResult("b", "null", "B", "(new C()).b", DkmEvaluationResultFlags.Expandable),
-                EvalResult("e", "B", "E", "(new C()).e", editableValue: "E.B"),
-                EvalResult("s", "{S}", "S", "(new C()).s", DkmEvaluationResultFlags.Expandable),
-                EvalResult("sn", "null", "S?", "(new C()).sn"));
+                EvalResult("a", "null", "A", "(new C()).a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("b", "null", "B", "(new C()).b", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("e", "B", "E", "(new C()).e", DkmEvaluationResultFlags.CanFavorite, editableValue: "E.B"),
+                EvalResult("s", "{S}", "S", "(new C()).s", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("sn", "null", "S?", "(new C()).sn", DkmEvaluationResultFlags.CanFavorite));
 
             // A a = default(A);
             var more = GetChildren(children[0]);
@@ -899,7 +975,7 @@ class P
                 EvalResult(rootExpr, "{P}", "P", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("b", "{C}", "B {C}", "(new P()).b", DkmEvaluationResultFlags.Expandable));
+                EvalResult("b", "{C}", "B {C}", "(new P()).b", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             children = GetChildren(children[0]);
             Verify(children,
                 EvalResult("Static members", null, "", "C", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
@@ -954,7 +1030,7 @@ class D
                 evalResult,
                 inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(children,
-                EvalResult("F", "{C}", "C", "o.F", DkmEvaluationResultFlags.None));
+                EvalResult("F", "{C}", "C", "o.F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1000,7 +1076,7 @@ internal class P
                 evalResult,
                 inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.NoExpansion));
             Verify(children,
-                EvalResult("F", "{C}", "C", "o.F", DkmEvaluationResultFlags.None));
+                EvalResult("F", "{C}", "C", "o.F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1072,7 +1148,7 @@ class B
                 EvalResult("F", "{B}", "object {B}", "A.F", DkmEvaluationResultFlags.Expandable));
             children = GetChildren(children[0]);
             Verify(children,
-                EvalResult("G", "1", "object {int}", "((B)A.F).G"));
+                EvalResult("G", "1", "object {int}", "((B)A.F).G", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1099,8 +1175,8 @@ class C : N.B
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("i", "0", "int", "(new C()).i"),
-                EvalResult("j", "0", "int", "(new C()).j"));
+                EvalResult("i", "0", "int", "(new C()).i", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("j", "0", "int", "(new C()).j", DkmEvaluationResultFlags.CanFavorite));
         }
 
         /// <summary>
@@ -1152,21 +1228,21 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("a", "{A}", "A", "(new C()).a", DkmEvaluationResultFlags.Expandable),
-                EvalResult("b", "{B}", "B", "(new C()).b", DkmEvaluationResultFlags.Expandable));
+                EvalResult("a", "{A}", "A", "(new C()).a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("b", "{B}", "B", "(new C()).b", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
 
             // A a = new A();
             var more = GetChildren(children[0]);
             Verify(more,
                 EvalResult("I.M4", "4", "int", "((I)(new C()).a).M4", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("M1", "0", "int", "(new C()).a.M1"),
-                EvalResult("M2", "8", "int", "(new C()).a.M2", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("M3", "7", "int", "(new C()).a.M3", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("M7", "5", "int", "(new C()).a.M7", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("m0", "1", "int", "(new C()).a.m0"),
-                EvalResult("m4", "3", "int", "(new C()).a.m4"),
-                EvalResult("m5", "2", "int", "(new C()).a.m5"),
-                EvalResult("m6", "6", "int", "(new C()).a.m6", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("M1", "0", "int", "(new C()).a.M1", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("M2", "8", "int", "(new C()).a.M2", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("M3", "7", "int", "(new C()).a.M3", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("M7", "5", "int", "(new C()).a.M7", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m0", "1", "int", "(new C()).a.m0", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m4", "3", "int", "(new C()).a.m4", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m5", "2", "int", "(new C()).a.m5", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m6", "6", "int", "(new C()).a.m6", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             // B b = new B();
             more = GetChildren(children[1]);
@@ -1259,9 +1335,9 @@ class C
                 EvalResult(rootExpr, "{A}", "A", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("1<>", "null", "object", fullName: null),
-                EvalResult("@", "null", "object", fullName: null),
-                EvalResult("CS<>7__8", "null", "object", fullName: null),
+                EvalResult("1<>", "null", "object", fullName: null, DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("@", "null", "object", fullName: null, DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("CS<>7__8", "null", "object", fullName: null, DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
             children = GetChildren(children[children.Length - 1]);
             Verify(children,
@@ -1276,9 +1352,9 @@ class C
                 EvalResult(rootExpr, "{B}", "B", rootExpr, DkmEvaluationResultFlags.Expandable));
             children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("1<>", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("@", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("VB<>7__8", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("1<>", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("@", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("VB<>7__8", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Static members", null, "", "B", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
             children = GetChildren(children[children.Length - 1]);
             Verify(children,
@@ -1341,21 +1417,21 @@ class C
 
             var children = GetChildren(FormatResult("c", CreateDkmClrValue(instanceC)));
             Verify(children,
-                EvalResult("a", "{B}", "A {B}", "c.a", DkmEvaluationResultFlags.Expandable),
-                EvalResult("b", "{B}", "B", "c.b", DkmEvaluationResultFlags.Expandable),
-                EvalResult("o", "{B}", "object {B}", "c.o", DkmEvaluationResultFlags.Expandable));
+                EvalResult("a", "{B}", "A {B}", "c.a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("b", "{B}", "B", "c.b", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("o", "{B}", "object {B}", "c.o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(children[0]), // as A
-                EvalResult("F", "1", "object {int}", "c.a.F"),
-                EvalResult("P", "1", "object {int}", "((B)c.a).P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "1", "object {int}", "c.a.F", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P", "1", "object {int}", "((B)c.a).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(children[1]), // as B
-                EvalResult("F", "2", "object {int}", "c.b.F"),
-                EvalResult("P", "2", "object {int}", "c.b.P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "2", "object {int}", "c.b.F", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P", "2", "object {int}", "c.b.P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(children[2]), // as object
-                EvalResult("F", "3", "object {int}", "((A)c.o).F"),
-                EvalResult("P", "3", "object {int}", "((B)c.o).P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "3", "object {int}", "((A)c.o).F", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P", "3", "object {int}", "((B)c.o).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
@@ -1394,30 +1470,30 @@ class C
 
             var children = GetChildren(FormatResult("c", CreateDkmClrValue(instanceC)));
             Verify(children,
-                EvalResult("a", "{A[1]}", "A[]", "c.a", DkmEvaluationResultFlags.Expandable),
-                EvalResult("b", "{B[1]}", "B[]", "c.b", DkmEvaluationResultFlags.Expandable),
-                EvalResult("i", "{I[1]}", "I[]", "c.i", DkmEvaluationResultFlags.Expandable),
-                EvalResult("o", "{object[1]}", "object[]", "c.o", DkmEvaluationResultFlags.Expandable));
+                EvalResult("a", "{A[1]}", "A[]", "c.a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("b", "{B[1]}", "B[]", "c.b", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("i", "{I[1]}", "I[]", "c.i", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("o", "{object[1]}", "object[]", "c.o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(GetChildren(children[0]).Single()), // as A[]
-                EvalResult("F", "1", "object {int}", "c.a[0].F"),
+                EvalResult("F", "1", "object {int}", "c.a[0].F", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("I.Q", "0", "int", "((I)c.a[0]).Q"),
-                EvalResult("P", "1", "object {int}", "((B)c.a[0]).P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P", "1", "object {int}", "((B)c.a[0]).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(GetChildren(children[1]).Single()), // as B[]
-                EvalResult("F", "2", "object {int}", "c.b[0].F"),
+                EvalResult("F", "2", "object {int}", "c.b[0].F", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("I.Q", "0", "int", "((I)c.b[0]).Q"),
-                EvalResult("P", "2", "object {int}", "c.b[0].P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P", "2", "object {int}", "c.b[0].P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(GetChildren(children[2]).Single()), // as I[]
-                EvalResult("F", "3", "object {int}", "((A)c.i[0]).F"),
+                EvalResult("F", "3", "object {int}", "((A)c.i[0]).F", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("I.Q", "0", "int", "c.i[0].Q"),
-                EvalResult("P", "3", "object {int}", "((B)c.i[0]).P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P", "3", "object {int}", "((B)c.i[0]).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(GetChildren(children[3]).Single()), // as object[]
-                EvalResult("F", "4", "object {int}", "((A)c.o[0]).F"),
+                EvalResult("F", "4", "object {int}", "((A)c.o[0]).F", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("I.Q", "0", "int", "((I)c.o[0]).Q"),
-                EvalResult("P", "4", "object {int}", "((B)c.o[0]).P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P", "4", "object {int}", "((B)c.o[0]).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
@@ -1444,7 +1520,7 @@ class C
 
             var children = GetChildren(FormatResult("c", CreateDkmClrValue(instanceC)));
             Verify(children,
-                EvalResult("a", "{A}", "A", "c.a", DkmEvaluationResultFlags.Expandable));
+                EvalResult("a", "{A}", "A", "c.a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
 
             children = GetChildren(children[0]);
             Verify(children,
@@ -1456,7 +1532,7 @@ class C
 
             children = GetChildren(children[0]);
             Verify(children,
-                EvalResult("G", "1", "object {int}", "((B)A.F).G"));
+                EvalResult("G", "1", "object {int}", "((B)A.F).G", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
@@ -1483,8 +1559,8 @@ struct S
 
             var children = GetChildren(FormatResult("s", CreateDkmClrValue(value)));
             Verify(children,
-                EvalResult("This", "'s.This' threw an exception of type 'System.Exception'", "S {System.Exception}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
-                EvalResult("x", "0", "int", "s.x"));
+                EvalResult("This", "'s.This' threw an exception of type 'System.Exception'", "S {System.Exception}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(933845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933845")]
@@ -1527,8 +1603,8 @@ class EProxy
 
             var children = GetChildren(FormatResult("s", CreateDkmClrValue(value)));
             Verify(children,
-                EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
-                EvalResult("x", "0", "int", "s.x"));
+                EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
 
             children = GetChildren(children[0]);
             Verify(children,
@@ -1561,7 +1637,7 @@ struct S
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("S");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var children = GetChildren(FormatResult("s", value));
                     Verify(children,
                         EvalResult(
@@ -1569,8 +1645,8 @@ struct S
                             "'s.This' threw an exception of type 'System.NullReferenceException'",
                             "S {System.NullReferenceException}",
                             "s.This",
-                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
-                        EvalResult("x", "0", "int", "s.x"));
+                            DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
+                        EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
 
                     // NOTE: The real EE will show only the exception message, but our mock does not support autoexp.
                     children = GetChildren(children[0]);
@@ -1609,11 +1685,11 @@ class E : System.Exception
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("S");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var children = GetChildren(FormatResult("s", value));
                     Verify(children,
-                        EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
-                        EvalResult("x", "0", "int", "s.x"));
+                        EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
+                        EvalResult("x", "0", "int", "s.x", DkmEvaluationResultFlags.CanFavorite));
                     children = GetChildren(children[0]);
                     Verify(children[6],
                         EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
@@ -1651,9 +1727,9 @@ class E : System.Exception
             {
                 var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib());
                 var type = runtime.GetType(typeof(NullReferenceException));
-                var value = CreateDkmClrValue(
-                    type.Instantiate(),
-                    type: type,
+                var value = type.Instantiate(
+                    new object[0],
+                    alias: null,
                     evalFlags: DkmEvaluationResultFlags.ExceptionThrown);
                 var evalResult = FormatResult("c?.str.Length", value, runtime.GetType(typeof(int?)));
                 Verify(evalResult,
@@ -1697,7 +1773,7 @@ class E : System.Exception
                     "'c.P' threw an exception of type 'System.NullReferenceException'",
                     "int? {System.NullReferenceException}",
                     "c.P",
-                    DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown));
+                    DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1765,9 +1841,9 @@ class C
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("d", "1", "object {decimal}", "o.d", editableValue: "1M"),
-                EvalResult("e", "A | B", "System.ValueType {E}", "o.e", DkmEvaluationResultFlags.None, editableValue: "E.A | E.B"),
-                EvalResult("s", "\"\"", "System.Collections.Generic.IEnumerable<char> {string}", "o.s", DkmEvaluationResultFlags.RawString, editableValue: "\"\""));
+                EvalResult("d", "1", "object {decimal}", "o.d", DkmEvaluationResultFlags.CanFavorite, editableValue: "1M"),
+                EvalResult("e", "A | B", "System.ValueType {E}", "o.e", DkmEvaluationResultFlags.CanFavorite, editableValue: "E.A | E.B"),
+                EvalResult("s", "\"\"", "System.Collections.Generic.IEnumerable<char> {string}", "o.s", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.CanFavorite, editableValue: "\"\""));
         }
 
         [WorkItem(965892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965892")]
@@ -1787,6 +1863,21 @@ class B : A { }
                 EvalResult("a", "{B}", "A {B}", "a", DkmEvaluationResultFlags.None));
             var children = GetChildren(evalResult);
             Verify(children);
+        }
+
+        [Fact]
+        public void DeclaredTypeAndRuntimeTypeDifferByCase()
+        {
+            var source =
+@"class Object { }";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var value = runtime.GetType("Object").Instantiate();
+                var evalResult = FormatResult("o", value, declaredType: runtime.GetType("System.Object"));
+                Verify(evalResult,
+                    EvalResult("o", "{Object}", "object {Object}", "o", DkmEvaluationResultFlags.None));
+            }
         }
 
         /// <summary>
@@ -1813,14 +1904,14 @@ class C
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("C");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var evalResult = FormatResult("o", value);
                     Verify(evalResult,
                         EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
                     var children = GetChildren(evalResult);
                     Verify(children,
-                        EvalResult("P", "'o.P' threw an exception of type 'E'", "object {E}", "o.P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
-                        EvalResult("Q", "{E: Exception of type 'E' was thrown.}", "object {E}", "o.Q", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                        EvalResult("P", "'o.P' threw an exception of type 'E'", "object {E}", "o.P", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
+                        EvalResult("Q", "{E: Exception of type 'E' was thrown.}", "object {E}", "o.Q", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
                     var moreChildren = GetChildren(children[0]);
                     Verify(moreChildren[1],
                         EvalResult("F", "1", "object {int}", null));
@@ -1828,9 +1919,9 @@ class C
                         EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", null, DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
                     moreChildren = GetChildren(children[1]);
                     Verify(moreChildren[1],
-                        EvalResult("F", "2", "object {int}", "((E)o.Q).F"));
+                        EvalResult("F", "2", "object {int}", "((E)o.Q).F", DkmEvaluationResultFlags.CanFavorite));
                     Verify(moreChildren[7],
-                        EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", "((System.Exception)o.Q).Message", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
+                        EvalResult("Message", "\"Exception of type 'E' was thrown.\"", "string", "((System.Exception)o.Q).Message", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
                 }
             }
         }
@@ -1862,10 +1953,10 @@ class C
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("RO1", "'o.RO1' threw an exception of type 'RO'", "object {RO}", "o.RO1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
-                EvalResult("RO2", "'o.RO2' threw an exception of type 'RW'", "object {RW}", "o.RO2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
-                EvalResult("RW1", "'o.RW1' threw an exception of type 'RO'", "object {RO}", "o.RW1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ExceptionThrown),
-                EvalResult("RW2", "'o.RW2' threw an exception of type 'RW'", "object {RW}", "o.RW2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ExceptionThrown));
+                EvalResult("RO1", "'o.RO1' threw an exception of type 'RO'", "object {RO}", "o.RO1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("RO2", "'o.RO2' threw an exception of type 'RW'", "object {RW}", "o.RO2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("RW1", "'o.RW1' threw an exception of type 'RO'", "object {RO}", "o.RW1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("RW2", "'o.RW2' threw an exception of type 'RW'", "object {RW}", "o.RW2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ExceptionThrown | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1887,14 +1978,14 @@ class B : A
             var result = FormatResult("b", value);
             Verify(GetChildren(result),
                 EvalResult("f (A)", "0", "int", "((A)b).f"),
-                EvalResult("f", "0", "double", "b.f"));
+                EvalResult("f", "0", "double", "b.f", DkmEvaluationResultFlags.CanFavorite));
 
             var typeA = assembly.GetType("A");
             value = CreateDkmClrValue(instanceB, typeB);
             result = FormatResult("a", value, new DkmClrType((TypeImpl)typeA));
             Verify(GetChildren(result),
                 EvalResult("f (A)", "0", "int", "a.f"),
-                EvalResult("f", "0", "double", "((B)a).f"));
+                EvalResult("f", "0", "double", "((B)a).f", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1919,14 +2010,14 @@ class C : B
             var result = FormatResult("c", value);
             Verify(GetChildren(result),
                 EvalResult("f (A)", "0", "int", "((A)c).f"),
-                EvalResult("f", "0", "double", "c.f"));
+                EvalResult("f", "0", "double", "c.f", DkmEvaluationResultFlags.CanFavorite));
 
             var typeB = assembly.GetType("B");
             value = CreateDkmClrValue(instanceC, typeC);
             result = FormatResult("b", value, new DkmClrType((TypeImpl)typeB));
             Verify(GetChildren(result),
                 EvalResult("f (A)", "0", "int", "((A)b).f"),
-                EvalResult("f", "0", "double", "b.f"));
+                EvalResult("f", "0", "double", "b.f", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1952,7 +2043,7 @@ class C : A.B
             var result = FormatResult("c", value);
             Verify(GetChildren(result),
                 EvalResult("P (A)", "0", "int", "((A)c).P"),
-                EvalResult("P", "0", "double", "c.P"));
+                EvalResult("P", "0", "double", "c.P", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1977,7 +2068,7 @@ class C : B
             var result = FormatResult("c", value);
             Verify(GetChildren(result),
                 EvalResult("P (A<int>)", "0", "int", "((A<int>)c).P"),
-                EvalResult("P", "0", "double", "c.P"));
+                EvalResult("P", "0", "double", "c.P", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -2002,7 +2093,7 @@ class C : B
             var result = FormatResult("c", value);
             Verify(GetChildren(result),
                 EvalResult("F (A)", "null", "string", "((A)c).F"),
-                EvalResult("F", "0", "double", "c.F"));
+                EvalResult("F", "0", "double", "c.F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -2029,7 +2120,7 @@ class B : A
             var value = CreateDkmClrValue(instanceB, type);
             var result = FormatResult("b", value);
             Verify(GetChildren(result),
-                EvalResult("@this", "\"Derived\"", "string", "b.@this", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("@this", "\"Derived\"", "string", "b.@this", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -2057,7 +2148,7 @@ class C : B
             var children = GetChildren(result);
             Verify(children,
                 EvalResult("P (B)", "45", "int", "((B)c).P", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P", "4.4", "double", "c.P", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("P", "4.4", "double", "c.P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Static members", null, "", "C", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
             Verify(GetChildren(children[2]),
                 EvalResult("S", "42", "int", "A.S"));
@@ -2132,7 +2223,7 @@ class C : B, I
             Verify(children,
                 EvalResult("P (A)", "1", "int", "((A)b).P", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("P (B)", "2", "int", "b.P", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("P", "3", "int", "((C)b).P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P", "3", "int", "((C)b).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -2165,7 +2256,7 @@ class D : C
             // complexity of figuring that out (vs. always just calling the most derived)
             // doesn't seem worth it.
             Verify(children,
-                EvalResult("P", "3", "int", "((D)c).P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("P", "3", "int", "((D)c).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         /// <summary>
@@ -2189,31 +2280,31 @@ class D : C
     internal A _3 = new A();
     public A _4 = new A();
 }";
-            var compilationA = CSharpTestBase.CreateCompilationWithMscorlib(sourceA, options: TestOptions.ReleaseDll);
+            var compilationA = CSharpTestBase.CreateCompilation(sourceA, options: TestOptions.ReleaseDll);
             var bytesA = compilationA.EmitToArray();
             var referenceA = MetadataReference.CreateFromImage(bytesA);
 
-            var compilationB = CSharpTestBase.CreateCompilationWithMscorlib(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
+            var compilationB = CSharpTestBase.CreateCompilation(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);
 
             DkmClrRuntimeInstance runtime = null;
-            GetModuleDelegate getModule = (r, a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
+            DkmClrModuleInstance getModule(DkmClrRuntimeInstance r, System.Reflection.Assembly a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB), getModule: getModule);
             using (runtime.Load())
             {
                 var type = runtime.GetType("B");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 // Format with "Just my code".
                 var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers, runtimeInstance: runtime);
                 var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
                 var children = GetChildren(evalResult, inspectionContext: inspectionContext);
                 Verify(children,
-                    EvalResult("_1", "{A}", "A", "o._1", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Private),
-                    EvalResult("_2", "{A}", "A", "o._2", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Protected),
-                    EvalResult("_3", "{A}", "A", "o._3", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Internal),
-                    EvalResult("_4", "{A}", "A", "o._4", DkmEvaluationResultFlags.Expandable, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public));
+                    EvalResult("_1", "{A}", "A", "o._1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Private),
+                    EvalResult("_2", "{A}", "A", "o._2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Protected),
+                    EvalResult("_3", "{A}", "A", "o._3", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Internal),
+                    EvalResult("_4", "{A}", "A", "o._4", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public));
                 var moreChildren = GetChildren(children[0], inspectionContext: inspectionContext);
                 Verify(moreChildren,
                     EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class, DkmEvaluationResultAccessType.None),
@@ -2251,12 +2342,12 @@ class D : C
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
+            VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue getMemberValue(VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue v, string m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", memberValue);
                 Verify(evalResult,
@@ -2278,31 +2369,31 @@ class D : C
                 var typeC = runtime.GetType("C");
 
                 // var o = (object)new C(); var e = (C)o;
-                var value = CreateDkmClrValue(typeC.Instantiate());
+                var value = typeC.Instantiate();
                 var evalResult = FormatResult("(C)o", value);
                 Verify(evalResult,
                     EvalResult("(C)o", "{C}", "C", "(C)o", DkmEvaluationResultFlags.Expandable));
                 var children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "3", "object {int}", "((C)o).F"));
+                    EvalResult("F", "3", "object {int}", "((C)o).F", DkmEvaluationResultFlags.CanFavorite));
 
                 // var c = new C(); var e = (C)((object)c);
-                value = CreateDkmClrValue(typeC.Instantiate());
+                value = typeC.Instantiate();
                 evalResult = FormatResult("(C)((object)c)", value);
                 Verify(evalResult,
                     EvalResult("(C)((object)c)", "{C}", "C", "(C)((object)c)", DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "3", "object {int}", "((C)((object)c)).F"));
+                    EvalResult("F", "3", "object {int}", "((C)((object)c)).F", DkmEvaluationResultFlags.CanFavorite));
 
                 // var a = (object)new[] { new C() }; var e = ((C[])o)[0];
-                value = CreateDkmClrValue(typeC.Instantiate());
+                value = typeC.Instantiate();
                 evalResult = FormatResult("((C[])o)[0]", value);
                 Verify(evalResult,
                     EvalResult("((C[])o)[0]", "{C}", "C", "((C[])o)[0]", DkmEvaluationResultFlags.Expandable));
                 children = GetChildren(evalResult);
                 Verify(children,
-                    EvalResult("F", "3", "object {int}", "((C[])o)[0].F"));
+                    EvalResult("F", "3", "object {int}", "((C[])o)[0].F", DkmEvaluationResultFlags.CanFavorite));
             }
         }
 
@@ -2321,13 +2412,13 @@ class D : C
             // GetChildren
             var getChildrenResult = default(DkmGetChildrenAsyncResult);
             resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
-            Assert.Equal(workList.Length, 0);
+            Assert.Equal(0, workList.Length);
             Assert.Equal(getChildrenResult.InitialChildren.Length, n);
 
             // GetItems
             var getItemsResult = default(DkmEvaluationEnumAsyncResult);
             resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
-            Assert.Equal(workList.Length, 0);
+            Assert.Equal(0, workList.Length);
             Assert.Equal(getItemsResult.Items.Length, n);
         }
 
@@ -2350,7 +2441,7 @@ class C
                 int n = 10;
                 var type = runtime.GetType("C");
                 // C[] with alternating null and non-null values.
-                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => (i % 2) == 0 ? type.Instantiate() : null).ToArray());
+                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => (i % 2) == 0 ? type.UnderlyingType.Instantiate() : null).ToArray());
                 var evalResult = FormatResult("a", value);
 
                 IDkmClrResultProvider resultProvider = new CSharpResultProvider();
@@ -2359,14 +2450,14 @@ class C
                 // GetChildren
                 var getChildrenResult = default(DkmGetChildrenAsyncResult);
                 resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
-                Assert.Equal(workList.Length, 1);
+                Assert.Equal(1, workList.Length);
                 workList.Execute();
                 Assert.Equal(getChildrenResult.InitialChildren.Length, n);
 
                 // GetItems
                 var getItemsResult = default(DkmEvaluationEnumAsyncResult);
                 resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
-                Assert.Equal(workList.Length, 1);
+                Assert.Equal(1, workList.Length);
                 workList.Execute();
                 Assert.Equal(getItemsResult.Items.Length, n);
             }
@@ -2397,7 +2488,7 @@ class C
                 int n = 10;
                 int nFailures = 2;
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => type.Instantiate(i)).ToArray());
+                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => type.UnderlyingType.Instantiate(i)).ToArray());
                 var evalResult = FormatResult("a", value);
 
                 IDkmClrResultProvider resultProvider = new CSharpResultProvider();
@@ -2406,7 +2497,7 @@ class C
                 // GetChildren
                 var getChildrenResult = default(DkmGetChildrenAsyncResult);
                 resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
-                Assert.Equal(workList.Length, 1);
+                Assert.Equal(1, workList.Length);
                 workList.Execute();
                 var items = getChildrenResult.InitialChildren;
                 Assert.Equal(items.Length, n);
@@ -2415,7 +2506,7 @@ class C
                 // GetItems
                 var getItemsResult = default(DkmEvaluationEnumAsyncResult);
                 resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
-                Assert.Equal(workList.Length, 1);
+                Assert.Equal(1, workList.Length);
                 workList.Execute();
                 items = getItemsResult.Items;
                 Assert.Equal(items.Length, n);

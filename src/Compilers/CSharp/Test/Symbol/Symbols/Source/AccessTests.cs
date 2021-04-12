@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 namespace A {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             Assert.Equal(Accessibility.Public, a.DeclaredAccessibility);
@@ -38,11 +42,16 @@ namespace A {}
 public namespace A {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             var errs = tree.GetDiagnostics();
-            Assert.Equal(1, errs.Count());
+            Assert.Equal(0, errs.Count());
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                // public namespace A {}
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
         }
 
         // Types declared in compilation units or namespaces can have public or internal declared accessibility.
@@ -59,7 +68,7 @@ namespace X {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
@@ -82,7 +91,7 @@ namespace X {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
@@ -111,7 +120,7 @@ class C1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             Assert.False(comp.GetDeclarationDiagnostics().Any());
         }
 
@@ -133,7 +142,7 @@ public class E
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
@@ -156,7 +165,7 @@ class D : B
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
     }

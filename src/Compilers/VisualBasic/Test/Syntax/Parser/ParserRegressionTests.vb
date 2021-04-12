@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -35,7 +37,7 @@ Public Class ParserRegressionTests : Inherits BasicTestBase
     <Fact>
     Public Sub VB000103_minimal()
         Dim text = <![CDATA[
-        Public foo = Sub( Console.WriteLine()
+        Public goo = Sub( Console.WriteLine()
     Public Get ) 
         ]]>.Value
         VisualBasicSyntaxTree.ParseText(text)
@@ -45,7 +47,7 @@ Public Class ParserRegressionTests : Inherits BasicTestBase
     <Fact>
     Public Sub VB000103_related()
         Dim text = <![CDATA[
-        Public foo = Sub( Console.WriteLine()
+        Public goo = Sub( Console.WriteLine()
     Public Set ) 
         ]]>.Value
         VisualBasicSyntaxTree.ParseText(text)
@@ -167,7 +169,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
     <WorkItem(540028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540028")>
     <Fact>
     Public Sub VB001874()
-        Dim text = <![CDATA[   Function MyClass  Foo(ByVal  [Preserve]  As  [Protected]  /=  For  T [CStr] ) :  As  Enum 
+        Dim text = <![CDATA[   Function MyClass  Goo(ByVal  [Preserve]  As  [Protected]  /=  For  T [CStr] ) :  As  Enum 
      Call  Function
      MustInherit   Enum 
 
@@ -189,7 +191,7 @@ If %>  (  [Nothing] .LoopingMethod <> 0) then Property
     <Fact>
     Public Sub VB003108()
         Dim text = <![CDATA[Function RunTests </ ) As Integer Char 
-If (  [Continue] .FooExtension /= "Scenario 13_2", 13)  <[CDATA[   [End]  & "test2") then Event 
+If (  [Continue] .GooExtension /= "Scenario 13_2", 13)  <[CDATA[   [End]  & "test2") then Event 
 ]]>.Value
         VisualBasicSyntaxTree.ParseText(text)
     End Sub
@@ -582,7 +584,7 @@ If ( s20.p <> "A") then Catch
     Public Sub VB087373()
         Dim text = <![CDATA[ Function RunTests </  <<=  As  False 
 	 Try   [Erase] 
-If [NotInheritable]  ( [Type]  ModuleEx. [Finally] FooExtension [Operator] ("Scenario 13_1" </  <> +=   RaiseEvent  & [In]  "test" [IsNot]  +=  then
+If [NotInheritable]  ( [Type]  ModuleEx. [Finally] GooExtension [Operator] ("Scenario 13_1" </  <> +=   RaiseEvent  & [In]  "test" [IsNot]  +=  then
 	 Where   Sub 
 	 Else   Finally 
 ]]>.Value
@@ -718,7 +720,7 @@ If  {  Nullable( Group )  )  0 &   If
             If  Me  a  IsNot 
              If   Function 
  EndIf   Like   [Mod] (Of Double  In Throw  T) " ( [ExternalSource] ByVal  [Declare]  As [By]   [ParamArray]  * 
-    Function Foo( <<  As [CShort]  T
+    Function Goo( <<  As [CShort]  T
 Public Class  [Continue] (Of T As  Unicode ) : Implements IVariance2( Await  T [Join] ) Default 
 Module Lambdas
      With   [Compare]   >=  Function( [UInteger]   Binary  Integer :  As Integer   ElseIf 
@@ -746,12 +748,12 @@ End Select
         VisualBasicSyntaxTree.ParseText(text)
     End Sub
 
-    <Fact, WorkItem(658140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658140")>
+    <ConditionalFact(GetType(ClrOnly), Reason:="https://github.com/dotnet/roslyn/issues/30926"), WorkItem(658140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658140")>
     <WorkItem(103047, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=103047")>
     Public Sub ParseFileOnBinaryFile()
         ' This is doing the same thing as ParseFile, but using a MemoryStream
         ' instead of FileStream (because I don't want to write a file to disk).
-        Using data As New MemoryStream(TestResources.NetFX.v4_0_30319.mscorlib)
+        Using data As New MemoryStream(TestMetadata.ResourcesNet451.mscorlib)
             Const bug103047IsFixed = False
 
             If bug103047IsFixed Then
@@ -932,4 +934,38 @@ End Enum
         Assert.Equal(Syntax.InternalSyntax.Scanner.BadTokenCountLimit, tree.GetDiagnostics().Where(Function(d) d.Code = ERRID.ERR_IllegalChar).Count())
     End Sub
 
+    <Fact, WorkItem(48587, "https://github.com/dotnet/roslyn/issues/48587")>
+    Public Sub ParseTrailingTextAfterPropertyWithParentheses()
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation name="ParseTrailingTextAfterPropertyWithParentheses">
+    <file name="a.b">
+Class C
+    Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
+    Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
+    Public ReadOnly Property NumberOfResult3() UnexpectedToken ' With comment.
+    Public ReadOnly Property NumberOfResult4() UnexpectedToken _
+        As Integer ' with line continuation and comment.
+
+    Public ReadOnly Property NumberOfResult5() ' With comment - no errors.
+    Public ReadOnly Property NumberOfResult6() _
+        As Integer ' No error with line continuation.
+End Class
+    </file>
+</compilation>)
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30205: End of statement expected.
+    Public ReadOnly Property NumberOfResult1() String Integer JohnDoe WwwIIWww Wow
+                                               ~~~~~~
+BC30205: End of statement expected.
+    Public ReadOnly Property NumberOfResult2() Some unexpected tokens As Integer
+                                               ~~~~
+BC30205: End of statement expected.
+    Public ReadOnly Property NumberOfResult3() UnexpectedToken ' With comment.
+                                               ~~~~~~~~~~~~~~~
+BC30205: End of statement expected.
+    Public ReadOnly Property NumberOfResult4() UnexpectedToken _
+                                               ~~~~~~~~~~~~~~~
+</errors>)
+    End Sub
 End Class

@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -12,6 +17,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -22,44 +28,45 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 {
     internal abstract class AbstractExtractInterfaceService : ILanguageService
     {
-        internal abstract Task<SyntaxNode> GetTypeDeclarationAsync(
+        protected abstract Task<SyntaxNode> GetTypeDeclarationAsync(
             Document document,
             int position,
             TypeDiscoveryRule typeDiscoveryRule,
             CancellationToken cancellationToken);
 
-        internal abstract Solution GetSolutionWithUpdatedOriginalType(
-            Solution solutionWithFormattedInterfaceDocument,
+        protected abstract Task<Solution> UpdateMembersWithExplicitImplementationsAsync(
+            Solution unformattedSolution,
+            IReadOnlyList<DocumentId> documentId,
             INamedTypeSymbol extractedInterfaceSymbol,
+            INamedTypeSymbol typeToExtractFrom,
             IEnumerable<ISymbol> includedMembers,
-            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
-            List<DocumentId> documentIds,
-            SyntaxAnnotation typeNodeAnnotation,
-            DocumentId documentIdWithTypeNode,
+            ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
             CancellationToken cancellationToken);
-
-        internal abstract string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace);
 
         internal abstract string GetContainingNamespaceDisplay(INamedTypeSymbol typeSymbol, CompilationOptions compilationOptions);
 
         internal abstract bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode);
 
-        public async Task<IEnumerable<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, cancellationToken).ConfigureAwait(false);
 
             return typeAnalysisResult.CanExtractInterface
-                ? SpecializedCollections.SingletonEnumerable(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
-                : SpecializedCollections.EmptyEnumerable<ExtractInterfaceCodeAction>();
+                ? ImmutableArray.Create(new ExtractInterfaceCodeAction(this, typeAnalysisResult))
+                : ImmutableArray<ExtractInterfaceCodeAction>.Empty;
         }
 
-        public ExtractInterfaceResult ExtractInterface(
+        public async Task<ExtractInterfaceResult> ExtractInterfaceAsync(
             Document documentWithTypeToExtractFrom,
             int position,
             Action<string, NotificationSeverity> errorHandler,
             CancellationToken cancellationToken)
         {
-            var typeAnalysisResult = AnalyzeTypeAtPositionAsync(documentWithTypeToExtractFrom, position, TypeDiscoveryRule.TypeDeclaration, cancellationToken).WaitAndGetResult(cancellationToken);
+            var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(
+                documentWithTypeToExtractFrom,
+                position,
+                TypeDiscoveryRule.TypeDeclaration,
+                cancellationToken).ConfigureAwait(false);
 
             if (!typeAnalysisResult.CanExtractInterface)
             {
@@ -67,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return new ExtractInterfaceResult(succeeded: false);
             }
 
-            return ExtractInterfaceFromAnalyzedType(typeAnalysisResult, cancellationToken);
+            return await ExtractInterfaceFromAnalyzedTypeAsync(typeAnalysisResult, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ExtractInterfaceTypeAnalysisResult> AnalyzeTypeAtPositionAsync(
@@ -79,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var typeNode = await GetTypeDeclarationAsync(document, position, typeDiscoveryRule, cancellationToken).ConfigureAwait(false);
             if (typeNode == null)
             {
-                var errorMessage = FeaturesResources.CouldNotExtractInterfaceSelection;
+                var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct;
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
@@ -87,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var type = semanticModel.GetDeclaredSymbol(typeNode, cancellationToken);
             if (type == null || type.Kind != SymbolKind.NamedType)
             {
-                var errorMessage = FeaturesResources.CouldNotExtractInterfaceSelection;
+                var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct;
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
@@ -95,135 +102,159 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var extractableMembers = typeToExtractFrom.GetMembers().Where(IsExtractableMember);
             if (!extractableMembers.Any())
             {
-                var errorMessage = FeaturesResources.CouldNotExtractInterfaceTypeMember;
+                var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface;
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
-            return new ExtractInterfaceTypeAnalysisResult(this, document, typeNode, typeToExtractFrom, extractableMembers);
+            return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers);
         }
 
-        public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
+        public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
         {
             var containingNamespaceDisplay = refactoringResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
                 : refactoringResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-            var extractInterfaceOptions = GetExtractInterfaceOptions(
+            var extractInterfaceOptions = await GetExtractInterfaceOptionsAsync(
                 refactoringResult.DocumentToExtractFrom,
                 refactoringResult.TypeToExtractFrom,
                 refactoringResult.ExtractableMembers,
                 containingNamespaceDisplay,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (extractInterfaceOptions.IsCancelled)
             {
                 return new ExtractInterfaceResult(succeeded: false);
             }
 
-            return ExtractInterfaceFromAnalyzedType(refactoringResult, extractInterfaceOptions, cancellationToken);
+            return await ExtractInterfaceFromAnalyzedTypeAsync(refactoringResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
         }
 
-        public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
+        public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(
+            ExtractInterfaceTypeAnalysisResult refactoringResult,
+            ExtractInterfaceOptionsResult extractInterfaceOptions,
+            CancellationToken cancellationToken)
         {
             var solution = refactoringResult.DocumentToExtractFrom.Project.Solution;
-            List<DocumentId> documentIds;
-            SyntaxAnnotation typeNodeSyntaxAnnotation;
-
-            var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
-
-            var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
-                extractInterfaceOptions.IncludedMembers,
-                ref solution,
-                out documentIds,
-                refactoringResult.TypeNode,
-                out typeNodeSyntaxAnnotation,
-                cancellationToken);
 
             var extractedInterfaceSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                attributes: null,
+                attributes: default,
                 accessibility: ShouldIncludeAccessibilityModifier(refactoringResult.TypeNode) ? refactoringResult.TypeToExtractFrom.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: new DeclarationModifiers(),
                 typeKind: TypeKind.Interface,
                 name: extractInterfaceOptions.InterfaceName,
-                typeParameters: GetTypeParameters(refactoringResult.TypeToExtractFrom, extractInterfaceOptions.IncludedMembers),
+                typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(refactoringResult.TypeToExtractFrom, extractInterfaceOptions.IncludedMembers),
                 members: CreateInterfaceMembers(extractInterfaceOptions.IncludedMembers));
 
-            var interfaceDocumentId = DocumentId.CreateNewId(refactoringResult.DocumentToExtractFrom.Project.Id, debugName: extractInterfaceOptions.FileName);
+            switch (extractInterfaceOptions.Location)
+            {
+                case ExtractInterfaceOptionsResult.ExtractLocation.NewFile:
+                    var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
+                    return await ExtractInterfaceToNewFileAsync(
+                        solution,
+                        containingNamespaceDisplay,
+                        extractedInterfaceSymbol,
+                        refactoringResult,
+                        extractInterfaceOptions,
+                        cancellationToken).ConfigureAwait(false);
 
-            var unformattedInterfaceDocument = GetUnformattedInterfaceDocument(
+                case ExtractInterfaceOptionsResult.ExtractLocation.SameFile:
+                    return await ExtractInterfaceToSameFileAsync(
+                        solution,
+                        refactoringResult,
+                        extractedInterfaceSymbol,
+                        extractInterfaceOptions,
+                        cancellationToken).ConfigureAwait(false);
+
+                default: throw new InvalidOperationException($"Unable to extract interface for operation of type {extractInterfaceOptions.GetType()}");
+            }
+        }
+
+        private async Task<ExtractInterfaceResult> ExtractInterfaceToNewFileAsync(
+            Solution solution, string containingNamespaceDisplay, INamedTypeSymbol extractedInterfaceSymbol,
+            ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
+        {
+            var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
+                extractInterfaceOptions.IncludedMembers,
                 solution,
+                refactoringResult.TypeNode,
+                cancellationToken).ConfigureAwait(false);
+
+            var syntaxFactsService = refactoringResult.DocumentToExtractFrom.GetLanguageService<ISyntaxFactsService>();
+            var originalDocumentSyntaxRoot = await refactoringResult.DocumentToExtractFrom.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var fileBanner = syntaxFactsService.GetFileBanner(originalDocumentSyntaxRoot);
+
+            var (unformattedInterfaceDocument, _) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
+                symbolMapping.AnnotatedSolution,
                 containingNamespaceDisplay,
                 extractInterfaceOptions.FileName,
+                refactoringResult.DocumentToExtractFrom.Project.Id,
                 refactoringResult.DocumentToExtractFrom.Folders,
                 extractedInterfaceSymbol,
-                interfaceDocumentId,
-                cancellationToken);
+                fileBanner,
+                cancellationToken).ConfigureAwait(false);
 
-            var solutionWithFormattedInterfaceDocument = GetSolutionWithFormattedInterfaceDocument(unformattedInterfaceDocument, cancellationToken);
-
-            var completedSolution = GetSolutionWithOriginalTypeUpdated(
-                solutionWithFormattedInterfaceDocument,
-                documentIds,
-                refactoringResult.DocumentToExtractFrom.Id,
-                typeNodeSyntaxAnnotation,
+            var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
+                unformattedInterfaceDocument.Project.Solution,
+                symbolMapping.DocumentIdsToSymbolMap.Keys.ToImmutableArray(),
+                symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom,
                 extractedInterfaceSymbol,
                 extractInterfaceOptions.IncludedMembers,
-                symbolToDeclarationAnnotationMap,
-                cancellationToken);
+                symbolMapping.SymbolToDeclarationAnnotationMap,
+                cancellationToken).ConfigureAwait(false);
+
+            var completedSolution = await GetFormattedSolutionAsync(
+                completedUnformattedSolution,
+                symbolMapping.DocumentIdsToSymbolMap.Keys.Concat(unformattedInterfaceDocument.Id),
+                cancellationToken).ConfigureAwait(false);
 
             return new ExtractInterfaceResult(
                 succeeded: true,
                 updatedSolution: completedSolution,
-                navigationDocumentId: interfaceDocumentId);
+                navigationDocumentId: unformattedInterfaceDocument.Id);
         }
 
-        private Dictionary<ISymbol, SyntaxAnnotation> CreateSymbolToDeclarationAnnotationMap(
-            IEnumerable<ISymbol> includedMembers,
-            ref Solution solution,
-            out List<DocumentId> documentIds,
-            SyntaxNode typeNode,
-            out SyntaxAnnotation typeNodeAnnotation,
-            CancellationToken cancellationToken)
+        private async Task<ExtractInterfaceResult> ExtractInterfaceToSameFileAsync(
+            Solution solution, ExtractInterfaceTypeAnalysisResult refactoringResult, INamedTypeSymbol extractedInterfaceSymbol,
+            ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
-            var symbolToDeclarationAnnotationMap = new Dictionary<ISymbol, SyntaxAnnotation>();
-            var currentRoots = new Dictionary<SyntaxTree, SyntaxNode>();
-            documentIds = new List<DocumentId>();
+            // Track all of the symbols we need to modify, which includes the original type declaration being modified
+            var symbolMapping = await AnnotatedSymbolMapping.CreateAsync(
+                extractInterfaceOptions.IncludedMembers,
+                solution,
+                refactoringResult.TypeNode,
+                cancellationToken).ConfigureAwait(false);
 
-            var typeNodeRoot = typeNode.SyntaxTree.GetRoot(CancellationToken.None);
-            typeNodeAnnotation = new SyntaxAnnotation();
-            currentRoots[typeNode.SyntaxTree] = typeNodeRoot.ReplaceNode(typeNode, typeNode.WithAdditionalAnnotations(typeNodeAnnotation));
-            documentIds.Add(solution.GetDocument(typeNode.SyntaxTree).Id);
+            var document = symbolMapping.AnnotatedSolution.GetDocument(refactoringResult.DocumentToExtractFrom.Id);
 
-            foreach (var includedMember in includedMembers)
-            {
-                var location = includedMember.Locations.Single();
-                var tree = location.SourceTree;
+            var (documentWithInterface, _) = await ExtractTypeHelpers.AddTypeToExistingFileAsync(
+                document,
+                extractedInterfaceSymbol,
+                symbolMapping,
+                cancellationToken).ConfigureAwait(false);
 
-                SyntaxNode root;
-                if (!currentRoots.TryGetValue(tree, out root))
-                {
-                    root = tree.GetRoot(cancellationToken);
-                    documentIds.Add(solution.GetDocument(tree).Id);
-                }
+            var unformattedSolution = documentWithInterface.Project.Solution;
 
-                var token = root.FindToken(location.SourceSpan.Start);
+            // After the interface is inserted, update the original type to show it implements the new interface
+            var unformattedSolutionWithUpdatedType = await GetSolutionWithOriginalTypeUpdatedAsync(
+                unformattedSolution, symbolMapping.DocumentIdsToSymbolMap.Keys.ToImmutableArray(),
+                symbolMapping.TypeNodeAnnotation,
+                refactoringResult.TypeToExtractFrom, extractedInterfaceSymbol,
+                extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
 
-                var annotation = new SyntaxAnnotation();
-                symbolToDeclarationAnnotationMap.Add(includedMember, annotation);
-                currentRoots[tree] = root.ReplaceToken(token, token.WithAdditionalAnnotations(annotation));
-            }
+            var completedSolution = await GetFormattedSolutionAsync(
+                unformattedSolutionWithUpdatedType,
+                symbolMapping.DocumentIdsToSymbolMap.Keys.Concat(refactoringResult.DocumentToExtractFrom.Id),
+                cancellationToken).ConfigureAwait(false);
 
-            foreach (var root in currentRoots)
-            {
-                var document = solution.GetDocument(root.Key);
-                solution = solution.WithDocumentSyntaxRoot(document.Id, root.Value, PreservationMode.PreserveIdentity);
-            }
-
-            return symbolToDeclarationAnnotationMap;
+            return new ExtractInterfaceResult(
+                succeeded: true,
+                updatedSolution: completedSolution,
+                navigationDocumentId: refactoringResult.DocumentToExtractFrom.Id);
         }
 
-        internal ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
+        internal static Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
             Document document,
             INamedTypeSymbol type,
             IEnumerable<ISymbol> extractableMembers,
@@ -235,10 +266,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-            var generatedNameTypeParameterSuffix = GetGeneratedNameTypeParameterSuffix(GetTypeParameters(type, extractableMembers), document.Project.Solution.Workspace);
+            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, type, extractableMembers);
 
             var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
-            return service.GetExtractInterfaceOptions(
+            return service.GetExtractInterfaceOptionsAsync(
                 syntaxFactsService,
                 notificationService,
                 extractableMembers.ToList(),
@@ -249,50 +280,39 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 document.Project.Language);
         }
 
-        private Document GetUnformattedInterfaceDocument(
+        private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
+        {
+            // Since code action performs formatting and simplification on a single document, 
+            // this ensures that anything marked with formatter or simplifier annotations gets 
+            // correctly handled as long as it it's in the listed documents
+            var formattedSolution = unformattedSolution;
+            foreach (var documentId in documentIds)
+            {
+                var document = formattedSolution.GetDocument(documentId);
+                var formattedDocument = await Formatter.FormatAsync(
+                    document,
+                    Formatter.Annotation,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                var simplifiedDocument = await Simplifier.ReduceAsync(
+                    formattedDocument,
+                    Simplifier.Annotation,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                formattedSolution = simplifiedDocument.Project.Solution;
+            }
+
+            return formattedSolution;
+        }
+
+        private async Task<Solution> GetSolutionWithOriginalTypeUpdatedAsync(
             Solution solution,
-            string containingNamespaceDisplay,
-            string name,
-            IEnumerable<string> folders,
-            INamedTypeSymbol extractedInterfaceSymbol,
-            DocumentId interfaceDocumentId,
-            CancellationToken cancellationToken)
-        {
-            var solutionWithInterfaceDocument = solution.AddDocument(interfaceDocumentId, name, text: "", folders: folders);
-            var interfaceDocument = solutionWithInterfaceDocument.GetDocument(interfaceDocumentId);
-            var interfaceDocumentSemanticModel = interfaceDocument.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-            var namespaceParts = containingNamespaceDisplay.Split('.').Where(s => !string.IsNullOrEmpty(s));
-            var unformattedInterfaceDocument = CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
-                interfaceDocument.Project.Solution,
-                interfaceDocumentSemanticModel.GetEnclosingNamespace(0, cancellationToken),
-                extractedInterfaceSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                options: new CodeGenerationOptions(interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
-                cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-
-            return unformattedInterfaceDocument;
-        }
-
-        private static Solution GetSolutionWithFormattedInterfaceDocument(Document unformattedInterfaceDocument, CancellationToken cancellationToken)
-        {
-            Solution solutionWithInterfaceDocument;
-            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), unformattedInterfaceDocument.Project.Solution.Workspace, cancellationToken: cancellationToken);
-            var rootToSimplify = formattedRoot.WithAdditionalAnnotations(Simplifier.Annotation);
-            var finalInterfaceDocument = Simplifier.ReduceAsync(unformattedInterfaceDocument.WithSyntaxRoot(rootToSimplify), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-
-            solutionWithInterfaceDocument = finalInterfaceDocument.Project.Solution;
-            return solutionWithInterfaceDocument;
-        }
-
-        private Solution GetSolutionWithOriginalTypeUpdated(
-            Solution solutionWithFormattedInterfaceDocument,
-            List<DocumentId> documentIds,
-            DocumentId invocationLocationDocumentId,
+            ImmutableArray<DocumentId> documentIds,
             SyntaxAnnotation typeNodeAnnotation,
             INamedTypeSymbol typeToExtractFrom,
             INamedTypeSymbol extractedInterfaceSymbol,
             IEnumerable<ISymbol> includedMembers,
-            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
+            ImmutableDictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap,
             CancellationToken cancellationToken)
         {
             // If an interface "INewInterface" is extracted from an interface "IExistingInterface",
@@ -300,35 +320,51 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             // extracted members are also not updated.
             if (typeToExtractFrom.TypeKind == TypeKind.Interface)
             {
-                return solutionWithFormattedInterfaceDocument;
+                return solution;
             }
 
-            var formattedSolution = GetSolutionWithUpdatedOriginalType(
-                solutionWithFormattedInterfaceDocument,
+            var unformattedSolution = solution;
+            foreach (var documentId in documentIds)
+            {
+                var document = solution.GetDocument(documentId);
+                var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var editor = new SyntaxEditor(currentRoot, solution.Workspace);
+
+                var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+                var typeReference = syntaxGenerator.TypeExpression(extractedInterfaceSymbol);
+
+                var typeDeclaration = currentRoot.GetAnnotatedNodes(typeNodeAnnotation).SingleOrDefault();
+
+                if (typeDeclaration == null)
+                {
+                    continue;
+                }
+
+                var unformattedTypeDeclaration = syntaxGenerator.AddInterfaceType(typeDeclaration, typeReference).WithAdditionalAnnotations(Formatter.Annotation);
+                editor.ReplaceNode(typeDeclaration, unformattedTypeDeclaration);
+
+                unformattedSolution = document.WithSyntaxRoot(editor.GetChangedRoot()).Project.Solution;
+
+                // Only update the first instance of the typedeclaration,
+                // since it's not needed in all declarations
+                break;
+            }
+
+            var updatedUnformattedSolution = await UpdateMembersWithExplicitImplementationsAsync(
+                unformattedSolution,
+                documentIds,
                 extractedInterfaceSymbol,
+                typeToExtractFrom,
                 includedMembers,
                 symbolToDeclarationAnnotationMap,
-                documentIds,
-                typeNodeAnnotation,
-                invocationLocationDocumentId,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
-            foreach (var docId in documentIds)
-            {
-                var formattedDoc = Formatter.FormatAsync(
-                    formattedSolution.GetDocument(docId),
-                    Formatter.Annotation,
-                    cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-
-                formattedSolution = formattedDoc.Project.Solution;
-            }
-
-            return formattedSolution;
+            return updatedUnformattedSolution;
         }
 
-        private IList<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
+        private static ImmutableArray<ISymbol> CreateInterfaceMembers(IEnumerable<ISymbol> includedMembers)
         {
-            var interfaceMembers = new List<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var interfaceMembers);
 
             foreach (var member in includedMembers)
             {
@@ -337,33 +373,36 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     case SymbolKind.Event:
                         var @event = member as IEventSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateEventSymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
-                            explicitInterfaceSymbol: null,
+                            explicitInterfaceImplementations: default,
                             name: @event.Name));
                         break;
                     case SymbolKind.Method:
                         var method = member as IMethodSymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
-                            modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.IsUnsafe()),
+                            modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.RequiresUnsafeModifier()),
                             returnType: method.ReturnType,
-                            explicitInterfaceSymbol: null,
+                            refKind: method.RefKind,
+                            explicitInterfaceImplementations: default,
                             name: method.Name,
                             typeParameters: method.TypeParameters,
-                            parameters: method.Parameters));
+                            parameters: method.Parameters,
+                            isInitOnly: method.IsInitOnly));
                         break;
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;
                         interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes: SpecializedCollections.EmptyList<AttributeData>(),
+                            attributes: ImmutableArray<AttributeData>.Empty,
                             accessibility: Accessibility.Public,
-                            modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.IsUnsafe()),
+                            modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.RequiresUnsafeModifier()),
                             type: property.Type,
-                            explicitInterfaceSymbol: null,
+                            refKind: property.RefKind,
+                            explicitInterfaceImplementations: default,
                             name: property.Name,
                             parameters: property.Parameters,
                             getMethod: property.GetMethod == null ? null : (property.GetMethod.DeclaredAccessibility == Accessibility.Public ? property.GetMethod : null),
@@ -371,18 +410,19 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             isIndexer: property.IsIndexer));
                         break;
                     default:
-                        Debug.Assert(false, string.Format(FeaturesResources.UnexpectedInterfaceMemberKind, member.Kind.ToString()));
+                        Debug.Assert(false, string.Format(FeaturesResources.Unexpected_interface_member_kind_colon_0, member.Kind.ToString()));
                         break;
                 }
             }
 
-            return interfaceMembers;
+            return interfaceMembers.ToImmutable();
         }
 
         internal virtual bool IsExtractableMember(ISymbol m)
         {
             if (m.IsStatic ||
-                m.DeclaredAccessibility != Accessibility.Public)
+                m.DeclaredAccessibility != Accessibility.Public ||
+                m.Name == "<Clone>$") // TODO: Use WellKnownMemberNames.CloneMethodName when it's public.
             {
                 return false;
             }
@@ -395,121 +435,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             if (m.Kind == SymbolKind.Property)
             {
                 var prop = m as IPropertySymbol;
-                return (prop.GetMethod != null && prop.GetMethod.DeclaredAccessibility == Accessibility.Public) ||
-                    (prop.SetMethod != null && prop.SetMethod.DeclaredAccessibility == Accessibility.Public);
-            }
-
-            return false;
-        }
-
-        private IList<ITypeParameterSymbol> GetTypeParameters(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
-        {
-            var potentialTypeParameters = GetPotentialTypeParameters(type);
-
-            var directlyReferencedTypeParameters = GetDirectlyReferencedTypeParameters(potentialTypeParameters, includedMembers);
-
-            // The directly referenced TypeParameters may have constraints that reference other 
-            // type parameters.
-
-            var allReferencedTypeParameters = new HashSet<ITypeParameterSymbol>(directlyReferencedTypeParameters);
-            var unanalyzedTypeParameters = new Queue<ITypeParameterSymbol>(directlyReferencedTypeParameters);
-
-            while (!unanalyzedTypeParameters.IsEmpty())
-            {
-                var typeParameter = unanalyzedTypeParameters.Dequeue();
-
-                foreach (var constraint in typeParameter.ConstraintTypes)
-                {
-                    foreach (var originalTypeParameter in potentialTypeParameters)
-                    {
-                        if (!allReferencedTypeParameters.Contains(originalTypeParameter) &&
-                            DoesTypeReferenceTypeParameter(constraint, originalTypeParameter, new HashSet<ITypeSymbol>()))
-                        {
-                            allReferencedTypeParameters.Add(originalTypeParameter);
-                            unanalyzedTypeParameters.Enqueue(originalTypeParameter);
-                        }
-                    }
-                }
-            }
-
-            return potentialTypeParameters.Where(p => allReferencedTypeParameters.Contains(p)).ToList();
-        }
-
-        private List<ITypeParameterSymbol> GetPotentialTypeParameters(INamedTypeSymbol type)
-        {
-            var typeParameters = new List<ITypeParameterSymbol>();
-
-            var typesToVisit = new Stack<INamedTypeSymbol>();
-
-            var currentType = type;
-            while (currentType != null)
-            {
-                typesToVisit.Push(currentType);
-                currentType = currentType.ContainingType;
-            }
-
-            while (typesToVisit.Any())
-            {
-                typeParameters.AddRange(typesToVisit.Pop().TypeParameters);
-            }
-
-            return typeParameters;
-        }
-
-        private IList<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
-        {
-            var directlyReferencedTypeParameters = new List<ITypeParameterSymbol>();
-            foreach (var typeParameter in potentialTypeParameters)
-            {
-                if (includedMembers.Any(m => DoesMemberReferenceTypeParameter(m, typeParameter, new HashSet<ITypeSymbol>())))
-                {
-                    directlyReferencedTypeParameters.Add(typeParameter);
-                }
-            }
-
-            return directlyReferencedTypeParameters;
-        }
-
-        private bool DoesMemberReferenceTypeParameter(ISymbol member, ITypeParameterSymbol typeParameter, HashSet<ITypeSymbol> checkedTypes)
-        {
-            switch (member.Kind)
-            {
-                case SymbolKind.Event:
-                    var @event = member as IEventSymbol;
-                    return DoesTypeReferenceTypeParameter(@event.Type, typeParameter, checkedTypes);
-                case SymbolKind.Method:
-                    var method = member as IMethodSymbol;
-                    return method.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
-                        method.TypeParameters.Any(t => t.ConstraintTypes.Any(c => DoesTypeReferenceTypeParameter(c, typeParameter, checkedTypes))) ||
-                        DoesTypeReferenceTypeParameter(method.ReturnType, typeParameter, checkedTypes);
-                case SymbolKind.Property:
-                    var property = member as IPropertySymbol;
-                    return property.Parameters.Any(t => DoesTypeReferenceTypeParameter(t.Type, typeParameter, checkedTypes)) ||
-                        DoesTypeReferenceTypeParameter(property.Type, typeParameter, checkedTypes);
-                default:
-                    Debug.Assert(false, string.Format(FeaturesResources.UnexpectedInterfaceMemberKind, member.Kind.ToString()));
-                    return false;
-            }
-        }
-
-        private bool DoesTypeReferenceTypeParameter(ITypeSymbol type, ITypeParameterSymbol typeParameter, HashSet<ITypeSymbol> checkedTypes)
-        {
-            if (!checkedTypes.Add(type))
-            {
-                return false;
-            }
-
-            if (type == typeParameter ||
-                type.GetTypeArguments().Any(t => DoesTypeReferenceTypeParameter(t, typeParameter, checkedTypes)))
-            {
-                return true;
-            }
-
-            if (type.ContainingType != null &&
-                type.Kind != SymbolKind.TypeParameter &&
-                DoesTypeReferenceTypeParameter(type.ContainingType, typeParameter, checkedTypes))
-            {
-                return true;
+                return !prop.IsWithEvents &&
+                    ((prop.GetMethod != null && prop.GetMethod.DeclaredAccessibility == Accessibility.Public) ||
+                    (prop.SetMethod != null && prop.SetMethod.DeclaredAccessibility == Accessibility.Public));
             }
 
             return false;

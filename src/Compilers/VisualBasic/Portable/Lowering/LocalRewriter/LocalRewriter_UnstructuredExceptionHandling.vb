@@ -1,15 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Partial Class LocalRewriter
+    Partial Friend Class LocalRewriter
 
         Private Const s_activeHandler_None As Integer = 0
         Private Const s_activeHandler_ResumeNext As Integer = 1
@@ -160,7 +163,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             statements.Add(DirectCast(Visit(node.Body), BoundBlock))
 
             ' We reach this statement if there were no exceptions. 
-            statements.Add(nodeFactory.HiddenSequencePoint())
+            If Instrument Then
+                statements.Add(SyntheticBoundNodeFactory.HiddenSequencePoint())
+            End If
 
             If _unstructuredExceptionHandling.CurrentStatementTemporary IsNot Nothing Then
                 RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, False, statements)
@@ -288,14 +293,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim clearProjectError As MethodSymbol = nodeFactory.WellKnownMember(Of MethodSymbol)(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError)
 
             If clearProjectError IsNot Nothing Then
-                statements.Add(RewriteIfStatement(node.Syntax, node.Syntax,
+                statements.Add(RewriteIfStatement(node.Syntax,
                                                   nodeFactory.Binary(BinaryOperatorKind.NotEquals,
                                                                      bool,
                                                                      nodeFactory.Local(_unstructuredExceptionHandling.ResumeTargetTemporary, isLValue:=False),
                                                                      nodeFactory.Literal(0)),
                                                   New BoundCall(node.Syntax, clearProjectError, Nothing, Nothing, ImmutableArray(Of BoundExpression).Empty, Nothing, clearProjectError.ReturnType).ToStatement(),
                                                   Nothing,
-                                                  generateDebugInfo:=False))
+                                                  instrumentationTargetOpt:=Nothing))
             End If
 
             _unstructuredExceptionHandling.Context = Nothing
@@ -367,7 +372,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 Done:
 
             Debug.Assert(Not node.WasCompilerGenerated)
-            Return MarkStatementWithSequencePoint(New BoundStatementList(node.Syntax, statements.ToImmutableAndFree()))
+            Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
+
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenterOpt.InstrumentOnErrorStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         Public Overrides Function VisitResumeStatement(node As BoundResumeStatement) As BoundNode
@@ -393,7 +404,7 @@ Done:
             If createProjectError IsNot Nothing Then
                 Const E_RESUMEWITHOUTERROR As Integer = &H800A0014 ' 20
 
-                statements.Add(RewriteIfStatement(node.Syntax, node.Syntax,
+                statements.Add(RewriteIfStatement(node.Syntax,
                                                   nodeFactory.Binary(BinaryOperatorKind.Equals,
                                                                      nodeFactory.SpecialType(SpecialType.System_Boolean),
                                                                      nodeFactory.Local(_unstructuredExceptionHandling.ResumeTargetTemporary, isLValue:=False),
@@ -402,7 +413,7 @@ Done:
                                                                                   ImmutableArray.Create(Of BoundExpression)(nodeFactory.Literal(E_RESUMEWITHOUTERROR)),
                                                                                   Nothing, createProjectError.ReturnType)),
                                                   Nothing,
-                                                  generateDebugInfo:=False))
+                                                  instrumentationTargetOpt:=Nothing))
             End If
 
             ' Now generate code based on what kind of Resume we have
@@ -427,10 +438,16 @@ Done:
             End Select
 
             Debug.Assert(Not node.WasCompilerGenerated)
-            Return MarkStatementWithSequencePoint(New BoundStatementList(node.Syntax, statements.ToImmutableAndFree()))
+            Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
+
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenterOpt.InstrumentResumeStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
-        Private Function AddResumeTargetLabel(syntax As VisualBasicSyntaxNode) As BoundLabelStatement
+        Private Function AddResumeTargetLabel(syntax As SyntaxNode) As BoundLabelStatement
             Debug.Assert(InsideValidUnstructuredExceptionHandlingResumeContext())
             Dim targetResumeLabel = New GeneratedUnstructuredExceptionHandlingResumeLabel(_unstructuredExceptionHandling.Context.ResumeWithoutLabelOpt)
 
@@ -438,7 +455,7 @@ Done:
             Return New BoundLabelStatement(syntax, targetResumeLabel)
         End Function
 
-        Private Sub AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax As VisualBasicSyntaxNode, canThrow As Boolean, statements As ArrayBuilder(Of BoundStatement))
+        Private Sub AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax As SyntaxNode, canThrow As Boolean, statements As ArrayBuilder(Of BoundStatement))
             Debug.Assert(InsideValidUnstructuredExceptionHandlingResumeContext())
             statements.Add(AddResumeTargetLabel(syntax))
 
@@ -579,22 +596,22 @@ Done:
             Return _currentMethodOrLambda Is _topMethod AndAlso _unstructuredExceptionHandling.Context IsNot Nothing AndAlso _unstructuredExceptionHandling.Context.ContainsOnError
         End Function
 
-        Private Sub RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VisualBasicSyntaxNode, canThrow As Boolean, statements As ArrayBuilder(Of BoundStatement))
+        Private Sub RegisterUnstructuredExceptionHandlingResumeTarget(syntax As SyntaxNode, canThrow As Boolean, statements As ArrayBuilder(Of BoundStatement))
             AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax, canThrow, statements)
         End Sub
 
-        Private Function RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VisualBasicSyntaxNode, node As BoundStatement, canThrow As Boolean) As BoundStatement
+        Private Function RegisterUnstructuredExceptionHandlingResumeTarget(syntax As SyntaxNode, node As BoundStatement, canThrow As Boolean) As BoundStatement
             Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
             AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax, canThrow, statements)
             statements.Add(node)
             Return New BoundStatementList(syntax, statements.ToImmutableAndFree())
         End Function
 
-        Private Function RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(syntax As VisualBasicSyntaxNode) As BoundLabelStatement
+        Private Function RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(syntax As SyntaxNode) As BoundLabelStatement
             Return AddResumeTargetLabel(syntax)
         End Function
 
-        Private Function RegisterUnstructuredExceptionHandlingResumeTarget(syntax As VisualBasicSyntaxNode, canThrow As Boolean) As ImmutableArray(Of BoundStatement)
+        Private Function RegisterUnstructuredExceptionHandlingResumeTarget(syntax As SyntaxNode, canThrow As Boolean) As ImmutableArray(Of BoundStatement)
             Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
             AddResumeTargetLabelAndUpdateCurrentStatementTemporary(syntax, canThrow, statements)
             Return statements.ToImmutableAndFree()

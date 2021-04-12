@@ -1,130 +1,153 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
+    /// <inheritdoc cref="CSharpFormattingOptions"/>
     public static class CSharpFormattingOptions
     {
-        internal const string SpacingFeatureName = "CSharp/Formatting/Spacing";
-        internal const string IndentFeatureName = "CSharp/Indent";
-        internal const string WrappingFeatureName = "CSharp/Wrapping";
-        internal const string NewLineFormattingFeatureName = "CSharp/New Line";
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAfterMethodDeclarationName"/>
+        public static Option<bool> SpacingAfterMethodDeclarationName { get; } = (Option<bool>)CSharpFormattingOptions2.SpacingAfterMethodDeclarationName!;
 
-        public static Option<bool> SpacingAfterMethodDeclarationName { get; } = new Option<bool>(SpacingFeatureName, "SpacingAfterMethodDeclarationName", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis"/>
+        public static Option<bool> SpaceWithinMethodDeclarationParenthesis { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis!;
 
-        public static Option<bool> SpaceWithinMethodDeclarationParenthesis { get; } = new Option<bool>(SpacingFeatureName, "SpaceWithinMethodDeclarationParenthesis", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses"/>
+        public static Option<bool> SpaceBetweenEmptyMethodDeclarationParentheses { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses!;
 
-        public static Option<bool> SpaceBetweenEmptyMethodDeclarationParentheses { get; } = new Option<bool>(SpacingFeatureName, "SpaceBetweenEmptyMethodDeclarationParentheses", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterMethodCallName"/>
+        public static Option<bool> SpaceAfterMethodCallName { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceAfterMethodCallName!;
 
-        public static Option<bool> SpaceAfterMethodCallName { get; } = new Option<bool>(SpacingFeatureName, "SpaceAfterMethodCallName", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinMethodCallParentheses"/>
+        public static Option<bool> SpaceWithinMethodCallParentheses { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceWithinMethodCallParentheses!;
 
-        public static Option<bool> SpaceWithinMethodCallParentheses { get; } = new Option<bool>(SpacingFeatureName, "SpaceWithinMethodCallParentheses", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses"/>
+        public static Option<bool> SpaceBetweenEmptyMethodCallParentheses { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses!;
 
-        public static Option<bool> SpaceBetweenEmptyMethodCallParentheses { get; } = new Option<bool>(SpacingFeatureName, "SpaceBetweenEmptyMethodCallParentheses", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword"/>
+        public static Option<bool> SpaceAfterControlFlowStatementKeyword { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword!;
 
-        public static Option<bool> SpaceAfterControlFlowStatementKeyword { get; } = new Option<bool>(SpacingFeatureName, "SpaceAfterControlFlowStatementKeyword", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinExpressionParentheses"/>
+        public static Option<bool> SpaceWithinExpressionParentheses { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceWithinExpressionParentheses!;
 
-        public static Option<bool> SpaceWithinExpressionParentheses { get; } = new Option<bool>(SpacingFeatureName, "SpaceWithinExpressionParentheses", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinCastParentheses"/>
+        public static Option<bool> SpaceWithinCastParentheses { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceWithinCastParentheses!;
 
-        public static Option<bool> SpaceWithinCastParentheses { get; } = new Option<bool>(SpacingFeatureName, "SpaceWithinCastParentheses", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinOtherParentheses"/>
+        public static Option<bool> SpaceWithinOtherParentheses { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceWithinOtherParentheses!;
 
-        public static Option<bool> SpaceWithinOtherParentheses { get; } = new Option<bool>(SpacingFeatureName, "SpaceWithinOtherParentheses", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterCast"/>
+        public static Option<bool> SpaceAfterCast { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceAfterCast!;
 
-        public static Option<bool> SpaceAfterCast { get; } = new Option<bool>(SpacingFeatureName, "SpaceAfterCast", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration"/>
+        public static Option<bool> SpacesIgnoreAroundVariableDeclaration { get; } = (Option<bool>)CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration!;
 
-        public static Option<bool> SpacesIgnoreAroundVariableDeclaration { get; } = new Option<bool>(SpacingFeatureName, "SpacesIgnoreAroundVariableDeclaration", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket"/>
+        public static Option<bool> SpaceBeforeOpenSquareBracket { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket!;
 
-        public static Option<bool> SpaceBeforeOpenSquareBracket { get; } = new Option<bool>(SpacingFeatureName, "SpaceBeforeOpenSquareBracket", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets"/>
+        public static Option<bool> SpaceBetweenEmptySquareBrackets { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets!;
 
-        public static Option<bool> SpaceBetweenEmptySquareBrackets { get; } = new Option<bool>(SpacingFeatureName, "SpaceBetweenEmptySquareBrackets", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceWithinSquareBrackets"/>
+        public static Option<bool> SpaceWithinSquareBrackets { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceWithinSquareBrackets!;
 
-        public static Option<bool> SpaceWithinSquareBrackets { get; } = new Option<bool>(SpacingFeatureName, "SpaceWithinSquareBrackets", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration"/>
+        public static Option<bool> SpaceAfterColonInBaseTypeDeclaration { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration!;
 
-        public static Option<bool> SpaceAfterColonInBaseTypeDeclaration { get; } = new Option<bool>(SpacingFeatureName, "SpaceAfterColonInBaseTypeDeclaration", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterComma"/>
+        public static Option<bool> SpaceAfterComma { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceAfterComma!;
 
-        public static Option<bool> SpaceAfterComma { get; } = new Option<bool>(SpacingFeatureName, "SpaceAfterComma", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterDot"/>
+        public static Option<bool> SpaceAfterDot { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceAfterDot!;
 
-        public static Option<bool> SpaceAfterDot { get; } = new Option<bool>(SpacingFeatureName, "SpaceAfterDot", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement"/>
+        public static Option<bool> SpaceAfterSemicolonsInForStatement { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement!;
 
-        public static Option<bool> SpaceAfterSemicolonsInForStatement { get; } = new Option<bool>(SpacingFeatureName, "SpaceAfterSemicolonsInForStatement", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration"/>
+        public static Option<bool> SpaceBeforeColonInBaseTypeDeclaration { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration!;
 
-        public static Option<bool> SpaceBeforeColonInBaseTypeDeclaration { get; } = new Option<bool>(SpacingFeatureName, "SpaceBeforeColonInBaseTypeDeclaration", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceBeforeComma"/>
+        public static Option<bool> SpaceBeforeComma { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceBeforeComma!;
 
-        public static Option<bool> SpaceBeforeComma { get; } = new Option<bool>(SpacingFeatureName, "SpaceBeforeComma", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceBeforeDot"/>
+        public static Option<bool> SpaceBeforeDot { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceBeforeDot!;
 
-        public static Option<bool> SpaceBeforeDot { get; } = new Option<bool>(SpacingFeatureName, "SpaceBeforeDot", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement"/>
+        public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = (Option<bool>)CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement!;
 
-        public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = new Option<bool>(SpacingFeatureName, "SpaceBeforeSemicolonsInForStatement", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAroundBinaryOperator"/>
+        public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = (Option<BinaryOperatorSpacingOptions>)CSharpFormattingOptions2.SpacingAroundBinaryOperator!;
 
-        public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = new Option<BinaryOperatorSpacingOptions>(SpacingFeatureName, "SpacingAroundBinaryOperator", defaultValue: BinaryOperatorSpacingOptions.Single);
+        /// <inheritdoc cref="CSharpFormattingOptions2.IndentBraces"/>
+        public static Option<bool> IndentBraces { get; } = (Option<bool>)CSharpFormattingOptions2.IndentBraces!;
 
-        public static Option<bool> IndentBraces { get; } = new Option<bool>(IndentFeatureName, "OpenCloseBracesIndent", defaultValue: false);
+        /// <inheritdoc cref="CSharpFormattingOptions2.IndentBlock"/>
+        public static Option<bool> IndentBlock { get; } = (Option<bool>)CSharpFormattingOptions2.IndentBlock!;
 
-        public static Option<bool> IndentBlock { get; } = new Option<bool>(IndentFeatureName, "IndentBlock", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.IndentSwitchSection"/>
+        public static Option<bool> IndentSwitchSection { get; } = (Option<bool>)CSharpFormattingOptions2.IndentSwitchSection!;
 
-        public static Option<bool> IndentSwitchSection { get; } = new Option<bool>(IndentFeatureName, "IndentSwitchSection", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.IndentSwitchCaseSection"/>
+        public static Option<bool> IndentSwitchCaseSection { get; } = (Option<bool>)CSharpFormattingOptions2.IndentSwitchCaseSection!;
 
-        public static Option<bool> IndentSwitchCaseSection { get; } = new Option<bool>(IndentFeatureName, "IndentSwitchCaseSection", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock"/>
+        public static Option<bool> IndentSwitchCaseSectionWhenBlock { get; } = (Option<bool>)CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock!;
 
-        public static Option<LabelPositionOptions> LabelPositioning { get; } = new Option<LabelPositionOptions>(IndentFeatureName, "LabelPositioning", defaultValue: LabelPositionOptions.OneLess);
+        /// <inheritdoc cref="CSharpFormattingOptions2.LabelPositioning"/>
+        public static Option<LabelPositionOptions> LabelPositioning { get; } = (Option<LabelPositionOptions>)CSharpFormattingOptions2.LabelPositioning!;
 
-        public static Option<bool> WrappingPreserveSingleLine { get; } = new Option<bool>(WrappingFeatureName, "WrappingPreserveSingleLine", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.WrappingPreserveSingleLine"/>
+        public static Option<bool> WrappingPreserveSingleLine { get; } = (Option<bool>)CSharpFormattingOptions2.WrappingPreserveSingleLine!;
 
-        public static Option<bool> WrappingKeepStatementsOnSingleLine { get; } = new Option<bool>(WrappingFeatureName, "WrappingKeepStatementsOnSingleLine", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine"/>
+        public static Option<bool> WrappingKeepStatementsOnSingleLine { get; } = (Option<bool>)CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine!;
 
-        public static Option<bool> NewLinesForBracesInTypes { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesBracesType", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInTypes"/>
+        public static Option<bool> NewLinesForBracesInTypes { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInTypes!;
 
-        public static Option<bool> NewLinesForBracesInMethods { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInMethods", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInMethods"/>
+        public static Option<bool> NewLinesForBracesInMethods { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInMethods!;
 
-        public static Option<bool> NewLinesForBracesInProperties { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInProperties", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInProperties"/>
+        public static Option<bool> NewLinesForBracesInProperties { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInProperties!;
 
-        public static Option<bool> NewLinesForBracesInAccessors { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInAccessors", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInAccessors"/>
+        public static Option<bool> NewLinesForBracesInAccessors { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInAccessors!;
 
-        public static Option<bool> NewLinesForBracesInAnonymousMethods { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInAnonymousMethods", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods"/>
+        public static Option<bool> NewLinesForBracesInAnonymousMethods { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods!;
 
-        public static Option<bool> NewLinesForBracesInControlBlocks { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInControlBlocks", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInControlBlocks"/>
+        public static Option<bool> NewLinesForBracesInControlBlocks { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInControlBlocks!;
 
-        public static Option<bool> NewLinesForBracesInAnonymousTypes { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInAnonymousTypes", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes"/>
+        public static Option<bool> NewLinesForBracesInAnonymousTypes { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes!;
 
-        public static Option<bool> NewLinesForBracesInObjectCollectionArrayInitializers { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInObjectCollectionArrayInitializers", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers"/>
+        public static Option<bool> NewLinesForBracesInObjectCollectionArrayInitializers { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers!;
 
-        public static Option<bool> NewLinesForBracesInLambdaExpressionBody { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInLambdaExpressionBody", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody"/>
+        public static Option<bool> NewLinesForBracesInLambdaExpressionBody { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody!;
 
-        public static Option<bool> NewLineForElse { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLineForElse", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForElse"/>
+        public static Option<bool> NewLineForElse { get; } = (Option<bool>)CSharpFormattingOptions2.NewLineForElse!;
 
-        public static Option<bool> NewLineForCatch { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLineForCatch", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForCatch"/>
+        public static Option<bool> NewLineForCatch { get; } = (Option<bool>)CSharpFormattingOptions2.NewLineForCatch!;
 
-        public static Option<bool> NewLineForFinally { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLineForFinally", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForFinally"/>
+        public static Option<bool> NewLineForFinally { get; } = (Option<bool>)CSharpFormattingOptions2.NewLineForFinally!;
 
-        public static Option<bool> NewLineForMembersInObjectInit { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLineForMembersInObjectInit", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForMembersInObjectInit"/>
+        public static Option<bool> NewLineForMembersInObjectInit { get; } = (Option<bool>)CSharpFormattingOptions2.NewLineForMembersInObjectInit!;
 
-        public static Option<bool> NewLineForMembersInAnonymousTypes { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLineForMembersInAnonymousTypes", defaultValue: true);
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes"/>
+        public static Option<bool> NewLineForMembersInAnonymousTypes { get; } = (Option<bool>)CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes!;
 
-        public static Option<bool> NewLineForClausesInQuery { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLineForClausesInQuery", defaultValue: true);
-    }
-
-    public enum LabelPositionOptions
-    {
-        /// Placed in the Zeroth column of the text editor
-        LeftMost = 0,
-
-        /// Placed at one less indent to the current context
-        OneLess = 1,
-
-        /// Placed at the same indent as the current context
-        NoIndent = 2
-    }
-
-    public enum BinaryOperatorSpacingOptions
-    {
-        /// Single Spacing
-        Single = 0,
-
-        /// Ignore Formatting
-        Ignore = 1,
-
-        /// Remove Spacing
-        Remove = 2
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForClausesInQuery"/>
+        public static Option<bool> NewLineForClausesInQuery { get; } = (Option<bool>)CSharpFormattingOptions2.NewLineForClausesInQuery!;
     }
 }

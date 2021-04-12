@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -16,13 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     [Export(typeof(HostDiagnosticUpdateSource))]
     internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateSource
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly Lazy<VisualStudioWorkspaceImpl> _workspace;
 
-        private readonly object _gate = new object();
-        private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new Dictionary<ProjectId, HashSet<object>>();
+        private readonly object _gate = new();
+        private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new();
 
         [ImportingConstructor]
-        public HostDiagnosticUpdateSource(VisualStudioWorkspaceImpl workspace, IDiagnosticUpdateSourceRegistrationService registrationService)
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public HostDiagnosticUpdateSource(Lazy<VisualStudioWorkspaceImpl> workspace, IDiagnosticUpdateSourceRegistrationService registrationService)
         {
             _workspace = workspace;
 
@@ -33,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             get
             {
-                return _workspace;
+                return _workspace.Value;
             }
         }
 
@@ -41,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 CreateId(projectId, key),
-                _workspace,
+                Workspace,
                 solution: null,
                 projectId: projectId,
                 documentId: null,
@@ -54,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             var args = DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 CreateId(projectId, key),
-                _workspace,
+                Workspace,
                 solution: null,
                 projectId: projectId,
                 documentId: null);
@@ -98,6 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     RaiseDiagnosticsRemovedForProject(projectId, key);
                 }
             }
+
+            ClearAnalyzerDiagnostics(projectId);
         }
 
         public void ClearDiagnosticsForProject(ProjectId projectId, object key)
@@ -108,8 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var raiseEvent = false;
             lock (_gate)
             {
-                HashSet<object> projectDiagnosticKeys;
-                if (_diagnosticMap.TryGetValue(projectId, out projectDiagnosticKeys))
+                if (_diagnosticMap.TryGetValue(projectId, out var projectDiagnosticKeys))
                 {
                     raiseEvent = projectDiagnosticKeys.Remove(key);
                 }

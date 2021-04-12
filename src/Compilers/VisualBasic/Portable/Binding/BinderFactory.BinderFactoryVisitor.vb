@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -165,6 +167,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return GetBinderForNodeAndUsage(inheritsSyntax, NodeUsage.InheritsStatement, inheritsSyntax.Parent, _position)
             End Function
 
+            Public Overrides Function VisitImplementsStatement(implementsSyntax As ImplementsStatementSyntax) As Binder
+                Return GetBinderForNodeAndUsage(implementsSyntax, NodeUsage.ImplementsStatement, implementsSyntax.Parent, _position)
+            End Function
+
             ' All of these kinds of syntax nodes declare method symbols.
 
             Public Overrides Function VisitMethodStatement(node As MethodStatementSyntax) As Binder
@@ -194,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitParameter(node As ParameterSyntax) As Binder
-                If node.Default IsNot Nothing Then
+                If IsNotNothingAndContains(node.Default, _position) Then
                     Return GetBinderForNodeAndUsage(node, NodeUsage.ParameterDefaultValue, node.Parent, _position)
                 End If
                 Return Nothing

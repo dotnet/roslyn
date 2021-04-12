@@ -1,60 +1,55 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class NamedParameterCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New NamedParameterCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(NamedParameterCompletionProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInObjectCreation() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
 	Public Sub New(Optional a As Integer = 42)
 	End Sub
 
 	Private Sub Bar()
-		Dim b = New Foo($$
+		Dim b = New Goo($$
 	End Sub
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInBaseConstructor() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
 	Public Sub New(Optional a As Integer = 42)
 	End Sub
 End Class
 
 Class FogBar
-	Inherits Foo
+	Inherits Goo
 	Public Sub New(b As Integer)
 		MyBase.New($$
 	End Sub
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeConstructor() As Task
             Await VerifyItemIsAbsentAsync(
 <Text>
-Class Foo
+Class Goo
 Class TestAttribute
 	Inherits Attribute
 	Public Sub New(Optional a As Integer = 42)
@@ -62,9 +57,9 @@ Class TestAttribute
 End Class
 
 &lt;Test($$)&gt; _
-Class Foo
+Class Goo
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <WorkItem(546190, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546190")>
@@ -80,7 +75,7 @@ End Class
 &lt;Something($$)&gt; ' type x in the parens
 Class D
 End Class
-</Text>.Value, "x:=")
+</Text>.Value, "x", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -94,33 +89,33 @@ Class TestAttribute
 End Class
 
 &lt;Test(s:="""",$$  &gt; _
-Class Foo
+Class Goo
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInvocationExpression() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
 	Private Sub Bar(a As Integer)
 		Bar($$
 	End Sub
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInvocationExpressionAfterComma() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
 	Private Sub Bar(a As Integer, b as String)
 		Bar(b:="""", $$
 	End Sub
 End Class
-</Text>.Value, "a:=")
+</Text>.Value, "a", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -143,7 +138,7 @@ Module TestModule
         y = x($$
     End Sub
 End Module
-</Text>.Value, "i:=")
+</Text>.Value, "i", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -161,7 +156,7 @@ Module Test
         d($$
     End Sub
 End Module
-</Text>.Value, "x:=")
+</Text>.Value, "x", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -179,14 +174,14 @@ Module Test
         d.Invoke($$
     End Sub
 End Module
-</Text>.Value, "x:=")
+</Text>.Value, "x", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotAfterColonEquals() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
-Class Foo
+Class Goo
     Private Sub Bar(a As Integer, b As String)
         Bar(a:=$$
     End Sub
@@ -198,7 +193,7 @@ End Class
         Public Async Function TestNotInCollectionInitializers() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
-Class Foo
+Class Goo
     Private Sub Bar(a As Integer, b As String)
         Dim numbers = {1, 2, 3,$$ 4, 5}
     End Sub
@@ -212,26 +207,26 @@ End Class
 <Text>
 Class Class1
     Private Sub Test()
-        Foo(str:="""", $$)
+        Goo(str:="""", $$)
     End Sub
 
-    Private Sub Foo(str As String, character As Char)
+    Private Sub Goo(str As String, character As Char)
     End Sub
 
-    Private Sub Foo(str As String, bool As Boolean)
+    Private Sub Goo(str As String, bool As Boolean)
     End Sub
 End Class
 </Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "bool:=")
-            Await VerifyItemExistsAsync(markup, "character:=")
+            Await VerifyItemExistsAsync(markup, "bool", displayTextSuffix:=":=")
+            Await VerifyItemExistsAsync(markup, "character", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMethodOverloads() As Task
             Dim markup =
 <Text>
-Class Foo
+Class Goo
     Private Sub Test()
         Dim m As Object = Nothing
         Method(obj:=m, $$
@@ -246,16 +241,16 @@ Class Foo
 End Class
 </Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "str:=")
-            Await VerifyItemExistsAsync(markup, "num:=")
-            Await VerifyItemExistsAsync(markup, "b:=")
+            Await VerifyItemExistsAsync(markup, "str", displayTextSuffix:=":=")
+            Await VerifyItemExistsAsync(markup, "num", displayTextSuffix:=":=")
+            Await VerifyItemExistsAsync(markup, "b", displayTextSuffix:=":=")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExistingNamedParamsAreFilteredOut() As Task
             Dim markup =
 <Text>
-Class Foo
+Class Goo
     Private Sub Test()
         Dim m As Object = Nothing
         Method(obj:=m, str:="""", $$);
@@ -272,10 +267,10 @@ Class Foo
 End Class
 </Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "num:=")
-            Await VerifyItemExistsAsync(markup, "b:=")
-            Await VerifyItemIsAbsentAsync(markup, "obj:=")
-            Await VerifyItemIsAbsentAsync(markup, "str:=")
+            Await VerifyItemExistsAsync(markup, "num", displayTextSuffix:=":=")
+            Await VerifyItemExistsAsync(markup, "b", displayTextSuffix:=":=")
+            Await VerifyItemIsAbsentAsync(markup, "obj", displayTextSuffix:=":=")
+            Await VerifyItemIsAbsentAsync(markup, "str", displayTextSuffix:=":=")
         End Function
 
         <WorkItem(529370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529370")>
@@ -283,12 +278,12 @@ End Class
         Public Async Function TestKeywordAsEscapedIdentifier() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
     Private Sub Bar([Boolean] As Boolean)
         Bar($$
     End Sub
 End Class
-</Text>.Value, "[Boolean]:=")
+</Text>.Value, "[Boolean]", displayTextSuffix:=":=")
         End Function
 
         <WorkItem(546589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546589")>
@@ -312,7 +307,7 @@ End Module
 
 </Text>.Value
 
-            Await VerifyProviderCommitAsync(text, "args:=", expected, "="c, Nothing)
+            Await VerifyProviderCommitAsync(text, "args:=", expected, "="c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -335,7 +330,7 @@ End Module
 
 </Text>.Value
 
-            Await VerifyProviderCommitAsync(text, "args:=", expected, ":"c, Nothing)
+            Await VerifyProviderCommitAsync(text, "args:=", expected, ":"c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -358,14 +353,14 @@ End Module
 
 </Text>.Value
 
-            Await VerifyProviderCommitAsync(text, "args:=", expected, " "c, Nothing)
+            Await VerifyProviderCommitAsync(text, "args:=", expected, " "c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInTrivia() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
-Class Foo
+Class Goo
 	Private Sub Bar(a As Integer)
 		Bar(a:=1 ' $$
 	End Sub
@@ -379,13 +374,13 @@ End Class
             Await VerifyItemExistsAsync(
 <Text>
 Imports System
-Class Foo
+Class Goo
     Private Sub Bar(a As Integer)
         Dim x as Action(Of Integer) = Nothing
         x?($$
     End Sub
 End Class
-</Text>.Value, "obj:=")
+</Text>.Value, "obj", displayTextSuffix:=":=")
         End Function
 
         <WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>
@@ -394,7 +389,7 @@ End Class
             Await VerifyAnyItemExistsAsync(
 <Text>
 Imports System
-Class Foo
+Class Goo
     Private Sub Bar(a As Integer)
         Bar(1, 2, $$)
     End Sub

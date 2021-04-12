@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Diagnostics;
 using System.Threading;
@@ -10,14 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private DiagnosticInfo _lazyActualObsoleteDiagnostic;
 
-        private readonly Symbol _symbol;
+        private readonly object _symbolOrSymbolWithAnnotations;
         private readonly Symbol _containingSymbol;
         private readonly BinderFlags _binderFlags;
 
-        internal LazyObsoleteDiagnosticInfo(Symbol symbol, Symbol containingSymbol, BinderFlags binderFlags)
+        internal LazyObsoleteDiagnosticInfo(object symbol, Symbol containingSymbol, BinderFlags binderFlags)
             : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
-            _symbol = symbol;
+            Debug.Assert(symbol is Symbol || symbol is TypeWithAnnotations);
+            _symbolOrSymbolWithAnnotations = symbol;
             _containingSymbol = containingSymbol;
             _binderFlags = binderFlags;
             _lazyActualObsoleteDiagnostic = null;
@@ -29,27 +34,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // A symbol's Obsoleteness may not have been calculated yet if the symbol is coming
                 // from a different compilation's source. In that case, force completion of attributes.
-                _symbol.ForceCompleteObsoleteAttribute();
+                var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((TypeWithAnnotations)_symbolOrSymbolWithAnnotations).Type;
+                symbol.ForceCompleteObsoleteAttribute();
 
-                if (_symbol.ObsoleteState == ThreeState.True)
-                {
-                    var inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(_containingSymbol, forceComplete: true);
-                    Debug.Assert(inObsoleteContext != ThreeState.Unknown);
+                var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, _containingSymbol, forceComplete: true);
+                Debug.Assert(kind != ObsoleteDiagnosticKind.Lazy);
+                Debug.Assert(kind != ObsoleteDiagnosticKind.LazyPotentiallySuppressed);
 
-                    if (inObsoleteContext == ThreeState.False)
-                    {
-                        DiagnosticInfo info = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(_symbol, _binderFlags);
-                        if (info != null)
-                        {
-                            Interlocked.CompareExchange(ref _lazyActualObsoleteDiagnostic, info, null);
-                            return _lazyActualObsoleteDiagnostic;
-                        }
-                    }
-                }
+                var info = (kind == ObsoleteDiagnosticKind.Diagnostic) ?
+                    ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, _binderFlags) :
+                    null;
 
                 // If this symbol is not obsolete or is in an obsolete context, we don't want to report any diagnostics.
                 // Therefore make this a Void diagnostic.
-                Interlocked.CompareExchange(ref _lazyActualObsoleteDiagnostic, CSDiagnosticInfo.VoidDiagnosticInfo, null);
+                Interlocked.CompareExchange(ref _lazyActualObsoleteDiagnostic, info ?? CSDiagnosticInfo.VoidDiagnosticInfo, null);
             }
 
             return _lazyActualObsoleteDiagnostic;

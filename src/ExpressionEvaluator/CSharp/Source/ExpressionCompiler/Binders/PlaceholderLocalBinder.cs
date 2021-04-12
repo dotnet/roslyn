@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Roslyn.Utilities;
 
@@ -58,11 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             Binder originalBinder,
             bool diagnose,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly | LookupOptions.LabelsOnly)) != 0)
             {
@@ -79,18 +84,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     throw ExceptionUtilities.UnexpectedValue(valueText);
                 }
                 var local = new ObjectAddressLocalSymbol(_containingMethod, name, this.Compilation.GetSpecialType(SpecialType.System_Object), address);
-                result.MergeEqual(this.CheckViability(local, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
+                result.MergeEqual(this.CheckViability(local, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved));
             }
             else
             {
                 LocalSymbol lowercaseReturnValueAlias;
                 if (_lowercaseReturnValueAliases.TryGetValue(name, out lowercaseReturnValueAlias))
                 {
-                    result.MergeEqual(this.CheckViability(lowercaseReturnValueAlias, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
+                    result.MergeEqual(this.CheckViability(lowercaseReturnValueAlias, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved));
                 }
                 else
                 {
-                    base.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
+                    base.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
                 }
             }
         }
@@ -102,29 +107,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            builder.AddRange(_aliases);
-            var declaration = _syntax as LocalDeclarationStatementSyntax;
-            if (declaration != null)
-            {
-                var kind = declaration.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-                foreach (var variable in declaration.Declaration.Variables)
-                {
-                    var local = SourceLocalSymbol.MakeLocal(
-                        _containingMethod, 
-                        this, 
-                        declaration.RefKeyword.Kind() == SyntaxKind.RefKeyword? RefKind.Ref: RefKind.None,
-                        declaration.Declaration.Type, 
-                        variable.Identifier, 
-                        kind, 
-                        variable.Initializer);
-                    builder.Add(local);
-                }
-            }
-            return builder.ToImmutableAndFree();
+            return _aliases;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
         }

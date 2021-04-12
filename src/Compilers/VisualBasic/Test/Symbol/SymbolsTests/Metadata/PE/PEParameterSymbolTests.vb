@@ -1,6 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+#If NET472 Then
 Imports System.Reflection
+Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.Desktop
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -14,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' Interface I
             '   Sub M(... As Object, ... As Object)
             ' End Interface
-            Dim reference = CreateReflectionEmitAssembly(
+            Dim reference = DesktopRuntimeUtil.CreateReflectionEmitAssembly(
                 Sub(moduleBuilder)
                     Dim typeBuilder = moduleBuilder.DefineType(
                         "I",
@@ -39,7 +43,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {reference})
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {reference})
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30455: Argument not specified for parameter 'Param' of 'Sub M(Param As Object, Param As Object)'.
@@ -53,4 +57,4 @@ BC30274: Parameter 'Param' of 'Sub M(Param As Object, Param As Object)' already 
 
     End Class
 End Namespace
-
+#End if

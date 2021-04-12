@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -8,14 +10,14 @@ Imports System.Threading
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
     Public Class StatementSyntaxExtensionTests
 
-        Private Sub TestStatementDeclarationWithPublicModifier(Of T As StatementSyntax)(node As T)
+        Private Shared Sub TestStatementDeclarationWithPublicModifier(Of T As StatementSyntax)(node As T)
             Dim modifierList = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             Dim newNode = DirectCast(node.WithModifiers(modifierList), T)
             Dim actual = newNode.GetModifiers().First().ToString()
             Assert.Equal("Public", actual)
         End Sub
 
-        Private Sub VerifyTokenName(Of T As DeclarationStatementSyntax)(code As String, expectedName As String)
+        Private Shared Sub VerifyTokenName(Of T As DeclarationStatementSyntax)(code As String, expectedName As String)
             Dim node = SyntaxFactory.ParseCompilationUnit(code).DescendantNodes.OfType(Of T).First()
             Dim actualNameToken = node.GetNameToken()
             Assert.Equal(expectedName, actualNameToken.ToString())
@@ -54,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Extensions
             Assert.Equal("Byte", returnTypeName)
         End Sub
 
-        Private Sub TestTypeBlockWithPublicModifier(Of T As TypeBlockSyntax)(code As String)
+        Private Shared Sub TestTypeBlockWithPublicModifier(Of T As TypeBlockSyntax)(code As String)
             Dim node = SyntaxFactory.ParseCompilationUnit(code).Members.First()
             Dim modifierList = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             Dim newNode = DirectCast(node.WithModifiers(modifierList), T)
@@ -156,7 +158,7 @@ End Property</String>.Value
 
         <Fact>
         Public Sub SubBlockWithPublicModifier()
-            Dim code = <String>Sub Foo
+            Dim code = <String>Sub Goo
 End Sub</String>.Value
             Dim node = SyntaxFactory.ParseCompilationUnit(code).DescendantNodes.OfType(Of MethodBlockSyntax).First()
             TestStatementDeclarationWithPublicModifier(node)

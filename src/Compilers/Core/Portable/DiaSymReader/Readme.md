@@ -1,0 +1,2 @@
+The content of this directory is a copy of a subset of https://github.com/dotnet/symreader/tree/main/src/Microsoft.DiaSymReader.
+The only difference is in top-level class visibility (public in DiaSymReader, internal here).

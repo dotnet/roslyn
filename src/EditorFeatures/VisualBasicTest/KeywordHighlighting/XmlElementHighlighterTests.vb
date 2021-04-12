@@ -1,14 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
     Public Class XmlElementHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
-        Friend Overrides Function CreateHighlighter() As IHighlighter
-            Return New XmlElementHighlighter()
+        Friend Overrides Function GetHighlighterType() As Type
+            Return GetType(XmlElementHighlighter)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Await TestAsync(<Text><![CDATA[
 Class C
 Sub M()
-Dim q = {|Cursor:[|<foo>|]|} Bar [|</foo>|]
+Dim q = {|Cursor:[|<goo>|]|} Bar [|</goo>|]
 End Sub
 End Class]]></Text>)
         End Function
@@ -26,7 +27,7 @@ End Class]]></Text>)
             Await TestAsync(<Text><![CDATA[
 Class C
 Sub M()
-Dim q = [|<foo>|] Bar {|Cursor:[|</foo>|]|}
+Dim q = [|<goo>|] Bar {|Cursor:[|</goo>|]|}
 End Sub
 End Class]]></Text>)
         End Function
@@ -36,7 +37,7 @@ End Class]]></Text>)
             Await TestAsync(<Text><![CDATA[
 Class C
 Sub M()
-Dim q = <foo> {|Cursor:Bar|} </foo>
+Dim q = <goo> {|Cursor:Bar|} </goo>
 End Sub
 End Class]]></Text>)
         End Function

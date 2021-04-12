@@ -1,15 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundBadVariable
+    Partial Friend Class BoundBadVariable
         Inherits BoundExpression
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, expression, True, type, hasErrors)
         End Sub
 
@@ -31,5 +31,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
     End Class
-
 End Namespace

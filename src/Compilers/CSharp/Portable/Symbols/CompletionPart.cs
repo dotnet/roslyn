@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -26,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For method symbols
         ReturnTypeAttributes = 1 << 1,
 
-        // For symbols with parameters: method and property symbols.
+        // For methods.
         Parameters = 1 << 2,
 
-        // For symbols with type: method, property and field symbols
+        // For symbols with type: method, and field symbols. Properties are handled separately.
         Type = 1 << 3,
 
         // For named type symbols
@@ -76,12 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FinishMethodChecks = 1 << 14,
         MethodSymbolAll = Attributes | ReturnTypeAttributes | Parameters | Type | TypeParameters | StartMethodChecks | FinishMethodChecks | StartAsyncMethodChecks | FinishAsyncMethodChecks,
 
+        // For complex parameter symbols
+        StartDefaultSyntaxValue = 1 << 11,
+        EndDefaultSyntaxValue = 1 << 12,
+        EndDefaultSyntaxValueDiagnostics = 1 << 13,
+        ComplexParameterSymbolAll = Attributes | StartDefaultSyntaxValue | EndDefaultSyntaxValue | EndDefaultSyntaxValueDiagnostics,
+
         // For type parameter symbols
         TypeParameterConstraints = 1 << 11,
         TypeParameterSymbolAll = Attributes | TypeParameterConstraints,
 
         // For property symbols
-        PropertySymbolAll = Attributes | Parameters | Type,
+        StartPropertyEnsureSignature = 1 << 4,
+        FinishPropertyEnsureSignature = 1 << 5,
+        StartPropertyParameters = 1 << 6,
+        FinishPropertyParameters = 1 << 7,
+        StartPropertyType = 1 << 8,
+        FinishPropertyType = 1 << 9,
+        PropertySymbolAll = Attributes | StartPropertyEnsureSignature | FinishPropertyEnsureSignature | StartPropertyParameters | FinishPropertyParameters |
+                            StartPropertyType | FinishPropertyType,
 
         // For alias symbols
         AliasTarget = 1 << 4,

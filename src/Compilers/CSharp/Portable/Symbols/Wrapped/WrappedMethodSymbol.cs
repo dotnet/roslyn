@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 
@@ -50,22 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get;
-        }
-
-        public override abstract bool ReturnsVoid
-        {
-            get;
-        }
-
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get
             {
@@ -73,29 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract TypeSymbol ReturnType
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get;
-        }
-
         internal override int ParameterCount
         {
             get { return UnderlyingMethod.ParameterCount; }
-        }
-
-        public override abstract ImmutableArray<ParameterSymbol> Parameters
-        {
-            get;
-        }
-
-        public override abstract Symbol AssociatedSymbol
-        {
-            get;
         }
 
         public override bool IsExtensionMethod
@@ -114,9 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract Symbol ContainingSymbol
+        public override bool AreLocalsZeroed
         {
-            get;
+            get
+            {
+                return UnderlyingMethod.AreLocalsZeroed;
+            }
         }
 
         public override ImmutableArray<Location> Locations
@@ -148,6 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return UnderlyingMethod.IsStatic;
+            }
+        }
+
+        public override bool RequiresInstanceReceiver
+        {
+            get
+            {
+                return UnderlyingMethod.RequiresInstanceReceiver;
             }
         }
 
@@ -261,11 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return UnderlyingMethod.GetAppliedConditionalSymbols();
         }
 
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
-
-        // Get return type attributes
-        public override abstract ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes();
-
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get
@@ -319,16 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override abstract bool IsExplicitInterfaceImplementation
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
-        {
-            get;
-        }
-
         internal override bool IsAccessCheckedOnOverride
         {
             get
@@ -352,6 +316,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnderlyingMethod.HasRuntimeSpecialName;
             }
         }
+
+        public sealed override bool ReturnsVoid => UnderlyingMethod.ReturnsVoid;
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => UnderlyingMethod.ReturnTypeFlowAnalysisAnnotations;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => UnderlyingMethod.ReturnNotNullIfParameterNotNull;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => UnderlyingMethod.FlowAnalysisAnnotations;
+
+        internal sealed override ImmutableArray<string> NotNullMembers => UnderlyingMethod.NotNullMembers;
+
+        internal sealed override ImmutableArray<string> NotNullWhenTrueMembers => UnderlyingMethod.NotNullWhenTrueMembers;
+
+        internal sealed override ImmutableArray<string> NotNullWhenFalseMembers => UnderlyingMethod.NotNullWhenFalseMembers;
 
         internal override bool ReturnValueIsMarshalledExplicitly
         {
@@ -377,6 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
+        internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
+
+        internal override bool IsInitOnly => UnderlyingMethod.IsInitOnly;
     }
 }

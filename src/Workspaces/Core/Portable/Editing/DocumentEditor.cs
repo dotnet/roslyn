@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a new <see cref="DocumentEditor"/> instance.
         /// </summary>
-        public static async Task<DocumentEditor> CreateAsync(Document document, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<DocumentEditor> CreateAsync(Document document, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -42,25 +43,17 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// The <see cref="Document"/> specified when the editor was first created.
         /// </summary>
-        public Document OriginalDocument
-        {
-            get { return _document; }
-        }
+        public Document OriginalDocument => _document;
 
         /// <summary>
         /// The <see cref="CodeAnalysis.SemanticModel"/> of the original document.
         /// </summary>
-        public SemanticModel SemanticModel
-        {
-            get { return _model; }
-        }
+        public SemanticModel SemanticModel => _model;
 
         /// <summary>
         /// Returns the changed <see cref="Document"/>.
         /// </summary>
         public Document GetChangedDocument()
-        {
-            return _document.WithSyntaxRoot(this.GetChangedRoot());
-        }
+            => _document.WithSyntaxRoot(this.GetChangedRoot());
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void Test1()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var mscorlibRef = TestMetadata.Net40.mscorlib;
             string source = @"
 public class A
 {
@@ -35,11 +39,11 @@ public class A
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib(source,
+            var c = CreateCompilation(source,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 options: TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(c, expectedOutput:
+            CompileAndVerify(c, verify: Verification.Passes, expectedOutput:
 @"F1
 F2
 F3
@@ -95,7 +99,7 @@ Class.Method2(4)
 
             CompileAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -154,7 +158,7 @@ Class.Method2(6)
 
             CompileAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -206,7 +210,7 @@ CppBase1::NonVirtualMethod(4)
 
             CompileAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -277,7 +281,7 @@ CppBase1::NonVirtualMethod(6)
 
             CompileAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -370,7 +374,7 @@ CppBase2::Method2(12)
 
             CompileAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -452,7 +456,7 @@ Class2.Method(23,24)
 
             CompileAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -504,7 +508,7 @@ Derived2.Method(Int64[], Int16[], Single[])
 
             CompileAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -547,7 +551,7 @@ System.Int32[]
 
             CompileAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -592,15 +596,15 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMember<MethodSymbol>("Incr");
             var parameter = method.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, parameter.RefKind);
-            Assert.False(parameter.CustomModifiers.IsEmpty);
-            Assert.Equal(0, parameter.CountOfCustomModifiersPrecedingByRef);
+            Assert.False(parameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
+            Assert.True(parameter.RefCustomModifiers.IsEmpty);
 
             CompileAndVerify(comp, expectedOutput: "2");
         }
@@ -648,25 +652,94 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
             var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var baseMethod = baseType.GetMember<MethodSymbol>("M");
             var baseParameter = baseMethod.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, baseParameter.RefKind);
-            Assert.False(baseParameter.CustomModifiers.IsEmpty);
-            Assert.Equal(0, baseParameter.CountOfCustomModifiersPrecedingByRef);
+            Assert.False(baseParameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
+            Assert.True(baseParameter.RefCustomModifiers.IsEmpty);
 
             var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
             var derivedMethod = derivedType.GetMember<MethodSymbol>("M");
             var derivedParameter = derivedMethod.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, derivedParameter.RefKind);
-            Assert.False(derivedParameter.CustomModifiers.IsEmpty);
-            Assert.Equal(0, derivedParameter.CountOfCustomModifiersPrecedingByRef);
+            Assert.False(derivedParameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
+            Assert.True(derivedParameter.RefCustomModifiers.IsEmpty);
 
             CompileAndVerify(comp, expectedOutput: "2");
+        }
+
+        [WorkItem(294553, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294553")]
+        [Fact]
+        public void VoidPointerWithCustomModifiers()
+        {
+            var ilSource =
+@".class public A
+{
+  // F1(void* p)
+  .method public static void F1(void* p) { ret }
+  // F2(const void* p)
+  .method public static void F2(void modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* p) { ret }
+  // F3(void* const p)
+  .method public static void F3(void* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
+  // F4(const void* const p)
+  .method public static void F4(void modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
+}";
+            var source =
+@"class B
+{
+    static void Main()
+    {
+        unsafe
+        {
+            A.F1(null);
+            A.F2(null);
+            A.F3(null);
+            A.F4(null);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void IntPointerWithCustomModifiers()
+        {
+            var ilSource =
+@".class public A
+{
+  // F1(int* p)
+  .method public static void F1(int32* p) { ret }
+  // F2(const int* p)
+  .method public static void F2(int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* p) { ret }
+  // F3(int* const p)
+  .method public static void F3(int32* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
+  // F4(const int* const p)
+  .method public static void F4(int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
+}";
+            var source =
+@"class B
+{
+    static void Main()
+    {
+        unsafe
+        {
+            A.F1(null);
+            A.F2(null);
+            A.F3(null);
+            A.F4(null);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Fails);
         }
     }
 }

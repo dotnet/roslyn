@@ -1,23 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private bool ValidateLambdaParameterNameConflictsInScope(Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateLambdaParameterNameConflictsInScope(Location location, string name, BindingDiagnosticBag diagnostics)
         {
             return ValidateNameConflictsInScope(null, location, name, diagnostics);
         }
 
-        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, DiagnosticBag diagnostics)
+        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, BindingDiagnosticBag diagnostics)
         {
             Location location = GetLocation(symbol);
             return ValidateNameConflictsInScope(symbol, location, symbol.Name, diagnostics);
@@ -32,9 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void ValidateParameterNameConflicts(
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
-            DiagnosticBag diagnostics)
+            bool allowShadowingNames,
+            BindingDiagnosticBag diagnostics)
         {
-            PooledHashSet<string> tpNames = null;
+            PooledHashSet<string>? tpNames = null;
             if (!typeParameters.IsDefaultOrEmpty)
             {
                 tpNames = PooledHashSet<string>.GetInstance();
@@ -46,19 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (tpNames.Contains(name))
+                    if (!tpNames.Add(name))
                     {
                         // Type parameter declaration name conflicts are detected elsewhere
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
-                        tpNames.Add(name);
                         ValidateDeclarationNameConflictsInScope(tp, diagnostics);
                     }
                 }
             }
 
-            PooledHashSet<string> pNames = null;
+            PooledHashSet<string>? pNames = null;
             if (!parameters.IsDefaultOrEmpty)
             {
                 pNames = PooledHashSet<string>.GetInstance();
@@ -76,14 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, GetLocation(p), name);
                     }
 
-                    if (pNames.Contains(name))
+                    if (!pNames.Add(name))
                     {
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, GetLocation(p), name);
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
-                        pNames.Add(name);
                         ValidateDeclarationNameConflictsInScope(p, diagnostics);
                     }
                 }
@@ -96,30 +93,59 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Don't call this one directly - call one of the helpers.
         /// </remarks>
-        protected bool ValidateNameConflictsInScope(Symbol symbol, Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateNameConflictsInScope(Symbol? symbol, Location location, string name, BindingDiagnosticBag diagnostics)
         {
             if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
 
-            bool error = false;
-            for (Binder binder = this; binder != null; binder = binder.Next)
+            bool allowShadowing = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
+
+            for (Binder? binder = this; binder != null; binder = binder.Next)
             {
                 // no local scopes enclose members
-                if (binder is InContainerBinder || error)
+                if (binder is InContainerBinder)
                 {
-                    break;
+                    return false;
                 }
 
                 var scope = binder as LocalScopeBinder;
-                if (scope != null)
+                if (scope?.EnsureSingleDefinition(symbol, name, location, diagnostics) == true)
                 {
-                    error |= scope.EnsureSingleDefinition(symbol, name, location, diagnostics);
+                    return true;
+                }
+
+                // If shadowing is enabled, avoid checking for conflicts outside of local functions or lambdas.
+                if (allowShadowing && binder.IsNestedFunctionBinder)
+                {
+                    return false;
+                }
+
+                if (binder.IsLastBinderWithinMember())
+                {
+                    // Declarations within a member do not conflict with declarations outside.
+                    return false;
                 }
             }
 
-            return error;
+            return false;
+        }
+
+        private bool IsLastBinderWithinMember()
+        {
+            var containingMemberOrLambda = this.ContainingMemberOrLambda;
+
+            switch (containingMemberOrLambda?.Kind)
+            {
+                case null:
+                case SymbolKind.NamedType:
+                case SymbolKind.Namespace:
+                    return true;
+                default:
+                    return containingMemberOrLambda.ContainingSymbol?.Kind == SymbolKind.NamedType &&
+                           this.Next?.ContainingMemberOrLambda != containingMemberOrLambda;
+            }
         }
     }
 }

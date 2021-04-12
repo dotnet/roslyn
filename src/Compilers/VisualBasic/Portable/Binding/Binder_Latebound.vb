@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,23 +15,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class Binder
 
-        Private Function BindLateBoundMemberAccess(node As VisualBasicSyntaxNode,
+        Private Function BindLateBoundMemberAccess(node As SyntaxNode,
                                            name As String,
                                            typeArguments As TypeArgumentListSyntax,
                                            receiver As BoundExpression,
                                            containerType As TypeSymbol,
-                                           diagnostics As DiagnosticBag) As BoundExpression
+                                           diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim boundTypeArguments As BoundTypeArguments = BindTypeArguments(typeArguments, diagnostics)
             Return BindLateBoundMemberAccess(node, name, boundTypeArguments, receiver, containerType, diagnostics)
         End Function
 
-        Private Function BindLateBoundMemberAccess(node As VisualBasicSyntaxNode,
+        Private Function BindLateBoundMemberAccess(node As SyntaxNode,
                                            name As String,
                                            boundTypeArguments As BoundTypeArguments,
                                            receiver As BoundExpression,
                                            containerType As TypeSymbol,
-                                           diagnostics As DiagnosticBag,
+                                           diagnostics As BindingDiagnosticBag,
                                            Optional suppressLateBindingResolutionDiagnostics As Boolean = False) As BoundExpression
 
             receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
@@ -39,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, node, ERRID.ERR_StrictDisallowsLateBinding)
                 End If
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance
+                Dim children = ArrayBuilder(Of BoundExpression).GetInstance
                 If receiver IsNot Nothing Then
                     children.Add(receiver)
                 End If
@@ -67,15 +70,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = MakeRValue(receiver, diagnostics)
             End If
 
-            Return New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
+            Dim result = New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
+
+            Return result
         End Function
 
-        Private Function BindLateBoundInvocation(node As VisualBasicSyntaxNode,
+        Private Function BindLateBoundInvocation(node As SyntaxNode,
                                    group As BoundMethodOrPropertyGroup,
                                    isDefaultMemberAccess As Boolean,
                                    arguments As ImmutableArray(Of BoundExpression),
                                    argumentNames As ImmutableArray(Of String),
-                                   diagnostics As DiagnosticBag) As BoundExpression
+                                   diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim memberName As String = If(isDefaultMemberAccess,
                                           Nothing,
@@ -92,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = Nothing
             End If
 
-            Dim memberSyntax As VisualBasicSyntaxNode
+            Dim memberSyntax As SyntaxNode
             Dim invocationSyntax = TryCast(node, InvocationExpressionSyntax)
             If invocationSyntax IsNot Nothing Then
                 memberSyntax = If(invocationSyntax.Expression, group.Syntax)
@@ -103,6 +108,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lateMember = BindLateBoundMemberAccess(memberSyntax, memberName, typeArguments, receiver, containingType, diagnostics,
                                                        suppressLateBindingResolutionDiagnostics:=True) ' BindLateBoundInvocation will take care of the diagnostics.
 
+            If group.WasCompilerGenerated Then
+                lateMember.SetWasCompilerGenerated()
+            End If
+
             If receiver IsNot Nothing AndAlso receiver.Type IsNot Nothing AndAlso receiver.Type.IsInterfaceType Then
                 ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, group), ERRID.ERR_LateBoundOverloadInterfaceCall1, memberName)
             End If
@@ -110,12 +119,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return BindLateBoundInvocation(node, group, lateMember, arguments, argumentNames, diagnostics)
         End Function
 
-        Friend Function BindLateBoundInvocation(node As VisualBasicSyntaxNode,
+        Friend Function BindLateBoundInvocation(node As SyntaxNode,
                                            groupOpt As BoundMethodOrPropertyGroup,
                                            receiver As BoundExpression,
                                            arguments As ImmutableArray(Of BoundExpression),
                                            argumentNames As ImmutableArray(Of String),
-                                           diagnostics As DiagnosticBag,
+                                           diagnostics As BindingDiagnosticBag,
                                            Optional suppressLateBindingResolutionDiagnostics As Boolean = False) As BoundExpression
 
             Debug.Assert(receiver IsNot Nothing AndAlso receiver.Kind <> BoundKind.TypeOrValueExpression)
@@ -128,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If receiver.IsNothingLiteral Then
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_IllegalCallOrIndex)
 
-                Return BadExpression(node, StaticCast(Of BoundNode).From(arguments), ErrorTypeSymbol.UnknownResultType)
+                Return BadExpression(node, arguments, ErrorTypeSymbol.UnknownResultType)
             End If
 
             If OptionStrict = VisualBasic.OptionStrict.On Then
@@ -137,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' "Option Strict On disallows late binding."
                 ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, groupOpt), ERRID.ERR_StrictDisallowsLateBinding)
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance
+                Dim children = ArrayBuilder(Of BoundExpression).GetInstance
                 If receiver IsNot Nothing Then
                     children.Add(receiver)
                 End If
@@ -156,6 +165,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim objectType = GetSpecialType(SpecialType.System_Object, node, diagnostics)
 
             If Not arguments.IsEmpty Then
+                CheckNamedArgumentsForLateboundInvocation(argumentNames, arguments, diagnostics)
+
                 Dim builder As ArrayBuilder(Of BoundExpression) = Nothing
 
                 For i As Integer = 0 To arguments.Length - 1
@@ -218,7 +229,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundLateInvocation(node, receiver, arguments, argumentNames, LateBoundAccessKind.Unknown, groupOpt, objType)
         End Function
 
+        Private Sub CheckNamedArgumentsForLateboundInvocation(argumentNames As ImmutableArray(Of String),
+                                                            arguments As ImmutableArray(Of BoundExpression),
+                                                            diagnostics As BindingDiagnosticBag)
 
+            Debug.Assert(Not arguments.IsDefault)
+
+            If argumentNames.IsDefault OrElse argumentNames.Length = 0 Then
+                Return
+            End If
+
+            If Not Compilation.LanguageVersion.AllowNonTrailingNamedArguments() Then
+                Return
+            End If
+
+            Dim seenName As Boolean = False
+            For i As Integer = 0 To argumentNames.Length - 1
+
+                If argumentNames(i) IsNot Nothing Then
+                    seenName = True
+                ElseIf seenName Then
+                    ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation)
+                    Return
+                End If
+            Next
+
+        End Sub
     End Class
 End Namespace
 

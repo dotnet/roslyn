@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a speculative SemanticModel for a TypeSyntax or a RangeArgumentSyntax node at a position within an existing MemberSemanticModel.
         ''' </summary>
         Public Sub New(parentSemanticModel As SyntaxTreeSemanticModel, root As VisualBasicSyntaxNode, binder As Binder, position As Integer)
-            MyBase.New(root, binder, parentSemanticModel, position)
+            MyBase.New(root, binder, containingSemanticModelOpt:=Nothing, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
 
             Debug.Assert(root IsNot Nothing)
             Debug.Assert(TypeOf root Is TypeSyntax OrElse TypeOf root Is RangeArgumentSyntax)

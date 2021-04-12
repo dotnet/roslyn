@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,9 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeAsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.Conversion, rewrittenType);
         }
 
+        public override BoundNode VisitTypeExpression(BoundTypeExpression node)
+        {
+            var result = base.VisitTypeExpression(node);
+            Debug.Assert(result is { });
+            return result;
+        }
+
         private BoundExpression MakeAsOperator(
             BoundAsOperator oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             BoundTypeExpression rewrittenTargetType,
             Conversion conversion,
@@ -40,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constantValue != null)
                 {
                     Debug.Assert(constantValue.IsNull);
-                    BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultOperator(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
+                    BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultExpression(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
 
                     if (rewrittenOperand.ConstantValue != null)
                     {

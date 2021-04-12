@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -16,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            If t1 = t2 Then
+            If TypeSymbol.Equals(t1, t2, TypeCompareKind.ConsiderEverything) Then
                 Return True
             End If
 
@@ -27,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    substitution)
 #If DEBUG Then
             Debug.Assert(Not result OrElse
-                SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t1)) = SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t2)))
+                SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t1)).IsSameType(SubstituteAllTypeParameters(substitution, New TypeWithModifiers(t2)), TypeCompareKind.IgnoreTupleNames))
 #End If
             Return result
         End Function
@@ -107,27 +110,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim nt1 As NamedTypeSymbol = DirectCast(t1.Type, NamedTypeSymbol)
                     Dim nt2 As NamedTypeSymbol = DirectCast(t2.Type, NamedTypeSymbol)
+
+                    If nt1.IsTupleType OrElse nt2.IsTupleType Then
+                        Return CanUnifyHelper(containingGenericType,
+                                              New TypeWithModifiers(nt1.GetTupleUnderlyingTypeOrSelf()),
+                                              New TypeWithModifiers(nt2.GetTupleUnderlyingTypeOrSelf()),
+                                              substitution)
+                    End If
+
                     If Not nt1.IsGenericType Then
-                        Return Not nt2.IsGenericType AndAlso nt1 = nt2
+                        Return Not nt2.IsGenericType AndAlso TypeSymbol.Equals(nt1, nt2, TypeCompareKind.ConsiderEverything)
                     ElseIf Not nt2.IsGenericType Then
                         Return False
                     End If
 
                     Dim arity As Integer = nt1.Arity
-                    If nt2.Arity <> arity OrElse nt2.OriginalDefinition <> nt1.OriginalDefinition Then
+                    If nt2.Arity <> arity OrElse Not TypeSymbol.Equals(nt2.OriginalDefinition, nt1.OriginalDefinition, TypeCompareKind.ConsiderEverything) Then
                         Return False
                     End If
 
                     Dim nt1Arguments = nt1.TypeArgumentsNoUseSiteDiagnostics
                     Dim nt2Arguments = nt2.TypeArgumentsNoUseSiteDiagnostics
 
-                    Dim nt1ArgumentsCustomModifiers = If(nt1.HasTypeArgumentsCustomModifiers, nt1.TypeArgumentsCustomModifiers, Nothing)
-                    Dim nt2ArgumentsCustomModifiers = If(nt2.HasTypeArgumentsCustomModifiers, nt2.TypeArgumentsCustomModifiers, Nothing)
+                    Dim nt1HasModifiers = nt1.HasTypeArgumentsCustomModifiers
+                    Dim nt2HasModifiers = nt2.HasTypeArgumentsCustomModifiers
 
                     For i As Integer = 0 To arity - 1
                         If Not CanUnifyHelper(containingGenericType,
-                                              New TypeWithModifiers(nt1Arguments(i), If(nt1ArgumentsCustomModifiers.IsDefault, Nothing, nt1ArgumentsCustomModifiers(i))),
-                                              New TypeWithModifiers(nt2Arguments(i), If(nt2ArgumentsCustomModifiers.IsDefault, Nothing, nt2ArgumentsCustomModifiers(i))),
+                                              New TypeWithModifiers(nt1Arguments(i), If(nt1HasModifiers, nt1.GetTypeArgumentCustomModifiers(i), Nothing)),
+                                              New TypeWithModifiers(nt2Arguments(i), If(nt2HasModifiers, nt2.GetTypeArgumentCustomModifiers(i), Nothing)),
                                               substitution) Then
                             Return False
                         End If
@@ -235,8 +246,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.NamedType, SymbolKind.ErrorType
                     Dim namedType As NamedTypeSymbol = DirectCast(type, NamedTypeSymbol)
                     While namedType IsNot Nothing
-                        For Each typeArg In namedType.TypeArgumentsNoUseSiteDiagnostics
-                            If Contains(typeArg, typeParam) Then
+                        Dim typeParts = If(namedType.IsTupleType, namedType.TupleElementTypes, namedType.TypeArgumentsNoUseSiteDiagnostics)
+                        For Each typePart In typeParts
+                            If Contains(typePart, typeParam) Then
                                 Return True
                             End If
                         Next
@@ -246,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return False
                 Case SymbolKind.TypeParameter
-                    Return type = typeParam
+                    Return TypeSymbol.Equals(type, typeParam, TypeCompareKind.ConsiderEverything)
                 Case Else
                     Return False
             End Select

@@ -1,5 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using Roslyn.Test.Performance.Utilities;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
@@ -10,88 +18,60 @@ namespace Roslyn.Test.Performance.Utilities
         public static ITraceManager GetBestTraceManager()
         {
             var cpcFullPath = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "CPC.exe");
-            var scenarioPath = TestUtilities.GetCPCDirectoryPath();
             if (File.Exists(cpcFullPath))
             {
-                return new TraceManager(
-                    cpcFullPath,
-                    scenarioPath);
+                Log("Found CPC, using it for trace collection");
+                return new TraceManager(cpcFullPath);
             }
             else
             {
-                return new NoOpTraceManager();
+                Log($"WARNING: Could not find CPC at {cpcFullPath} (no traces will be collected)");
+                return new WallClockTraceManager();
             }
         }
 
         public static ITraceManager NoOpTraceManager()
         {
-            return new NoOpTraceManager();
+            return new WallClockTraceManager();
         }
     }
 
     public class TraceManager : ITraceManager
     {
-        private readonly ScenarioGenerator _scenarioGenerator;
+        private ScenarioGenerator _scenarioGenerator;
         private readonly string _cpcPath;
 
         private int _startEventAbsoluteInstance = 1;
         private int _stopEventAbsoluteInstance = 1;
 
-        public TraceManager(
-            string cpcPath,
-            string scenarioPath) : base()
+        public TraceManager(string cpcPath) : base()
         {
             _cpcPath = cpcPath;
-            _scenarioGenerator = new ScenarioGenerator(scenarioPath);
+            _scenarioGenerator = new ScenarioGenerator();
         }
 
-        public bool HasWarmUpIteration
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        // Cleanup the results directory and files before every run
-        public void Initialize()
-        {
-            var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
-            if (File.Exists(consumptionTempResultsPath))
-            {
-                File.Delete(consumptionTempResultsPath);
-            }
-
-            if (Directory.Exists(GetCPCDirectoryPath()))
-            {
-                var databackDirectories = Directory.GetDirectories(GetCPCDirectoryPath(), "DataBackup*", SearchOption.AllDirectories);
-                foreach (var databackDirectory in databackDirectories)
-                {
-                    Directory.Delete(databackDirectory, true);
-                }
-            }
-        }
+        public bool HasWarmUpIteration => true;
 
         public void Setup()
         {
-            ShellOutVital(_cpcPath, "/Setup /DisableArchive", workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Setup /SkipClean", workingDirectory: TestUtilities.GetCPCDirectoryPath());
         }
 
         public void Start()
         {
-            ShellOutVital(_cpcPath, "/Start /DisableArchive", workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Start /SkipClean", workingDirectory: TestUtilities.GetCPCDirectoryPath());
         }
 
         public void Stop()
         {
             var scenariosXmlPath = Path.Combine(GetCPCDirectoryPath(), "scenarios.xml");
             var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
-            ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", workingDirectory: "");
+            ShellOutVital(_cpcPath, $"/Stop /SkipClean /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", workingDirectory: TestUtilities.GetCPCDirectoryPath());
         }
 
         public void Cleanup()
         {
-            ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Cleanup /SkipClean", workingDirectory: TestUtilities.GetCPCDirectoryPath());
         }
 
         public void StartScenarios()
@@ -141,32 +121,40 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void ResetScenarioGenerator()
         {
-            _scenarioGenerator.Initialize();
+            _scenarioGenerator = new ScenarioGenerator();
             _startEventAbsoluteInstance = 1;
             _stopEventAbsoluteInstance = 1;
         }
     }
 
-    public class NoOpTraceManager : ITraceManager
+    public class WallClockTraceManager : ITraceManager
     {
-        public NoOpTraceManager()
+        private readonly List<long> _durations = new List<long>();
+        private string _testName = "";
+
+        private Stopwatch _stopwatch;
+
+        public WallClockTraceManager()
         {
         }
 
-        public bool HasWarmUpIteration
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool HasWarmUpIteration => false;
 
         public void Initialize()
         {
         }
 
+        // We have one WallClockTraceManager per test, so we don't
+        // need to worry about other tests showing up
         public void Cleanup()
         {
+            var totalDuration = _durations.Sum(v => v);
+            var average = _durations.Count != 0 ? totalDuration / _durations.Count : 0;
+            var allString = string.Join(",", _durations);
+
+            Log($"Wallclock times for {_testName}");
+            Log($"ALL: [{allString}]");
+            Log($"AVERAGE: {average}");
         }
 
         public void EndEvent()
@@ -175,6 +163,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void EndScenario()
         {
+            _stopwatch.Stop();
+            _durations.Add(_stopwatch.ElapsedMilliseconds);
         }
 
         public void EndScenarios()
@@ -203,6 +193,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void StartScenario(string scenarioName, string processName)
         {
+            _testName = scenarioName;
+            _stopwatch = Stopwatch.StartNew();
         }
 
         public void Stop()

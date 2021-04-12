@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,9 +14,9 @@ namespace Microsoft.CodeAnalysis
     internal partial class DocumentState
     {
         /// <summary>
-        /// A source for TextAndVersion constructed from an syntax tree
+        /// A source for <see cref="TextAndVersion"/> constructed from an syntax tree.
         /// </summary>
-        private class TreeTextSource : ValueSource<TextAndVersion>, ITextVersionable
+        private sealed class TreeTextSource : ValueSource<TextAndVersion>, ITextVersionable
         {
             private readonly ValueSource<SourceText> _lazyText;
             private readonly VersionStamp _version;
@@ -25,13 +29,13 @@ namespace Microsoft.CodeAnalysis
                 _filePath = filePath;
             }
 
-            public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default)
             {
                 var text = await _lazyText.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return TextAndVersion.Create(text, _version, _filePath);
             }
 
-            public override TextAndVersion GetValue(CancellationToken cancellationToken = default(CancellationToken))
+            public override TextAndVersion GetValue(CancellationToken cancellationToken = default)
             {
                 var text = _lazyText.GetValue(cancellationToken);
                 return TextAndVersion.Create(text, _version, _filePath);
@@ -39,8 +43,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool TryGetValue(out TextAndVersion value)
             {
-                SourceText text;
-                if (_lazyText.TryGetValue(out text))
+                if (_lazyText.TryGetValue(out var text))
                 {
                     value = TextAndVersion.Create(text, _version, _filePath);
                     return true;
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             public bool TryGetTextVersion(out VersionStamp version)
             {
                 version = _version;
-                return version != default(VersionStamp);
+                return version != default;
             }
         }
     }

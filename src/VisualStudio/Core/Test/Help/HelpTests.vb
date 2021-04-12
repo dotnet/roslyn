@@ -1,20 +1,131 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Help
+    <[UseExportProvider]>
     Public Class HelpTests
-        Public Async Function TestAsync(markup As String, expected As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(markup)
+        Public Shared Async Function TestAsync(markup As String, expected As String) As Tasks.Task
+            Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim caret = workspace.Documents.First().CursorPosition
                 Dim service = New VisualBasicHelpContextService()
                 Assert.Equal(expected, Await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None))
             End Using
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestFriend() As Task
+            Dim text = <a>
+Fri[||]end Class G
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.Friend")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestProtected() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.Protected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestProtectedFriend1() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Friend Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.ProtectedFriend")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestProtectedFriend2() As Task
+            Dim text = <a>
+Public Class G
+    Friend Protec[||]ted Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.ProtectedFriend")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestPrivateProtected1() As Task
+            Dim text = <a>
+Public Class G
+    Private Protec[||]ted Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestPrivateProtected2() As Task
+            Dim text = <a>
+Public Class G
+    Priv[||]ate Protected Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestPrivateProtected3() As Task
+            Dim text = <a>
+Public Class G
+    Protected Priv[||]ate Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestPrivateProtected4() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Private Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestModifierSoup() As Task
+            Dim text = <a>
+Public Class G
+    Protec[||]ted Async Shared Private Sub M()
+    End Sub
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function TestModifierSoupField() As Task
+            Dim text = <a>
+Public Class G
+    Private Shadows Shared Prot[||]ected foo as Boolean
+End Class</a>
+
+            Await TestAsync(text.Value, "vb.PrivateProtected")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
@@ -256,7 +367,6 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.CollectionInitializer)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestConstructor() As Task
             Dim text = <a><![CDATA[
@@ -267,7 +377,6 @@ End Class]]></a>
 
             Await TestAsync(text.Value, HelpKeywords.Constructor)
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDistinct() As Task
@@ -441,7 +550,7 @@ Class G
         Public Async Function TestEndSub() As Task
             Dim text = <a><![CDATA[
 Class G
-    Sub foo()
+    Sub goo()
         End[||]
     ENd Sub
 End Class]]></a>
@@ -472,7 +581,6 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Erase")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEraseStatement2() As Task
             Dim text = <a><![CDATA[
@@ -485,7 +593,6 @@ End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Erase")
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestError() As Task
@@ -513,7 +620,7 @@ End Class]]></a>
         Public Async Function TestExit1() As Task
             Dim text = <a><![CDATA[
 Class G
-    Sub Foo()
+    Sub Goo()
         While True
             Exit [|While|]
         End While
@@ -527,7 +634,7 @@ End Class]]></a>
         Public Async Function TestExit2() As Task
             Dim text = <a><![CDATA[
 Class G
-    Sub Foo()
+    Sub Goo()
         While True
             Exit While
         End While
@@ -542,7 +649,7 @@ End Class]]></a>
         Public Async Function TestField1() As Task
             Dim text = <a><![CDATA[
 Class G
-    Protec[||]ted foo as Integer
+    Protec[||]ted goo as Integer
 End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Protected")
@@ -552,7 +659,7 @@ End Class]]></a>
         Public Async Function TestField2() As Task
             Dim text = <a><![CDATA[
 Class G
-    Protected ReadOn[||]ly foo as Integer
+    Protected ReadOn[||]ly goo as Integer
 End Class]]></a>
 
             Await TestAsync(text.Value, "vb.ReadOnly")
@@ -562,7 +669,7 @@ End Class]]></a>
         Public Async Function TestField3() As Task
             Dim text = <a><![CDATA[
 Class G
-    [|Dim|] foo as Integer
+    [|Dim|] goo as Integer
 End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Dim")
@@ -707,12 +814,12 @@ End Class]]></a>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImplements1() As Task
             Dim text = <a><![CDATA[
-Interface IFoo 
+Interface IGoo 
 End Interface
 Interface IBar
 End Interface
 Class G
-    [|Implements|] IFoo, Ibar
+    [|Implements|] IGoo, Ibar
 End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Implements")
@@ -721,12 +828,12 @@ End Class]]></a>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImplements2() As Task
             Dim text = <a><![CDATA[
-Interface IFoo 
+Interface IGoo 
 End Interface
 Interface IBar
 End Interface
 Class G
-    Implements IFoo[|,|] IBar
+    Implements IGoo[|,|] IBar
 End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Implements")
@@ -737,7 +844,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        Dim f1 = [|New|] With {Key .Foo = 3}
+        Dim f1 = [|New|] With {Key .Goo = 3}
     End Sub
 End Class]]></a>
 
@@ -749,7 +856,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        Dim f1 = New [|With|] {Key .Foo = 3}
+        Dim f1 = New [|With|] {Key .Goo = 3}
     End Sub
 End Class]]></a>
 
@@ -761,7 +868,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        Dim f1 = New With {[|Key|] .Foo = 3}
+        Dim f1 = New With {[|Key|] .Goo = 3}
     End Sub
 End Class]]></a>
 
@@ -773,7 +880,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        Dim f1 = New With {Key [|.Foo|] = 3}
+        Dim f1 = New With {Key [|.Goo|] = 3}
     End Sub
 End Class]]></a>
 
@@ -785,7 +892,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        Dim f1 = New With {Key [|.Foo|] = 3}
+        Dim f1 = New With {Key [|.Goo|] = 3}
     End Sub
 End Class]]></a>
 
@@ -867,7 +974,7 @@ End Class]]></a>
         Public Async Function TestPartialMethod() As Task
             Dim text = <a><![CDATA[
 Class G
-    [|Partial|] Sub Foo()
+    [|Partial|] Sub Goo()
     End Sub
 End Class]]></a>
 
@@ -877,7 +984,7 @@ End Class]]></a>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMainMethod() As Task
             Dim text = <a><![CDATA[
-Module Foo
+Module Goo
     Sub m[||]ain()
     End Sub
 End Module]]></a>
@@ -888,7 +995,7 @@ End Module]]></a>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMeToken() As Task
             Dim text = <a><![CDATA[
-Module Foo
+Module Goo
     Sub main()
         [|Me|].main()
     End Sub
@@ -900,7 +1007,7 @@ End Module]]></a>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestConstructRatherThanName() As Task
             Dim text = <a><![CDATA[
-Module [|Foo|]
+Module [|Goo|]
     Sub main()
         main()
     End Sub
@@ -912,7 +1019,7 @@ End Module]]></a>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMyBase() As Task
             Dim text = <a><![CDATA[
-Class Foo
+Class Goo
     Sub main()
         My[|Base|].GetType()
     End Sub
@@ -924,7 +1031,7 @@ End Module]]></a>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestMyClass() As Task
             Dim text = <a><![CDATA[
-Class Foo
+Class Goo
     Sub main()
         My[|Base|].GetType()
     End Sub
@@ -938,7 +1045,7 @@ End Module]]></a>
             Dim text = <a><![CDATA[
 Interface IBar
 End Interface
-Class Foo(Of T As {IBar, [|New|]})
+Class Goo(Of T As {IBar, [|New|]})
     Sub main()
         MyBase.GetType()
     End Sub
@@ -951,9 +1058,9 @@ End Module]]></a>
         Public Async Function TestObjectInitializer() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Public Property foo As Integer
-    Sub fooo()
-        Dim p = New Program [|With|] {.foo = 3}
+    Public Property goo As Integer
+    Sub gooo()
+        Dim p = New Program [|With|] {.goo = 3}
     End Sub
 End Class]]></a>
 
@@ -964,9 +1071,9 @@ End Class]]></a>
         Public Async Function TestNothingToken() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Public Property foo As Integer
-    Sub fooo()
-        Dim p = New Program [|With|] {.foo = 3}
+    Public Property goo As Integer
+    Sub gooo()
+        Dim p = New Program [|With|] {.goo = 3}
     End Sub
 End Class]]></a>
 
@@ -977,7 +1084,7 @@ End Class]]></a>
         Public Async Function TestNullable1() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Dim [|p?|] as boolean
     End Sub
 End Class]]></a>
@@ -989,7 +1096,7 @@ End Class]]></a>
         Public Async Function TestOnError() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         On Error Resume [|Next|]
     End Sub
 End Class]]></a>
@@ -1001,7 +1108,7 @@ End Class]]></a>
         Public Async Function TestOptionCompare() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Option Compare [|Binary|]
     End Sub
 End Class]]></a>
@@ -1013,7 +1120,7 @@ End Class]]></a>
         Public Async Function TestOptionExplicit() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Option Explicit [|Off|]
     End Sub
 End Class]]></a>
@@ -1025,7 +1132,7 @@ End Class]]></a>
         Public Async Function TestOptionInfer() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Option Infer [|Off|]
     End Sub
 End Class]]></a>
@@ -1037,7 +1144,7 @@ End Class]]></a>
         Public Async Function TestOptionStrict() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Option Strict [|Off|]
     End Sub
 End Class]]></a>
@@ -1049,7 +1156,7 @@ End Class]]></a>
         Public Async Function TestOption() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         [|Option|]
     End Sub
 End Class]]></a>
@@ -1061,7 +1168,7 @@ End Class]]></a>
         Public Async Function TestPredefinedCast() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Dim x = [|CInt|](1)
     End Sub
 End Class]]></a>
@@ -1073,7 +1180,7 @@ End Class]]></a>
         Public Async Function TestPreprocessorConst() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         #const x [|=|] 3
     End Sub
 End Class]]></a>
@@ -1085,7 +1192,7 @@ End Class]]></a>
         Public Async Function TestPreprocessorConditional1() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         #[|If|] true Then
         #ElseIF Flase Then
         #Else
@@ -1100,7 +1207,7 @@ End Class]]></a>
         Public Async Function TestPreprocessorConditional2() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         #If true Then
         #[|ElseIf|] Flase Then
         #Else
@@ -1115,7 +1222,7 @@ End Class]]></a>
         Public Async Function TestPreprocessorConditional3() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         #If true Then
         #ElseIf Flase Then
         #[|Else|]
@@ -1130,7 +1237,7 @@ End Class]]></a>
         Public Async Function TestPreprocessorConditional4() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         #If true Then
         #ElseIf Flase Then
         #Else
@@ -1145,7 +1252,7 @@ End Class]]></a>
         Public Async Function TestPreprocessorRegion1() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         #[|Region|]
         #End Region
     End Sub
@@ -1158,7 +1265,7 @@ End Class]]></a>
         Public Async Function TestPreprocessorRegion2() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         #Region
         [|#End|] Region
     End Sub
@@ -1172,7 +1279,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class Program
     Public Event e as EventHandler
-    Sub fooo()
+    Sub gooo()
         RaiseEve[||]nt e(nothing, nothing)
     End Sub
 End Class]]></a>
@@ -1184,7 +1291,7 @@ End Class]]></a>
         Public Async Function TestReDim() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Dim arr(10, 10) as Integer
         ReDim [|Preserve|] array(10, 30)
     End Sub
@@ -1197,7 +1304,7 @@ End Class]]></a>
         Public Async Function TestIsOperator() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Dim a, b as Object
         DIm c = a [|Is|] b
     End Sub
@@ -1214,7 +1321,7 @@ Class Program
     Public Sub EHandler(sender As Object, e As EventArgs)
 
     End Sub
-    Sub fooo()
+    Sub gooo()
         Re[||]moveHandler e, AddressOf EHandler
     End Sub
 End Class]]></a>
@@ -1226,7 +1333,7 @@ End Class]]></a>
         Public Async Function TestResume() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Sub fooo()
+    Sub gooo()
         Resume [|Next|]
     End Sub
 End Class]]></a>
@@ -1238,7 +1345,7 @@ End Class]]></a>
         Public Async Function TestReturn() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Function fooo() as Integer
+    Function gooo() as Integer
         [|Return|] 3
     End Sub
 End Class]]></a>
@@ -1250,7 +1357,7 @@ End Class]]></a>
         Public Async Function TestStop() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Function fooo() as Integer
+    Function gooo() as Integer
         St[||]op
     End Sub
 End Class]]></a>
@@ -1262,7 +1369,7 @@ End Class]]></a>
         Public Async Function TestSyncLock() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Function fooo() as Integer
+    Function gooo() as Integer
         DIm lock = new Object()
         Syn[||]cLock lock
         End SyncLock
@@ -1276,7 +1383,7 @@ End Class]]></a>
         Public Async Function TestThrow() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Function fooo() as Integer
+    Function gooo() as Integer
         [|Throw|] New System.Exception()
     End Sub
 End Class]]></a>
@@ -1288,7 +1395,7 @@ End Class]]></a>
         Public Async Function TestNegate() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Function fooo() as Integer
+    Function gooo() as Integer
         Dim x = 3
         y = [|-|]x
     End Sub
@@ -1301,7 +1408,7 @@ End Class]]></a>
         Public Async Function TestUsingStatement() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Function fooo() as Integer
+    Function gooo() as Integer
         Dim x as IDisposable = nothing
         Us[||]ing x
         End Using
@@ -1315,7 +1422,7 @@ End Class]]></a>
         Public Async Function TestYieldStatement() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Private Iterator Function Foo() as IEnumerable(of Integer)
+    Private Iterator Function Goo() as IEnumerable(of Integer)
         [|Yield|] 1
     End Function
 End Class]]></a>
@@ -1327,7 +1434,7 @@ End Class]]></a>
         Public Sub TestLocalDeclaration()
             Dim text = <a><![CDATA[
 Class Program
-    Private Iterator Function Foo() as IEnumerable(of Integer)
+    Private Iterator Function Goo() as IEnumerable(of Integer)
         [|Dim|] x = 3
     End Function
 End Class]]></a>
@@ -1337,7 +1444,7 @@ End Class]]></a>
         Public Async Function TestPredefinedType() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Private Iterator Function Foo() as IEnumerable(of Integer)
+    Private Iterator Function Goo() as IEnumerable(of Integer)
         Dim x as [|Integer|]
     End Function
 End Class]]></a>
@@ -1349,7 +1456,7 @@ End Class]]></a>
         Public Async Function TestIdentifierName() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Private Iterator Function Foo() as IEnumerable(of Integer)
+    Private Iterator Function Goo() as IEnumerable(of Integer)
         System.Console.Wri[||]teLine(2)
     End Function
 End Class]]></a>
@@ -1361,7 +1468,7 @@ End Class]]></a>
         Public Async Function TestDateLiteral() As Task
             Dim text = <a><![CDATA[
 Class Program
-    Private Iterator Function Foo() as IEnumerable(of Integer)
+    Private Iterator Function Goo() as IEnumerable(of Integer)
         Dim x = #5/30/19[||]90#
     End Function
 End Class]]></a>
@@ -1496,7 +1603,6 @@ Public Class Test
 End Class
 ]]></a>.Value, "vb.As")
 
-
         End Function
 
         <WorkItem(863305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863305")>
@@ -1615,7 +1721,7 @@ End Class
         <WorkItem(864202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864202")>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImportsXmlns() As Task
-            Await TestAsync(<a><![CDATA[Imports <xmln[||]s:ns="foo">]]></a>.Value, "vb.ImportsXmlns")
+            Await TestAsync(<a><![CDATA[Imports <xmln[||]s:ns="goo">]]></a>.Value, "vb.ImportsXmlns")
         End Function
 
         <WorkItem(862420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")>
@@ -1937,7 +2043,6 @@ End Class]]></a>.Value, "vb.Not")
 End Class]]></a>.Value, "vb.Integer")
         End Function
 
-
         <WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestGroupJoin() As Task
@@ -2145,6 +2250,32 @@ End Module]]></a>.Value, "System.Linq.Enumerable")
         Dim z = From x In args Select x[||]
     End Sub
 End Module]]></a>.Value, "vb.String")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function CaretAfterMemberAccessDot() As Task
+            Await TestAsync(<a><![CDATA[Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = (2).[||]ToString()
+    End Sub
+End Module]]></a>.Value, "System.Int32.ToString")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Async Function CaretBeforeMemberAccessDot() As Task
+            Await TestAsync(<a><![CDATA[Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = (2)[||].ToString()
+    End Sub
+End Module]]></a>.Value, "System.Int32.ToString")
         End Function
     End Class
 End Namespace

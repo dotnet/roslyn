@@ -1,7 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +48,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -154,7 +158,7 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo) {
+      if (goo) {
       } else {
       }
     $$"));
@@ -185,7 +189,7 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo)
+      if (goo)
         Console.WriteLine();
     $$"));
         }
@@ -196,7 +200,7 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default:
-      if (foo)
+      if (goo)
         $$"));
         }
 
@@ -263,6 +267,52 @@ class C
     void M()
     {
         var c = new C { x = 2, y = 3, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void M<T>() where T : $$
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint_InOverride()
+        {
+            await VerifyKeywordAsync(
+@"class C : Base
+{
+    public override void M<T>() where T : $$
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(46283, "https://github.com/dotnet/roslyn/issues/46283")]
+        public async Task TestInTypeParameterConstraint_InExplicitInterfaceImplementation()
+        {
+            await VerifyKeywordAsync(
+@"class C : I
+{
+    public void I.M<T>() where T : $$
+    {
+    }
+}");
         }
     }
 }

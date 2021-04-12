@@ -1,11 +1,17 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -22,9 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertAttribute(
-                    document, IsBatchOpen, insertionIndex, containerNode, attributeNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, attributeNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -34,9 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertAttributeArgument(
-                    document, IsBatchOpen, insertionIndex, containerNode, attributeArgumentNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, attributeArgumentNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -46,9 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertImport(
-                    document, IsBatchOpen, insertionIndex, containerNode, importNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, importNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -58,9 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertMember(
-                    document, IsBatchOpen, insertionIndex, containerNode, memberNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, memberNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -70,9 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertParameter(
-                    document, IsBatchOpen, insertionIndex, containerNode, parameterNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, parameterNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -108,10 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (itemOrArray != null && itemOrArray != DBNull.Value && itemOrArray != Type.Missing)
             {
-                if (itemOrArray is Array)
+                if (itemOrArray is Array realArray)
                 {
-                    var realArray = (Array)itemOrArray;
-
                     if (realArray.Rank != 1)
                     {
                         throw Exceptions.ThrowEInvalidArg();
@@ -214,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 CodeModelService.GetUnescapedName(name),
                 access,
                 baseType: baseTypeSymbol,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -238,10 +237,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return (EnvDTE.CodeDelegate)CreateInternalCodeMember(this.State, fileCodeModel: this, node: newType);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - // TODO(DustinCa): "bases" is ignored in C# code model. Need to check VB.
         internal EnvDTE.CodeEnum AddEnum(SyntaxNode containerNode, string name, object position, object bases, EnvDTE.vsCMAccess access)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            // TODO(DustinCa): "bases" is ignored in C# code model. Need to check VB.
-
             var newType = CreateTypeDeclaration(containerNode, TypeKind.Enum, name, access);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -257,7 +256,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
             var type = semanticModel.GetDeclaredSymbol(containerNode) as ITypeSymbol;
@@ -347,7 +345,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Interface,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -368,8 +366,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal EnvDTE.CodeProperty AddProperty(SyntaxNode containerNode, string getterName, string putterName, object type, object position, EnvDTE.vsCMAccess access)
         {
-            bool isGetterPresent = !string.IsNullOrEmpty(getterName);
-            bool isPutterPresent = !string.IsNullOrEmpty(putterName);
+            var isGetterPresent = !string.IsNullOrEmpty(getterName);
+            var isPutterPresent = !string.IsNullOrEmpty(putterName);
 
             if ((!isGetterPresent && !isPutterPresent) ||
                 (isGetterPresent && isPutterPresent && getterName != putterName))
@@ -380,12 +378,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
+            var options = State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetOptionsAsync(CancellationToken.None));
             var propertyType = CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
-            var newProperty = CreatePropertyDeclaration(containerNode,
-                                                        CodeModelService.GetUnescapedName(isGetterPresent ? getterName : putterName),
-                                                        isGetterPresent,
-                                                        isPutterPresent,
-                                                        access, propertyType);
+            var newProperty = CreatePropertyDeclaration(
+                containerNode,
+                CodeModelService.GetUnescapedName(isGetterPresent ? getterName : putterName),
+                isGetterPresent,
+                isPutterPresent,
+                access,
+                propertyType,
+                options);
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
             newProperty = InsertMember(containerNode, newProperty, insertionIndex);
@@ -393,10 +395,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return (EnvDTE.CodeProperty)CreateInternalCodeMember(this.State, fileCodeModel: this, node: newProperty);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - // TODO(DustinCa): Old C# code base doesn't even check bases for validity -- does VB?
         internal EnvDTE.CodeStruct AddStruct(SyntaxNode containerNode, string name, object position, object bases, object implementedInterfaces, EnvDTE.vsCMAccess access)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            // TODO(DustinCa): Old C# code base doesn't even check bases for validity -- does VB?
-
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
@@ -410,7 +412,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 TypeKind.Struct,
                 CodeModelService.GetUnescapedName(name),
                 access,
-                implementedInterfaces: implementedInterfaceSymbols);
+                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -656,9 +658,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 realPosition = 0;
             }
-            else if (position is int)
+            else if (position is int i)
             {
-                realPosition = (int)position;
+                realPosition = i;
 
                 // -1 means "add to the end". We'll null for that.
                 if (realPosition == -1)
@@ -687,7 +689,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            int? realPosition = GetRealPosition(position);
+            var realPosition = GetRealPosition(position);
 
             var updatedNode = CodeModelService.AddBase(node, typeSymbol, semanticModel, realPosition);
 
@@ -723,7 +725,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            int? realPosition = GetRealPosition(position);
+            var realPosition = GetRealPosition(position);
 
             var updatedNode = CodeModelService.AddImplementedInterface(node, typeSymbol, semanticModel, realPosition);
 

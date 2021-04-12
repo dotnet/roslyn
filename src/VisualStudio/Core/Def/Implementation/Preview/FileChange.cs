@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -48,9 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             _componentModel = componentModel;
             var bufferFactory = componentModel.GetService<ITextBufferFactoryService>();
-            var bufferText = left != null ?
-                left.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None) :
-                right.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var bufferText = left != null
+                ? left.GetTextSynchronously(CancellationToken.None)
+                : right.GetTextSynchronously(CancellationToken.None);
             _buffer = bufferFactory.CreateTextBuffer(bufferText.ToString(), bufferFactory.InertContentType);
             _encoding = bufferText.Encoding;
 
@@ -71,14 +75,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 return GetEntireDocumentAsSpanChange(left);
             }
 
-            var oldText = left.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newText = right.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var oldText = left.GetTextSynchronously(cancellationToken);
+            var newText = right.GetTextSynchronously(cancellationToken);
 
             var diffSelector = _componentModel.GetService<ITextDifferencingSelectorService>();
             var diffService = diffSelector.GetTextDifferencingService(
                 left.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
-            diffService = diffService ?? diffSelector.DefaultTextDifferencingService;
+            diffService ??= diffSelector.DefaultTextDifferencingService;
 
             var diff = ComputeDiffSpans(diffService, left, right, cancellationToken);
             if (diff.Differences.Count == 0)
@@ -142,11 +146,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             if (_left == null)
             {
-                pbstrText = ServicesVSResources.PreviewChangesAddedPrefix + _right.Name;
+                pbstrText = ServicesVSResources.bracket_plus_bracket + _right.Name;
             }
             else if (_right == null)
             {
-                pbstrText = ServicesVSResources.PreviewChangesDeletedPrefix + _left.Name;
+                pbstrText = ServicesVSResources.bracket_bracket + _left.Name;
             }
             else
             {
@@ -176,28 +180,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override void UpdatePreview()
-        {
-            engine.UpdatePreview(this.Id, (SpanChange)Children.Changes[0]);
-        }
+            => engine.UpdatePreview(this.Id, (SpanChange)Children.Changes[0]);
 
         private SourceText UpdateBufferText()
         {
             foreach (SpanChange child in Children.Changes)
             {
-                using (var edit = _buffer.CreateEdit())
-                {
-                    edit.Replace(child.GetSpan(), child.GetApplicableText());
-                    edit.Apply();
-                }
+                using var edit = _buffer.CreateEdit();
+                edit.Replace(child.GetSpan(), child.GetApplicableText());
+                edit.ApplyAndLogExceptions();
             }
 
             return SourceText.From(_buffer.CurrentSnapshot.GetText(), _encoding);
         }
 
         public TextDocument GetOldDocument()
-        {
-            return _left;
-        }
+            => _left;
 
         public TextDocument GetUpdatedDocument()
         {
@@ -210,7 +208,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return _right.WithText(UpdateBufferText());
         }
 
-        public bool IsAdditionalDocumentChange => !((_left ?? _right) is Document);
+        // Note that either _left or _right *must* be non-null (we are either adding, removing or changing a file).
+        public TextDocumentKind ChangedDocumentKind => (_left ?? _right).Kind;
 
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
         {
@@ -219,16 +218,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             // If these are documents from a VS workspace, then attempt to get the right display
             // data from the underlying VSHierarchy and itemids for the document.
             var workspace = document.Project.Solution.Workspace;
-            if (workspace is VisualStudioWorkspaceImpl)
+            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                if (((VisualStudioWorkspaceImpl)workspace).TryGetImageListAndIndex(_imageService, document.Id, out pData[0].hImageList, out pData[0].Image))
+                if (vsWorkspace.TryGetImageListAndIndex(_imageService, document.Id, out pData[0].hImageList, out pData[0].Image))
                 {
                     pData[0].SelectedImage = pData[0].Image;
                     return;
                 }
             }
 
-            pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphLibrary;
+            pData[0].Image = pData[0].SelectedImage
+                = document.Project.Language == LanguageNames.CSharp ? (ushort)StandardGlyphGroup.GlyphCSharpFile :
+                                                                      (ushort)StandardGlyphGroup.GlyphGroupClass;
         }
 
         private static IHierarchicalDifferenceCollection ComputeDiffSpans(ITextDifferencingService diffService, TextDocument left, TextDocument right, CancellationToken cancellationToken)
@@ -237,8 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             //       current way of just using text differ has its own issue, and using syntax differ in compiler that are for incremental parser
             //       has its own drawbacks.
 
-            var oldText = left.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newText = right.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var oldText = left.GetTextSynchronously(cancellationToken);
+            var newText = right.GetTextSynchronously(cancellationToken);
 
             var oldString = oldText.ToString();
             var newString = newText.ToString();
@@ -247,21 +248,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
                 DifferenceType = StringDifferenceTypes.Line,
             });
-        }
-
-        private static bool ContainsBetterDiff(TextDocument left, TextDocument right, IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
-        {
-            var textDiffCount = diffResult.Differences.Count;
-
-            var leftDocument = left as Document;
-            var rightDocument = right as Document;
-            if (leftDocument == null || rightDocument == null)
-            {
-                return false;
-            }
-
-            var syntaxDiffCount = rightDocument.GetTextChangesAsync(leftDocument, cancellationToken).WaitAndGetResult(cancellationToken).Count();
-            return syntaxDiffCount > textDiffCount;
         }
     }
 }

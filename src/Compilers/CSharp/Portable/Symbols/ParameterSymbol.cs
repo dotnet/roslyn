@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +11,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a parameter of a method or indexer.
     /// </summary>
-    internal abstract partial class ParameterSymbol : Symbol, IParameterSymbol
+    internal abstract partial class ParameterSymbol : Symbol, IParameterSymbolInternal
     {
         internal const string ValueParameterName = "value";
 
@@ -36,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override sealed Symbol OriginalSymbolDefinition
+        protected sealed override Symbol OriginalSymbolDefinition
         {
             get
             {
@@ -45,9 +50,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Gets the type of the parameter along with its annotations.
+        /// </summary>
+        public abstract TypeWithAnnotations TypeWithAnnotations { get; }
+
+        /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
-        public abstract TypeSymbol Type { get; }
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// Determines if the parameter ref, out or neither.
@@ -55,9 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind { get; }
 
         /// <summary>
-        /// The list of custom modifiers, if any, associated with the parameter.
+        /// Returns true if the parameter is a discard parameter.
         /// </summary>
-        public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
+        public abstract bool IsDiscard { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Describes how the parameter is marshalled when passed to native code.
@@ -106,7 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract int Ordinal { get; }
 
         /// <summary>
-        /// Returns true if the parameter was declared as a parameter array. 
+        /// Returns true if the parameter was declared as a parameter array.
+        /// Note: it is possible for any parameter to have the [ParamArray] attribute (for instance, in IL),
+        ///     even if it is not the last parameter. So check for that.
         /// </summary>
         public abstract bool IsParams { get; }
 
@@ -114,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the parameter is semantically optional.
         /// </summary>
         /// <remarks>
-        /// True iff the parameter has a default argument syntax, 
+        /// True if and only if the parameter has a default argument syntax, 
         /// or the parameter is not a params-array and Optional metadata flag is set.
         /// </remarks>
         public bool IsOptional
@@ -134,7 +151,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 // Also when we call f() where signature of f is void([Optional]params int[] args) 
                 // an empty array is created and passed to f.
-                return !IsParams && IsMetadataOptional;
+                //
+                // We also do not consider ref/out parameters as optional, unless in COM interop scenarios 
+                // and only for ref.
+                RefKind refKind;
+                return !IsParams && IsMetadataOptional &&
+                       ((refKind = RefKind) == RefKind.None ||
+                        (refKind == RefKind.In) ||
+                        (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
             }
         }
 
@@ -208,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Returns the default value constant of the parameter, 
         /// or null if the parameter doesn't have a default value or 
@@ -219,7 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This is used for emitting.  It does not reflect the language semantics
         /// (i.e. even non-optional parameters can have default values).
         /// </remarks>
-        internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
+        internal abstract ConstantValue? ExplicitDefaultConstantValue { get; }
+#nullable disable
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -369,6 +395,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
+
+        internal abstract ImmutableHashSet<string> NotNullIfParameterNotNull { get; }
+
         protected sealed override int HighestPriorityUseSiteError
         {
             get
@@ -381,50 +411,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = null;
-                DeriveUseSiteDiagnosticFromParameter(ref info, this);
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                UseSiteInfo<AssemblySymbol> info = default;
+                DeriveUseSiteInfoFromParameter(ref info, this);
+                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
 
-        /// <summary>
-        /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
-        /// Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        /// interop scenarios, we need to support such signatures.
-        /// Should be 0 for non-ref parameters.
-        /// </summary>
-        internal abstract ushort CountOfCustomModifiersPrecedingByRef { get; }
-
-        #region IParameterSymbol Members
-
-        ITypeSymbol IParameterSymbol.Type
+        protected override ISymbol CreateISymbol()
         {
-            get { return this.Type; }
+            return new PublicModel.ParameterSymbol(this);
         }
-
-        ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
-        {
-            get { return this.CustomModifiers; }
-        }
-
-        IParameterSymbol IParameterSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitParameter(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitParameter(this);
-        }
-
-        #endregion
     }
 }

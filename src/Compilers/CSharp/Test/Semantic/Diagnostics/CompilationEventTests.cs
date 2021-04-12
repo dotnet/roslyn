@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -50,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Console.WriteLine(e);
             }
-            if (unexpected || expected.Count != 0)
+            if (unexpected || expected.Count != 0 || expectedEvents.Length != actual.Count)
             {
                 bool first = true;
                 Console.WriteLine("ACTUAL EVENTS:");
@@ -91,12 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithEventQueue(q)
                 .VerifyDiagnostics()  // force diagnostics twice
                 .VerifyDiagnostics();
+            VerifyEvents(q);
+        }
+
+        private static void VerifyEvents(AsyncQueue<CompilationEvent> q)
+        {
             VerifyEvents(q,
                 "CompilationStartedEvent",
                 "SymbolDeclaredCompilationEvent(P int C<T1>.P @ : (5,4)-(5,40))",
                 "SymbolDeclaredCompilationEvent(F int C<T1>.F @ : (6,8)-(6,14))",
                 "SymbolDeclaredCompilationEvent(C C<T1> @ : (2,2)-(8,3), : (9,2)-(12,3))",
                 "SymbolDeclaredCompilationEvent(M void C<T1>.M(int x1) @ : (4,4)-(4,27))",
+                "SymbolDeclaredCompilationEvent(M void C<T1>.M(int x2) @ : (11,4)-(11,29))",
                 "SymbolDeclaredCompilationEvent(N N @ : (0,0)-(13,1))",
                 "SymbolDeclaredCompilationEvent(<empty>  @ : (0,0)-(13,1))",
                 "SymbolDeclaredCompilationEvent(get_P int C<T1>.P.get @ : (5,21)-(5,25))",
@@ -105,6 +116,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "CompilationUnitCompletedEvent()",
                 "CompilationCompletedEvent"
                 );
+        }
+
+        [Fact]
+        public void TestQueuedSymbolsAndGetUsedAssemblyReferences()
+        {
+            var source =
+@"namespace N
+{
+  partial class C<T1>
+  {
+    partial void M(int x1);
+    internal int P { get; private set; }
+    int F = 12;
+    void N<T2>(int y = 12) { F = F + 1; }
+  }
+  partial class C<T1>
+  {
+    partial void M(int x2) {}
+  }
+}";
+            var q = new AsyncQueue<CompilationEvent>();
+            var comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.VerifyDiagnostics();
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            comp.VerifyDiagnostics();
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
         }
     }
 }

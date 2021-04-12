@@ -1,13 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class BloomFilter
     {
+        // From MurmurHash:
+        // 'm' and 'r' are mixing constants generated off-line.
+        // The values for m and r are chosen through experimentation and 
+        // supported by evidence that they work well.
+        private const uint Compute_Hash_m = 0x5bd1e995;
+        private const int Compute_Hash_r = 24;
+
         private readonly BitArray _bitArray;
         private readonly int _hashFunctionCount;
         private readonly bool _isCaseSensitive;
@@ -27,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// ]]></summary>
         public BloomFilter(int expectedCount, double falsePositiveProbability, bool isCaseSensitive)
         {
-            int m = Math.Max(1, ComputeM(expectedCount, falsePositiveProbability));
-            int k = Math.Max(1, ComputeK(expectedCount, falsePositiveProbability));
+            var m = Math.Max(1, ComputeM(expectedCount, falsePositiveProbability));
+            var k = Math.Max(1, ComputeK(expectedCount, falsePositiveProbability));
 
             // We must have size in even bytes, so that when we deserialize from bytes we get a bit array with the same count.
             // The count is used by the hash functions.
-            int sizeInEvenBytes = (m + 7) & ~7;
+            var sizeInEvenBytes = (m + 7) & ~7;
 
             _bitArray = new BitArray(length: sizeInEvenBytes);
             _hashFunctionCount = k;
@@ -42,17 +54,22 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public BloomFilter(double falsePositiveProbability, bool isCaseSensitive, ICollection<string> values)
             : this(values.Count, falsePositiveProbability, isCaseSensitive)
         {
-            this.AddRange(values);
+            AddRange(values);
+        }
+
+        public BloomFilter(
+            double falsePositiveProbability,
+            ICollection<string> stringValues,
+            ICollection<long> longValues)
+            : this(stringValues.Count + longValues.Count, falsePositiveProbability, isCaseSensitive: false)
+        {
+            AddRange(stringValues);
+            AddRange(longValues);
         }
 
         private BloomFilter(BitArray bitArray, int hashFunctionCount, bool isCaseSensitive)
         {
-            if (bitArray == null)
-            {
-                throw new ArgumentNullException(nameof(bitArray));
-            }
-
-            _bitArray = bitArray;
+            _bitArray = bitArray ?? throw new ArgumentNullException(nameof(bitArray));
             _hashFunctionCount = hashFunctionCount;
             _isCaseSensitive = isCaseSensitive;
         }
@@ -86,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// This is needed over the normal 'string.GetHashCode()' because we need to be able to generate
         /// 'k' different well distributed hashes for any given string s.  Also, we want to be able to
         /// generate these hashes without allocating any memory.  My ideal solution would be to use an
-        /// MD5 hash.  However, there appears to be no way to do MD5 in .Net where you can:
+        /// MD5 hash.  However, there appears to be no way to do MD5 in .NET where you can:
         /// 
         /// a) feed it individual values instead of a byte[]
         /// 
@@ -102,13 +119,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             unchecked
             {
-                // 'm' and 'r' are mixing constants generated offline.
-                // The values for m and r are chosen through experimentation and 
-                // supported by evidence that they work well.
-
-                const uint m = 0x5bd1e995;
-                const int r = 24;
-
                 // Initialize the hash to a 'random' value
 
                 var numberOfCharsLeft = key.Length;
@@ -122,14 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var c1 = GetCharacter(key, index);
                     var c2 = GetCharacter(key, index + 1);
 
-                    var k = c1 | (c2 << 16);
-
-                    k *= m;
-                    k ^= k >> r;
-                    k *= m;
-
-                    h *= m;
-                    h ^= k;
+                    h = CombineTwoCharacters(h, c1, c2);
 
                     index += 2;
                     numberOfCharsLeft -= 2;
@@ -139,24 +142,101 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // odd length.
                 if (numberOfCharsLeft == 1)
                 {
-                    h ^= GetCharacter(key, index);
-                    h *= m;
+                    var c = GetCharacter(key, index);
+                    h = CombineLastCharacter(h, c);
                 }
 
                 // Do a few final mixes of the hash to ensure the last few bytes are well-incorporated.
 
-                h ^= h >> 13;
-                h *= m;
-                h ^= h >> 15;
+                h = FinalMix(h);
 
                 return (int)h;
             }
         }
 
-        private uint GetCharacter(string key, int index)
+        private static int ComputeHash(long key, int seed)
+        {
+            // This is a duplicate of ComputeHash(string key, int seed).  However, because
+            // we only have 64bits to encode we just unroll that function here.  See
+            // Other function for documentation on what's going on here.
+            unchecked
+            {
+                // Initialize the hash to a 'random' value
+
+                var numberOfCharsLeft = 4;
+                var h = (uint)(seed ^ numberOfCharsLeft);
+
+                // Mix 4 bytes at a time into the hash.  NOTE: 4 bytes is two chars, so we iterate
+                // through the long two chars at a time.
+                var index = 0;
+                while (numberOfCharsLeft >= 2)
+                {
+                    var c1 = GetCharacter(key, index);
+                    var c2 = GetCharacter(key, index + 1);
+
+                    h = CombineTwoCharacters(h, c1, c2);
+
+                    index += 2;
+                    numberOfCharsLeft -= 2;
+                }
+
+                Debug.Assert(numberOfCharsLeft == 0);
+
+                // Do a few final mixes of the hash to ensure the last few bytes are well-incorporated.
+                h = FinalMix(h);
+
+                return (int)h;
+            }
+        }
+
+        private static uint CombineLastCharacter(uint h, uint c)
+        {
+            unchecked
+            {
+                h ^= c;
+                h *= Compute_Hash_m;
+                return h;
+            }
+        }
+
+        private static uint FinalMix(uint h)
+        {
+            unchecked
+            {
+                h ^= h >> 13;
+                h *= Compute_Hash_m;
+                h ^= h >> 15;
+                return h;
+            }
+        }
+
+        private static uint CombineTwoCharacters(uint h, uint c1, uint c2)
+        {
+            unchecked
+            {
+                var k = c1 | (c2 << 16);
+
+                k *= Compute_Hash_m;
+                k ^= k >> Compute_Hash_r;
+                k *= Compute_Hash_m;
+
+                h *= Compute_Hash_m;
+                h ^= k;
+
+                return h;
+            }
+        }
+
+        private char GetCharacter(string key, int index)
         {
             var c = key[index];
             return _isCaseSensitive ? c : char.ToLowerInvariant(c);
+        }
+
+        private static char GetCharacter(long key, int index)
+        {
+            Debug.Assert(index <= 3);
+            return (char)(key >> (16 * index));
         }
 
 #if false
@@ -225,7 +305,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             foreach (var v in values)
             {
-                this.Add(v);
+                Add(v);
+            }
+        }
+
+        public void AddRange(IEnumerable<long> values)
+        {
+            foreach (var v in values)
+            {
+                Add(v);
             }
         }
 
@@ -233,19 +321,50 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             for (var i = 0; i < _hashFunctionCount; i++)
             {
-                var hash = ComputeHash(value, i);
-                hash = hash % _bitArray.Length;
-                _bitArray[Math.Abs(hash)] = true;
+                _bitArray[GetBitArrayIndex(value, i)] = true;
             }
+        }
+
+        private int GetBitArrayIndex(string value, int i)
+        {
+            var hash = ComputeHash(value, i);
+            hash %= _bitArray.Length;
+            return Math.Abs(hash);
+        }
+
+        public void Add(long value)
+        {
+            for (var i = 0; i < _hashFunctionCount; i++)
+            {
+                _bitArray[GetBitArrayIndex(value, i)] = true;
+            }
+        }
+
+        private int GetBitArrayIndex(long value, int i)
+        {
+            var hash = ComputeHash(value, i);
+            hash %= _bitArray.Length;
+            return Math.Abs(hash);
         }
 
         public bool ProbablyContains(string value)
         {
             for (var i = 0; i < _hashFunctionCount; i++)
             {
-                var hash = ComputeHash(value, i);
-                hash = hash % _bitArray.Length;
-                if (!_bitArray[Math.Abs(hash)])
+                if (!_bitArray[GetBitArrayIndex(value, i)])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool ProbablyContains(long value)
+        {
+            for (var i = 0; i < _hashFunctionCount; i++)
+            {
+                if (!_bitArray[GetBitArrayIndex(value, i)])
                 {
                     return false;
                 }
@@ -261,14 +380,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 && _isCaseSensitive == filter._isCaseSensitive;
         }
 
-        private bool IsEquivalent(BitArray array1, BitArray array2)
+        private static bool IsEquivalent(BitArray array1, BitArray array2)
         {
             if (array1.Length != array2.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < array1.Length; i++)
+            for (var i = 0; i < array1.Length; i++)
             {
                 if (array1[i] != array2[i])
                 {

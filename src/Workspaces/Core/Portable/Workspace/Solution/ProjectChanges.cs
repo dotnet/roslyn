@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,20 +18,11 @@ namespace Microsoft.CodeAnalysis
             _oldProject = oldProject;
         }
 
-        public ProjectId ProjectId
-        {
-            get { return _newProject.Id; }
-        }
+        public ProjectId ProjectId => _newProject.Id;
 
-        public Project OldProject
-        {
-            get { return _oldProject; }
-        }
+        public Project OldProject => _oldProject;
 
-        public Project NewProject
-        {
-            get { return _newProject; }
-        }
+        public Project NewProject => _newProject;
 
         public IEnumerable<ProjectReference> GetAddedProjectReferences()
         {
@@ -105,76 +96,72 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of added documents in the order they appear in <see cref="Project.DocumentIds"/> of the <see cref="NewProject"/>.
+        /// </summary>
         public IEnumerable<DocumentId> GetAddedDocuments()
-        {
-            foreach (var id in _newProject.DocumentIds)
-            {
-                if (!_oldProject.ContainsDocument(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.DocumentStates.GetAddedStateIds(_oldProject.State.DocumentStates);
 
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of added dditional documents in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="NewProject"/>.
+        /// </summary>
         public IEnumerable<DocumentId> GetAddedAdditionalDocuments()
-        {
-            foreach (var id in _newProject.AdditionalDocumentIds)
-            {
-                if (!_oldProject.ContainsAdditionalDocument(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.AdditionalDocumentStates.GetAddedStateIds(_oldProject.State.AdditionalDocumentStates);
 
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of added analyzer config documents in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="NewProject"/>.
+        /// </summary>
+        public IEnumerable<DocumentId> GetAddedAnalyzerConfigDocuments()
+            => _newProject.State.AnalyzerConfigDocumentStates.GetAddedStateIds(_oldProject.State.AnalyzerConfigDocumentStates);
+
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of documents with any changes (textual and non-textual)
+        /// in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="NewProject"/>.
+        /// </summary>
         public IEnumerable<DocumentId> GetChangedDocuments()
-        {
-            // if the document states are different then there is a change.
-            foreach (var id in _newProject.DocumentIds)
-            {
-                var newState = _newProject.GetDocumentState(id);
-                var oldState = _oldProject.GetDocumentState(id);
-                if (oldState != null && newState != oldState)
-                {
-                    yield return id;
-                }
-            }
-        }
+            => GetChangedDocuments(onlyGetDocumentsWithTextChanges: false);
 
+        /// <summary>
+        /// Get changed documents in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="NewProject"/>.
+        /// When <paramref name="onlyGetDocumentsWithTextChanges"/> is true, only get documents with text changes (we only check text source, not actual content);
+        /// otherwise get documents with any changes i.e. <see cref="ParseOptions"/>, <see cref="SourceCodeKind"/> and file path.
+        /// </summary>
+        public IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges)
+            => GetChangedDocuments(onlyGetDocumentsWithTextChanges, ignoreUnchangeableDocuments: false);
+
+        internal IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges, bool ignoreUnchangeableDocuments)
+            => _newProject.State.DocumentStates.GetChangedStateIds(_oldProject.State.DocumentStates, onlyGetDocumentsWithTextChanges, ignoreUnchangeableDocuments);
+
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of additional documents with any changes (textual and non-textual)
+        /// in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="NewProject"/>.
+        /// </summary>
         public IEnumerable<DocumentId> GetChangedAdditionalDocuments()
-        {
-            // if the document states are different then there is a change.
-            foreach (var id in _newProject.AdditionalDocumentIds)
-            {
-                var newState = _newProject.GetAdditionalDocumentState(id);
-                var oldState = _oldProject.GetAdditionalDocumentState(id);
-                if (oldState != null && newState != oldState)
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.AdditionalDocumentStates.GetChangedStateIds(_oldProject.State.AdditionalDocumentStates);
 
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of analyzer config documents with any changes (textual and non-textual)
+        /// in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="NewProject"/>.
+        /// </summary>
+        public IEnumerable<DocumentId> GetChangedAnalyzerConfigDocuments()
+            => _newProject.State.AnalyzerConfigDocumentStates.GetChangedStateIds(_oldProject.State.AnalyzerConfigDocumentStates);
+
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of removed documents in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="OldProject"/>.
+        /// </summary>
         public IEnumerable<DocumentId> GetRemovedDocuments()
-        {
-            foreach (var id in _oldProject.DocumentIds)
-            {
-                if (!_newProject.ContainsDocument(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.DocumentStates.GetRemovedStateIds(_oldProject.State.DocumentStates);
 
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of removed additional documents in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="OldProject"/>.
+        /// </summary>
         public IEnumerable<DocumentId> GetRemovedAdditionalDocuments()
-        {
-            foreach (var id in _oldProject.AdditionalDocumentIds)
-            {
-                if (!_newProject.ContainsAdditionalDocument(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.AdditionalDocumentStates.GetRemovedStateIds(_oldProject.State.AdditionalDocumentStates);
+
+        /// <summary>
+        /// Get <see cref="DocumentId"/>s of removed analyzer config documents in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="OldProject"/>.
+        /// </summary>
+        public IEnumerable<DocumentId> GetRemovedAnalyzerConfigDocuments()
+            => _newProject.State.AnalyzerConfigDocumentStates.GetRemovedStateIds(_oldProject.State.AnalyzerConfigDocumentStates);
     }
 }

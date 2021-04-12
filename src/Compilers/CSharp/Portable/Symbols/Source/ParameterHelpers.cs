@@ -1,12 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -16,99 +20,420 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol owner,
             BaseParameterListSyntax syntax,
-            bool allowRefOrOut,
             out SyntaxToken arglistToken,
-            DiagnosticBag diagnostics,
-            bool beStrict)
+            BindingDiagnosticBag diagnostics,
+            bool allowRefOrOut,
+            bool allowThis,
+            bool addRefReadOnlyModifier)
         {
+            return MakeParameters<ParameterSyntax, ParameterSymbol, Symbol>(
+                binder,
+                owner,
+                syntax.Parameters,
+                out arglistToken,
+                diagnostics,
+                allowRefOrOut,
+                allowThis,
+                addRefReadOnlyModifier,
+                suppressUseSiteDiagnostics: false,
+                lastIndex: syntax.Parameters.Count - 1,
+                parameterCreationFunc: (Binder context, Symbol owner, TypeWithAnnotations parameterType,
+                                        ParameterSyntax syntax, RefKind refKind, int ordinal,
+                                        SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
+                                        BindingDiagnosticBag declarationDiagnostics) =>
+                {
+                    return SourceParameterSymbol.Create(
+                        context,
+                        owner,
+                        parameterType,
+                        syntax,
+                        refKind,
+                        syntax.Identifier,
+                        ordinal,
+                        isParams: paramsKeyword.Kind() != SyntaxKind.None,
+                        isExtensionMethodThis: ordinal == 0 && thisKeyword.Kind() != SyntaxKind.None,
+                        addRefReadOnlyModifier,
+                        declarationDiagnostics);
+                }
+);
+        }
+
+        public static ImmutableArray<FunctionPointerParameterSymbol> MakeFunctionPointerParameters(
+            Binder binder,
+            FunctionPointerMethodSymbol owner,
+            SeparatedSyntaxList<FunctionPointerParameterSyntax> parametersList,
+            BindingDiagnosticBag diagnostics,
+            bool suppressUseSiteDiagnostics)
+        {
+            return MakeParameters<FunctionPointerParameterSyntax, FunctionPointerParameterSymbol, FunctionPointerMethodSymbol>(
+                binder,
+                owner,
+                parametersList,
+                out _,
+                diagnostics,
+                allowRefOrOut: true,
+                allowThis: false,
+                addRefReadOnlyModifier: true,
+                suppressUseSiteDiagnostics,
+                parametersList.Count - 2,
+                parameterCreationFunc: (Binder binder, FunctionPointerMethodSymbol owner, TypeWithAnnotations parameterType,
+                                        FunctionPointerParameterSyntax syntax, RefKind refKind, int ordinal,
+                                        SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
+                                        BindingDiagnosticBag diagnostics) =>
+                {
+                    // Non-function pointer locations have other locations to encode in/ref readonly/outness. For function pointers,
+                    // these modreqs are the only locations where this can be encoded. If that changes, we should update this.
+                    Debug.Assert(addRefReadOnlyModifier, "If addReadonlyRef isn't true, we must have found a different location to encode the readonlyness of a function pointer");
+                    ImmutableArray<CustomModifier> customModifiers = refKind switch
+                    {
+                        RefKind.In => CreateInModifiers(binder, diagnostics, syntax),
+                        RefKind.Out => CreateOutModifiers(binder, diagnostics, syntax),
+                        _ => ImmutableArray<CustomModifier>.Empty
+                    };
+
+                    if (parameterType.IsVoidType())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NoVoidParameter, syntax.Type.Location);
+                    }
+
+                    return new FunctionPointerParameterSymbol(
+                        parameterType,
+                        refKind,
+                        ordinal,
+                        owner,
+                        customModifiers);
+                },
+                parsingFunctionPointer: true);
+        }
+
+        private static ImmutableArray<TParameterSymbol> MakeParameters<TParameterSyntax, TParameterSymbol, TOwningSymbol>(
+            Binder binder,
+            TOwningSymbol owner,
+            SeparatedSyntaxList<TParameterSyntax> parametersList,
+            out SyntaxToken arglistToken,
+            BindingDiagnosticBag diagnostics,
+            bool allowRefOrOut,
+            bool allowThis,
+            bool addRefReadOnlyModifier,
+            bool suppressUseSiteDiagnostics,
+            int lastIndex,
+            Func<Binder, TOwningSymbol, TypeWithAnnotations, TParameterSyntax, RefKind, int, SyntaxToken, SyntaxToken, bool, BindingDiagnosticBag, TParameterSymbol> parameterCreationFunc,
+            bool parsingFunctionPointer = false)
+            where TParameterSyntax : BaseParameterSyntax
+            where TParameterSymbol : ParameterSymbol
+            where TOwningSymbol : Symbol
+        {
+            Debug.Assert(!parsingFunctionPointer || owner is FunctionPointerMethodSymbol);
             arglistToken = default(SyntaxToken);
 
             int parameterIndex = 0;
             int firstDefault = -1;
 
-            var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
-            ImmutableArray<ParameterSymbol> parameters;
+            var builder = ArrayBuilder<TParameterSymbol>.GetInstance();
+            var mustBeLastParameter = (ParameterSyntax)null;
 
-            foreach (var parameterSyntax in syntax.Parameters)
+            foreach (var parameterSyntax in parametersList)
             {
-                SyntaxToken outKeyword;
-                SyntaxToken refKeyword;
-                SyntaxToken paramsKeyword;
-                SyntaxToken thisKeyword;
-                var refKind = GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword);
+                if (parameterIndex > lastIndex) break;
 
-                if (parameterSyntax.IsArgList)
+                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
+
+                var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
+                if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
-                    arglistToken = parameterSyntax.Identifier;
-                    // The native compiler produces "Expected type" here, in the parser. Roslyn produces
-                    // the somewhat more informative "arglist not valid" error.
-                    if (paramsKeyword.Kind() != SyntaxKind.None || outKeyword.Kind() != SyntaxKind.None ||
-                        refKeyword.Kind() != SyntaxKind.None || thisKeyword.Kind() != SyntaxKind.None)
-                    {
-                        // CS1669: __arglist is not valid in this context
-                        diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
-                    }
-                    continue;
+                    diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
                 }
 
-                if (parameterSyntax.Default != null && firstDefault == -1)
+                if (parameterSyntax is ParameterSyntax concreteParam)
                 {
-                    firstDefault = parameterIndex;
+                    if (mustBeLastParameter == null &&
+                        (concreteParam.Modifiers.Any(SyntaxKind.ParamsKeyword) ||
+                         concreteParam.Identifier.Kind() == SyntaxKind.ArgListKeyword))
+                    {
+                        mustBeLastParameter = concreteParam;
+                    }
+
+                    if (concreteParam.IsArgList)
+                    {
+                        arglistToken = concreteParam.Identifier;
+                        // The native compiler produces "Expected type" here, in the parser. Roslyn produces
+                        // the somewhat more informative "arglist not valid" error.
+                        if (paramsKeyword.Kind() != SyntaxKind.None
+                            || refnessKeyword.Kind() != SyntaxKind.None
+                            || thisKeyword.Kind() != SyntaxKind.None)
+                        {
+                            // CS1669: __arglist is not valid in this context
+                            diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
+                        }
+
+                        continue;
+                    }
+
+                    if (concreteParam.Default != null && firstDefault == -1)
+                    {
+                        firstDefault = parameterIndex;
+                    }
                 }
 
                 Debug.Assert(parameterSyntax.Type != null);
-                var parameterType = binder.BindType(parameterSyntax.Type, diagnostics);
+                var parameterType = binder.BindType(parameterSyntax.Type, diagnostics, suppressUseSiteDiagnostics: suppressUseSiteDiagnostics);
 
-                if (!allowRefOrOut && (refKind != RefKind.None))
+                if (!allowRefOrOut && (refKind == RefKind.Ref || refKind == RefKind.Out))
                 {
-                    var outOrRefKeyword = (outKeyword.Kind() != SyntaxKind.None) ? outKeyword : refKeyword;
-                    Debug.Assert(outOrRefKeyword.Kind() != SyntaxKind.None);
+                    Debug.Assert(refnessKeyword.Kind() != SyntaxKind.None);
 
                     // error CS0631: ref and out are not valid in this context
-                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, outOrRefKeyword.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
                 }
 
-                var parameter = SourceParameterSymbol.Create(
-                    binder,
-                    owner,
-                    parameterType,
-                    parameterSyntax,
-                    refKind,
-                    parameterSyntax.Identifier,
-                    parameterIndex,
-                    (paramsKeyword.Kind() != SyntaxKind.None),
-                    parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    diagnostics,
-                    beStrict);
+                TParameterSymbol parameter = parameterCreationFunc(binder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
 
-                ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);
+                ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
                 ++parameterIndex;
             }
 
-            parameters = builder.ToImmutableAndFree();
+            if (mustBeLastParameter != null && mustBeLastParameter != parametersList[lastIndex])
+            {
+                diagnostics.Add(
+                    mustBeLastParameter.Identifier.Kind() == SyntaxKind.ArgListKeyword
+                        ? ErrorCode.ERR_VarargsLast
+                        : ErrorCode.ERR_ParamsLast,
+                    mustBeLastParameter.GetLocation());
+            }
 
-            var methodOwner = owner as MethodSymbol;
-            var typeParameters = (object)methodOwner != null ?
-                methodOwner.TypeParameters :
-                default(ImmutableArray<TypeParameterSymbol>);
+            ImmutableArray<TParameterSymbol> parameters = builder.ToImmutableAndFree();
 
-            binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
+            if (!parsingFunctionPointer)
+            {
+                var methodOwner = owner as MethodSymbol;
+                var typeParameters = (object)methodOwner != null ?
+                    methodOwner.TypeParameters :
+                    default(ImmutableArray<TypeParameterSymbol>);
+
+                Debug.Assert(methodOwner?.MethodKind != MethodKind.LambdaMethod);
+                bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
+                    methodOwner?.MethodKind == MethodKind.LocalFunction;
+
+                binder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
+            }
+
             return parameters;
+        }
+
+        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        {
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
+            {
+                return;
+            }
+
+            foreach (var parameter in parameters)
+            {
+                if (parameter.RefKind == RefKind.In)
+                {
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                }
+            }
+        }
+
+        internal static void EnsureNativeIntegerAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        {
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
+            {
+                return;
+            }
+
+            foreach (var parameter in parameters)
+            {
+                if (parameter.TypeWithAnnotations.ContainsNativeInteger())
+                {
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                }
+            }
+        }
+
+        internal static void EnsureNullableAttributeExists(CSharpCompilation compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        {
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
+            {
+                return;
+            }
+
+            if (parameters.Length > 0 && compilation.ShouldEmitNullableAttributes(container))
+            {
+                foreach (var parameter in parameters)
+                {
+                    if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
+                    {
+                        compilation.EnsureNullableAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                    }
+                }
+            }
+        }
+
+        private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
+
+        private static void CheckParameterModifiers(BaseParameterSyntax parameter, BindingDiagnosticBag diagnostics, bool parsingFunctionPointerParams)
+        {
+            var seenThis = false;
+            var seenRef = false;
+            var seenOut = false;
+            var seenParams = false;
+            var seenIn = false;
+
+            foreach (var modifier in parameter.Modifiers)
+            {
+                switch (modifier.Kind())
+                {
+                    case SyntaxKind.ThisKeyword:
+                        if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenThis = true;
+                        }
+                        break;
+
+                    case SyntaxKind.RefKeyword:
+                        if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else
+                        {
+                            seenRef = true;
+                        }
+                        break;
+
+                    case SyntaxKind.OutKeyword:
+                        if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else
+                        {
+                            seenOut = true;
+                        }
+                        break;
+
+                    case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
+                        if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
+                        }
+                        else if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else
+                        {
+                            seenParams = true;
+                        }
+                        break;
+
+                    case SyntaxKind.InKeyword:
+                        if (seenIn)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
+                        }
+                        else
+                        {
+                            seenIn = true;
+                        }
+                        break;
+
+                    case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
+                    case SyntaxKind.ReadOnlyKeyword when parsingFunctionPointerParams:
+                        diagnostics.Add(ErrorCode.ERR_BadFuncPointerParamModifier, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(modifier.Kind());
+                }
+            }
         }
 
         private static void ReportParameterErrors(
             Symbol owner,
-            ParameterSyntax parameterSyntax,
-            SourceParameterSymbol parameter,
+            BaseParameterSyntax parameterSyntax,
+            ParameterSymbol parameter,
+            SyntaxToken thisKeyword,
+            SyntaxToken paramsKeyword,
             int firstDefault,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
-            TypeSymbol parameterType = parameter.Type;
             int parameterIndex = parameter.Ordinal;
-            bool isDefault = parameterSyntax.Default != null;
-            SyntaxToken thisKeyword = parameterSyntax.Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
+            bool isDefault = parameterSyntax is ParameterSyntax { Default: { } };
 
             if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
             {
@@ -121,25 +446,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (parameter.IsParams && owner.IsOperator())
             {
                 // error CS1670: params is not valid in this context
-                diagnostics.Add(ErrorCode.ERR_IllegalParams, parameterSyntax.Modifiers.First(t => t.Kind() == SyntaxKind.ParamsKeyword).GetLocation());
+                diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (parameter.IsParams && !parameterType.IsSZArray())
+            else if (parameter.IsParams && !parameter.TypeWithAnnotations.IsSZArray())
             {
                 // error CS0225: The params parameter must be a single dimensional array
-                diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, parameterSyntax.Modifiers.First(t => t.Kind() == SyntaxKind.ParamsKeyword).GetLocation());
+                diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
             }
-            else if (parameter.Type.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
+            else if (parameter.TypeWithAnnotations.IsStatic)
             {
+                Debug.Assert(parameter.ContainingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null });
                 // error CS0721: '{0}': static types cannot be used as parameters
-                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type);
+                diagnostics.Add(
+                    ErrorFacts.GetStaticClassParameterCode(parameter.ContainingSymbol.ContainingType?.IsInterfaceType() ?? false),
+                    owner.Locations.IsEmpty ? parameterSyntax.GetLocation() : owner.Locations[0],
+                    parameter.Type);
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)
             {
                 // error CS1737: Optional parameters must appear after all required parameters
-                Location loc = parameterSyntax.Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
+                Location loc = ((ParameterSyntax)(BaseParameterSyntax)parameterSyntax).Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
-            else if (parameter.RefKind != RefKind.None && parameter.Type.IsRestrictedType())
+            else if (parameter.RefKind != RefKind.None &&
+                parameter.TypeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
@@ -152,7 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterSyntax parameterSyntax,
             SourceParameterSymbol parameter,
             BoundExpression defaultExpression,
-            DiagnosticBag diagnostics)
+            BoundExpression convertedExpression,
+            BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
@@ -174,30 +505,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IntelliSense purposes.
 
             TypeSymbol parameterType = parameter.Type;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteDiagnostics);
-            diagnostics.Add(defaultExpression.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+            Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteInfo);
+            diagnostics.Add(defaultExpression.Syntax, useSiteInfo);
 
-            SyntaxToken outKeyword;
-            SyntaxToken refKeyword;
-            SyntaxToken paramsKeyword;
-            SyntaxToken thisKeyword;
-            GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword);
+            var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
 
             // CONSIDER: We are inconsistent here regarding where the error is reported; is it
             // CONSIDER: reported on the parameter name, or on the value of the initializer?
             // CONSIDER: Consider making this consistent.
 
-            if (outKeyword.Kind() == SyntaxKind.OutKeyword)
+            if (refKind == RefKind.Ref || refKind == RefKind.Out)
             {
                 // error CS1741: A ref or out parameter cannot have a default value
-                diagnostics.Add(ErrorCode.ERR_RefOutDefaultValue, outKeyword.GetLocation());
-                hasErrors = true;
-            }
-            else if (refKeyword.Kind() == SyntaxKind.RefKeyword)
-            {
-                // error CS1741: A ref or out parameter cannot have a default value
-                diagnostics.Add(ErrorCode.ERR_RefOutDefaultValue, refKeyword.GetLocation());
+                diagnostics.Add(ErrorCode.ERR_RefOutDefaultValue, refnessKeyword.GetLocation());
                 hasErrors = true;
             }
             else if (paramsKeyword.Kind() == SyntaxKind.ParamsKeyword)
@@ -217,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     hasErrors = true;
                 }
             }
-            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression))
+            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() ? convertedExpression : defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
                 diagnostics.Add(ErrorCode.ERR_DefaultValueMustBeConstant, parameterSyntax.Default.Value.Location, parameterSyntax.Identifier.ValueText);
@@ -273,6 +594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
 
+            ConstantValueUtils.CheckLangVersionForConstantValue(convertedExpression, diagnostics);
+
             // Certain contexts allow default parameter values syntactically but they are ignored during
             // semantic analysis. They are:
 
@@ -317,10 +640,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //
             // Also when valuetype S has a parameterless constructor, 
             // new S() is clearly not a constant expression and should produce an error
-            return (expression.ConstantValue != null) ||
-                   (expression.Kind == BoundKind.DefaultOperator) ||
-                   (expression.Kind == BoundKind.ObjectCreationExpression &&
-                       IsValidDefaultValue((BoundObjectCreationExpression)expression));
+            if (expression.ConstantValue != null)
+            {
+                return true;
+            }
+            while (true)
+            {
+                switch (expression.Kind)
+                {
+                    case BoundKind.DefaultLiteral:
+                    case BoundKind.DefaultExpression:
+                        return true;
+                    case BoundKind.ObjectCreationExpression:
+                        return IsValidDefaultValue((BoundObjectCreationExpression)expression);
+                    default:
+                        return false;
+                }
+            }
         }
 
         private static bool IsValidDefaultValue(BoundObjectCreationExpression expression)
@@ -344,12 +680,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken outKeyword, out SyntaxToken refKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword)
+        private static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword)
         {
             var refKind = RefKind.None;
 
-            outKeyword = default(SyntaxToken);
-            refKeyword = default(SyntaxToken);
+            refnessKeyword = default(SyntaxToken);
             paramsKeyword = default(SyntaxToken);
             thisKeyword = default(SyntaxToken);
 
@@ -358,17 +693,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (modifier.Kind())
                 {
                     case SyntaxKind.OutKeyword:
-                        outKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
+                            refnessKeyword = modifier;
                             refKind = RefKind.Out;
                         }
                         break;
                     case SyntaxKind.RefKeyword:
-                        refKeyword = modifier;
                         if (refKind == RefKind.None)
                         {
+                            refnessKeyword = modifier;
                             refKind = RefKind.Ref;
+                        }
+                        break;
+                    case SyntaxKind.InKeyword:
+                        if (refKind == RefKind.None)
+                        {
+                            refnessKeyword = modifier;
+                            refKind = RefKind.In;
                         }
                         break;
                     case SyntaxKind.ParamsKeyword:
@@ -381,6 +723,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return refKind;
+        }
+
+        internal static ImmutableArray<CustomModifier> ConditionallyCreateInModifiers(RefKind refKind, bool addRefReadOnlyModifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            if (addRefReadOnlyModifier && refKind == RefKind.In)
+            {
+                return CreateInModifiers(binder, diagnostics, syntax);
+            }
+            else
+            {
+                return ImmutableArray<CustomModifier>.Empty;
+            }
+        }
+
+        internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            return CreateModifiers(WellKnownType.System_Runtime_InteropServices_InAttribute, binder, diagnostics, syntax);
+        }
+
+        internal static ImmutableArray<CustomModifier> CreateOutModifiers(Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            return CreateModifiers(WellKnownType.System_Runtime_InteropServices_OutAttribute, binder, diagnostics, syntax);
+        }
+
+        private static ImmutableArray<CustomModifier> CreateModifiers(WellKnownType modifier, Binder binder, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            var modifierType = binder.GetWellKnownType(modifier, diagnostics, syntax);
+            return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
         }
     }
 }

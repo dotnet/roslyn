@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
@@ -11,8 +12,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "GetStartPoint() tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
 Interface I
@@ -23,7 +24,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -44,14 +45,14 @@ End Class
                      TextPoint(line:=5, lineOffset:=5, absoluteOffset:=40, lineLength:=16)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=5, lineOffset:=5, absoluteOffset:=40, lineLength:=16)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
 Interface I
@@ -62,7 +63,7 @@ Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -83,14 +84,14 @@ End Class
                      TextPoint(line:=5, lineOffset:=17, absoluteOffset:=52, lineLength:=16)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=5, lineOffset:=17, absoluteOffset:=52, lineLength:=16)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Kind tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestKind1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestKind1()
             Dim code =
 <Code>
 Interface I
@@ -101,15 +102,15 @@ Class C
 End Class
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementImplementsStmt)
-        End Function
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementImplementsStmt)
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestName1()
             Dim code =
 <Code>
 Interface I
@@ -120,8 +121,8 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "Implements")
-        End Function
+            TestName(code, "Implements")
+        End Sub
 
 #End Region
 

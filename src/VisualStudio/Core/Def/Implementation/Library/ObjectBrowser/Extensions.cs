@@ -1,20 +1,24 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 {
     internal static class Extensions
     {
-        private static readonly SymbolDisplayFormat s_typeDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_typeDisplayFormat = new(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance);
 
-        private static readonly SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_memberDisplayFormat = new(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
             memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface | SymbolDisplayMemberOptions.IncludeParameters,
@@ -49,38 +53,59 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static string GetProjectDisplayName(this Project project)
         {
-            var workspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace != null)
+            // If the project name is unambiguous within the solution, use that name. Otherwise, use the unique name
+            // provided by IVsSolution3.GetUniqueUINameOfProject. This covers all cases except for a single solution
+            // with two or more multi-targeted projects with the same name and same targets.
+            //
+            // https://github.com/dotnet/roslyn/pull/43800
+            // http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949113
+
+            if (IsUnambiguousProjectNameInSolution(project))
             {
-                var hierarchy = workspace.GetHierarchy(project.Id);
-                if (hierarchy != null)
+                return project.Name;
+            }
+            else if (project.Solution.Workspace is VisualStudioWorkspace workspace
+                && workspace.GetHierarchy(project.Id) is { } hierarchy
+                && (IVsSolution3)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution)) is { } solution)
+            {
+                if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out var name)) && name != null)
                 {
-                    var solution = workspace.GetVsService<SVsSolution, IVsSolution3>();
-                    if (solution != null)
-                    {
-                        string name;
-                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out name)) && name != null)
-                        {
-                            return name;
-                        }
-                    }
+                    return name;
                 }
             }
 
             return project.Name;
+
+            // Local functions
+            static bool IsUnambiguousProjectNameInSolution(Project project)
+            {
+                foreach (var other in project.Solution.Projects)
+                {
+                    if (other.Id == project.Id)
+                        continue;
+
+                    if (other.Name == project.Name)
+                    {
+                        // Another project with the same name was found in the solution. This project name is _not_
+                        // unambiguous.
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
         public static bool IsVenus(this Project project)
         {
-            var workspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace == null)
+            if (!(project.Solution.Workspace is VisualStudioWorkspaceImpl workspace))
             {
                 return false;
             }
 
             foreach (var documentId in project.DocumentIds)
             {
-                if (workspace.GetHostDocument(documentId) is ContainedDocument)
+                if (workspace.TryGetContainedDocument(documentId) != null)
                 {
                     return true;
                 }
@@ -97,8 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             var result = project.Name;
 
-            var workspace = project.Solution.Workspace as VisualStudioWorkspace;
-            if (workspace == null)
+            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
             {
                 return result;
             }
@@ -114,15 +138,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return result;
             }
 
-            IVsHierarchy parentHierarchy;
-            if (hierarchy.TryGetParentHierarchy(out parentHierarchy) && !(parentHierarchy is IVsSolution))
+            if (hierarchy.TryGetParentHierarchy(out var parentHierarchy) && !(parentHierarchy is IVsSolution))
             {
                 var builder = new StringBuilder(result);
 
                 while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
                 {
-                    string parentName;
-                    if (parentHierarchy.TryGetName(out parentName))
+                    if (parentHierarchy.TryGetName(out var parentName))
                     {
                         builder.Insert(0, parentName + "\\");
                     }

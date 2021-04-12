@@ -1,9 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
-Imports Microsoft.VisualStudio.LanguageServices.SolutionExplorer
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     Public Class DiagnosticItemTests
@@ -11,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub Name()
             Dim descriptor = CreateDescriptor()
 
-            Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error, Nothing)
+            Dim diagnostic = New DiagnosticItem(Nothing, Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic, Nothing)
 
             Assert.Equal(expected:="TST0001: A test diagnostic", actual:=diagnostic.Text)
         End Sub
@@ -20,16 +22,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub BrowseObject()
             Dim descriptor = CreateDescriptor()
 
-            Dim diagnostic = New DiagnosticItem(Nothing, descriptor, ReportDiagnostic.Info, Nothing)
+            Dim diagnostic = New DiagnosticItem(Nothing, Nothing, descriptor, ReportDiagnostic.Info, LanguageNames.VisualBasic, Nothing)
             Dim browseObject = DirectCast(diagnostic.GetBrowseObject(), DiagnosticItem.BrowseObject)
 
-            Assert.Equal(expected:=SolutionExplorerShim.DiagnosticItem_PropertyWindowClassName, actual:=browseObject.GetClassName())
+            Assert.Equal(expected:=SolutionExplorerShim.Diagnostic_Properties, actual:=browseObject.GetClassName())
             Assert.Equal(expected:="TST0001", actual:=browseObject.GetComponentName())
             Assert.Equal(expected:="TST0001", actual:=browseObject.Id)
             Assert.Equal(expected:="A test diagnostic", actual:=browseObject.Title)
             Assert.Equal(expected:="Test", actual:=browseObject.Category)
-            Assert.Equal(expected:=SolutionExplorerShim.Severity_Error, actual:=browseObject.DefaultSeverity)
-            Assert.Equal(expected:=SolutionExplorerShim.Severity_Info, actual:=browseObject.EffectiveSeverity)
+            Assert.Equal(expected:=SolutionExplorerShim.Error_, actual:=browseObject.DefaultSeverity)
+            Assert.Equal(expected:=SolutionExplorerShim.Info, actual:=browseObject.EffectiveSeverity)
             Assert.Equal(expected:=True, actual:=browseObject.EnabledByDefault)
 
         End Sub

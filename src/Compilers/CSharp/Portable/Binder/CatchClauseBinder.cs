@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -19,25 +24,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntax = syntax;
         }
 
-        override protected ImmutableArray<LocalSymbol> BuildLocals()
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
             var declarationOpt = _syntax.Declaration;
             if ((declarationOpt != null) && (declarationOpt.Identifier.Kind() != SyntaxKind.None))
             {
-                locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable));
+                locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, false, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable));
             }
 
             if (_syntax.Filter != null)
             {
-                PatternVariableFinder.FindPatternVariables(this, locals, _syntax.Filter.FilterExpression);
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Filter.FilterExpression);
             }
 
             return locals.ToImmutableAndFree();
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
             {

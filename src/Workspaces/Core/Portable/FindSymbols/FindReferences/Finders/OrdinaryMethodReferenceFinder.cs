@@ -1,13 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -23,54 +20,53 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.MethodKind == MethodKind.LocalFunction;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
+            FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             // If it's a delegate method, then cascade to the type as well.  These guys are
             // practically equivalent for users.
             if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
             {
-                return SpecializedCollections.SingletonEnumerable((ISymbol)symbol.ContainingType);
+                return ImmutableArray.Create(((ISymbol)symbol.ContainingType, cascadeDirection));
             }
             else
             {
                 var otherPartsOfPartial = GetOtherPartsOfPartial(symbol);
-                var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
+                var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(
+                    symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
-                {
-                    return null;
-                }
+                    return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
 
-                otherPartsOfPartial = otherPartsOfPartial ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-                baseCascadedSymbols = baseCascadedSymbols ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
-
-                return otherPartsOfPartial.Concat(baseCascadedSymbols);
+                return otherPartsOfPartial.SelectAsArray(m => (m, cascadeDirection)).Concat(baseCascadedSymbols);
             }
         }
 
-        private IEnumerable<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
+        private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
         {
             if (symbol.PartialDefinitionPart != null)
             {
-                return SpecializedCollections.SingletonEnumerable(symbol.PartialDefinitionPart);
+                return ImmutableArray.Create<ISymbol>(symbol.PartialDefinitionPart);
             }
 
             if (symbol.PartialImplementationPart != null)
             {
-                return SpecializedCollections.SingletonEnumerable(symbol.PartialImplementationPart);
+                return ImmutableArray.Create<ISymbol>(symbol.PartialImplementationPart);
             }
 
-            return null;
+            return ImmutableArray<ISymbol>.Empty;
         }
 
-        protected override async Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol methodSymbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): Handle searching for IDisposable.Dispose (or an implementation
@@ -85,40 +81,70 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // these methods.
 
             // TODO(cyrusn): Handle searching for Monitor.Enter and Monitor.Exit.  If a user
-            // searches for these, then we should find usages of 'lock(foo)' or 'synclock(foo)'
+            // searches for these, then we should find usages of 'lock(goo)' or 'synclock(goo)'
             // since they implicitly call those methods.
 
-            var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
+            var ordinaryDocuments = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
             var forEachDocuments = IsForEachMethod(methodSymbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<Document>();
+                : ImmutableArray<Document>.Empty;
 
-            return ordinaryDocuments.Concat(forEachDocuments);
+            var deconstructDocuments = IsDeconstructMethod(methodSymbol)
+                ? await FindDocumentsWithDeconstructionAsync(project, documents, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<Document>.Empty;
+
+            var awaitExpressionDocuments = IsGetAwaiterMethod(methodSymbol)
+                ? await FindDocumentsWithAwaitExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<Document>.Empty;
+
+            return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments).Concat(awaitExpressionDocuments);
         }
 
-        private bool IsForEachMethod(IMethodSymbol methodSymbol)
+        private static bool IsForEachMethod(IMethodSymbol methodSymbol)
         {
             return
                 methodSymbol.Name == WellKnownMemberNames.GetEnumeratorMethodName ||
                 methodSymbol.Name == WellKnownMemberNames.MoveNextMethodName;
         }
 
-        protected override async Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        private static bool IsDeconstructMethod(IMethodSymbol methodSymbol)
+            => methodSymbol.Name == WellKnownMemberNames.DeconstructMethodName;
+
+        private static bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
+            => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
+
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(
                 symbol,
                 document,
+                semanticModel,
                 cancellationToken).ConfigureAwait(false);
 
-            var forEachMatches = IsForEachMethod(symbol)
-                ? await FindReferencesInForEachStatementsAsync(symbol, document, cancellationToken).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+            if (IsForEachMethod(symbol))
+            {
+                var forEachMatches = await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                nameMatches = nameMatches.Concat(forEachMatches);
+            }
 
-            return nameMatches.Concat(forEachMatches);
+            if (IsDeconstructMethod(symbol))
+            {
+                var deconstructMatches = await FindReferencesInDeconstructionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                nameMatches = nameMatches.Concat(deconstructMatches);
+            }
+
+            if (IsGetAwaiterMethod(symbol))
+            {
+                var getAwaiterMatches = await FindReferencesInAwaitExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                nameMatches = nameMatches.Concat(getAwaiterMatches);
+            }
+
+            return nameMatches;
         }
     }
 }

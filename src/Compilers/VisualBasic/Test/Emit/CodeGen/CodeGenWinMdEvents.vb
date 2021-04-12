@@ -1,7 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 
@@ -20,7 +20,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 3 for the backing field and each accessor.
             comp.VerifyDiagnostics(
@@ -47,7 +47,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 3 for the backing field and each accessor.
             ' 1 for the AddHandler statement
@@ -75,7 +75,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 3 for the backing field and each accessor.
             ' 1 for the RemoveHandler statement
@@ -103,7 +103,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 3 for the backing field and each accessor.
             ' 1 for the RaiseEvent statement
@@ -154,7 +154,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' 1 for the RaiseEvent statement
             comp.VerifyEmitDiagnostics(
@@ -188,7 +188,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source, OutputKind.WindowsRuntimeMetadata)
+            Dim comp = CreateCompilationWithMscorlib40(source, OutputKind.WindowsRuntimeMetadata)
 
             ' This test is specifically interested in the ERR_MissingRuntimeHelper errors: one for each helper times one for each handled event
             comp.VerifyDiagnostics(
@@ -454,7 +454,8 @@ End Class
         ''' <remarks>
         ''' I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
         ''' </remarks>
-        <Fact(), WorkItem(1003209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003209")>
+        <WorkItem(1003209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003209")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub FieldLikeEventSerialization()
 
             Dim source1 =
@@ -531,11 +532,11 @@ End Namespace
     </file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
+            Dim comp1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             comp1.VerifyDiagnostics()
 
-            Dim serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization
-            Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
+            Dim serializationRef = TestMetadata.Net451.SystemRuntimeSerialization
+            Dim comp2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, expectedOutput:=<![CDATA[
 A
 False
@@ -599,7 +600,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             ' Attach Me.InstanceHandler to {Base/Derived/Derived}.{InstanceEvent/SharedEvent} (from {MyBase/MyClass/Me}.{InstanceEvent/SharedEvent}).
@@ -921,7 +922,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.DebugWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, WinRtRefs, options:=TestOptions.DebugWinMD)
             Dim verifier = CompileAndVerify(comp)
         End Sub
 
@@ -968,7 +969,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             verifier.VerifyIL("Test..ctor", <![CDATA[
@@ -1085,7 +1086,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
+            Dim comp = CreateEmptyCompilationWithReferences(source, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             Dim verifier = CompileAndVerify(comp)
 
             ' Note: actually attaching a lambda.

@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -41,7 +46,6 @@ namespace BoundTreeGenerator
                     return 1;
             }
 
-
             Tree tree;
             var serializer = new XmlSerializer(typeof(Tree));
             using (var reader = XmlReader.Create(infilename, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit }))
@@ -49,7 +53,7 @@ namespace BoundTreeGenerator
                 tree = (Tree)serializer.Deserialize(reader);
             }
 
-            using (var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create)))
+            using (var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create), Encoding.UTF8))
             {
                 BoundNodeClassWriter.Write(outfile, tree, targetLanguage);
             }

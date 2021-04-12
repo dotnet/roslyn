@@ -1,0 +1,282 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Absolute_path_expected" xml:space="preserve">
+    <value>Absolute path expected.</value>
+  </data>
+  <data name="An_element_with_the_same_key_but_a_different_value_already_exists" xml:space="preserve">
+    <value>An element with the same key but a different value already exists.</value>
+  </data>
+  <data name="Organize_usings" xml:space="preserve">
+    <value>Organize usings</value>
+  </data>
+  <data name="this_dot_and_Me_dot_preferences" xml:space="preserve">
+    <value>this. and Me. preferences</value>
+  </data>
+  <data name="Language_keywords_vs_BCL_types_preferences" xml:space="preserve">
+    <value>Language keywords vs BCL types preferences</value>
+  </data>
+  <data name="Parentheses_preferences" xml:space="preserve">
+    <value>Parentheses preferences</value>
+  </data>
+  <data name="Modifier_preferences" xml:space="preserve">
+    <value>Modifier preferences</value>
+  </data>
+  <data name="Expression_level_preferences" xml:space="preserve">
+    <value>Expression-level preferences</value>
+  </data>
+  <data name="Field_preferences" xml:space="preserve">
+    <value>Field preferences</value>
+  </data>
+  <data name="Parameter_preferences" xml:space="preserve">
+    <value>Parameter preferences</value>
+  </data>
+  <data name="Suppression_preferences" xml:space="preserve">
+    <value>Suppression preferences</value>
+  </data>
+  <data name="Pascal_Case" xml:space="preserve">
+    <value>Pascal Case</value>
+  </data>
+  <data name="Abstract_Method" xml:space="preserve">
+    <value>Abstract Method</value>
+    <comment>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Begins_with_I" xml:space="preserve">
+    <value>Begins with I</value>
+    <comment>{locked:I}</comment>
+  </data>
+  <data name="Class" xml:space="preserve">
+    <value>Class</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Delegate" xml:space="preserve">
+    <value>Delegate</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Enum" xml:space="preserve">
+    <value>Enum</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Event</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Interface" xml:space="preserve">
+    <value>Interface</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Non_Field_Members" xml:space="preserve">
+    <value>Non-Field Members</value>
+    <comment>{locked:field}</comment>
+  </data>
+  <data name="Private_Method" xml:space="preserve">
+    <value>Private Method</value>
+    <comment>{locked: private}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Private_or_Internal_Field" xml:space="preserve">
+    <value>Private or Internal Field</value>
+    <comment>{locked: private}{locked: internal}{locked:field}</comment>
+  </data>
+  <data name="Private_or_Internal_Static_Field" xml:space="preserve">
+    <value>Private or Internal Static Field</value>
+    <comment>{locked: private}{locked: internal}{locked:static}{locked:field}</comment>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>Property</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Public_or_Protected_Field" xml:space="preserve">
+    <value>Public or Protected Field</value>
+    <comment>{locked: public}{locked: protected}{locked:field}</comment>
+  </data>
+  <data name="Static_Field" xml:space="preserve">
+    <value>Static Field</value>
+    <comment>{locked:static}{locked:field} (unless the capitalization should be handled differently)</comment>
+  </data>
+  <data name="Static_Method" xml:space="preserve">
+    <value>Static Method</value>
+    <comment>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
+  </data>
+  <data name="Struct" xml:space="preserve">
+    <value>Struct</value>
+    <comment>{locked} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Types" xml:space="preserve">
+    <value>Types</value>
+    <comment>{locked:types} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Method</value>
+    <comment>{locked:method} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Missing_prefix_colon_0" xml:space="preserve">
+    <value>Missing prefix: '{0}'</value>
+  </data>
+  <data name="Missing_suffix_colon_0" xml:space="preserve">
+    <value>Missing suffix: '{0}'</value>
+  </data>
+  <data name="Prefix_0_does_not_match_expected_prefix_1" xml:space="preserve">
+    <value>Prefix '{0}' does not match expected prefix '{1}'</value>
+  </data>
+  <data name="Prefix_0_is_not_expected" xml:space="preserve">
+    <value>Prefix '{0}' is not expected</value>
+  </data>
+  <data name="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0" xml:space="preserve">
+    <value>These non-leading words must begin with an upper case letter: {0}</value>
+  </data>
+  <data name="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0" xml:space="preserve">
+    <value>These non-leading words must begin with a lowercase letter: {0}</value>
+  </data>
+  <data name="These_words_cannot_contain_lower_case_characters_colon_0" xml:space="preserve">
+    <value>These words cannot contain lower case characters: {0}</value>
+  </data>
+  <data name="These_words_cannot_contain_upper_case_characters_colon_0" xml:space="preserve">
+    <value>These words cannot contain upper case characters: {0}</value>
+  </data>
+  <data name="These_words_must_begin_with_upper_case_characters_colon_0" xml:space="preserve">
+    <value>These words must begin with upper case characters: {0}</value>
+  </data>
+  <data name="The_first_word_0_must_begin_with_an_upper_case_character" xml:space="preserve">
+    <value>The first word, '{0}', must begin with an upper case character</value>
+  </data>
+  <data name="The_first_word_0_must_begin_with_a_lower_case_character" xml:space="preserve">
+    <value>The first word, '{0}', must begin with a lower case character</value>
+  </data>
+  <data name="Cast_is_redundant" xml:space="preserve">
+    <value>Cast is redundant.</value>
+  </data>
+  <data name="Naming_styles" xml:space="preserve">
+    <value>Naming styles</value>
+  </data>
+  <data name="Naming_rules" xml:space="preserve">
+    <value>Naming rules</value>
+  </data>
+  <data name="Symbol_specifications" xml:space="preserve">
+    <value>Symbol specifications</value>
+  </data>
+  <data name="Specified_sequence_has_duplicate_items" xml:space="preserve">
+    <value>Specified sequence has duplicate items</value>
+  </data>
+  <data name="Segment_size_must_be_power_of_2_greater_than_1" xml:space="preserve">
+    <value>Segment size must be power of 2 greater than 1</value>
+  </data>
+  <data name="New_line_preferences" xml:space="preserve">
+    <value>New line preferences</value>
+  </data>
+</root>

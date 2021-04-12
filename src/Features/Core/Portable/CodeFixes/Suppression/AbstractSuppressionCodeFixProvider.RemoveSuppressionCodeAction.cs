@@ -1,11 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         /// <summary>
         /// Base type for remove suppression code actions.
@@ -43,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
-                : base(fixer, title: string.Format(FeaturesResources.RemoveSuppressionForId, diagnostic.Id))
+                : base(fixer, title: string.Format(FeaturesResources.Remove_Suppression_0, diagnostic.Id))
             {
                 _diagnostic = diagnostic;
                 _forFixMultipleContext = forFixMultipleContext;
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public abstract RemoveSuppressionCodeAction CloneForFixMultipleContext();
             public abstract SyntaxTree SyntaxTreeToModify { get; }
 
-            public override string EquivalenceKey => FeaturesResources.RemoveSuppressionEquivalenceKeyPrefix + DiagnosticIdForEquivalenceKey;
+            public override string EquivalenceKey => FeaturesResources.Remove_Suppression + DiagnosticIdForEquivalenceKey;
             protected override string DiagnosticIdForEquivalenceKey =>
                 _forFixMultipleContext ? string.Empty : _diagnostic.Id;
         }

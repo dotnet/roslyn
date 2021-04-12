@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -170,7 +172,7 @@ End Namespace
             MscorlibRef_v4_0_30316_17626,
             SystemCoreRef_v4_0_30319_17929}
 
-            Dim winRtDelegateLibrary = CompilationUtils.CreateCompilationWithReferences(
+            Dim winRtDelegateLibrary = CompilationUtils.CreateEmptyCompilationWithReferences(
                 winRtDelegateLibrarySrc,
                 references:=coreRefs45,
                 options:=TestOptions.ReleaseWinMD).EmitToImageReference()
@@ -179,7 +181,7 @@ End Namespace
             fileElement.ReplaceAttributes(New XAttribute("name", "NonWinRTDelegateLibrary.vb"))
             fileElement.SetValue(fileElement.Value.Replace("WinRTDelegateLibrary", "NonWinRTDelegateLibrary"))
 
-            Dim nonWinRtDelegateLibrary = CompilationUtils.CreateCompilationWithReferences(
+            Dim nonWinRtDelegateLibrary = CompilationUtils.CreateEmptyCompilationWithReferences(
                 winRtDelegateLibrarySrc,
                 references:=coreRefs45,
                 options:=TestOptions.ReleaseDll).EmitToImageReference()
@@ -284,7 +286,7 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 allDelegates,
-                additionalRefs:={
+                references:={
                     winRtDelegateLibrary,
                     nonWinRtDelegateLibrary},
                 symbolValidator:=validator)

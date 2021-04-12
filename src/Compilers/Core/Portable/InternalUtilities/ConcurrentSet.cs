@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace Roslyn.Utilities
     /// </summary>
     [DebuggerDisplay("Count = {Count}")]
     internal sealed class ConcurrentSet<T> : ICollection<T>
+        where T : notnull
     {
         /// <summary>
         /// The default concurrency level is 2. That means the collection can cope with up to two
@@ -53,18 +55,12 @@ namespace Roslyn.Utilities
         /// Obtain the number of elements in the set.
         /// </summary>
         /// <returns>The number of elements in the set.</returns>
-        public int Count
-        {
-            get { return _dictionary.Count; }
-        }
+        public int Count => _dictionary.Count;
 
         /// <summary>
         /// Determine whether the set is empty.</summary>
         /// <returns>true if the set is empty; otherwise, false.</returns>
-        public bool IsEmpty
-        {
-            get { return _dictionary.IsEmpty; }
-        }
+        public bool IsEmpty => _dictionary.IsEmpty;
 
         public bool IsReadOnly => false;
 
@@ -88,7 +84,7 @@ namespace Roslyn.Utilities
             return _dictionary.TryAdd(value, 0);
         }
 
-        public void AddRange(IEnumerable<T> values)
+        public void AddRange(IEnumerable<T>? values)
         {
             if (values != null)
             {
@@ -106,8 +102,7 @@ namespace Roslyn.Utilities
         /// <returns>true if the value was removed successfully; otherwise false.</returns>
         public bool Remove(T value)
         {
-            byte b;
-            return _dictionary.TryRemove(value, out b);
+            return _dictionary.TryRemove(value, out _);
         }
 
         /// <summary>
@@ -127,10 +122,7 @@ namespace Roslyn.Utilities
                 _kvpEnumerator = data.GetEnumerator();
             }
 
-            public T Current
-            {
-                get { return _kvpEnumerator.Current.Key; }
-            }
+            public T Current => _kvpEnumerator.Current.Key;
 
             public bool MoveNext()
             {
@@ -183,7 +175,13 @@ namespace Roslyn.Utilities
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            // PERF: Do not use dictionary.Keys here because that creates a snapshot
+            // of the collection resulting in a List<T> allocation.
+            // Instead, enumerate the set and copy over the elements.
+            foreach (var element in this)
+            {
+                array[arrayIndex++] = element;
+            }
         }
     }
 }

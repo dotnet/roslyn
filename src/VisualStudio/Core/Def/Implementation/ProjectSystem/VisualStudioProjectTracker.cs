@@ -1,336 +1,174 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Windows.Threading;
+using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed partial class VisualStudioProjectTracker : IDisposable, IVisualStudioHostProjectContainer
+#pragma warning disable IDE0060 // Remove unused parameter - compatibility shim for TypeScript
+
+    [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+    internal sealed partial class VisualStudioProjectTracker
     {
-        private static readonly ConditionalWeakTable<SolutionId, string> s_workingFolderPathMap = new ConditionalWeakTable<SolutionId, string>();
+        private readonly Workspace _workspace;
+        private readonly VisualStudioProjectFactory _projectFactory;
+        internal IThreadingContext ThreadingContext { get; }
 
-        private readonly IServiceProvider _serviceProvider;
-        private readonly Dictionary<ProjectId, AbstractProject> _projectMap;
+        internal HostWorkspaceServices WorkspaceServices => _workspace.Services;
 
-        /// <summary>
-        /// This is a multi-map, only so we don't have any edge cases if people have two projects with
-        /// the same output path. It makes state tracking notably easier.
-        /// </summary>
-        private readonly Dictionary<string, List<AbstractProject>> _projectsByBinPath = new Dictionary<string, List<AbstractProject>>(StringComparer.OrdinalIgnoreCase);
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        private readonly Dictionary<ProjectId, AbstractProject> _projects = new();
 
-        private readonly Dictionary<string, ProjectId> _projectPathToIdMap;
-        private readonly List<WorkspaceHostState> _workspaceHosts;
-        private readonly IVsSolution _vsSolution;
-        private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-
-        /// <summary>
-        /// The list of projects loaded in this batch between <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
-        /// <see cref="IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool)"/>.
-        /// </summary>
-        private readonly List<AbstractProject> _projectsLoadedThisBatch = new List<AbstractProject>();
-
-        /// <summary>
-        /// Set to true while the solution is in the process of closing. That is, between
-        /// <see cref="IVsSolutionEvents.OnBeforeCloseSolution"/> and <see cref="IVsSolutionEvents.OnAfterCloseSolution"/>.
-        /// </summary>
-        private bool _solutionIsClosing = false;
-
-        /// <summary>
-        /// Set to true once the solution has already been completely loaded and all future changes
-        /// should be pushed immediately to the workspace hosts. This may not actually result in changes
-        /// being pushed to a particular host if <see cref="WorkspaceHostState.HostReadyForEvents"/> isn't true yet.
-        /// </summary>
-        private bool _solutionLoadComplete = false;
-
-        internal IEnumerable<AbstractProject> Projects { get { return _projectMap.Values; } }
-
-        IEnumerable<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects()
+        [Obsolete("This is a compatibility shim; please do not use it.")]
+        public VisualStudioProjectTracker(Workspace workspace, VisualStudioProjectFactory projectFactory, IThreadingContext threadingContext)
         {
-            return this.Projects;
+            _workspace = workspace;
+            _projectFactory = projectFactory;
+            ThreadingContext = threadingContext;
+            DocumentProvider = new DocumentProvider();
         }
 
-        void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
-        {
-            var abstractProject = (AbstractProject)project;
-            StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject));
-        }
-
-        private uint? _solutionEventsCookie;
-
-        public VisualStudioProjectTracker(IServiceProvider serviceProvider)
-        {
-            _projectMap = new Dictionary<ProjectId, AbstractProject>();
-            _projectPathToIdMap = new Dictionary<string, ProjectId>(StringComparer.OrdinalIgnoreCase);
-
-            _serviceProvider = serviceProvider;
-            _workspaceHosts = new List<WorkspaceHostState>(capacity: 1);
-
-            _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
-            _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-
-            uint solutionEventsCookie;
-            _vsSolution.AdviseSolutionEvents(this, out solutionEventsCookie);
-            _solutionEventsCookie = solutionEventsCookie;
-
-            // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event
-            var shellMonitorSelection = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
-
-            uint fullyLoadedContextCookie;
-            if (ErrorHandler.Succeeded(shellMonitorSelection.GetCmdUIContextCookie(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, out fullyLoadedContextCookie)))
-            {
-                int fActive;
-                if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out fActive)) && fActive != 0)
-                {
-                    _solutionLoadComplete = true;
-                }
-            }
-        }
-
-        public void RegisterSolutionProperties(SolutionId solutionId)
-        {
-            try
-            {
-                var solutionWorkingFolder = (IVsSolutionWorkingFolders)_vsSolution;
-
-                bool temporary;
-                string workingFolderPath;
-                solutionWorkingFolder.GetFolder(
-                    (uint)__SolutionWorkingFolder.SlnWF_StatePersistence, Guid.Empty, fVersionSpecific: true, fEnsureCreated: true,
-                    pfIsTemporary: out temporary, pszBstrFullPath: out workingFolderPath);
-
-                if (!temporary && !string.IsNullOrWhiteSpace(workingFolderPath))
-                {
-                    s_workingFolderPathMap.Add(solutionId, workingFolderPath);
-                }
-            }
-            catch
-            {
-                // don't crash just because solution having problem getting working folder information
-            }
-        }
-
-        public void UpdateSolutionProperties(SolutionId solutionId)
-        {
-            s_workingFolderPathMap.Remove(solutionId);
-
-            RegisterSolutionProperties(solutionId);
-        }
-
-        public string GetWorkingFolderPath(Solution solution)
-        {
-            string workingFolderPath;
-            if (s_workingFolderPathMap.TryGetValue(solution.Id, out workingFolderPath))
-            {
-                return workingFolderPath;
-            }
-
-            return null;
-        }
-
-        public void RegisterWorkspaceHost(IVisualStudioWorkspaceHost host)
-        {
-            if (_workspaceHosts.Any(hostState => hostState.Host == host))
-            {
-                throw new ArgumentException("The workspace host is already registered.", nameof(host));
-            }
-
-            _workspaceHosts.Add(new WorkspaceHostState(this, host));
-        }
-
-        public void StartSendingEventsToWorkspaceHost(IVisualStudioWorkspaceHost host)
-        {
-            var hostData = _workspaceHosts.Find(s => s.Host == host);
-            if (hostData == null)
-            {
-                throw new ArgumentException("The workspace host not registered", nameof(host));
-            }
-
-            // This method is idempotent.
-            if (hostData.HostReadyForEvents)
-            {
-                return;
-            }
-
-            hostData.HostReadyForEvents = true;
-
-            // If any of the projects are already interactive, then we better catch up the host.
-            var interactiveProjects = _projectMap.Values.Where(p => p.PushingChangesToWorkspaceHosts);
-            if (interactiveProjects.Any())
-            {
-                hostData.StartPushingToWorkspaceAndNotifyOfOpenDocuments(interactiveProjects);
-            }
-        }
-
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public DocumentProvider DocumentProvider { get; set; }
-        public VisualStudioMetadataReferenceManager MetadataReferenceProvider { get; set; }
-        public VisualStudioRuleSetManager RuleSetFileProvider { get; set; }
 
-        public void Dispose()
+        public Workspace Workspace => _workspace;
+
+        /*
+          
+        private void FinishLoad()
         {
-            if (_solutionEventsCookie.HasValue)
-            {
-                _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie.Value);
-                _solutionEventsCookie = null;
-            }
-
-            if (this.RuleSetFileProvider != null)
-            {
-                this.RuleSetFileProvider.Dispose();
-            }
+            // Check that the set of analyzers is complete and consistent.
+            GetAnalyzerDependencyCheckingService()?.ReanalyzeSolutionForConflicts();
         }
 
-        internal AbstractProject GetProject(ProjectId id)
+        private AnalyzerDependencyCheckingService GetAnalyzerDependencyCheckingService()
         {
-            AbstractProject project;
-            _projectMap.TryGetValue(id, out project);
-            return project;
+            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+
+            return componentModel.GetService<AnalyzerDependencyCheckingService>();
         }
 
-        /// <summary>
-        /// Add a project to the workspace.
-        /// </summary>
-        internal void AddProject(AbstractProject project)
+        */
+
+        public ProjectId GetOrCreateProjectIdForPath(string filePath, string projectDisplayName)
         {
-            _projectMap.Add(project.Id, project);
+            // HACK: to keep F# working, we will ensure we return the ProjectId if there is a project that matches this path. Otherwise, we'll just return
+            // a random ProjectId, which is sufficient for their needs. They'll simply observe there is no project with that ID, and then go and create a
+            // new project. Then they call this function again, and fetch the real ID.
+            return _workspace.CurrentSolution.Projects.FirstOrDefault(p => p.FilePath == filePath)?.Id ?? ProjectId.CreateNewId("ProjectNotFound");
+        }
 
-            UpdateProjectBinPath(project, null, project.TryGetBinOutputPath());
-
-            if (_solutionLoadComplete)
+        [Obsolete("This is a compatibility shim for TypeScript and F#; please do not use it.")]
+        public AbstractProject GetProject(ProjectId projectId)
+        {
+            // HACK: if we have a TypeScript project, they expect to return the real thing deriving from AbstractProject
+            if (_projects.TryGetValue(projectId, out var typeScriptProject))
             {
-                StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
+                return typeScriptProject;
+            }
+
+            // HACK: to keep F# working, we will ensure that if there is a project with that ID, we will return a non-null value, otherwise we'll return null.
+            // It doesn't actually matter *what* the project is, so we'll just return something silly
+            var project = _workspace.CurrentSolution.GetProject(projectId);
+
+            if (project != null)
+            {
+                return new StubProject(this, project);
             }
             else
             {
-                _projectsLoadedThisBatch.Add(project);
+                return null;
             }
         }
 
-        internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
-        {
-            using (Dispatcher.CurrentDispatcher.DisableProcessing())
-            {
-                foreach (var hostState in _workspaceHosts)
-                {
-                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Remove a project from the workspace.
-        /// </summary>
-        internal void RemoveProject(AbstractProject project)
-        {
-            Contract.ThrowIfFalse(_projectMap.Remove(project.Id));
-
-            UpdateProjectBinPath(project, project.TryGetBinOutputPath(), null);
-
-            if (project.PushingChangesToWorkspaceHosts)
-            {
-                NotifyWorkspaceHosts(host => host.OnProjectRemoved(project.Id));
-            }
-        }
-
-        internal void UpdateProjectBinPath(AbstractProject project, string oldBinPathOpt, string newBinPathOpt)
-        {
-            if (oldBinPathOpt != null)
-            {
-                UpdateReferencesForBinPathChange(oldBinPathOpt, () => _projectsByBinPath.MultiRemove(oldBinPathOpt, project));
-            }
-
-            if (newBinPathOpt != null)
-            {
-                UpdateReferencesForBinPathChange(newBinPathOpt, () => _projectsByBinPath.MultiAdd(newBinPathOpt, project));
-            }
-        }
-
-        private void UpdateReferencesForBinPathChange(string path, Action updateProjects)
-        {
-            // If we already have a single project that points to this path, we'll either be:
-            // 
-            // (1) removing it, where it no longer exists, or
-            // (2) adding another path, where it's now ambiguous
-            //
-            // in either case, we want to undo file-to-P2P reference conversion
-            List<AbstractProject> existingProjects;
-
-            if (_projectsByBinPath.TryGetValue(path, out existingProjects))
-            {
-                if (existingProjects.Count == 1)
-                {
-                    foreach (var projectToUpdate in _projectMap.Values)
-                    {
-                        projectToUpdate.UndoProjectReferenceConversionForDisappearingOutputPath(path);
-                    }
-                }
-            }
-
-            updateProjects();
-
-            if (_projectsByBinPath.TryGetValue(path, out existingProjects))
-            {
-                if (existingProjects.Count == 1)
-                {
-                    foreach (var projectToUpdate in _projectMap.Values)
-                    {
-                        projectToUpdate.TryProjectConversionForIntroducedOutputPath(path, existingProjects[0]);
-                    }
-                }
-            }
-        }
-
-        internal ProjectId GetOrCreateProjectIdForPath(string projectPath, string projectSystemName)
-        {
-            string key = projectPath + projectSystemName;
-            ProjectId id;
-            if (!_projectPathToIdMap.TryGetValue(key, out id))
-            {
-                id = ProjectId.CreateNewId(debugName: projectPath);
-                _projectPathToIdMap[key] = id;
-            }
-
-            return id;
-        }
-
-        internal void NotifyWorkspaceHosts(Action<IVisualStudioWorkspaceHost> action)
-        {
-            // We do not want to allow message pumping/reentrancy when processing project system changes.
-            using (Dispatcher.CurrentDispatcher.DisableProcessing())
-            {
-                foreach (var workspaceHost in _workspaceHosts)
-                {
-                    if (workspaceHost.HostReadyForEvents)
-                    {
-                        action(workspaceHost.Host);
-                    }
-                }
-            }
-        }
-
+        [Obsolete("This is a compatibility shim for TypeScript and F#; please do not use it.")]
         internal bool TryGetProjectByBinPath(string filePath, out AbstractProject project)
         {
-            project = null;
+            var projectsWithBinPath = _workspace.CurrentSolution.Projects.Where(p => string.Equals(p.OutputFilePath, filePath, StringComparison.OrdinalIgnoreCase)).ToList();
 
-            List<AbstractProject> projects;
-            if (_projectsByBinPath.TryGetValue(filePath, out projects))
+            if (projectsWithBinPath.Count == 1)
             {
-                // If for some reason we have more than one referencing project, it's ambiguous so bail
-                if (projects.Count == 1)
-                {
-                    project = projects[0];
-                    return true;
-                }
+                project = new StubProject(this, projectsWithBinPath[0]);
+                return true;
+            }
+            else
+            {
+                project = null;
+                return false;
+            }
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript and F#; please do not use it.")]
+        private sealed class StubProject : AbstractProject
+        {
+            private readonly ProjectId _id;
+
+            public StubProject(VisualStudioProjectTracker projectTracker, Project project)
+                : base(projectTracker, null, project.Name + "_Stub", project.FilePath, null, project.Language, Guid.Empty, null, null, null, null)
+            {
+                _id = project.Id;
             }
 
-            return false;
+            public override ProjectId Id => _id;
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public void AddProject(AbstractProject project)
+        {
+            if (_projectFactory != null)
+            {
+                var creationInfo = new VisualStudioProjectCreationInfo
+                {
+                    AssemblyName = project.AssemblyName,
+                    FilePath = project.ProjectFilePath,
+                    Hierarchy = project.Hierarchy,
+                    ProjectGuid = project.Guid,
+                };
+                project.VisualStudioProject = this.ThreadingContext.JoinableTaskFactory.Run(() => _projectFactory.CreateAndAddToWorkspaceAsync(
+                    project.ProjectSystemName, project.Language, creationInfo, CancellationToken.None));
+                project.UpdateVisualStudioProjectProperties();
+            }
+            else
+            {
+                // We don't have an ID, so make something up
+                project.ExplicitId = ProjectId.CreateNewId(project.ProjectSystemName);
+                Workspace.OnProjectAdded(ProjectInfo.Create(project.ExplicitId, VersionStamp.Create(), project.ProjectSystemName, project.ProjectSystemName, project.Language));
+            }
+
+            _projects[project.Id] = project;
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public bool ContainsProject(AbstractProject project)
+        {
+            // This will be set as long as the project has been added and not since removed
+            return _projects.Values.Contains(project);
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public void RemoveProject(AbstractProject project)
+        {
+            _projects.Remove(project.Id);
+
+            if (project.ExplicitId != null)
+            {
+                Workspace.OnProjectRemoved(project.ExplicitId);
+            }
+            else
+            {
+                project.VisualStudioProject.RemoveFromWorkspace();
+                project.VisualStudioProject = null;
+            }
         }
     }
 }

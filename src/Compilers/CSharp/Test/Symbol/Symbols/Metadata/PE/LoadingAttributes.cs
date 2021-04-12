@@ -1,16 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var assembly0 = assemblies[0];
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
 
@@ -168,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //<AString("C1")>
@@ -235,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var aBoolClass = assemblies[1].Modules[0].GlobalNamespace.GetMember("ABooleanAttribute") as NamedTypeSymbol;
@@ -301,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var aBoolClass = assemblies[1].Modules[0].GlobalNamespace.GetMember("ABooleanAttribute") as NamedTypeSymbol;
@@ -351,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //<AString("C1")>
@@ -403,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //Public Class C2(Of T1)
@@ -527,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib ,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var assemblyArgs = new AttributeArgs[] {
@@ -577,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //[assembly: ImportedFromTypeLib("InteropAttributes")]
@@ -658,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //[ComImport, Guid("ABCDEF5D-2448-447A-B786-64682CBEF123")]
@@ -681,37 +684,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var interopNS = (NamespaceSymbol)runtimeNS.GetMember("InteropServices");
 
             var appNS = (NamespaceSymbol)assemblies[0].Modules[0].GlobalNamespace.GetMember("Interop");
-            var ifoo = (NamedTypeSymbol)appNS.GetMember("IFoo");
+            var igoo = (NamedTypeSymbol)appNS.GetMember("IFoo");
             // ComImport is Pseudo attr
-            Assert.Equal(4, ifoo.GetAttributes().Length);
+            Assert.Equal(4, igoo.GetAttributes().Length);
 
             // get attr by NamedTypeSymbol
             var attrObj = (NamedTypeSymbol)interopNS.GetTypeMembers("GuidAttribute").Single();
-            var attrSym = ifoo.GetAttribute(attrObj);
+            var attrSym = igoo.GetAttribute(attrObj);
             //Assert.Null(attrSym.NamedArguments)
             attrSym.VerifyValue(0, TypedConstantKind.Primitive, "ABCDEF5D-2448-447A-B786-64682CBEF123");
 
             attrObj = (NamedTypeSymbol)interopNS.GetTypeMembers("InterfaceTypeAttribute").Single();
             // use first ctor
             var ctor = attrObj.InstanceConstructors.First();
-            attrSym = ifoo.GetAttribute(ctor);
+            attrSym = igoo.GetAttribute(ctor);
             // param in ctor is Int16, but Int32 in MD
             Assert.Equal(typeof(Int32), attrSym.CommonConstructorArguments[0].Value.GetType());
             Assert.Equal(1, attrSym.CommonConstructorArguments[0].Value);
 
             attrObj = (NamedTypeSymbol)interopNS.GetTypeMembers("TypeLibImportClassAttribute").Single();
             var msym = attrObj.InstanceConstructors.First();
-            attrSym = ifoo.GetAttribute(msym);
-            Assert.Equal("object", ((Symbol)attrSym.CommonConstructorArguments[0].Value).ToString());
+            attrSym = igoo.GetAttribute(msym);
+            Assert.Equal("object", ((Symbol)attrSym.CommonConstructorArguments[0].ValueInternal).ToString());
 
             // =============================
-            var mem = (MethodSymbol)ifoo.GetMember("DoSomething");
+            var mem = (MethodSymbol)igoo.GetMember("DoSomething");
             Assert.Equal(1, mem.GetAttributes().Length);
-            mem = (MethodSymbol)ifoo.GetMember("Register");
+            mem = (MethodSymbol)igoo.GetMember("Register");
             Assert.Equal(1, mem.GetAttributes().Length);
-            mem = (MethodSymbol)ifoo.GetMember("UnRegister");
+            mem = (MethodSymbol)igoo.GetMember("UnRegister");
             Assert.Equal(1, mem.GetAttributes().Length);
-            mem = (MethodSymbol)ifoo.GetMember("LibFunc");
+            mem = (MethodSymbol)igoo.GetMember("LibFunc");
             attrSym = mem.GetAttributes().First();
             Assert.Equal(1, attrSym.CommonConstructorArguments.Length);
             Assert.Equal(32, attrSym.CommonConstructorArguments[0].Value);
@@ -723,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             // [Serializable, ComVisible(false)]
@@ -764,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop02,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             // [Guid("31230DD5-2448-447A-B786-64682CBEFEEE"), Flags]
@@ -802,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             //[ComImport, TypeLibType(TypeLibTypeFlags.FAggregatable)]
@@ -902,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -927,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             attrSym = assemblies[0].Modules[0].GetAttributes().First();
             Assert.Equal("AttrNameAttribute", attrSym.AttributeClass.Name);
             attrSym.VerifyNamedArgumentValue(0, "TypeField", TypedConstantKind.Type, typeof(Dictionary<string, int>));
-            Assert.Equal(2, (attrSym.CommonNamedArguments[0].Value.Value as NamedTypeSymbol).Arity);
+            Assert.Equal(2, (attrSym.CommonNamedArguments[0].Value.ValueInternal as NamedTypeSymbol).Arity);
         }
 
         [Fact]
@@ -937,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01 ,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01 ,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -956,9 +959,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             //    V Method([param: DerivedAttribute(new sbyte[] {-1, 0, 1}, ObjectField = typeof(IList<>))]T t);
             //}
             // 
-            var ifoo = (NamedTypeSymbol)appNS.GetMember("IFoo");
+            var igoo = (NamedTypeSymbol)appNS.GetMember("IFoo");
             // attribute on type parameter of interface
-            var tp = ifoo.TypeParameters[0];
+            var tp = igoo.TypeParameters[0];
             var attrSym = tp.GetAttributes().First();
             Assert.Equal("AllInheritMultipleAttribute", attrSym.AttributeClass.Name);
             // p2 is optional
@@ -969,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // NYI: default optional
             // Assert.Equal(CByte(1), attrSym.ConstructorArguments[1].Value) 'enum
 
-            tp = ifoo.TypeParameters[1];
+            tp = igoo.TypeParameters[1];
             attrSym = tp.GetAttribute(attrObj1);
             Assert.Equal(3, attrSym.CommonConstructorArguments.Length);
             attrSym.VerifyValue(0, TypedConstantKind.Primitive, 'q');
@@ -979,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             // attribute on method
             // [AllInheritMultiple(p3:1.234f, p2: 1056, p1: "555")]
-            var mtd = (MethodSymbol)ifoo.GetMember("Method");
+            var mtd = (MethodSymbol)igoo.GetMember("Method");
             Assert.Equal(1, mtd.GetAttributes().Length);
             attrSym = mtd.GetAttributes().First();
             Assert.Equal(4, attrSym.CommonConstructorArguments.Length);
@@ -1003,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             attrSym.VerifyValue(0, TypedConstantKind.Array, new sbyte[] { -1, 0, 1 });
 
             Assert.Equal("ObjectField", attrSym.CommonNamedArguments[0].Key);
-            Assert.Equal("System.Collections.Generic.IList<>", (attrSym.CommonNamedArguments[0].Value.Value as NamedTypeSymbol).ToString());
+            Assert.Equal("System.Collections.Generic.IList<>", (attrSym.CommonNamedArguments[0].Value.Value as INamedTypeSymbol).ToString());
         }
 
         //[AllInheritMultiple(new char[] { '1', '2' }, UIntField = 112233)]
@@ -1039,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -1157,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             attrSym = attrs.First();
             Assert.Equal(1, attrSym.CommonConstructorArguments.Length);
             Assert.Equal(1, attrSym.CommonNamedArguments.Length);
-            Assert.Equal("AttributeUse.IFoo<System.Int16, System.UInt16>", (attrSym.CommonConstructorArguments[0].Value as NamedTypeSymbol).ToDisplayString(SymbolDisplayFormat.TestFormat));
+            Assert.Equal("AttributeUse.IFoo<System.Int16, System.UInt16>", (attrSym.CommonConstructorArguments[0].Value as INamedTypeSymbol).ToDisplayString(SymbolDisplayFormat.TestFormat));
             Assert.Equal(1, attrSym.CommonNamedArguments[0].Value.Value);
         }
 
@@ -1167,9 +1170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         public void TestAttributesAssemblyVersionValue()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] {
-                TestReferences.NetFx.v4_0_30319.System_Core,
-                TestReferences.NetFx.v4_0_30319.System,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net451.SystemCore,
+                Net451.System,
+                Net40.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[2].GlobalNamespace.GetMember("System");
@@ -1178,24 +1181,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var asmFileAttr = (NamedTypeSymbol)refNS.GetTypeMembers("AssemblyFileVersionAttribute").Single();
             var attr1 = assemblies[0].GetAttribute(asmFileAttr);
-            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.1");
+            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.18408");
 
             var asmInfoAttr = (NamedTypeSymbol)refNS.GetTypeMembers("AssemblyInformationalVersionAttribute").Single();
             attr1 = assemblies[0].GetAttribute(asmInfoAttr);
-            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.1");
-
-            var asmTgtAttr = (NamedTypeSymbol)rtNS.GetTypeMembers("AssemblyTargetedPatchBandAttribute").Single();
-            attr1 = assemblies[0].GetAttribute(asmTgtAttr);
-            attr1.VerifyValue(0, TypedConstantKind.Primitive, "1.0.21-0");
+            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.18408");
         }
 
         [Fact]
         public void TestAttributesWithTypeOfInternalClass()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
-                TestReferences.NetFx.v4_0_30319.System_Core,
-                TestReferences.NetFx.v4_0_30319.System,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net451.SystemCore,
+                Net451.System,
+                Net40.mscorlib
             });
 
             var corsysNS = assemblies[2].GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
@@ -1210,12 +1209,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // [DebuggerTypeProxy(typeof(Expression.BinaryExpressionProxy))] - internal class as argument to typeof()
             // public class BinaryExpression : Expression {... }
             var attr1 = exprNS.GetTypeMembers("BinaryExpression").First().GetAttribute(dbgProxyAttr);
-            Assert.Equal("System.Linq.Expressions.Expression.BinaryExpressionProxy", ((TypeSymbol)attr1.CommonConstructorArguments[0].Value).ToDisplayString(SymbolDisplayFormat.TestFormat));
+            Assert.Equal("System.Linq.Expressions.Expression.BinaryExpressionProxy", ((ITypeSymbol)attr1.CommonConstructorArguments[0].Value).ToDisplayString(SymbolDisplayFormat.TestFormat));
 
             // [DebuggerTypeProxy(typeof(Expression.TypeBinaryExpressionProxy))]
             // public sealed class TypeBinaryExpression : Expression
             attr1 = exprNS.GetTypeMembers("TypeBinaryExpression").First().GetAttribute(dbgProxyAttr);
-            Assert.Equal("System.Linq.Expressions.Expression.TypeBinaryExpressionProxy", ((TypeSymbol)attr1.CommonConstructorArguments[0].Value).ToDisplayString(SymbolDisplayFormat.TestFormat));
+            Assert.Equal("System.Linq.Expressions.Expression.TypeBinaryExpressionProxy", ((ITypeSymbol)attr1.CommonConstructorArguments[0].Value).ToDisplayString(SymbolDisplayFormat.TestFormat));
         }
 
         [Fact]
@@ -1223,9 +1222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
-                TestReferences.NetFx.v4_0_30319.System_Configuration,
-                TestReferences.NetFx.v4_0_30319.System,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net451.SystemConfiguration,
+                Net451.System,
+                Net40.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("System");
@@ -1253,10 +1252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
             {
-                TestReferences.NetFx.v4_0_30319.System_Data,
-                TestReferences.NetFx.v4_0_30319.System_Core,
-                TestReferences.NetFx.v4_0_30319.System,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net451.SystemData,
+                Net451.SystemCore,
+                Net451.System,
+                Net40.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[0].GlobalNamespace.GetMember("System");
@@ -1287,9 +1286,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         #endregion
 
+        [Fact]
         [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void Bug530209()
+        public void Bug530209_DecimalConstant()
+        {
+            var compilation = CreateCompilation(
+@"
+public class Class1
+{
+    public const decimal d1 = -7;
+
+    public void M1(decimal d1 = -7)
+    {}
+}");
+
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                var peModule = (PEModuleSymbol)module;
+                var class1 = module.GlobalNamespace.GetTypeMember("Class1");
+                var field = class1.GetMember<PEFieldSymbol>("d1");
+                var parameter = (PEParameterSymbol)class1.GetMethod("M1").GetParameters().Single();
+
+                Assert.Empty(field.GetAttributes());
+                Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", peModule.GetCustomAttributesForToken(field.Handle).Single().ToString());
+                Assert.Equal(field.ConstantValue, -7m);
+
+                Assert.Empty(parameter.GetAttributes());
+                Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", peModule.GetCustomAttributesForToken(parameter.Handle).Single().ToString());
+                Assert.Equal(parameter.ExplicitDefaultValue, -7m);
+            });
+        }
+
+        [ConditionalFact(typeof(ClrOnly))]
+        [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
+        [WorkItem(23760, "https://github.com/dotnet/roslyn/issues/23760")] // reason for skipping Mono
+        public void Bug530209_DecimalConstant_FromIL()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit Class1
@@ -1388,69 +1419,105 @@ System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64)
 } // end of class Class1
 ";
 
-            var c1 = CreateCompilationWithMscorlib(
-@"
-public class Class1
+            var csSource = @"
+class Class2 : Class1
 {
-    public const decimal d1 = -7;
+}";
 
-    public void M1(decimal d1 = -7)
-    {}
-}");
+            CompileAndVerify(CreateCompilationWithILAndMscorlib40(csSource, ilSource), symbolValidator: module =>
+            {
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
+                Assert.Equal("Class1", class1.ToTestDisplayString());
 
+                var field1 = class1.GetField("d1");
 
-            var class1 = c1.GetTypeByMetadataName("Class1");
-            var d1 = class1.GetMember<FieldSymbol>("d1");
-            var m1 = class1.GetMember<MethodSymbol>("M1");
+                Assert.Empty(field1.GetAttributes());
+                Assert.Equal(field1.ConstantValue, -7m);
 
-            var state = new ModuleCompilationState();
+                var field2 = class1.GetField("d2");
 
-            Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(state).Single().ToString());
-            Assert.Equal(d1.ConstantValue, -7m);
-            Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(state).Single().ToString());
-            Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
+                Assert.Equal(2, field2.GetAttributes().Length);
+                Assert.Null(field2.ConstantValue);
 
-            var c2 = CreateCompilationWithCustomILSource("", ilSource);
+                var parameters = class1.GetMethod("M1").GetParameters();
+                Assert.Equal(2, parameters.Count());
 
-            class1 = c2.GetTypeByMetadataName("Class1");
-            d1 = class1.GetMember<FieldSymbol>("d1");
-            var d2 = class1.GetMember<FieldSymbol>("d2");
-            m1 = class1.GetMember<MethodSymbol>("M1");
+                Assert.Empty(parameters.First().GetAttributes());
+                Assert.Equal(parameters.First().ExplicitDefaultValue, -7m);
 
-            Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(state).Single().ToString());
-            Assert.Equal(d1.ConstantValue, -7m);
-            Assert.Equal(2, d2.GetAttributes().Length);
-            Assert.Equal(2, d2.GetCustomAttributesToEmit(state).Count());
-            Assert.Null(d2.ConstantValue);
-            Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(state).Single().ToString());
-            Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
-            Assert.Empty(m1.Parameters[1].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(state).Single().ToString());
-            Assert.Equal(m1.Parameters[1].ExplicitDefaultValue, new DateTime(2013, 1, 1));
+                Assert.Empty(parameters.Last().GetAttributes());
+                Assert.Equal(parameters.Last().ExplicitDefaultValue, new DateTime(2013, 1, 1));
+            });
 
-            var c3 = CreateCompilationWithCustomILSource("", ilSource);
+            // Switch order of API calls
 
-            class1 = c3.GetTypeByMetadataName("Class1");
-            d1 = class1.GetMember<FieldSymbol>("d1");
-            d2 = class1.GetMember<FieldSymbol>("d2");
-            m1 = class1.GetMember<MethodSymbol>("M1");
+            CompileAndVerify(CreateCompilationWithILAndMscorlib40(csSource, ilSource), symbolValidator: module =>
+            {
+                var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
+                Assert.Equal("Class1", class1.ToTestDisplayString());
 
-            Assert.Equal(d1.ConstantValue, -7m);
-            Assert.Empty(d1.GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(state).Single().ToString());
-            Assert.Null(d2.ConstantValue);
-            Assert.Equal(2, d2.GetAttributes().Length);
-            Assert.Equal(2, d2.GetCustomAttributesToEmit(state).Count());
-            Assert.Equal(m1.Parameters[0].ExplicitDefaultValue, -7m);
-            Assert.Empty(m1.Parameters[0].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters[0].GetCustomAttributesToEmit(state).Single().ToString());
-            Assert.Equal(m1.Parameters[1].ExplicitDefaultValue, new DateTime(2013, 1, 1));
-            Assert.Empty(m1.Parameters[1].GetAttributes());
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(state).Single().ToString());
+                var field1 = class1.GetField("d1");
+
+                Assert.Equal(field1.ConstantValue, -7m);
+                Assert.Empty(field1.GetAttributes());
+
+                var field2 = class1.GetField("d2");
+
+                Assert.Null(field2.ConstantValue);
+                Assert.Equal(2, field2.GetAttributes().Length);
+
+                var parameters = class1.GetMethod("M1").GetParameters();
+                Assert.Equal(2, parameters.Count());
+
+                Assert.Equal(parameters.First().ExplicitDefaultValue, -7m);
+                Assert.Empty(parameters.First().GetAttributes());
+
+                Assert.Equal(parameters.Last().ExplicitDefaultValue, new DateTime(2013, 1, 1));
+                Assert.Empty(parameters.Last().GetAttributes());
+            });
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(18092, "https://github.com/dotnet/roslyn/issues/18092")]
+        public void ForwardedSystemType()
+        {
+            var ilSource = @"
+.class extern forwarder System.Type
+{
+  .assembly extern mscorlib
+}
+
+.class public auto ansi beforefieldinit MyAttribute
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(class [mscorlib]System.Type val) cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method MyAttribute::.ctor
+
+} // end of class MyAttribute
+";
+
+            var c = CreateCompilationWithILAndMscorlib40(@"
+[MyAttribute(typeof(MyAttribute))]
+public class Test
+{
+}", ilSource);
+
+            const string expected = "MyAttribute(typeof(MyAttribute))";
+            Assert.Equal(expected, c.GetTypeByMetadataName("Test").GetAttributes().Single().ToString());
+
+            CompileAndVerify(c, symbolValidator: (m) =>
+                                                  {
+                                                      Assert.Equal(expected, m.GlobalNamespace.GetTypeMember("Test").GetAttributes().Single().ToString());
+                                                  });
         }
     }
 }

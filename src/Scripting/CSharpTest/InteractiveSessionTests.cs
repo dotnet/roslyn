@@ -1,8 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -25,31 +28,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
     public class HostModel
     {
-        public readonly int Foo;
+        public readonly int Goo;
     }
 
     public class InteractiveSessionTests : TestBase
     {
-        private static readonly CSharpCompilationOptions s_signedDll =
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_ce65828c82a341f2);
-
-        private static readonly CSharpCompilationOptions s_signedDll2 =
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_ce65828c82a341f2);
-
         internal static readonly Assembly HostAssembly = typeof(InteractiveSessionTests).GetTypeInfo().Assembly;
 
         #region Namespaces, Types
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17869")]
         public void CompilationChain_NestedTypesClass()
         {
             var script = CSharpScript.Create(@"
 static string outerStr = null;
-public static void Foo(string str) { outerStr = str; }
+public static void Goo(string str) { outerStr = str; }
 class InnerClass
 {
    public string innerStr = null;
-   public void Goo() { Foo(""test""); innerStr = outerStr; }       
+   public void Goo() { Goo(""test""); innerStr = outerStr; }       
 }
 ").ContinueWith(@"
 InnerClass iC = new InnerClass();
@@ -58,23 +55,19 @@ iC.Goo();
 System.Console.WriteLine(iC.innerStr);
 ");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                script.RunAsync().Wait();
-                Assert.Equal("test", redirect.Output.Trim());
-            }
+            ScriptingTestHelpers.RunScriptWithOutput(script, "test");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17869")]
         public void CompilationChain_NestedTypesStruct()
         {
             var script = CSharpScript.Create(@"
 static string outerStr = null;
-public static void Foo(string str) { outerStr = str; }
+public static void Goo(string str) { outerStr = str; }
 struct InnerStruct
 {
    public string innerStr;
-   public void Goo() { Foo(""test""); innerStr = outerStr; }            
+   public void Goo() { Goo(""test""); innerStr = outerStr; }            
 }
 ").ContinueWith(@"
 InnerStruct iS = new InnerStruct();     
@@ -83,15 +76,11 @@ iS.Goo();
 System.Console.WriteLine(iS.innerStr);
 ");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                script.RunAsync().Wait();
-                Assert.Equal("test", redirect.Output.Trim());
-            }
+            ScriptingTestHelpers.RunScriptWithOutput(script, "test");
         }
 
         [Fact]
-        public void CompilationChain_InterfaceTypes()
+        public async Task CompilationChain_InterfaceTypes()
         {
             var script = CSharpScript.Create(@"
 interface I1 { int Goo();}
@@ -104,7 +93,7 @@ I1 iC = new InnerClass();
 iC.Goo()
 ");
 
-            Assert.Equal(1, script.EvaluateAsync().Result);
+            Assert.Equal(1, await script.EvaluateAsync());
         }
 
         [Fact]
@@ -117,7 +106,7 @@ void Method() { }
 ").ContinueWith(@"
 class C 
 {
-    public void Foo() 
+    public void Goo() 
     {
         object f = field;
         object p = Property;
@@ -181,15 +170,15 @@ object.ReferenceEquals(a.GetType(), c.GetType()).ToString() + "" "" +
         public void AnonymousTypes_Redefinition()
         {
             var script = CSharpScript.Create(@"
-var x = new { Foo = ""foo"" };
+var x = new { Goo = ""goo"" };
 ").ContinueWith(@"
-var x = new { Foo = ""foo"" };
+var x = new { Goo = ""goo"" };
 ").ContinueWith(@"
-x.Foo
+x.Goo
 ");
 
             var result = script.EvaluateAsync().Result;
-            Assert.Equal("foo", result);
+            Assert.Equal("goo", result);
         }
 
         [Fact]
@@ -228,9 +217,9 @@ new object[] { new[] { a, c }, new[] { b, d } }
             var script = CSharpScript.Create(@"
 dynamic expando = new ExpandoObject();  
 ", options).ContinueWith(@"
-expando.foo = 1;
+expando.goo = 1;
 ").ContinueWith(@"
-expando.foo
+expando.goo
 ");
 
             Assert.Equal(1, script.EvaluateAsync().Result);
@@ -267,7 +256,7 @@ E
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[DllImport(""foo"", 
+[DllImport(""goo"", 
     EntryPoint = ""bar"", 
     CallingConvention = CallingConvention.Cdecl, 
     CharSet = CharSet.Unicode, 
@@ -296,7 +285,7 @@ typeof(C)
             Assert.True(dllImport.PreserveSig);
             Assert.True(dllImport.ThrowOnUnmappableChar);
             Assert.Equal("bar", dllImport.EntryPoint);
-            Assert.Equal("foo", dllImport.Value);
+            Assert.Equal("goo", dllImport.Value);
         }
 
         #endregion
@@ -309,16 +298,16 @@ typeof(C)
         public void PrivateTopLevel()
         {
             var script = CSharpScript.Create<int>(@"
-private int foo() { return 1; }
+private int goo() { return 1; }
 private static int bar() { return 10; }
 private static int f = 100;
 
-foo() + bar() + f
+goo() + bar() + f
 ");
             Assert.Equal(111, script.EvaluateAsync().Result);
 
             script = script.ContinueWith<int>(@"
-foo() + bar() + f
+goo() + bar() + f
 ");
 
             Assert.Equal(111, script.EvaluateAsync().Result);
@@ -340,30 +329,30 @@ private class C
 { 
     internal class D
     {
-        internal static int foo() { return 1; } 
+        internal static int goo() { return 1; } 
     }
 
     private class E
     {
-        internal static int foo() { return 1; } 
+        internal static int goo() { return 1; } 
     }
 
     public class F
     {
-        internal protected static int foo() { return 1; } 
+        internal protected static int goo() { return 1; } 
     }
 
     internal protected class G
     {
-        internal static int foo() { return 1; } 
+        internal static int goo() { return 1; } 
     }
 }
 ");
-            Assert.Equal(1, script.ContinueWith<int>("C.D.foo()").EvaluateAsync().Result);
-            Assert.Equal(1, script.ContinueWith<int>("C.F.foo()").EvaluateAsync().Result);
-            Assert.Equal(1, script.ContinueWith<int>("C.G.foo()").EvaluateAsync().Result);
+            Assert.Equal(1, script.ContinueWith<int>("C.D.goo()").EvaluateAsync().Result);
+            Assert.Equal(1, script.ContinueWith<int>("C.F.goo()").EvaluateAsync().Result);
+            Assert.Equal(1, script.ContinueWith<int>("C.G.goo()").EvaluateAsync().Result);
 
-            ScriptingTestHelpers.AssertCompilationError(script.ContinueWith<int>(@"C.E.foo()"),
+            ScriptingTestHelpers.AssertCompilationError(script.ContinueWith<int>(@"C.E.goo()"),
                 // error CS0122: 'C.E' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("C.E"));
         }
@@ -434,19 +423,19 @@ pi = i + j + k + l;
             var s0 = CSharpScript.RunAsync("", ScriptOptions.Default.AddReferences(HostAssembly));
 
             var state = s0.
-                ContinueWith("class X { public int foo() { return 1; } }").
-                ContinueWith("class X { public int foo() { return 1; } }").
+                ContinueWith("class X { public int goo() { return 1; } }").
+                ContinueWith("class X { public int goo() { return 1; } }").
                 ContinueWith("using InteractiveFixtures.A;").
-                ContinueWith("new X().foo()");
+                ContinueWith("new X().goo()");
 
             Assert.Equal(1, state.Result.ReturnValue);
 
             state =
                 s0.
-                ContinueWith("class X { public int foo() { return 1; } }").
+                ContinueWith("class X { public int goo() { return 1; } }").
                 ContinueWith(@"
 using InteractiveFixtures.A;
-new X().foo()
+new X().goo()
 ");
 
             Assert.Equal(1, state.Result.ReturnValue);
@@ -481,6 +470,49 @@ Environment.ProcessorCount
         }
 
         [Fact]
+        public void CompilationChain_Accessibility()
+        {
+            // Submissions have internal and protected access to one another.
+            var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
+            var compilation1 = state1.Result.Script.GetCompilation();
+            compilation1.VerifyDiagnostics(
+                // (1,39): warning CS0628: 'X': new protected member declared in sealed type
+                // internal class C1 { }   protected int X;   1
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "X").WithArguments("X").WithLocation(1, 39)
+                );
+            Assert.Equal(1, state1.Result.ReturnValue);
+
+            var state2 = state1.ContinueWith("internal class C2 : C1 { }   2");
+            var compilation2 = state2.Result.Script.GetCompilation();
+            compilation2.VerifyDiagnostics();
+            Assert.Equal(2, state2.Result.ReturnValue);
+            var c2C2 = (INamedTypeSymbol)lookupMember(compilation2, "Submission#1", "C2");
+            var c2C1 = c2C2.BaseType;
+            var c2X = lookupMember(compilation1, "Submission#0", "X");
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C1, c2C2));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C2, c2C1));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2X, c2C2));  // access not enforced among submission symbols
+
+            var state3 = state2.ContinueWith("private class C3 : C2 { }   3");
+            var compilation3 = state3.Result.Script.GetCompilation();
+            compilation3.VerifyDiagnostics();
+            Assert.Equal(3, state3.Result.ReturnValue);
+            var c3C3 = (INamedTypeSymbol)lookupMember(compilation3, "Submission#2", "C3");
+            var c3C1 = c3C3.BaseType;
+            Assert.Throws<ArgumentException>(() => compilation2.IsSymbolAccessibleWithin(c3C3, c3C1));
+            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C3, c3C1));
+
+            INamedTypeSymbol lookupType(Compilation c, string name)
+            {
+                return c.GlobalNamespace.GetMembers(name).Single() as INamedTypeSymbol;
+            }
+            ISymbol lookupMember(Compilation c, string typeName, string memberName)
+            {
+                return lookupType(c, typeName).GetMembers(memberName).Single();
+            }
+        }
+
+        [Fact]
         public void CompilationChain_SubmissionSlotResize()
         {
             var state = CSharpScript.RunAsync("");
@@ -490,11 +522,7 @@ Environment.ProcessorCount
                 state = state.ContinueWith(@"public int i =  1;");
             }
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                state.ContinueWith(@"System.Console.WriteLine(i);").Wait();
-                Assert.Equal(1, int.Parse(redirect.Output));
-            }
+            ScriptingTestHelpers.ContinueRunScriptWithOutput(state, @"System.Console.WriteLine(i);", "1");
         }
 
         [Fact]
@@ -714,7 +742,7 @@ class B<T> : A<B<B<T>>> { }
         public void CompilationChain_GenericMethods()
         {
             var s0 = CSharpScript.Create(@"
-public int foo<T, R>(T arg) { return 1; }
+public int goo<T, R>(T arg) { return 1; }
 
 public static T bar<T>(T i)
 {
@@ -722,7 +750,7 @@ public static T bar<T>(T i)
 }
 ");
 
-            Assert.Equal(1, s0.ContinueWith(@"foo<int, int>(1)").EvaluateAsync().Result);
+            Assert.Equal(1, s0.ContinueWith(@"goo<int, int>(1)").EvaluateAsync().Result);
             Assert.Equal(5, s0.ContinueWith(@"bar(5)").EvaluateAsync().Result);
         }
 
@@ -839,22 +867,18 @@ delegate void TestDelegate(string s);
 TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
 ");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                s.ContinueWith(@"testDelB(""hello"");").Wait();
-                Assert.Equal("hello", redirect.Output.Trim());
-            }
+            ScriptingTestHelpers.ContinueRunScriptWithOutput(s, @"testDelB(""hello"");", "hello");
         }
 
         [Fact]
         public void Closure()
         {
             var f = CSharpScript.EvaluateAsync<Func<int, int>>(@"
-int Foo(int arg) { return arg + 1; }
+int Goo(int arg) { return arg + 1; }
 
 System.Func<int, int> f = (arg) =>
 {
-    return Foo(arg);
+    return Goo(arg);
 };
 
 f
@@ -994,10 +1018,10 @@ fruit.Skip(1).Where(s => s.Length > 4).Count()", options).Result;
             var result = CSharpScript.EvaluateAsync<object[]>(@"
 var x = 1;
 var y = x;
-var z = foo(x);
+var z = goo(x);
 
-string foo(int a) { return null; } 
-int foo(string a) { return 0; }
+string goo(int a) { return null; } 
+int goo(string a) { return 0; }
 
 new object[] { x, y, z }
 ").Result;
@@ -1061,7 +1085,7 @@ new object[] { x, y, z }
         public void AwaitVoid()
         {
             var task = CSharpScript.EvaluateAsync<object>("await System.Threading.Tasks.Task.Run(() => { })");
-            Assert.Equal(null, task.Result);
+            Assert.Null(task.Result);
             Assert.Equal(TaskStatus.RanToCompletion, task.Status);
         }
 
@@ -1127,6 +1151,29 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(3, state.ReturnValue);
         }
 
+        [Fact, WorkItem(39548, "https://github.com/dotnet/roslyn/issues/39548")]
+        public async Task PatternVariableDeclaration()
+        {
+            var state = await CSharpScript.RunAsync("var x = (false, 4);");
+            state = await state.ContinueWithAsync("x is (false, var y)");
+            Assert.Equal(true, state.ReturnValue);
+        }
+
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task CSharp9PatternForms()
+        {
+            var options = ScriptOptions.Default.WithLanguageVersion(MessageID.IDS_FeatureAndPattern.RequiredVersion());
+            var state = await CSharpScript.RunAsync("object x = 1;", options: options);
+            state = await state.ContinueWithAsync("x is long or int", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is int and < 10", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is (long or < 10L)", options: options);
+            Assert.Equal(false, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is not > 100", options: options);
+            Assert.Equal(true, state.ReturnValue);
+        }
+
         #endregion
 
         #region References
@@ -1134,579 +1181,69 @@ static T G<T>(T t, Func<T, Task<T>> f)
         [Fact]
         public void ReferenceDirective_FileWithDependencies()
         {
-            string file1 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
-            string file2 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01).Path;
+            var file1 = Temp.CreateFile();
+            var file2 = Temp.CreateFile();
 
-            // ICSPropImpl in CSClasses01.dll implements ICSProp in CSInterfces01.dll.
-            object result = CSharpScript.EvaluateAsync(@"
-#r """ + file1 + @"""
-#r """ + file2 + @"""
-new Metadata.ICSPropImpl()
+            var lib1 = CreateCSharpCompilationWithCorlib(@"
+public interface I
+{
+    int F();
+}");
+
+            lib1.Emit(file1.Path);
+
+            var lib2 = CreateCSharpCompilation(@" 
+public class C : I
+{
+    public int F() => 1;
+}", new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, lib1.ToMetadataReference() });
+
+            lib2.Emit(file2.Path);
+
+            object result = CSharpScript.EvaluateAsync($@"
+#r ""{file1.Path}""
+#r ""{file2.Path}""
+new C()
 ").Result;
             Assert.NotNull(result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseParent()
         {
-            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
-            string fileName = Path.GetFileName(path);
-            string dir = Path.Combine(Path.GetDirectoryName(path), "subdir");
+            var file = Temp.CreateFile();
+            var lib = CreateCSharpCompilationWithCorlib("public class C {}");
+            lib.Emit(file.Path);
 
-            var script = CSharpScript.Create($@"#r ""..\{fileName}""",
-                ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
+            string dir = Path.Combine(Path.GetDirectoryName(file.Path), "subdir");
+            string libFileName = Path.GetFileName(file.Path);
+            string scriptPath = Path.Combine(dir, "a.csx");
+
+            var script = CSharpScript.Create(
+                $@"#r ""{Path.Combine("..", libFileName)}""",
+                ScriptOptions.Default.WithFilePath(scriptPath));
 
             script.GetCompilation().VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseRoot()
         {
-            string path = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01).Path;
-            string root = Path.GetPathRoot(path);
-            string unrooted = path.Substring(root.Length);
+            var file = Temp.CreateFile();
+            var lib = CreateCSharpCompilationWithCorlib("public class C {}");
+            lib.Emit(file.Path);
 
-            string dir = Path.Combine(root, "foo", "bar", "baz");
+            string root = Path.GetPathRoot(file.Path);
+            string unrooted = file.Path.Substring(root.Length);
 
-            var script = CSharpScript.Create($@"#r ""\{unrooted}""",
-                ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
+            string dir = Path.Combine(root, "goo", "bar", "baz");
+            string scriptPath = Path.Combine(dir, "a.csx");
+
+            var script = CSharpScript.Create(
+                $@"#r ""\{unrooted}""",
+                ScriptOptions.Default.WithFilePath(scriptPath));
 
             script.GetCompilation().VerifyDiagnostics();
-        }
-
-        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
-        public async Task MissingReferencesReuse()
-        {
-            var source = @"
-public class C
-{
-    public System.Diagnostics.Process P;
-}
-";
-
-            var lib = CSharpCompilation.Create(
-                "Lib",
-                new[] { SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System },
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-            var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());
-
-            var s0 = await CSharpScript.RunAsync("C c;", ScriptOptions.Default.WithReferences(libFile.Path));
-            var s1 = await s0.ContinueWithAsync("c = new C()");
-        }
-
-        [Fact]
-        public async Task SharedLibCopy_Identical_Weak()
-        {
-            string libBaseName = "LibBase_" + Guid.NewGuid();
-            string lib1Name = "Lib1_" + Guid.NewGuid();
-            string lib2Name = "Lib2_" + Guid.NewGuid();
-
-            var libBase = TestCompilationFactory.CreateCSharpCompilation(@"
-public class LibBase
-{
-    public readonly int X = 1;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
-
-            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib1
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib1Name);
-
-            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib2
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib2Name);
-
-            var libBaseImage = libBase.EmitToArray();
-            var lib1Image = lib1.EmitToArray();
-            var lib2Image = lib2.EmitToArray();
-
-            var root = Temp.CreateDirectory();
-            var dir1 = root.CreateDirectory("1");
-            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
-            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBaseImage);
-
-            var dir2 = root.CreateDirectory("2");
-            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
-            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBaseImage);
-
-            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
-            var s1 = await s0.ContinueWithAsync($@"var l1 = new Lib1();");
-            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
-            var s3 = await s2.ContinueWithAsync($@"var l2 = new Lib2();");
-            var s4 = await s3.ContinueWithAsync($@"l2.libBase.X");
-
-            var c4 = s4.Script.GetCompilation();
-            c4.VerifyAssemblyAliases(
-                lib2Name,
-                lib1Name,
-                "mscorlib",
-                libBaseName + ": <implicit>,global");
-
-            var libBaseRefAndSymbol = c4.GetBoundReferenceManager().GetReferencedAssemblies().ToArray()[3];
-            Assert.Equal(fileBase1.Path, ((PortableExecutableReference)libBaseRefAndSymbol.Key).FilePath);
-        }
-
-        [Fact]
-        public async Task SharedLibCopy_Identical_Strong()
-        {
-            string libBaseName = "LibBase_" + Guid.NewGuid();
-            string lib1Name = "Lib1_" + Guid.NewGuid();
-            string lib2Name = "Lib2_" + Guid.NewGuid();
-
-            var libBase = TestCompilationFactory.CreateCSharpCompilation(@"
-public class LibBase
-{
-    public readonly int X = 1;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
-
-            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib1
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib1Name);
-
-            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib2
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase.ToMetadataReference() }, lib2Name);
-
-            var libBaseImage = libBase.EmitToArray();
-            var lib1Image = lib1.EmitToArray();
-            var lib2Image = lib2.EmitToArray();
-
-            var root = Temp.CreateDirectory();
-            var dir1 = root.CreateDirectory("1");
-            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
-            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBaseImage);
-
-            var dir2 = root.CreateDirectory("2");
-            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
-            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBaseImage);
-
-            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
-            var s1 = await s0.ContinueWithAsync($@"var l1 = new Lib1();");
-            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
-            var s3 = await s2.ContinueWithAsync($@"var l2 = new Lib2();");
-            var s4 = await s3.ContinueWithAsync($@"l2.libBase.X");
-
-            var c4 = s4.Script.GetCompilation();
-            c4.VerifyAssemblyAliases(
-                lib2Name,
-                lib1Name,
-                "mscorlib",
-                libBaseName + ": <implicit>,global");
-
-            var libBaseRefAndSymbol = c4.GetBoundReferenceManager().GetReferencedAssemblies().ToArray()[3];
-            Assert.Equal(fileBase1.Path, ((PortableExecutableReference)libBaseRefAndSymbol.Key).FilePath);
-        }
-
-        [Fact]
-        public async Task SharedLibCopy_SameVersion_Weak_DifferentContent()
-        {
-            string libBaseName = "LibBase_" + Guid.NewGuid();
-            string lib1Name = "Lib1_" + Guid.NewGuid();
-            string lib2Name = "Lib2_" + Guid.NewGuid();
-
-            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class LibBase
-{
-    public readonly int X = 1;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
-
-            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class LibBase
-{
-    public readonly int X = 2;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
-
-            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib1
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
-
-            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib2
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
-
-            var libBase1Image = libBase1.EmitToArray();
-            var libBase2Image = libBase2.EmitToArray();
-            var lib1Image = lib1.EmitToArray();
-            var lib2Image = lib2.EmitToArray();
-
-            var root = Temp.CreateDirectory();
-            var dir1 = root.CreateDirectory("1");
-            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
-            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
-
-            var dir2 = root.CreateDirectory("2");
-            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
-            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
-
-            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
-            var s1 = await s0.ContinueWithAsync($@"var l1 = new Lib1();");
-            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
-
-            bool exceptionSeen = false;
-            try
-            {
-                await s2.ContinueWithAsync($@"var l2 = new Lib2();");
-            }
-            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
-            {
-                exceptionSeen = true;
-            }
-
-            Assert.True(exceptionSeen);
-        }
-
-        [Fact]
-        public async Task SharedLibCopy_SameVersion_Strong_DifferentContent()
-        {
-            string libBaseName = "LibBase_" + Guid.NewGuid();
-            string lib1Name = "Lib1_" + Guid.NewGuid();
-            string lib2Name = "Lib2_" + Guid.NewGuid();
-
-            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 1;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
-
-            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 2;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
-
-            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib1
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
-
-            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib2
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
-
-            var libBase1Image = libBase1.EmitToArray();
-            var libBase2Image = libBase2.EmitToArray();
-            var lib1Image = lib1.EmitToArray();
-            var lib2Image = lib2.EmitToArray();
-
-            var root = Temp.CreateDirectory();
-            var dir1 = root.CreateDirectory("1");
-            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
-            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
-
-            var dir2 = root.CreateDirectory("2");
-            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
-            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
-
-            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
-            var s1 = await s0.ContinueWithAsync($@"new Lib1().libBase.X");
-            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
-
-            bool exceptionSeen = false;
-            try
-            {
-                await s2.ContinueWithAsync($@"new Lib2().libBase.X");
-            }
-            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
-            {
-                exceptionSeen = true;
-            }
-
-            Assert.True(exceptionSeen);
-        }
-
-        [Fact]
-        public async Task SharedLibCopy_SameVersion_StrongWeak_DifferentContent()
-        {
-            string libBaseName = "LibBase_" + Guid.NewGuid();
-            string lib1Name = "Lib1_" + Guid.NewGuid();
-            string lib2Name = "Lib2_" + Guid.NewGuid();
-
-            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 1;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
-
-            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 2;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
-
-            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib1
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
-
-            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib2
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
-
-            var libBase1Image = libBase1.EmitToArray();
-            var libBase2Image = libBase2.EmitToArray();
-            var lib1Image = lib1.EmitToArray();
-            var lib2Image = lib2.EmitToArray();
-
-            var root = Temp.CreateDirectory();
-            var dir1 = root.CreateDirectory("1");
-            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
-            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
-
-            var dir2 = root.CreateDirectory("2");
-            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
-            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
-
-            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
-            var s1 = await s0.ContinueWithAsync($@"new Lib1().libBase.X");
-            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
-
-            bool exceptionSeen = false;
-            try
-            {
-                await s2.ContinueWithAsync($@"new Lib2().libBase.X");
-            }
-            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
-            {
-                exceptionSeen = true;
-            }
-
-            Assert.True(exceptionSeen);
-        }
-
-        [Fact]
-        public async Task SharedLibCopy_SameVersion_StrongDifferentPKT_DifferentContent()
-        {
-            string libBaseName = "LibBase_" + Guid.NewGuid();
-            string lib1Name = "Lib1_" + Guid.NewGuid();
-            string lib2Name = "Lib2_" + Guid.NewGuid();
-
-            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 1;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
-
-            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 2;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll2);
-
-            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib1
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
-
-            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib2
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
-
-            var libBase1Image = libBase1.EmitToArray();
-            var libBase2Image = libBase2.EmitToArray();
-            var lib1Image = lib1.EmitToArray();
-            var lib2Image = lib2.EmitToArray();
-
-            var root = Temp.CreateDirectory();
-            var dir1 = root.CreateDirectory("1");
-            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
-            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
-
-            var dir2 = root.CreateDirectory("2");
-            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
-            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
-
-            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
-            var s1 = await s0.ContinueWithAsync($@"new Lib1().libBase.X");
-            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
-
-            bool exceptionSeen = false;
-            try
-            {
-                await s2.ContinueWithAsync($@"new Lib2().libBase.X");
-            }
-            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
-            {
-                exceptionSeen = true;
-            }
-
-            Assert.True(exceptionSeen);
-        }
-
-        [Fact]
-        public async Task SharedLibCopy_DifferentVersion_Weak()
-        {
-            string libBaseName = "LibBase_" + Guid.NewGuid();
-            string lib1Name = "Lib1_" + Guid.NewGuid();
-            string lib2Name = "Lib2_" + Guid.NewGuid();
-
-            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 1;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
-
-            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 2;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
-
-            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib1
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
-
-            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib2
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase2.ToMetadataReference() }, lib2Name);
-
-            var libBase1Image = libBase1.EmitToArray();
-            var libBase2Image = libBase2.EmitToArray();
-            var lib1Image = lib1.EmitToArray();
-            var lib2Image = lib2.EmitToArray();
-
-            var root = Temp.CreateDirectory();
-            var dir1 = root.CreateDirectory("1");
-            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
-            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
-
-            var dir2 = root.CreateDirectory("2");
-            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
-            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
-
-            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
-            var s1 = await s0.ContinueWithAsync($@"var l1 = new Lib1().libBase.X;");
-            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
-
-            bool exceptionSeen = false;
-            try
-            {
-                await s2.ContinueWithAsync($@"var l2 = new Lib2().libBase.X;");
-            }
-            catch (FileLoadException fileLoadEx) when (fileLoadEx.InnerException is InteractiveAssemblyLoaderException)
-            {
-                exceptionSeen = true;
-            }
-
-            Assert.True(exceptionSeen);
-        }
-
-        [Fact]
-        public async Task SharedLibCopy_DifferentVersion_Strong()
-        {
-            string libBaseName = "LibBase_" + Guid.NewGuid();
-            string lib1Name = "Lib1_" + Guid.NewGuid();
-            string lib2Name = "Lib2_" + Guid.NewGuid();
-
-            var libBase1 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 1;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
-
-            var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
-[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
-public class LibBase
-{
-    public readonly int X = 2;
-}
-", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName, s_signedDll);
-
-            var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib1
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
-
-            var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
-public class Lib2
-{
-    public LibBase libBase = new LibBase();
-}
-", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase2.ToMetadataReference() }, lib2Name);
-
-            var libBase1Image = libBase1.EmitToArray();
-            var libBase2Image = libBase2.EmitToArray();
-            var lib1Image = lib1.EmitToArray();
-            var lib2Image = lib2.EmitToArray();
-
-            var root = Temp.CreateDirectory();
-            var dir1 = root.CreateDirectory("1");
-            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
-            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
-
-            var dir2 = root.CreateDirectory("2");
-            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
-            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
-
-            var s0 = await CSharpScript.RunAsync($@"#r ""{file1.Path}""");
-            var s1 = await s0.ContinueWithAsync($@"new Lib1().libBase.X");
-            Assert.Equal(1, s1.ReturnValue);
-            var s2 = await s1.ContinueWithAsync($@"#r ""{file2.Path}""");
-            var s3 = await s2.ContinueWithAsync($@"new Lib2().libBase.X");
-            Assert.Equal(2, s3.ReturnValue);
         }
 
         [Fact]
@@ -1715,13 +1252,13 @@ public class Lib2
             string mainName = "Main_" + Guid.NewGuid();
             string libName = "Lib_" + Guid.NewGuid();
 
-            var libExe = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""exe""; }", libName);
-            var libDll = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""dll""; }", libName);
-            var libWinmd = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""winmd""; }", libName);
+            var libExe = CreateCSharpCompilationWithCorlib(@"public class C { public string F = ""exe""; }", libName);
+            var libDll = CreateCSharpCompilationWithCorlib(@"public class C { public string F = ""dll""; }", libName);
+            var libWinmd = CreateCSharpCompilationWithCorlib(@"public class C { public string F = ""winmd""; }", libName);
 
-            var main = TestCompilationFactory.CreateCSharpCompilation(
+            var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libExe.ToMetadataReference() },
+                new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -1745,13 +1282,13 @@ public class Lib2
             string mainName = "Main_" + Guid.NewGuid();
             string libName = "Lib_" + Guid.NewGuid();
 
-            var libExe = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""exe""; }", libName);
-            var libDll = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""dll""; }", libName);
-            var libWinmd = TestCompilationFactory.CreateCSharpCompilationWithMscorlib(@"public class C { public string F = ""winmd""; }", libName);
+            var libExe = CreateCSharpCompilationWithCorlib(@"public class C { public string F = ""exe""; }", libName);
+            var libDll = CreateCSharpCompilationWithCorlib(@"public class C { public string F = ""dll""; }", libName);
+            var libWinmd = CreateCSharpCompilationWithCorlib(@"public class C { public string F = ""winmd""; }", libName);
 
-            var main = TestCompilationFactory.CreateCSharpCompilation(
+            var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libExe.ToMetadataReference() },
+                new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -1779,7 +1316,7 @@ public class D { }
 public class E { }
 ";
 
-            var libRef = CreateCSharpCompilationWithMscorlib(source, "lib").EmitToImageReference();
+            var libRef = CreateCSharpCompilationWithCorlib(source, "lib").EmitToImageReference();
 
             var script = CSharpScript.Create(@"new C()",
                 ScriptOptions.Default.WithReferences(libRef.WithAliases(new[] { "Hidden" })).WithImports("Hidden::N"));
@@ -1874,7 +1411,7 @@ d
         {
             Assert.Equal(2, CSharpScript.EvaluateAsync<int>("1+1").Result);
 
-            Assert.Equal(null, CSharpScript.EvaluateAsync<string>("null").Result);
+            Assert.Null(CSharpScript.EvaluateAsync<string>("null").Result);
 
             try
             {
@@ -1891,9 +1428,9 @@ d
             var options = ScriptOptions.Default.AddReferences(HostAssembly);
 
             var cint = CSharpScript.EvaluateAsync<C<int>>("null", options).Result;
-            Assert.Equal(null, cint);
+            Assert.Null(cint);
 
-            Assert.Equal(null, CSharpScript.EvaluateAsync<int?>("null", options).Result);
+            Assert.Null(CSharpScript.EvaluateAsync<int?>("null", options).Result);
 
             try
             {
@@ -1931,7 +1468,7 @@ using System.Collections.Generic;
 new List<ArgumentException>()
 ").Result;
 
-            Assert.Equal(null, value.FirstOrDefault());
+            Assert.Null(value.FirstOrDefault());
         }
 
         public class B
@@ -1988,7 +1525,7 @@ new List<ArgumentException>()
         {
             var m = new M<string>();
             var result = CSharpScript.EvaluateAsync<string>("G()", globals: m);
-            Assert.Equal(null, result.Result);
+            Assert.Null(result.Result);
         }
 
         [Fact]
@@ -2039,8 +1576,8 @@ new List<ArgumentException>()
         [Fact]
         public void HostObjectBinding_StaticMembers()
         {
-            var s0 = CSharpScript.RunAsync("static int foo = StaticField;", globals: new C());
-            var s1 = s0.ContinueWith("static int bar { get { return foo; } }");
+            var s0 = CSharpScript.RunAsync("static int goo = StaticField;", globals: new C());
+            var s1 = s0.ContinueWith("static int bar { get { return goo; } }");
             var s2 = s1.ContinueWith("class C { public static int baz() { return bar; } }");
             var s3 = s2.ContinueWith("C.baz()");
 
@@ -2049,7 +1586,7 @@ new List<ArgumentException>()
 
         public class D
         {
-            public int foo(int a) { return 0; }
+            public int goo(int a) { return 0; }
         }
 
         /// <summary>
@@ -2058,11 +1595,11 @@ new List<ArgumentException>()
         [Fact]
         public void HostObjectBinding_Overloads()
         {
-            var s0 = CSharpScript.RunAsync("int foo(double a) { return 2; }", globals: new D());
-            var s1 = s0.ContinueWith("foo(1)");
+            var s0 = CSharpScript.RunAsync("int goo(double a) { return 2; }", globals: new D());
+            var s1 = s0.ContinueWith("goo(1)");
             Assert.Equal(2, s1.Result.ReturnValue);
 
-            var s2 = s1.ContinueWith("foo(1.0)");
+            var s2 = s1.ContinueWith("goo(1.0)");
             Assert.Equal(2, s2.Result.ReturnValue);
         }
 
@@ -2078,114 +1615,280 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8332")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
                 "nameof(Microsoft.CodeAnalysis.Scripting)",
+                ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics(
                 // (1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft"));
+                // nameof(Microsoft.CodeAnalysis.Scripting)
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft").WithLocation(1, 8));
 
-            foreach (var assemblyAndAliases in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
+            string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
+            string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
+
+            // The host adds 
+            // 1) a reference to typeof(object).Assembly
+            // 2) a reference to GlobalsType with alias <host> applied recursively.
+            // References returned from ResolveMissingAssembly have <implicit> alias.
+
+            foreach (var (assembly, aliases) in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                switch (assemblyAndAliases.Item1.Identity.Name)
-                {
-                    case "mscorlib":
-                        AssertEx.SetEqual(new[] { "global", "<host>" }, assemblyAndAliases.Item2);
-                        break;
+                string name = assembly.Identity.Name;
 
-                    case "Microsoft.CodeAnalysis.Scripting":
-                        AssertEx.SetEqual(new[] { "<host>" }, assemblyAndAliases.Item2);
+                switch (name)
+                {
+                    case "Microsoft.CodeAnalysis.CSharp.Scripting":
+                    case "Microsoft.CodeAnalysis.CSharp":
+                        // assemblies not referenced
+                        Assert.False(true);
                         break;
 
                     case "Microsoft.CodeAnalysis":
+                    case "System.Collections.Immutable":
+                        // Microsoft.CodeAnalysis.Scripting contains host object and is thus referenced recursively with <host> alias. 
+                        // The script doesn't reference the assemblies explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "<host>" }, aliases);
+                        break;
+
                     default:
-                        AssertEx.SetEqual(new[] { "<implicit>", "<host>" }, assemblyAndAliases.Item2);
+                        if (name == corAssemblyName)
+                        {
+                            // Host object depends on System.Object, thus <host> is applied on CorLib.
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+                        else if (name == hostObjectAssemblyName)
+                        {
+                            // Host object is only referenced by the host and thus the assembly is hidden behind <host> alias.
+                            AssertEx.SetEqual(new[] { "<host>" }, aliases);
+                        }
+
                         break;
                 }
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference2()
         {
             var scriptCompilation = CSharpScript.Create(
                 "typeof(Microsoft.CodeAnalysis.Scripting.Script)",
-                options: ScriptOptions.Default.WithReferences(typeof(CSharpScript).GetTypeInfo().Assembly),
+                options: ScriptOptions.Default.
+                    WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance).
+                    WithReferences(typeof(CSharpScript).GetTypeInfo().Assembly),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics();
 
-            foreach (var assemblyAndAliases in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
+            string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
+            string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
+
+            // The host adds 
+            // 1) a reference to typeof(object).Assembly
+            // 2) a reference to GlobalsType with alias <host> applied recursively.
+            // References returned from ResolveMissingAssembly have <implicit> alias.
+
+            foreach (var (assembly, aliases) in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                switch (assemblyAndAliases.Item1.Identity.Name)
+                string name = assembly.Identity.Name;
+
+                switch (name)
                 {
-                    case "mscorlib":
-                        AssertEx.SetEqual(new[] { "global", "<host>" }, assemblyAndAliases.Item2);
-                        break;
-
-                    case "Microsoft.CodeAnalysis.Scripting":
-                        AssertEx.SetEqual(new[] { "<host>", "global" }, assemblyAndAliases.Item2);
-                        break;
-
                     case "Microsoft.CodeAnalysis.CSharp.Scripting":
-                        AssertEx.SetEqual(new string[0], assemblyAndAliases.Item2);
+                        // we have an explicit reference to CSharpScript assembly:
+                        AssertEx.SetEqual(Array.Empty<string>(), aliases);
                         break;
 
                     case "Microsoft.CodeAnalysis.CSharp":
-                        AssertEx.SetEqual(new[] { "<implicit>", "global" }, assemblyAndAliases.Item2);
+                        // The script has a recursive reference to Microsoft.CodeAnalysis.CSharp.Scripting, which references these assemblies.
+                        // The script doesn't reference the assembly explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "global" }, aliases);
                         break;
 
                     case "Microsoft.CodeAnalysis":
-                    case "System.IO":
                     case "System.Collections.Immutable":
-                        AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, assemblyAndAliases.Item2);
+                        // The script has a recursive reference to Microsoft.CodeAnalysis.CSharp.Scripting, which references these assemblies.
+                        // Microsoft.CodeAnalysis.Scripting contains host object and is thus referenced recursively with <host> alias. 
+                        // The script doesn't reference the assemblies explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, aliases);
+                        break;
+
+                    default:
+                        if (name == corAssemblyName)
+                        {
+                            // Host object depends on System.Object, thus <host> is applied on CorLib.
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+                        else if (name == hostObjectAssemblyName)
+                        {
+                            // Host object is defined in an assembly that CSharpScript depends on.
+                            // CSharpScript assembly was references (recursively) hence host object assembly is 
+                            // available to the script (global alias).
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+
                         break;
                 }
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6532")]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"
 #r ""{typeof(CSharpScript).GetTypeInfo().Assembly.ManifestModule.FullyQualifiedName}""
 typeof(Microsoft.CodeAnalysis.Scripting.Script)
 ";
-            var scriptCompilation = CSharpScript.Create(source, globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
+            var scriptCompilation = CSharpScript.Create(
+                source,
+                ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
+                globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics();
 
-            foreach (var assemblyAndAliases in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
+            string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
+            string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
+
+            // The host adds 
+            // 1) a reference to typeof(object).Assembly
+            // 2) a reference to GlobalsType with alias <host> applied recursively.
+            // References returned from ResolveMissingAssembly have <implicit> alias.
+
+            foreach (var (assembly, aliases) in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                switch (assemblyAndAliases.Item1.Identity.Name)
+                string name = assembly.Identity.Name;
+
+                switch (name)
                 {
-                    case "mscorlib":
-                        AssertEx.SetEqual(new[] { "global", "<host>" }, assemblyAndAliases.Item2);
-                        break;
-
                     case "Microsoft.CodeAnalysis.CSharp.Scripting":
-                        AssertEx.SetEqual(new string[0], assemblyAndAliases.Item2);
-                        break;
-
-                    case "Microsoft.CodeAnalysis.Scripting":
-                        AssertEx.SetEqual(new[] { "global", "<host>" }, assemblyAndAliases.Item2);
+                        // we have an explicit reference to CSharpScript assembly:
+                        AssertEx.SetEqual(Array.Empty<string>(), aliases);
                         break;
 
                     case "Microsoft.CodeAnalysis.CSharp":
-                        AssertEx.SetEqual(new[] { "<implicit>", "global" }, assemblyAndAliases.Item2);
+                        // The script has a recursive reference to Microsoft.CodeAnalysis.CSharp.Scripting, which references these assemblies.
+                        // The script doesn't reference the assembly explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "global" }, aliases);
                         break;
 
                     case "Microsoft.CodeAnalysis":
-                    case "System.IO":
                     case "System.Collections.Immutable":
-                        AssertEx.SetEqual(new[] { "<implicit>", "global", "<host>" }, assemblyAndAliases.Item2);
+                        // The script has a recursive reference to Microsoft.CodeAnalysis.CSharp.Scripting, which references these assemblies.
+                        // Microsoft.CodeAnalysis.Scripting contains host object and is thus referenced recursively with <host> alias. 
+                        // The script doesn't reference the assemblies explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, aliases);
+                        break;
+
+                    default:
+                        if (name == corAssemblyName)
+                        {
+                            // Host object depends on System.Object, thus <host> is applied on CorLib.
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+                        else if (name == hostObjectAssemblyName)
+                        {
+                            // Host object is defined in an assembly that CSharpScript depends on.
+                            // CSharpScript assembly was references (recursively) hence host object assembly is 
+                            // available to the script (global alias).
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+
                         break;
                 }
             }
+        }
+
+        public class E
+        {
+            public bool TryGetValue(out object obj)
+            {
+                obj = new object();
+                return true;
+            }
+        }
+
+        [Fact]
+        [WorkItem(39565, "https://github.com/dotnet/roslyn/issues/39565")]
+        public async Task MethodCallWithImplicitReceiverAndOutVar()
+        {
+            var code = @"
+if(TryGetValue(out var result)){
+    _ = result;
+}
+return true;
+";
+
+            var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(E), globals: new E());
+            Assert.True(result);
+        }
+
+        public class F
+        {
+            public bool Value = true;
+        }
+
+        [Fact]
+        public void StaticMethodCannotAccessGlobalInstance()
+        {
+            var code = @"
+static bool M()
+{
+	return Value;
+}
+return M();
+";
+
+            var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
+            ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
+                    // (4,9): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
+                    // 				return Value;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(4, 9));
+        }
+
+        [Fact]
+        [WorkItem(39581, "https://github.com/dotnet/roslyn/issues/39581")]
+        public void StaticLocalFunctionCannotAccessGlobalInstance()
+        {
+            var code = @"
+bool M()
+{
+	return Inner();
+	static bool Inner()
+	{
+		return Value;
+	}
+}
+return M();
+";
+
+            var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
+            ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
+                    // (7,10): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
+                    // 					return Value;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(7, 10));
+        }
+
+        [Fact]
+        public async Task LocalFunctionCanAccessGlobalInstance()
+        {
+            var code = @"
+bool M()
+{
+	return Inner();
+	bool Inner()
+	{
+		return Value;
+	}
+}
+return M();
+";
+
+            var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(F), globals: new F());
+            Assert.True(result);
         }
 
         #endregion
@@ -2310,7 +2013,7 @@ i + j + k + l
 
             var globals = new StrongBox<CancellationTokenSource>();
             globals.Value = cancellationSource;
-            
+
             var s0 = CSharpScript.Create(@"
 int i = 1000;
 ", globalsType: globals.GetType());
@@ -2396,8 +2099,35 @@ int l = 4;
 int F() => i + j + k + l;
 ");
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => 
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
                 s3.RunAsync(globals, catchException: e => !(e is OperationCanceledException), cancellationToken: cancellationSource.Token));
+        }
+
+        #endregion
+
+        #region Local Functions
+
+        [Fact]
+        public void LocalFunction_PreviousSubmissionAndGlobal()
+        {
+            var result =
+                CSharpScript.RunAsync(
+@"int InInitialSubmission()
+{
+    return LocalFunction();
+    int LocalFunction() => Y;
+}", globals: new C()).
+                ContinueWith(
+@"var lambda = new System.Func<int>(() =>
+{
+    return LocalFunction();
+    int LocalFunction() => Y + InInitialSubmission();
+});
+
+lambda.Invoke()").
+                Result.ReturnValue;
+
+            Assert.Equal(4, result);
         }
 
         #endregion

@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,8 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params()
+        [Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+#pragma warning disable xUnit1019
+        // There is a bug in xUnit analyzer might generate false alarm, temporary disable it
+        // https://github.com/xunit/xunit/issues/1968
+        [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 1, 3, 2, 1 }, MemberType = typeof(AbstractChangeSignatureTests))]
+#pragma warning restore xUnit1019
+        public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params(int totalParameters, int[] signature)
         {
             var markup = @"
 static class Ext
@@ -54,12 +64,23 @@ static class Ext
         M(p: new[] { 5 }, y: ""four"", x: 3, c: true, b: ""two"", a: 1, o: t);
     }
 }";
-            var signaturePartCounts = new[] { 1, 3, 2, 1 };
-            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts);
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
+                markup,
+                expectedSuccess: true,
+                updatedSignature: signature,
+                totalParameters: totalParameters,
+                verifyNoDiagnostics: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task TestAllSignatureChanges_OnDelegate_3Regular()
+        [Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+#pragma warning disable xUnit1019
+        // There is a bug in xUnit analyzer might generate false alarm, temporary disable it
+        // https://github.com/xunit/xunit/issues/1968
+        [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 0, 3, 0, 0 }, MemberType = typeof(AbstractChangeSignatureTests))]
+#pragma warning restore xUnit1019
+        public async Task TestAllSignatureChanges_OnDelegate_3Regular(int totalParameters, int[] signature)
         {
             var markup = @"
 using System;
@@ -94,25 +115,25 @@ class C
         d1 = (r, s, t) => { var x = r + (t ? s.Length : 0); };
 
         // Cascade through method groups
-        d1 = Foo1;
-        d1 = new MyDelegate(Foo2);
-        Target(Foo3);
+        d1 = Goo1;
+        d1 = new MyDelegate(Goo2);
+        Target(Goo3);
         Target((m, n, o) => { var x = m + (o ? n.Length : 0); });
         d1 = Result();
         d1 = Result2().First();
         d1 = Result3().First();
 
         // And references to those methods
-        Foo1(1, ""Two"", true);
-        Foo2(1, ""Two"", true);
-        Foo2(1, false, false); // shouldn't change
-        Foo3(1, ""Two"", true);
-        Foo4(1, ""Two"", true);
-        Foo5(1, ""Two"", true);
+        Goo1(1, ""Two"", true);
+        Goo2(1, ""Two"", true);
+        Goo2(1, false, false); // shouldn't change
+        Goo3(1, ""Two"", true);
+        Goo4(1, ""Two"", true);
+        Goo5(1, ""Two"", true);
     }
 
-    private MyDelegate Result() { return Foo4; }
-    private IEnumerable<MyDelegate> Result2() { yield return Foo5; }
+    private MyDelegate Result() { return Goo4; }
+    private IEnumerable<MyDelegate> Result2() { yield return Goo5; }
     private IEnumerable<MyDelegate> Result3() { yield return (g, h, i) => { var x = g + (i ? h.Length : 0); }; }
 
     void Target(MyDelegate d) { }
@@ -121,35 +142,42 @@ class C
     /// <param name=""a""></param>
     /// <param name=""b""></param>
     /// <param name=""c""></param>
-    void Foo1(int a, string b, bool c) { }
+    void Goo1(int a, string b, bool c) { }
 
     /// <param name=""a""></param>
     /// <param name=""b""></param>
     /// <param name=""c""></param>
-    void Foo2(int a, string b, bool c) { }
+    void Goo2(int a, string b, bool c) { }
 
     /// <param name=""a""></param>
     /// <param name=""b""></param>
     /// <param name=""c""></param>
-    void Foo2(int a, object b, bool c) { }
+    void Goo2(int a, object b, bool c) { }
 
     /// <param name=""a""></param>
     /// <param name=""b""></param>
     /// <param name=""c""></param>
-    void Foo3(int a, string b, bool c) { }
+    void Goo3(int a, string b, bool c) { }
 
     /// <param name=""a""></param>
     /// <param name=""b""></param>
     /// <param name=""c""></param>
-    void Foo4(int a, string b, bool c) { }
+    void Goo4(int a, string b, bool c) { }
 
     /// <param name=""a""></param>
     /// <param name=""b""></param>
     /// <param name=""c""></param>
-    void Foo5(int a, string b, bool c) { }
+    void Goo5(int a, string b, bool c) { }
 }";
-            var signaturePartCounts = new[] { 0, 3, 0, 0 };
-            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts);
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
+                markup,
+                expectedSuccess: true,
+                updatedSignature: signature,
+                totalParameters: totalParameters,
+                verifyNoDiagnostics: true,
+                parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
         }
     }
 }

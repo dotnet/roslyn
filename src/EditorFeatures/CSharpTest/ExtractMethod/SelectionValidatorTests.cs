@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -153,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         {
             var code = @"class A
 {
-    [{|b:Foo|}]
+    [{|b:Goo|}]
     A Method(A a)
     {
     }
@@ -167,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         {
             var code = @"class A
 {
-    [Foo({|b:A|}=1)]
+    [Goo({|b:A|}=1)]
     A Method(A a)
     {
     }
@@ -181,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         {
             var code = @"class A
 {
-    [Foo(A={|b:1|})]
+    [Goo(A={|b:1|})]
     A Method(A a)
     {
     }
@@ -748,7 +752,7 @@ class C
         {
             Console.Write(5);
         }
-        catch (Exception ex) if ({|b:ex.Message == ""foo""|})
+        catch (Exception ex) if ({|b:ex.Message == ""goo""|})
         {
             throw;
         }
@@ -790,7 +794,7 @@ class C
         {
             Console.Write(5);
         }
-        catch (Exception ex) if ({|b:ex.Message|} == ""foo"")
+        catch (Exception ex) if ({|b:ex.Message|} == ""goo"")
         {
             throw;
         }
@@ -810,7 +814,7 @@ class C
         {
             Console.Write(5);
         }
-        catch (Exception ex) if (ex.Message == {|b:""foo""|})
+        catch (Exception ex) if (ex.Message == {|b:""goo""|})
         {
             throw;
         }
@@ -886,9 +890,9 @@ class C
         {
             var code = @"class A
 {
-    int method(string foo)
+    int method(string goo)
     {
-        String bar = {|b:(String)foo|};
+        String bar = {|b:(String)goo|};
         return bar.Length;
     }
 }";
@@ -1333,9 +1337,7 @@ class P
         [WorkItem(542722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task DontCrash()
-        {
-            await IterateAllAsync(TestResource.AllInOneCSharpCode);
-        }
+            => await IterateAllAsync(TestResource.AllInOneCSharpCode);
 
         [WorkItem(9931, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
@@ -1498,7 +1500,7 @@ class C
         {
             var code = @"class C
 {
-    void Foo()
+    void Goo()
     {
         {|r:{|b:base|}.ToString();|}
     }
@@ -1515,7 +1517,7 @@ class C
  
 class A
 {
-    static void Foo(__arglist)
+    static void Goo(__arglist)
     {
         var argIterator = new ArgIterator(__arglist);
         var typedReference = argIterator.GetNextArg();
@@ -1665,6 +1667,23 @@ class B
     public int Length { get; set; }
 }";
             await TestSelectionAsync(code);
+        }
+
+        [WorkItem(1228916, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1228916")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task DontCrashPastEndOfLine()
+        {
+            //                    11 1
+            //          012345678901 2
+            var code = "class C { }\r\n";
+
+            // Markup parsing doesn't produce the right spans here, so supply one ourselves.
+            // Can be removed when https://github.com/dotnet/roslyn-sdk/issues/637 is fixed
+
+            // This span covers just the "\n"
+            var span = new TextSpan(12, 1);
+
+            await TestSelectionAsync(code, expectedFail: true, textSpanOverride: span);
         }
     }
 }

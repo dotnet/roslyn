@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,8 +9,12 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.Clr.NativeCompilation;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
@@ -17,8 +23,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal static class DkmUtilities
     {
-        private static readonly Guid s_symUnmanagedReaderClassId = Guid.Parse("B4CE6286-2A6B-3712-A3B7-1EE1DAD467B5");
-
         internal unsafe delegate IntPtr GetMetadataBytesPtrFunction(AssemblyIdentity assemblyIdentity, out uint uSize);
 
         // Return the set of managed module instances from the AppDomain.
@@ -43,11 +47,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 });
         }
 
-        internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
+        internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(
+            this DkmClrRuntimeInstance runtime,
+            DkmClrAppDomain appDomain,
+            ImmutableArray<MetadataBlock> previousMetadataBlocks)
         {
+            // Add a dummy data item to the appdomain to add it to the disposal queue when the debugged process is shutting down.
+            // This should prevent from attempts to use the Metadata pointer for dead debugged processes.
+            if (appDomain.GetDataItem<AppDomainLifetimeDataItem>() == null)
+            {
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateNew, new AppDomainLifetimeDataItem());
+            }
+
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
             uint size;
+            int index = 0;
             foreach (DkmClrModuleInstance module in runtime.GetModulesInAppDomain(appDomain))
             {
                 MetadataBlock block;
@@ -55,25 +70,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     ptr = module.GetMetaDataBytesPtr(out size);
                     Debug.Assert(size > 0);
-                    block = GetMetadataBlock(ptr, size);
+                    block = GetMetadataBlock(previousMetadataBlocks, index, ptr, size);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                catch (NotImplementedException e) when (module is DkmClrNcModuleInstance)
+                {
+                    // DkmClrNcModuleInstance.GetMetaDataBytesPtr not implemented in Dev14.
+                    throw new NotImplementedMetadataException(e);
+                }
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
                 Debug.Assert(block.ModuleVersionId == module.Mvid);
                 builder.Add(block);
+                index++;
             }
             // Include "intrinsic method" assembly.
             ptr = runtime.GetIntrinsicAssemblyMetaDataBytesPtr(out size);
-            builder.Add(GetMetadataBlock(ptr, size));
+            builder.Add(GetMetadataBlock(previousMetadataBlocks, index, ptr, size));
             return builder.ToImmutableAndFree();
         }
 
         internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(GetMetadataBytesPtrFunction getMetaDataBytesPtrFunction, ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
-            ArrayBuilder<MetadataBlock> builder = null;
-            foreach (AssemblyIdentity missingAssemblyIdentity in missingAssemblyIdentities)
+            ArrayBuilder<MetadataBlock>? builder = null;
+            foreach (var missingAssemblyIdentity in missingAssemblyIdentities)
             {
                 MetadataBlock block;
                 try
@@ -84,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Debug.Assert(size > 0);
                     block = GetMetadataBlock(ptr, size);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, missingAssemblyIdentity.GetDisplayName()))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
@@ -118,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         Debug.Assert(size > 0);
                         reader = new MetadataReader((byte*)ptr, (int)size);
                     }
-                    catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                    catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                     {
                         continue;
                     }
@@ -128,7 +149,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return builder.ToImmutableAndFree();
         }
 
-        private unsafe static MetadataBlock GetMetadataBlock(IntPtr ptr, uint size)
+        private static unsafe MetadataBlock GetMetadataBlock(IntPtr ptr, uint size)
         {
             var reader = new MetadataReader((byte*)ptr, (int)size);
             var moduleDef = reader.GetModuleDefinition();
@@ -137,14 +158,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return new MetadataBlock(moduleVersionId, generationId, ptr, (int)size);
         }
 
-        internal static object GetSymReader(this DkmClrModuleInstance clrModule)
+        private static MetadataBlock GetMetadataBlock(ImmutableArray<MetadataBlock> previousMetadataBlocks, int index, IntPtr ptr, uint size)
         {
-            var module = clrModule.Module; // Null if there are no symbols.
-            return (module == null) ? null : module.GetSymbolInterface(s_symUnmanagedReaderClassId);
+            if (!previousMetadataBlocks.IsDefault && index < previousMetadataBlocks.Length)
+            {
+                var previousBlock = previousMetadataBlocks[index];
+                if (previousBlock.Pointer == ptr && previousBlock.Size == size)
+                {
+                    return previousBlock;
+                }
+            }
+
+            return GetMetadataBlock(ptr, size);
         }
 
-        internal static DkmCompiledClrInspectionQuery ToQueryResult(
-            this CompileResult compResult,
+        internal static object? GetSymReader(this DkmClrModuleInstance clrModule)
+        {
+            var module = clrModule.Module; // Null if there are no symbols.
+            if (module == null)
+            {
+                return null;
+            }
+            // Use DkmClrModuleInstance.GetSymUnmanagedReader()
+            // rather than DkmModule.GetSymbolInterface() since the
+            // latter does not handle .NET Native modules.
+            return clrModule.GetSymUnmanagedReader();
+        }
+
+        internal static DkmCompiledClrInspectionQuery? ToQueryResult(
+            this CompileResult? compResult,
             DkmCompilerId languageId,
             ResultProperties resultProperties,
             DkmClrRuntimeInstance runtimeInstance)
@@ -157,6 +199,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(compResult.Assembly != null);
             Debug.Assert(compResult.TypeName != null);
             Debug.Assert(compResult.MethodName != null);
+
+            ReadOnlyCollection<byte>? customTypeInfo;
+            Guid customTypeInfoId = compResult.GetCustomTypeInfo(out customTypeInfo);
 
             return DkmCompiledClrInspectionQuery.Create(
                 runtimeInstance,
@@ -171,23 +216,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Access: resultProperties.AccessType,
                 StorageType: resultProperties.StorageType,
                 TypeModifierFlags: resultProperties.ModifierFlags,
-                CustomTypeInfo: compResult.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
+                CustomTypeInfo: customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
         }
 
-        internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)
-            where TSymbol : ISymbol
+        internal static DkmClrCustomTypeInfo? ToCustomTypeInfo(this ReadOnlyCollection<byte>? payload, Guid payloadTypeId)
         {
-            var haveSymbol = symbol != null;
+            return (payload == null) ? null : DkmClrCustomTypeInfo.Create(payloadTypeId, payload);
+        }
 
-            var category = haveSymbol
-                ? GetResultCategory(symbol.Kind)
+        internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol? symbol, DkmClrCompilationResultFlags flags, bool isConstant)
+            where TSymbol : class, ISymbolInternal
+        {
+            var category = (symbol != null) ? GetResultCategory(symbol.Kind)
                 : DkmEvaluationResultCategory.Data;
 
-            var accessType = haveSymbol
-                ? GetResultAccessType(symbol.DeclaredAccessibility)
+            var accessType = (symbol != null) ? GetResultAccessType(symbol.DeclaredAccessibility)
                 : DkmEvaluationResultAccessType.None;
 
-            var storageType = haveSymbol && symbol.IsStatic
+            var storageType = (symbol != null) && symbol.IsStatic
                 ? DkmEvaluationResultStorageType.Static
                 : DkmEvaluationResultStorageType.None;
 
@@ -196,7 +242,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 modifierFlags = DkmEvaluationResultTypeModifierFlags.Constant;
             }
-            else if (!haveSymbol)
+            else if (symbol is null)
             {
                 // No change.
             }
@@ -204,7 +250,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 modifierFlags = DkmEvaluationResultTypeModifierFlags.Virtual;
             }
-            else if (symbol.Kind == SymbolKind.Field && ((IFieldSymbol)symbol).IsVolatile)
+            else if (symbol.Kind == SymbolKind.Field && ((IFieldSymbolInternal)symbol).IsVolatile)
             {
                 modifierFlags = DkmEvaluationResultTypeModifierFlags.Volatile;
             }
@@ -255,23 +301,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return (flags & desired) == desired;
         }
 
-        internal static TMetadataContext GetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
-            where TMetadataContext : struct
+        internal static MetadataContext<TAssemblyContext> GetMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain)
+            where TAssemblyContext : struct
         {
-            var dataItem = appDomain.GetDataItem<MetadataContextItem<TMetadataContext>>();
-            return (dataItem == null) ? default(TMetadataContext) : dataItem.MetadataContext;
+            var dataItem = appDomain.GetDataItem<MetadataContextItem<MetadataContext<TAssemblyContext>>>();
+            return (dataItem == null) ? default : dataItem.MetadataContext;
         }
 
-        internal static void SetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain, TMetadataContext context)
-            where TMetadataContext : struct
+        internal static void SetMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain, MetadataContext<TAssemblyContext> context, bool report)
+            where TAssemblyContext : struct
         {
-            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<TMetadataContext>(context));
+            if (report)
+            {
+                var process = appDomain.Process;
+                var message = DkmUserMessage.Create(
+                    process.Connection,
+                    process,
+                    DkmUserMessageOutputKind.UnfilteredOutputWindowMessage,
+                    $"EE: AppDomain {appDomain.Id}, blocks {context.MetadataBlocks.Length}, contexts {context.AssemblyContexts.Count}" + Environment.NewLine,
+                    MessageBoxFlags.MB_OK,
+                    0);
+                message.Post();
+            }
+            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<MetadataContext<TAssemblyContext>>(context));
         }
 
-        internal static void RemoveMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
-            where TMetadataContext : struct
+        internal static void RemoveMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain)
+            where TAssemblyContext : struct
         {
-            appDomain.RemoveDataItem<MetadataContextItem<TMetadataContext>>();
+            appDomain.RemoveDataItem<MetadataContextItem<TAssemblyContext>>();
         }
 
         private sealed class MetadataContextItem<TMetadataContext> : DkmDataItem
@@ -284,5 +342,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 this.MetadataContext = metadataContext;
             }
         }
+
+        private sealed class AppDomainLifetimeDataItem : DkmDataItem { }
     }
 }

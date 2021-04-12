@@ -1,19 +1,27 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(CrefCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(PartialTypeCompletionProvider))>
+    <[Shared]>
     Partial Friend Class CrefCompletionProvider
-        Inherits CommonCompletionProvider
+        Inherits AbstractCrefCompletionProvider
 
         Private Shared ReadOnly s_crefFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
@@ -23,48 +31,83 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Private _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
-            Dim document = context.Document
-            Dim position = context.Position
-            Dim cancellationToken = context.CancellationToken
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
+        Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
+            Try
+                Dim document = context.Document
+                Dim position = context.Position
+                Dim cancellationToken = context.CancellationToken
+
+                Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                Dim token = tree.GetTargetToken(position, cancellationToken)
+
+                If IsCrefTypeParameterContext(token) Then
+                    Return
+                End If
+
+                ' To get a Speculative SemanticModel (which is much faster), we need to 
+                ' walk up to the node the DocumentationTrivia is attached to.
+                Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
+                _testSpeculativeNodeCallbackOpt?.Invoke(parentNode)
+                If parentNode Is Nothing Then
+                    Return
+                End If
+
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
+
+                Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
+                If Not symbols.Any() Then
+                    Return
+                End If
+
+                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+
+                Dim items = CreateCompletionItems(semanticModel, symbols, position)
+                context.AddItems(items)
+
+                If IsFirstCrefParameterContext(token) Then
+                    ' Include Of in case they're typing a type parameter
+                    context.AddItem(CreateOfCompletionItem())
+                End If
+
+                context.IsExclusive = True
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
+                ' nop
+            End Try
+        End Function
+        Protected Overrides Async Function GetSymbolsAsync(document As Document, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of (SyntaxToken, SemanticModel, ImmutableArray(Of ISymbol)))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetTargetToken(position, cancellationToken)
 
             If IsCrefTypeParameterContext(token) Then
-                Return
+                Return Nothing
             End If
 
             ' To get a Speculative SemanticModel (which is much faster), we need to 
             ' walk up to the node the DocumentationTrivia is attached to.
             Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
+            _testSpeculativeNodeCallbackOpt?.Invoke(parentNode)
             If parentNode Is Nothing Then
-                Return
+                Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
             Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
-            If Not symbols.Any() Then
-                Return
-            End If
-
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-
-            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, token.SpanStart, context.DefaultItemSpan)
-            context.AddItems(items)
-
-            If IsFirstCrefParameterContext(token) Then
-                ' Include Of in case they're typing a type parameter
-                context.AddItem(CreateOfCompletionItem(context.DefaultItemSpan))
-            End If
-
-            context.IsExclusive = True
+            Return (token, semanticModel, symbols.ToImmutableArray())
         End Function
 
         Private Shared Function IsCrefTypeParameterContext(token As SyntaxToken) As Boolean
@@ -87,8 +130,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                 Dim xmlAttribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
                 Dim xmlName = TryCast(xmlAttribute.Name, XmlNameSyntax)
+                Dim xmlValue = TryCast(xmlAttribute.Value, XmlStringSyntax)
 
-                If xmlName?.LocalName.ValueText = "cref" Then
+                If xmlName?.LocalName.ValueText = "cref" AndAlso xmlValue?.StartQuoteToken = token Then
                     Return True
                 End If
             End If
@@ -108,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return token.IsChildToken(Function(x As CrefSignatureSyntax) x.OpenParenToken)
         End Function
 
-        Private Shared Function GetSymbols(token As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
+        Private Overloads Shared Function GetSymbols(token As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
             If IsCrefStartContext(token) Then
                 Return semanticModel.LookupSymbols(token.SpanStart)
             ElseIf IsCrefParameterListContext(token) Then
@@ -140,19 +184,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Iterator Function CreateCompletionItems(workspace As Workspace, semanticModel As SemanticModel, symbols As IEnumerable(Of ISymbol), position As Integer, span As TextSpan) As IEnumerable(Of CompletionItem)
+        Private Shared Iterator Function CreateCompletionItems(
+                semanticModel As SemanticModel,
+                symbols As IEnumerable(Of ISymbol), position As Integer) As IEnumerable(Of CompletionItem)
+
             Dim builder = SharedPools.Default(Of StringBuilder).Allocate()
             Try
                 For Each symbol In symbols
                     builder.Clear()
-                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, span, builder)
+                    Yield CreateCompletionItem(semanticModel, symbol, position, builder)
                 Next
             Finally
                 SharedPools.Default(Of StringBuilder).ClearAndFree(builder)
             End Try
         End Function
 
-        Private Function CreateCompletionItem(workspace As Workspace, semanticModel As SemanticModel, symbol As ISymbol, position As Integer, span As TextSpan, builder As StringBuilder) As CompletionItem
+        Private Shared Function CreateCompletionItem(
+                semanticModel As SemanticModel,
+                symbol As ISymbol, position As Integer, builder As StringBuilder) As CompletionItem
+
             If symbol.IsUserDefinedOperator() Then
                 builder.Append("Operator ")
             End If
@@ -185,39 +235,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim displayString = builder.ToString()
 
-            Return SymbolCompletionItem.Create(displayText:=displayString,
-                                               insertionText:=Nothing,
-                                               span:=span,
-                                               symbol:=symbol,
-                                               descriptionPosition:=position,
-                                               rules:=GetRules(displayString))
+            Return SymbolCompletionItem.CreateWithNameAndKind(
+                displayText:=displayString,
+                displayTextSuffix:="",
+                insertionText:=Nothing,
+                symbols:=ImmutableArray.Create(symbol),
+                contextPosition:=position,
+                rules:=GetRules(displayString))
         End Function
 
-        Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
-            If CommonCompletionItem.HasDescription(item) Then
-                Return Task.FromResult(CommonCompletionItem.GetDescription(item))
-            Else
-                Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
-            End If
+        Private Shared Function CreateOfCompletionItem() As CompletionItem
+            Return CommonCompletionItem.Create(
+                "Of", displayTextSuffix:="", CompletionItemRules.Default, Glyph.Keyword,
+                description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 
-        Private Function CreateOfCompletionItem(span As TextSpan) As CompletionItem
-            Return CommonCompletionItem.Create("Of", span, glyph:=Glyph.Keyword,
-                                      description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.OfKeywordToolTip))
-        End Function
-
-        Private Shared s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
-        Private Shared s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
+        Private Shared ReadOnly s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
+        Private Shared ReadOnly s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
 
 #If False Then
         Private Shared s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(commitRules:=ImmutableArray.Create(
                 CommitRule.Create(CommitRuleKind.ExcludeKeysIfMatchEndOfTypedText, " ", "OF", isCaseSensitive:=False)))
 #Else
-        Private Shared s_defaultRules As CompletionItemRules = CompletionItemRules.Default
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
 #End If
 
-        Private Function GetRules(displayText As String) As CompletionItemRules
+        Private Shared Function GetRules(displayText As String) As CompletionItemRules
             Dim commitRules = s_defaultRules.CommitCharacterRules
 
             If displayText.Contains("(") Then
@@ -232,5 +276,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return s_defaultRules.WithCommitCharacterRules(commitRules)
         End Function
+
+        Friend Function GetTestAccessor() As TestAccessor
+            Return New TestAccessor(Me)
+        End Function
+
+        Friend Structure TestAccessor
+            Private ReadOnly _crefCompletionProvider As CrefCompletionProvider
+
+            Public Sub New(crefCompletionProvider As CrefCompletionProvider)
+                _crefCompletionProvider = crefCompletionProvider
+            End Sub
+
+            Public Sub SetSpeculativeNodeCallback(value As Action(Of SyntaxNode))
+                _crefCompletionProvider._testSpeculativeNodeCallbackOpt = value
+            End Sub
+        End Structure
     End Class
 End Namespace

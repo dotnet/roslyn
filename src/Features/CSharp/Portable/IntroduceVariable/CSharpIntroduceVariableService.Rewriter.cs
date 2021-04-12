@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -23,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                var expression = node as ExpressionSyntax;
-                if (expression != null &&
+                if (node is ExpressionSyntax expression &&
                     _matches.Contains(expression))
                 {
                     return _replacementNode
@@ -40,9 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             {
                 var newNode = base.VisitParenthesizedExpression(node);
                 if (node != newNode &&
-                    newNode.IsKind(SyntaxKind.ParenthesizedExpression))
+                    newNode.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
                 {
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)newNode;
                     var innerExpression = parenthesizedExpression.OpenParenToken.GetNextToken().Parent;
                     if (innerExpression.HasAnnotation(_replacementAnnotation))
                     {
@@ -54,9 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
 
             public static SyntaxNode Visit(SyntaxNode node, SyntaxNode replacementNode, ISet<ExpressionSyntax> matches)
-            {
-                return new Rewriter(replacementNode, matches).Visit(node);
-            }
+                => new Rewriter(replacementNode, matches).Visit(node);
         }
     }
 }

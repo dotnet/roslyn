@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -102,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim opKind As BinaryOperatorKind = operand.OperatorKind And BinaryOperatorKind.OpMask
 
             ' See comment in DiagnosticsPass.VisitUserDefinedShortCircuitingOperator
-            Debug.Assert(operand.Call.Method.ReturnType.IsSameTypeIgnoringCustomModifiers(operand.Call.Method.Parameters(0).Type) AndAlso
-                         operand.Call.Method.ReturnType.IsSameTypeIgnoringCustomModifiers(operand.Call.Method.Parameters(1).Type))
+            Debug.Assert(operand.Call.Method.ReturnType.IsSameTypeIgnoringAll(operand.Call.Method.Parameters(0).Type) AndAlso
+                         operand.Call.Method.ReturnType.IsSameTypeIgnoringAll(operand.Call.Method.Parameters(1).Type))
 
             opKind = If(opKind = BinaryOperatorKind.And, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse)
 
@@ -177,12 +179,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If left Is Nothing Then
                 left = Visit(originalLeft)
-                Debug.Assert(operandType = originalLeft.Type)
+                Debug.Assert(TypeSymbol.Equals(operandType, originalLeft.Type, TypeCompareKind.ConsiderEverything))
             End If
 
             If right Is Nothing Then
                 right = Visit(originalRight)
-                Debug.Assert(operandType = originalRight.Type)
+                Debug.Assert(TypeSymbol.Equals(operandType, originalRight.Type, TypeCompareKind.ConsiderEverything))
             End If
 
             ' Do we need to handle special cases?
@@ -276,11 +278,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim originalLeft As BoundExpression = node.Left
             Dim left As BoundExpression = Visit(originalLeft)
-            Debug.Assert(resultType = originalLeft.Type)
+            Debug.Assert(TypeSymbol.Equals(resultType, originalLeft.Type, TypeCompareKind.ConsiderEverything))
 
             Dim originalRight As BoundExpression = node.Right
             Dim right As BoundExpression = Visit(originalRight)
-            Debug.Assert(resultType = originalRight.Type)
+            Debug.Assert(TypeSymbol.Equals(resultType, originalRight.Type, TypeCompareKind.ConsiderEverything))
 
             If resultUnderlyingType.IsObjectType Then
                 Dim systemBool As TypeSymbol = _factory.SpecialType(SpecialType.System_Boolean)
@@ -434,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' visit and convert operand
                     result = Visit(operand)
-                    If operandType <> Me.Int32Type Then
+                    If Not TypeSymbol.Equals(operandType, Me.Int32Type, TypeCompareKind.ConsiderEverything) Then
                         result = CreateBuiltInConversion(operandType, Me.Int32Type, result, isChecked, False, ConversionSemantics.[Default])
                     End If
 
@@ -641,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function AdjustCallArgumentForLiftedOperator(oldArg As BoundExpression, parameterType As TypeSymbol) As BoundExpression
             Debug.Assert(oldArg.Type.IsNullableType)
             Debug.Assert(Not parameterType.IsNullableType)
-            Debug.Assert(oldArg.Type.GetNullableUnderlyingTypeOrSelf() = parameterType)
+            Debug.Assert(TypeSymbol.Equals(oldArg.Type.GetNullableUnderlyingTypeOrSelf(), parameterType, TypeCompareKind.ConsiderEverything))
 
             If oldArg.Kind = BoundKind.ObjectCreationExpression Then
                 Dim objCreation = DirectCast(oldArg, BoundObjectCreationExpression)
@@ -687,15 +689,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim methodReturnType As TypeSymbol = [call].Method.ReturnType
             Debug.Assert(resultType.GetNullableUnderlyingTypeOrSelf().
-                         IsSameTypeIgnoringCustomModifiers(methodReturnType.GetNullableUnderlyingTypeOrSelf))
+                         IsSameTypeIgnoringAll(methodReturnType.GetNullableUnderlyingTypeOrSelf))
 
             [call] = [call].Update([call].Method,
                                    [call].MethodGroupOpt,
                                    [call].ReceiverOpt,
                                    newArgs.AsImmutableOrNull,
+                                   [call].DefaultArguments,
                                    [call].ConstantValueOpt,
-                                   [call].SuppressObjectClone,
-                                   methodReturnType)
+                                   isLValue:=[call].IsLValue,
+                                   suppressObjectClone:=[call].SuppressObjectClone,
+                                   type:=methodReturnType)
 
             If resultType.IsNullableType <> methodReturnType.IsNullableType Then
                 Return Me._factory.Convert(resultType, [call])

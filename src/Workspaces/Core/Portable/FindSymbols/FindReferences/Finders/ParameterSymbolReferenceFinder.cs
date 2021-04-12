@@ -1,28 +1,29 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class ParameterSymbolReferenceFinder : AbstractReferenceFinder<IParameterSymbol>
     {
         protected override bool CanFind(IParameterSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IParameterSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): We can be smarter with parameters.  They will either be found
@@ -30,44 +31,103 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // elsewhere as "paramName:" or "paramName:=".  We can narrow the search by
             // filtering down to matches of that form.  For now we just return any document
             // that references something with this name.
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name);
         }
 
-        protected override Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IParameterSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, cancellationToken);
+            var symbolsMatchAsync = GetParameterSymbolsMatchFunction(
+                symbol, document.Project.Solution, cancellationToken);
+
+            return FindReferencesInDocumentUsingIdentifierAsync(
+                symbol, symbol.Name, document, semanticModel, symbolsMatchAsync, cancellationToken);
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
+        private static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
+            IParameterSymbol parameter, Solution solution, CancellationToken cancellationToken)
+        {
+            // Get the standard function for comparing parameters.  This function will just 
+            // directly compare the parameter symbols for SymbolEquivalence.
+            var standardFunction = GetStandardSymbolsMatchFunction(
+                parameter, findParentNode: null, solution: solution, cancellationToken: cancellationToken);
+
+            // HOwever, we also want to consider parameter symbols them same if they unify across
+            // VB's synthesized AnonymousDelegate parameters. 
+            var containingMethod = parameter.ContainingSymbol as IMethodSymbol;
+            if (containingMethod?.AssociatedAnonymousDelegate == null)
+            {
+                // This was a normal parameter, so just use the normal comparison function.
+                return standardFunction;
+            }
+
+            var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
+            var ordinal = parameter.Ordinal;
+            if (invokeMethod == null || ordinal >= invokeMethod.Parameters.Length)
+            {
+                return standardFunction;
+            }
+
+            // This was parameter of a method that had an associated synthesized anonyomous-delegate.
+            // IN that case, we want it to match references to the corresponding parameter in that
+            // anonymous-delegate's invoke method.  So get he symbol match function that will chec
+            // for equivalence with that parameter.
+            var anonymousDelegateParameter = invokeMethod.Parameters[ordinal];
+            var anonParameterFunc = GetStandardSymbolsMatchFunction(
+                anonymousDelegateParameter, findParentNode: null, solution: solution, cancellationToken: cancellationToken);
+
+            // Return a new function which is a compound of the two functions we have.
+            return async (token, model) =>
+            {
+                // First try the standard function.
+                var result = await standardFunction(token, model).ConfigureAwait(false);
+                if (!result.matched)
+                {
+                    // If it fails, fall back to the anon-delegate function.
+                    result = await anonParameterFunc(token, model).ConfigureAwait(false);
+                }
+
+                return result;
+            };
+        }
+
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IParameterSymbol parameter,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
+            FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             if (parameter.IsThis)
             {
-                return null;
+                return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
             }
 
-            var anonymousFunctionParameterCascades = await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, cancellationToken).ConfigureAwait(false);
+            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-            var propertyOrEventOrAccessorParameterCascades = await CascadeBetweenPropertyOrEventAndAccessorParameterAsync(solution, parameter, cancellationToken).ConfigureAwait(false);
+            await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, symbols, cancellationToken).ConfigureAwait(false);
+            CascadeBetweenPropertyAndAccessorParameters(parameter, symbols);
+            CascadeBetweenDelegateMethodParameters(parameter, symbols);
+            CascadeBetweenPartialMethodParameters(parameter, symbols);
 
-            return anonymousFunctionParameterCascades.Concat(
-                propertyOrEventOrAccessorParameterCascades).Concat(
-                CascadeBetweenPartialMethodParameters(parameter));
+            using var _2 = ArrayBuilder<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.GetInstance(symbols.Count, out var result);
+            foreach (var symbol in symbols)
+                result.Add((symbol, cascadeDirection));
+
+            return result.ToImmutable();
         }
 
-        private async Task<IEnumerable<IParameterSymbol>> CascadeBetweenAnonymousFunctionParametersAsync(
+        private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
             Solution solution,
             IParameterSymbol parameter,
+            ArrayBuilder<ISymbol> results,
             CancellationToken cancellationToken)
         {
-            List<IParameterSymbol> results = null;
-
             if (parameter.ContainingSymbol.IsAnonymousFunction())
             {
                 var parameterNode = parameter.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
@@ -76,83 +136,66 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var document = solution.GetDocument(parameterNode.SyntaxTree);
                     if (document != null)
                     {
-                        var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
                         if (semanticFacts.ExposesAnonymousFunctionParameterNames)
                         {
-                            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                            var lambdaNode = parameter.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
+                            var lambdaNode = parameter.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).First();
                             var convertedType = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                             if (convertedType != null)
                             {
-                                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                                var container = GetContainer(semanticModel, parameterNode, syntaxFactsService);
+                                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                                var container = GetContainer(semanticModel, parameterNode, syntaxFacts);
                                 if (container != null)
                                 {
-                                    results = new List<IParameterSymbol>();
-                                    results.AddRange(CascadeBetweenAnonymousFunctionParameters(
-                                        document, semanticModel, container, parameter, convertedType, cancellationToken));
+                                    CascadeBetweenAnonymousFunctionParameters(
+                                        document, semanticModel, container, parameter,
+                                        convertedType, results, cancellationToken);
                                 }
                             }
                         }
                     }
                 }
-
-                var containingMethod = (IMethodSymbol)parameter.ContainingSymbol;
-                if (containingMethod.AssociatedAnonymousDelegate != null)
-                {
-                    var invokeMethod = containingMethod.AssociatedAnonymousDelegate.DelegateInvokeMethod;
-                    int ordinal = parameter.Ordinal;
-                    if (invokeMethod != null && ordinal < invokeMethod.Parameters.Length)
-                    {
-                        if (results == null)
-                        {
-                            results = new List<IParameterSymbol>();
-                        }
-
-                        results.Add(invokeMethod.Parameters[ordinal]);
-                    }
-                }
             }
-
-            return results ?? SpecializedCollections.EmptyEnumerable<IParameterSymbol>();
         }
 
-        private IEnumerable<IParameterSymbol> CascadeBetweenAnonymousFunctionParameters(
+        private static void CascadeBetweenAnonymousFunctionParameters(
             Document document,
             SemanticModel semanticModel,
             SyntaxNode container,
             IParameterSymbol parameter,
             ITypeSymbol convertedType1,
+            ArrayBuilder<ISymbol> results,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             foreach (var token in container.DescendantTokens())
             {
                 if (IdentifiersMatch(syntaxFacts, parameter.Name, token))
                 {
-                    var symbol = semanticModel.GetDeclaredSymbol(token.Parent, cancellationToken);
+                    var symbol = semanticModel.GetDeclaredSymbol(token.GetRequiredParent(), cancellationToken);
                     if (symbol is IParameterSymbol &&
                         symbol.ContainingSymbol.IsAnonymousFunction() &&
                         SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(parameter.ContainingSymbol, symbol.ContainingSymbol, syntaxFacts.IsCaseSensitive) &&
                         ParameterNamesMatch(syntaxFacts, (IMethodSymbol)parameter.ContainingSymbol, (IMethodSymbol)symbol.ContainingSymbol))
                     {
-                        var lambdaNode = symbol.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
+                        var lambdaNode = symbol.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).First();
                         var convertedType2 = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                         if (convertedType1.Equals(convertedType2))
                         {
-                            yield return (IParameterSymbol)symbol;
+                            results.Add(symbol);
                         }
                     }
                 }
             }
         }
 
-        private bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
+        private static bool ParameterNamesMatch(ISyntaxFactsService syntaxFacts, IMethodSymbol methodSymbol1, IMethodSymbol methodSymbol2)
         {
-            for (int i = 0; i < methodSymbol1.Parameters.Length; i++)
+            for (var i = 0; i < methodSymbol1.Parameters.Length; i++)
             {
                 if (!syntaxFacts.TextMatch(methodSymbol1.Parameters[i].Name, methodSymbol2.Parameters[i].Name))
                 {
@@ -163,13 +206,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return true;
         }
 
-        private SyntaxNode GetContainer(SemanticModel semanticModel, SyntaxNode parameterNode, ISyntaxFactsService syntaxFactsService)
+        private static SyntaxNode? GetContainer(SemanticModel semanticModel, SyntaxNode parameterNode, ISyntaxFactsService syntaxFactsService)
         {
             for (var current = parameterNode; current != null; current = current.Parent)
             {
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(current);
 
-                if (declaredSymbol is IMethodSymbol && ((IMethodSymbol)declaredSymbol).MethodKind != MethodKind.AnonymousFunction)
+                if (declaredSymbol is IMethodSymbol method && method.MethodKind != MethodKind.AnonymousFunction)
                 {
                     return current;
                 }
@@ -178,60 +221,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return syntaxFactsService.GetContainingVariableDeclaratorOfFieldDeclaration(parameterNode);
         }
 
-        private async Task<IEnumerable<IParameterSymbol>> CascadeBetweenPropertyOrEventAndAccessorParameterAsync(
-            Solution solution,
+        private static void CascadeBetweenPropertyAndAccessorParameters(
             IParameterSymbol parameter,
-            CancellationToken cancellationToken)
+            ArrayBuilder<ISymbol> results)
         {
-            var results = new List<IParameterSymbol>();
-
             var ordinal = parameter.Ordinal;
             var containingSymbol = parameter.ContainingSymbol;
-            if (containingSymbol is IMethodSymbol)
+            if (containingSymbol is IMethodSymbol containingMethod)
             {
-                var containingMethod = (IMethodSymbol)containingSymbol;
-                if (containingMethod.AssociatedSymbol is IPropertySymbol)
+                if (containingMethod.AssociatedSymbol is IPropertySymbol property)
                 {
-                    var property = (IPropertySymbol)containingMethod.AssociatedSymbol;
-                    if (ordinal < property.Parameters.Length)
-                    {
-                        results.Add(property.Parameters[ordinal]);
-                    }
-                }
-                else
-                {
-                    var namedType = containingMethod.ContainingType as INamedTypeSymbol;
-                    if (namedType != null && namedType.IsDelegateType() && namedType.AssociatedSymbol != null)
-                    {
-                        var eventNode = namedType.AssociatedSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
-                        if (eventNode != null)
-                        {
-                            var document = solution.GetDocument(eventNode.SyntaxTree);
-                            if (document != null)
-                            {
-                                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                                foreach (var token in eventNode.DescendantTokens())
-                                {
-                                    if (IdentifiersMatch(syntaxFacts, parameter.Name, token))
-                                    {
-                                        var eventParam = semanticModel.GetDeclaredSymbol(token.Parent, cancellationToken) as IParameterSymbol;
-                                        if (eventParam != null && eventParam.Type != null && eventParam.Type.Equals(parameter.Type))
-                                        {
-                                            results.Add(eventParam);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    AddParameterAtIndex(results, ordinal, property.Parameters);
                 }
             }
-            else if (containingSymbol is IPropertySymbol)
+            else if (containingSymbol is IPropertySymbol containingProperty)
             {
-                var containingProperty = (IPropertySymbol)containingSymbol;
                 if (containingProperty.GetMethod != null && ordinal < containingProperty.GetMethod.Parameters.Length)
                 {
                     results.Add(containingProperty.GetMethod.Parameters[ordinal]);
@@ -242,33 +246,50 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     results.Add(containingProperty.SetMethod.Parameters[ordinal]);
                 }
             }
-            else if (containingSymbol is IEventSymbol)
+        }
+
+        private static void CascadeBetweenDelegateMethodParameters(
+            IParameterSymbol parameter,
+            ArrayBuilder<ISymbol> results)
+        {
+            var ordinal = parameter.Ordinal;
+            if (parameter.ContainingSymbol is IMethodSymbol containingMethod)
             {
-                var containingEvent = (IEventSymbol)containingSymbol;
-                var namedType = containingEvent.Type as INamedTypeSymbol;
-                if (namedType != null && namedType.IsDelegateType())
+                var containingType = containingMethod.ContainingType;
+                if (containingType.IsDelegateType())
                 {
-                    foreach (var member in namedType.GetMembers())
+                    if (containingMethod.MethodKind == MethodKind.DelegateInvoke)
                     {
-                        if (member.Kind == SymbolKind.Method)
-                        {
-                            foreach (var memberParam in member.GetParameters())
-                            {
-                                if (memberParam.Name.Equals(parameter.Name) && memberParam.Type != null && memberParam.Type.Equals(parameter.Type))
-                                {
-                                    results.Add(memberParam);
-                                    break;
-                                }
-                            }
-                        }
+                        // cascade to the corresponding parameter in the BeginInvoke method.
+                        var beginInvokeMethod = containingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName)
+                                                              .OfType<IMethodSymbol>()
+                                                              .FirstOrDefault();
+                        AddParameterAtIndex(results, ordinal, beginInvokeMethod?.Parameters);
+                    }
+                    else if (containingMethod.ContainingType.IsDelegateType() &&
+                             containingMethod.Name == WellKnownMemberNames.DelegateBeginInvokeName)
+                    {
+                        // cascade to the corresponding parameter in the Invoke method.
+                        AddParameterAtIndex(results, ordinal, containingType.DelegateInvokeMethod?.Parameters);
                     }
                 }
             }
-
-            return results;
         }
 
-        private IEnumerable<IParameterSymbol> CascadeBetweenPartialMethodParameters(IParameterSymbol parameter)
+        private static void AddParameterAtIndex(
+            ArrayBuilder<ISymbol> results,
+            int ordinal,
+            ImmutableArray<IParameterSymbol>? parameters)
+        {
+            if (parameters != null && ordinal < parameters.Value.Length)
+            {
+                results.Add(parameters.Value[ordinal]);
+            }
+        }
+
+        private static void CascadeBetweenPartialMethodParameters(
+            IParameterSymbol parameter,
+            ArrayBuilder<ISymbol> results)
         {
             if (parameter.ContainingSymbol is IMethodSymbol)
             {
@@ -276,12 +297,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var method = (IMethodSymbol)parameter.ContainingSymbol;
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.Parameters.Length)
                 {
-                    yield return method.PartialDefinitionPart.Parameters[ordinal];
+                    results.Add(method.PartialDefinitionPart.Parameters[ordinal]);
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.Parameters.Length)
                 {
-                    yield return method.PartialImplementationPart.Parameters[ordinal];
+                    results.Add(method.PartialImplementationPart.Parameters[ordinal]);
                 }
             }
         }

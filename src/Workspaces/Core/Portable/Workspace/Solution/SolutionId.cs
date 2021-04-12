@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same Solution across versions. 
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class SolutionId : IEquatable<SolutionId>
+    public sealed class SolutionId : IEquatable<SolutionId>, IObjectWritable
     {
         /// <summary>
         /// The unique id of the solution.
@@ -21,9 +24,9 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _debugName;
 
-        private SolutionId(string debugName)
+        private SolutionId(Guid id, string debugName)
         {
-            this.Id = Guid.NewGuid();
+            this.Id = id;
             _debugName = debugName;
         }
 
@@ -32,42 +35,58 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
         public static SolutionId CreateNewId(string debugName = null)
-        {
-            debugName = debugName ?? "unsaved";
+            => CreateFromSerialized(Guid.NewGuid(), debugName);
 
-            return new SolutionId(debugName);
+        public static SolutionId CreateFromSerialized(Guid id, string debugName = null)
+        {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            debugName ??= "unsaved";
+
+            return new SolutionId(id, debugName);
         }
+
+        internal string DebugName => _debugName;
 
         private string GetDebuggerDisplay()
-        {
-            return string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, _debugName);
-        }
+            => string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, _debugName);
 
         public override bool Equals(object obj)
-        {
-            return this.Equals(obj as SolutionId);
-        }
+            => this.Equals(obj as SolutionId);
 
         public bool Equals(SolutionId other)
         {
             return
-                !ReferenceEquals(other, null) &&
+                other is object &&
                 this.Id == other.Id;
         }
 
         public static bool operator ==(SolutionId left, SolutionId right)
-        {
-            return EqualityComparer<SolutionId>.Default.Equals(left, right);
-        }
+            => EqualityComparer<SolutionId>.Default.Equals(left, right);
 
         public static bool operator !=(SolutionId left, SolutionId right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public override int GetHashCode()
+            => this.Id.GetHashCode();
+
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
         {
-            return this.Id.GetHashCode();
+            writer.WriteGuid(Id);
+            writer.WriteString(DebugName);
+        }
+
+        internal static SolutionId ReadFrom(ObjectReader reader)
+        {
+            var guid = reader.ReadGuid();
+            var debugName = reader.ReadString();
+
+            return CreateFromSerialized(guid, debugName);
         }
     }
 }

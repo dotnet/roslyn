@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -25,32 +26,20 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public sealed class ApplyChangesOperation : CodeActionOperation
     {
-        private readonly Solution _changedSolution;
+        public Solution ChangedSolution { get; }
 
         public ApplyChangesOperation(Solution changedSolution)
-        {
-            if (changedSolution == null)
-            {
-                throw new ArgumentNullException(nameof(changedSolution));
-            }
+            => ChangedSolution = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
 
-            _changedSolution = changedSolution;
-        }
-
-        public Solution ChangedSolution
-        {
-            get { return _changedSolution; }
-        }
+        internal override bool ApplyDuringTests => true;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-        {
-            this.Apply(workspace, new ProgressTracker(), cancellationToken);
-        }
+            => this.TryApply(workspace, new ProgressTracker(), cancellationToken);
 
-        internal override void Apply(
+        internal override bool TryApply(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            workspace.TryApplyChanges(_changedSolution, progressTracker);
+            return workspace.TryApplyChanges(ChangedSolution, progressTracker);
         }
     }
 }

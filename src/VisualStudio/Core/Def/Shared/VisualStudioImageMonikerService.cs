@@ -1,20 +1,24 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.IO;
+using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tags;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Shared
 {
@@ -30,24 +34,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
     }
 
-    [ExportWorkspaceService(typeof(IImageMonikerService), layer: ServiceLayer.Host), Shared]
+    [ExportImageMonikerService(Name = Name)]
+    [Order(Before = DefaultImageMonikerService.Name)]
     internal class VisualStudioImageMonikerService : ForegroundThreadAffinitizedObject, IImageMonikerService
     {
+        public const string Name = nameof(VisualStudioImageMonikerService);
+
         private readonly IVsImageService2 _imageService;
 
         // We have to keep the image handles around to keep the compound glyph alive.
-        private readonly List<CompositeImage> _compositeImages = new List<CompositeImage>();
+        private readonly List<CompositeImage> _compositeImages = new();
 
         [ImportingConstructor]
-        public VisualStudioImageMonikerService(SVsServiceProvider serviceProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioImageMonikerService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
         }
 
-        public ImageMoniker GetImageMoniker(Glyph glyph)
+        public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageMoniker imageMoniker)
         {
             this.AssertIsForeground();
 
+            imageMoniker = GetImageMoniker(tags);
+            return !imageMoniker.IsNullImage();
+        }
+
+        private ImageMoniker GetImageMoniker(ImmutableArray<string> tags)
+        {
+            var glyph = tags.GetFirstGlyph();
             switch (glyph)
             {
                 case Glyph.AddReference:
@@ -60,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
 
         private ImageCompositionLayer CreateLayer(
-            ImageMoniker imageMoniker, 
+            ImageMoniker imageMoniker,
             int virtualWidth = 16,
             int virtualYOffset = 0,
             int virtualXOffset = 0)

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 ' //
 ' //============ Methods related to conditional compilation. ==============
@@ -6,11 +8,12 @@
 
 ' // Parse a line containing a conditional compilation directive.
 Imports System.Globalization
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Parser.cpp
         ' Lines: 18978 - 18978
@@ -22,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 CurrentToken.Kind = SyntaxKind.BadToken Then
 
                 Dim missingHash = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.HashToken)
-                missingHash = missingHash.AddLeadingSyntax(New SyntaxList(Of SyntaxToken)(CurrentToken))
+                missingHash = missingHash.AddLeadingSyntax(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(CurrentToken))
                 GetNextToken()
                 Return (ParseBadDirective(missingHash))
             End If
@@ -227,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Name = ParseIdentifier()
 
-            Dim unexpected As SyntaxList(Of SyntaxToken) = Nothing
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = Nothing
             If Name.ContainsDiagnostics Then
                 unexpected = ResyncAt({SyntaxKind.EqualsToken})
             End If

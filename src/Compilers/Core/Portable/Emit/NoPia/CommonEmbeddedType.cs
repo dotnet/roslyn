@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -58,20 +64,20 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsPublic { get; }
             protected abstract bool IsAbstract { get; }
             protected abstract Cci.ITypeReference GetBaseClass(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
-            protected abstract IEnumerable<Cci.ITypeReference> GetInterfaces(EmitContext context);
+            protected abstract IEnumerable<Cci.TypeReferenceWithAttributes> GetInterfaces(EmitContext context);
             protected abstract bool IsBeforeFieldInit { get; }
             protected abstract bool IsComImport { get; }
             protected abstract bool IsInterface { get; }
+            protected abstract bool IsDelegate { get; }
             protected abstract bool IsSerializable { get; }
             protected abstract bool IsSpecialName { get; }
             protected abstract bool IsWindowsRuntimeImport { get; }
             protected abstract bool IsSealed { get; }
             protected abstract TypeLayout? GetTypeLayoutIfStruct();
             protected abstract System.Runtime.InteropServices.CharSet StringFormat { get; }
-            protected abstract TAttributeData CreateCompilerGeneratedAttribute();
             protected abstract TAttributeData CreateTypeIdentifierAttribute(bool hasGuid, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
             protected abstract void EmbedDefaultMembers(string defaultMember, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
-            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TModuleCompilationState compilationState);
+            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TPEModuleBuilder moduleBuilder);
             protected abstract void ReportMissingAttribute(AttributeDescription description, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
 
             private bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description)
@@ -79,13 +85,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return TypeManager.IsTargetAttribute(UnderlyingNamedType, attrData, description);
             }
 
-            private ImmutableArray<TAttributeData> GetAttributes(TModuleCompilationState compilationState, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+            private ImmutableArray<TAttributeData> GetAttributes(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
             {
                 var builder = ArrayBuilder<TAttributeData>.GetInstance();
 
                 // Put the CompilerGenerated attribute on the NoPIA types we define so that 
                 // static analysis tools (e.g. fxcop) know that they can be skipped
-                builder.AddOptional(CreateCompilerGeneratedAttribute());
+                builder.AddOptional(TypeManager.CreateCompilerGeneratedAttribute());
 
                 // Copy some of the attributes.
 
@@ -96,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                foreach (var attrData in GetCustomAttributesToEmit(compilationState))
+                foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
                     if (IsTargetAttribute(attrData, AttributeDescription.GuidAttribute))
                     {
@@ -157,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                                 builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
 
                                 // Embed members matching default member name.
-                                string defaultMember = attrData.CommonConstructorArguments[0].Value as string;
+                                string defaultMember = attrData.CommonConstructorArguments[0].ValueInternal as string;
                                 if (defaultMember != null)
                                 {
                                     EmbedDefaultMembers(defaultMember, syntaxNodeOpt, diagnostics);
@@ -233,31 +239,28 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return GetBaseClass((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
             }
 
-            IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.Events
+            IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
             {
-                get
+                if (_lazyEvents.IsDefault)
                 {
-                    if (_lazyEvents.IsDefault)
+                    Debug.Assert(TypeManager.IsFrozen);
+
+                    var builder = ArrayBuilder<Cci.IEventDefinition>.GetInstance();
+
+                    foreach (var e in GetEventsToEmit())
                     {
-                        Debug.Assert(TypeManager.IsFrozen);
+                        TEmbeddedEvent embedded;
 
-                        var builder = ArrayBuilder<Cci.IEventDefinition>.GetInstance();
-
-                        foreach (var e in GetEventsToEmit())
+                        if (TypeManager.EmbeddedEventsMap.TryGetValue(e, out embedded))
                         {
-                            TEmbeddedEvent embedded;
-
-                            if (TypeManager.EmbeddedEventsMap.TryGetValue(e, out embedded))
-                            {
-                                builder.Add(embedded);
-                            }
+                            builder.Add(embedded);
                         }
-
-                        ImmutableInterlocked.InterlockedInitialize(ref _lazyEvents, builder.ToImmutableAndFree());
                     }
 
-                    return _lazyEvents;
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyEvents, builder.ToImmutableAndFree());
                 }
+
+                return _lazyEvents;
             }
 
             IEnumerable<Cci.MethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
@@ -314,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            IEnumerable<Cci.ITypeReference> Cci.ITypeDefinition.Interfaces(EmitContext context)
+            IEnumerable<Cci.TypeReferenceWithAttributes> Cci.ITypeDefinition.Interfaces(EmitContext context)
             {
                 return GetInterfaces(context);
             }
@@ -356,6 +359,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     return IsInterface;
+                }
+            }
+
+            bool Cci.ITypeDefinition.IsDelegate
+            {
+                get
+                {
+                    return IsDelegate;
                 }
             }
 
@@ -522,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TModuleCompilationState)context.ModuleBuilder.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
@@ -546,6 +557,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return this;
             }
 
+            CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
             bool Cci.ITypeReference.IsEnum
             {
                 get
@@ -567,9 +580,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return this;
             }
 
-            Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
+            Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
             {
-                return Cci.PrimitiveTypeCode.NotPrimitive;
+                get
+                {
+                    return Cci.PrimitiveTypeCode.NotPrimitive;
+                }
             }
 
             TypeDefinitionHandle Cci.ITypeReference.TypeDef
@@ -685,7 +701,19 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbol)UnderlyingNamedType).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return UnderlyingNamedType.GetInternalSymbol().GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+            }
+
+            public sealed override bool Equals(object obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            }
+
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
             }
         }
     }

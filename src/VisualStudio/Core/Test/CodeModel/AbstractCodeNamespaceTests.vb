@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractCodeNamespaceTests
@@ -13,11 +15,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetComment(codeElement As EnvDTE.CodeNamespace) As String
-            Throw New NotImplementedException()
+            Return codeElement.Comment
+        End Function
+
+        Protected Overrides Function GetCommentSetter(codeElement As EnvDTE.CodeNamespace) As Action(Of String)
+            Return Sub(value) codeElement.Comment = value
         End Function
 
         Protected Overrides Function GetDocComment(codeElement As EnvDTE.CodeNamespace) As String
-            Throw New NotImplementedException()
+            Return codeElement.DocComment
+        End Function
+
+        Protected Overrides Function GetDocCommentSetter(codeElement As EnvDTE.CodeNamespace) As Action(Of String)
+            Return Sub(value) codeElement.DocComment = value
         End Function
 
         Protected Overrides Function GetFullName(codeElement As EnvDTE.CodeNamespace) As String
@@ -33,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetNameSetter(codeElement As EnvDTE.CodeNamespace) As Action(Of String)
-            Throw New NotImplementedException()
+            Return Sub(name) codeElement.Name = name
         End Function
 
         Protected Overrides Function GetParent(codeElement As EnvDTE.CodeNamespace) As Object

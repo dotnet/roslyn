@@ -1,72 +1,98 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using RunTests.Cache;
 using System;
+using System.Collections.Immutable;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace RunTests
 {
-    internal struct TestExecutionOptions
+    internal readonly struct TestExecutionOptions
     {
-        internal string XunitPath { get; }
-        internal string Trait { get; }
-        internal string NoTrait { get; }
-        internal bool UseHtml { get; }
-        internal bool Test64 { get; }
+        internal string DotnetFilePath { get; }
+        internal ProcDumpInfo? ProcDumpInfo { get; }
+        internal string TestResultsDirectory { get; }
+        internal string? TestFilter { get; }
+        internal bool IncludeHtml { get; }
+        internal bool Retry { get; }
 
-        internal TestExecutionOptions(string xunitPath, string trait, string noTrait, bool useHtml, bool test64)
+        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? testFilter, bool includeHtml, bool retry)
         {
-            XunitPath = xunitPath;
-            Trait = trait;
-            NoTrait = noTrait;
-            UseHtml = useHtml;
-            Test64 = test64;
+            DotnetFilePath = dotnetFilePath;
+            ProcDumpInfo = procDumpInfo;
+            TestResultsDirectory = testResultsDirectory;
+            TestFilter = testFilter;
+            IncludeHtml = includeHtml;
+            Retry = retry;
         }
     }
 
-    internal struct TestResult
+    /// <summary>
+    /// The actual results from running the xunit tests.
+    /// </summary>
+    /// <remarks>
+    /// The difference between <see cref="TestResultInfo"/>  and <see cref="TestResult"/> is the former 
+    /// is specifically for the actual test execution results while the latter can contain extra metadata
+    /// about the results.  For example whether it was cached, or had diagnostic, output, etc ...
+    /// </remarks>
+    internal readonly struct TestResultInfo
     {
         internal int ExitCode { get; }
-        internal AssemblyInfo AssemblyInfo { get; }
-        internal string AssemblyPath => AssemblyInfo.AssemblyPath;
-        internal string AssemblyName => Path.GetFileName(AssemblyPath);
-        internal string DisplayName => AssemblyInfo.DisplayName;
-        internal string CommandLine { get; }
         internal TimeSpan Elapsed { get; }
         internal string StandardOutput { get; }
         internal string ErrorOutput { get; }
-        internal bool IsResultFromCache { get; }
 
         /// <summary>
-        /// Path to the results file.  Can be null in the case xunit error'd and did not create one. 
+        /// Path to the XML results file.
         /// </summary>
-        internal string ResultsFilePath { get; }
+        internal string? ResultsFilePath { get; }
 
-        internal string ResultDir { get; }
-        internal bool Succeeded => ExitCode == 0;
+        /// <summary>
+        /// Path to the HTML results file if HTML output is enabled, otherwise, <see langword="null"/>.
+        /// </summary>
+        internal string? HtmlResultsFilePath { get; }
 
-        internal TestResult(int exitCode, AssemblyInfo assemblyInfo, string resultDir, string resultsFilePath, string commandLine, TimeSpan elapsed, string standardOutput, string errorOutput, bool isResultFromCache)
+        internal TestResultInfo(int exitCode, string? resultsFilePath, string? htmlResultsFilePath, TimeSpan elapsed, string standardOutput, string errorOutput)
         {
             ExitCode = exitCode;
-            AssemblyInfo = assemblyInfo;
-            CommandLine = commandLine;
-            ResultDir = resultDir;
             ResultsFilePath = resultsFilePath;
+            HtmlResultsFilePath = htmlResultsFilePath;
             Elapsed = elapsed;
             StandardOutput = standardOutput;
             ErrorOutput = errorOutput;
-            IsResultFromCache = isResultFromCache;
         }
     }
 
-    internal interface ITestExecutor
+    internal readonly struct TestResult
     {
-        IDataStorage DataStorage { get; }
+        internal TestResultInfo TestResultInfo { get; }
+        internal AssemblyInfo AssemblyInfo { get; }
+        internal string CommandLine { get; }
+        internal string? Diagnostics { get; }
 
-        string GetCommandLine(AssemblyInfo assemblyInfo);
+        /// <summary>
+        /// Collection of processes the runner explicitly ran to get the result.
+        /// </summary>
+        internal ImmutableArray<ProcessResult> ProcessResults { get; }
 
-        Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken);
+        internal string AssemblyPath => AssemblyInfo.AssemblyPath;
+        internal string AssemblyName => Path.GetFileName(AssemblyPath);
+        internal string DisplayName => AssemblyInfo.DisplayName;
+        internal bool Succeeded => ExitCode == 0;
+        internal int ExitCode => TestResultInfo.ExitCode;
+        internal TimeSpan Elapsed => TestResultInfo.Elapsed;
+        internal string StandardOutput => TestResultInfo.StandardOutput;
+        internal string ErrorOutput => TestResultInfo.ErrorOutput;
+        internal string? ResultsDisplayFilePath => TestResultInfo.HtmlResultsFilePath ?? TestResultInfo.ResultsFilePath;
+
+        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string? diagnostics = null)
+        {
+            AssemblyInfo = assemblyInfo;
+            TestResultInfo = testResultInfo;
+            CommandLine = commandLine;
+            ProcessResults = processResults.IsDefault ? ImmutableArray<ProcessResult>.Empty : processResults;
+            Diagnostics = diagnostics;
+        }
     }
 }

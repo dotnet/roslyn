@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -21,7 +23,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewritten = RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, rewritten, canThrow:=node.ExpressionOpt IsNot Nothing)
             End If
 
-            Return MarkStatementWithSequencePoint(rewritten)
+            ' Instrument synthesized returns when expressions are not compiler generated.
+            If Instrument(node, rewritten) OrElse (node.ExpressionOpt IsNot Nothing AndAlso Instrument(node.ExpressionOpt)) Then
+                rewritten = _instrumenterOpt.InstrumentReturnStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         ''' <summary>
@@ -59,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '
                         Dim boundFunctionLocal = New BoundLocal(node.Syntax, functionLocal, functionLocal.Type)
 
-                        Dim syntaxNode As VisualBasicSyntaxNode = node.Syntax
+                        Dim syntaxNode As SyntaxNode = node.Syntax
 
                         Dim assignment As BoundStatement = New BoundExpressionStatement(
                                                                 syntaxNode,

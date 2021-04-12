@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -28,10 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                             rank, sizes, lowerBounds, moduleSymbol.ContainingAssembly)
         End Function
 
-        Friend Overrides Function GetByRefReturnTypeSymbol(moduleSymbol As PEModuleSymbol, referencedType As TypeSymbol, countOfCustomModifiersPrecedingByRef As UShort) As TypeSymbol
-            Return GetUnsupportedMetadataTypeSymbol(moduleSymbol, Nothing) ' No special support for this scenario in VB.
-        End Function
-
         Friend Overrides Function GetSpecialType(moduleSymbol As PEModuleSymbol, specialType As SpecialType) As TypeSymbol
             Return moduleSymbol.ContainingAssembly.GetSpecialType(specialType)
         End Function
@@ -46,11 +44,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides Function GetPrimitiveTypeCode(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Microsoft.Cci.PrimitiveTypeCode
             Return type.PrimitiveTypeCode
-        End Function
-
-        Friend Overrides Function IsVolatileModifierType(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Boolean
-            ' VB doesn't deal with Volatile fields.
-            Return False
         End Function
 
         Friend Overrides Function GetSZArrayTypeSymbol(moduleSymbol As PEModuleSymbol, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
@@ -152,6 +145,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return If(namedType IsNot Nothing AndAlso namedType.IsGenericType, UnboundGenericType.Create(namedType), type)
         End Function
 
+        Friend Overrides Function MakeFunctionPointerTypeSymbol(callingConvention As Cci.CallingConvention, retAndParamTypes As ImmutableArray(Of ParamInfo(Of TypeSymbol))) As TypeSymbol
+            Return New UnsupportedMetadataTypeSymbol()
+        End Function
     End Class
 
 End Namespace

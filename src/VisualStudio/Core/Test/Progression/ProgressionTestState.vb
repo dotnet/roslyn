@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -8,8 +9,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
-Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Friend Class ProgressionTestState
@@ -21,9 +20,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             _workspace = workspace
         End Sub
 
-        Public Shared Async Function CreateAsync(workspaceXml As XElement) As Task(Of ProgressionTestState)
-            Dim workspace = Await TestWorkspace.CreateAsync(workspaceXml,
-                                                              exportProvider:=MinimalTestExportProvider.CreateExportProvider(CompositionCatalog))
+        Public Shared Function Create(workspaceXml As XElement) As ProgressionTestState
+            Dim workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
 
             Return New ProgressionTestState(workspace)
         End Function
@@ -45,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End If
 
             Dim graphBuilder As New GraphBuilder(_workspace.CurrentSolution, CancellationToken.None)
-            graphBuilder.AddNodeForSymbolAsync(symbol, document.Project, document).Wait(CancellationToken.None)
+            graphBuilder.AddNodeAsync(symbol, document.Project, document).Wait(CancellationToken.None)
             Return graphBuilder.Graph
         End Function
 

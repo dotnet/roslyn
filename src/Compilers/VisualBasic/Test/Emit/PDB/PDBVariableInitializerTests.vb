@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -7,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBVariableInitializerTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PartialClass()
             Dim source =
     <compilation>
@@ -50,12 +52,12 @@ End Class
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1..ctor",
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=" 1, 41, D1, CA, DD, B0,  B, 39, BE, 3C, 3D, 69, AA, 18, B3, 7A, F5, 65, C5, DD, "/>
-        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="FE, FF, 3A, FC, 5E, 54, 7C, 6D, 96, 86,  5, B8, B6, FD, FC, 5F, 81, 51, AE, FA, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="01-41-D1-CA-DD-B0-0B-39-BE-3C-3D-69-AA-18-B3-7A-F5-65-C5-DD"/>
+        <file id="2" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="FE-FF-3A-FC-5E-54-7C-6D-96-86-05-B8-B6-FD-FC-5F-81-51-AE-FA"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main" parameterNames="args"/>
     <methods>
@@ -77,7 +79,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AutoProperty1()
             Dim source =
 <compilation>
@@ -94,7 +96,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -111,7 +113,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AutoProperty2()
             Dim source =
 <compilation>
@@ -128,7 +130,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -145,7 +147,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AutoPropertyAsNew()
             Dim source =
 <compilation>
@@ -162,7 +164,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -179,7 +181,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ArrayInitializedField()
             Dim source =
 <compilation>
@@ -190,7 +192,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -211,7 +213,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ArrayInitializedLocal()
             Dim source =
 <compilation>
@@ -224,7 +226,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -246,7 +248,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub FieldAsNewMultiInitializer()
             Dim source =
 <compilation>
@@ -257,7 +259,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -278,7 +280,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalAsNewMultiInitializer()
             Dim source =
 <compilation>
@@ -291,7 +293,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -313,7 +315,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub FieldAsNewSingleInitializer()
             Dim source =
 <compilation>
@@ -324,7 +326,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -341,7 +343,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalAsNewSingleInitializer()
             Dim source =
 <compilation>
@@ -354,7 +356,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))
@@ -372,7 +374,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub FieldInitializer()
             Dim source =
 <compilation>
@@ -383,7 +385,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C..ctor"))
@@ -400,7 +402,7 @@ End Class
             AssertXml.Equal(expected, actual)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalInitializer()
             Dim source =
 <compilation>
@@ -413,7 +415,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim actual = GetSequencePoints(GetPdbXml(compilation, "C.M"))

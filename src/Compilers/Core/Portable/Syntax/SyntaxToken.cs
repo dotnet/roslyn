@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
@@ -10,20 +13,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Represents a token in the syntax tree. This is the language agnostic equivalent of <see
     /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxToken"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxToken"/>.
     /// </summary>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [StructLayout(LayoutKind.Auto)]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public struct SyntaxToken : IEquatable<SyntaxToken>
+    public readonly struct SyntaxToken : IEquatable<SyntaxToken>
     {
+        private static readonly Func<DiagnosticInfo, Diagnostic> s_createDiagnosticWithoutLocation = Diagnostic.Create;
+
         internal static readonly Func<SyntaxToken, bool> NonZeroWidth = t => t.Width > 0;
         internal static readonly Func<SyntaxToken, bool> Any = t => true;
 
-        internal SyntaxToken(SyntaxNode parent, GreenNode token, int position, int index)
+        internal SyntaxToken(SyntaxNode? parent, GreenNode? token, int position, int index)
         {
             Debug.Assert(parent == null || !parent.Green.IsList, "list cannot be a parent");
             Debug.Assert(token == null || token.IsToken, "token must be a token");
@@ -33,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             Index = index;
         }
 
-        internal SyntaxToken(GreenNode token)
+        internal SyntaxToken(GreenNode? token)
             : this()
         {
             Debug.Assert(token == null || token.IsToken, "token must be a token");
@@ -70,9 +75,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The node that contains this token in its Children collection.
         /// </summary>
-        public SyntaxNode Parent { get; }
+        public SyntaxNode? Parent { get; }
 
-        internal GreenNode Node { get; }
+        internal GreenNode? Node { get; }
+
+        internal GreenNode RequiredNode
+        {
+            get
+            {
+                Debug.Assert(Node is object);
+                return Node;
+            }
+        }
 
         internal int Index { get; }
 
@@ -131,13 +145,13 @@ namespace Microsoft.CodeAnalysis
         /// Returns the value of the token. For example, if the token represents an integer literal, then this property
         /// would return the actual integer.
         /// </summary>
-        public object Value => Node?.GetValue();
+        public object? Value => Node?.GetValue();
 
         /// <summary>
         /// Returns the text representation of the value of the token. For example, if the token represents an integer
         /// literal, then this property would return a string representing the integer.
         /// </summary>
-        public string ValueText => Node?.GetValueText();
+        public string ValueText => Node?.GetValueText() ?? string.Empty;
 
         public string Text => ToString();
 
@@ -246,7 +260,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if this token has the specified annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return Node?.HasAnnotation(annotation) ?? false;
         }
@@ -454,20 +468,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new token from this token with the leading trivia specified..
         /// </summary>
-        public SyntaxToken WithLeadingTrivia(params SyntaxTrivia[] trivia)
+        public SyntaxToken WithLeadingTrivia(params SyntaxTrivia[]? trivia)
         {
-            return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+            return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
         /// <summary>
-        /// Creates a new token from this token with the leading trivia specified..
+        /// Creates a new token from this token with the leading trivia specified.
         /// </summary>
-        public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
+        public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
-
             return Node != null
-                ? new SyntaxToken(null, Node.WithLeadingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(trivia, static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -482,20 +494,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new token from this token with the trailing trivia specified.
         /// </summary>
-        public SyntaxToken WithTrailingTrivia(params SyntaxTrivia[] trivia)
+        public SyntaxToken WithTrailingTrivia(params SyntaxTrivia[]? trivia)
         {
-            return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+            return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
         /// <summary>
         /// Creates a new token from this token with the trailing trivia specified.
         /// </summary>
-        public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia> trivia)
+        public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
-
             return Node != null
-                ? new SyntaxToken(null, Node.WithTrailingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(trivia, static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -554,7 +564,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the supplied <see cref="SyntaxToken"/> is equal to this
         /// <see cref="SyntaxToken"/>.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SyntaxToken && Equals((SyntaxToken)obj);
         }
@@ -578,7 +588,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return Node.Navigator.GetNextToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetNextToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -588,14 +598,14 @@ namespace Microsoft.CodeAnalysis
         /// true.</param>
         /// <param name="stepInto">Delegate applied to trivia.  If this delegate is present then trailing trivia is
         /// included in the search.</param>
-        internal SyntaxToken GetNextToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
+        internal SyntaxToken GetNextToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto = null)
         {
             if (Node == null)
             {
                 return default(SyntaxToken);
             }
 
-            return Node.Navigator.GetNextToken(this, predicate, stepInto);
+            return SyntaxNavigator.Instance.GetNextToken(this, predicate, stepInto);
         }
 
         /// <summary>
@@ -609,7 +619,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxToken);
             }
 
-            return Node.Navigator.GetPreviousToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return SyntaxNavigator.Instance.GetPreviousToken(this, includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -619,24 +629,26 @@ namespace Microsoft.CodeAnalysis
         /// true.</param>
         /// <param name="stepInto">Delegate applied to trivia.  If this delegate is present then trailing trivia is
         /// included in the search.</param>
-        internal SyntaxToken GetPreviousToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
+        internal SyntaxToken GetPreviousToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto = null)
         {
-            return Node.Navigator.GetPreviousToken(this, predicate, stepInto);
+            return SyntaxNavigator.Instance.GetPreviousToken(this, predicate, stepInto);
         }
 
         /// <summary>
         /// The SyntaxTree that contains this token.
         /// </summary>
-        public SyntaxTree SyntaxTree => Parent?.SyntaxTree;
+        public SyntaxTree? SyntaxTree => Parent?.SyntaxTree;
 
         /// <summary>
         /// Gets the location for this token.
         /// </summary>
         public Location GetLocation()
         {
-            return Node != null
-                ? this.SyntaxTree.GetLocation(this.Span)
-                : Location.None;
+            var tree = SyntaxTree;
+
+            return tree == null
+                ? Location.None
+                : tree.GetLocation(Span);
         }
 
         /// <summary>
@@ -646,9 +658,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            return Node != null
-                ? this.SyntaxTree.GetDiagnostics(this)
-                : SpecializedCollections.EmptyEnumerable<Diagnostic>();
+            if (Node == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+            }
+
+            var tree = SyntaxTree;
+
+            if (tree == null)
+            {
+                var diagnostics = Node.GetDiagnostics();
+
+                return diagnostics.Length == 0
+                    ? SpecializedCollections.EmptyEnumerable<Diagnostic>()
+                    : diagnostics.Select(s_createDiagnosticWithoutLocation);
+            }
+
+            return tree.GetDiagnostics(this);
         }
 
         /// <summary>

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
@@ -29,25 +32,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         ///          will be forwarded to the managed implementation.
         /// </summary>
         internal static object CreateAggregatedObject(object managedObject)
-        {
-            return WrapperPolicy.CreateAggregatedObject(managedObject);
-        }
+            => WrapperPolicy.CreateAggregatedObject(managedObject);
 
         /// <summary>
-        /// Return the RCW for the native IComWrapper instance aggregating "managedObject"
+        /// Return the RCW for the native IComWrapperFixed instance aggregating "managedObject"
         /// if there is one. Return "null" if "managedObject" is not aggregated.
         /// </summary>
-        internal static IComWrapper TryGetWrapper(object managedObject)
-        {
-            return WrapperPolicy.TryGetWrapper(managedObject);
-        }
+        internal static IComWrapperFixed TryGetWrapper(object managedObject)
+            => WrapperPolicy.TryGetWrapper(managedObject);
 
         internal static T GetManagedObject<T>(object value) where T : class
         {
             Contract.ThrowIfNull(value, "value");
 
-            var wrapper = value as IComWrapper;
-            if (wrapper != null)
+            if (value is IComWrapperFixed wrapper)
             {
                 return GetManagedObject<T>(wrapper);
             }
@@ -56,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             return (T)value;
         }
 
-        internal static T GetManagedObject<T>(IComWrapper comWrapper) where T : class
+        internal static T GetManagedObject<T>(IComWrapperFixed comWrapper) where T : class
         {
             Contract.ThrowIfNull(comWrapper, "comWrapper");
 
@@ -70,8 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
         internal static T TryGetManagedObject<T>(object value) where T : class
         {
-            var wrapper = value as IComWrapper;
-            if (wrapper != null)
+            if (value is IComWrapperFixed wrapper)
             {
                 return TryGetManagedObject<T>(wrapper);
             }
@@ -79,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             return value as T;
         }
 
-        internal static T TryGetManagedObject<T>(IComWrapper comWrapper) where T : class
+        internal static T TryGetManagedObject<T>(IComWrapperFixed comWrapper) where T : class
         {
             if (comWrapper == null)
             {

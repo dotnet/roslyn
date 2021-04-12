@@ -1,35 +1,29 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.EncapsulateField;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
-using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
     internal class EncapsulateFieldTestState : IDisposable
     {
-        private TestHostDocument _testDocument;
+        private readonly TestHostDocument _testDocument;
         public TestWorkspace Workspace { get; }
         public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
-
-        private static readonly ExportProvider s_exportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-            typeof(CSharpEncapsulateFieldService),
-            typeof(EditorNotificationServiceFactory),
-            typeof(DefaultDocumentSupportsFeatureService)));
 
         public EncapsulateFieldTestState(TestWorkspace workspace)
         {
@@ -42,17 +36,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
             notificationService.NotificationCallback = callback;
         }
 
-        public static async Task<EncapsulateFieldTestState> CreateAsync(string markup)
+        public static EncapsulateFieldTestState Create(string markup)
         {
-            var workspace = await TestWorkspace.CreateCSharpAsync(markup, exportProvider: s_exportProvider);
+            var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement)));
+
             return new EncapsulateFieldTestState(workspace);
         }
 
         public void Encapsulate()
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
-            var commandHandler = new EncapsulateFieldCommandHandler(TestWaitIndicator.Default, Workspace.GetService<ITextBufferUndoManagerProvider>());
-            commandHandler.ExecuteCommand(args, () => { });
+            var commandHandler = Workspace.ExportProvider.GetCommandHandler<EncapsulateFieldCommandHandler>(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType);
+            commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create());
         }
 
         public void Dispose()

@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -32,38 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        public static void VerifyErrorCodes(CSharpCompilation comp, params ErrorDescription[] expectedErrors)
-        {
-            var actualErrors = comp.GetDiagnostics();
-            DiagnosticsUtils.VerifyErrorCodes(actualErrors, expectedErrors);
-        }
-
-        /// <summary>
-        /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
-        /// </summary>
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public static void TestDiagnostics(string source, params string[] diagStrings)
-        {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
-            var diagnostics = comp.GetDiagnostics();
-            CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
-        }
-
-        /// <summary>
-        /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
-        /// </summary>
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public static void TestDiagnosticsExact(string source, params string[] diagStrings)
-        {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
-            var diagnostics = comp.GetDiagnostics();
-            Assert.Equal(diagStrings.Length, diagnostics.Length);
-            CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
-        }
-
-        /// <summary>
-        /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
-        /// </summary>
         public static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, params ErrorDescription[] expectedErrorDesp)
         {
             return VerifyErrorsAndGetCompilationWithMscorlib(new string[] { text }, expectedErrorDesp);
@@ -72,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
         {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(srcs);
+            var comp = CSharpTestBase.CreateCompilation(srcs, parseOptions: TestOptions.RegularPreview);
             var actualErrors = comp.GetDiagnostics();
             VerifyErrorCodes(actualErrors, expectedErrorDesp);
             return comp;
@@ -83,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string text, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
         {
             return VerifyErrorsAndGetCompilationWithMscorlib(new List<string> { text }, refs, expectedErrorDesp);
         }
@@ -91,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(List<string> srcs, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(List<string> srcs, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
         {
             var synTrees = (from text in srcs
                             select SyntaxFactory.ParseSyntaxTree(text)).ToArray();
@@ -102,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(SyntaxTree[] trees, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(SyntaxTree[] trees, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
         {
             return VerifyErrorsAndGetCompilation(trees, refs.Concat(CSharpTestBase.MscorlibRef), expectedErrorDesp);
         }
@@ -110,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>
-        internal protected static CSharpCompilation VerifyErrorsAndGetCompilation(IEnumerable<SyntaxTree> synTrees, IEnumerable<MetadataReference> refs = null, params ErrorDescription[] expectedErrorDesp)
+        protected internal static CSharpCompilation VerifyErrorsAndGetCompilation(IEnumerable<SyntaxTree> synTrees, IEnumerable<MetadataReference> refs = null, params ErrorDescription[] expectedErrorDesp)
         {
             var comp = CSharpCompilation.Create(assemblyName: "DiagnosticsTest", options: TestOptions.ReleaseDll, syntaxTrees: synTrees, references: refs);
             var actualErrors = comp.GetDiagnostics();
@@ -150,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                              Column = lineSpan.IsValid ? lineSpan.StartLinePosition.Character + 1 : 0,
                                              IsWarning = e.Severity == DiagnosticSeverity.Warning,
                                              Parameters = (e.Arguments != null && e.Arguments.Count > 0 && e.Arguments[0] != null) ?
-                                                e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : SpecializedCollections.EmptyArray<string>()
+                                                e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : Array.Empty<string>()
                                          })
                                     orderby ae.Code, ae.Line, ae.Column
                                     select ae).ToList();
@@ -182,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.True(experr.Column == acterr.Column, String.Format("Col {0}!={1}", experr.Column, acterr.Column));
                 }
 
-                Assert.Equal(experr.IsWarning, acterr.IsWarning);
+                Assert.True(experr.IsWarning == acterr.IsWarning, String.Format("IsWarning {0}!={1}", experr.IsWarning, acterr.IsWarning));
 
                 //if the expected contains parameters, validate those too.
                 if (experr.Parameters != null)

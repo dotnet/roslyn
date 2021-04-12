@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (boundSymbols.Length == 1)
                 {
-                    var boundAlias = boundSymbols[0] as AliasSymbol;
+                    var boundAlias = boundSymbols[0] as IAliasSymbol;
                     if ((object)boundAlias != null && alias.Target.Equals(symbol))
                     {
                         builder.Add(CreatePart(SymbolDisplayPartKind.AliasName, alias, aliasName));
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
             var startNode = token.Parent;
 
-            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax);
+            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax) || token.IsKind(SyntaxKind.NewKeyword) || this.inNamespaceOrType;
         }
 
         private void MinimallyQualify(INamespaceSymbol symbol)
@@ -166,7 +170,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyDictionary<INamespaceOrTypeSymbol, IAliasSymbol>();
             }
 
-            var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
+            // Walk up the ancestors from the current position. If this is a speculative
+            // model, walk up the corresponding ancestors in the parent model.
+            SemanticModel semanticModel;
+            int position;
+            if (semanticModelOpt.IsSpeculativeSemanticModel)
+            {
+                semanticModel = semanticModelOpt.ParentModel;
+                position = semanticModelOpt.OriginalPositionForSpeculation;
+            }
+            else
+            {
+                semanticModel = semanticModelOpt;
+                position = positionOpt;
+            }
+
+            var token = semanticModel.SyntaxTree.GetRoot().FindToken(position);
             var startNode = token.Parent;
 
             // NOTE(cyrusn): If we're currently in a block of usings, then we want to collect the
@@ -182,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .SelectMany(n => n.Usings)
                 .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
                 .Where(u => u.Alias != null)
-                .Select(u => semanticModelOpt.GetDeclaredSymbol(u) as IAliasSymbol)
+                .Select(u => semanticModel.GetDeclaredSymbol(u) as IAliasSymbol)
                 .Where(u => u != null);
 
             var builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();
@@ -210,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var queryBody = GetQueryBody(token);
                     if (queryBody != null)
                     {
-                        // To heuristically determining the type of the range variable in a from
+                        // To heuristically determine the type of the range variable in a query
                         // clause, we speculatively bind the name of the variable in the select
                         // or group clause of the query body.
                         var identifierName = SyntaxFactory.IdentifierName(symbol.Name);
@@ -229,31 +248,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 
-        private static QueryBodySyntax GetQueryBody(SyntaxToken token)
-        {
-            var fromClause = token.Parent as FromClauseSyntax;
-            if (fromClause != null && fromClause.Identifier == token)
+        private static QueryBodySyntax GetQueryBody(SyntaxToken token) =>
+            token.Parent switch
             {
-                // To heuristically determining the type of the range variable in a from
-                // clause, we speculatively bind the name of the variable in the select
-                // or group clause of the query body.
-                return fromClause.Parent as QueryBodySyntax ?? ((QueryExpressionSyntax)fromClause.Parent).Body;
-            }
-
-            var letClause = token.Parent as LetClauseSyntax;
-            if (letClause != null && letClause.Identifier == token)
-            {
-                return letClause.Parent as QueryBodySyntax;
-            }
-
-            var joinClause = token.Parent as JoinClauseSyntax;
-            if (joinClause != null && joinClause.Identifier == token)
-            {
-                return joinClause.Parent as QueryBodySyntax;
-            }
-
-            return null;
-        }
+                FromClauseSyntax fromClause when fromClause.Identifier == token =>
+                    fromClause.Parent as QueryBodySyntax ?? ((QueryExpressionSyntax)fromClause.Parent).Body,
+                LetClauseSyntax letClause when letClause.Identifier == token =>
+                    letClause.Parent as QueryBodySyntax,
+                JoinClauseSyntax joinClause when joinClause.Identifier == token =>
+                    joinClause.Parent as QueryBodySyntax,
+                QueryContinuationSyntax continuation when continuation.Identifier == token =>
+                    continuation.Body,
+                _ => null
+            };
 
         private string RemoveAttributeSufficeIfNecessary(INamedTypeSymbol symbol, string symbolName)
         {

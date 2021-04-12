@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,92 +11,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using DocumentMap = Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
+
     internal partial class FindReferencesSearchEngine
     {
-        private async Task ProcessProjectsAsync(
-            IEnumerable<ProjectId> projectSet,
-            Dictionary<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> projectMap,
-            ProgressWrapper wrapper)
-        {
-            var visitedProjects = new HashSet<ProjectId>();
-
-            // Make sure we process each project in the set.  Process each project in depth first
-            // order.  That way when we process a project, the compilations for all projects that it
-            // depends on will have been created already.
-            foreach (var projectId in projectSet)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                await ProcessProjectAsync(projectId, projectMap, visitedProjects, wrapper).ConfigureAwait(false);
-            }
-        }
-
-        private async Task ProcessProjectAsync(
-            ProjectId projectId,
-            Dictionary<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> projectMap,
-            HashSet<ProjectId> visitedProjects,
-            ProgressWrapper wrapper)
-        {
-            // Don't visit projects more than once.  
-            if (visitedProjects.Add(projectId))
-            {
-                var project = _solution.GetProject(projectId);
-
-                // Visit dependencies first.  That way the compilation for a project that we depend
-                // on is already ready for us when we need it.
-                foreach (var dependent in project.ProjectReferences)
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    await ProcessProjectAsync(dependent.ProjectId, projectMap, visitedProjects, wrapper).ConfigureAwait(false);
-                }
-
-                await ProcessProjectAsync(project, projectMap, wrapper).ConfigureAwait(false);
-            }
-        }
-
         private async Task ProcessProjectAsync(
             Project project,
-            Dictionary<Project, Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>>> projectMap,
-            ProgressWrapper wrapper)
-        {
-            Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>> map;
-            if (!projectMap.TryGetValue(project, out map))
-            {
-                // No files in this project to process.  We can bail here.  We'll have cached our
-                // compilation if there are any projects left to process that depend on us.
-                return;
-            }
-
-            // Now actually process the project.
-            await ProcessProjectAsync(project, map, wrapper).ConfigureAwait(false);
-
-            // We've now finished working on the project.  Remove it from the set of remaining items.
-            projectMap.Remove(project);
-        }
-
-        private async Task ProcessProjectAsync(
-            Project project,
-            Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>> map,
-            ProgressWrapper wrapper)
+            DocumentMap documentMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, _cancellationToken))
             {
-                // make sure we hold onto compilation while we search documents belong to this project
-                var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-
-                var documentTasks = new List<Task>();
-                foreach (var kvp in map)
+                if (project.SupportsCompilation)
                 {
-                    var document = kvp.Key;
-                    var documentQueue = kvp.Value;
+                    // make sure we hold onto compilation while we search documents belong to this project
+                    var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
 
-                    documentTasks.Add(Task.Run(async () => await ProcessDocumentQueueAsync(document, documentQueue, wrapper).ConfigureAwait(false), _cancellationToken));
+                    var documentTasks = new List<Task>();
+                    foreach (var (document, documentQueue) in documentMap)
+                    {
+                        if (document.Project == project)
+                            documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                    }
+
+                    await Task.WhenAll(documentTasks).ConfigureAwait(false);
+
+                    GC.KeepAlive(compilation);
                 }
-
-                await Task.WhenAll(documentTasks).ConfigureAwait(false);
-
-                GC.KeepAlive(compilation);
             }
         }
     }

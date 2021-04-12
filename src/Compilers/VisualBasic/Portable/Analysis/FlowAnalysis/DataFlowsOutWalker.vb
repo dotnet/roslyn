@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -66,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' that flows in is assigned at the beginning of the loop.  If it isn't, then it must 
             ' be in a loop and flow out of the region in that loop (and into the region inside the loop).
             For Each variable As Symbol In _dataFlowsIn
-                Dim slot As Integer = Me.MakeSlot(variable)
+                Dim slot As Integer = Me.GetOrCreateSlot(variable)
                 If Not Me.State.IsAssigned(slot) AndAlso variable.Kind <> SymbolKind.RangeVariable AndAlso
                         (variable.Kind <> SymbolKind.Local OrElse Not DirectCast(variable, LocalSymbol).IsStatic) Then
                     _dataFlowsOut.Add(variable)
@@ -137,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub ReportUnassigned(local As Symbol,
-                                                 node As VisualBasicSyntaxNode,
+                                                 node As SyntaxNode,
                                                  rwContext As ReadWriteContext,
                                                  Optional slot As Integer = SlotKind.NotTracked,
                                                  Optional boundFieldAccess As BoundFieldAccess = Nothing)

@@ -1,9 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
+using Microsoft.CodeAnalysis.OrderModifiers;
+using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
@@ -11,16 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
     {
         private class AddNewKeywordAction : CodeActions.CodeAction
         {
-            private Document _document;
-            private SyntaxNode _node;
+            private readonly Document _document;
+            private readonly SyntaxNode _node;
 
-            public override string Title
-            {
-                get
-                {
-                    return CSharpFeaturesResources.HideBase;
-                }
-            }
+            public override string Title => CSharpFeaturesResources.Hide_base_member;
 
             public AddNewKeywordAction(Document document, SyntaxNode node)
             {
@@ -32,38 +34,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
             {
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var newNode = GetNewNode(_document, _node, cancellationToken);
+                var newNode = await GetNewNodeAsync(_node, cancellationToken).ConfigureAwait(false);
                 var newRoot = root.ReplaceNode(_node, newNode);
 
                 return _document.WithSyntaxRoot(newRoot);
             }
 
-            private SyntaxNode GetNewNode(Document document, SyntaxNode node, CancellationToken cancellationToken)
+            private async Task<SyntaxNode> GetNewNodeAsync(SyntaxNode node, CancellationToken cancellationToken)
             {
-                SyntaxNode newNode = null;
+                var syntaxFacts = CSharpSyntaxFacts.Instance;
+                var modifiers = syntaxFacts.GetModifiers(node);
+                var newModifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
 
-                var propertyStatement = node as PropertyDeclarationSyntax;
-                if (propertyStatement != null)
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var option = options.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder);
+                if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder) ||
+                    !AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
                 {
-                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword)) as SyntaxNode;
+                    return syntaxFacts.WithModifiers(node, newModifiers);
                 }
 
-                var methodStatement = node as MethodDeclarationSyntax;
-                if (methodStatement != null)
-                {
-                    newNode = methodStatement.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword));
-                }
+                var orderedModifiers = new SyntaxTokenList(
+                    newModifiers.OrderBy(CompareModifiers));
 
-                var fieldDeclaration = node as FieldDeclarationSyntax;
-                if (fieldDeclaration != null)
-                {
-                    newNode = fieldDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.NewKeyword));
-                }
+                return syntaxFacts.WithModifiers(node, orderedModifiers);
 
-                //Make sure we preserve any trivia from the original node
-                newNode = newNode.WithTriviaFrom(node);
+                int CompareModifiers(SyntaxToken left, SyntaxToken right)
+                    => GetOrder(left) - GetOrder(right);
 
-                return newNode.WithAdditionalAnnotations(Formatter.Annotation);
+                int GetOrder(SyntaxToken token)
+                    => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
             }
         }
     }

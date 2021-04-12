@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GenerateType;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,20 +25,20 @@ initial: @"class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }
 
-class Foo
+class Goo
 {
 }",
 isNewFile: false);
@@ -50,7 +52,7 @@ initial: @"class Program
 {
     void Main()
     {
-        [|A.Foo$$|] f;
+        [|A.Goo$$|] f;
     }
 }
 
@@ -58,18 +60,18 @@ namespace A
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        A.Foo f;
+        A.Goo f;
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
     }
 }",
@@ -84,24 +86,24 @@ initial: @"class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        A.B.Foo f;
+        A.B.Goo f;
     }
 }
 namespace A.B
 {
-    class Foo
+    class Goo
     {
     }
 }",
@@ -116,7 +118,7 @@ initial: @"class Program
 {
     void Main()
     {
-        [|A.B.C.Foo$$|] f;
+        [|A.B.C.Goo$$|] f;
     }
 }
 namespace A.B
@@ -126,19 +128,19 @@ namespace A.B
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        A.B.C.Foo f;
+        A.B.C.Goo f;
     }
 }
 namespace A.B
 {
     namespace C
     {
-        class Foo
+        class Goo
         {
         }
     }
@@ -154,7 +156,7 @@ initial: @"class Program
 {
     void Main()
     {
-        [|A.B.C.Foo$$|] f;
+        [|A.B.C.Goo$$|] f;
     }
 }
 namespace A
@@ -164,19 +166,19 @@ namespace A
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        A.B.C.Foo f;
+        A.B.C.Goo f;
     }
 }
 namespace A
 {
     namespace B.C
     {
-        class Foo
+        class Goo
         {
         }
     }
@@ -192,25 +194,25 @@ initial: @"class Program
 {
     static void Main(string[] args)
     {
-        var f = new [|$$Foo|](bar: 1, baz: 2);
+        var f = new [|$$Goo|](bar: 1, baz: 2);
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     static void Main(string[] args)
     {
-        var f = new Foo(bar: 1, baz: 2);
+        var f = new Goo(bar: 1, baz: 2);
     }
 }
 
-class Foo
+class Goo
 {
     private int bar;
     private int baz;
 
-    public Foo(int bar, int baz)
+    public Goo(int bar, int baz)
     {
         this.bar = bar;
         this.baz = baz;
@@ -228,21 +230,21 @@ class Program
 {
     static void Main(string[] args)
     {
-        List<int> f = new [|$$Foo|]();
+        List<int> f = new [|$$Goo|]();
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"using System.Collections.Generic;
 class Program
 {
     static void Main(string[] args)
     {
-        List<int> f = new Foo();
+        List<int> f = new Goo();
     }
 }
 
-class Foo : List<int>
+class Goo : List<int>
 {
 }",
 isNewFile: false);
@@ -256,7 +258,7 @@ initial: @"class Program
 {
     void Main()
     {
-        [|A.B.C.Foo$$|] f;
+        [|A.B.C.Goo$$|] f;
     }
 }
 namespace A
@@ -266,19 +268,19 @@ namespace A
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        A.B.C.Foo f;
+        A.B.C.Goo f;
     }
 }
 namespace A
 {
     namespace B.C
     {
-        public interface Foo
+        public interface Goo
         {
         }
     }
@@ -296,7 +298,7 @@ initial: @"class Program
 {
     void Main()
     {
-        [|A.B.C.Foo$$|] f;
+        [|A.B.C.Goo$$|] f;
     }
 }
 namespace A
@@ -306,19 +308,19 @@ namespace A
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        A.B.C.Foo f;
+        A.B.C.Goo f;
     }
 }
 namespace A
 {
     namespace B.C
     {
-        internal struct Foo
+        internal struct Goo
         {
         }
     }
@@ -336,7 +338,7 @@ initial: @"class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A
@@ -346,19 +348,19 @@ namespace A
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        A.B.Foo f;
+        A.B.Goo f;
     }
 }
 namespace A
 {
     namespace B
     {
-        enum Foo
+        enum Goo
         {
         }
     }
@@ -377,24 +379,24 @@ initial: @"class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"using ConsoleApplication;
 
 class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }
 
 namespace ConsoleApplication
 {
-    enum Foo
+    enum Goo
     {
     }
 }",
@@ -413,7 +415,7 @@ initial: @"class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A
@@ -423,19 +425,19 @@ namespace A
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     void Main()
     {
-        A.B.Foo f;
+        A.B.Goo f;
     }
 }
 namespace A
 {
     namespace B
     {
-        enum Foo
+        enum Goo
         {
         }
     }
@@ -460,7 +462,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -473,14 +475,13 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
@@ -499,7 +500,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                         <Document Folders= ""outer\inner"" FilePath=""Test2.cs"">
@@ -508,14 +509,13 @@ class Program
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace outer.inner
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using outer.inner;
@@ -524,7 +524,7 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
 accessibility: Accessibility.Public,
@@ -545,7 +545,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                         <Document FilePath=""Test2.cs"">
@@ -554,14 +554,13 @@ class Program
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace ConsoleApplication
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
@@ -571,7 +570,7 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
 accessibility: Accessibility.Public,
@@ -592,7 +591,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                         <Document Folders= ""outer\inner"" FilePath=""Test2.cs"">
@@ -601,14 +600,13 @@ class Program
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace ConsoleApplication.outer.inner
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
@@ -618,7 +616,7 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
 accessibility: Accessibility.Public,
@@ -639,7 +637,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -652,14 +650,13 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
@@ -680,7 +677,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -690,18 +687,17 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: Array.Empty<string>(),
+newFileFolderContainers: ImmutableArray<string>.Empty,
 newFileName: "Test2.cs");
         }
 
@@ -721,7 +717,7 @@ namespace outer
         {
             void Main()
             {
-                [|Foo$$|] f;
+                [|Goo$$|] f;
             }
         }
     }
@@ -730,19 +726,18 @@ namespace outer
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace outer.inner
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 newFileName: "Test2.cs");
         }
 
@@ -758,16 +753,16 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace outer.inner
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
@@ -779,14 +774,13 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 newFileName: "Test2.cs");
         }
 
@@ -802,7 +796,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -812,19 +806,18 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 newFileName: "Test2.cs");
         }
 
@@ -840,16 +833,16 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace ConsoleApplication.outer.inner
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
@@ -862,14 +855,13 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 newFileName: "Test2.cs");
         }
 
@@ -887,17 +879,17 @@ namespace ConsoleApplication.outer
     {
         void Main()
         {
-            [|Foo$$|] f;
+            [|Goo$$|] f;
         }
     }
 }</Document>
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace ConsoleApplication.outer
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
@@ -910,15 +902,14 @@ namespace ConsoleApplication.outer
     {
         void Main()
         {
-            Foo f;
+            Goo f;
         }
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: new string[] { "outer" },
+newFileFolderContainers: ImmutableArray.Create("outer"),
 newFileName: "Test2.cs");
         }
 
@@ -934,7 +925,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 
@@ -944,10 +935,10 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
@@ -958,18 +949,17 @@ class Program
 {
     void Main()
     {
-        A.B.Foo f;
+        A.B.Goo f;
     }
 }
 
 namespace A.B
 {
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: new string[] { "outer" },
+newFileFolderContainers: ImmutableArray.Create("outer"),
 newFileName: "Test2.cs");
         }
 
@@ -989,7 +979,7 @@ namespace outer
         {
             void Main()
             {
-                [|Foo$$|] f;
+                [|Goo$$|] f;
             }
         }
     }
@@ -997,15 +987,14 @@ namespace outer
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 defaultNamespace: "ConsoleApplication",
 expected: @"namespace ConsoleApplication
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using ConsoleApplication;
@@ -1018,7 +1007,7 @@ namespace outer
         {
             void Main()
             {
-                Foo f;
+                Goo f;
             }
         }
     }
@@ -1027,7 +1016,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 areFoldersValidIdentifiers: false,
-newFileFolderContainers: new string[] { "123", "456" },
+newFileFolderContainers: ImmutableArray.Create("123", "456"),
 newFileName: "Test2.cs");
         }
 
@@ -1047,7 +1036,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1061,14 +1050,13 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
@@ -1088,7 +1076,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1107,18 +1095,17 @@ namespace A
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"
 namespace A
 {
     namespace B
     {
-        public interface Foo
+        public interface Goo
         {
         }
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
@@ -1139,7 +1126,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                     </Project>
@@ -1154,7 +1141,7 @@ namespace A
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"
 namespace A
 {
@@ -1165,11 +1152,10 @@ namespace A
 
 namespace outer.inner
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using outer.inner;
@@ -1178,7 +1164,7 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
 accessibility: Accessibility.Public,
@@ -1201,7 +1187,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1213,19 +1199,18 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: Array.Empty<string>(),
+newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2");
         }
 
@@ -1241,7 +1226,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                     </Project>
@@ -1249,10 +1234,10 @@ class Program
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace outer.inner
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
@@ -1264,15 +1249,14 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
@@ -1288,7 +1272,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1300,20 +1284,19 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
@@ -1329,7 +1312,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                     </Project>
@@ -1337,10 +1320,10 @@ class Program
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace ConsoleApplication.outer.inner
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
@@ -1353,15 +1336,14 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
@@ -1377,7 +1359,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1389,21 +1371,20 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"namespace A.B
 {
-    public interface Foo
+    public interface Goo
     {
     }
 }",
-isLine: false,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
         #endregion
@@ -1420,7 +1401,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1432,18 +1413,17 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace Global.A.B
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: Array.Empty<string>(),
+newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2");
         }
 
@@ -1459,7 +1439,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                     </Project>
@@ -1467,13 +1447,12 @@ class Program
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace outer.inner
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using outer.inner;
@@ -1482,14 +1461,14 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
@@ -1505,7 +1484,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1517,19 +1496,18 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace Global.A.B
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
@@ -1545,7 +1523,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                     </Project>
@@ -1554,13 +1532,12 @@ class Program
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace outer.inner
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using BarBaz.outer.inner;
@@ -1569,14 +1546,14 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
@@ -1592,7 +1569,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1605,19 +1582,18 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace Global.A.B
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
@@ -1631,7 +1607,7 @@ initial: @"<Workspace>
                         <CompilationOptions RootNamespace=""BarBaz""/>
                         <Document FilePath=""Test2.vb"">
                         Namespace A.B
-                            Public Class Foo
+                            Public Class Goo
                             End Class
                         End Namespace
                         </Document>
@@ -1657,14 +1633,13 @@ expected: @"Namespace A.B
     End Class
 End Namespace
 ",
-isLine: false,
 defaultNamespace: "ConsoleApplication",
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test3.vb",
-newFileFolderContainers: new string[] { "outer", "inner" },
+newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
 projectName: "Assembly2");
         }
 
@@ -1680,7 +1655,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1692,18 +1667,17 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace Global.A.B
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: Array.Empty<string>(),
+newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2");
         }
 
@@ -1719,7 +1693,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1733,13 +1707,12 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace Global.A.B
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
@@ -1760,7 +1733,7 @@ class Program
 {
     void Main()
     {
-        [|Foo$$|] f;
+        [|Goo$$|] f;
     }
 }</Document>
                     </Project>
@@ -1770,13 +1743,12 @@ class Program
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace outer.inner
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 checkIfUsingsIncluded: true,
 expectedTextWithUsings: @"
 using outer.inner;
@@ -1785,7 +1757,7 @@ class Program
 {
     void Main()
     {
-        Foo f;
+        Goo f;
     }
 }",
 accessibility: Accessibility.Public,
@@ -1806,7 +1778,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1822,17 +1794,16 @@ End Namespace
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"
 Namespace A
 End Namespace
 
 Namespace Global.A.B
-    Public Class Foo
+    Public Class Goo
     End Class
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
@@ -1851,7 +1822,7 @@ class Program
 {
     void Main()
     {
-        [|A.B.Foo$$|] f;
+        [|A.B.Goo$$|] f;
     }
 }
 namespace A.B
@@ -1872,19 +1843,18 @@ End Namespace</Document>
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"
 Namespace Global
     Namespace A
         Namespace C
         End Namespace
         Namespace B
-            Public Class Foo
+            Public Class Goo
             End Class
         End Namespace
     End Namespace
 End Namespace",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
@@ -1905,7 +1875,7 @@ class Program
 {
     void Main()
     {
-        [|A.Foo$$|].Bar f;
+        [|A.Goo$$|].Bar f;
     }
 }
 namespace A
@@ -1917,18 +1887,17 @@ namespace A
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace Global.A
-    Public Module Foo
+    Public Module Goo
     End Module
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Module,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: Array.Empty<string>(),
+newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2",
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
         }
@@ -2084,7 +2053,7 @@ initial: @"class Program
 {
     static void Main(string[] args)
     {
-        var s = [|$$Foo<Bar>|].D;
+        var s = [|$$Goo<Bar>|].D;
     }
 }
 
@@ -2092,12 +2061,12 @@ class Bar
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     static void Main(string[] args)
     {
-        var s = Foo<Bar>.D;
+        var s = Goo<Bar>.D;
     }
 }
 
@@ -2105,7 +2074,7 @@ class Bar
 {
 }
 
-public class Foo<T>
+public class Goo<T>
 {
 }",
 accessibility: Accessibility.Public,
@@ -2123,7 +2092,7 @@ initial: @"class Program
 {
     static void Main(string[] args)
     {
-        [|$$Foo<Bar>|] baz;
+        [|$$Goo<Bar>|] baz;
     }
 }
 
@@ -2131,12 +2100,12 @@ internal class Bar
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"class Program
 {
     static void Main(string[] args)
     {
-        Foo<Bar> baz;
+        Goo<Bar> baz;
     }
 }
 
@@ -2144,7 +2113,7 @@ internal class Bar
 {
 }
 
-public class Foo<T>
+public class Goo<T>
 {
 }",
 accessibility: Accessibility.Public,
@@ -2162,11 +2131,11 @@ initial: @"class Program
 {
     static void Main(string[] args)
     {
-        var s = [|Foo.$$Bar|].Baz;
+        var s = [|Goo.$$Bar|].Baz;
     }
 }
 
-namespace Foo
+namespace Goo
 {
 }",
 languageName: LanguageNames.CSharp,
@@ -2175,11 +2144,11 @@ expected: @"class Program
 {
     static void Main(string[] args)
     {
-        var s = Foo.Bar.Baz;
+        var s = Goo.Bar.Baz;
     }
 }
 
-namespace Foo
+namespace Goo
 {
     public class Bar
     {
@@ -2284,9 +2253,9 @@ initial: @"class Program
 {
     static void Main(string[] args)
     {
-        var s2 = new [|$$MyD|](foo);
+        var s2 = new [|$$MyD|](goo);
     }
-    static void foo()
+    static void goo()
     {
     }
 }",
@@ -2296,9 +2265,9 @@ expected: @"class Program
 {
     static void Main(string[] args)
     {
-        var s2 = new MyD(foo);
+        var s2 = new MyD(goo);
     }
-    static void foo()
+    static void goo()
     {
     }
 }
@@ -2319,9 +2288,9 @@ initial: @"class Program
 {
     static void Main(string[] args)
     {
-        var s2 = new [|$$MyD|](foo);
+        var s2 = new [|$$MyD|](goo);
     }
-    static void foo<T>()
+    static void goo<T>()
     {
     }
 }",
@@ -2331,9 +2300,9 @@ expected: @"class Program
 {
     static void Main(string[] args)
     {
-        var s2 = new MyD(foo);
+        var s2 = new MyD(goo);
     }
-    static void foo<T>()
+    static void goo<T>()
     {
     }
 }
@@ -2541,9 +2510,9 @@ initial: @"class Program
 {
     static void Main(string[] args)
     {
-        [|$$MyD|] z1 = foo;
+        [|$$MyD|] z1 = goo;
     }
-    static void foo()
+    static void goo()
     {
     }
 }",
@@ -2553,9 +2522,9 @@ expected: @"class Program
 {
     static void Main(string[] args)
     {
-        MyD z1 = foo;
+        MyD z1 = goo;
     }
-    static void foo()
+    static void goo()
     {
     }
 }
@@ -2736,9 +2705,9 @@ initial: @"class Program
 {
     static void Main(string[] args)
     {
-        var zz1 = ([|$$MyD|])foo;
+        var zz1 = ([|$$MyD|])goo;
     }
-    static void foo()
+    static void goo()
     {
     }
 }",
@@ -2748,9 +2717,9 @@ expected: @"class Program
 {
     static void Main(string[] args)
     {
-        var zz1 = (MyD)foo;
+        var zz1 = (MyD)goo;
     }
-    static void foo()
+    static void goo()
     {
     }
 }
@@ -2934,7 +2903,7 @@ class Program
 {
     void Main()
     {
-        var f = ([|A.B.Foo$$|])Main;
+        var f = ([|A.B.Goo$$|])Main;
     }
 }
 namespace A.B
@@ -2946,17 +2915,16 @@ namespace A.B
                     </Project>
                 </Workspace>",
 languageName: LanguageNames.CSharp,
-typeName: "Foo",
+typeName: "Goo",
 expected: @"Namespace Global.A.B
-    Public Delegate Sub Foo()
+    Public Delegate Sub Goo()
 End Namespace
 ",
-isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: Array.Empty<string>(),
+newFileFolderContainers: ImmutableArray<string>.Empty,
 projectName: "Assembly2");
         }
 
@@ -3286,25 +3254,25 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 initial: @"
 class A
 {
-    event [|$$foo|] name1
+    event [|$$goo|] name1
     {
         add { }
         remove { }
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "goo",
 expected: @"
 class A
 {
-    event foo name1
+    event goo name1
     {
         add { }
         remove { }
     }
 }
 
-public delegate void foo();
+public delegate void goo();
 ",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3319,17 +3287,17 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 initial: @"
 class A
 {
-    public event [|$$foo|] name2;
+    public event [|$$goo|] name2;
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "goo",
 expected: @"
 class A
 {
-    public event foo name2;
+    public event goo name2;
 }
 
-public delegate void foo();
+public delegate void goo();
 ",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3344,18 +3312,18 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 initial: @"
 class A
 {
-    event [|NS.foo$$|] name1
+    event [|NS.goo$$|] name1
     {
         add { }
         remove { }
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "goo",
 expected: @"
 class A
 {
-    event NS.foo name1
+    event NS.goo name1
     {
         add { }
         remove { }
@@ -3364,7 +3332,7 @@ class A
 
 namespace NS
 {
-    public delegate void foo();
+    public delegate void goo();
 }",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3379,19 +3347,19 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 initial: @"
 class A
 {
-    public event [|NS.foo$$|] name2;
+    public event [|NS.goo$$|] name2;
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "goo",
 expected: @"
 class A
 {
-    public event NS.foo name2;
+    public event NS.goo name2;
 }
 
 namespace NS
 {
-    public delegate void foo();
+    public delegate void goo();
 }",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3406,7 +3374,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 initial: @"
 class A
 {
-    event [|$$NS.foo.Mydel|] name1
+    event [|$$NS.goo.Mydel|] name1
     {
         add { }
         remove { }
@@ -3417,11 +3385,11 @@ namespace NS
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "goo",
 expected: @"
 class A
 {
-    event NS.foo.Mydel name1
+    event NS.goo.Mydel name1
     {
         add { }
         remove { }
@@ -3430,7 +3398,7 @@ class A
 
 namespace NS
 {
-    public class foo
+    public class goo
     {
     }
 }",
@@ -3447,23 +3415,23 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 initial: @"
 class A
 {
-    public event [|$$NS.foo.Mydel|] name2;
+    public event [|$$NS.goo.Mydel|] name2;
 }
 
 namespace NS
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "goo",
 expected: @"
 class A
 {
-    public event NS.foo.Mydel name2;
+    public event NS.goo.Mydel name2;
 }
 
 namespace NS
 {
-    public class foo
+    public class goo
     {
     }
 }",
@@ -3480,25 +3448,25 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
 initial: @"
 public class A
 {
-    public event [|$$foo|] name1
+    public event [|$$goo|] name1
     {
         add { }
         remove { }
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "goo",
 expected: @"
 public class A
 {
-    public event foo name1
+    public event goo name1
     {
         add { }
         remove { }
     }
 }
 
-public delegate void foo();
+public delegate void goo();
 ",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
@@ -3515,7 +3483,7 @@ public class outer
 {
     public class A
     {
-        public event [|$$foo|] name1
+        public event [|$$goo|] name1
         {
             add { }
             remove { }
@@ -3523,13 +3491,13 @@ public class outer
     }
 }",
 languageName: LanguageNames.CSharp,
-typeName: "foo",
+typeName: "goo",
 expected: @"
 public class outer
 {
     public class A
     {
-        public event foo name1
+        public event goo name1
         {
             add { }
             remove { }
@@ -3537,7 +3505,7 @@ public class outer
     }
 }
 
-public delegate void foo();
+public delegate void goo();
 ",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,

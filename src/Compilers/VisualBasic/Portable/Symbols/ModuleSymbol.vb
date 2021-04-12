@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -10,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class ModuleSymbol
         Inherits Symbol
-        Implements IModuleSymbol
+        Implements IModuleSymbol, IModuleSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -126,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
         ''' 
-        ''' Otherwise, this returns <code>nothing</code>.
+        ''' Otherwise, this returns <see langword="Nothing"/>.
         ''' </summary>
         Public MustOverride Function GetMetadata() As ModuleMetadata Implements IModuleSymbol.GetMetadata
 
@@ -160,6 +163,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The array and its content is provided by ReferenceManager and must not be modified.
         ''' </summary>
         Friend MustOverride Function GetReferencedAssemblySymbols() As ImmutableArray(Of AssemblySymbol) ' TODO: Remove this method and make ReferencedAssemblySymbols property abstract instead.
+
+        Friend Function GetReferencedAssemblySymbol(referencedAssemblyIndex As Integer) As AssemblySymbol
+            Dim referencedAssemblies = GetReferencedAssemblySymbols()
+            If referencedAssemblyIndex < referencedAssemblies.Length Then
+                Return referencedAssemblies(referencedAssemblyIndex)
+            End If
+
+            ' This module must be a corlib where the original metadata contains assembly
+            ' references (see https://github.com/dotnet/roslyn/issues/13275).
+            Dim assembly = ContainingAssembly
+            If assembly IsNot assembly.CorLibrary Then
+                Throw New ArgumentOutOfRangeException(NameOf(referencedAssemblyIndex))
+            End If
+
+            Return Nothing
+        End Function
 
         ''' <summary>
         ''' A helper method for ReferenceManager to set assembly identities for assemblies

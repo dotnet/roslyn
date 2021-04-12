@@ -1,11 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,11 +22,12 @@ namespace Microsoft.CodeAnalysis.Simplification
     /// Expands and Reduces subtrees.
     /// 
     /// Expansion:
-    ///      1) Replaces names with fully qualified dotted names.
-    ///      2) Adds parentheses around expressions
-    ///      3) Adds explicit casts/conversions where implicit conversions exist
-    ///      4) Adds escaping to identifiers
-    ///      5) Rewrites extension method invocations with explicit calls on the class containing the extension method.
+    ///      1) Makes inferred names explicit (on anonymous types and tuples).
+    ///      2) Replaces names with fully qualified dotted names.
+    ///      3) Adds parentheses around expressions
+    ///      4) Adds explicit casts/conversions where implicit conversions exist
+    ///      5) Adds escaping to identifiers
+    ///      6) Rewrites extension method invocations with explicit calls on the class containing the extension method.
     ///      
     /// Reduction:
     ///     1) Shortens dotted names to their minimally qualified form
@@ -27,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     ///     3) Removes unnecessary casts/conversions
     ///     4) Removes unnecessary escaping
     ///     5) Rewrites explicit calls to extension methods to use dot notation
+    ///     6) Removes unnecessary tuple element names and anonymous type member names
     /// </summary>
     public static partial class Simplifier
     {
@@ -43,9 +52,15 @@ namespace Microsoft.CodeAnalysis.Simplification
         public static SyntaxAnnotation SpecialTypeAnnotation { get; } = new SyntaxAnnotation();
 
         /// <summary>
+        /// The annotation <see cref="CodeAction.CleanupDocumentAsync"/> used to identify sub trees to look for symbol annotations on.
+        /// It will then add import directives for these symbol annotations.
+        /// </summary>
+        public static SyntaxAnnotation AddImportsAnnotation { get; } = new SyntaxAnnotation();
+
+        /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static async Task<TNode> ExpandAsync<TNode>(TNode node, Document document, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default(CancellationToken)) where TNode : SyntaxNode
+        public static async Task<TNode> ExpandAsync<TNode>(TNode node, Document document, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             if (node == null)
             {
@@ -64,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default(CancellationToken)) where TNode : SyntaxNode
+        public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             if (node == null)
             {
@@ -90,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static async Task<SyntaxToken> ExpandAsync(SyntaxToken token, Document document, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<SyntaxToken> ExpandAsync(SyntaxToken token, Document document, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -104,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default)
         {
             if (semanticModel == null)
             {
@@ -123,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Reduce all sub-trees annotated with <see cref="Annotation" /> found within the document. The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static async Task<Document> ReduceAsync(Document document, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<Document> ReduceAsync(Document document, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -138,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the subtrees identified with the specified <paramref name="annotation"/>.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -158,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified span.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static Task<Document> ReduceAsync(Document document, TextSpan span, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<Document> ReduceAsync(Document document, TextSpan span, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -172,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -184,14 +199,17 @@ namespace Microsoft.CodeAnalysis.Simplification
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            return document.Project.LanguageServices.GetService<ISimplificationService>().ReduceAsync(document, spans, optionSet, cancellationToken: cancellationToken);
+            return document.GetLanguageService<ISimplificationService>().ReduceAsync(
+                document, spans.ToImmutableArrayOrEmpty(), optionSet, cancellationToken: cancellationToken);
         }
 
-        internal static async Task<Document> ReduceAsync(Document document, IEnumerable<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        internal static async Task<Document> ReduceAsync(
+            Document document, ImmutableArray<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return await document.Project.LanguageServices.GetService<ISimplificationService>()
-                .ReduceAsync(document, SpecializedCollections.SingletonEnumerable(root.FullSpan), optionSet, reducers, cancellationToken).ConfigureAwait(false);
+            return await document.GetLanguageService<ISimplificationService>()
+                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), optionSet,
+                             reducers, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -95,12 +97,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return Sub(value) codeElement.Type = value
         End Function
 
-        Protected Async Function TestIsConstant(code As XElement, expected As Boolean) As Task
-            Await TestElement(code,
+        Protected Sub TestIsConstant(code As XElement, expected As Boolean)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.IsConstant)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean) As Task
             Await TestSetIsConstant(code, expectedCode, value, NoThrow(Of Boolean)())
@@ -113,12 +115,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestInitExpression(code As XElement, expected As Object) As Task
-            Await TestElement(code,
+        Protected Sub TestInitExpression(code As XElement, expected As Object)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.InitExpression)
                 End Sub)
-        End Function
+        End Sub
 
         Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object) As Task
             Await TestSetInitExpression(code, expectedCode, value, NoThrow(Of Object)())

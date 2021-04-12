@@ -1,17 +1,12 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class CompletionListTagCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
-
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEditorBrowsable_EnumTypeDotMemberAlways() As Task
@@ -157,10 +152,10 @@ End Class
             Dim markup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim z = New Foo() With {.z$$ }
+        Dim z = New Goo() With {.z$$ }
     End Sub
 
-    Class Foo
+    Class Goo
         Property A As Integer
             Get
 
@@ -274,8 +269,8 @@ Class C
 
 End Class
 ]]></Text>.Value
-            Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.X", glyph:=CType(Glyph.EnumMember, Integer))
-            Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.Y", glyph:=CType(Glyph.EnumMember, Integer))
+            Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.X", glyph:=CType(Glyph.FieldPublic, Integer))
+            Await VerifyItemExistsAsync(markup, "ColorNamespace.Color.Y", glyph:=CType(Glyph.PropertyPublic, Integer))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -301,14 +296,14 @@ End Class
             Dim markup = <Text><![CDATA[
 ''' <completionlist cref="Program"/>
 Class Program
-    Public Shared Foo As Integer
+    Public Shared Goo As Integer
 
     Sub Main(args As String())
         Dim p As Program = New $$
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemIsAbsentAsync(markup, "Program.Foo")
+            Await VerifyItemIsAbsentAsync(markup, "Program.Goo")
         End Function
 
         <WorkItem(954694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954694")>
@@ -400,8 +395,28 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New CompletionListTagCompletionProvider()
+        <WorkItem(18787, "https://github.com/dotnet/roslyn/issues/18787")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotAfterDot() As Task
+            Dim markup = <Text><![CDATA[
+Public Class Program
+     Private Shared field1 As Integer
+ 
+    ''' <summary>
+    ''' </summary>
+    ''' <completionList cref="Program"></completionList>
+    Public Class Program2
+Public Async Function TestM() As Task
+            Dim obj As Program2 = Program.$$
+        End Sub
+    End Class
+End Class
+]]></Text>.Value
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(CompletionListTagCompletionProvider)
         End Function
     End Class
 End Namespace

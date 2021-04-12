@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -12,11 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
-        internal CSharpInteractiveCompiler(string responseFile, string baseDirectory, string sdkDirectoryOpt, string clientDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+        internal CSharpInteractiveCompiler(string responseFile, BuildPaths buildPaths, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
-            : base(CSharpCommandLineParser.ScriptRunner, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, null, analyzerLoader)
+            : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, null, analyzerLoader)
         {
         }
+
+        internal override Type Type => typeof(CSharpInteractiveCompiler);
 
         internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)
         {
@@ -25,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         public override void PrintLogo(TextWriter consoleOutput)
         {
-            var version = typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-            consoleOutput.WriteLine(CSharpScriptingResources.LogoLine1, version);
+            consoleOutput.WriteLine(CSharpScriptingResources.LogoLine1, GetCompilerVersion());
             consoleOutput.WriteLine(CSharpScriptingResources.LogoLine2);
             consoleOutput.WriteLine();
         }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -46,66 +50,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Retrieves anonymous type properties types
         /// </summary>
-        internal static ImmutableArray<TypeSymbol> GetAnonymousTypePropertyTypes(NamedTypeSymbol type)
+        internal static ImmutableArray<TypeWithAnnotations> GetAnonymousTypePropertyTypesWithAnnotations(NamedTypeSymbol type)
         {
             Debug.Assert(type.IsAnonymousType);
             var anonymous = (AnonymousTypePublicSymbol)type;
             var fields = anonymous.TypeDescriptor.Fields;
-            TypeSymbol[] types = new TypeSymbol[fields.Length];
-            for (int i = 0; i < fields.Length; i++)
-            {
-                types[i] = fields[i].Type;
-            }
-            return types.AsImmutableOrNull();
+            return fields.SelectAsArray(f => f.TypeWithAnnotations);
         }
 
         /// <summary>
         /// Given an anonymous type and new field types construct a new anonymous type symbol; 
         /// a new type symbol will reuse type descriptor from the constructed type with new type arguments.
         /// </summary>
-        public static NamedTypeSymbol ConstructAnonymousTypeSymbol(NamedTypeSymbol type, ImmutableArray<TypeSymbol> newFieldTypes)
+        public static NamedTypeSymbol ConstructAnonymousTypeSymbol(NamedTypeSymbol type, ImmutableArray<TypeWithAnnotations> newFieldTypes)
         {
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(type.IsAnonymousType);
 
             var anonymous = (AnonymousTypePublicSymbol)type;
             return anonymous.Manager.ConstructAnonymousTypeSymbol(anonymous.TypeDescriptor.WithNewFieldsTypes(newFieldTypes));
-        }
-
-        /// <summary>
-        /// Logical equality on anonymous types that ignores custom modifiers and/or the object/dynamic distinction.
-        /// Differs from IsSameType for arrays, pointers, and generic instantiations.
-        /// </summary>
-        internal static bool IsSameType(TypeSymbol type1, TypeSymbol type2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
-        {
-            Debug.Assert(type1.IsAnonymousType);
-            Debug.Assert(type2.IsAnonymousType);
-
-            if (ignoreCustomModifiersAndArraySizesAndLowerBounds || ignoreDynamic)
-            {
-                AnonymousTypeDescriptor left = ((AnonymousTypePublicSymbol)type1).TypeDescriptor;
-                AnonymousTypeDescriptor right = ((AnonymousTypePublicSymbol)type2).TypeDescriptor;
-
-                if (left.Key != right.Key)
-                {
-                    return false;
-                }
-
-                int count = left.Fields.Length;
-                Debug.Assert(right.Fields.Length == count);
-                for (int i = 0; i < count; i++)
-                {
-                    if (!left.Fields[i].Type.Equals(right.Fields[i].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            else
-            {
-                return type1 == type2;
-            }
         }
     }
 }

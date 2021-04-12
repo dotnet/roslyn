@@ -1,8 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
@@ -23,9 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected override object GetExtenderNames()
-        {
-            return CodeModelService.GetExternalTypeExtenderNames();
-        }
+            => CodeModelService.GetExternalTypeExtenderNames();
 
         protected override object GetExtender(string name)
         {
@@ -42,8 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
 
             var compilation = GetCompilation();
-            var metadataReference = compilation.GetMetadataReference(assembly) as PortableExecutableReference;
-            if (metadataReference == null)
+            if (!(compilation.GetMetadataReference(assembly) is PortableExecutableReference metadataReference))
             {
                 return string.Empty;
             }
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                var builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
+                var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
 
                 var typeSymbol = TypeSymbol;
                 if (typeSymbol.TypeKind == TypeKind.Interface)
@@ -67,7 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                     builder.Add(typeSymbol.BaseType);
                 }
 
-                return ExternalTypeCollection.Create(this.State, this, this.ProjectId, builder.ToImmutable());
+                return ExternalTypeCollection.Create(this.State, this, this.ProjectId,
+                    builder.ToImmutableAndFree());
             }
         }
 
@@ -124,18 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         public EnvDTE.CodeElement AddBase(object @base, object position)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public void RemoveBase(object element)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public void RemoveMember(object element)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
     }
 }

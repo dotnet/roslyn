@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         /// </summary>
         private static class PragmaHelpers
         {
-            internal async static Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
+            internal static async Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
                 Document document,
                 TextSpan diagnosticSpan,
                 SuppressionTargetInfo suppressionTargetInfo,
-                Func<SyntaxToken, TextSpan, Task<SyntaxToken>> getNewStartToken,
-                Func<SyntaxToken, TextSpan, Task<SyntaxToken>> getNewEndToken,
+                Func<SyntaxToken, TextSpan, SyntaxToken> getNewStartToken,
+                Func<SyntaxToken, TextSpan, SyntaxToken> getNewEndToken,
                 CancellationToken cancellationToken)
             {
                 var startToken = suppressionTargetInfo.StartToken;
@@ -32,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var root = await nodeWithTokens.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var startAndEndTokenAreTheSame = startToken == endToken;
-                SyntaxToken newStartToken = await getNewStartToken(startToken, diagnosticSpan).ConfigureAwait(false);
+                var newStartToken = getNewStartToken(startToken, diagnosticSpan);
 
-                SyntaxToken newEndToken = endToken;
+                var newEndToken = endToken;
                 if (startAndEndTokenAreTheSame)
                 {
                     var annotation = new SyntaxAnnotation();
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     diagnosticSpan = new TextSpan(diagnosticSpan.Start + spanChange, diagnosticSpan.Length);
                 }
 
-                newEndToken = await getNewEndToken(newEndToken, diagnosticSpan).ConfigureAwait(false);
+                newEndToken = getNewEndToken(newEndToken, diagnosticSpan);
 
                 SyntaxNode newNode;
                 if (startAndEndTokenAreTheSame)
@@ -64,8 +67,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 // Start token: Insert the #pragma disable directive just **before** the first end of line trivia prior to diagnostic location.
                 // End token: Insert the #pragma disable directive just **after** the first end of line trivia after diagnostic location.
 
-                Func<int, int> getNextIndex = cur => isStartToken ? cur - 1 : cur + 1;
-                Func<SyntaxTrivia, bool> shouldConsiderTrivia = trivia =>
+                int getNextIndex(int cur) => isStartToken ? cur - 1 : cur + 1;
+                bool shouldConsiderTrivia(SyntaxTrivia trivia) =>
                     isStartToken ?
                     trivia.FullSpan.End <= currentDiagnosticSpan.Start :
                     trivia.FullSpan.Start >= currentDiagnosticSpan.End;
@@ -91,22 +94,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 triviaAtIndex = index >= 0 && index < triviaList.Length ?
                     triviaList[index] :
-                    default(SyntaxTrivia);
+                    default;
 
                 return index;
             }
 
-            internal static async Task<SyntaxToken> GetNewStartTokenWithAddedPragmaAsync(
+            internal static SyntaxToken GetNewStartTokenWithAddedPragma(
                 SyntaxToken startToken,
                 TextSpan currentDiagnosticSpan,
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
-                Func<SyntaxNode, Task<SyntaxNode>> formatNode,
+                Func<SyntaxNode, SyntaxNode> formatNode,
                 bool isRemoveSuppression = false)
             {
                 var trivia = startToken.LeadingTrivia.ToImmutableArray();
-                SyntaxTrivia insertAfterTrivia;
-                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: true, triviaAtIndex: out insertAfterTrivia);
+                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: true, triviaAtIndex: out var insertAfterTrivia);
                 index++;
 
                 bool needsLeadingEOL;
@@ -124,8 +126,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 var pragmaTrivia = !isRemoveSuppression
-                    ? await fixer.CreatePragmaDisableDirectiveTriviaAsync(diagnostic, formatNode, needsLeadingEOL, needsTrailingEndOfLine: true).ConfigureAwait(false)
-                    : await fixer.CreatePragmaRestoreDirectiveTriviaAsync(diagnostic, formatNode, needsLeadingEOL, needsTrailingEndOfLine: true).ConfigureAwait(false);
+                    ? fixer.CreatePragmaDisableDirectiveTrivia(diagnostic, formatNode, needsLeadingEOL, needsTrailingEndOfLine: true)
+                    : fixer.CreatePragmaRestoreDirectiveTrivia(diagnostic, formatNode, needsLeadingEOL, needsTrailingEndOfLine: true);
 
                 return startToken.WithLeadingTrivia(trivia.InsertRange(index, pragmaTrivia));
             }
@@ -148,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     (trivia.HasStructure && trivia.GetStructure().DescendantTrivia().Any(t => fixer.IsEndOfLine(t)));
             }
 
-            internal static async Task<SyntaxToken> GetNewEndTokenWithAddedPragmaAsync(
+            internal static SyntaxToken GetNewEndTokenWithAddedPragma(
                 SyntaxToken endToken,
                 TextSpan currentDiagnosticSpan,
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
-                Func<SyntaxNode, Task<SyntaxNode>> formatNode,
+                Func<SyntaxNode, SyntaxNode> formatNode,
                 bool isRemoveSuppression = false)
             {
                 ImmutableArray<SyntaxTrivia> trivia;
@@ -167,8 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     trivia = endToken.TrailingTrivia.ToImmutableArray();
                 }
 
-                SyntaxTrivia insertBeforeTrivia;
-                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: false, triviaAtIndex: out insertBeforeTrivia);
+                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: false, triviaAtIndex: out var insertBeforeTrivia);
 
                 bool needsTrailingEOL;
                 if (index < trivia.Length)
@@ -185,8 +186,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 var pragmaTrivia = !isRemoveSuppression
-                    ? await fixer.CreatePragmaRestoreDirectiveTriviaAsync(diagnostic, formatNode, needsLeadingEndOfLine: true, needsTrailingEndOfLine: needsTrailingEOL).ConfigureAwait(false)
-                    : await fixer.CreatePragmaDisableDirectiveTriviaAsync(diagnostic, formatNode, needsLeadingEndOfLine: true, needsTrailingEndOfLine: needsTrailingEOL).ConfigureAwait(false);
+                    ? fixer.CreatePragmaRestoreDirectiveTrivia(diagnostic, formatNode, needsLeadingEndOfLine: true, needsTrailingEndOfLine: needsTrailingEOL)
+                    : fixer.CreatePragmaDisableDirectiveTrivia(diagnostic, formatNode, needsLeadingEndOfLine: true, needsTrailingEndOfLine: needsTrailingEOL);
 
                 if (isEOF)
                 {
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 else
                 {
                     return endToken.WithTrailingTrivia(trivia.InsertRange(index, pragmaTrivia));
-                };
+                }
             }
 
             internal static void NormalizeTriviaOnTokens(AbstractSuppressionCodeFixProvider fixer, ref Document document, ref SuppressionTargetInfo suppressionTargetInfo)
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var isEndTokenEOF = fixer.IsEndOfFileToken(endToken);
 
                 var previousOfStart = startToken.GetPreviousToken(includeZeroWidth: true);
-                var nextOfEnd = !isEndTokenEOF ? endToken.GetNextToken(includeZeroWidth: true) : default(SyntaxToken);
+                var nextOfEnd = !isEndTokenEOF ? endToken.GetNextToken(includeZeroWidth: true) : default;
                 if (!previousOfStart.HasTrailingTrivia && !nextOfEnd.HasLeadingTrivia)
                 {
                     return;
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var currentEndToken = endToken;
                 var newStartToken = startToken.WithLeadingTrivia(previousOfStart.TrailingTrivia.Concat(startToken.LeadingTrivia));
 
-                SyntaxToken newEndToken = currentEndToken;
+                var newEndToken = currentEndToken;
                 if (startAndEndTokensAreSame)
                 {
                     newEndToken = newStartToken;

@@ -1,17 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Test.Utilities;
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CrefParsingTests : ParsingTests
     {
+        public CrefParsingTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             throw new NotSupportedException();
@@ -1474,9 +1479,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingNode("2");
 
-            N(SyntaxKind.NameMemberCref);
+            M(SyntaxKind.NameMemberCref);
             {
-                N(SyntaxKind.IdentifierName);
+                M(SyntaxKind.IdentifierName);
                 {
                     M(SyntaxKind.IdentifierToken);
                 }

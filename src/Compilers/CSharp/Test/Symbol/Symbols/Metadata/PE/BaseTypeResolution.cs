@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +15,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using CSReferenceManager = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ReferenceManager;
 using System.Reflection.Metadata;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -19,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
 
             TestBaseTypeResolutionHelper1(assembly);
 
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.MDTestLib1,
                 TestReferences.SymbolsTests.MDTestLib2,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             TestBaseTypeResolutionHelper2(assemblies);
@@ -57,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var collections = ((NamespaceSymbol)sys[0]).GetMembers("Collections");
             var generic = ((NamespaceSymbol)collections[0]).GetMembers("Generic");
             var dictionary = ((NamespaceSymbol)generic[0]).GetMembers("Dictionary");
-            var @base = ((NamedTypeSymbol)dictionary[0]).BaseType;
+            var @base = ((NamedTypeSymbol)dictionary[0]).BaseType();
 
             AssertBaseType(@base, "System.Object");
-            Assert.Null(@base.BaseType);
+            Assert.Null(@base.BaseType());
 
             var concurrent = ((NamespaceSymbol)collections[0]).GetMembers("Concurrent");
 
@@ -71,17 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 var t = p as NamedTypeSymbol;
 
-                if (t != null && t.Arity == 1)
+                if ((object)t != null && t.Arity == 1)
                 {
                     orderablePartitioner = t;
                     break;
                 }
             }
 
-            @base = orderablePartitioner.BaseType;
+            @base = orderablePartitioner.BaseType();
 
             AssertBaseType(@base, "System.Collections.Concurrent.Partitioner<TSource>");
-            Assert.Same(((NamedTypeSymbol)@base).TypeArguments[0], orderablePartitioner.TypeParameters[0]);
+            Assert.Same(((NamedTypeSymbol)@base).TypeArguments()[0], orderablePartitioner.TypeParameters[0]);
 
             var partitioners = ((NamespaceSymbol)concurrent[0]).GetMembers("Partitioner");
             NamedTypeSymbol partitioner = null;
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 var t = p as NamedTypeSymbol;
 
-                if (t != null && t.Arity == 0)
+                if ((object)t != null && t.Arity == 0)
                 {
                     partitioner = t;
                     break;
@@ -109,13 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var varTC3 = module1.GlobalNamespace.GetTypeMembers("TC3").Single();
             var varTC4 = module1.GlobalNamespace.GetTypeMembers("TC4").Single();
 
-            AssertBaseType(varTC2.BaseType, "C1<TC2_T1>.C2<TC2_T2>");
-            AssertBaseType(varTC3.BaseType, "C1<TC3_T1>.C3");
-            AssertBaseType(varTC4.BaseType, "C1<TC4_T1>.C3.C4<TC4_T2>");
+            AssertBaseType(varTC2.BaseType(), "C1<TC2_T1>.C2<TC2_T2>");
+            AssertBaseType(varTC3.BaseType(), "C1<TC3_T1>.C3");
+            AssertBaseType(varTC4.BaseType(), "C1<TC4_T1>.C3.C4<TC4_T2>");
 
             var varC1 = module1.GlobalNamespace.GetTypeMembers("C1").Single();
-            AssertBaseType(varC1.BaseType, "System.Object");
-            Assert.Equal(0, varC1.Interfaces.Length);
+            AssertBaseType(varC1.BaseType(), "System.Object");
+            Assert.Equal(0, varC1.Interfaces().Length);
 
             var varTC5 = module2.GlobalNamespace.GetTypeMembers("TC5").Single();
             var varTC6 = module2.GlobalNamespace.GetTypeMembers("TC6").Single();
@@ -123,33 +128,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var varTC8 = module2.GlobalNamespace.GetTypeMembers("TC8").Single();
             var varTC9 = varTC6.GetTypeMembers("TC9").Single();
 
-            AssertBaseType(varTC5.BaseType, "C1<TC5_T1>.C2<TC5_T2>");
-            AssertBaseType(varTC6.BaseType, "C1<TC6_T1>.C3");
-            AssertBaseType(varTC7.BaseType, "C1<TC7_T1>.C3.C4<TC7_T2>");
-            AssertBaseType(varTC8.BaseType, "C1<System.Type>");
-            AssertBaseType(varTC9.BaseType, "TC6<TC6_T1>");
+            AssertBaseType(varTC5.BaseType(), "C1<TC5_T1>.C2<TC5_T2>");
+            AssertBaseType(varTC6.BaseType(), "C1<TC6_T1>.C3");
+            AssertBaseType(varTC7.BaseType(), "C1<TC7_T1>.C3.C4<TC7_T2>");
+            AssertBaseType(varTC8.BaseType(), "C1<System.Type>");
+            AssertBaseType(varTC9.BaseType(), "TC6<TC6_T1>");
 
             var varCorTypes = module2.GlobalNamespace.GetMembers("CorTypes").OfType<NamespaceSymbol>().Single();
 
             var varCorTypes_Derived = varCorTypes.GetTypeMembers("Derived").Single();
-            AssertBaseType(varCorTypes_Derived.BaseType,
+            AssertBaseType(varCorTypes_Derived.BaseType(),
                            "CorTypes.NS.Base<System.Boolean, System.SByte, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Single, System.Double, System.Char, System.String, System.IntPtr, System.UIntPtr, System.Object>");
 
             var varCorTypes_Derived1 = varCorTypes.GetTypeMembers("Derived1").Single();
-            AssertBaseType(varCorTypes_Derived1.BaseType,
+            AssertBaseType(varCorTypes_Derived1.BaseType(),
                            "CorTypes.Base<System.Int32[], System.Double[,]>");
 
             var varI101 = module1.GlobalNamespace.GetTypeMembers("I101").Single();
             var varI102 = module1.GlobalNamespace.GetTypeMembers("I102").Single();
 
             var varC203 = module1.GlobalNamespace.GetTypeMembers("C203").Single();
-            Assert.Equal(1, varC203.Interfaces.Length);
-            Assert.Same(varI101, varC203.Interfaces[0]);
+            Assert.Equal(1, varC203.Interfaces().Length);
+            Assert.Same(varI101, varC203.Interfaces()[0]);
 
             var varC204 = module1.GlobalNamespace.GetTypeMembers("C204").Single();
-            Assert.Equal(2, varC204.Interfaces.Length);
-            Assert.Same(varI101, varC204.Interfaces[0]);
-            Assert.Same(varI102, varC204.Interfaces[1]);
+            Assert.Equal(2, varC204.Interfaces().Length);
+            Assert.Same(varI101, varC204.Interfaces()[0]);
+            Assert.Same(varI102, varC204.Interfaces()[1]);
         }
 
         private void TestBaseTypeResolutionHelper3(AssemblySymbol[] assemblies)
@@ -160,12 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var varCorTypes = module2.GlobalNamespace.GetMembers("CorTypes").OfType<NamespaceSymbol>().Single();
 
             var varCorTypes_Derived = varCorTypes.GetTypeMembers("Derived").Single();
-            AssertBaseType(varCorTypes_Derived.BaseType,
+            AssertBaseType(varCorTypes_Derived.BaseType(),
                            "CorTypes.NS.Base<System.Boolean,System.SByte,System.Byte,System.Int16,System.UInt16,System.Int32,System.UInt32,System.Int64,System.UInt64,System.Single,System.Double,System.Char,System.String,System.IntPtr,System.UIntPtr,System.Object>");
 
-            foreach (var arg in varCorTypes_Derived.BaseType.TypeArguments)
+            foreach (var arg in varCorTypes_Derived.BaseType().TypeArguments())
             {
-                Assert.IsType<MissingMetadataTypeSymbol>(arg);
+                Assert.IsAssignableFrom<MissingMetadataTypeSymbol>(arg);
             }
         }
 
@@ -177,13 +182,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var module0 = assemblies[1].Modules[0];
 
             var derived1 = module0.GlobalNamespace.GetTypeMembers("Derived1").Single();
-            var base1 = derived1.BaseType;
+            var base1 = derived1.BaseType();
 
             var derived2 = module0.GlobalNamespace.GetTypeMembers("Derived2").Single();
-            var base2 = derived2.BaseType;
+            var base2 = derived2.BaseType();
 
             var derived3 = module0.GlobalNamespace.GetTypeMembers("Derived3").Single();
-            var base3 = derived3.BaseType;
+            var base3 = derived3.BaseType();
 
             AssertBaseType(base1, "Class1");
             AssertBaseType(base2, "Class2");
@@ -217,49 +222,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var bases = new HashSet<NamedTypeSymbol>();
 
             var localTC1 = module0.GlobalNamespace.GetTypeMembers("TC1").Single();
-            var base1 = localTC1.BaseType;
+            var base1 = localTC1.BaseType();
             bases.Add(base1);
             Assert.NotEqual(SymbolKind.ErrorType, base1.Kind);
             Assert.Equal("SomeName.Dummy", base1.ToTestDisplayString());
 
             var localTC2 = module0.GlobalNamespace.GetTypeMembers("TC2").Single();
-            var base2 = localTC2.BaseType;
+            var base2 = localTC2.BaseType();
             bases.Add(base2);
             Assert.NotEqual(SymbolKind.ErrorType, base2.Kind);
             Assert.Equal("somEnamE", base2.ToTestDisplayString());
 
             var localTC3 = module0.GlobalNamespace.GetTypeMembers("TC3").Single();
-            var base3 = localTC3.BaseType;
+            var base3 = localTC3.BaseType();
             bases.Add(base3);
             Assert.NotEqual(SymbolKind.ErrorType, base3.Kind);
             Assert.Equal("somEnamE1", base3.ToTestDisplayString());
 
             var localTC4 = module0.GlobalNamespace.GetTypeMembers("TC4").Single();
-            var base4 = localTC4.BaseType;
+            var base4 = localTC4.BaseType();
             bases.Add(base4);
             Assert.NotEqual(SymbolKind.ErrorType, base4.Kind);
             Assert.Equal("SomeName1", base4.ToTestDisplayString());
 
             var localTC5 = module0.GlobalNamespace.GetTypeMembers("TC5").Single();
-            var base5 = localTC5.BaseType;
+            var base5 = localTC5.BaseType();
             bases.Add(base5);
             Assert.NotEqual(SymbolKind.ErrorType, base5.Kind);
             Assert.Equal("somEnamE2.OtherName", base5.ToTestDisplayString());
 
             var localTC6 = module0.GlobalNamespace.GetTypeMembers("TC6").Single();
-            var base6 = localTC6.BaseType;
+            var base6 = localTC6.BaseType();
             bases.Add(base6);
             Assert.NotEqual(SymbolKind.ErrorType, base6.Kind);
             Assert.Equal("SomeName2.OtherName", base6.ToTestDisplayString());
 
             var localTC7 = module0.GlobalNamespace.GetTypeMembers("TC7").Single();
-            var base7 = localTC7.BaseType;
+            var base7 = localTC7.BaseType();
             bases.Add(base7);
             Assert.NotEqual(SymbolKind.ErrorType, base7.Kind);
             Assert.Equal("NestingClass.somEnamE3", base7.ToTestDisplayString());
 
             var localTC8 = module0.GlobalNamespace.GetTypeMembers("TC8").Single();
-            var base8 = localTC8.BaseType;
+            var base8 = localTC8.BaseType();
             bases.Add(base8);
             Assert.NotEqual(SymbolKind.ErrorType, base8.Kind);
             Assert.Equal("NestingClass.SomeName3", base8.ToTestDisplayString());
@@ -301,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test3()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var mscorlibRef = Net40.mscorlib;
 
             var c1 = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
 
@@ -329,18 +334,18 @@ class Test2 : M4
             var crossRefModule2 = TestReferences.SymbolsTests.netModule.CrossRefModule2;
             var crossRefLib = TestReferences.SymbolsTests.netModule.CrossRefLib;
 
-            var compilation1 = CreateCompilationWithMscorlib(compilationDef1, new MetadataReference[] { crossRefLib }, TestOptions.ReleaseDll);
+            var compilation1 = CreateCompilation(compilationDef1, new MetadataReference[] { crossRefLib }, TestOptions.ReleaseDll);
 
             compilation1.VerifyDiagnostics();
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
             var test2 = compilation1.GetTypeByMetadataName("Test2");
 
-            Assert.False(test1.BaseType.IsErrorType());
-            Assert.False(test1.BaseType.BaseType.IsErrorType());
-            Assert.False(test2.BaseType.IsErrorType());
-            Assert.False(test2.BaseType.BaseType.IsErrorType());
-            Assert.False(test2.BaseType.BaseType.BaseType.IsErrorType());
+            Assert.False(test1.BaseType().IsErrorType());
+            Assert.False(test1.BaseType().BaseType().IsErrorType());
+            Assert.False(test2.BaseType().IsErrorType());
+            Assert.False(test2.BaseType().BaseType().IsErrorType());
+            Assert.False(test2.BaseType().BaseType().BaseType().IsErrorType());
 
             var compilationDef2 = @"
 public class M3 : M1
@@ -349,26 +354,26 @@ public class M3 : M1
 public class M4 : M2
 {}
 ";
-            var compilation2 = CreateCompilationWithMscorlib(compilationDef2, new MetadataReference[] { crossRefModule1, crossRefModule2 }, TestOptions.ReleaseDll);
+            var compilation2 = CreateCompilation(compilationDef2, new MetadataReference[] { crossRefModule1, crossRefModule2 }, TestOptions.ReleaseDll);
 
             compilation2.VerifyDiagnostics();
 
             var m3 = compilation2.GetTypeByMetadataName("M3");
             var m4 = compilation2.GetTypeByMetadataName("M4");
 
-            Assert.False(m3.BaseType.IsErrorType());
-            Assert.False(m3.BaseType.BaseType.IsErrorType());
-            Assert.False(m4.BaseType.IsErrorType());
-            Assert.False(m4.BaseType.BaseType.IsErrorType());
+            Assert.False(m3.BaseType().IsErrorType());
+            Assert.False(m3.BaseType().BaseType().IsErrorType());
+            Assert.False(m4.BaseType().IsErrorType());
+            Assert.False(m4.BaseType().BaseType().IsErrorType());
 
-            var compilation3 = CreateCompilationWithMscorlib(compilationDef2, new MetadataReference[] { crossRefModule2 }, TestOptions.ReleaseDll);
+            var compilation3 = CreateCompilation(compilationDef2, new MetadataReference[] { crossRefModule2 }, TestOptions.ReleaseDll);
 
             m3 = compilation3.GetTypeByMetadataName("M3");
             m4 = compilation3.GetTypeByMetadataName("M4");
 
-            Assert.True(m3.BaseType.IsErrorType());
-            Assert.False(m4.BaseType.IsErrorType());
-            Assert.True(m4.BaseType.BaseType.IsErrorType());
+            Assert.True(m3.BaseType().IsErrorType());
+            Assert.False(m4.BaseType().IsErrorType());
+            Assert.True(m4.BaseType().BaseType().IsErrorType());
 
             // Expected:
             //error CS0246: The type or namespace name 'M1' could not be found (are you missing a using directive or an

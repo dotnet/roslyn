@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -45,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            protected abstract Cci.IMetadataConstant GetCompileTimeValue(EmitContext context);
+            protected abstract MetadataConstant GetCompileTimeValue(EmitContext context);
             protected abstract bool IsCompileTimeConstant { get; }
             protected abstract bool IsNotSerialized { get; }
             protected abstract bool IsReadOnly { get; }
@@ -59,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract Cci.TypeMemberVisibility Visibility { get; }
             protected abstract string Name { get; }
 
-            Cci.IMetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
+            MetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
             {
                 return GetCompileTimeValue(context);
             }

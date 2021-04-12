@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -6,6 +8,7 @@ Imports System.Collections.ObjectModel
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -117,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Public Overloads Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            Return GetTypeMembers(name).WhereAsArray(Function(type) type.Arity = arity)
+            Return GetTypeMembers(name).WhereAsArray(Function(type, arity_) type.Arity = arity_, arity)
         End Function
 
         Public NotOverridable Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -162,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' A sequence with information about namespaces immediately contained within this namespace.
             ' For each pair:
             '    Key - contains simple name of a child namespace.
-            '    Value – contains a sequence similar to the one passed to this function, but
+            '    Value - contains a sequence similar to the one passed to this function, but
             '            calculated for the child namespace. 
             Dim nestedNamespaces As IEnumerable(Of KeyValuePair(Of String, IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)))) = Nothing
 
@@ -189,13 +192,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         )
             If m_lazyMembers Is Nothing Then
 
-                Dim namespaces = (From child In childNamespaces
-                                  Select New PENestedNamespaceSymbol(child.Key, Me, child.Value))
-
                 Dim members As New Dictionary(Of String, ImmutableArray(Of Symbol))(CaseInsensitiveComparison.Comparer)
 
                 ' Add namespaces
-                For Each ns In namespaces
+                For Each child In childNamespaces
+                    Dim ns = New PENestedNamespaceSymbol(child.Key, Me, child.Value)
                     members.Add(ns.Name, ImmutableArray.Create(Of Symbol)(ns))
                 Next
 

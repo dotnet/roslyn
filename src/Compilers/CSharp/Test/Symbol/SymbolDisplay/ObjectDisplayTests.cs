@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -275,41 +279,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact, WorkItem(529850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529850")]
         public void CultureInvariance()
         {
-            var originalCulture = Thread.CurrentThread.CurrentCulture;
-            try
+            using (new CultureContext(new CultureInfo("de-DE", useUserOverride: false)))
             {
-                Thread.CurrentThread.CurrentCulture = new CultureInfo(1031); // de-DE
-
                 var decimalValue = new Decimal(12.5);
                 Assert.Equal("12,5", decimalValue.ToString());
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None));
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture));
-                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None, Thread.CurrentThread.CurrentCulture));
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None, CultureInfo.CurrentCulture));
                 Assert.Equal("12.5M", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.IncludeTypeSuffix));
 
                 double doubleValue = 12.5;
                 Assert.Equal("12,5", doubleValue.ToString());
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None));
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture));
-                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None, Thread.CurrentThread.CurrentCulture));
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None, CultureInfo.CurrentCulture));
                 Assert.Equal("12.5D", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.IncludeTypeSuffix));
 
                 float singleValue = 12.5F;
                 Assert.Equal("12,5", singleValue.ToString());
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None));
                 Assert.Equal("12.5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture));
-                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None, Thread.CurrentThread.CurrentCulture));
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None, CultureInfo.CurrentCulture));
                 Assert.Equal("12.5F", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.IncludeTypeSuffix));
 
                 int intValue = 12;
                 Assert.Equal("12", intValue.ToString());
                 Assert.Equal("12", ObjectDisplay.FormatLiteral(intValue, ObjectDisplayOptions.None));
                 Assert.Equal("12", ObjectDisplay.FormatLiteral(intValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture));
-                Assert.Equal("12", ObjectDisplay.FormatLiteral(intValue, ObjectDisplayOptions.None, Thread.CurrentThread.CurrentCulture));
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentCulture = originalCulture;
+                Assert.Equal("12", ObjectDisplay.FormatLiteral(intValue, ObjectDisplayOptions.None, CultureInfo.CurrentCulture));
             }
         }
 

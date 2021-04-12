@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -8,14 +11,18 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Immutable representation of a line number and position within a SourceText instance.
     /// </summary>
-    public struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
+    [DataContract]
+    public readonly struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
     {
         /// <summary>
         /// A <see cref="LinePosition"/> that represents position 0 at line 0.
         /// </summary>
         public static LinePosition Zero => default(LinePosition);
 
+        [DataMember(Order = 0)]
         private readonly int _line;
+
+        [DataMember(Order = 1)]
         private readonly int _character;
 
         /// <summary>
@@ -104,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Determines whether two <see cref="LinePosition"/> are the same.
         /// </summary>
         /// <param name="obj">The object to compare.</param>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is LinePosition && Equals((LinePosition)obj);
         }

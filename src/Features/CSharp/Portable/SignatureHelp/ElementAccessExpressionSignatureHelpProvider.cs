@@ -1,7 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -21,45 +27,41 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("ElementAccessExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
-        public override bool IsTriggerCharacter(char ch)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ElementAccessExpressionSignatureHelpProvider()
         {
-            return IsTriggerCharacterInternal(ch);
         }
+
+        public override bool IsTriggerCharacter(char ch)
+            => IsTriggerCharacterInternal(ch);
 
         private static bool IsTriggerCharacterInternal(char ch)
-        {
-            return ch == '[' || ch == ',';
-        }
+            => ch == '[' || ch == ',';
 
         public override bool IsRetriggerCharacter(char ch)
-        {
-            return ch == ']';
-        }
+            => ch == ']';
 
-        private static bool TryGetElementAccessExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out ExpressionSyntax identifier, out SyntaxToken openBrace)
+        private static bool TryGetElementAccessExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, [NotNullWhen(true)] out ExpressionSyntax? identifier, out SyntaxToken openBrace)
         {
             return CompleteElementAccessExpression.TryGetSyntax(root, position, syntaxFacts, triggerReason, cancellationToken, out identifier, out openBrace) ||
                    IncompleteElementAccessExpression.TryGetSyntax(root, position, syntaxFacts, triggerReason, cancellationToken, out identifier, out openBrace) ||
                    ConditionalAccessExpression.TryGetSyntax(root, position, syntaxFacts, triggerReason, cancellationToken, out identifier, out openBrace);
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            ExpressionSyntax expression;
-            SyntaxToken openBrace;
-            if (!TryGetElementAccessExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out expression, out openBrace))
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!TryGetElementAccessExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var expression, out var openBrace))
             {
                 return null;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            if (expressionSymbol is INamedTypeSymbol)
+            // goo?[$$]
+            if (expressionSymbol is INamedTypeSymbol namedType)
             {
-                // foo?[$$]
-                var namedType = (INamedTypeSymbol)expressionSymbol;
                 if (namedType.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T &&
                     expression.IsKind(SyntaxKind.NullableType) &&
                     expression.IsChildNode<ArrayTypeSyntax>(a => a.ElementType))
@@ -77,10 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            IEnumerable<IPropertySymbol> indexers;
-            ITypeSymbol expressionType;
-
-            if (!TryGetIndexers(position, semanticModel, expression, cancellationToken, out indexers, out expressionType) &&
+            if (!TryGetIndexers(position, semanticModel, expression, cancellationToken, out var indexers, out var expressionType) &&
                 !TryGetComIndexers(semanticModel, expression, cancellationToken, out indexers, out expressionType))
             {
                 return null;
@@ -92,38 +91,37 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var accessibleIndexers = indexers.Where(m => m.IsAccessibleWithin(within, throughTypeOpt: expressionType));
+            var accessibleIndexers = indexers.WhereAsArray(
+                m => m.IsAccessibleWithin(within, throughType: expressionType));
             if (!accessibleIndexers.Any())
             {
                 return null;
             }
 
-            var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             accessibleIndexers = accessibleIndexers.FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
-                                                   .Sort(symbolDisplayService, semanticModel, expression.SpanStart);
+                                                   .Sort(semanticModel, expression.SpanStart);
 
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(expression, openBrace);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
-                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                Convert(p, openBrace, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
-        private TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)
+        private static TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)
         {
             if (openBracket.Parent is BracketedArgumentListSyntax)
             {
-                var conditional = expression.Parent as ConditionalAccessExpressionSyntax;
-                if (conditional != null)
+                if (expression.Parent is ConditionalAccessExpressionSyntax conditional)
                 {
                     return TextSpan.FromBounds(conditional.Span.Start, openBracket.FullSpan.End);
                 }
                 else
                 {
-                    return CompleteElementAccessExpression.GetTextSpan(expression, openBracket);
+                    return CompleteElementAccessExpression.GetTextSpan(openBracket);
                 }
             }
             else if (openBracket.Parent is ArrayRankSpecifierSyntax)
@@ -134,18 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            ExpressionSyntax expression;
-            SyntaxToken openBracket;
             if (!TryGetElementAccessExpression(
                     root,
                     position,
                     syntaxFacts,
                     SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
                     cancellationToken,
-                    out expression,
-                    out openBracket) ||
+                    out var expression,
+                    out var openBracket) ||
                 currentSpan.Start != expression.SpanStart)
             {
                 return null;
@@ -157,11 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // and then we need to account for this and offset the position check accordingly.
             int offset;
             BracketedArgumentListSyntax argumentList;
-            var newBracketedArgumentList = SyntaxFactory.ParseBracketedArgumentList(openBracket.Parent.ToString());
+            var newBracketedArgumentList = SyntaxFactory.ParseBracketedArgumentList(openBracket.Parent!.ToString());
             if (expression.Parent is ConditionalAccessExpressionSyntax)
             {
                 // The typed code looks like: <expression>?[
-                var conditional = (ConditionalAccessExpressionSyntax)expression.Parent;
                 var elementBinding = SyntaxFactory.ElementBindingExpression(newBracketedArgumentList);
                 var conditionalAccessExpression = SyntaxFactory.ConditionalAccessExpression(expression, elementBinding);
                 offset = expression.SpanStart - conditionalAccessExpression.SpanStart;
@@ -173,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 //   <expression>[
                 // or
                 //   <identifier>?[
-                ElementAccessExpressionSyntax elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
+                var elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
                 offset = expression.SpanStart - elementAccessExpression.SpanStart;
                 argumentList = elementAccessExpression.ArgumentList;
             }
@@ -182,13 +177,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SignatureHelpUtilities.GetSignatureHelpState(argumentList, position);
         }
 
-        private bool TryGetComIndexers(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken, out IEnumerable<IPropertySymbol> indexers, out ITypeSymbol expressionType)
+        private static bool TryGetComIndexers(
+            SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
+            out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol? expressionType)
         {
-            indexers = semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IPropertySymbol>();
+            indexers = semanticModel.GetMemberGroup(expression, cancellationToken)
+                .OfType<IPropertySymbol>()
+                .ToImmutableArray();
 
-            if (indexers.Any() && expression is MemberAccessExpressionSyntax)
+            if (indexers.Any() && expression is MemberAccessExpressionSyntax memberAccessExpression)
             {
-                expressionType = semanticModel.GetTypeInfo(((MemberAccessExpressionSyntax)expression).Expression, cancellationToken).Type;
+                expressionType = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type!;
                 return true;
             }
 
@@ -196,55 +195,70 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return false;
         }
 
-        private bool TryGetIndexers(int position, SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken, out IEnumerable<IPropertySymbol> indexers, out ITypeSymbol expressionType)
+        private static bool TryGetIndexers(
+            int position, SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
+            out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol? expressionType)
         {
             expressionType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
 
             if (expressionType == null)
             {
-                indexers = null;
+                indexers = ImmutableArray<IPropertySymbol>.Empty;
                 return false;
             }
 
-            if (expressionType is IErrorTypeSymbol)
+            if (expressionType is IErrorTypeSymbol errorType)
             {
                 // If `expression` is a QualifiedNameSyntax then GetTypeInfo().Type won't have any CandidateSymbols, so
                 // we should then fall back to getting the actual symbol for the expression.
-                expressionType = (expressionType as IErrorTypeSymbol).CandidateSymbols.FirstOrDefault().GetSymbolType()
+                expressionType = errorType.CandidateSymbols.FirstOrDefault().GetSymbolType()
                     ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
             }
 
-            indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer).OfType<IPropertySymbol>();
+            indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer)
+                .OfType<IPropertySymbol>()
+                .ToImmutableArray();
             return true;
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             IPropertySymbol indexer,
             SyntaxToken openToken,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
-            CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = openToken.SpanStart;
             var item = CreateItem(indexer, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 indexer.IsParams(),
                 indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),
                 GetSeparatorParts(),
-                GetPostambleParts(indexer),
-                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)));
+                GetPostambleParts(),
+                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
             return item;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPreambleParts(
+        private static IList<SymbolDisplayPart> GetPreambleParts(
             IPropertySymbol indexer,
             int position,
             SemanticModel semanticModel)
         {
             var result = new List<SymbolDisplayPart>();
+
+            if (indexer.ReturnsByRef)
+            {
+                result.Add(Keyword(SyntaxKind.RefKeyword));
+                result.Add(Space());
+            }
+            else if (indexer.ReturnsByRefReadonly)
+            {
+                result.Add(Keyword(SyntaxKind.RefKeyword));
+                result.Add(Space());
+                result.Add(Keyword(SyntaxKind.ReadOnlyKeyword));
+                result.Add(Space());
+            }
 
             result.AddRange(indexer.Type.ToMinimalDisplayParts(semanticModel, position));
             result.Add(Space());
@@ -261,9 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IEnumerable<SymbolDisplayPart> GetPostambleParts(IPropertySymbol indexer)
+        private static IList<SymbolDisplayPart> GetPostambleParts()
         {
-            yield return Punctuation(SyntaxKind.CloseBracketToken);
+            return SpecializedCollections.SingletonList(
+                Punctuation(SyntaxKind.CloseBracketToken));
         }
 
         private static class CompleteElementAccessExpression
@@ -283,17 +298,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     token != expression.ArgumentList.CloseBracketToken;
             }
 
-            internal static TextSpan GetTextSpan(SyntaxNode expression, SyntaxToken openBracket)
+            internal static TextSpan GetTextSpan(SyntaxToken openBracket)
             {
                 Contract.ThrowIfFalse(openBracket.Parent is BracketedArgumentListSyntax &&
                     (openBracket.Parent.Parent is ElementAccessExpressionSyntax || openBracket.Parent.Parent is ElementBindingExpressionSyntax));
                 return SignatureHelpUtilities.GetSignatureHelpSpan((BracketedArgumentListSyntax)openBracket.Parent);
             }
 
-            internal static bool TryGetSyntax(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out ExpressionSyntax identifier, out SyntaxToken openBrace)
+            internal static bool TryGetSyntax(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, [NotNullWhen(true)] out ExpressionSyntax? identifier, out SyntaxToken openBrace)
             {
-                ElementAccessExpressionSyntax elementAccessExpression;
-                if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out elementAccessExpression))
+                if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ElementAccessExpressionSyntax elementAccessExpression))
                 {
                     identifier = elementAccessExpression.Expression;
                     openBrace = elementAccessExpression.ArgumentList.OpenBracketToken;
@@ -301,13 +315,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
 
         /// Error tolerance case for
-        ///     "foo[$$]" or "foo?[$$]"
+        ///     "goo[$$]" or "goo?[$$]"
         /// which is parsed as an ArrayTypeSyntax variable declaration instead of an ElementAccessExpression  
         private static class IncompleteElementAccessExpression
         {
@@ -331,10 +345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return TextSpan.FromBounds(expression.SpanStart, openBracket.Parent.Span.End);
             }
 
-            internal static bool TryGetSyntax(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out ExpressionSyntax identifier, out SyntaxToken openBrace)
+            internal static bool TryGetSyntax(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, [NotNullWhen(true)] out ExpressionSyntax? identifier, out SyntaxToken openBrace)
             {
-                ArrayTypeSyntax arrayTypeSyntax;
-                if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out arrayTypeSyntax))
+                if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ArrayTypeSyntax arrayTypeSyntax))
                 {
                     identifier = arrayTypeSyntax.ElementType;
                     openBrace = arrayTypeSyntax.RankSpecifiers.First().OpenBracketToken;
@@ -342,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
@@ -368,19 +381,22 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     token != expression.ArgumentList.CloseBracketToken;
             }
 
-            internal static bool TryGetSyntax(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out ExpressionSyntax identifier, out SyntaxToken openBrace)
+            internal static bool TryGetSyntax(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, [NotNullWhen(true)] out ExpressionSyntax? identifier, out SyntaxToken openBrace)
             {
-                ElementBindingExpressionSyntax elementBindingExpression;
-                if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out elementBindingExpression))
+                if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ElementBindingExpressionSyntax elementBindingExpression))
                 {
-                    identifier = ((ConditionalAccessExpressionSyntax)elementBindingExpression.Parent).Expression;
+                    // Find the first conditional access expression that starts left of our open bracket
+                    var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax, ElementBindingExpressionSyntax>(
+                        (c, elementBindingExpression) => c.SpanStart < elementBindingExpression.SpanStart, elementBindingExpression)!;
+
+                    identifier = conditionalAccess.Expression;
                     openBrace = elementBindingExpression.ArgumentList.OpenBracketToken;
 
                     return true;
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }

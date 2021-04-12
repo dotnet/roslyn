@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -6,6 +8,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -23,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class IndexedTypeParameterSymbol
         Inherits TypeParameterSymbol
 
-        Private Shared s_parameterPool As TypeParameterSymbol() = SpecializedCollections.EmptyArray(Of TypeParameterSymbol)()
+        Private Shared s_parameterPool As TypeParameterSymbol() = Array.Empty(Of TypeParameterSymbol)()
 
         Private ReadOnly _index As Integer
 
@@ -92,9 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ' These object are unique (per index).
-        Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me Is obj
+        ' These objects are unique (per index).
+        Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return Me Is other
         End Function
 
         Public Overrides Function GetHashCode() As Integer

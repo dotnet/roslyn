@@ -1,10 +1,12 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Text
@@ -26,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _formatter As FormatterMock
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
-        Public Shared Async Function CreateAsync(test As XElement) As Task(Of CommitTestData)
-            Dim workspace = Await TestWorkspace.CreateAsync(test)
+        Public Shared Function Create(test As XElement) As CommitTestData
+            Dim workspace = TestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeaturesWpf)
             Return New CommitTestData(workspace)
         End Function
 
@@ -39,10 +41,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             Dim position = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
             View.Caret.MoveTo(New SnapshotPoint(View.TextSnapshot, position))
 
-            Buffer = workspace.Documents.Single().TextBuffer
+            Buffer = workspace.Documents.Single().GetTextBuffer()
 
             ' HACK: We may have already created a CommitBufferManager for the buffer, so remove it
-            If (Buffer.Properties.ContainsProperty(GetType(CommitBufferManager))) Then
+            If Buffer.Properties.ContainsProperty(GetType(CommitBufferManager)) Then
                 Dim oldManager = Buffer.Properties.GetProperty(Of CommitBufferManager)(GetType(CommitBufferManager))
                 oldManager.RemoveReferencingView()
                 Buffer.Properties.RemoveProperty(GetType(CommitBufferManager))
@@ -53,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
 
             _formatter = New FormatterMock(workspace)
             _inlineRenameService = New InlineRenameServiceMock()
-            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter, _inlineRenameService)
+            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter, _inlineRenameService, workspace.GetService(Of IThreadingContext))
 
             ' Make sure the manager exists for the buffer
             Dim commitManager = commitManagerFactory.CreateForBuffer(Buffer)
@@ -63,8 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 commitManagerFactory,
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ISmartIndentationService),
-                textUndoHistoryRegistry,
-                workspace.GetService(Of Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator))
+                textUndoHistoryRegistry)
         End Sub
 
         Friend Sub AssertHadCommit(expectCommit As Boolean)
@@ -123,13 +124,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 _testWorkspace = testWorkspace
             End Sub
 
-            Public Async Function CommitRegionAsync(spanToFormat As SnapshotSpan,
+            Public Sub CommitRegion(spanToFormat As SnapshotSpan,
                                     isExplicitFormat As Boolean,
                                     useSemantics As Boolean,
                                     dirtyRegion As SnapshotSpan,
                                     baseSnapshot As ITextSnapshot,
                                     baseTree As SyntaxTree,
-                                    cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
+                                    cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
                 GotCommit = True
                 UsedSemantics = useSemantics
 
@@ -141,9 +142,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Assert.Equal(trackingSpan.GetSpan(spanToFormat.Snapshot), spanToFormat.Span)
                 End If
 
-                Dim realCommitFormatter As New CommitFormatter()
-                Await realCommitFormatter.CommitRegionAsync(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
-            End Function
+                Dim realCommitFormatter As New CommitFormatter(_testWorkspace.GetService(Of IIndentationManagerService))
+                realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
+            End Sub
         End Class
     End Class
 End Namespace

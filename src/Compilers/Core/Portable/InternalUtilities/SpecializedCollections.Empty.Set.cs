@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,9 +11,9 @@ namespace Roslyn.Utilities
     {
         private partial class Empty
         {
-            internal class Set<T> : Collection<T>, ISet<T>
+            internal class Set<T> : Collection<T>, ISet<T>, IReadOnlySet<T>
             {
-                public static readonly new ISet<T> Instance = new Set<T>();
+                public static new readonly Set<T> Instance = new();
 
                 protected Set()
                 {
@@ -19,62 +21,57 @@ namespace Roslyn.Utilities
 
                 public new bool Add(T item)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
 
                 public void ExceptWith(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
 
                 public void IntersectWith(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
 
                 public bool IsProperSubsetOf(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return !other.IsEmpty();
                 }
 
                 public bool IsProperSupersetOf(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return false;
                 }
 
                 public bool IsSubsetOf(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return true;
                 }
 
                 public bool IsSupersetOf(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return other.IsEmpty();
                 }
 
                 public bool Overlaps(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return false;
                 }
 
                 public bool SetEquals(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    return other.IsEmpty();
                 }
 
                 public void SymmetricExceptWith(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
                 }
 
                 public void UnionWith(IEnumerable<T> other)
                 {
-                    throw new NotImplementedException();
-                }
-
-                public new System.Collections.IEnumerator GetEnumerator()
-                {
-                    return Set<T>.Instance.GetEnumerator();
+                    throw new NotSupportedException();
                 }
             }
         }

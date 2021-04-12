@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 
@@ -21,17 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType, bool isCheckedBuiltin)
         {
-            if (leftType.Equals(rightType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true))
+            if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 _containingType = leftType;
             }
-            else if (rightType.Equals(returnType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true))
+            else if (rightType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 _containingType = rightType;
             }
             else
             {
-                Debug.Assert(leftType.Equals(returnType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+                Debug.Assert(leftType.Equals(returnType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                 _containingType = leftType;
             }
 
@@ -163,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
@@ -216,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get
             {
@@ -224,19 +230,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return _returnType;
+                return TypeWithAnnotations.Create(_returnType);
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 
@@ -264,7 +276,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        // operators are never 'readonly' because there is no 'this' parameter
+        internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
@@ -397,12 +414,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(object obj)
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
+
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -419,12 +440,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_isCheckedBuiltin == other._isCheckedBuiltin &&
                 _parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
-                _containingType == other._containingType &&
-                _returnType == other._returnType)
+                TypeSymbol.Equals(_containingType, other._containingType, compareKind) &&
+                TypeSymbol.Equals(_returnType, other._returnType, compareKind))
             {
                 for (int i = 0; i < _parameters.Length; i++)
                 {
-                    if (_parameters[i].Type != other._parameters[i].Type)
+                    if (!TypeSymbol.Equals(_parameters[i].Type, other._parameters[i].Type, compareKind))
                     {
                         return false;
                     }
@@ -441,19 +462,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(_name, Hash.Combine(_containingType, _parameters.Length));
         }
 
-        private sealed class SynthesizedOperatorParameterSymbol : SynthesizedParameterSymbol
+        private sealed class SynthesizedOperatorParameterSymbol : SynthesizedParameterSymbolBase
         {
             public SynthesizedOperatorParameterSymbol(
                 SynthesizedIntrinsicOperatorSymbol container,
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, type, ordinal, RefKind.None, name, ImmutableArray<CustomModifier>.Empty)
-
+            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, name)
             {
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if (obj == (object)this)
                 {
@@ -467,12 +487,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                return Ordinal == other.Ordinal && ContainingSymbol == other.ContainingSymbol;
+                return Ordinal == other.Ordinal && ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
             }
 
             public override int GetHashCode()
             {
                 return Hash.Combine(ContainingSymbol, Ordinal.GetHashCode());
+            }
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
+            {
+                get { return ImmutableArray<CustomModifier>.Empty; }
+            }
+
+            internal override MarshalPseudoCustomAttributeData MarshallingInformation
+            {
+                get { return null; }
             }
         }
     }

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>d73adf7d-2c1c-42ae-b2ab-edc9497e4b71</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Debugging</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoEncoder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoRecord.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DynamicLocalInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImportTargetKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PortableCustomDebugInfoKinds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StateMachineHoistedLocalScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TupleElementNamesInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VBImportScopeKind.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+</Project>

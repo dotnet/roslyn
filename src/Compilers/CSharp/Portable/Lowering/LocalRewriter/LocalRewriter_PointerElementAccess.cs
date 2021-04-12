@@ -1,9 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -12,10 +11,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)
         {
-            BoundExpression rewrittenExpression = VisitExpression(node.Expression);
+            BoundExpression rewrittenExpression = LowerReceiverOfPointerElementAccess(node.Expression);
             BoundExpression rewrittenIndex = VisitExpression(node.Index);
 
             return RewritePointerElementAccess(node, rewrittenExpression, rewrittenIndex);
+        }
+
+        private BoundExpression LowerReceiverOfPointerElementAccess(BoundExpression receiver)
+        {
+            if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
+            {
+                var loweredFieldReceiver = VisitExpression(fieldAccess.ReceiverOpt);
+                fieldAccess = fieldAccess.Update(loweredFieldReceiver, fieldAccess.FieldSymbol, fieldAccess.ConstantValueOpt, fieldAccess.ResultKind, fieldAccess.Type);
+                return new BoundAddressOfOperator(receiver.Syntax, fieldAccess, isManaged: true, fieldAccess.Type);
+            }
+
+            return VisitExpression(receiver);
         }
 
         private BoundExpression RewritePointerElementAccess(BoundPointerElementAccess node, BoundExpression rewrittenExpression, BoundExpression rewrittenIndex)
@@ -31,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind additionKind = BinaryOperatorKind.Addition;
 
+            Debug.Assert(rewrittenExpression.Type is { });
+            Debug.Assert(rewrittenIndex.Type is { });
             switch (rewrittenIndex.Type.SpecialType)
             {
                 case SpecialType.System_Int32:

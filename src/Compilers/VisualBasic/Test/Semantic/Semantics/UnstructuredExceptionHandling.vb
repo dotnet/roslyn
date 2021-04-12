@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Roslyn.Test.Utilities
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class UnstructuredExceptionHandling
         Inherits BasicTestBase
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_Goto0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -24,7 +26,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -152,7 +154,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_GotoM1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -168,7 +170,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -231,7 +233,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_GotoLabel()
             Dim source =
 <compilation name="ErrorHandling">
@@ -250,7 +252,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -319,7 +321,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_ResumeNext()
             Dim source =
 <compilation name="ErrorHandling">
@@ -337,7 +339,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -425,7 +427,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_ResumeNext_2()
             Dim source =
 <compilation name="ErrorHandling">
@@ -446,7 +448,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[
 1
@@ -561,7 +563,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestResume()
             Dim source =
 <compilation name="ErrorHandling">
@@ -580,7 +582,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -675,7 +677,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestResumeNext()
             Dim source =
 <compilation name="ErrorHandling">
@@ -694,7 +696,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -787,7 +789,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestResumeLabel()
             Dim source =
 <compilation name="ErrorHandling">
@@ -807,7 +809,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -866,7 +868,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub BaseCtor()
             Dim source =
 <compilation name="ErrorHandling">
@@ -907,7 +909,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -1113,7 +1115,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1195,7 +1197,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1256,7 +1258,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1294,7 +1296,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1323,7 +1325,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -1420,7 +1422,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError' is not defined.
@@ -1465,7 +1467,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </expected>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_If_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -1628,7 +1630,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -1919,7 +1921,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -3096,7 +3098,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Select_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -3159,7 +3161,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -3268,7 +3270,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -3514,7 +3516,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Select_2()
             Dim source =
 <compilation name="ErrorHandling">
@@ -3569,7 +3571,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -3650,7 +3652,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -3867,7 +3869,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Select_4()
             Dim source =
 <compilation name="ErrorHandling">
@@ -3927,7 +3929,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -4053,7 +4055,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -4296,7 +4298,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Select_6()
             Dim source =
 <compilation name="ErrorHandling">
@@ -4343,7 +4345,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -4424,7 +4426,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
@@ -4577,7 +4579,7 @@ End Module
             'M2 - 0
             ']]>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[
@@ -4723,7 +4725,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -4975,7 +4977,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -5227,7 +5229,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -5494,7 +5496,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
@@ -5635,7 +5637,7 @@ End Module
             'M2 - 0
             ']]>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[
@@ -5777,7 +5779,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -6026,7 +6028,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -6159,7 +6161,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -6331,7 +6333,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
@@ -6461,7 +6463,7 @@ End Module
             'OnError
             'M0 - 0]]>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[
@@ -6557,7 +6559,8 @@ End Module
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Do_Loop_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -6595,7 +6598,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -6900,7 +6903,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation).
                 VerifyIL("Program.Test", <![CDATA[
@@ -7232,7 +7235,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -7591,7 +7594,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
@@ -7786,7 +7789,7 @@ End Module
             'Exception - Program+TestException
             ']]>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[
@@ -7943,7 +7946,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -8285,7 +8288,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
@@ -8595,7 +8598,7 @@ End Module
             'M(3) - 0
             ']]>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
@@ -8826,7 +8829,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -9209,7 +9212,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[{
@@ -9519,7 +9522,7 @@ End Module
             'M(3) - 0
             ']]>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[
@@ -9719,7 +9722,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -10040,7 +10043,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -10238,7 +10241,7 @@ End Module
             'M(3) - 0
             ']]>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
             <![CDATA[
@@ -10421,7 +10424,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -10741,7 +10744,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation)
 
@@ -10793,7 +10796,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -11039,7 +11042,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_SyncLock_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11116,7 +11119,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -11149,7 +11152,7 @@ M(3) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Using_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11244,7 +11247,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -11301,7 +11304,7 @@ M(3) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Using_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11404,7 +11407,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -11486,7 +11489,7 @@ M(3) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_VariableDeclaration_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11574,7 +11577,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -11668,7 +11671,7 @@ M(14) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_With_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11751,7 +11754,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -11802,7 +11805,7 @@ M(4) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ReDim_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11898,7 +11901,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
 
             Dim expected =
@@ -11957,7 +11960,7 @@ y(0) is Changed = System.Int32[]; Content is preserved]]>
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ReDim_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12044,7 +12047,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -12092,7 +12095,7 @@ y(0) is Changed = System.Int32[]
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Erase_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12181,7 +12184,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -12254,7 +12257,7 @@ y(0) is Nothing
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Erase_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12336,7 +12339,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -12368,7 +12371,7 @@ x(0) is Nothing
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Goto_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12450,7 +12453,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -12476,8 +12479,7 @@ M(3) - 0
             CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
-
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ExitSelect_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12560,7 +12562,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -12663,7 +12665,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -12850,7 +12852,7 @@ End Module
             'M(4) - 0
             ']]>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             compilationVerifier = CompileAndVerify(compilation)
 
@@ -12989,7 +12991,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_AddRaiseRemove_Event_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13086,7 +13088,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -13173,7 +13175,7 @@ M(6) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ObjectConstruction_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13279,7 +13281,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -13331,7 +13333,7 @@ M(TestInstance.New(x As Integer) 2) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ObjectConstruction_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13420,7 +13422,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -13459,7 +13461,7 @@ M(TestInstance.New 2) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_TypeInitialization_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13556,7 +13558,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -13578,7 +13580,7 @@ Exception - System.TypeInitializationException
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Lambda_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13687,7 +13689,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -13904,7 +13906,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36595: Method cannot contain both a 'Resume' statement and a definition of a variable that is used in a lambda or query expression.
@@ -13942,7 +13944,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36595: Method cannot contain both a 'Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
@@ -13980,7 +13982,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36595: Method cannot contain both a 'On Error Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
@@ -14018,7 +14020,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36597: 'On Error Goto Label' is not valid because 'Label' is inside a scope that defines a variable that is used in a lambda or query expression.
@@ -14112,7 +14114,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -14149,7 +14151,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36595: Method cannot contain both a 'On Error Resume Next' statement and a definition of a variable that is used in a lambda or query expression.
@@ -14189,7 +14191,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -14229,7 +14231,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36597: 'Resume Label2' is not valid because 'Label2' is inside a scope that defines a variable that is used in a lambda or query expression.
@@ -14268,7 +14270,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36597: 'On Error Goto Label2' is not valid because 'Label2' is inside a scope that defines a variable that is used in a lambda or query expression.
@@ -14277,7 +14279,7 @@ BC36597: 'On Error Goto Label2' is not valid because 'Label2' is inside a scope 
 </expected>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorStatement_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14306,7 +14308,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -14317,7 +14319,7 @@ System.InvalidOperationException: Resume without error.
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorStatement_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14335,7 +14337,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -14360,7 +14362,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseExe)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError' is not defined.
@@ -14463,7 +14465,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -14540,7 +14542,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -14550,7 +14552,8 @@ BC42105: Function 'test1' doesn't return a value on all code paths. A null refer
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(547095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547095")>
+        <WorkItem(547095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547095")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug17937()
             Dim source =
 <compilation name="AscW">
@@ -14576,7 +14579,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim expected =
             <![CDATA[
@@ -14589,7 +14592,7 @@ after throw
         End Sub
 
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub SingleLabelErrorHandler()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14601,16 +14604,16 @@ Module Module1
     Sub Main()
         Dim sPath As String = ""
         sPath = "Test2"
-        On Error GoTo foo
+        On Error GoTo goo
         Error 5
         Console.WriteLine(sPath)
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
+goo:
+        sPath &= "goo"
         Resume Next 'Resume Next
     End Sub
 End Module
@@ -14619,14 +14622,14 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Test2foo")
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="Test2goo")
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
-            CompileAndVerify(compilation, expectedOutput:="Test2foo")
+            CompileAndVerify(compilation, expectedOutput:="Test2goo")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MultipleLabelErrorHandler()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14638,16 +14641,16 @@ Module Module1
     Sub Main()
         Dim sPath As String = ""
         sPath = "Test3"
-        On Error GoTo foo
+        On Error GoTo goo
         Error 5
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
-        Resume fooReturn 'Resume with Label
+goo:
+        sPath &= "goo"
+        Resume gooReturn 'Resume with Label
     End Sub
 
 End Module
@@ -14657,14 +14660,14 @@ End Module
 </compilation>
 
             'Just to verify with/without optimizations
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Test3foofooReturn")
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="Test3googooReturn")
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
-            CompileAndVerify(compilation, expectedOutput:="Test3foofooReturn")
+            CompileAndVerify(compilation, expectedOutput:="Test3googooReturn")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_In_Single_Method_With_Resume_Next()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14681,20 +14684,20 @@ Module Module1
         Console.WriteLine(sPath)
         Console.WriteLine("End")
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
-        Resume fooReturn 'Resume with Line    
+goo:
+        sPath &= "goo"
+        Resume gooReturn 'Resume with Line    
     End Sub
 End Module
         ]]>
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
 End]]>)
 
@@ -14721,20 +14724,20 @@ Module Module1
 
         Console.WriteLine(sPath)
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
-        Resume fooReturn 'Resume with Line    
+goo:
+        sPath &= "goo"
+        Resume gooReturn 'Resume with Line    
     End Sub
 End Module
         ]]>
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size       87 (0x57)
@@ -14806,20 +14809,20 @@ Module Module1
         Error 5 '<- will error here as unhandled exception
         Console.WriteLine(sPath)
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
-        Resume fooReturn 'Resume with Line    
+goo:
+        sPath &= "goo"
+        Resume gooReturn 'Resume with Line    
     End Sub
 End Module
                 ]]>
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
@@ -14874,7 +14877,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Multi_OnError_In_Single_Method_1()
             'This will work because of the correct reset of event handler and using Throw rather than Error 
             'statement to trigger the Errors
@@ -14888,13 +14891,13 @@ Module Module1
     Sub Main()
         Dim sb As String = ""
 
-        On Error GoTo foo
+        On Error GoTo goo
 
         Throw New Exception()
         Exit Sub
-foo:
+goo:
         On Error GoTo -1
-        Console.WriteLine("foo")
+        Console.WriteLine("goo")
         On Error GoTo bar
         Throw New Exception()
         GoTo EndSection
@@ -14918,8 +14921,8 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:=<![CDATA[foo
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[goo
 bar
 zoo
 EndSection]]>)
@@ -14937,12 +14940,12 @@ Imports System
 
 Module Module1
     Sub Main()
-        On Error GoTo foo
+        On Error GoTo goo
         Throw New Exception()
         Exit Sub
-foo:
+goo:
         On Error GoTo 0
-        Console.Write("foo")
+        Console.Write("goo")
         On Error GoTo bar
         Throw New Exception() '<- Unhandled Exception Here
         GoTo EndSection
@@ -14966,7 +14969,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      184 (0xb8)
@@ -14983,7 +14986,7 @@ End Module
   IL_000d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
   IL_0012:  ldc.i4.0
   IL_0013:  stloc.0
-  IL_0014:  ldstr      "foo"
+  IL_0014:  ldstr      "goo"
   IL_0019:  call       "Sub System.Console.Write(String)"
   IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
   IL_0023:  ldc.i4.3
@@ -15060,11 +15063,11 @@ Imports System
 
 Module Module1
     Sub Main()
-        On Error GoTo foo
+        On Error GoTo goo
         Throw New Exception()
         Exit Sub
-foo:
-        Console.Write("foo")
+goo:
+        Console.Write("goo")
         On Error GoTo bar
         Throw New Exception() '<- Unhandled Exception Here
         GoTo EndSection
@@ -15087,7 +15090,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      163 (0xa3)
@@ -15101,7 +15104,7 @@ End Module
   IL_0006:  stloc.0
   IL_0007:  newobj     "Sub System.Exception..ctor()"
   IL_000c:  throw
-  IL_000d:  ldstr      "foo"
+  IL_000d:  ldstr      "goo"
   IL_0012:  call       "Sub System.Console.Write(String)"
   IL_0017:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
   IL_001c:  ldc.i4.3
@@ -15162,7 +15165,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_With_Explicit_Throw()
             Dim source =
     <compilation name="ErrorHandling">
@@ -15185,11 +15188,11 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="StartHandler")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_With_Explicit_Error()
             Dim source =
     <compilation name="ErrorHandling">
@@ -15212,11 +15215,11 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="StartHandler")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Error()
             Dim source =
     <compilation name="ErrorHandling">
@@ -15239,11 +15242,11 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="Start")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Exception()
             'This ensures that the Handler is not called
             Dim source =
@@ -15267,7 +15270,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      151 (0x97)
@@ -15346,7 +15349,7 @@ End Module
         End Sub
 
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Exception_AndLabel_Next()
             'This ensures that the Handler is not called
             Dim source =
@@ -15370,7 +15373,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      151 (0x97)
@@ -15449,7 +15452,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Exception_2()
             'This ensures that the Handler is not called as the current handler should be the last one
             Dim source =
@@ -15474,7 +15477,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start]]>)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
   // Code size      166 (0xa6)
@@ -15639,7 +15642,7 @@ errhandler:
         On Error Resume Next
         Dim iCount As Integer = 0
 
-        For i = 0 To 10 Step StepFoo(-1)
+        For i = 0 To 10 Step StepGoo(-1)
             Console.WriteLine("In Loop" & i)
             iCount += 1
             If iCount >= 3 Then
@@ -15648,7 +15651,7 @@ errhandler:
         Next
     End Sub
 
-    Function StepFoo(i As Integer) As Integer
+    Function StepGoo(i As Integer) As Integer
         If i < 0 Then
             Error 5
         Else
@@ -15661,7 +15664,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
 
@@ -16015,7 +16018,7 @@ End Module
     IL_000b:  ldc.i4.3
     IL_000c:  stloc.2
     IL_000d:  ldc.i4.m1
-    IL_000e:  call       "Function Module1.StepFoo(Integer) As Integer"
+    IL_000e:  call       "Function Module1.StepGoo(Integer) As Integer"
     IL_0013:  stloc.s    V_4
     IL_0015:  ldc.i4.0
     IL_0016:  stloc.s    V_5
@@ -16129,12 +16132,12 @@ Module Module1
     End Sub
 
     Sub GotoMinus0()
-        On Error GoTo foo
+        On Error GoTo goo
         Error 1
         On Error GoTo 0 'This should reset the error handler to nothing
         Error 2 '< It will fail here with unhandled exception
         Exit Sub
-foo:
+goo:
         Console.WriteLine("In Handler")
         Resume Next
     End Sub
@@ -16143,7 +16146,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus0", <![CDATA[{
@@ -16253,12 +16256,12 @@ Module Module1
     End Sub
 
     Sub GotoMinus0()        
-        On Error GoTo foo
+        On Error GoTo goo
         Throw New Exception()
 
         Throw New Exception() '< It will fail here with unhandled exception
         Exit Sub
-foo:
+goo:
         Console.WriteLine("In Handler")
         On Error GoTo 0 'This should reset the error handler to nothing
         Resume Next
@@ -16269,7 +16272,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus0", <![CDATA[{
@@ -16362,7 +16365,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_GotoMinusBaselineInhandler()
             'The difference on the resetting the error in the handler and the resume is important as this one
             'will resume in the Handler and hence the 2nd error will not be generated
@@ -16378,7 +16381,7 @@ Module Module1
     End Sub
 
     Sub GotoMinus1()
-        'Resume Next takes place in Foo: Block
+        'Resume Next takes place in Goo: Block
         'and hence will result in infinite recursion without
         'the Iindex count exit condition
 
@@ -16387,19 +16390,19 @@ Module Module1
 
         Dim IiNDEX As Integer = 0
 
-        On Error GoTo foo
+        On Error GoTo goo
         Console.WriteLine("Before 1st Error")
         Error 1
         Console.WriteLine("Before 2nd Error")
         Error 2
         Exit Sub
-foo:
-        Console.WriteLine("Foo")
+goo:
+        Console.WriteLine("Goo")
         IiNDEX += 1
         If IiNDEX >= 3 Then Exit Sub
-        Console.WriteLine("In Foo Before Reset")
+        Console.WriteLine("In Goo Before Reset")
         On Error GoTo -1 'This should reset the error
-        Console.WriteLine("In Foo After Reset")
+        Console.WriteLine("In Goo After Reset")
 
         Resume Next
     End Sub
@@ -16408,15 +16411,15 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before 1st Error
-Foo
-In Foo Before Reset
-In Foo After Reset
-Foo
-In Foo Before Reset
-In Foo After Reset
-Foo
+Goo
+In Goo Before Reset
+In Goo After Reset
+Goo
+In Goo Before Reset
+In Goo After Reset
+Goo
 ]]>)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
@@ -16456,7 +16459,7 @@ Foo
     IL_0034:  throw
     IL_0035:  ldc.i4.8
     IL_0036:  stloc.2
-    IL_0037:  ldstr      "Foo"
+    IL_0037:  ldstr      "Goo"
     IL_003c:  call       "Sub System.Console.WriteLine(String)"
     IL_0041:  ldc.i4.s   9
     IL_0043:  stloc.2
@@ -16471,14 +16474,14 @@ Foo
     IL_004d:  bge.s      IL_0086
     IL_004f:  ldc.i4.s   12
     IL_0051:  stloc.2
-    IL_0052:  ldstr      "In Foo Before Reset"
+    IL_0052:  ldstr      "In Goo Before Reset"
     IL_0057:  call       "Sub System.Console.WriteLine(String)"
     IL_005c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
     IL_0061:  ldc.i4.0
     IL_0062:  stloc.1
     IL_0063:  ldc.i4.s   14
     IL_0065:  stloc.2
-    IL_0066:  ldstr      "In Foo After Reset"
+    IL_0066:  ldstr      "In Goo After Reset"
     IL_006b:  call       "Sub System.Console.WriteLine(String)"
     IL_0070:  ldc.i4.s   15
     IL_0072:  stloc.2
@@ -16552,7 +16555,7 @@ Foo
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_GotoMinusBaselineInMainBlock()
             'The difference on the resetting the error in the handler and the resume is important as this one
             'will resume in the Handler and hence the 2nd error will not be generated
@@ -16568,7 +16571,7 @@ Module Module1
     End Sub
 
     Sub GotoMinus1()
-        'Resume Next takes place in Foo: Block
+        'Resume Next takes place in Goo: Block
         'and hence will result in infinite recursion without
         'the Iindex count exit condition
 
@@ -16577,7 +16580,7 @@ Module Module1
 
         Dim IiNDEX As Integer = 0
 
-        On Error GoTo foo
+        On Error GoTo goo
         Console.WriteLine("Before 1st Error")
         Error 1
 
@@ -16588,8 +16591,8 @@ Module Module1
         Console.WriteLine("Before 2nd Error")
         Error 2
         Exit Sub
-foo:
-        Console.WriteLine("Foo")
+goo:
+        Console.WriteLine("Goo")
         IiNDEX += 1
         If IiNDEX >= 3 Then Exit Sub
         
@@ -16600,13 +16603,13 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before 1st Error
-Foo
+Goo
 In Main Block Before Reset
 In Main Block After Reset
 Before 2nd Error
-Foo]]>)
+Goo]]>)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
 {
@@ -16656,7 +16659,7 @@ Foo]]>)
     IL_0054:  throw
     IL_0055:  ldc.i4.s   11
     IL_0057:  stloc.2
-    IL_0058:  ldstr      "Foo"
+    IL_0058:  ldstr      "Goo"
     IL_005d:  call       "Sub System.Console.WriteLine(String)"
     IL_0062:  ldc.i4.s   12
     IL_0064:  stloc.2
@@ -16741,7 +16744,7 @@ Foo]]>)
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_GotoMinusBaselineInMainBlock_ThrowException()
             Dim source =
     <compilation name="ErrorHandling">
@@ -16758,7 +16761,7 @@ Module Module1
         'Resume next will result in going to the next statement from initial error and 
         'handler is reset here - so need to have extra condition check.
 
-        On Error GoTo foo
+        On Error GoTo goo
         Console.WriteLine("Before 1 Exception")
         Throw New Exception()
         Console.WriteLine("After 1 Exception")
@@ -16768,8 +16771,8 @@ Module Module1
         Throw New Exception()
         Console.WriteLine("After 2 Exception")        
         Exit Sub
-foo:
-        Console.WriteLine("Foo")        
+goo:
+        Console.WriteLine("Goo")        
         Resume Next
     End Sub
 End Module
@@ -16777,12 +16780,12 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before 1 Exception
-Foo
+Goo
 After 1 Exception
 Before 2 Exception
-Foo
+Goo
 After 2 Exception]]>)
 
 
@@ -16828,7 +16831,7 @@ After 2 Exception]]>)
     IL_004e:  br.s       IL_0073
     IL_0050:  ldc.i4.s   10
     IL_0052:  stloc.2
-    IL_0053:  ldstr      "Foo"
+    IL_0053:  ldstr      "Goo"
     IL_0058:  call       "Sub System.Console.WriteLine(String)"
     IL_005d:  ldc.i4.s   11
     IL_005f:  stloc.2
@@ -16898,7 +16901,8 @@ After 2 Exception]]>)
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_WithSyncLock_1()
             'This is the typical scenario documented in the spec to ensure that infinite
             'recursion does not occur
@@ -16937,7 +16941,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:="Before Exception" & Environment.NewLine & "Before Exception")
 
 
@@ -17109,7 +17113,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[
@@ -17223,7 +17227,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_WithSyncLock_3()
             'This verifies that resume next will resume outside the sync block
             Dim source =
@@ -17256,7 +17260,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:="Before Exception")
 
             CompilationVerifier.VerifyIL("Module1.Main", <![CDATA[
@@ -17365,7 +17369,8 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithConditionBlocks()
             'This verifies that resume next will resume inside the IF block when an error occurs in the
             'IF statement / ELSEIF and also and multiple condition IF With ANDALSO
@@ -17386,7 +17391,7 @@ Module Module1
         On Error Resume Next
         Console.WriteLine("*********************************************")
         Console.WriteLine("IF Block(1) Test")
-        If Foo_IF() Then
+        If Goo_IF() Then
             Console.WriteLine("If Block")
         Else
             Console.WriteLine("Else Block")
@@ -17394,7 +17399,7 @@ Module Module1
         Console.WriteLine("End")
     End Sub
 
-    Function Foo_IF() As Boolean
+    Function Goo_IF() As Boolean
         Error 5
     End Function
 
@@ -17403,9 +17408,9 @@ Module Module1
         On Error Resume Next
         Console.WriteLine("*********************************************")
         Console.WriteLine("IF Block Test")
-        If FooIF(0) Then
+        If GooIF(0) Then
             Console.WriteLine("If Block")
-        ElseIf FooIF(2) Then 'Cause and Error
+        ElseIf GooIF(2) Then 'Cause and Error
             Console.WriteLine("ElseIf Block")
         Else
             Console.WriteLine("Else Block")
@@ -17413,7 +17418,7 @@ Module Module1
         Console.WriteLine("End")
     End Sub
 
-    Function FooIF(i As Integer) As Boolean
+    Function GooIF(i As Integer) As Boolean
         If i = 0 Then
             Return False
         ElseIf i = 1 Then
@@ -17429,9 +17434,9 @@ Module Module1
         Dim a = 1
         Console.WriteLine("*********************************************")
         Console.WriteLine("ELSEIF Block Test")
-        If a = 1 AndAlso FooELSEIF(0) Then
+        If a = 1 AndAlso GooELSEIF(0) Then
             Console.WriteLine("If Block")
-        ElseIf a = 1 AndAlso FooELSEIF(2) Then 'Cause and Error
+        ElseIf a = 1 AndAlso GooELSEIF(2) Then 'Cause and Error
             Console.WriteLine("ElseIf Block")
         Else
             Console.WriteLine("Else Block")
@@ -17439,7 +17444,7 @@ Module Module1
         Console.WriteLine("End")
     End Sub
 
-    Function FooELSEIF(i As Integer) As Boolean
+    Function GooELSEIF(i As Integer) As Boolean
         If i = 0 Then
             Return False
         ElseIf i = 1 Then
@@ -17454,7 +17459,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[*********************************************
 IF Block(1) Test
 If Block
@@ -17490,7 +17495,7 @@ End]]>)
     IL_001a:  call       "Sub System.Console.WriteLine(String)"
     IL_001f:  ldc.i4.4
     IL_0020:  stloc.2
-    IL_0021:  call       "Function Module1.Foo_IF() As Boolean"
+    IL_0021:  call       "Function Module1.Goo_IF() As Boolean"
     IL_0026:  brfalse.s  IL_0036
     IL_0028:  ldc.i4.5
     IL_0029:  stloc.2
@@ -17581,7 +17586,7 @@ End]]>)
     IL_001f:  ldc.i4.4
     IL_0020:  stloc.2
     IL_0021:  ldc.i4.0
-    IL_0022:  call       "Function Module1.FooIF(Integer) As Boolean"
+    IL_0022:  call       "Function Module1.GooIF(Integer) As Boolean"
     IL_0027:  brfalse.s  IL_0037
     IL_0029:  ldc.i4.5
     IL_002a:  stloc.2
@@ -17591,7 +17596,7 @@ End]]>)
     IL_0037:  ldc.i4.7
     IL_0038:  stloc.2
     IL_0039:  ldc.i4.2
-    IL_003a:  call       "Function Module1.FooIF(Integer) As Boolean"
+    IL_003a:  call       "Function Module1.GooIF(Integer) As Boolean"
     IL_003f:  brfalse.s  IL_004f
     IL_0041:  ldc.i4.8
     IL_0042:  stloc.2
@@ -17693,7 +17698,7 @@ End]]>)
     IL_0026:  ldc.i4.1
     IL_0027:  bne.un.s   IL_003f
     IL_0029:  ldc.i4.0
-    IL_002a:  call       "Function Module1.FooELSEIF(Integer) As Boolean"
+    IL_002a:  call       "Function Module1.GooELSEIF(Integer) As Boolean"
     IL_002f:  brfalse.s  IL_003f
     IL_0031:  ldc.i4.6
     IL_0032:  stloc.2
@@ -17706,7 +17711,7 @@ End]]>)
     IL_0042:  ldc.i4.1
     IL_0043:  bne.un.s   IL_005c
     IL_0045:  ldc.i4.2
-    IL_0046:  call       "Function Module1.FooELSEIF(Integer) As Boolean"
+    IL_0046:  call       "Function Module1.GooELSEIF(Integer) As Boolean"
     IL_004b:  brfalse.s  IL_005c
     IL_004d:  ldc.i4.s   9
     IL_004f:  stloc.2
@@ -17781,7 +17786,7 @@ End]]>)
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithSelectCase()
             'This verifies that resume next will resumes outside the select caser block rather than at the next case statement or within the block            
             Dim source =
@@ -17794,7 +17799,7 @@ Module Module1
     Sub Main()
         On Error GoTo handler
         Console.WriteLine("Before Select")
-        Select Case foo
+        Select Case goo
             Case 1
                 Console.WriteLine("1")
             Case 2
@@ -17809,7 +17814,7 @@ handler:
         Resume Next
     End Sub
 
-    Function foo()
+    Function goo()
         Error 1
     End Function
 End Module
@@ -17817,7 +17822,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
 In Handler
 After Case]]>)
@@ -17842,7 +17847,7 @@ After Case]]>)
     IL_000e:  call       "Sub System.Console.WriteLine(String)"
     IL_0013:  ldc.i4.3
     IL_0014:  stloc.2
-    IL_0015:  call       "Function Module1.foo() As Object"
+    IL_0015:  call       "Function Module1.goo() As Object"
     IL_001a:  stloc.3
     IL_001b:  ldc.i4.5
     IL_001c:  stloc.2
@@ -17956,7 +17961,7 @@ After Case]]>)
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithSelectCase_Error_On_Case()
             'This verifies that resume next will resumes 
             Dim source =
@@ -17971,7 +17976,7 @@ After Case]]>)
                 Dim i = 1
                 Console.WriteLine("Before Select")
                 Select Case i
-                    Case foo()
+                    Case goo()
                         Console.WriteLine("1")
                     Case 2
                         Console.WriteLine("2")
@@ -17985,7 +17990,7 @@ handler:
                 Resume Next
             End Sub
 
-            Function foo()
+            Function goo()
                 Error 1
             End Function
         End Module
@@ -17995,7 +18000,7 @@ handler:
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
 In Handler
 1
@@ -18003,7 +18008,7 @@ After Case]]>)
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition()
             Dim source =
     <compilation name="ErrorHandling">
@@ -18017,7 +18022,7 @@ After Case]]>)
                 Dim i = 1
                 Console.WriteLine("Before Select")
                 Select Case i
-                    Case foo()
+                    Case goo()
                         Console.WriteLine("1")
                     Case 2
                         Console.WriteLine("2")
@@ -18031,7 +18036,7 @@ handler:
                 Resume Next
             End Sub
 
-            Function foo()
+            Function goo()
                 Error 1
             End Function
         End Module
@@ -18041,14 +18046,14 @@ handler:
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
 In Handler
 1
 After Case]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition_Multiple()
 
             Dim source =
@@ -18065,7 +18070,7 @@ Module Module1
         Dim i = 1
         Console.WriteLine("Before Select")
         Select Case i
-            Case i = foo(), 1
+            Case i = goo(), 1
                 Console.WriteLine("1")
             Case 2
                 Console.WriteLine("2")
@@ -18079,7 +18084,7 @@ handler:
         Resume Next
     End Sub
 
-    Function foo()
+    Function goo()
         Error 1
     End Function
 End Module
@@ -18087,7 +18092,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before Select
 In Handler
 1
@@ -18095,8 +18100,8 @@ After Case]]>)
 
         End Sub
 
-        <Fact()>
-        Public Sub ErrorOject()
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        Public Sub ErrorObject()
             'We are causing the error by throwing an exception or by using the Error or Err.Raise
             Dim source =
     <compilation name="ErrorHandling">
@@ -18159,11 +18164,11 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[StartHandler11Attempted to divide by zero.StartHandler11Division by zero.StartHandler12Application-defined or object-defined error.]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_ResumeNext_ErrorObjectFunctionality()
             Dim compilationDef =
     <compilation name="ErrorHandlerTest">
@@ -18210,7 +18215,7 @@ End Module
 </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Error #  6 was generated by ErrorHandlerTest
 Overflow.
 Error #  0 was generated by 
@@ -18220,7 +18225,7 @@ Procedure call or argument is not valid.
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_InCollectionInitializer()
 
 
@@ -18263,12 +18268,12 @@ End Module
         </file>
         </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="2")
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_InCollectionInitializer_2()
             'As we are handling the error in the Add, we should handle two items to the collection
             'This should result in Nothing - All or nothing 
@@ -18291,11 +18296,11 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="Nothing")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_InCollectionInitializer_3()
             'As we are handling the error in the Add, we should handle two items to the collection
             'This should result in Nothing - All or nothing 
@@ -18320,7 +18325,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="Nothing")
         End Sub
 
@@ -18443,7 +18448,7 @@ End Module        ]]>
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[*****************************************
 Before Error
 Number:0
@@ -18468,7 +18473,7 @@ Erl:0
 GetException:Nothing]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorObject_Properties()
             Dim source =
     <compilation name="ErrorHandling">
@@ -18529,7 +18534,7 @@ End Module]]>
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[*****************************************
 Before Error
 Number:0
@@ -18555,7 +18560,7 @@ Erl:0
 GetException:Nothing]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorObject_Properties_AfterGeneratedInDifferentWays()
             Dim source =
     <compilation name="ErrorHandling">
@@ -18623,7 +18628,7 @@ End Module]]>
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[   *****************************************
 Before Error
 Number:0
@@ -18685,7 +18690,7 @@ Erl:0
 GetException:Nothing]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorObject_Properties__DLLLastError()
             'The Err.LastDllError is reset without having to call the Err.Clear
             'Unsure why...
@@ -18734,13 +18739,13 @@ End Module]]>
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[1400
 Invalid window handle.    Error!
 1400]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_01()
             Dim source =
 <compilation>
@@ -18777,7 +18782,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -18787,7 +18792,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_02()
             Dim source =
 <compilation>
@@ -18822,7 +18827,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -18835,7 +18840,7 @@ L500
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_03()
             Dim source =
 <compilation>
@@ -18865,7 +18870,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -18874,7 +18879,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_04()
             Dim source =
 <compilation>
@@ -18909,7 +18914,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -18922,7 +18927,7 @@ L500
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_05()
             Dim source =
 <compilation>
@@ -18948,7 +18953,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>

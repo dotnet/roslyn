@@ -1,9 +1,12 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+    <[UseExportProvider]>
     Public Class SyntaxComparerTests
         Inherits BasicTestBase
 
@@ -23,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 New SequenceEdit(-1, 1),
                 New SequenceEdit(1, 0),
                 New SequenceEdit(0, -1)
-            }, edits, itemInspector:=Function(e) e.GetDebuggerDisplay())
+            }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
         <Fact>
@@ -38,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 New SequenceEdit(-1, 1),
                 New SequenceEdit(1, 0),
                 New SequenceEdit(0, -1)
-            }, edits, itemInspector:=Function(e) e.GetDebuggerDisplay())
+            }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
         <Fact>
@@ -53,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 New SequenceEdit(1, -1),
                 New SequenceEdit(0, 1),
                 New SequenceEdit(-1, 0)
-            }, edits, itemInspector:=Function(e) e.GetDebuggerDisplay())
+            }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
         <Fact>
@@ -68,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 New SequenceEdit(1, -1),
                 New SequenceEdit(0, 1),
                 New SequenceEdit(-1, 0)
-            }, edits, itemInspector:=Function(e) e.GetDebuggerDisplay())
+            }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
         <Fact>
@@ -135,24 +138,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             distance = SyntaxComparer.ComputeDistance(
                 Nothing,
-                SpecializedCollections.EmptyArray(Of SyntaxNode))
+                Array.Empty(Of SyntaxNode))
 
             Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
-                SpecializedCollections.EmptyArray(Of SyntaxNode),
+                Array.Empty(Of SyntaxNode),
                 Nothing)
 
             Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
                 Nothing,
-                SpecializedCollections.EmptyArray(Of SyntaxToken))
+                Array.Empty(Of SyntaxToken))
 
             Assert.Equal(0.0, Math.Round(distance, 2))
 
             distance = SyntaxComparer.ComputeDistance(
-                SpecializedCollections.EmptyArray(Of SyntaxToken),
+                Array.Empty(Of SyntaxToken),
                 Nothing)
 
             Assert.Equal(0.0, Math.Round(distance, 2))

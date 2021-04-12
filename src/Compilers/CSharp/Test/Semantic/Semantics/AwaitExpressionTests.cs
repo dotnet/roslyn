@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using System.Linq;
 
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
 class C
 {
-    async void Foo(Task<int> t)
+    async void Goo(Task<int> t)
     {
         int c = 1 + await t;
     }
@@ -52,6 +56,18 @@ public class C {
             Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
+        public void DefaultAwaitExpressionInfo()
+        {
+            AwaitExpressionInfo info = default;
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.GetResultMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.False(info.IsDynamic);
+            Assert.Equal(0, info.GetHashCode());
         }
 
         private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
@@ -118,16 +134,15 @@ class Driver
 ";
             var comp = CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (16,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                // (16,62): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         dynamic f = (await GetVal((Func<Task<int>>)(async () => 1)))();
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async () => 1").WithLocation(16, 53),
-                // (20,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(16, 62),
+                // (20,69): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         dynamic ff = new Func<Task<int>>((Func<Task<int>>)(async () => 1));
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async () => 1").WithLocation(20, 60),
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(20, 69),
                 // (17,13): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
                 //         if (await f == 1)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await f").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(17, 13)
-                );
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await f").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create"));
         }
 
         [Fact]
@@ -140,7 +155,7 @@ using System.Threading.Tasks;
  
 class C
 {
-    static async Task Foo()
+    static async Task Goo()
     {
         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
     }
@@ -161,7 +176,7 @@ class C
 
 class C
 {
-    void Foo(Task<int> t)
+    void Goo(Task<int> t)
     {
         var v = await t;
     }
@@ -177,8 +192,32 @@ class C
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
             var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
-            var symbolV = (LocalSymbol)semanticModel.GetDeclaredSymbol(decl);
+            var symbolV = (ILocalSymbol)semanticModel.GetDeclaredSymbol(decl);
             Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Dynamic()
+        {
+            string source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static async Task Main()
+    {
+        dynamic d = Task.CompletedTask;
+        await d;
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var info = model.GetAwaitExpressionInfo(expr);
+            Assert.True(info.IsDynamic);
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.Null(info.GetResultMethod);
         }
     }
 }

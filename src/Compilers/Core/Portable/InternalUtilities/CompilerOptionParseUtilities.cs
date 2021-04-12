@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
@@ -12,27 +13,18 @@ namespace Roslyn.Utilities
         /// Parse the value provided to an MSBuild Feature option into a list of entries.  This will 
         /// leave name=value in their raw form.
         /// </summary>
-        public static IList<string> ParseFeatureFromMSBuild(string features)
+        public static IList<string> ParseFeatureFromMSBuild(string? features)
         {
-            if (string.IsNullOrEmpty(features))
+            if (RoslynString.IsNullOrEmpty(features))
             {
-                return SpecializedCollections.EmptyList<string>();
+                return new List<string>(capacity: 0);
             }
 
-            var all = features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            var list = new List<string>(capacity: all.Length);
-            foreach (var feature in all)
-            {
-                list.Add(feature);
-            }
-
-            return list;
+            return features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        public static ImmutableDictionary<string, string> ParseFeatures(List<string> values)
+        public static void ParseFeatures(IDictionary<string, string> builder, List<string> values)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-
             foreach (var commaFeatures in values)
             {
                 foreach (var feature in commaFeatures.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -40,21 +32,9 @@ namespace Roslyn.Utilities
                     ParseFeatureCore(builder, feature);
                 }
             }
-
-            return builder.ToImmutable();
         }
 
-        public static ImmutableDictionary<string, string> ParseFeatures(string features)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var feature in ParseFeatureFromMSBuild(features))
-            {
-                ParseFeatureCore(builder, feature);
-            }
-            return builder.ToImmutable();
-        }
-
-        private static void ParseFeatureCore(ImmutableDictionary<string, string>.Builder builder, string feature)
+        private static void ParseFeatureCore(IDictionary<string, string> builder, string feature)
         {
             int equals = feature.IndexOf('=');
             if (equals > 0)

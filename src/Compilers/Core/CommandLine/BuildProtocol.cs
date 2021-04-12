@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -30,7 +33,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
     ///  Field Name         Type                Size (bytes)
     /// ----------------------------------------------------
     ///  Length             Integer             4
+    ///  ProtocolVersion    Integer             4
     ///  Language           RequestLanguage     4
+    ///  CompilerHash       String              Variable
     ///  Argument Count     UInteger            4
     ///  Arguments          Argument[]          Variable
     /// 
@@ -42,59 +47,68 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         public readonly uint ProtocolVersion;
         public readonly RequestLanguage Language;
-        public readonly ImmutableArray<Argument> Arguments;
+        public readonly ReadOnlyCollection<Argument> Arguments;
+        public readonly string CompilerHash;
 
         public BuildRequest(uint protocolVersion,
                             RequestLanguage language,
-                            ImmutableArray<Argument> arguments)
+                            string compilerHash,
+                            IEnumerable<Argument> arguments)
         {
             ProtocolVersion = protocolVersion;
             Language = language;
+            Arguments = new ReadOnlyCollection<Argument>(arguments.ToList());
+            CompilerHash = compilerHash;
 
-            if (arguments.Length > ushort.MaxValue)
+            Debug.Assert(!string.IsNullOrWhiteSpace(CompilerHash), "A hash value is required to communicate with the server");
+
+            if (Arguments.Count > ushort.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(arguments),
                     "Too many arguments: maximum of "
                     + ushort.MaxValue + " arguments allowed.");
             }
-            Arguments = arguments;
         }
 
         public static BuildRequest Create(RequestLanguage language,
-                                          string workingDirectory,
                                           IList<string> args,
-                                          string keepAlive = null,
-                                          string libDirectory = null)
+                                          string workingDirectory,
+                                          string tempDirectory,
+                                          string compilerHash,
+                                          string? keepAlive = null,
+                                          string? libDirectory = null)
         {
-            Log("Creating BuildRequest");
-            Log($"Working directory: {workingDirectory}");
-            Log($"Lib directory: {libDirectory ?? "null"}");
+            Debug.Assert(!string.IsNullOrWhiteSpace(compilerHash), "CompilerHash is required to send request to the build server");
 
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
-            var requestArgs = ImmutableArray.CreateBuilder<Argument>(requestLength);
+            var requestArgs = new List<Argument>(requestLength);
 
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
+            requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
 
             if (keepAlive != null)
+            {
                 requestArgs.Add(new Argument(ArgumentId.KeepAlive, 0, keepAlive));
+            }
 
             if (libDirectory != null)
+            {
                 requestArgs.Add(new Argument(ArgumentId.LibEnvVariable, 0, libDirectory));
+            }
 
             for (int i = 0; i < args.Count; ++i)
             {
                 var arg = args[i];
-                Log($"argument[{i}] = {arg}");
                 requestArgs.Add(new Argument(ArgumentId.CommandLineArgument, i, arg));
             }
 
-            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, requestArgs.ToImmutable());
+            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, compilerHash, requestArgs);
         }
 
         public static BuildRequest CreateShutdown()
         {
-            var requestArgs = ImmutableArray.Create(new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: ""));
-            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, requestArgs);
+            var requestArgs = new[] { new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: "") };
+            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, GetCommitHash() ?? "", requestArgs);
         }
 
         /// <summary>
@@ -107,34 +121,32 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             // Read the length of the request
             var lengthBuffer = new byte[4];
-            Log("Reading length of request");
             await ReadAllAsync(inStream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToInt32(lengthBuffer, 0);
 
             // Back out if the request is > 1MB
             if (length > 0x100000)
             {
-                Log("Request is over 1MB in length, cancelling read.");
-                return null;
+                throw new ArgumentException("Request is over 1MB in length");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // Read the full request
-            var responseBuffer = new byte[length];
-            await ReadAllAsync(inStream, responseBuffer, length, cancellationToken).ConfigureAwait(false);
+            var requestBuffer = new byte[length];
+            await ReadAllAsync(inStream, requestBuffer, length, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            Log("Parsing request");
             // Parse the request into the Request data structure.
-            using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
+            using (var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode))
             {
                 var protocolVersion = reader.ReadUInt32();
                 var language = (RequestLanguage)reader.ReadUInt32();
+                var compilerHash = reader.ReadString();
                 uint argumentCount = reader.ReadUInt32();
 
-                var argumentsBuilder = ImmutableArray.CreateBuilder<Argument>((int)argumentCount);
+                var argumentsBuilder = new List<Argument>((int)argumentCount);
 
                 for (int i = 0; i < argumentCount; i++)
                 {
@@ -144,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 return new BuildRequest(protocolVersion,
                                         language,
-                                        argumentsBuilder.ToImmutableArray());
+                                        compilerHash,
+                                        argumentsBuilder);
             }
         }
 
@@ -156,11 +169,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             using (var memoryStream = new MemoryStream())
             using (var writer = new BinaryWriter(memoryStream, Encoding.Unicode))
             {
-                // Format the request.
-                Log("Formatting request");
                 writer.Write(ProtocolVersion);
                 writer.Write((uint)Language);
-                writer.Write(Arguments.Length);
+                writer.Write(CompilerHash);
+                writer.Write(Arguments.Count);
                 foreach (Argument arg in Arguments)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -176,17 +188,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Back out if the request is > 1 MB
                 if (memoryStream.Length > 0x100000)
                 {
-                    Log("Request is over 1MB in length, cancelling write");
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException("Request is over 1MB in length");
                 }
 
-                // Send the request to the server
-                Log("Writing length of request.");
                 await outStream.WriteAsync(BitConverter.GetBytes(length), 0, 4,
                                            cancellationToken).ConfigureAwait(false);
 
-                Log("Writing request of size {0}", length);
-                // Write the request
                 memoryStream.Position = 0;
                 await memoryStream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
@@ -209,11 +216,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             public readonly ArgumentId ArgumentId;
             public readonly int ArgumentIndex;
-            public readonly string Value;
+            public readonly string? Value;
 
             public Argument(ArgumentId argumentId,
                             int argumentIndex,
-                            string value)
+                            string? value)
             {
                 ArgumentId = argumentId;
                 ArgumentIndex = argumentIndex;
@@ -224,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var argId = (ArgumentId)reader.ReadInt32();
                 var argIndex = reader.ReadInt32();
-                string value = ReadLengthPrefixedString(reader);
+                string? value = ReadLengthPrefixedString(reader);
                 return new Argument(argId, argIndex, value);
             }
 
@@ -271,6 +278,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // The request was rejected by the server.  
             Rejected,
+
+            // The server hash did not match the one supplied by the client
+            IncorrectHash,
         }
 
         public abstract ResponseType Type { get; }
@@ -281,8 +291,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             using (var memoryStream = new MemoryStream())
             using (var writer = new BinaryWriter(memoryStream, Encoding.Unicode))
             {
-                // Format the response
-                Log("Formatting Response");
                 writer.Write((int)Type);
 
                 AddResponseBody(writer);
@@ -295,7 +303,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Write the length of the response
                 int length = checked((int)memoryStream.Length);
 
-                Log("Writing response length");
                 // There is no way to know the number of bytes written to
                 // the pipe stream. We just have to assume all of them are written.
                 await outStream.WriteAsync(BitConverter.GetBytes(length),
@@ -303,8 +310,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                            4,
                                            cancellationToken).ConfigureAwait(false);
 
-                // Write the response
-                Log("Writing response of size {0}", length);
                 memoryStream.Position = 0;
                 await memoryStream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
@@ -320,14 +325,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns></returns>
         public static async Task<BuildResponse> ReadAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Log("Reading response length");
             // Read the response length
             var lengthBuffer = new byte[4];
             await ReadAllAsync(stream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToUInt32(lengthBuffer, 0);
 
             // Read the response
-            Log("Reading response of length {0}", length);
             var responseBuffer = new byte[length];
             await ReadAllAsync(stream,
                                responseBuffer,
@@ -344,12 +347,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         return CompletedBuildResponse.Create(reader);
                     case ResponseType.MismatchedVersion:
                         return new MismatchedVersionBuildResponse();
+                    case ResponseType.IncorrectHash:
+                        return new IncorrectHashBuildResponse();
                     case ResponseType.AnalyzerInconsistency:
-                        return new AnalyzerInconsistencyBuildResponse();
+                        return AnalyzerInconsistencyBuildResponse.Create(reader);
                     case ResponseType.Shutdown:
                         return ShutdownBuildResponse.Create(reader);
                     case ResponseType.Rejected:
-                        return new RejectedBuildResponse();
+                        return RejectedBuildResponse.Create(reader);
                     default:
                         throw new InvalidOperationException("Received invalid response type from server.");
                 }
@@ -365,7 +370,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
     ///  Length             UInteger        4
     ///  ReturnCode         Integer         4
     ///  Output             String          Variable
-    ///  ErrorOutput        String          Variable
     /// 
     /// Strings are encoded via a character count prefix as a 
     /// 32-bit integer, followed by an array of characters.
@@ -376,20 +380,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public readonly int ReturnCode;
         public readonly bool Utf8Output;
         public readonly string Output;
-        public readonly string ErrorOutput;
 
         public CompletedBuildResponse(int returnCode,
                                       bool utf8output,
-                                      string output)
+                                      string? output)
         {
             ReturnCode = returnCode;
             Utf8Output = utf8output;
-            Output = output;
-
-            // This field existed to support writing to Console.Error.  The compiler doesn't ever write to 
-            // this field or Console.Error.  This field is only kept around in order to maintain the existing
-            // protocol semantics.
-            ErrorOutput = string.Empty;
+            Output = output ?? string.Empty;
         }
 
         public override ResponseType Type => ResponseType.Completed;
@@ -399,12 +397,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var returnCode = reader.ReadInt32();
             var utf8Output = reader.ReadBoolean();
             var output = ReadLengthPrefixedString(reader);
-            var errorOutput = ReadLengthPrefixedString(reader);
-            if (!string.IsNullOrEmpty(errorOutput))
-            {
-                throw new InvalidOperationException();
-            }
-
             return new CompletedBuildResponse(returnCode, utf8Output, output);
         }
 
@@ -413,7 +405,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             writer.Write(ReturnCode);
             writer.Write(Utf8Output);
             WriteLengthPrefixedString(writer, Output);
-            WriteLengthPrefixedString(writer, ErrorOutput);
         }
     }
 
@@ -450,26 +441,71 @@ namespace Microsoft.CodeAnalysis.CommandLine
         protected override void AddResponseBody(BinaryWriter writer) { }
     }
 
+    internal sealed class IncorrectHashBuildResponse : BuildResponse
+    {
+        public override ResponseType Type => ResponseType.IncorrectHash;
+
+        /// <summary>
+        /// IncorrectHash has no body.
+        /// </summary>
+        protected override void AddResponseBody(BinaryWriter writer) { }
+    }
+
     internal sealed class AnalyzerInconsistencyBuildResponse : BuildResponse
     {
         public override ResponseType Type => ResponseType.AnalyzerInconsistency;
 
-        /// <summary>
-        /// AnalyzerInconsistency has no body.
-        /// </summary>
-        /// <param name="writer"></param>
-        protected override void AddResponseBody(BinaryWriter writer) { }
+        public ReadOnlyCollection<string> ErrorMessages { get; }
+
+        public AnalyzerInconsistencyBuildResponse(ReadOnlyCollection<string> errorMessages)
+        {
+            ErrorMessages = errorMessages;
+        }
+
+        protected override void AddResponseBody(BinaryWriter writer)
+        {
+            writer.Write(ErrorMessages.Count);
+            foreach (var message in ErrorMessages)
+            {
+                WriteLengthPrefixedString(writer, message);
+            }
+        }
+
+        public static AnalyzerInconsistencyBuildResponse Create(BinaryReader reader)
+        {
+            var count = reader.ReadInt32();
+            var list = new List<string>(count);
+            for (var i = 0; i < count; i++)
+            {
+                list.Add(ReadLengthPrefixedString(reader) ?? "");
+            }
+
+            return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(list));
+        }
     }
 
     internal sealed class RejectedBuildResponse : BuildResponse
     {
+        public string Reason;
+
         public override ResponseType Type => ResponseType.Rejected;
 
-        /// <summary>
-        /// AnalyzerInconsistency has no body.
-        /// </summary>
-        /// <param name="writer"></param>
-        protected override void AddResponseBody(BinaryWriter writer) { }
+        public RejectedBuildResponse(string reason)
+        {
+            Reason = reason;
+        }
+
+        protected override void AddResponseBody(BinaryWriter writer)
+        {
+            WriteLengthPrefixedString(writer, Reason);
+        }
+
+        public static RejectedBuildResponse Create(BinaryReader reader)
+        {
+            var reason = ReadLengthPrefixedString(reader);
+            Debug.Assert(reason is object);
+            return new RejectedBuildResponse(reason);
+        }
     }
 
     // The id numbers below are just random. It's useful to use id numbers
@@ -488,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// The version number for this protocol.
         /// </summary>
-        public const uint ProtocolVersion = 2;
+        public const uint ProtocolVersion = 3;
 
         // Arguments for CSharp and VB Compiler
         public enum ArgumentId
@@ -507,6 +543,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Request a server shutdown from the client
             Shutdown,
+
+            // The directory to use for temporary operations.
+            TempDirectory,
         }
 
         /// <summary>
@@ -514,9 +553,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// as a length prefix (signed 32-bit integer) followed by
         /// a sequence of characters.
         /// </summary>
-        public static string ReadLengthPrefixedString(BinaryReader reader)
+        public static string? ReadLengthPrefixedString(BinaryReader reader)
         {
             var length = reader.ReadInt32();
+            if (length < 0)
+            {
+                return null;
+            }
+
             return new String(reader.ReadChars(length));
         }
 
@@ -525,10 +569,32 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// as a length prefix (signed 32-bit integer) follows by
         /// a sequence of characters.
         /// </summary>
-        public static void WriteLengthPrefixedString(BinaryWriter writer, string value)
+        public static void WriteLengthPrefixedString(BinaryWriter writer, string? value)
         {
-            writer.Write(value.Length);
-            writer.Write(value.ToCharArray());
+            if (value is object)
+            {
+                writer.Write(value.Length);
+                writer.Write(value.ToCharArray());
+            }
+            else
+            {
+                writer.Write(-1);
+            }
+        }
+
+        /// <summary>
+        /// Reads the value of <see cref="CommitHashAttribute.Hash"/> of the assembly <see cref="BuildRequest"/> is defined in
+        /// </summary>
+        /// <returns>The hash value of the current assembly or an empty string</returns>
+        public static string? GetCommitHash()
+        {
+            var hashAttributes = typeof(BuildRequest).Assembly.GetCustomAttributes<CommitHashAttribute>();
+            var hashAttributeCount = hashAttributes.Count();
+            if (hashAttributeCount != 1)
+            {
+                return null;
+            }
+            return hashAttributes.Single().Hash;
         }
 
         /// <summary>
@@ -543,21 +609,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
             int totalBytesRead = 0;
             do
             {
-                Log("Attempting to read {0} bytes from the stream",
-                    count - totalBytesRead);
                 int bytesRead = await stream.ReadAsync(buffer,
                                                        totalBytesRead,
                                                        count - totalBytesRead,
                                                        cancellationToken).ConfigureAwait(false);
                 if (bytesRead == 0)
                 {
-                    Log("Unexpected -- read 0 bytes from the stream.");
                     throw new EndOfStreamException("Reached end of stream before end of read.");
                 }
-                Log("Read {0} bytes", bytesRead);
                 totalBytesRead += bytesRead;
             } while (totalBytesRead < count);
-            Log("Finished read");
         }
     }
 }

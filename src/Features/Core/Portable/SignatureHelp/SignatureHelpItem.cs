@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,21 +22,46 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// </summary>
         public bool IsVariadic { get; }
 
-        public ImmutableArray<SymbolDisplayPart> PrefixDisplayParts { get; }
-        public ImmutableArray<SymbolDisplayPart> SuffixDisplayParts { get; }
+        public ImmutableArray<TaggedText> PrefixDisplayParts { get; }
+        public ImmutableArray<TaggedText> SuffixDisplayParts { get; }
 
         // TODO: This probably won't be sufficient for VB query signature help.  It has
         // arbitrary separators between parameters.
-        public ImmutableArray<SymbolDisplayPart> SeparatorDisplayParts { get; }
+        public ImmutableArray<TaggedText> SeparatorDisplayParts { get; }
 
         public ImmutableArray<SignatureHelpParameter> Parameters { get; }
 
-        public ImmutableArray<SymbolDisplayPart> DescriptionParts { get; internal set; }
+        public ImmutableArray<TaggedText> DescriptionParts { get; internal set; }
 
-        public Func<CancellationToken, IEnumerable<SymbolDisplayPart>> DocumentationFactory { get; }
+        public Func<CancellationToken, IEnumerable<TaggedText>> DocumentationFactory { get; }
 
-        private static readonly Func<CancellationToken, IEnumerable<SymbolDisplayPart>> s_emptyDocumentationFactory = _ => SpecializedCollections.EmptyEnumerable<SymbolDisplayPart>();
+        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
+            _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
 
+        public SignatureHelpItem(
+            bool isVariadic,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
+            IEnumerable<TaggedText> prefixParts,
+            IEnumerable<TaggedText> separatorParts,
+            IEnumerable<TaggedText> suffixParts,
+            IEnumerable<SignatureHelpParameter> parameters,
+            IEnumerable<TaggedText>? descriptionParts)
+        {
+            if (isVariadic && !parameters.Any())
+            {
+                throw new ArgumentException(FeaturesResources.Variadic_SignatureHelpItem_must_have_at_least_one_parameter);
+            }
+
+            IsVariadic = isVariadic;
+            DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
+            PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
+            SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
+            SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();
+            Parameters = parameters.ToImmutableArrayOrEmpty();
+            DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
+        }
+
+        // Constructor kept for back compat
         public SignatureHelpItem(
             bool isVariadic,
             Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
@@ -43,22 +70,19 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IEnumerable<SymbolDisplayPart> suffixParts,
             IEnumerable<SignatureHelpParameter> parameters,
             IEnumerable<SymbolDisplayPart> descriptionParts)
+            : this(isVariadic,
+                  documentationFactory != null
+                    ? c => documentationFactory(c).ToTaggedText()
+                    : s_emptyDocumentationFactory,
+                  prefixParts.ToTaggedText(),
+                  separatorParts.ToTaggedText(),
+                  suffixParts.ToTaggedText(),
+                  parameters,
+                  descriptionParts.ToTaggedText())
         {
-            if (isVariadic && !parameters.Any())
-            {
-                throw new ArgumentException(FeaturesResources.VariadicSignaturehelpitemMustHaveOneParam);
-            }
-
-            this.IsVariadic = isVariadic;
-            this.DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
-            this.PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
-            this.SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
-            this.SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();
-            this.Parameters = parameters.ToImmutableArrayOrEmpty();
-            this.DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
         }
 
-        internal IEnumerable<SymbolDisplayPart> GetAllParts()
+        internal IEnumerable<TaggedText> GetAllParts()
         {
             return
                 PrefixDisplayParts.Concat(
@@ -66,6 +90,15 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 SuffixDisplayParts.Concat(
                 Parameters.SelectMany(p => p.GetAllParts())).Concat(
                 DescriptionParts)));
+        }
+
+        public override string ToString()
+        {
+            var prefix = string.Concat(PrefixDisplayParts);
+            var suffix = string.Concat(SuffixDisplayParts);
+            var parameters = string.Join(string.Concat(SeparatorDisplayParts), Parameters);
+            var description = string.Concat(DescriptionParts);
+            return string.Concat(prefix, parameters, suffix, description);
         }
     }
 }

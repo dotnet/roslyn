@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -25,11 +29,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters
         {
             get { return SpecializedCollections.EmptyEnumerable<Cci.IGenericMethodParameter>(); }
-        }
-
-        bool Cci.IMethodDefinition.IsImplicitlyDeclared
-        {
-            get { return true; }
         }
 
         bool Cci.IMethodDefinition.HasDeclarativeSecurity
@@ -117,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return false; }
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
+        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>(); }
+            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
 
         bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly
@@ -175,6 +174,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         {
             visitor.Visit((Cci.IMethodDefinition)this);
         }
+
+        Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
 
         Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
@@ -241,6 +242,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
         }
 
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        {
+            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
+        }
+
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get { return false; }
@@ -249,6 +255,18 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             return context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
     }
 }

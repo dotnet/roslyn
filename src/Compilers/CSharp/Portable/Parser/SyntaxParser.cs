@@ -1,15 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     internal abstract partial class SyntaxParser : IDisposable
     {
         protected readonly Lexer lexer;
@@ -22,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private BlendedNode _currentNode;
         private SyntaxToken _currentToken;
         private ArrayElement<SyntaxToken>[] _lexedTokens;
-        private CSharpSyntaxNode _prevTokenTrailingTrivia;
-        private int _firstToken;
-        private int _tokenOffset;
+        private GreenNode _prevTokenTrailingTrivia;
+        private int _firstToken; // The position of _lexedTokens[0] (or _blendedTokens[0]).
+        private int _tokenOffset; // The index of the current token within _lexedTokens or _blendedTokens.
         private int _tokenCount;
         private int _resetCount;
         private int _resetStart;
@@ -133,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected ResetPoint GetResetPoint()
         {
-            var pos = _firstToken + _tokenOffset;
+            var pos = CurrentTokenPosition;
             if (_resetCount == 0)
             {
                 _resetStart = pos; // low water mark
@@ -145,11 +152,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected void Reset(ref ResetPoint point)
         {
-            _mode = point.Mode;
             var offset = point.Position - _firstToken;
+            Debug.Assert(offset >= 0);
+
+            if (offset >= _tokenCount)
+            {
+                // Re-fetch tokens to the position in the reset point
+                PeekToken(offset - _tokenOffset);
+
+                // Re-calculate new offset in case tokens got shifted to the left while we were peeking. 
+                offset = point.Position - _firstToken;
+            }
+
+            _mode = point.Mode;
             Debug.Assert(offset >= 0 && offset < _tokenCount);
             _tokenOffset = offset;
-            _currentToken = default(SyntaxToken);
+            _currentToken = null;
             _currentNode = default(BlendedNode);
             _prevTokenTrailingTrivia = point.PrevTokenTrailingTrivia;
             if (_blendedTokens != null)
@@ -161,6 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // forget anything after and including any slot not holding a token
                         _tokenCount = i;
+                        if (_tokenCount == _tokenOffset)
+                        {
+                            FetchCurrentToken();
+                        }
                         break;
                     }
                 }
@@ -201,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(_allowModeReset);
 
                     _mode = value;
-                    _currentToken = default(SyntaxToken);
+                    _currentToken = null;
                     _currentNode = default(BlendedNode);
                     _tokenCount = _tokenOffset;
                 }
@@ -269,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // erase current state
             _currentNode = default(BlendedNode);
-            _currentToken = default(SyntaxToken);
+            _currentToken = null;
 
             return result;
         }
@@ -326,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // adds token to end of current token array
-        private void AddToken(BlendedNode tokenResult)
+        private void AddToken(in BlendedNode tokenResult)
         {
             Debug.Assert(tokenResult.Token != null);
             if (_tokenCount >= _blendedTokens.Length)
@@ -353,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddTokenSlot()
         {
             // shift tokens to left if we are far to the right
-            // don't shift if reset points have fixed locked tge starting point at the token in the window
+            // don't shift if reset points have fixed locked the starting point at the token in the window
             if (_tokenOffset > (_blendedTokens.Length >> 1)
                 && (_resetStart == -1 || _resetStart > _firstToken))
             {
@@ -381,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddLexedTokenSlot()
         {
             // shift tokens to left if we are far to the right
-            // don't shift if reset points have fixed locked tge starting point at the token in the window
+            // don't shift if reset points have fixed locked the starting point at the token in the window
             if (_tokenOffset > (_lexedTokens.Length >> 1)
                 && (_resetStart == -1 || _resetStart > _firstToken))
             {
@@ -432,11 +454,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ct;
         }
 
+        /// <summary>
+        /// Returns and consumes the current token if it has the requested <paramref name="kind"/>.
+        /// Otherwise, returns <see langword="null"/>.
+        /// </summary>
+        protected SyntaxToken TryEatToken(SyntaxKind kind)
+            => this.CurrentToken.Kind == kind ? this.EatToken() : null;
+
         private void MoveToNextToken()
         {
             _prevTokenTrailingTrivia = _currentToken.GetTrailingTrivia();
 
-            _currentToken = default(SyntaxToken);
+            _currentToken = null;
 
             if (_blendedTokens != null)
             {
@@ -466,6 +495,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             //slow part of EatToken(SyntaxKind kind)
             return CreateMissingToken(kind, this.CurrentToken.Kind, reportError: true);
+        }
+
+        // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
+        protected SyntaxToken EatTokenAsKind(SyntaxKind expected)
+        {
+            Debug.Assert(SyntaxFacts.IsAnyToken(expected));
+
+            var ct = this.CurrentToken;
+            if (ct.Kind == expected)
+            {
+                MoveToNextToken();
+                return ct;
+            }
+
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
         private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
@@ -639,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (trivia != null)
             {
                 SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
-                bool prevTokenHasEndOfLineTrivia = triviaList.Any(SyntaxKind.EndOfLineTrivia);
+                bool prevTokenHasEndOfLineTrivia = triviaList.Any((int)SyntaxKind.EndOfLineTrivia);
                 if (prevTokenHasEndOfLineTrivia)
                 {
                     offset = -trivia.FullWidth;
@@ -653,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             width = ct.Width;
         }
 
-        protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : CSharpSyntaxNode
+        protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : GreenNode
         {
             DiagnosticInfo[] existingDiags = node.GetDiagnostics();
             int existingLength = existingDiags.Length;
@@ -670,12 +715,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected TNode AddError<TNode>(TNode node, ErrorCode code) where TNode : CSharpSyntaxNode
+        protected TNode AddError<TNode>(TNode node, ErrorCode code) where TNode : GreenNode
         {
-            return AddError(node, code, SpecializedCollections.EmptyObjects);
+            return AddError(node, code, Array.Empty<object>());
         }
 
-        protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : CSharpSyntaxNode
+        protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode
         {
             if (!node.IsMissing)
             {
@@ -789,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxDiagnosticInfo(offset, width, code, args);
         }
 
-        protected static SyntaxDiagnosticInfo MakeError(CSharpSyntaxNode node, ErrorCode code, params object[] args)
+        protected static SyntaxDiagnosticInfo MakeError(GreenNode node, ErrorCode code, params object[] args)
         {
             return new SyntaxDiagnosticInfo(node.GetLeadingTriviaWidth(), node.Width, code, args);
         }
@@ -799,14 +844,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxDiagnosticInfo(code, args);
         }
 
-        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, CSharpSyntaxNode skippedSyntax) where TNode : CSharpSyntaxNode
+        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
             var oldToken = node as SyntaxToken ?? node.GetFirstToken();
             var newToken = AddSkippedSyntax(oldToken, skippedSyntax, trailing: false);
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
 
-        protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, CSharpSyntaxNode skippedSyntax) where TNode : CSharpSyntaxNode
+        protected void AddTrailingSkippedSyntax(SyntaxListBuilder list, GreenNode skippedSyntax)
+        {
+            list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], skippedSyntax);
+        }
+
+        protected void AddTrailingSkippedSyntax<TNode>(SyntaxListBuilder<TNode> list, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
+        {
+            list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], skippedSyntax);
+        }
+
+        protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
             var token = node as SyntaxToken;
             if (token != null)
@@ -825,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Converts skippedSyntax node into tokens and adds these as trivia on the target token.
         /// Also adds the first error (in depth-first preorder) found in the skipped syntax tree to the target token.
         /// </summary>
-        internal SyntaxToken AddSkippedSyntax(SyntaxToken target, CSharpSyntaxNode skippedSyntax, bool trailing)
+        internal SyntaxToken AddSkippedSyntax(SyntaxToken target, GreenNode skippedSyntax, bool trailing)
         {
             var builder = new SyntaxListBuilder(4);
 
@@ -846,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (token.Width > 0)
                     {
                         // separate trivia from the tokens
-                        SyntaxToken tk = token.WithLeadingTrivia(null).WithTrailingTrivia(null);
+                        SyntaxToken tk = token.TokenWithLeadingTrivia(null).TokenWithTrailingTrivia(null);
 
                         // adjust relative offsets of diagnostics attached to the token:
                         int leadingWidth = token.GetLeadingTriviaWidth();
@@ -897,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var trailingTrivia = target.GetTrailingTrivia();
                 triviaOffset = target.FullWidth; //added trivia is full width (before addition)
-                target = target.WithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
+                target = target.TokenWithTrailingTrivia(SyntaxList.Concat(trailingTrivia, trivia));
             }
             else
             {
@@ -914,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var leadingTrivia = target.GetLeadingTrivia();
-                target = target.WithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
+                target = target.TokenWithLeadingTrivia(SyntaxList.Concat(trivia, leadingTrivia));
                 triviaOffset = 0; //added trivia is first, so offset is zero
             }
 
@@ -1004,11 +1059,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return token;
         }
 
+        protected static SyntaxToken ConvertToIdentifier(SyntaxToken token)
+        {
+            Debug.Assert(!token.IsMissing);
+            return SyntaxToken.Identifier(token.Kind, token.LeadingTrivia.Node, token.Text, token.ValueText, token.TrailingTrivia.Node);
+        }
+
         internal DirectiveStack Directives
         {
             get { return lexer.Directives; }
         }
 
+#nullable enable
         /// <remarks>
         /// NOTE: we are specifically diverging from dev11 to improve the user experience.
         /// Since treating the "async" keyword as an identifier in older language
@@ -1017,52 +1079,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// is insufficient.
         /// </remarks>
         protected TNode CheckFeatureAvailability<TNode>(TNode node, MessageID feature, bool forceWarning = false)
-            where TNode : CSharpSyntaxNode
+            where TNode : GreenNode
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
+            LanguageVersion requiredVersion = feature.RequiredVersion();
 
-            if (feature == MessageID.IDS_FeatureModuleAttrLoc)
+            // There are special error codes for some features, so handle those separately.
+            switch (feature)
             {
-                // There's a special error code for this feature, so handle it separately.
-                return availableVersion >= LanguageVersion.CSharp2
-                    ? node
-                    : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
+                case MessageID.IDS_FeatureModuleAttrLoc:
+                    return availableVersion >= LanguageVersion.CSharp2
+                        ? node
+                        : this.AddError(node, ErrorCode.WRN_NonECMAFeature, feature.Localize());
+
+                case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                    return availableVersion >= requiredVersion
+                        ? node
+                        : this.AddError(node, ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable,
+                            new CSharpRequiredLanguageVersion(requiredVersion));
             }
 
-            if (IsFeatureEnabled(feature))
-            {
-                return node;
-            }
-
-            var featureName = feature.Localize();
-            var requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
+            var info = feature.GetFeatureAvailabilityDiagnosticInfo(this.Options);
+            if (info != null)
             {
                 if (forceWarning)
                 {
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
-                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                    return AddError(node, ErrorCode.WRN_ErrorOverride, info, (int)info.Code);
                 }
 
-                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
+                return AddError(node, info.Code, info.Arguments);
             }
-            else
-            {
-                var requiredVersion = feature.RequiredVersion();
 
-                if (forceWarning)
-                {
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
-                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                }
-
-                return this.AddError(node, availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
-            }
+            return node;
         }
+#nullable disable
 
         protected bool IsFeatureEnabled(MessageID feature)
         {
             return this.Options.IsFeatureEnabled(feature);
         }
+
+        /// <summary>
+        /// Whenever parsing in a <c>while (true)</c> loop and a bug could prevent the loop from making progress,
+        /// this method can prevent the parsing from hanging.
+        /// Use as:
+        ///     int tokenProgress = -1;
+        ///     while (IsMakingProgress(ref tokenProgress))
+        /// It should be used as a guardrail, not as a crutch, so it asserts if no progress was made.
+        /// </summary>
+        protected bool IsMakingProgress(ref int lastTokenPosition, bool assertIfFalse = true)
+        {
+            var pos = CurrentTokenPosition;
+            if (pos > lastTokenPosition)
+            {
+                lastTokenPosition = pos;
+                return true;
+            }
+
+            Debug.Assert(!assertIfFalse);
+            return false;
+        }
+
+        private int CurrentTokenPosition => _firstToken + _tokenOffset;
     }
 }

@@ -1,37 +1,33 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.AddImport;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUnboundIdentifiersDiagnosticAnalyzer : UnboundIdentifiersDiagnosticAnalyzerBase<SyntaxKind, SimpleNameSyntax, QualifiedNameSyntax, IncompleteMemberSyntax, LambdaExpressionSyntax>
     {
-        private const string NameNotInContext = "CS0103";
-        private readonly LocalizableString _nameNotInContextMessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.ERR_NameNotInContext), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+        private readonly LocalizableString _nameNotInContextMessageFormat =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.The_name_0_does_not_exist_in_the_current_context), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
-        private const string ConstructorOverloadResolutionFailure = "CS1729";
-        private readonly LocalizableString _constructorOverloadResolutionFailureMessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.ERR_BadCtorArgCount), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+        private readonly LocalizableString _constructorOverloadResolutionFailureMessageFormat =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources._0_does_not_contain_a_constructor_that_takes_that_many_arguments), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression);
 
-        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
-        {
-            get
-            {
-                return s_kindsOfInterest;
-            }
-        }
+        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => s_kindsOfInterest;
 
-        protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(NameNotInContext, _nameNotInContextMessageFormat);
+        protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundIdentifierId, _nameNotInContextMessageFormat);
 
-        protected override DiagnosticDescriptor DiagnosticDescriptor2 => GetDiagnosticDescriptor(ConstructorOverloadResolutionFailure, _constructorOverloadResolutionFailureMessageFormat);
+        protected override DiagnosticDescriptor DiagnosticDescriptor2 => GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundConstructorId, _constructorOverloadResolutionFailureMessageFormat);
 
         protected override bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel model)
         {
@@ -53,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
             .WhereAsArray(constructor => constructor.Parameters.Length == args.Count)
             .WhereAsArray(constructor =>
             {
-                for (int i = 0; i < constructor.Parameters.Length; i++)
+                for (var i = 0; i < constructor.Parameters.Length; i++)
                 {
-                    var typeInfo = model.GetTypeInfo(args[i].Expression ?? args[i].Declaration.Type);
+                    var typeInfo = model.GetTypeInfo(args[i].Expression);
                     if (!constructor.Parameters[i].Type.Equals(typeInfo.ConvertedType))
                     {
                         return false;
@@ -72,5 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
 
             return false;
         }
+
+        protected override bool IsNameOf(SyntaxNode node) => node.Parent is InvocationExpressionSyntax invocation && invocation.IsNameOfInvocation();
     }
 }

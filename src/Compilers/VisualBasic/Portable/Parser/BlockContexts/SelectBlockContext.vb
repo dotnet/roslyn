@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class SelectBlockContext
         Inherits ExecutableStatementContext
 
-        Private _caseBlocks As SyntaxListBuilder(Of CaseBlockSyntax)
+        Private ReadOnly _caseBlocks As SyntaxListBuilder(Of CaseBlockSyntax)
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(SyntaxKind.SelectBlock, statement, prevContext)
@@ -44,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' a BadCaseStatement? Compile a list of all uses of missing statements.
 
                     node = Parser.ReportSyntaxError(node, ERRID.ERR_ExpectedCase)
-                    Dim caseStmt = SyntaxFactory.CaseStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.CaseKeyword), New SeparatedSyntaxList(Of CaseClauseSyntax)())
+                    Dim caseStmt = SyntaxFactory.CaseStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.CaseKeyword), New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CaseClauseSyntax)())
                     Dim context = New CaseBlockContext(SyntaxKind.CaseBlock, caseStmt, Me)
                     ' Previously we explicitly added a missing terminator.  Now, missing terminators are added automatically if a statement
                     ' is added next to a statement.

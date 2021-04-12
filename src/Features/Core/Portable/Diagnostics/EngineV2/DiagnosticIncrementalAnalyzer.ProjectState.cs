@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -14,41 +19,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// State for diagnostics that belong to a project at given time.
         /// </summary>
-        private class ProjectState
+        private sealed class ProjectState
         {
             // project id of this state
             private readonly StateSet _owner;
 
             // last aggregated analysis result for this project saved
-            private AnalysisResult _lastResult;
+            private DiagnosticAnalysisResult _lastResult;
 
             public ProjectState(StateSet owner, ProjectId projectId)
             {
                 _owner = owner;
-                _lastResult = new AnalysisResult(projectId, VersionStamp.Default, documentIds: null, isEmpty: true, fromBuild: false);
+                _lastResult = DiagnosticAnalysisResult.CreateInitialResult(projectId);
             }
 
             public bool FromBuild => _lastResult.FromBuild;
 
             public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
-            {
-                return _lastResult.DocumentIdsOrEmpty;
-            }
+                => _lastResult.DocumentIdsOrEmpty;
 
             public bool IsEmpty()
-            {
-                return _lastResult.IsEmpty;
-            }
+                => _lastResult.IsEmpty;
 
             public bool IsEmpty(DocumentId documentId)
-            {
-                return IsEmpty(_lastResult, documentId);
-            }
+                => IsEmpty(_lastResult, documentId);
 
             /// <summary>
             /// Return all diagnostics for the given project stored in this state
             /// </summary>
-            public async Task<AnalysisResult> GetAnalysisDataAsync(Project project, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(IPersistentStorageService persistentService, Project project, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -56,8 +55,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (lastResult.IsDefault)
                 {
-                    return await LoadInitialAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
+                    return await LoadInitialAnalysisDataAsync(persistentService, project, cancellationToken).ConfigureAwait(false);
                 }
+
+                RoslynDebug.Assert(lastResult.DocumentIds != null);
 
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
@@ -70,12 +71,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given project doesnt have any diagnostics, return empty.
                 if (lastResult.IsEmpty)
                 {
-                    return new AnalysisResult(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
                 }
 
                 // loading data can be cancelled any time.
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, lastResult.Version);
-                var builder = new Builder(project.Id, lastResult.Version, lastResult.DocumentIds);
+                var builder = new Builder(project, lastResult.Version, lastResult.DocumentIds);
 
                 foreach (var documentId in lastResult.DocumentIds)
                 {
@@ -87,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
+                    if (!await TryDeserializeDocumentDiagnosticsAsync(persistentService, serializer, document, builder, cancellationToken).ConfigureAwait(false))
                     {
-                        Contract.Requires(lastResult.Version == VersionStamp.Default);
+                        Debug.Assert(lastResult.Version == VersionStamp.Default);
 
                         // this can happen if we merged back active file diagnostics back to project state but
                         // project state didn't have diagnostics for the file yet. (since project state was staled)
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
+                if (!await TryDeserializeProjectDiagnosticsAsync(persistentService, serializer, project, builder, cancellationToken).ConfigureAwait(false))
                 {
                     // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
                     // analysis happened.
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all diagnostics for the given document stored in this state including non local diagnostics for this document
             /// </summary>
-            public async Task<AnalysisResult> GetAnalysisDataAsync(Document document, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(IPersistentStorageService persistentService, TextDocument document, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (lastResult.IsDefault)
                 {
-                    return await LoadInitialAnalysisDataAsync(document, cancellationToken).ConfigureAwait(false);
+                    return await LoadInitialAnalysisDataAsync(persistentService, document, cancellationToken).ConfigureAwait(false);
                 }
 
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
@@ -129,16 +130,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given document doesnt have any diagnostics, return empty.
                 if (IsEmpty(lastResult, document.Id))
                 {
-                    return new AnalysisResult(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
                 }
 
                 // loading data can be cancelled any time.
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, lastResult.Version);
-                var builder = new Builder(document.Project.Id, lastResult.Version);
+                var builder = new Builder(document.Project, lastResult.Version);
 
-                if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
+                if (!await TryDeserializeDocumentDiagnosticsAsync(persistentService, serializer, document, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(lastResult.Version == VersionStamp.Default);
+                    Debug.Assert(lastResult.Version == VersionStamp.Default);
 
                     // this can happen if we merged back active file diagnostics back to project state but
                     // project state didn't have diagnostics for the file yet. (since project state was staled)
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all no location diagnostics for the given project stored in this state
             /// </summary>
-            public async Task<AnalysisResult> GetProjectAnalysisDataAsync(Project project, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetProjectAnalysisDataAsync(IPersistentStorageService persistentService, Project project, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (lastResult.IsDefault)
                 {
-                    return await LoadInitialProjectAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
+                    return await LoadInitialProjectAnalysisDataAsync(persistentService, project, cancellationToken).ConfigureAwait(false);
                 }
 
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
@@ -170,14 +171,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given document doesnt have any diagnostics, return empty.
                 if (lastResult.IsEmpty)
                 {
-                    return new AnalysisResult(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
                 }
 
                 // loading data can be cancelled any time.
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, lastResult.Version);
-                var builder = new Builder(project.Id, lastResult.Version);
+                var builder = new Builder(project, lastResult.Version);
 
-                if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
+                if (!await TryDeserializeProjectDiagnosticsAsync(persistentService, serializer, project, builder, cancellationToken).ConfigureAwait(false))
                 {
                     // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
                     // analysis happened.
@@ -186,9 +187,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            public async Task SaveAsync(Project project, AnalysisResult result)
+            public Task SaveAsync(IPersistentStorageService persistentService, Project project, DiagnosticAnalysisResult result)
+                => SaveCoreAsync(project, result, persistentService);
+
+            public Task SaveInMemoryCacheAsync(Project project, DiagnosticAnalysisResult result)
+                => SaveCoreAsync(project, result, persistentService: null);
+
+            private async Task SaveCoreAsync(Project project, DiagnosticAnalysisResult result, IPersistentStorageService? persistentService)
             {
                 Contract.ThrowIfTrue(result.IsAggregatedForm);
+                Contract.ThrowIfNull(result.DocumentIds);
 
                 RemoveInMemoryCache(_lastResult);
 
@@ -199,34 +207,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, result.Version);
                 foreach (var documentId in result.DocumentIds)
                 {
-                    var document = project.GetDocument(documentId);
+                    var document = project.GetTextDocument(documentId);
                     if (document == null)
                     {
                         // it can happen with build synchronization since, in build case, 
                         // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
                         // so we might be out of sync.
                         // example of such cases will be changing anything about solution while building is going on.
-                        // it can be user explict actions such as unloading project, deleting a file, but also it can be 
+                        // it can be user explicit actions such as unloading project, deleting a file, but also it can be 
                         // something project system or roslyn workspace does such as populating workspace right after
                         // solution is loaded.
                         continue;
                     }
 
-                    await SerializeAsync(serializer, document, document.Id, _owner.SyntaxStateName, GetResult(result, AnalysisKind.Syntax, document.Id)).ConfigureAwait(false);
-                    await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, GetResult(result, AnalysisKind.Semantic, document.Id)).ConfigureAwait(false);
-                    await SerializeAsync(serializer, document, document.Id, _owner.NonLocalStateName, GetResult(result, AnalysisKind.NonLocal, document.Id)).ConfigureAwait(false);
+                    await SerializeAsync(persistentService, serializer, project, document, document.Id, _owner.SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)).ConfigureAwait(false);
+                    await SerializeAsync(persistentService, serializer, project, document, document.Id, _owner.SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)).ConfigureAwait(false);
+                    await SerializeAsync(persistentService, serializer, project, document, document.Id, _owner.NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal)).ConfigureAwait(false);
                 }
 
-                await SerializeAsync(serializer, project, result.ProjectId, _owner.NonLocalStateName, result.Others).ConfigureAwait(false);
+                await SerializeAsync(persistentService, serializer, project, document: null, result.ProjectId, _owner.NonLocalStateName, result.GetOtherDiagnostics()).ConfigureAwait(false);
             }
 
             public void ResetVersion()
             {
                 // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
-                _lastResult = new AnalysisResult(_lastResult.ProjectId, VersionStamp.Default, _lastResult.DocumentIds, _lastResult.IsEmpty, _lastResult.FromBuild);
+                _lastResult = _lastResult.Reset();
             }
 
-            public async Task MergeAsync(ActiveFileState state, Document document)
+            public async Task MergeAsync(IPersistentStorageService persistentService, ActiveFileState state, TextDocument document)
             {
                 Contract.ThrowIfFalse(state.DocumentId == document.Id);
 
@@ -237,14 +245,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
 
                 var project = document.Project;
-                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
+
+                // if project didn't successfully loaded, then it is same as FSA off
+                var fullAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution &&
+                                   await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
 
-                // if it is allowed to keep project state, check versions and if they are same, bail out
+                var openFileOnlyAnalyzer = _owner.Analyzer.IsOpenFileOnly(document.Project.Solution.Options);
+
+                // if it is allowed to keep project state, check versions and if they are same, bail out.
                 // if full solution analysis is off or we are asked to reset document state, we always merge.
-                if (fullAnalysis &&
+                if (fullAnalysis && !openFileOnlyAnalyzer &&
                     syntax.Version != VersionStamp.Default &&
                     syntax.Version == semantic.Version &&
                     syntax.Version == lastResult.Version)
@@ -260,11 +273,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
 
                 // save active file diagnostics back to project state
-                await SerializeAsync(serializer, document, document.Id, _owner.SyntaxStateName, syntax.Items).ConfigureAwait(false);
-                await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, semantic.Items).ConfigureAwait(false);
+                await SerializeAsync(persistentService, serializer, project, document, document.Id, _owner.SyntaxStateName, syntax.Items).ConfigureAwait(false);
+                await SerializeAsync(persistentService, serializer, project, document, document.Id, _owner.SemanticStateName, semantic.Items).ConfigureAwait(false);
 
                 // save last aggregated form of analysis result
-                _lastResult = new AnalysisResult(_lastResult.ProjectId, version, _lastResult.DocumentIdsOrEmpty.Add(state.DocumentId), isEmpty: false, fromBuild: fromBuild);
+                _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId, fromBuild);
             }
 
             public bool OnDocumentRemoved(DocumentId id)
@@ -279,67 +292,70 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return !IsEmpty();
             }
 
-            private async Task<AnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(IPersistentStorageService persistentService, Project project, CancellationToken cancellationToken)
             {
                 // loading data can be cancelled any time.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
-                var builder = new Builder(project.Id, version);
+                var builder = new Builder(project, version);
 
                 foreach (var document in project.Documents)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
+                    if (!await TryDeserializeDocumentDiagnosticsAsync(persistentService, serializer, document, builder, cancellationToken).ConfigureAwait(false))
                     {
                         continue;
                     }
                 }
 
-                if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
+                if (!await TryDeserializeProjectDiagnosticsAsync(persistentService, serializer, project, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
 
                 return builder.ToResult();
             }
 
-            private async Task<AnalysisResult> LoadInitialAnalysisDataAsync(Document document, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(IPersistentStorageService persistentService, TextDocument document, CancellationToken cancellationToken)
             {
                 // loading data can be cancelled any time.
                 var project = document.Project;
 
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
-                var builder = new Builder(project.Id, version);
+                var builder = new Builder(project, version);
 
-                if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
+                if (!await TryDeserializeDocumentDiagnosticsAsync(persistentService, serializer, document, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
 
                 return builder.ToResult();
             }
 
-            private async Task<AnalysisResult> LoadInitialProjectAnalysisDataAsync(Project project, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResult> LoadInitialProjectAnalysisDataAsync(IPersistentStorageService persistentService, Project project, CancellationToken cancellationToken)
             {
                 // loading data can be cancelled any time.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
-                var builder = new Builder(project.Id, version);
+                var builder = new Builder(project, version);
 
-                if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
+                if (!await TryDeserializeProjectDiagnosticsAsync(persistentService, serializer, project, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
 
                 return builder.ToResult();
             }
 
-            private async Task SerializeAsync(DiagnosticDataSerializer serializer, object documentOrProject, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+            private async Task SerializeAsync(IPersistentStorageService? persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
+                Contract.ThrowIfFalse(document == null || document.Project == project);
+
                 // try to serialize it
-                if (await serializer.SerializeAsync(documentOrProject, stateKey, diagnostics, CancellationToken.None).ConfigureAwait(false))
+                if (persistentService != null &&
+                    await serializer.SerializeAsync(persistentService, project, document, stateKey, diagnostics, CancellationToken.None).ConfigureAwait(false))
                 {
                     // we succeeded saving it to persistent storage. remove it from in memory cache if it exists
                     RemoveInMemoryCacheEntry(key, stateKey);
@@ -347,50 +363,73 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // if serialization fail, hold it in the memory
-                InMemoryStorage.Cache(_owner.Analyzer, ValueTuple.Create(key, stateKey), new CacheEntry(serializer.Version, diagnostics));
+                InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializer.Version, diagnostics));
             }
 
-            private async Task<bool> TryDeserializeDocumentAsync(DiagnosticDataSerializer serializer, Document document, Builder builder, CancellationToken cancellationToken)
+            private async Task<bool> TryDeserializeDocumentDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, TextDocument document, Builder builder, CancellationToken cancellationToken)
             {
-                var result = true;
+                var success = true;
+                var project = document.Project;
+                var documentId = document.Id;
 
-                result &= await TryDeserializeAsync(serializer, document, document.Id, _owner.SyntaxStateName, builder.AddSyntaxLocals, cancellationToken).ConfigureAwait(false);
-                result &= await TryDeserializeAsync(serializer, document, document.Id, _owner.SemanticStateName, builder.AddSemanticLocals, cancellationToken).ConfigureAwait(false);
-                result &= await TryDeserializeAsync(serializer, document, document.Id, _owner.NonLocalStateName, builder.AddNonLocals, cancellationToken).ConfigureAwait(false);
-
-                return result;
-            }
-
-            private async Task<bool> TryDeserializeAsync<T>(
-                DiagnosticDataSerializer serializer,
-                object documentOrProject, T key, string stateKey,
-                Action<T, ImmutableArray<DiagnosticData>> add,
-                CancellationToken cancellationToken) where T : class
-            {
-                var diagnostics = await DeserializeAsync(serializer, documentOrProject, key, stateKey, cancellationToken).ConfigureAwait(false);
-                if (diagnostics.IsDefault)
+                var diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document, documentId, _owner.SyntaxStateName, cancellationToken).ConfigureAwait(false);
+                if (!diagnostics.IsDefault)
                 {
-                    return false;
+                    builder.AddSyntaxLocals(documentId, diagnostics);
+                }
+                else
+                {
+                    success = false;
                 }
 
-                add(key, diagnostics);
-                return true;
-            }
-
-            private async Task<ImmutableArray<DiagnosticData>> DeserializeAsync(DiagnosticDataSerializer serializer, object documentOrProject, object key, string stateKey, CancellationToken cancellationToken)
-            {
-                // check cache first
-                CacheEntry entry;
-                if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out entry) && serializer.Version == entry.Version)
+                diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document, documentId, _owner.SemanticStateName, cancellationToken).ConfigureAwait(false);
+                if (!diagnostics.IsDefault)
                 {
-                    return entry.Diagnostics;
+                    builder.AddSemanticLocals(documentId, diagnostics);
+                }
+                else
+                {
+                    success = false;
                 }
 
-                // try to deserialize it
-                return await serializer.DeserializeAsync(documentOrProject, stateKey, cancellationToken).ConfigureAwait(false);
+                diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document, documentId, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
+                if (!diagnostics.IsDefault)
+                {
+                    builder.AddNonLocals(documentId, diagnostics);
+                }
+                else
+                {
+                    success = false;
+                }
+
+                return success;
             }
 
-            private void RemoveInMemoryCache(AnalysisResult lastResult)
+            private async Task<bool> TryDeserializeProjectDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, Builder builder, CancellationToken cancellationToken)
+            {
+                var diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document: null, project.Id, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
+                if (!diagnostics.IsDefault)
+                {
+                    builder.AddOthers(diagnostics);
+                    return true;
+                }
+
+                return false;
+            }
+
+            private ValueTask<ImmutableArray<DiagnosticData>> DeserializeDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfFalse(document == null || document.Project == project);
+
+                if (InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializer.Version == entry.Version)
+                {
+                    return ValueTaskFactory.FromResult(entry.Diagnostics);
+                }
+
+                return serializer.DeserializeAsync(persistentService, project, document, stateKey, cancellationToken);
+            }
+
+            private void RemoveInMemoryCache(DiagnosticAnalysisResult lastResult)
             {
                 // remove old cache
                 foreach (var documentId in lastResult.DocumentIdsOrEmpty)
@@ -409,68 +448,62 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private void RemoveInMemoryCacheEntry(object key, string stateKey)
             {
                 // remove in memory cache if entry exist
-                InMemoryStorage.Remove(_owner.Analyzer, ValueTuple.Create(key, stateKey));
+                InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));
             }
 
-            private bool IsEmpty(AnalysisResult result, DocumentId documentId)
-            {
-                return !result.DocumentIdsOrEmpty.Contains(documentId);
-            }
+            private static bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
+                => !result.DocumentIdsOrEmpty.Contains(documentId);
 
             // we have this builder to avoid allocating collections unnecessarily.
-            private class Builder
+            private sealed class Builder
             {
-                private readonly ProjectId _projectId;
+                private readonly Project _project;
                 private readonly VersionStamp _version;
-                private readonly ImmutableHashSet<DocumentId> _documentIds;
+                private readonly ImmutableHashSet<DocumentId>? _documentIds;
 
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _syntaxLocals;
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _semanticLocals;
-                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder _nonLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _syntaxLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _semanticLocals;
+                private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _nonLocals;
                 private ImmutableArray<DiagnosticData> _others;
 
-                public Builder(ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds = null)
+                public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds = null)
                 {
-                    _projectId = projectId;
+                    _project = project;
                     _version = version;
                     _documentIds = documentIds;
                 }
 
                 public void AddSyntaxLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _syntaxLocals, documentId, diagnostics);
-                }
+                    => Add(ref _syntaxLocals, documentId, diagnostics);
 
                 public void AddSemanticLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _semanticLocals, documentId, diagnostics);
-                }
+                    => Add(ref _semanticLocals, documentId, diagnostics);
 
                 public void AddNonLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _nonLocals, documentId, diagnostics);
-                }
+                    => Add(ref _nonLocals, documentId, diagnostics);
 
-                public void AddOthers(ProjectId unused, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    _others = diagnostics;
-                }
+                public void AddOthers(ImmutableArray<DiagnosticData> diagnostics)
+                    => _others = diagnostics;
 
-                private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
+                private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                 {
-                    locals = locals ?? ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
+                    if (_project.GetDocument(documentId)?.SupportsDiagnostics() == false)
+                    {
+                        return;
+                    }
+
+                    locals ??= ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
                     locals.Add(documentId, diagnostics);
                 }
 
-                public AnalysisResult ToResult()
+                public DiagnosticAnalysisResult ToResult()
                 {
-                    return new AnalysisResult(_projectId, _version,
+                    return DiagnosticAnalysisResult.Create(_project, _version,
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        _others.IsDefault ? ImmutableArray<DiagnosticData>.Empty : _others,
-                        _documentIds,
-                        fromBuild: false);
+                        _others.NullToEmpty(),
+                        _documentIds);
                 }
             }
         }

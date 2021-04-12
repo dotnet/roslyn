@@ -1,130 +1,29 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Diagnostics;
+using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    public partial class ArgumentSyntax
+    public sealed partial class ArgumentSyntax
     {
         /// <summary>
-        /// Get expression representing the value of the argument, or null if arguments declares 
-        /// an out variable.
+        /// Pre C# 7.2 back-compat overload, which simply calls the replacement property <see cref="RefKindKeyword"/>.
         /// </summary>
-        public ExpressionSyntax Expression
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public SyntaxToken RefOrOutKeyword
         {
-            get
-            {
-                return ExpressionOrDeclaration as ExpressionSyntax;
-            }
-        }
-
-        public ArgumentSyntax WithExpression(ExpressionSyntax expression)
-        {
-            return this.WithExpressionOrDeclaration(expression);
-        }
-
-        public ArgumentSyntax WithDeclaration(VariableDeclarationSyntax declaration)
-        {
-            if (this.RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return this.WithExpressionOrDeclaration(declaration);
+            get => this.RefKindKeyword;
         }
 
         /// <summary>
-        /// Get declaration of an Out Variable for the argument, or null
-        /// if it doesn't declare any.
+        /// Pre C# 7.2 back-compat overload, which simply calls the replacement method <see cref="Update"/>.
         /// </summary>
-        public VariableDeclarationSyntax Declaration
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public ArgumentSyntax WithRefOrOutKeyword(SyntaxToken refOrOutKeyword)
         {
-            get
-            {
-                return ExpressionOrDeclaration as VariableDeclarationSyntax;
-            }
-        }
-
-        /// <summary>
-        /// Get identifier for out variable declaration, or default(SyntaxToken).
-        /// </summary>
-        internal SyntaxToken Identifier
-        {
-            get
-            {
-                VariableDeclarationSyntax declaration = Declaration;
-                if (declaration != null)
-                {
-                    return declaration.Variables.First().Identifier;
-                }
-
-                return default(SyntaxToken);
-            }
-        }
-
-        /// <summary>
-        /// Get type syntax for out variable declaration, or null.
-        /// </summary>
-        internal TypeSyntax Type
-        {
-            get
-            {
-                VariableDeclarationSyntax declaration = Declaration;
-                if (declaration != null)
-                {
-                    return declaration.Type;
-                }
-
-                return null;
-            }
-        }
-
-        public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
-        {
-            return this.Update(nameColon, refOrOutKeyword, (CSharpSyntaxNode)expression) ;
-        }
-
-        public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken outKeyword, VariableDeclarationSyntax declaration)
-        {
-            return this.Update(nameColon, outKeyword, (CSharpSyntaxNode)declaration);
-        }
-
-        internal static bool IsValidOutVariableDeclaration(VariableDeclarationSyntax declaration)
-        {
-            return (declaration.Variables.Count == 1 &&
-                    declaration.Variables.First().ArgumentList == null &&
-                    declaration.Variables.First().Initializer == null);
-        }
-
-        internal static bool IsIdentifierOfOutVariableDeclaration(SyntaxToken identifier, out ArgumentSyntax declaringArgument)
-        {
-            Debug.Assert(identifier.Kind() == SyntaxKind.IdentifierToken || identifier.Kind() == SyntaxKind.None);
-            SyntaxNode parent;
-
-            if ((parent = identifier.Parent)?.Kind() == SyntaxKind.VariableDeclarator &&
-                (parent = parent.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
-                (parent = parent.Parent)?.Kind() == SyntaxKind.Argument)
-            {
-                var argument = (ArgumentSyntax)parent;
-
-                if (argument.Identifier == identifier)
-                {
-                    declaringArgument = argument;
-                    return true;
-                }
-            }
-
-            declaringArgument = null;
-            return false;
-        }
-
-        partial void ValidateWithRefOrOutKeywordInput(SyntaxToken refOrOutKeyword)
-        {
-            if (ExpressionOrDeclaration.Kind() == SyntaxKind.VariableDeclaration && refOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
-            {
-                throw new ArgumentException(nameof(refOrOutKeyword));
-            }
+            return this.Update(this.NameColon, refOrOutKeyword, this.Expression);
         }
     }
 }

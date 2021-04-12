@@ -1,11 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -13,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -29,29 +35,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     /// </summary>
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
-        private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
 
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
-
-        private IEditorClassificationService _classificationService;
+        protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SemanticClassificationViewTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Classification), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
         {
-            _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
         }
 
@@ -60,14 +62,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             this.AssertIsForeground();
             const TaggerDelay Delay = TaggerDelay.Short;
 
-            // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing 
-            // and also the SemanticChange nodification. 
+            // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
+            // SemanticChange notification. 
             // 
-            // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way
-            // we appear semantically unclassified for a very short amount of time.
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnViewSpanChanged(textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnSemanticChanged(subjectBuffer, Delay, _semanticChangeNotificationService),
+            // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way we appear
+            // semantically unclassified for a very short amount of time.
+            //
+            // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
+            // semantics (esp. during solution load).  Because of this, we also register to hear when the full
+            // compilation is available so that reclassify and bring ourselves up to date.
+            return new CompilationAvailableTaggerEventSource(
+                subjectBuffer, Delay,
+                ThreadingContext,
+                AsyncListener,
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
         }
 
@@ -84,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return base.GetSpansToTag(textView, subjectBuffer);
             }
 
-            return new[] { visibleSpanOpt.Value };
+            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
         protected override Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
@@ -92,16 +101,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Debug.Assert(context.SpansToTag.IsSingle());
 
             var spanToTag = context.SpansToTag.Single();
+
             var document = spanToTag.Document;
 
-            if (document == null)
+            // Attempt to get a classification service which will actually produce the results.
+            // If we can't (because we have no Document, or because the language doesn't support
+            // this service), then bail out immediately.
+            var classificationService = document?.GetLanguageService<IClassificationService>();
+            if (classificationService == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
-            _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
+            // The LSP client will handle producing tags when running under the LSP editor.
+            // Our tagger implementation should return nothing to prevent conflicts.
+            var workspaceContextService = document?.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            if (workspaceContextService?.IsInLspEditorContext() == true)
+            {
+                return Task.CompletedTask;
+            }
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, _classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }
 }

@@ -1,87 +1,241 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
+using Microsoft.VisualStudio.LanguageServices.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
 {
+    [UseExportProvider]
     public class F1HelpTests
     {
-        private async Task TestAsync(string markup, string expectedText)
+        private static async Task TestAsync(string markup, string expectedText)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
-            {
-                var caret = workspace.Documents.First().CursorPosition;
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: VisualStudioTestCompositions.LanguageServices);
+            var caret = workspace.Documents.First().CursorPosition;
 
-                var service = new CSharpHelpContextService();
-                var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
-                Assert.Equal(expectedText, actualText);
-            }
+            var service = Assert.IsType<CSharpHelpContextService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IHelpContextService>());
+            var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
+            Assert.Equal(expectedText, actualText);
         }
 
-        private async Task Test_KeywordAsync(string markup, string expectedText)
+        private static async Task Test_KeywordAsync(string markup, string expectedText)
         {
             await TestAsync(markup, expectedText + "_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInternal()
+        {
+            await Test_KeywordAsync(
+@"intern[||]al class C
+{
+}", "internal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtected()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted void goo();
+}", "protected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    internal protec[||]ted void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestProtectedInternal2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protec[||]ted internal void goo();
+}", "protectedinternal");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected1()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    private protec[||]ted void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected2()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    priv[||]ate protected void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected3()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    protected priv[||]ate void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPrivateProtected4()
+        {
+            await Test_KeywordAsync(
+@"public class C
+{
+    prot[||]ected private void goo();
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoup()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    private new prot[||]ected static unsafe void foo()
+    {
+    }
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestModifierSoupField()
+        {
+            await Test_KeywordAsync(
+    @"public class C
+{
+    new prot[||]ected static unsafe private goo;
+}", "privateprotected");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestVoid()
         {
-            await Test_KeywordAsync(@"
-class C
+            await Test_KeywordAsync(
+@"class C
 {
-    vo[||]id foo() { }
+    vo[||]id goo()
+    {
+    }
 }", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestReturn()
         {
-            await Test_KeywordAsync(@"
-class C
+            await Test_KeywordAsync(
+@"class C
 {
-    void foo() 
-    { 
-        ret[||]urn; 
+    void goo()
+    {
+        ret[||]urn;
     }
 }", "return");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialType()
+        public async Task TestClassPartialType()
         {
-            await Test_KeywordAsync(@"
-part[||]ial class C
+            await Test_KeywordAsync(
+@"part[||]ial class C
 {
-    partial void foo();
+    partial void goo();
 }", "partialtype");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialMethod()
+        public async Task TestRecordPartialType()
         {
-            await Test_KeywordAsync(@"
-partial class C
+            await Test_KeywordAsync(
+@"part[||]ial record C
 {
-    par[||]tial void foo();
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRecordWithPrimaryConstructorPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C(string S)
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInClass()
+        {
+            await Test_KeywordAsync(
+@"partial class C
+{
+    par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInRecord()
+        {
+            await Test_KeywordAsync(
+@"partial record C
+{
+    par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestExtendedPartialMethod()
+        {
+            await Test_KeywordAsync(
+@"partial class C
+{
+    public par[||]tial void goo();
 }", "partialmethod");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestWhereClause()
         {
-            await Test_KeywordAsync(@"
-using System.Linq;
-class Program<T> where T : class {
-    void foo(string[] args)
+            await Test_KeywordAsync(
+@"using System.Linq;
+
+class Program<T> where T : class
+{
+    void goo(string[] args)
     {
-        var x = from a in args whe[||]re a.Length > 0 select a;
+        var x = from a in args
+                whe[||]re a.Length > 0
+                select a;
     }
 }", "whereclause");
         }
@@ -89,12 +243,16 @@ class Program<T> where T : class {
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestWhereConstraint()
         {
-            await Test_KeywordAsync(@"
-using System.Linq;
-class Program<T> wh[||]ere T : class {
-    void foo(string[] args)
+            await Test_KeywordAsync(
+@"using System.Linq;
+
+class Program<T> wh[||]ere T : class
+{
+    void goo(string[] args)
     {
-        var x = from a in args where a.Length > 0 select a;
+        var x = from a in args
+                where a.Length > 0
+                select a;
     }
 }", "whereconstraint");
         }
@@ -102,79 +260,80 @@ class Program<T> wh[||]ere T : class {
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestPreprocessor()
         {
-            await TestAsync(@"
-#regi[||]on
+            await TestAsync(
+@"#regi[||]on
 #endregion", "#region");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestConstructor()
         {
-            await TestAsync(@"
-namespace N
+            await TestAsync(
+@"namespace N
 {
-class C
-{
-    void foo()
+    class C
     {
-        var x = new [|C|]();
+        void goo()
+        {
+            var x = new [|C|]();
+        }
     }
-}
 }", "N.C.#ctor");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestGenericClass()
         {
-            await TestAsync(@"
-namespace N
+            await TestAsync(
+@"namespace N
 {
-class C<T>
-{
-    void foo()
+    class C<T>
     {
-        [|C|]<int> c;
+        void goo()
+        {
+            [|C|]<int> c;
+        }
     }
-}
 }", "N.C`1");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestGenericMethod()
         {
-            await TestAsync(@"
-namespace N
+            await TestAsync(
+@"namespace N
 {
-class C<T>
-{
-    void foo<T, U, V>(T t, U u, V v)
+    class C<T>
     {
-        C<int> c;
-        c.f[|oo|](1, 1, 1);
+        void goo<T, U, V>(T t, U u, V v)
+        {
+            C<int> c;
+            c.g[|oo|](1, 1, 1);
+        }
     }
-}
-}", "N.C`1.foo``3");
+}", "N.C`1.goo``3");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestOperator()
         {
-            await TestAsync(@"
-namespace N
+            await TestAsync(
+@"namespace N
 {
-class C
-{
-    void foo()
+    class C
     {
-        var two = 1 [|+|] 1;
-    }
-}", "+_CSharpKeyword");
+        void goo()
+        {
+            var two = 1 [|+|] 1;
+        }
+    }", "+_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestVar()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -191,7 +350,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestEquals()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -208,7 +368,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestFromIn()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -217,7 +378,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        var x = from n i[||]n { 1} select n
+        var x = from n i[||]n {
+            1}
+
+        select n
     }
 }", "from_CSharpKeyword");
         }
@@ -225,7 +389,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestProperty()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -242,7 +407,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestForeachIn()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -251,9 +417,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        foreach (var x in[||] { 1} )
+        foreach (var x in[||] {
+            1} )
         {
-
         }
     }
 }", "in_CSharpKeyword");
@@ -262,8 +428,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestRegionDescription()
         {
-            await TestAsync(@"
-class Program
+            await TestAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
@@ -276,7 +442,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestGenericAngle()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     static void generic<T>(T t)
     {
@@ -288,7 +455,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestLocalReferenceIsType()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -307,7 +475,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestConstantField()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
@@ -320,69 +489,73 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestParameter()
         {
-            await TestAsync(@"class Class2
+            await TestAsync(
+@"class Class2
+{
+    void M1(int par[||]ameter)  // 1
     {
-        void M1(int par[||]ameter)  // 1
-        {
-        }
-        void M2()
-        {
-            int argument = 1;
-            M1(parameter: argument);   // 2
-        }
     }
-", "System.Int32");
+
+    void M2()
+    {
+        int argument = 1;
+        M1(parameter: argument);   // 2
+    }
+}", "System.Int32");
         }
 
         [WorkItem(862420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestArgumentType()
         {
-            await TestAsync(@"class Class2
+            await TestAsync(
+@"class Class2
+{
+    void M1(int pa[||]rameter)  // 1
     {
-        void M1(int pa[||]rameter)  // 1
-        {
-        }
-        void M2()
-        {
-            int argument = 1;
-            M1(parameter: argument);   // 2
-        }
     }
-", "System.Int32");
+
+    void M2()
+    {
+        int argument = 1;
+        M1(parameter: argument);   // 2
+    }
+}", "System.Int32");
         }
 
         [WorkItem(862396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862396")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestNoToken()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
-        [||]
     }
-}", "");
+}[||]", "");
         }
 
         [WorkItem(862328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862328")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestLiteral()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
         Main(new string[] { ""fo[||]o"" });
     }
-    }", "System.String");
+}", "System.String");
         }
 
         [WorkItem(862478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862478")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestColonColon()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -391,16 +564,81 @@ class Program
 {
     static void Main(string[] args)
     {
-    global:[||]:System.Console.Write("");
+        global:[||]:System.Console.Write("");
     }
 }", "::_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStringInterpolation()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($[||]""Hello, {args[0]}"");
+    }
+}", "$_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimString()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(@[||]""Hello\"");
+    }
+}", "@_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimInterpolatedString1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(@[||]$""Hello\ {args[0]}"");
+    }
+}", "@$_CSharpKeyword");
+        }
+
+        [WorkItem(46986, "https://github.com/dotnet/roslyn/issues/46986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestVerbatimInterpolatedString2()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($[||]@""Hello\ {args[0]}"");
+    }
+}", "@$_CSharpKeyword");
         }
 
         [WorkItem(864658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864658")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestNullable()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -410,8 +648,7 @@ class Program
     static void Main(string[] args)
     {
         int?[||] a = int.MaxValue;
-a.Value.GetHashCode();
-
+        a.Value.GetHashCode();
     }
 }", "System.Nullable`1");
         }
@@ -420,7 +657,8 @@ a.Value.GetHashCode();
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestAfterLastToken()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -439,7 +677,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestConditional()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
@@ -451,7 +690,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestLocalVar()
         {
-            await TestAsync(@"class C
+            await TestAsync(
+@"class C
 {
     void M()
     {
@@ -465,11 +705,13 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestFatArrow()
         {
-            await TestAsync(@"class C
+            await TestAsync(
+@"class C
 {
     void M()
     {
-        var a = new System.Action(() =[||]> { });
+        var a = new System.Action(() =[||]> {
+        });
     }
 }", "=>_CSharpKeyword");
         }
@@ -478,14 +720,17 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestSubscription()
         {
-            await TestAsync(@"class CCC
+            await TestAsync(
+@"class CCC
 {
     event System.Action e;
+
     void M()
     {
-        e +[||]= () => { };
+        e +[||]= () => {
+        };
     }
-}", "CCC.e.add");
+}", "+=_CSharpKeyword");
         }
 
         [WorkItem(867554, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867554")]
@@ -499,7 +744,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestDynamic()
         {
-            await TestAsync(@"class C
+            await TestAsync(
+@"class C
 {
     void M()
     {
@@ -511,7 +757,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestRangeVariable()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -520,9 +767,450 @@ class Program
 {
     static void Main(string[] args)
     {
-        var zzz = from y in args select [||]y;
+        var zzz = from y in args
+                  select [||]y;
     }
 }", "System.String");
+        }
+
+        [WorkItem(36001, "https://github.com/dotnet/roslyn/issues/36001")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNameof()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void goo()
+    {
+        var v = [||]nameof(goo);
+    }
+}", "nameof");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNullForgiving()
+        {
+            await Test_KeywordAsync(
+@"#nullable enable
+class C
+{
+    int goo(string? x)
+    {
+        return x[||]!.GetHashCode();
+    }
+}", "nullForgiving");
+        }
+
+        [WorkItem(46988, "https://github.com/dotnet/roslyn/issues/46988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLogicalNot()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    bool goo(bool x)
+    {
+        return [||]!x;
+    }
+}", "!");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultSwitchCase()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter)
+    {
+        switch(parameter) {
+            defa[||]ult:
+                parameter = default;
+                break;
+        }
+    }
+}", "defaultcase");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultLiteralExpressionInsideSwitch()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter)
+    {
+        switch(parameter) {
+            default:
+                parameter = defa[||]ult;
+                break;
+        }
+    }
+}", "default");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultExpressionInsideSwitch()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter)
+    {
+        switch(parameter) {
+            default:
+                parameter = defa[||]ult(int);
+                break;
+        }
+    }
+}", "default");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultLiteralExpression()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    int field = defa[||]ult;
+}", "default");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultExpression()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    int field = defa[||]ult(int);
+}", "default");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultLiteralExpressionInOptionalParameter()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter = defa[||]ult) {
+    }
+}", "default");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultExpressionInOptionalParameter()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1(int parameter = defa[||]ult(int)) {
+    }
+}", "default");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultLiteralExpressionInMethodCall()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1() {
+        M2(defa[||]ult);
+    }
+}", "default");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDefaultExpressionInMethodCall()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void M1() {
+        M2(defa[||]ult(int));
+    }
+}", "default");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestOuterClassDeclaration()
+        {
+            await Test_KeywordAsync(
+@"cla[||]ss OuterClass<T> where T : class
+{ 
+    class InnerClass<T> where T : class { }
+}", "class");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInnerClassDeclaration()
+        {
+            await Test_KeywordAsync(
+@"class OuterClass<T> where T : class
+{ 
+    cla[||]ss InnerClass<T> where T : class { }
+}", "class");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestClassConstraintInOuterClass()
+        {
+            await Test_KeywordAsync(
+@"class OuterClass<T> where T : cla[||]ss
+{ 
+    class InnerClass<T> where T : class { }
+}", "classconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestClassConstraintInInnerClass()
+        {
+            await Test_KeywordAsync(
+@"class OuterClass<T> where T : class
+{ 
+    class InnerClass<T> where T : cla[||]ss { }
+}", "classconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestClassConstraintInGenericMethod()
+        {
+            await Test_KeywordAsync(
+@"class C
+{ 
+    void M1<T>() where T : cla[||]ss { }
+}", "classconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestClassConstraintInGenericDelegate()
+        {
+            await Test_KeywordAsync(
+@"class C
+{ 
+    delegate T MyDelegate<T>() where T : cla[||]ss;
+}", "classconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestOuterStructDeclaration()
+        {
+            await Test_KeywordAsync(
+@"str[||]uct OuterStruct<T> where T : struct
+{ 
+    struct InnerStruct<T> where T : struct { }
+}", "struct");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestInnerStructDeclaration()
+        {
+            await Test_KeywordAsync(
+@"struct OuterStruct<T> where T : struct
+{ 
+    str[||]uct InnerStruct<T> where T : struct { }
+}", "struct");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStructConstraintInOuterStruct()
+        {
+            await Test_KeywordAsync(
+@"struct OuterStruct<T> where T : str[||]uct
+{ 
+    struct InnerStruct<T> where T : struct { }
+}", "structconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStructConstraintInInnerStruct()
+        {
+            await Test_KeywordAsync(
+@"struct OuterStruct<T> where T : struct
+{ 
+    struct InnerStruct<T> where T : str[||]uct { }
+}", "structconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStructConstraintInGenericMethod()
+        {
+            await Test_KeywordAsync(
+@"struct C
+{ 
+    void M1<T>() where T : str[||]uct { }
+}", "structconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStructConstraintInGenericDelegate()
+        {
+            await Test_KeywordAsync(
+@"struct C
+{ 
+    delegate T MyDelegate<T>() where T : str[||]uct;
+}", "structconstraint");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUsingStaticOnUsingKeyword()
+        {
+            await Test_KeywordAsync(
+@"us[||]ing static namespace.Class;
+
+static class C
+{ 
+    static int Field;
+
+    static void Method() {}
+}", "using-static");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNormalUsingDirective()
+        {
+            await Test_KeywordAsync(
+@"us[||]ing namespace.Class;
+
+static class C
+{ 
+    static int Field;
+
+    static void Method() {}
+}", "using");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUsingStatement()
+        {
+            await Test_KeywordAsync(
+@"using namespace.Class;
+
+class C
+{ 
+    void Method(String someString) {
+        us[||]ing (var reader = new StringReader(someString))
+        {
+        }
+    }
+}", "using-statement");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUsingDeclaration()
+        {
+            await Test_KeywordAsync(
+@"using namespace.Class;
+
+class C
+{ 
+    void Method(String someString) {
+        us[||]ing var reader = new StringReader(someString);
+    }
+}", "using-statement");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestUsingStaticOnStaticKeyword()
+        {
+            await Test_KeywordAsync(
+@"using sta[||]tic namespace.Class;
+
+static class C
+{ 
+    static int Field;
+
+    static void Method() {}
+}", "using-static");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStaticClass()
+        {
+            await Test_KeywordAsync(
+@"using static namespace.Class;
+
+sta[||]tic class C
+{ 
+    static int Field;
+
+    static void Method() {}
+}", "static");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStaticField()
+        {
+            await Test_KeywordAsync(
+@"using static namespace.Class;
+
+static class C
+{ 
+    sta[||]tic int Field;
+
+    static void Method() {}
+}", "static");
+        }
+
+        [WorkItem(48392, "https://github.com/dotnet/roslyn/issues/48392")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestStaticMethod()
+        {
+            await Test_KeywordAsync(
+@"using static namespace.Class;
+
+static class C
+{ 
+    static int Field;
+
+    sta[||]tic void Method() {}
+}", "static");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestWithKeyword()
+        {
+            await Test_KeywordAsync(
+@"
+public record Point(int X, int Y);
+
+public static class Program
+{ 
+    public static void Main()
+    {
+        var p1 = new Point(0, 0);
+        var p2 = p1 w[||]ith { X = 5 };
+    }
+}", "with");
         }
     }
 }

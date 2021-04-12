@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -82,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             symbol As SourceMemberContainerTypeSymbol,
             initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)),
             scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As ImmutableArray(Of BoundInitializer)
             Debug.Assert((scriptInitializerOpt IsNot Nothing) = symbol.IsScriptClass)
 
@@ -131,7 +134,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim firstFieldOrProperty = initializer.FieldsOrProperties.First
-                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty)
+                    Dim additionalSymbols = If(initializer.FieldsOrProperties.Length > 1, initializer.FieldsOrProperties.RemoveAt(0), ImmutableArray(Of Symbol).Empty)
+                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty, additionalSymbols)
                     If initializerNode.Kind = SyntaxKind.ModifiedIdentifier Then
                         ' Array field with no explicit initializer.
                         Debug.Assert(initializer.FieldsOrProperties.Length = 1)
@@ -154,12 +158,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             If fieldSymbol.Type.SpecialType = SpecialType.System_DateTime Then
                                 '  report proper diagnostics for System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor if needed
-                                initializerBinder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                                initializerBinder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
                                                                                             initializerNode,
                                                                                             diagnostics)
                             ElseIf fieldSymbol.Type.SpecialType = SpecialType.System_Decimal Then
                                 '  report proper diagnostics for System_Runtime_CompilerServices_DecimalConstantAttribute__ctor if needed
-                                initializerBinder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                                initializerBinder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                                                                                             initializerNode,
                                                                                             diagnostics)
                             End If
@@ -199,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindGlobalStatement(
             scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
             statementNode As StatementSyntax,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             isLast As Boolean) As BoundInitializer
 
             Dim boundStatement As BoundStatement = Me.BindStatement(statementNode, diagnostics)
@@ -223,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub BindArrayFieldImplicitInitializer(
             fieldSymbol As SourceFieldSymbol,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
-            diagnostics As DiagnosticBag)
+            diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(fieldSymbol.Syntax.Kind = SyntaxKind.ModifiedIdentifier)
             Debug.Assert(fieldSymbol.Type.Kind = SymbolKind.ArrayType)
@@ -244,7 +248,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         boundFieldAccessExpression,
                                                         arrayCreation)
 
-            initializer.SetWasCompilerGenerated()
             boundInitializers.Add(initializer)
         End Sub
 
@@ -257,9 +260,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">The diagnostics.</param>
         Friend Sub BindFieldInitializer(
             fieldSymbols As ImmutableArray(Of FieldSymbol),
-            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
+            equalsValueOrAsNewSyntax As SyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional bindingForSemanticModel As Boolean = False
         )
             Debug.Assert(Not fieldSymbols.IsEmpty)
@@ -323,12 +326,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub BindPropertyInitializer(
             propertySymbols As ImmutableArray(Of PropertySymbol),
-            initValueOrAsNewNode As VisualBasicSyntaxNode,
+            initValueOrAsNewNode As SyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             Dim propertySymbol = DirectCast(propertySymbols.First, PropertySymbol)
-            Dim syntaxNode As VisualBasicSyntaxNode = initValueOrAsNewNode
+            Dim syntaxNode As SyntaxNode = initValueOrAsNewNode
 
             Dim boundReceiver = If(propertySymbol.IsShared, Nothing, CreateMeReference(syntaxNode, isSynthetic:=True))
 
@@ -339,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If propertySymbol.IsReadOnly AndAlso propertySymbol.AssociatedField IsNot Nothing Then
                 ' For ReadOnly auto-implemented properties we have to write directly to the backing field.
-                Debug.Assert(propertySymbol.Type = propertySymbol.AssociatedField.Type)
+                Debug.Assert(TypeSymbol.Equals(propertySymbol.Type, propertySymbol.AssociatedField.Type, TypeCompareKind.ConsiderEverything))
                 Debug.Assert(propertySymbols.Length = 1)
                 boundPropertyOrFieldAccess = New BoundFieldAccess(syntaxNode,
                                                                   boundReceiver,
@@ -377,10 +380,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function BindFieldOrPropertyInitializerExpression(
-            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
+            equalsValueOrAsNewSyntax As SyntaxNode,
             targetType As TypeSymbol,
             asNewVariablePlaceholderOpt As BoundWithLValueExpressionPlaceholder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Dim boundInitExpression As BoundExpression = Nothing
 
@@ -390,6 +393,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim asNew = DirectCast(equalsValueOrAsNewSyntax, AsNewClauseSyntax)
                 Select Case asNew.NewExpression.Kind
                     Case SyntaxKind.ObjectCreationExpression
+                        DisallowNewOnTupleType(asNew.Type, diagnostics)
+
                         Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
                         boundInitExpression = BindObjectCreationExpression(asNew.NewExpression.Type,
                                                                            objectCreationExpressionSyntax.ArgumentList,
@@ -445,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Const fields of type Date or Decimal will get initialized in the synthesized shared constructor
             ' because their value is not regarded as compile time constant by the CLR.
             ' This will produce sequence points in the shared constructor which is exactly what Dev10 does.
-            Dim constantValue = fieldSymbol.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+            Dim constantValue = fieldSymbol.GetConstantValue(VisualBasic.ConstantFieldsInProgress.Empty)
 
             If constantValue IsNot Nothing Then
                 Dim meSymbol As ParameterSymbol = Nothing
@@ -477,12 +482,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             fieldSymbol As FieldSymbol,
             equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             isEnum As Boolean,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out> ByRef constValue As ConstantValue
         ) As BoundExpression
             constValue = Nothing
             Dim boundInitValue As BoundExpression = Nothing
-            Dim initValueDiagnostics = DiagnosticBag.GetInstance
+            Dim initValueDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=diagnostics.AccumulatesDependencies)
 
             If equalsValueOrAsNewSyntax.Kind = SyntaxKind.EqualsValue Then
                 Dim equalsValueSyntax As EqualsValueSyntax = DirectCast(equalsValueOrAsNewSyntax, EqualsValueSyntax)
@@ -493,8 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' the bound node in a BoundBadNode. The required diagnostics have already been reported in 
                 ' SourceFieldSymbol.Type
                 Dim asNewSyntax = DirectCast(equalsValueOrAsNewSyntax, AsNewClauseSyntax)
-                Dim ignoredDiagnostics = DiagnosticBag.GetInstance
-                Dim fieldType = If(fieldSymbol.HasDeclaredType, fieldSymbol.Type, GetSpecialType(SpecialType.System_Object, asNewSyntax, ignoredDiagnostics)) ' prevent recursion if field type is inferred.
+                Dim fieldType = If(fieldSymbol.HasDeclaredType, fieldSymbol.Type, GetSpecialType(SpecialType.System_Object, asNewSyntax, BindingDiagnosticBag.Discarded)) ' prevent recursion if field type is inferred.
                 Select Case asNewSyntax.NewExpression.Kind
                     Case SyntaxKind.ObjectCreationExpression
                         Dim objectCreationExpressionSyntax = DirectCast(asNewSyntax.NewExpression,
@@ -503,11 +507,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       objectCreationExpressionSyntax.ArgumentList,
                                                                       fieldType,
                                                                       objectCreationExpressionSyntax,
-                                                                      ignoredDiagnostics,
+                                                                      BindingDiagnosticBag.Discarded,
                                                                       Nothing)
                     Case SyntaxKind.AnonymousObjectCreationExpression
                         boundInitValue = BindAnonymousObjectCreationExpression(
-                                                DirectCast(asNewSyntax.NewExpression, AnonymousObjectCreationExpressionSyntax), ignoredDiagnostics)
+                                                DirectCast(asNewSyntax.NewExpression, AnonymousObjectCreationExpressionSyntax), BindingDiagnosticBag.Discarded)
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(asNewSyntax.NewExpression.Kind)
                 End Select
@@ -515,10 +519,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitValue = New BoundBadExpression(boundInitValue.Syntax,
                                                         LookupResultKind.Empty,
                                                         ImmutableArray(Of Symbol).Empty,
-                                                        ImmutableArray.Create(Of BoundNode)(boundInitValue),
+                                                        ImmutableArray.Create(boundInitValue),
                                                         fieldType,
                                                         hasErrors:=True)
-                ignoredDiagnostics.Free()
             End If
 
             If Not boundInitValue.HasErrors Then
@@ -543,18 +546,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: a constant expression") and ERR_RequiredConstExpr ("Constant expression is required") in case
                 ' NOTE: the type (if declared) is a valid type for const fields. This is different from Dev10 that sometimes
                 ' NOTE: reported issues and sometimes not
-                ' NOTE: e.g. reports in "const foo as DelegateType = AddressOf methodName" (ERR_ConstAsNonConstant + ERR_RequiredConstExpr)
+                ' NOTE: e.g. reports in "const goo as DelegateType = AddressOf methodName" (ERR_ConstAsNonConstant + ERR_RequiredConstExpr)
                 ' NOTE: only type diagnostics for "const s as StructureType = nothing"
 
                 If boundInitValueHasErrorsOrConstTypeIsWrong Then
-                    Dim discard = DiagnosticBag.GetInstance
-                    constValue = Me.GetExpressionConstantValueIfAny(boundInitValue, discard, ConstantContext.Default)
-                    discard.Free()
+                    constValue = Me.GetExpressionConstantValueIfAny(boundInitValue, BindingDiagnosticBag.Discarded, ConstantContext.Default)
                 Else
                     constValue = Me.GetExpressionConstantValueIfAny(boundInitValue, initValueDiagnostics, ConstantContext.Default)
                 End If
 
-                ' e.g. the init value of "Public foo as Byte = 2.2" is still considered as constant and therefore a CByte(2)
+                ' e.g. the init value of "Public goo as Byte = 2.2" is still considered as constant and therefore a CByte(2)
                 ' is being assigned as the constant value of this field/enum. However in case of Option Strict On there has 
                 ' been a diagnostics in the call to ApplyImplicitConversion.
                 If constValue Is Nothing Then
@@ -578,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 type As TypeSymbol,
                                                 name As ModifiedIdentifierSyntax,
                                                 equalsValueOpt As EqualsValueSyntax,
-                                                diagnostics As DiagnosticBag,
+                                                diagnostics As BindingDiagnosticBag,
                                                 <Out> ByRef constValue As ConstantValue) As BoundExpression
             constValue = Nothing
 
@@ -615,12 +616,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' The result is not a constant and is not marked with hasErrors so return a BadExpression.
-                    Return BadExpression(valueSyntax, valueExpression, ErrorTypeSymbol.UnknownResultType)
+                    Return BadExpression(valueSyntax, valueExpression, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
 
                 End If
 
             Else
-                valueExpression = BadExpression(name, ErrorTypeSymbol.UnknownResultType)
+                valueExpression = BadExpression(name, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 ReportDiagnostic(diagnostics, name, ERRID.ERR_ConstantWithNoValue)
             End If
 
@@ -633,7 +634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function BindParameterDefaultValue(
             targetType As TypeSymbol,
             equalsValueSyntax As EqualsValueSyntax,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out> ByRef constValue As ConstantValue
         ) As BoundExpression
             constValue = Nothing

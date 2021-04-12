@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../VBScriptingResources.resx">
+    <body>
+      <trans-unit id="LogoLine1">
+        <source>Microsoft (R) Visual Basic Interactive Compiler version {0}</source>
+        <target state="translated">Microsoft (R) Visual Basic Interactive 컴파일러 버전 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LogoLine2">
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">Copyright (C) Microsoft Corporation. All rights reserved.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InteractiveHelp">
+        <source>Usage: vbi [options] [script-file.vbx] [-- script-arguments]
+
+If script-file is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
+
+Options:
+  /help                          Display this usage message (Short form: /?)
+  /version                       Display the version and exit
+  /reference:&lt;alias&gt;=&lt;file&gt;      Reference metadata from the specified assembly file using the given alias (Short form: /r)
+  /reference:&lt;file list&gt;         Reference metadata from the specified assembly files (Short form: /r)
+  /referencePath:&lt;path list&gt;     List of paths where to look for metadata references specified as unrooted paths. (Short form: /rp)
+  /using:&lt;namespace&gt;             Define global namespace using (Short form: /u)
+  /define:&lt;name&gt;=&lt;value&gt;,...     Declare global conditional compilation symbol(s) (Short form: /d)
+  @&lt;file&gt;                        Read response file for more options
+</source>
+        <target state="translated">사용법: vbi [options] [script-file.vbx] [-- script-arguments]
+
+script-file이 지정되면 스크립트를 실행하고, 그렇지 않으면 대화형 REPL(Read Eval Print Loop)을 시작합니다.
+
+옵션:
+  /help                          이 사용법 메시지를 표시합니다. (약식: /?)
+  /version                       버전을 표시하고 종료합니다.
+  /reference:&lt;alias&gt;=&lt;file&gt;      지정한 어셈블리 파일에서 해당 별칭을 사용하여 메타데이터를 참조합니다. (약식: /r)
+  /reference:&lt;file list&gt;         지정한 어셈블리 파일에서 메타데이터를 참조합니다. (약식: /r)
+  /referencePath:&lt;path list&gt;     루트가 아닌 경로로 지정된 메타데이터 참조를 찾을 경로의 목록입니다. (약식: /rp)
+  /using:&lt;namespace&gt;             전역 네임스페이스 using을 정의합니다. (약식: /u)
+  /define:&lt;name&gt;=&lt;value&gt;,...     전역 조건부 컴파일 기호를 선언합니다. (약식: /d)
+  @&lt;file&gt;                        추가 옵션을 위해 지시 파일을 읽습니다.
+</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionEscapeWithoutQuote">
+        <source>Cannot escape non-printable characters in Visual Basic notation unless quotes are used.</source>
+        <target state="translated">따옴표를 사용하지 않은 경우 Visual Basic 표기법에서 인쇄할 수 없는 문자를 이스케이프 처리할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

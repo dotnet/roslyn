@@ -1,8 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -11,83 +13,78 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "FullName tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFullName1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestFullName1()
             Dim code =
 <Code>
-using $$Foo;
+using $$Goo;
 </Code>
 
-            Dim ex = Await Assert.ThrowsAsync(Of COMException)(
-                Async Function()
-                    Await TestName(code, "Foo")
-                End Function)
+            Dim ex = Assert.Throws(Of COMException)(
+                Sub()
+                    TestName(code, "Goo")
+                End Sub)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestName1()
             Dim code =
 <Code>
-using $$Foo;
+using $$Goo;
 </Code>
 
-            Dim ex = Await Assert.ThrowsAsync(Of COMException)(
-                Async Function()
-                    Await TestName(code, "Foo")
-                End Function)
+            Dim ex = Assert.Throws(Of COMException)(
+                Sub()
+                    TestName(code, "Goo")
+                End Sub)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Namespace tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestNamespace1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestNamespace1()
             Dim code =
 <Code>
-using $$Foo;
+using $$Goo;
 </Code>
 
-            Await TestNamespace(code, "Foo")
-        End Function
+            TestNamespace(code, "Goo")
+        End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestNamespace2() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestNamespace2()
             Dim code =
 <Code>
 namespace Bar
 {
-    using $$Foo;
+    using $$Goo;
 }
 </Code>
 
-            Await TestNamespace(code, "Foo")
-        End Function
+            TestNamespace(code, "Goo")
+        End Sub
 
 #End Region
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestTypeDescriptor_GetProperties() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestTypeDescriptor_GetProperties()
             Dim code =
 <Code>
 using $$System;
 </Code>
 
-            Dim expectedPropertyNames =
-                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
-                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
-                 "ExtenderCATID", "Namespace", "Alias", "Parent"}
-
-            Await TestPropertyDescriptors(code, expectedPropertyNames)
-        End Function
+            TestPropertyDescriptors(Of EnvDTE80.CodeImport)(code)
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

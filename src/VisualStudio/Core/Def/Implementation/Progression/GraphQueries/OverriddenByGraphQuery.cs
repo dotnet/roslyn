@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 var symbol = graphBuilder.GetSymbol(node);
                 if (symbol != null)
                 {
-                    var overriddenMember = symbol.OverriddenMember();
-
+                    var overriddenMember = symbol.GetOverriddenMember();
                     if (overriddenMember != null)
                     {
-                        var symbolNode = await graphBuilder.AddNodeForSymbolAsync(overriddenMember, relatedNode: node).ConfigureAwait(false);
+                        var symbolNode = await graphBuilder.AddNodeAsync(
+                            overriddenMember, relatedNode: node).ConfigureAwait(false);
                         graphBuilder.AddLink(node, RoslynGraphCategories.Overrides, symbolNode);
                     }
                 }

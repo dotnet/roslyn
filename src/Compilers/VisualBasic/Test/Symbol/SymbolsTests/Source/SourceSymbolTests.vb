@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")>
         <Fact()>
         Public Sub NamespaceWithoutName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="TST">
                     <file name="a.vb">
                         Namespace' A
@@ -42,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(540447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540447")>
         <Fact()>
         Public Sub FunctionWithoutName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="TST">
                     <file name="a.vb">
 Class Program
@@ -64,11 +66,11 @@ BC30203: Identifier expected.
         <WorkItem(540655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540655")>
         <Fact()>
         Public Sub Bug6998()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="TST">
                     <file name="a.vb">
 Class Program
-    Public Delegate Sub Foo(Of R)(r1 As R)
+    Public Delegate Sub Goo(Of R)(r1 As R)
     Public Delegate Function Bar(Of R)(r2 As R) As Integer
 End Class
                     </file>
@@ -95,7 +97,7 @@ End Class
         <WorkItem(546566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546566")>
         <Fact()>
         Public Sub Bug16199()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TST">
     <file name="a.vb">
 Namespace NS
@@ -186,7 +188,7 @@ BC30179: structure 'Name5' and namespace 'Name5' conflict in namespace 'NS'.
 
         <Fact()>
         Public Sub EmptyCompilation()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Banana">
 </compilation>)
 
@@ -200,7 +202,7 @@ BC30179: structure 'Name5' and namespace 'Name5' conflict in namespace 'NS'.
 
         <Fact()>
         Public Sub DefaultBaseClass()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation name="C">
                     <file name="a.vb">
 Class C
@@ -238,7 +240,7 @@ Delegate Sub D()
 
         <Fact()>
         Public Sub BaseClass()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Class Y
@@ -279,7 +281,7 @@ End Class
 
         <Fact()>
         Public Sub SymbolLocations()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Public Partial Class C
@@ -414,14 +416,14 @@ End Namespace
         <WorkItem(537442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537442")>
         <Fact()>
         Public Sub InvalidOptionCompare()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="C">
                     <file name="a.vb">
 option Compare <![CDATA[qqqqqq]]>
 
 Namespace Misc003aErr
     Friend Module Misc003aErrmod
-        Function foo(x as Integer) as Boolean
+        Function goo(x as Integer) as Boolean
             return x = 42
         End Function 
     End Module
@@ -440,7 +442,7 @@ End Namespace
         <WorkItem(527175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527175")>
         <Fact()>
         Public Sub DoubleBracketsNames()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="C">
                     <file name="a.vb">
 Option Strict Off
@@ -487,7 +489,7 @@ End Namespace
         <WorkItem(542508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542508")>
         <Fact()>
         Public Sub LocalsWithoutAsClauseInForStatement()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="LocalsWithoutAsClauseInForStatement">
                     <file name="a.vb">
 Imports System
@@ -516,12 +518,12 @@ End Module
         <WorkItem(543720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543720")>
         <Fact()>
         Public Sub InvalidLocalsWithColon()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation name="InvalidLocalsWithColon">
                     <file name="a.vb">
 Module Program
     Sub Main()
-        Dim [foo as integer : Dim [goo As Char
+        Dim [goo as integer : Dim [goo As Char
     End Sub
 End Module
                     </file>
@@ -530,7 +532,7 @@ End Module
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
-                Diagnostic(ERRID.ERR_MissingEndBrack, "[foo"),
+                Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                 Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
                 Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"))
 
@@ -539,7 +541,7 @@ End Module
         <WorkItem(187865, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/187865")>
         <Fact>
         Public Sub DifferentMembersMetadataName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Delegate Sub D()
@@ -645,7 +647,7 @@ Namespace N3
     Class C3
     End Class
 End Namespace")
-            Dim comp0 = CompilationUtils.CreateCompilationWithMscorlib({source0, source1, source2, source3}, options:=TestOptions.ReleaseDll)
+            Dim comp0 = CompilationUtils.CreateCompilationWithMscorlib40({source0, source1, source2, source3}, options:=TestOptions.ReleaseDll)
             comp0.AssertTheseDiagnostics()
             Assert.Equal({source0, source1, source2, source3}, comp0.SyntaxTrees)
 

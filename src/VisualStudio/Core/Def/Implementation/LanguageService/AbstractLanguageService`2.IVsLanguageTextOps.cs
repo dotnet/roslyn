@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading;
@@ -7,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -24,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public int Format(IVsTextLayer textLayer, TextSpan[] selections)
         {
             var waitIndicator = this.Package.ComponentModel.GetService<IWaitIndicator>();
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             waitIndicator.Wait(
                 "Intellisense",
                 allowCancel: true,
@@ -47,12 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.E_FAIL;
             }
 
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var text = root.SyntaxTree.GetText(cancellationToken);
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             var ts = selections.Single();
-            int start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
-            int end = text.Lines[ts.iEndLine].Start + ts.iEndIndex;
+            var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
+            var end = text.Lines[ts.iEndLine].Start + ts.iEndIndex;
             var adjustedSpan = GetFormattingSpan(root, start, end);
 
             // Since we know we are on the UI thread, lets get the base indentation now, so that there is less
@@ -61,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var rules = ruleFactory.CreateRule(document, start).Concat(Formatter.GetDefaultFormattingRules(document));
 
             // use formatting that return text changes rather than tree rewrite which is more expensive
-            var originalChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), document.Project.Solution.Workspace, document.Options, rules, cancellationToken);
+            var originalChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
 
             var originalSpan = RoslynTextSpan.FromBounds(start, end);
             var formattedChanges = ruleFactory.FilterFormattedChanges(document, originalSpan, originalChanges);
@@ -83,13 +87,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // adjust the indentation if there is a token right at the spans we start at.
             // Instead, we make sure we include preceding indentation.
             var prevToken = root.FindToken(start).GetPreviousToken();
-            if (prevToken != default(SyntaxToken))
+            if (prevToken != default)
             {
                 start = prevToken.Span.Start;
             }
 
             var nextToken = root.FindTokenFromEnd(end).GetNextToken();
-            if (nextToken != default(SyntaxToken))
+            if (nextToken != default)
             {
                 end = nextToken.Span.End;
             }
@@ -104,13 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         public int GetPairExtent(IVsTextLayer textLayer, TextAddress ta, TextSpan[] textSpan)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         public int GetWordExtent(IVsTextLayer textLayer, TextAddress ta, WORDEXTFLAGS flags, TextSpan[] textSpan)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
     }
 }

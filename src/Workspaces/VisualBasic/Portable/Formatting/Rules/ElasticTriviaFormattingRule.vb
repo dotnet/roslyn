@@ -1,14 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Composition
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-    <ExportFormattingRule(ElasticTriviaFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
-    <ExtensionOrder(After:=StructuredTriviaFormattingRule.Name)>
     Friend Class ElasticTriviaFormattingRule
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Elastic Trivia Formatting Rule"
@@ -16,18 +14,84 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
+            nextOperation.Invoke()
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As Rules.NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
+
+            If node.Kind = SyntaxKind.ObjectMemberInitializer Then
+                Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
+
+                If initializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+                    AddIndentBlockOperation(list,
+                                            initializer.OpenBraceToken,
+                                            initializer.CloseBraceToken.GetPreviousToken(),
+                                            [option]:=IndentBlockOption.RelativePosition)
+
+                    list.Add(FormattingOperations.CreateIndentBlockOperation(
+                             initializer.CloseBraceToken, initializer.CloseBraceToken,
+                             indentationDelta:=0,
+                             [option]:=IndentBlockOption.RelativePosition))
+                End If
+            End If
+
+            If node.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                Dim collectionInitializer = DirectCast(node, ObjectCollectionInitializerSyntax)
+
+                If collectionInitializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+                    Dim initializer = collectionInitializer.Initializer
+
+                    AddIndentBlockOperation(list,
+                                            initializer.OpenBraceToken,
+                                            initializer.CloseBraceToken.GetPreviousToken(),
+                                            [option]:=IndentBlockOption.RelativePosition)
+
+                    list.Add(FormattingOperations.CreateIndentBlockOperation(
+                             initializer.CloseBraceToken, initializer.CloseBraceToken,
+                             indentationDelta:=0,
+                             [option]:=IndentBlockOption.RelativePosition))
+                End If
+            End If
+        End Sub
+
+        Public Overrides Sub AddAlignTokensOperationsSlow(list As List(Of AlignTokensOperation),
+                                                      node As SyntaxNode,
+                                                      ByRef nextOperation As NextAlignTokensOperationAction)
+            nextOperation.Invoke()
+
+            If node.Kind = SyntaxKind.ObjectMemberInitializer Then
+                Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
+
+                If initializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+                    list.Add(New AlignTokensOperation(
+                             initializer.WithKeyword,
+                             SpecializedCollections.SingletonEnumerable(initializer.CloseBraceToken),
+                             [option]:=AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine))
+                End If
+            End If
+
+            If node.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                Dim collectionInitializer = DirectCast(node, ObjectCollectionInitializerSyntax)
+
+                If collectionInitializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
+                    list.Add(New AlignTokensOperation(
+                             collectionInitializer.FromKeyword,
+                             SpecializedCollections.SingletonEnumerable(collectionInitializer.Initializer.CloseBraceToken),
+                             [option]:=AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine))
+                End If
+            End If
+        End Sub
+
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
-                Return nextOperation.Invoke()
+                Return nextOperation.Invoke(previousToken, currentToken)
             End If
 
             ' if it has one, check whether there is a forced one
-            Dim operation = nextOperation.Invoke()
+            Dim operation = nextOperation.Invoke(previousToken, currentToken)
 
             If operation IsNot Nothing AndAlso operation.Option = AdjustSpacesOption.ForceSpaces Then
                 Return operation
@@ -46,20 +110,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return FormattingOperations.CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
             End If
 
+            If currentToken.Kind = SyntaxKind.OpenBraceToken AndAlso
+               currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+               currentToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                Return New AdjustSpacesOperation(1,
+                        [option]:=AdjustSpacesOption.ForceSpaces)
+            End If
+
             Return operation
         End Function
 
-        Public Overrides Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(
+                ByRef previousToken As SyntaxToken,
+                ByRef currentToken As SyntaxToken,
+                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
-                Return nextOperation.Invoke()
+                Return nextOperation.Invoke(previousToken, currentToken)
             End If
 
             ' if it has one, check whether there is a forced one
-            Dim operation = nextOperation.Invoke()
+            Dim operation = nextOperation.Invoke(previousToken, currentToken)
 
             If operation IsNot Nothing AndAlso operation.Option = AdjustNewLinesOption.ForceLines Then
                 Return operation
+            End If
+
+            If currentToken.Kind = SyntaxKind.DotToken AndAlso
+               currentToken.Parent.Kind = SyntaxKind.NamedFieldInitializer Then
+
+                Return New AdjustNewLinesOperation(line:=1,
+                    [option]:=AdjustNewLinesOption.ForceLines)
+            End If
+
+            If previousToken.Kind = SyntaxKind.OpenBraceToken AndAlso
+               previousToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+               previousToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+
+                Return New AdjustNewLinesOperation(line:=1,
+                    [option]:=AdjustNewLinesOption.ForceLines)
+            End If
+
+            If previousToken.Kind = SyntaxKind.CommaToken AndAlso
+               previousToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+               previousToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+
+                Return New AdjustNewLinesOperation(line:=1,
+                    [option]:=AdjustNewLinesOption.ForceLines)
+            End If
+
+            If currentToken.Kind = SyntaxKind.OpenBraceToken AndAlso
+               currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+               currentToken.Parent.Parent.Kind = SyntaxKind.CollectionInitializer Then
+                Return New AdjustNewLinesOperation(line:=1,
+                    [option]:=AdjustNewLinesOption.ForceLines)
+            End If
+
+            If currentToken.Kind = SyntaxKind.CloseBraceToken Then
+                If currentToken.Parent.Kind = SyntaxKind.ObjectMemberInitializer Then
+
+                    Return New AdjustNewLinesOperation(line:=1,
+                        [option]:=AdjustNewLinesOption.ForceLines)
+                End If
+
+                If currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
+                   currentToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                    Return New AdjustNewLinesOperation(line:=1,
+                        [option]:=AdjustNewLinesOption.ForceLines)
+                End If
             End If
 
             ' put attributes in its own line if it is top level attribute
@@ -107,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return CreateAdjustNewLinesOperation(lines.Value, AdjustNewLinesOption.ForceLines)
         End Function
 
-        Private Function AfterLastImportStatement(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function AfterLastImportStatement(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
             ' in between two imports
             If nextToken.Kind = SyntaxKind.ImportsKeyword Then
                 Return False
@@ -126,24 +245,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return True
         End Function
 
-        Private Function AfterLastInheritsOrImplements(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function AfterLastInheritsOrImplements(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
             Dim inheritsOrImplements = token.GetAncestor(Of InheritsOrImplementsStatementSyntax)()
             Dim nextInheritsOrImplements = nextToken.GetAncestor(Of InheritsOrImplementsStatementSyntax)()
 
             Return inheritsOrImplements IsNot Nothing AndAlso nextInheritsOrImplements Is Nothing
         End Function
 
-        Private Function IsBeginStatement(Of TStatement As StatementSyntax, TBlock As StatementSyntax)(node As StatementSyntax) As Boolean
+        Private Shared Function IsBeginStatement(Of TStatement As StatementSyntax, TBlock As StatementSyntax)(node As StatementSyntax) As Boolean
             Return TryCast(node, TStatement) IsNot Nothing AndAlso TryCast(node.Parent, TBlock) IsNot Nothing
         End Function
 
-        Private Function IsEndBlockStatement(node As StatementSyntax) As Boolean
+        Private Shared Function IsEndBlockStatement(node As StatementSyntax) As Boolean
             Return TryCast(node, EndBlockStatementSyntax) IsNot Nothing OrElse
                 TryCast(node, LoopStatementSyntax) IsNot Nothing OrElse
                 TryCast(node, NextStatementSyntax) IsNot Nothing
         End Function
 
-        Private Function LineBreaksAfter(previousToken As SyntaxToken, currentToken As SyntaxToken) As Integer?
+        Private Shared Function LineBreaksAfter(previousToken As SyntaxToken, currentToken As SyntaxToken) As Integer?
             If currentToken.Kind = SyntaxKind.None OrElse
                previousToken.Kind = SyntaxKind.None Then
                 Return 0
@@ -201,7 +320,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                IsBeginStatement(Of WithStatementSyntax, WithBlockSyntax)(currentStatement) Then
 
                 If TypeOf previousStatement Is NamespaceStatementSyntax OrElse
-                   TypeOf previousStatement Is TypeStatementSyntax Then
+                   TypeOf previousStatement Is TypeStatementSyntax OrElse
+                   TypeOf previousStatement Is IfStatementSyntax Then
                     Return GetActualLines(previousToken, currentToken, 1)
                 Else
                     Return GetActualLines(previousToken, currentToken, 2, 1)
@@ -211,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function GetActualLines(token1 As SyntaxToken, token2 As SyntaxToken, lines As Integer, Optional leadingBlankLines As Integer = 0) As Integer
+        Private Shared Function GetActualLines(token1 As SyntaxToken, token2 As SyntaxToken, lines As Integer, Optional leadingBlankLines As Integer = 0) As Integer
             If leadingBlankLines = 0 Then
                 Return Math.Max(lines, 0)
             End If
@@ -219,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' see whether first non whitespace trivia after previous member is comment or not
             Dim list = token1.TrailingTrivia.Concat(token2.LeadingTrivia)
 
-            Dim firstNonWhitespaceTrivia = list.FirstOrDefault(Function(t) Not t.IsWhitespace())
+            Dim firstNonWhitespaceTrivia = list.FirstOrDefault(Function(t) Not t.IsWhitespaceOrEndOfLine())
             If firstNonWhitespaceTrivia.IsKind(SyntaxKind.CommentTrivia, SyntaxKind.DocumentationCommentTrivia) Then
                 Dim totalLines = GetNumberOfLines(list)
                 Dim blankLines = GetNumberOfLines(list.TakeWhile(Function(t) t <> firstNonWhitespaceTrivia))
@@ -239,13 +359,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Math.Max(lines, 0)
         End Function
 
-        Private Function GetNumberOfLines(list As IEnumerable(Of SyntaxTrivia)) As Integer
+        Private Shared Function GetNumberOfLines(list As IEnumerable(Of SyntaxTrivia)) As Integer
             Return list.Sum(Function(t) t.ToFullString().Replace(vbCrLf, vbCr).OfType(Of Char).Count(Function(c) SyntaxFacts.IsNewLine(c)))
         End Function
 
-        Private Function TopLevelStatement(statement As StatementSyntax) As Boolean
+        Private Shared Function TopLevelStatement(statement As StatementSyntax) As Boolean
             Return TypeOf statement Is MethodStatementSyntax OrElse
                    TypeOf statement Is SubNewStatementSyntax OrElse
+                   TypeOf statement Is LambdaHeaderSyntax OrElse
                    TypeOf statement Is OperatorStatementSyntax OrElse
                    TypeOf statement Is PropertyStatementSyntax OrElse
                    TypeOf statement Is EventStatementSyntax OrElse

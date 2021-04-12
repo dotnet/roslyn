@@ -1,13 +1,19 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Iterator;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,30 +34,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// </summary>
         private const string CS0266 = nameof(CS0266);
 
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpAddYieldCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0029, CS0266); }
         }
 
-        protected override async Task<CodeAction> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
+        protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
         {
             // Check if node is return statement
-            if (!node.IsKind(SyntaxKind.ReturnStatement))
+            if (!node.IsKind(SyntaxKind.ReturnStatement, out ReturnStatementSyntax? returnStatement))
             {
                 return null;
             }
 
-            var returnStatement = node as ReturnStatementSyntax;
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            ITypeSymbol methodReturnType;
-            if (!TryGetMethodReturnType(node, model, cancellationToken, out methodReturnType))
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (!TryGetMethodReturnType(node, model, cancellationToken, out var methodReturnType))
             {
                 return null;
             }
 
-            ITypeSymbol returnExpressionType;
-            if (!TryGetExpressionType(model, returnStatement.Expression, out returnExpressionType))
+            if (!TryGetExpressionType(model, returnStatement.Expression, out var returnExpressionType))
             {
                 return null;
             }
@@ -59,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             var typeArguments = methodReturnType.GetAllTypeArguments();
 
             var shouldOfferYieldReturn = typeArguments.Length != 1 ?
-                IsCorrectTypeForYieldReturn(returnExpressionType, methodReturnType, model) :
+                IsCorrectTypeForYieldReturn(methodReturnType, model) :
                 IsCorrectTypeForYieldReturn(typeArguments.Single(), returnExpressionType, methodReturnType, model);
 
             if (!shouldOfferYieldReturn)
@@ -73,22 +81,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.ReplaceNode(returnStatement, yieldStatement);
-            return new MyCodeAction(CSharpFeaturesResources.ChangeToYieldReturn, document.WithSyntaxRoot(root));
+            return new MyCodeAction(CSharpFeaturesResources.Replace_return_with_yield_return, document.WithSyntaxRoot(root));
         }
 
-        private bool TryGetExpressionType(SemanticModel model, ExpressionSyntax expression, out ITypeSymbol returnExpressionType)
+        private static bool TryGetExpressionType(
+            SemanticModel model, ExpressionSyntax? expression, [NotNullWhen(true)] out ITypeSymbol? returnExpressionType)
         {
+            if (expression == null)
+            {
+                returnExpressionType = null;
+                return false;
+            }
+
             var info = model.GetTypeInfo(expression);
             returnExpressionType = info.Type;
             return returnExpressionType != null;
         }
 
-        private bool TryGetMethodReturnType(SyntaxNode node, SemanticModel model, CancellationToken cancellationToken, out ITypeSymbol methodReturnType)
+        private static bool TryGetMethodReturnType(
+            SyntaxNode node, SemanticModel model, CancellationToken cancellationToken,
+            [NotNullWhen(true)] out ITypeSymbol? methodReturnType)
         {
             methodReturnType = null;
             var symbol = model.GetEnclosingSymbol(node.Span.Start, cancellationToken);
-            var method = symbol as IMethodSymbol;
-            if (method == null || method.ReturnsVoid)
+            if (!(symbol is IMethodSymbol method) || method.ReturnsVoid)
             {
                 return false;
             }
@@ -99,10 +115,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private bool IsCorrectTypeForYieldReturn(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, ITypeSymbol methodReturnType, SemanticModel model)
         {
-            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
-            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerator");
-            var ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
-            var ienumeratorGenericSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerator`1");
+            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
+            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName!);
+            var ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
+            var ienumeratorGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName!);
 
             if (ienumerableGenericSymbol == null ||
                 ienumerableSymbol == null ||
@@ -144,7 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             var rightArguments = returnExpressionType.GetTypeArguments();
 
             // If we have a mismatch in the number of type arguments we can immediately return as there is no way the types are convertible
-            if ((leftArguments != null && rightArguments != null) &&
+            if (leftArguments != null &&
+                rightArguments != null &&
                 leftArguments.Length != rightArguments.Length)
             {
                 return false;
@@ -157,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             // Check if all the type arguments are convertible
-            for (int i = 0; i < leftArguments.Length; i++)
+            for (var i = 0; i < leftArguments.Length; i++)
             {
                 if (!CanConvertTypes(leftArguments[i], rightArguments[i], model))
                 {
@@ -169,10 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return true;
         }
 
-        private bool IsCorrectTypeForYieldReturn(ITypeSymbol returnExpressionType, ITypeSymbol methodReturnType, SemanticModel model)
+        private static bool IsCorrectTypeForYieldReturn(ITypeSymbol methodReturnType, SemanticModel model)
         {
-            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
-            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerator");
+            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
+            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName!);
 
             if (ienumerableSymbol == null ||
                     ienumeratorSymbol == null)
@@ -189,7 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return true;
         }
 
-        protected override bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
+        protected override bool TryGetNode(
+            SyntaxNode root, TextSpan span, [NotNullWhen(true)] out SyntaxNode? node)
         {
             node = null;
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();
@@ -198,14 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 return false;
             }
 
-            node = ancestors.FirstOrDefault((n) => n.Span.Contains(span) && n != root && n.IsKind(SyntaxKind.ReturnStatement));
+            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root && n.IsKind(SyntaxKind.ReturnStatement));
             return node != null;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Document newDocument) :
-                base(title, c => Task.FromResult(newDocument))
+            public MyCodeAction(string title, Document newDocument)
+                : base(title, c => Task.FromResult(newDocument))
             {
             }
         }

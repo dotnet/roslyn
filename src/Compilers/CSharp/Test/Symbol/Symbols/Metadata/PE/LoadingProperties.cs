@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -10,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Class").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(@interface));
+            Assert.True(@class.Interfaces().Contains(@interface));
 
             var classProperty = (PropertySymbol)@class.GetMembers("Interface.Property").Single();
 
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.CSharp,
                 });
 
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Generic").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var substitutedInterface = @class.Interfaces.Single();
+            var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceProperty = (PropertySymbol)substitutedInterface.GetMembers("Property").Single();
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.CSharp,
                 });
 
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Constructed").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var substitutedInterface = @class.Interfaces.Single();
+            var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceProperty = (PropertySymbol)substitutedInterface.GetMembers("Property").Single();
@@ -112,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.CSharp,
                 });
 
@@ -125,12 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var refInterface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IGenericInterface").Single();
             Assert.Equal(TypeKind.Interface, defInterface.TypeKind);
-            Assert.True(refInterface.Interfaces.Contains(defInterface));
+            Assert.True(refInterface.Interfaces().Contains(defInterface));
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IndirectImplementation").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var classInterfacesConstructedFrom = @class.Interfaces.Select(i => i.ConstructedFrom);
+            var classInterfacesConstructedFrom = @class.Interfaces().Select(i => i.ConstructedFrom);
             Assert.Equal(2, classInterfacesConstructedFrom.Count());
             Assert.Contains(defInterface, classInterfacesConstructedFrom);
             Assert.Contains(refInterface, classInterfacesConstructedFrom);
@@ -152,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.CSharp,
                 });
 
@@ -193,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(1, innerClass.Arity);
             Assert.Equal(TypeKind.Class, innerClass.TypeKind);
-            Assert.Equal(@interface, innerClass.Interfaces.Single().ConstructedFrom);
+            Assert.Equal(@interface, innerClass.Interfaces().Single().ConstructedFrom);
 
             var innerClassProperty = (PropertySymbol)innerClass.GetMembers(methodName).Single();
             var innerClassImplementingProperty = innerClassProperty.ExplicitInterfaceImplementations.Single();
@@ -215,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.IL,
                 });
 

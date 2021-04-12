@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,15 +18,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 {
+    // Disabled due to: https://github.com/dotnet/roslyn/issues/5835 & https://github.com/dotnet/roslyn/pull/6642
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SimplifyLambda)]
     internal partial class LambdaSimplifierCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
@@ -36,9 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var lambda = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor(n =>
-                n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax);
-            if (lambda == null || !lambda.Span.IntersectsWith(textSpan.Start))
+            var lambda = await context.TryGetRelevantNodeAsync<LambdaExpressionSyntax>().ConfigureAwait(false);
+            if (lambda == null)
             {
                 return;
             }
@@ -51,32 +51,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.SimplifyLambdaExpression,
-                    (c) => SimplifyLambdaAsync(document, lambda, c)));
+                    CSharpFeaturesResources.Simplify_lambda_expression,
+                    c => SimplifyLambdaAsync(document, lambda, c)),
+                lambda.Span);
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.SimplifyAllOccurrences,
-                    (c) => SimplifyAllLambdasAsync(document, c)));
+                    CSharpFeaturesResources.Simplify_all_occurrences,
+                    c => SimplifyAllLambdasAsync(document, c)),
+                lambda.Span);
         }
 
-        private async Task<Document> SimplifyLambdaAsync(
+        private static async Task<Document> SimplifyLambdaAsync(
             Document document,
             SyntaxNode lambda,
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, (n) => n == lambda, cancellationToken);
+            var rewriter = new Rewriter(semanticDocument, n => n == lambda, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
 
-        private async Task<Document> SimplifyAllLambdasAsync(
+        private static async Task<Document> SimplifyAllLambdasAsync(
             Document document,
             CancellationToken cancellationToken)
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var rewriter = new Rewriter(this, semanticDocument, (n) => true, cancellationToken);
+            var rewriter = new Rewriter(semanticDocument, n => true, cancellationToken);
             var result = rewriter.Visit(semanticDocument.Root);
             return document.WithSyntaxRoot(result);
         }
@@ -133,12 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 var argument = invocation.ArgumentList.Arguments[i];
                 if (argument.NameColon != null ||
                     argument.RefOrOutKeyword.Kind() != SyntaxKind.None ||
-                    !argument.Expression.IsKind(SyntaxKind.IdentifierName))
+                    !argument.Expression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
                     return false;
                 }
 
-                var identifierName = (IdentifierNameSyntax)argument.Expression;
                 if (identifierName.Identifier.ValueText != paramNames[i].ValueText)
                 {
                     return false;
@@ -154,10 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 // Don't offer this if there are any errors or ambiguities.
                 return false;
             }
-
-            var lambdaMethod = lambdaSemanticInfo.Symbol as IMethodSymbol;
-            var invocationMethod = invocationSemanticInfo.Symbol as IMethodSymbol;
-            if (lambdaMethod == null || invocationMethod == null)
+            if (!(lambdaSemanticInfo.Symbol is IMethodSymbol lambdaMethod) || !(invocationSemanticInfo.Symbol is IMethodSymbol invocationMethod))
             {
                 return false;
             }
@@ -198,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             }
 
             // Parameter types have to be contravariant.
-            for (int i = 0; i < lambdaMethod.Parameters.Length; i++)
+            for (var i = 0; i < lambdaMethod.Parameters.Length; i++)
             {
                 var conversion = document.SemanticModel.Compilation.ClassifyConversion(
                     lambdaMethod.Parameters[i].Type, invocationMethod.Parameters[i].Type);
@@ -221,12 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
         // Ensure that if we replace the invocation with its expression that its expression will
         // bind unambiguously.  This can happen with awesome cases like:
 #if false
-    static void Foo<T>(T x) where T : class { }
+    static void Goo<T>(T x) where T : class { }
     static void Bar(Action<int> x) { }
     static void Bar(Action<string> x) { }
     static void Main()
     {
-        Bar(x => Foo(x)); // error CS0121: The call is ambiguous between the following methods or properties: 'A.Bar(System.Action<int>)' and 'A.Bar(System.Action<string>)'
+        Bar(x => Goo(x)); // error CS0121: The call is ambiguous between the following methods or properties: 'A.Bar(System.Action<int>)' and 'A.Bar(System.Action<string>)'
     }
 #endif
         private static bool WouldCauseAmbiguity(
@@ -260,23 +258,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
         private static InvocationExpressionSyntax TryGetInvocationExpression(
             SyntaxNode lambdaBody)
         {
-            if (lambdaBody is ExpressionSyntax)
+            if (lambdaBody is ExpressionSyntax exprBody)
             {
-                return ((ExpressionSyntax)lambdaBody).WalkDownParentheses() as InvocationExpressionSyntax;
+                return exprBody.WalkDownParentheses() as InvocationExpressionSyntax;
             }
-            else if (lambdaBody is BlockSyntax)
+            else if (lambdaBody is BlockSyntax block)
             {
-                var block = (BlockSyntax)lambdaBody;
                 if (block.Statements.Count == 1)
                 {
                     var statement = block.Statements.First();
-                    if (statement is ReturnStatementSyntax)
+                    if (statement is ReturnStatementSyntax returnStatement)
                     {
-                        return ((ReturnStatementSyntax)statement).Expression.WalkDownParentheses() as InvocationExpressionSyntax;
+                        return returnStatement.Expression.WalkDownParentheses() as InvocationExpressionSyntax;
                     }
-                    else if (statement is ExpressionStatementSyntax)
+                    else if (statement is ExpressionStatementSyntax exprStatement)
                     {
-                        return ((ExpressionStatementSyntax)statement).Expression.WalkDownParentheses() as InvocationExpressionSyntax;
+                        return exprStatement.Expression.WalkDownParentheses() as InvocationExpressionSyntax;
                     }
                 }
             }
@@ -286,8 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

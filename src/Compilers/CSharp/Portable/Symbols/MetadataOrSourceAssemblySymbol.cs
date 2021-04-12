@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -6,9 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -16,15 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents source or metadata assembly.
     /// </summary>
-    /// <remarks></remarks>
     internal abstract class MetadataOrSourceAssemblySymbol
         : NonMissingAssemblySymbol
     {
         /// <summary>
         /// An array of cached Cor types defined in this assembly.
-        /// Lazily filled by GetSpecialType method.
+        /// Lazily filled by GetDeclaredSpecialType method.
         /// </summary>
-        /// <remarks></remarks>
         private NamedTypeSymbol[] _lazySpecialTypes;
 
         /// <summary>
@@ -32,13 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private int _cachedSpecialTypes;
 
+        private NativeIntegerTypeSymbol[] _lazyNativeIntegerTypes;
+
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        /// <remarks></remarks>
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal sealed override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
         {
 #if DEBUG
             foreach (var module in this.Modules)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Register declaration of predefined CorLib type in this Assembly.
         /// </summary>
         /// <param name="corType"></param>
-        internal override sealed void RegisterDeclaredSpecialType(NamedTypeSymbol corType)
+        internal sealed override void RegisterDeclaredSpecialType(NamedTypeSymbol corType)
         {
             SpecialType typeId = corType.SpecialType;
             Debug.Assert(typeId != SpecialType.None);
@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_cachedSpecialTypes > 0 && _cachedSpecialTypes <= (int)SpecialType.Count);
             }
         }
-
 
         /// <summary>
         /// Continue looking for declaration of predefined CorLib type in this Assembly
@@ -120,6 +119,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return _lazyTypeNames;
             }
+        }
+
+        internal sealed override NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
+        {
+            if (_lazyNativeIntegerTypes == null)
+            {
+                Interlocked.CompareExchange(ref _lazyNativeIntegerTypes, new NativeIntegerTypeSymbol[2], null);
+            }
+
+            int index = underlyingType.SpecialType switch
+            {
+                SpecialType.System_IntPtr => 0,
+                SpecialType.System_UIntPtr => 1,
+                _ => throw ExceptionUtilities.UnexpectedValue(underlyingType.SpecialType),
+            };
+
+            if (_lazyNativeIntegerTypes[index] is null)
+            {
+                Interlocked.CompareExchange(ref _lazyNativeIntegerTypes[index], new NativeIntegerTypeSymbol(underlyingType), null);
+            }
+
+            return _lazyNativeIntegerTypes[index];
         }
 
         public override ICollection<string> NamespaceNames
@@ -173,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!type.IsErrorType())
                 {
-                    result = CSharpCompilation.GetRuntimeMember(type, ref descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt: null);
+                    result = CSharpCompilation.GetRuntimeMember(type, descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt: null);
                 }
 
                 Interlocked.CompareExchange(ref _lazySpecialTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
@@ -197,19 +218,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             result = IVTConclusion.NoRelationshipClaimed;
 
-            //EDMAURER returns an empty list if there was no IVT attribute at all for the given name
-            //A name w/o a key is represented by a list with an entry that is empty
+            // returns an empty list if there was no IVT attribute at all for the given name
+            // A name w/o a key is represented by a list with an entry that is empty
             IEnumerable<ImmutableArray<byte>> publicKeys = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name);
 
-            //EDMAURER look for one that works, if none work, then return the failure for the last one examined.
+            // We have an easy out here. Suppose the assembly wanting access is 
+            // being compiled as a module. You can only strong-name an assembly. So we are going to optimistically 
+            // assume that it is going to be compiled into an assembly with a matching strong name, if necessary.
+            if (publicKeys.Any() && this.IsNetModule())
+            {
+                return IVTConclusion.Match;
+            }
+
+            // look for one that works, if none work, then return the failure for the last one examined.
             foreach (var key in publicKeys)
             {
+                // We pass the public key of this assembly explicitly so PerformIVTCheck does not need
+                // to get it from this.Identity, which would trigger an infinite recursion.
+                result = potentialGiverOfAccess.Identity.PerformIVTCheck(this.PublicKey, key);
+                Debug.Assert(result != IVTConclusion.NoRelationshipClaimed);
+
                 if (result == IVTConclusion.Match || result == IVTConclusion.OneSignedOneNot)
                 {
                     break;
                 }
-                result = PerformIVTCheck(key, potentialGiverOfAccess.Identity);
-                Debug.Assert(result != IVTConclusion.NoRelationshipClaimed);
             }
 
             AssembliesToWhichInternalAccessHasBeenDetermined.TryAdd(potentialGiverOfAccess, result);
@@ -229,5 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _assembliesToWhichInternalAccessHasBeenAnalyzed;
             }
         }
+
+        internal virtual bool IsNetModule() => false;
     }
 }

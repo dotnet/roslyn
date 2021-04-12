@@ -1,27 +1,33 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
+Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
+    <[UseExportProvider]>
     Public MustInherit Class AbstractContainedLanguageCodeSupportTests
 
         Protected MustOverride ReadOnly Property Language As String
         Protected MustOverride ReadOnly Property DefaultCode As String
 
-        Protected Function AssertValidIdAsync(id As String) As Task
-            Return AssertValidIdAsync(id, Sub(value) Assert.True(value))
-        End Function
+        Protected Sub AssertValidId(id As String)
+            AssertValidId(id, Sub(value) Assert.True(value))
+        End Sub
 
-        Protected Function AssertNotValidIdAsync(id As String) As Task
-            Return AssertValidIdAsync(id, Sub(value) Assert.False(value))
-        End Function
+        Protected Sub AssertNotValidId(id As String)
+            AssertValidId(id, Sub(value) Assert.False(value))
+        End Sub
 
-        Private Async Function AssertValidIdAsync(id As String, assertion As Action(Of Boolean)) As Task
-            Using workspace = Await TestWorkspace.CreateAsync(
+        Private Sub AssertValidId(id As String, assertion As Action(Of Boolean))
+            Using workspace = TestWorkspace.Create(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
         <Document>
@@ -33,17 +39,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 assertion(ContainedLanguageCodeSupport.IsValidId(document, id))
             End Using
 
-        End Function
+        End Sub
 
-        Protected Function GetWorkspaceAsync(code As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateAsync(
+        Protected Function GetWorkspace(code As String) As TestWorkspace
+            Return TestWorkspace.Create(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">
         <Document FilePath="file">
             <%= code.Replace(vbCrLf, vbLf) %>
         </Document>
     </Project>
-</Workspace>, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+</Workspace>, composition:=VisualStudioTestCompositions.LanguageServices)
         End Function
 
         Protected Function GetDocument(workspace As TestWorkspace) As Document

@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -15,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Optional name of the <see cref="CodeFixProvider"/>.  
         /// </summary>
-        public string Name { get; set; }
+        [DisallowNull]
+        public string? Name { get; set; }
 
         /// <summary>
         /// The source languages this provider can provide fixes for.  See <see cref="LanguageNames"/>.
@@ -32,21 +36,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             params string[] additionalLanguages)
             : base(typeof(CodeFixProvider))
         {
-            if (firstLanguage == null)
-            {
-                throw new ArgumentNullException(nameof(firstLanguage));
-            }
-
             if (additionalLanguages == null)
             {
                 throw new ArgumentNullException(nameof(additionalLanguages));
             }
 
-            this.Name = null;
-
-            string[] languages = new string[additionalLanguages.Length + 1];
-            languages[0] = firstLanguage;
-            for (int index = 0; index < additionalLanguages.Length; index++)
+            var languages = new string[additionalLanguages.Length + 1];
+            languages[0] = firstLanguage ?? throw new ArgumentNullException(nameof(firstLanguage));
+            for (var index = 0; index < additionalLanguages.Length; index++)
             {
                 languages[index + 1] = additionalLanguages[index];
             }

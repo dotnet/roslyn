@@ -1,5 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -10,9 +13,10 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
+    <[UseExportProvider]>
     Public Class VisualBasicCommentSelectionTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
-        Public Async Function Comment1() As Threading.Tasks.Task
+        Public Sub Comment1()
             Dim code = <code>Module Program
     [|Sub Main(args As String())
         'already commented
@@ -27,12 +31,11 @@ End Module</code>
     'End Sub
 End Module</code>
 
-            Await InvokeCommentOperationOnSelectionAfterReplacingLfToCrLfAsync(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Comment)
-        End Function
-
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Comment)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
-        Public Async Function UncommentAndFormat1() As Threading.Tasks.Task
+        Public Sub UncommentAndFormat1()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())
         '
@@ -45,11 +48,11 @@ End Module</code>
     End Sub
 End Module</code>
 
-            Await InvokeCommentOperationOnSelectionAfterReplacingLfToCrLfAsync(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
-        End Function
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
-        Public Async Function UncommentAndFormat2() As Threading.Tasks.Task
+        Public Sub UncommentAndFormat2()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())           |]
     [|        '                                                                                     |]
@@ -62,34 +65,33 @@ End Module</code>
     End Sub
 End Module</code>
 
-            Await InvokeCommentOperationOnSelectionAfterReplacingLfToCrLfAsync(code.Value, expected.Value, CommentUncommentSelectionCommandHandler.Operation.Uncomment)
-        End Function
+            InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
+        End Sub
 
-        Private Shared Async Function InvokeCommentOperationOnSelectionAfterReplacingLfToCrLfAsync(code As String, expected As String, operation As CommentUncommentSelectionCommandHandler.Operation) As Threading.Tasks.Task
+        Private Shared Sub InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code As String, expected As String, operation As Operation)
             ' do this since xml value put only vbLf
             code = code.Replace(vbLf, vbCrLf)
             expected = expected.Replace(vbLf, vbCrLf)
 
             Dim codeWithoutMarkup As String = Nothing
-            Dim spans As IList(Of TextSpan) = Nothing
+            Dim spans As ImmutableArray(Of TextSpan) = Nothing
 
             MarkupTestFile.GetSpans(code, codeWithoutMarkup, spans)
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarkup)
+            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarkup)
                 Dim doc = workspace.Documents.First()
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 
                 Dim commandHandler = New CommentUncommentSelectionCommandHandler(
-                    TestWaitIndicator.Default,
                     workspace.ExportProvider.GetExportedValue(Of ITextUndoHistoryRegistry),
                     workspace.ExportProvider.GetExportedValue(Of IEditorOperationsFactoryService))
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()
-                commandHandler.ExecuteCommand(textView, textBuffer, operation)
+                commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())
 
-                Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText())
             End Using
-        End Function
+        End Sub
 
         Private Shared Sub SetupSelection(textView As IWpfTextView, spans As IEnumerable(Of Span))
             Dim snapshot = textView.TextSnapshot

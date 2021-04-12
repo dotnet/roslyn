@@ -1,65 +1,50 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+#If Not DEBUG Then
+Imports PropertySymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.PropertySymbol
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
     Friend NotInheritable Class EmbeddedProperty
         Inherits EmbeddedTypesManager.CommonEmbeddedProperty
 
-        Public Sub New(underlyingProperty As PropertySymbol, getter As EmbeddedMethod, setter As EmbeddedMethod)
+        Public Sub New(underlyingProperty As PropertySymbolAdapter, getter As EmbeddedMethod, setter As EmbeddedMethod)
             MyBase.New(underlyingProperty, getter, setter)
         End Sub
 
-        Protected Overrides Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingProperty.GetCustomAttributesToEmit(compilationState)
+        Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
+            Return UnderlyingProperty.AdaptedPropertySymbol.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides Function GetParameters() As ImmutableArray(Of EmbeddedParameter)
-            Return EmbeddedTypesManager.EmbedParameters(Me, UnderlyingProperty.Parameters)
+            Return EmbeddedTypesManager.EmbedParameters(Me, UnderlyingProperty.AdaptedPropertySymbol.Parameters)
         End Function
 
         Protected Overrides ReadOnly Property IsRuntimeSpecial As Boolean
             Get
-                Return UnderlyingProperty.HasRuntimeSpecialName
+                Return UnderlyingProperty.AdaptedPropertySymbol.HasRuntimeSpecialName
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsSpecialName As Boolean
             Get
-                Return UnderlyingProperty.HasSpecialName
+                Return UnderlyingProperty.AdaptedPropertySymbol.HasSpecialName
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property CallingConvention As Cci.CallingConvention
+        Protected Overrides ReadOnly Property UnderlyingPropertySignature As ISignature
             Get
-                Return UnderlyingProperty.CallingConvention
+                Return UnderlyingProperty
             End Get
         End Property
-
-        Protected Overrides ReadOnly Property ReturnValueIsModified As Boolean
-            Get
-                Return UnderlyingProperty.TypeCustomModifiers.Length <> 0
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property ReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier)
-            Get
-                Return UnderlyingProperty.TypeCustomModifiers.As(Of Cci.ICustomModifier)
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property ReturnValueIsByRef As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
-        Protected Overrides Function [GetType](moduleBuilder As PEModuleBuilder, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.ITypeReference
-            Return moduleBuilder.Translate(UnderlyingProperty.Type, syntaxNodeOpt, diagnostics)
-        End Function
 
         Protected Overrides ReadOnly Property ContainingType As EmbeddedType
             Get
@@ -69,13 +54,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property Visibility As Cci.TypeMemberVisibility
             Get
-                Return PEModuleBuilder.MemberVisibility(UnderlyingProperty)
+                Return PEModuleBuilder.MemberVisibility(UnderlyingProperty.AdaptedPropertySymbol)
             End Get
         End Property
 
         Protected Overrides ReadOnly Property Name As String
             Get
-                Return UnderlyingProperty.MetadataName
+                Return UnderlyingProperty.AdaptedPropertySymbol.MetadataName
             End Get
         End Property
 

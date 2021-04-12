@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,12 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -22,46 +21,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
-        {
-            _refactorNotifyServices = refactorNotifyServices;
-        }
+            => _refactorNotifyServices = refactorNotifyServices;
 
-        public Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            // This is unpleasant, but we do everything synchronously.  That's because we end up
-            // needing to make calls on the UI thread to determine if the locations of the symbol
-            // are in readonly buffer sections or not.  If we go pure async we have the following
-            // problem:
-            //   1) if we call ConfigureAwait(false), then we might call into the text buffer on 
-            //      the wrong thread.
-            //   2) if we try to call those pieces of code on the UI thread, then we will deadlock
-            //      as our caller often is doing a 'Wait' on us, and our UI calling code won't run.
-            var info = this.GetRenameInfo(document, position, cancellationToken);
-            return Task.FromResult(info);
-        }
+            var triggerToken = await GetTriggerTokenAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-        private IInlineRenameInfo GetRenameInfo(Document document, int position, CancellationToken cancellationToken)
-        {
-            var triggerToken = GetTriggerToken(document, position, cancellationToken);
-            if (triggerToken == default(SyntaxToken))
+            if (triggerToken == default)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouMustRenameAnIdentifier);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
-            return GetRenameInfo(_refactorNotifyServices, document, triggerToken, cancellationToken);
+            return await GetRenameInfoAsync(_refactorNotifyServices, document, triggerToken, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static IInlineRenameInfo GetRenameInfo(
+        internal static async Task<IInlineRenameInfo> GetRenameInfoAsync(
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            if (syntaxFactsService.IsKeyword(triggerToken))
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService.IsReservedOrContextualKeyword(triggerToken))
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouMustRenameAnIdentifier);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, triggerToken, cancellationToken);
@@ -72,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var triggerSymbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             if (triggerSymbol == null)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             // see https://github.com/dotnet/roslyn/issues/10898
@@ -81,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // 2) renaming tuple fields seems a complex enough thing to require some design
             if (triggerSymbol.ContainingType?.IsTupleType == true)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             // If rename is invoked on a member group reference in a nameof expression, then the
@@ -96,39 +80,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // see bugs 659683 (compiler API) and 659705 (rename/workspace api) for examples
                 var symbolForVar = semanticModel.GetSpeculativeSymbolInfo(
                     triggerToken.SpanStart,
-                    triggerToken.Parent,
+                    triggerToken.Parent!,
                     SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
 
                 if (symbolForVar == null)
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
-            var symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbol = await RenameLocations.ReferenceProcessing.TryGetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             if (symbol.Kind == SymbolKind.Alias && symbol.IsExtern)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             // Cannot rename constructors in VB.  TODO: this logic should be in the VB subclass of this type.
             var workspace = document.Project.Solution.Workspace;
-            if (symbol != null &&
-                symbol.Kind == SymbolKind.NamedType &&
+            if (symbol.Kind == SymbolKind.NamedType &&
                 symbol.Language == LanguageNames.VisualBasic &&
                 triggerToken.ToString().Equals("New", StringComparison.OrdinalIgnoreCase))
             {
-                var originalSymbol = SymbolFinder.FindSymbolAtPositionAsync(semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken)
-                    .WaitAndGetResult(cancellationToken);
+                var originalSymbol = await SymbolFinder.FindSymbolAtPositionAsync(
+                    semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 if (originalSymbol != null && originalSymbol.IsConstructor())
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
@@ -136,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (symbol.Kind == SymbolKind.DynamicType)
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
@@ -152,78 +135,79 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // We enable the parameter in RaiseEvent, if the Event is declared with a signature. If the Event is declared as a 
                 // delegate type, we do not have a connection between the delegate type and the event.
                 // this prevents a rename in this case :(.
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             if (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.RenamingAnonymousTypeMemberNotSupported);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
             }
 
             if (symbol.IsErrorType())
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.PleaseResolveErrorsInYourCodeBeforeRenaming);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
             }
 
             if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.UserDefinedOperator)
             {
-                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameOperators);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_operators);
             }
 
             var symbolLocations = symbol.Locations;
 
             // Does our symbol exist in an unchangeable location?
-            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+            var documentSpans = ArrayBuilder<DocumentSpan>.GetInstance();
             foreach (var location in symbolLocations)
             {
                 if (location.IsInMetadata)
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameElementsInMetadata);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_that_are_defined_in_metadata);
                 }
                 else if (location.IsInSource)
                 {
+                    var solution = document.Project.Solution;
+                    var sourceDocument = solution.GetRequiredDocument(location.SourceTree);
+
+                    if (sourceDocument is SourceGeneratedDocument)
+                    {
+                        // The file is generated so we can't go editing it (for now)
+                        return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+                    }
+
                     if (document.Project.IsSubmission)
                     {
-                        var solution = document.Project.Solution;
-                        var projectIdOfLocation = solution.GetDocument(location.SourceTree).Project.Id;
+                        var projectIdOfLocation = sourceDocument.Project.Id;
 
                         if (solution.Projects.Any(p => p.IsSubmission && p.ProjectReferences.Any(r => r.ProjectId == projectIdOfLocation)))
                         {
-                            return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameElementsFromPrevSubmissions);
+                            return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
                         }
                     }
                     else
                     {
-                        var sourceText = location.SourceTree.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                        var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-
-                        if (textSnapshot != null)
-                        {
-                            var buffer = textSnapshot.TextBuffer;
-                            var originalSpan = location.SourceSpan.ToSnapshotSpan(textSnapshot).TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
-                            if (buffer.IsReadOnly(originalSpan) || !navigationService.CanNavigateToSpan(workspace, document.Id, location.SourceSpan))
-                            {
-                                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
-                            }
-                        }
+                        // We eventually need to return the symbol locations, so we must convert each location to a DocumentSpan since our return type is language-agnostic.
+                        documentSpans.Add(new DocumentSpan(sourceDocument, location.SourceSpan));
                     }
                 }
                 else
                 {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 
-            return new SymbolInlineRenameInfo(refactorNotifyServices, document, triggerToken.Span, symbol, forceRenameOverloads, cancellationToken);
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var triggerText = sourceText.ToString(triggerToken.Span);
+
+            return new SymbolInlineRenameInfo(
+                refactorNotifyServices, document, triggerToken.Span, triggerText,
+                symbol, forceRenameOverloads, documentSpans.ToImmutableAndFree(), cancellationToken);
         }
 
-        private SyntaxToken GetTriggerToken(Document document, int position, CancellationToken cancellationToken)
+        private static async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var token = syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).WaitAndGetResult(cancellationToken);
-
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var token = await syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
             return token;
         }
     }

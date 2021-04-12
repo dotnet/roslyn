@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -101,8 +104,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _reported_ERR_CannotUseOnErrorGotoWithClosure As Boolean
 
+#Disable Warning IDE0044 ' Add readonly modifier - The field is assigned in "#If DEBUG"
         ''' <summary> WARNING: used ONLY in DEBUG </summary>
         Private _rewrittenNodes As HashSet(Of BoundNode) = Nothing
+#Enable Warning IDE0044 ' Add readonly modifier
 
         Private Sub New(analysis As Analysis,
                         method As MethodSymbol,
@@ -111,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         delegateRelaxationIdDispenser As Integer,
                         slotAllocatorOpt As VariableSlotAllocator,
                         compilationState As TypeCompilationState,
-                        diagnostics As DiagnosticBag)
+                        diagnostics As BindingDiagnosticBag)
             MyBase.New(slotAllocatorOpt, compilationState, diagnostics, method.PreserveOriginalLocals)
 
             Me._topLevelMethod = method
@@ -153,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        slotAllocatorOpt As VariableSlotAllocator,
                                        CompilationState As TypeCompilationState,
                                        symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
-                                       diagnostics As DiagnosticBag,
+                                       diagnostics As BindingDiagnosticBag,
                                        rewrittenNodes As HashSet(Of BoundNode)) As BoundBlock
 
             Dim analysis = LambdaRewriter.Analysis.AnalyzeMethodBody(node, method, symbolsCapturedWithoutCopyCtor, diagnostics)
@@ -284,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 _frames(scope) = frame
 
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame.GetCciAdapter())
                 ' NOTE: we will add this ctor to compilation state after we know all captured locals
                 '       we need them to generate copy constructor, if needed
             End If
@@ -292,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return frame
         End Function
 
-        Private Function GetStaticFrame(lambda As BoundNode, diagnostics As DiagnosticBag) As LambdaFrame
+        Private Function GetStaticFrame(lambda As BoundNode, diagnostics As BindingDiagnosticBag) As LambdaFrame
             If Me._lazyStaticLambdaFrame Is Nothing Then
                 Dim isNonGeneric = Not TopLevelMethod.IsGenericMethod
                 If isNonGeneric Then
@@ -318,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim frame = Me._lazyStaticLambdaFrame
 
                     ' add frame type
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame)
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(_topLevelMethod.ContainingType, frame.GetCciAdapter())
 
                     ' associate the frame with the first lambda that caused it to exist. 
                     ' we need to associate this with some syntax.
@@ -352,9 +357,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntax">The syntax to attach to the bound nodes produced</param>
         ''' <param name="frameType">The type of frame to be returned</param>
         ''' <returns>A bound node that computes the pointer to the required frame</returns>
-        Private Function FrameOfType(syntax As VisualBasicSyntaxNode, frameType As NamedTypeSymbol) As BoundExpression
+        Private Function FrameOfType(syntax As SyntaxNode, frameType As NamedTypeSymbol) As BoundExpression
             Dim result As BoundExpression = FramePointer(syntax, frameType.OriginalDefinition)
-            Debug.Assert(result.Type = frameType)
+            Debug.Assert(TypeSymbol.Equals(result.Type, frameType, TypeCompareKind.ConsiderEverything))
             Return result
         End Function
 
@@ -366,9 +371,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntax">The syntax to attach to the bound nodes produced</param>
         ''' <param name="frameClass">The class type of frame to be returned</param>
         ''' <returns>A bound node that computes the pointer to the required frame</returns>
-        Friend Overrides Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
+        Friend Overrides Function FramePointer(syntax As SyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
             Debug.Assert(frameClass.IsDefinition)
-            If _currentFrameThis IsNot Nothing AndAlso _currentFrameThis.Type = frameClass Then
+            If _currentFrameThis IsNot Nothing AndAlso TypeSymbol.Equals(_currentFrameThis.Type, frameClass, TypeCompareKind.ConsiderEverything) Then
                 Return New BoundMeReference(syntax, frameClass)
             End If
 
@@ -398,9 +403,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         constructedProxyField.Type)
         End Function
 
-        Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As DiagnosticBag) As BoundBlock
+        Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As BindingDiagnosticBag) As BoundBlock
             Dim constructor = frame.Constructor
-            Dim syntaxNode As VisualBasicSyntaxNode = constructor.Syntax
+            Dim syntaxNode As SyntaxNode = constructor.Syntax
 
             Dim builder = ArrayBuilder(Of BoundStatement).GetInstance
             builder.Add(MethodCompiler.BindDefaultConstructorInitializer(constructor, diagnostics))
@@ -424,15 +429,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parameterExpr = New BoundParameter(syntaxNode, arg, frame)
 
                 Dim bool = frame.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean)
-                Dim useSiteError = bool.GetUseSiteErrorInfo()
-                If useSiteError IsNot Nothing Then
-                    diagnostics.Add(useSiteError, syntaxNode.GetLocation())
-                End If
+                Dim useSiteError = bool.GetUseSiteInfo()
+                diagnostics.Add(useSiteError, syntaxNode.GetLocation())
 
                 Dim obj = frame.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
                 ' WARN: We assume that if System_Object was not found we would never reach 
                 '       this point because the error should have been/processed generated earlier
-                Debug.Assert(obj.GetUseSiteErrorInfo() Is Nothing)
+                Debug.Assert(obj.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
                 Dim condition = New BoundBinaryOperator(syntaxNode, BinaryOperatorKind.Is,
                                                         New BoundDirectCast(syntaxNode, parameterExpr.MakeRValue(), ConversionKind.WideningReference, obj, Nothing),
@@ -502,9 +505,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim framePointer = New SynthesizedLocal(Me._topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntax)
             Dim prologue = ArrayBuilder(Of BoundExpression).GetInstance()
             Dim constructor As MethodSymbol = frame.Constructor.AsMember(frameType)
-            Debug.Assert(frameType = constructor.ContainingType)
+            Debug.Assert(TypeSymbol.Equals(frameType, constructor.ContainingType, TypeCompareKind.ConsiderEverything))
 
-            Dim syntaxNode As VisualBasicSyntaxNode = node.Syntax
+            Dim syntaxNode As SyntaxNode = node.Syntax
 
             Dim frameAccess = New BoundLocal(syntaxNode, framePointer, frameType)
 
@@ -547,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
 
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame)
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame.GetCciAdapter())
 
                     Proxies(_innermostFramePointer) = capturedFrame
                 End If
@@ -610,7 +613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' If parameter (or variable in the EE) is lifted, initialize its proxy.
         ''' </summary>
-        Private Sub InitVariableProxy(syntaxNode As VisualBasicSyntaxNode,
+        Private Sub InitVariableProxy(syntaxNode As SyntaxNode,
                                       originalSymbol As Symbol,
                                       framePointer As LocalSymbol,
                                       frameType As NamedTypeSymbol,
@@ -805,7 +808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not Me.Proxies.ContainsKey(origLocal), "captured local should not need rewriting")
 
                 Dim newType = VisitType(origLocal.Type)
-                If newType = origLocal.Type Then
+                If TypeSymbol.Equals(newType, origLocal.Type, TypeCompareKind.ConsiderEverything) Then
                     ' keeping same local
                     rewrittenCatchLocal = origLocal
 
@@ -898,7 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
             Const methodOrdinal As Integer = -1
 
-            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod, Diagnostics)
+            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod, Diagnostics.DiagnosticBag)
             Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
         End Function
 
@@ -933,7 +936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitConversion(conversion As BoundConversion) As BoundNode
-            Debug.Assert(conversion.RelaxationLambdaOpt Is Nothing AndAlso conversion.RelaxationReceiverPlaceholderOpt Is Nothing)
+            Debug.Assert(conversion.ExtendedInfoOpt Is Nothing)
 
             Dim lambda As BoundLambda = TryCast(conversion.Operand, BoundLambda)
             If lambda Is Nothing Then
@@ -947,9 +950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            conversion.Checked,
                                            conversion.ExplicitCastInCode,
                                            conversion.ConstantValueOpt,
-                                           conversion.ConstructorOpt,
-                                           conversion.RelaxationLambdaOpt,
-                                           conversion.RelaxationReceiverPlaceholderOpt,
+                                           conversion.ExtendedInfoOpt,
                                            conversion.Type)
             End If
             Return result
@@ -1069,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Move the body of the lambda to a freshly generated synthetic method on its container.
             Dim synthesizedMethod = New SynthesizedLambdaMethod(translatedLambdaContainer, closureKind, _topLevelMethod, topLevelMethodId, node, lambdaId, Me.Diagnostics)
 
-            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod)
+            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod.GetCciAdapter())
 
             For Each parameter In node.LambdaSymbol.Parameters
                 ParameterMap.Add(parameter, synthesizedMethod.Parameters(parameter.Ordinal))
@@ -1186,7 +1187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                            accessibility:=Accessibility.Public,
                                                                            isShared:=(closureKind = ClosureKind.Static))
 
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField.GetCciAdapter())
 
                 Dim F = New SyntheticBoundNodeFactory(Me._topLevelMethod, Me._currentMethod, node.Syntax, CompilationState, Diagnostics)
                 Dim fieldToAccess As FieldSymbol = cacheField.AsMember(constructedFrame)
@@ -1361,11 +1362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If rewritten.Kind = BoundKind.Call Then
                 Dim rewrittenCall As BoundCall = DirectCast(rewritten, BoundCall)
-                Dim rewrittenMethod As MethodSymbol = rewrittenCall.Method
-                Dim rewrittenReceiverOpt As BoundExpression = rewrittenCall.ReceiverOpt
-                Dim rewrittenArguments As ImmutableArray(Of BoundExpression) = rewrittenCall.Arguments
-
-                rewrittenCall = OptimizeMethodCallForDelegateInvoke(rewrittenCall, rewrittenMethod, rewrittenReceiverOpt, rewrittenArguments)
+                rewrittenCall = OptimizeMethodCallForDelegateInvoke(rewrittenCall)
 
                 ' Check if we need to init Me proxy and this is a ctor call
                 If _currentMethod Is _topLevelMethod Then
@@ -1413,16 +1410,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''           If we decide to do this, we should be careful with extension methods because they have
         '''           special treatment of 'this' parameter. 
         ''' </summary>
-        Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall, method As MethodSymbol, receiver As BoundExpression, arguments As ImmutableArray(Of BoundExpression)) As BoundCall
-
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+        Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall) As BoundCall
+            Dim method = node.Method
+            Dim receiver = node.ReceiverOpt
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Diagnostics, CompilationState.Compilation.Assembly)
 
             If method.MethodKind = MethodKind.DelegateInvoke AndAlso
                     method.ContainingType.IsAnonymousType AndAlso
                     receiver.Kind = BoundKind.DelegateCreationExpression AndAlso
                     Conversions.ClassifyMethodConversionForLambdaOrAnonymousDelegate(
-                        method, DirectCast(receiver, BoundDelegateCreationExpression).Method, useSiteDiagnostics) = MethodConversionKind.Identity Then
-                Diagnostics.Add(node, useSiteDiagnostics)
+                        method, DirectCast(receiver, BoundDelegateCreationExpression).Method, useSiteInfo) = MethodConversionKind.Identity Then
+                Diagnostics.Add(node, useSiteInfo)
 
                 Dim delegateCreation = DirectCast(receiver, BoundDelegateCreationExpression)
                 Debug.Assert(delegateCreation.RelaxationLambdaOpt Is Nothing AndAlso delegateCreation.RelaxationReceiverPlaceholderOpt Is Nothing)
@@ -1430,7 +1428,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not delegateCreation.Method.IsReducedExtensionMethod Then
                     method = delegateCreation.Method
                     receiver = delegateCreation.ReceiverOpt
-                    node = node.Update(method, Nothing, receiver, arguments, Nothing, node.SuppressObjectClone, node.Type)
+                    node = node.Update(
+                        method,
+                        Nothing,
+                        receiver,
+                        node.Arguments,
+                        node.DefaultArguments,
+                        Nothing,
+                        isLValue:=False,
+                        suppressObjectClone:=node.SuppressObjectClone,
+                        type:=node.Type)
                 End If
             End If
 
@@ -1439,4 +1446,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 End Namespace
-

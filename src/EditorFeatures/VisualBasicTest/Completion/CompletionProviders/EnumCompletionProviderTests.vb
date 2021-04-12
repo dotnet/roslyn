@@ -1,17 +1,16 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class EnumCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(EnumCompletionProvider)
+        End Function
 
         <Fact>
         <WorkItem(545678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")>
@@ -113,18 +112,18 @@ Module Program
         Bar($$
     End Sub
  
-    Sub Bar(f As Foo)
+    Sub Bar(f As Goo)
     End Sub
 End Module
  
-Enum Foo
+Enum Goo
     AMember
     BMember
     CMember
 End
 ]]></Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Foo.AMember", usePreviousCharAsTrigger:=True)
+            Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
         End Function
 
         <Fact>
@@ -134,19 +133,19 @@ End
             Dim markup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim x as Foo
+        Dim x as Goo
         x = $$
     End Sub
 End Module
  
-Enum Foo
+Enum Goo
     AMember
     BMember
     CMember
 End
 ]]></Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Foo.AMember", usePreviousCharAsTrigger:=True)
+            Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
         End Function
 
         <Fact>
@@ -156,10 +155,10 @@ End
             Dim markup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim z = New Foo() With {.z$$ }
+        Dim z = New Goo() With {.z$$ }
     End Sub
 
-    Class Foo
+    Class Goo
         Property A As Integer
             Get
 
@@ -457,7 +456,7 @@ Class C
 End Class
 ]]></Text>.Value
 
-            Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c, textTypedSoFar:="")
+            Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -468,8 +467,86 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New EnumCompletionProvider()
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(12733, "https://github.com/dotnet/roslyn/issues/12733")>
+        Public Async Function NotAfterDot() As Task
+            Dim markup = <Text>Module Module1
+    Sub Main()
+            Do Until (System.Console.ReadKey.Key = System.ConsoleKey.$$
+        Loop
+    End Sub
+End Module</Text>.Value
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer1() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer2() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            DayOfWeek.Monday, $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(3133, "https://github.com/dotnet/roslyn/issues/3133")>
+        Public Async Function TestInCollectionInitializer3() As Task
+            Dim markup = <Text><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub Main()
+        Dim y = New List(Of DayOfWeek) From {
+            DayOfWeek.Monday,
+            $$
+        }
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInEnumHasFlag() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.IO
+
+Class C
+    Sub Main()
+        Dim f As FileInfo
+        f.Attributes.HasFlag($$
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "FileAttributes.Hidden")
         End Function
     End Class
 End Namespace

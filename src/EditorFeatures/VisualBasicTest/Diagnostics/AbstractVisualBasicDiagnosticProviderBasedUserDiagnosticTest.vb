@@ -1,66 +1,86 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.CodeActions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
-    Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+    Partial Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Inherits AbstractDiagnosticProviderBasedUserDiagnosticTest
 
-        Private ReadOnly _compilationOptions As CompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
+        Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
+            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))
+
+        Protected Sub New(Optional logger As ITestOutputHelper = Nothing)
+            MyBase.New(logger)
+        End Sub
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFileAsync(
-            definition As String,
-            parseOptions As ParseOptions,
-            compilationOptions As CompilationOptions
-        ) As Task(Of TestWorkspace)
-
-            Return TestWorkspace.CreateVisualBasicAsync(
-                definition,
-                parseOptions,
-                If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
-        End Function
-
-        Protected Shared Function NewLines(input As String) As String
-            Return input.Replace("\n", vbCrLf)
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Friend Overloads Async Function TestAsync(
-                initialMarkup As XElement, expected As XElement, Optional index As Integer = 0,
-                Optional compareTokens As Boolean = True, Optional priority As CodeActionPriority? = Nothing) As Threading.Tasks.Task
+                initialMarkup As XElement, expected As XElement, Optional index As Integer = 0) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
 
             Await MyBase.TestAsync(initialMarkupStr, expectedStr,
-                                   parseOptions:=Nothing, compilationOptions:=_compilationOptions,
-                                   index:=index, compareTokens:=compareTokens,
-                                   priority:=priority)
-        End Function
-
-        Protected Overloads Async Function TestMissingWithWorkspaceXmlAsync(initialMarkup As XElement) As Threading.Tasks.Task
-            Using workspace = TestWorkspace.CreateWorkspace(initialMarkup)
-                Dim diagnostics = Await GetDiagnosticAndFixAsync(workspace)
-                Assert.Null(diagnostics)
-            End Using
+                                   parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions,
+                                   index:=index)
         End Function
 
         Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
 
-            Await MyBase.TestMissingAsync(initialMarkupStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions)
+            Await MyBase.TestMissingAsync(initialMarkupStr, New TestParameters(parseOptions:=Nothing, compilationOptions:=_compilationOptions))
         End Function
 
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic
         End Function
+
+        Friend ReadOnly Property RequireArithmeticBinaryParenthesesForClarity As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RequireArithmeticBinaryParenthesesForClarity
+            End Get
+        End Property
+
+        Friend ReadOnly Property RequireRelationalBinaryParenthesesForClarity As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RequireRelationalBinaryParenthesesForClarity
+            End Get
+        End Property
+
+        Friend ReadOnly Property RequireOtherBinaryParenthesesForClarity As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RequireOtherBinaryParenthesesForClarity
+            End Get
+        End Property
+
+        Friend ReadOnly Property IgnoreAllParentheses As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.IgnoreAllParentheses
+            End Get
+        End Property
+
+        Friend ReadOnly Property RemoveAllUnnecessaryParentheses As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses
+            End Get
+        End Property
+
+        Friend ReadOnly Property RequireAllParenthesesForClarity As OptionsCollection
+            Get
+                Return ParenthesesOptionsProvider.RequireAllParenthesesForClarity
+            End Get
+        End Property
     End Class
 End Namespace

@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
         Private Function WrapInNullable(expr As BoundExpression, nullableType As TypeSymbol) As BoundExpression
-            Debug.Assert(nullableType.GetNullableUnderlyingType.IsSameTypeIgnoringCustomModifiers(expr.Type))
+            Debug.Assert(nullableType.GetNullableUnderlyingType.IsSameTypeIgnoringAll(expr.Type))
 
             Dim ctor = GetNullableMethod(expr.Syntax, nullableType, SpecialMember.System_Nullable_T__ctor)
 
@@ -25,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      nullableType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), nullableType, hasErrors:=True)
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), nullableType, hasErrors:=True)
         End Function
 
         ''' <summary>
@@ -73,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Right operand could be a method that takes Left operand byref. Ex: " local And TakesArgByref(local) "
         ' So in general we must capture Left even if it is a local.
         ' however in many case we do not need that.
-        Private Function RightCanChangeLeftLocal(left As BoundExpression, right As BoundExpression) As Boolean
+        Private Shared Function RightCantChangeLeftLocal(left As BoundExpression, right As BoundExpression) As Boolean
             ' TODO: in most cases right operand does not change value of the left one
             '       we could be smarter than this.
             Return right.Kind = BoundKind.Local OrElse
@@ -109,6 +112,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' capture into local.
+            Return CaptureOperand(operand, temp, init)
+        End Function
+
+        Private Function CaptureOperand(operand As BoundExpression, <Out> ByRef temp As SynthesizedLocal, <Out> ByRef init As BoundExpression) As BoundExpression
             temp = New SynthesizedLocal(Me._currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localAccess = New BoundLocal(operand.Syntax, temp, True, temp.Type)
             init = New BoundAssignmentOperator(operand.Syntax, localAccess, operand, True, operand.Type)
@@ -153,14 +160,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' check if we are not getting value from freshly constructed nullable
             ' no need to wrap/unwrap it then.
-            If expr.Kind = BoundKind.ObjectCreationExpression Then
-                Dim objectCreation = DirectCast(expr, BoundObjectCreationExpression)
+            Select Case expr.Kind
+                Case BoundKind.ObjectCreationExpression
+                    Dim objectCreation = DirectCast(expr, BoundObjectCreationExpression)
 
-                ' passing one argument means we are calling New Nullable<T>(arg)
-                If objectCreation.Arguments.Length = 1 Then
-                    Return objectCreation.Arguments(0)
-                End If
-            End If
+                    ' passing one argument means we are calling New Nullable<T>(arg)
+                    If objectCreation.Arguments.Length = 1 Then
+                        Return objectCreation.Arguments(0)
+                    End If
+                Case BoundKind.Conversion
+                    Dim conversion = DirectCast(expr, BoundConversion)
+                    If IsConversionFromUnderlyingToNullable(conversion) Then
+                        Return conversion.Operand
+                    End If
+
+                Case Else
+                    Debug.Assert(Not HasValue(expr))
+
+                    If Not _inExpressionLambda AndAlso expr.Type.IsNullableOfBoolean() Then
+
+                        Dim whenNotNull As BoundExpression = Nothing
+                        Dim whenNull As BoundExpression = Nothing
+                        If IsConditionalAccess(expr, whenNotNull, whenNull) AndAlso HasNoValue(whenNull) Then
+                            Debug.Assert(Not HasNoValue(whenNotNull))
+                            Return UpdateConditionalAccess(expr,
+                                                           NullableValueOrDefault(whenNotNull),
+                                                           New BoundLiteral(expr.Syntax, ConstantValue.False, expr.Type.GetNullableUnderlyingType()))
+                        End If
+                    End If
+            End Select
 
             Dim getValueOrDefaultMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault)
 
@@ -171,11 +199,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 getValueOrDefaultMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueOrDefaultMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+        End Function
+
+        Private Shared Function IsConversionFromUnderlyingToNullable(conversion As BoundConversion) As Boolean
+            Return (conversion.ConversionKind And (ConversionKind.Widening Or ConversionKind.Nullable Or ConversionKind.UserDefined)) = (ConversionKind.Widening Or ConversionKind.Nullable) AndAlso
+                   conversion.Type.GetNullableUnderlyingType().Equals(conversion.Operand.Type, TypeCompareKind.AllIgnoreOptionsForVB)
         End Function
 
         Private Function NullableValue(expr As BoundExpression) As BoundExpression
@@ -194,11 +228,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 getValueMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
         End Function
 
         ''' <summary>
@@ -221,15 +256,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  expr,
                                  ImmutableArray(Of BoundExpression).Empty,
                                  Nothing,
-                                 True,
-                                 hasValueMethod.ReturnType)
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=hasValueMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr),
+            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr),
                                           Me.Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
         End Function
 
-        Private Shared Function NullableNull(syntax As VisualBasicSyntaxNode, nullableType As TypeSymbol) As BoundExpression
+        Private Shared Function NullableNull(syntax As SyntaxNode, nullableType As TypeSymbol) As BoundExpression
             Debug.Assert(nullableType.IsNullableType)
 
             Return New BoundObjectCreationExpression(syntax,
@@ -251,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' in case if the expression is any more complicated than just creating a Null
             ' simplify it. This may happen if HasNoValue gets smarter and can
             ' detect situations other than "New T?()"
-            If (Not type.IsSameTypeIgnoringCustomModifiers(candidateNullExpression.Type)) OrElse
+            If (Not type.IsSameTypeIgnoringAll(candidateNullExpression.Type)) OrElse
                 candidateNullExpression.Kind <> BoundKind.ObjectCreationExpression Then
 
                 Return NullableNull(candidateNullExpression.Syntax, type)
@@ -260,19 +296,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return candidateNullExpression
         End Function
 
-        Private Function NullableFalse(syntax As VisualBasicSyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableFalse(syntax As SyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
             Debug.Assert(nullableOfBoolean.IsNullableOfBoolean)
             Dim booleanType = nullableOfBoolean.GetNullableUnderlyingType
             Return WrapInNullable(New BoundLiteral(syntax, ConstantValue.False, booleanType), nullableOfBoolean)
         End Function
 
-        Private Function NullableTrue(syntax As VisualBasicSyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableTrue(syntax As SyntaxNode, nullableOfBoolean As TypeSymbol) As BoundExpression
             Debug.Assert(nullableOfBoolean.IsNullableOfBoolean)
             Dim booleanType = nullableOfBoolean.GetNullableUnderlyingType
             Return WrapInNullable(New BoundLiteral(syntax, ConstantValue.True, booleanType), nullableOfBoolean)
         End Function
 
-        Private Function GetNullableMethod(syntax As VisualBasicSyntaxNode, nullableType As TypeSymbol, member As SpecialMember) As MethodSymbol
+        Private Function GetNullableMethod(syntax As SyntaxNode, nullableType As TypeSymbol, member As SpecialMember) As MethodSymbol
             Dim method As MethodSymbol = Nothing
 
             If TryGetSpecialMember(method, member, syntax) Then
@@ -283,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Function NullableOfBooleanValue(syntax As VisualBasicSyntaxNode, isTrue As Boolean, nullableOfBoolean As TypeSymbol) As BoundExpression
+        Private Function NullableOfBooleanValue(syntax As SyntaxNode, isTrue As Boolean, nullableOfBoolean As TypeSymbol) As BoundExpression
             If isTrue Then
                 Return NullableTrue(syntax, nullableOfBoolean)
             Else
@@ -314,11 +350,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function HasValue(expr As BoundExpression) As Boolean
             Debug.Assert(expr.Type.IsNullableType)
 
-            If expr.Kind = BoundKind.ObjectCreationExpression Then
-                Dim objCreation = DirectCast(expr, BoundObjectCreationExpression)
-                ' Nullable<T> has only one ctor with parameters and only that one sets hasValue = true
-                Return objCreation.Arguments.Length <> 0
-            End If
+            Select Case expr.Kind
+                Case BoundKind.ObjectCreationExpression
+                    Dim objCreation = DirectCast(expr, BoundObjectCreationExpression)
+                    ' Nullable<T> has only one ctor with parameters and only that one sets hasValue = true
+                    Return objCreation.Arguments.Length <> 0
+                Case BoundKind.Conversion
+                    If IsConversionFromUnderlyingToNullable(DirectCast(expr, BoundConversion)) Then
+                        Return True
+                    End If
+            End Select
 
             ' by default we do not know
             Return False
@@ -329,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Performs some trivial constant folding.
         ''' TODO: Perhaps belong to a different file
         ''' </summary>
-        Private Function MakeBinaryExpression(syntax As VisualBasicSyntaxNode,
+        Private Function MakeBinaryExpression(syntax As SyntaxNode,
                                             binaryOpKind As BinaryOperatorKind,
                                             left As BoundExpression,
                                             right As BoundExpression,
@@ -341,13 +382,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim intOverflow As Boolean = False
             Dim divideByZero As Boolean = False
-            Dim compoundLengthOutOfLimit As Boolean = False
+            Dim lengthOutOfLimit As Boolean = False
 
-            Dim constant = OverloadResolution.TryFoldConstantBinaryOperator(binaryOpKind, left, right, resultType, intOverflow, divideByZero, compoundLengthOutOfLimit)
+            Dim constant = OverloadResolution.TryFoldConstantBinaryOperator(binaryOpKind, left, right, resultType, intOverflow, divideByZero, lengthOutOfLimit)
             If constant IsNot Nothing AndAlso
                 Not divideByZero AndAlso
                 Not (intOverflow And isChecked) AndAlso
-                Not compoundLengthOutOfLimit Then
+                Not lengthOutOfLimit Then
 
                 Debug.Assert(Not constant.IsBad)
                 Return New BoundLiteral(syntax, constant, resultType)
@@ -430,18 +471,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' When operand are boolean, the result type is same as operand's and is never checked 
         ''' so do not need to pass that in.
         ''' </summary>
-        Private Function MakeBooleanBinaryExpression(syntax As VisualBasicSyntaxNode,
+        Private Function MakeBooleanBinaryExpression(syntax As SyntaxNode,
                                     binaryOpKind As BinaryOperatorKind,
                                     left As BoundExpression,
                                     right As BoundExpression) As BoundExpression
 
-            Debug.Assert(left.Type = right.Type)
+            Debug.Assert(TypeSymbol.Equals(left.Type, right.Type, TypeCompareKind.ConsiderEverything))
             Debug.Assert(left.Type.IsBooleanType)
 
             Return MakeBinaryExpression(syntax, binaryOpKind, left, right, False, left.Type)
         End Function
 
-        Private Shared Function MakeNullLiteral(syntax As VisualBasicSyntaxNode, type As TypeSymbol) As BoundLiteral
+        Private Shared Function MakeNullLiteral(syntax As SyntaxNode, type As TypeSymbol) As BoundLiteral
             Return New BoundLiteral(syntax, ConstantValue.Nothing, type)
         End Function
 
@@ -455,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Takes two expressions and makes sequence.
         ''' </summary>
-        Private Shared Function MakeSequence(syntax As VisualBasicSyntaxNode,
+        Private Shared Function MakeSequence(syntax As SyntaxNode,
                                              first As BoundExpression,
                                              second As BoundExpression) As BoundExpression
 
@@ -474,13 +515,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Takes two expressions and makes sequence.
         ''' </summary>
-        Private Function MakeTernaryConditionalExpression(syntax As VisualBasicSyntaxNode,
+        Private Function MakeTernaryConditionalExpression(syntax As SyntaxNode,
                                                           condition As BoundExpression,
                                                           whenTrue As BoundExpression,
                                                           whenFalse As BoundExpression) As BoundExpression
 
             Debug.Assert(condition.Type.IsBooleanType, "ternary condition must be boolean")
-            Debug.Assert(whenTrue.Type.IsSameTypeIgnoringCustomModifiers(whenFalse.Type), "ternary branches must have same types")
+            Debug.Assert(whenTrue.Type.IsSameTypeIgnoringAll(whenFalse.Type), "ternary branches must have same types")
 
             Dim ifConditionConst = condition.ConstantValueOpt
             If ifConditionConst IsNot Nothing Then

@@ -1,11 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -15,28 +17,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected readonly IAnonymousTypeDisplayService AnonymousTypeDisplayService;
 
         protected AbstractSymbolDisplayService(IAnonymousTypeDisplayService anonymousTypeDisplayService)
-        {
-            this.AnonymousTypeDisplayService = anonymousTypeDisplayService;
-        }
+            => AnonymousTypeDisplayService = anonymousTypeDisplayService;
 
-        public abstract ImmutableArray<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null);
-        public abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDisplayFormat format);
         protected abstract AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
-        public string ToDisplayString(ISymbol symbol, SymbolDisplayFormat format = null)
-        {
-            return ToDisplayParts(symbol, format).ToDisplayString();
-        }
-
-        public string ToMinimalDisplayString(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDisplayFormat format = null)
-        {
-            return ToMinimalDisplayParts(semanticModel, position, symbol, format).ToDisplayString();
-        }
-
         public Task<string> ToDescriptionStringAsync(Workspace workspace, SemanticModel semanticModel, int position, ISymbol symbol, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
-        {
-            return ToDescriptionStringAsync(workspace, semanticModel, position, ImmutableArray.Create<ISymbol>(symbol), groups, cancellationToken);
-        }
+            => ToDescriptionStringAsync(workspace, semanticModel, position, ImmutableArray.Create<ISymbol>(symbol), groups, cancellationToken);
 
         public async Task<string> ToDescriptionStringAsync(Workspace workspace, SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
         {
@@ -55,11 +41,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return await builder.BuildDescriptionAsync(symbols, groups).ConfigureAwait(false);
         }
 
-        public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>>> ToDescriptionGroupsAsync(Workspace workspace, SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+        public async Task<IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>> ToDescriptionGroupsAsync(
+            Workspace workspace, SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
             if (symbols.Length == 0)
             {
-                return SpecializedCollections.EmptyDictionary<SymbolDescriptionGroups, ImmutableArray<SymbolDisplayPart>>();
+                return SpecializedCollections.EmptyDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>();
             }
 
             var builder = CreateDescriptionBuilder(workspace, semanticModel, position, cancellationToken);

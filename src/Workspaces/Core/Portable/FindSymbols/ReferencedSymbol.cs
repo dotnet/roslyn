@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
@@ -24,21 +29,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ISymbol Definition { get; }
 
         /// <summary>
+        /// Same as <see cref="Locations"/> but exposed as an <see cref="ImmutableArray{T}"/> for performance.
+        /// </summary>
+        internal ImmutableArray<ReferenceLocation> LocationsArray { get; }
+
+        /// <summary>
         /// The set of reference locations in the solution.
         /// </summary>
-        public IEnumerable<ReferenceLocation> Locations { get; }
+        public IEnumerable<ReferenceLocation> Locations => LocationsArray;
 
-        internal ReferencedSymbol(ISymbol definition, IEnumerable<ReferenceLocation> locations)
+        internal ReferencedSymbol(
+            ISymbol definition,
+            ImmutableArray<ReferenceLocation> locations)
         {
             this.Definition = definition;
-            this.Locations = (locations ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>()).ToReadOnlyCollection();
+            this.LocationsArray = locations.NullToEmpty();
         }
 
-        /// <remarks>Internal for testing purposes</remarks>
-        internal string GetDebuggerDisplay()
+        private string GetDebuggerDisplay()
         {
             var count = this.Locations.Count();
             return string.Format("{0}, {1} {2}", this.Definition.Name, count, count == 1 ? "ref" : "refs");
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ReferencedSymbol _referencedSymbol;
+
+            public TestAccessor(ReferencedSymbol referencedSymbol)
+                => _referencedSymbol = referencedSymbol;
+
+            internal string GetDebuggerDisplay()
+                => _referencedSymbol.GetDebuggerDisplay();
         }
     }
 }

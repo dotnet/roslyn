@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics.Tracing;
@@ -42,7 +46,7 @@ namespace Roslyn.Hosting.Diagnostics
         /// <summary>
         /// let one such as ETA to set logger for the service layer
         /// </summary>
-        internal static void SetLogger(IOptionService optionsService, string loggerName)
+        internal static void SetLogger(IGlobalOptionService optionsService, string loggerName)
         {
             if (loggerName == null)
             {
@@ -90,12 +94,12 @@ namespace Roslyn.Hosting.Diagnostics
             return (FunctionId)Enum.Parse(typeof(FunctionId), functionId);
         }
 
-        private static ILogger GetLogger(IOptionService optionsService, string loggerName)
+        private static ILogger GetLogger(IGlobalOptionService optionsService, string loggerName)
         {
             switch (loggerName)
             {
                 case "EtwLogger":
-                    return new EtwLogger(Logger.GetLoggingChecker(optionsService));
+                    return new EtwLogger(optionsService);
                 case "TraceLogger":
                     return new TraceLogger(Logger.GetLoggingChecker(optionsService));
                 default:

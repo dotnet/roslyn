@@ -1,4 +1,4 @@
-string file = Args[0];
+﻿string file = Args[0];
 string hexSearch = Args[1];
 string hexReplace = Args[2];
 

@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -13,10 +18,18 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class ParseOptions
     {
+        private readonly Lazy<ImmutableArray<Diagnostic>> _lazyErrors;
+
         /// <summary>
         /// Specifies whether to parse as regular code files, script files or interactive code.
         /// </summary>
         public SourceCodeKind Kind { get; protected set; }
+
+        /// <summary>
+        /// Gets the specified source code kind, which is the value that was specified in
+        /// the call to the constructor, or modified using the <see cref="WithKind(SourceCodeKind)"/> method.
+        /// </summary>
+        public SourceCodeKind SpecifiedKind { get; protected set; }
 
         /// <summary>
         /// Gets a value indicating whether the documentation comments are parsed.
@@ -26,8 +39,29 @@ namespace Microsoft.CodeAnalysis
 
         internal ParseOptions(SourceCodeKind kind, DocumentationMode documentationMode)
         {
-            this.Kind = kind;
+            this.SpecifiedKind = kind;
+            this.Kind = kind.MapSpecifiedToEffectiveKind();
             this.DocumentationMode = documentationMode;
+
+            _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
+            {
+                var builder = ArrayBuilder<Diagnostic>.GetInstance();
+                ValidateOptions(builder);
+                return builder.ToImmutableAndFree();
+            });
+        }
+
+        /// <summary>
+        /// Gets the source language ("C#" or "Visual Basic").
+        /// </summary>
+        public abstract string Language { get; }
+
+        /// <summary>
+        /// Errors collection related to an incompatible set of parse options
+        /// </summary>
+        public ImmutableArray<Diagnostic> Errors
+        {
+            get { return _lazyErrors.Value; }
         }
 
         /// <summary>
@@ -36,6 +70,25 @@ namespace Microsoft.CodeAnalysis
         public ParseOptions WithKind(SourceCodeKind kind)
         {
             return CommonWithKind(kind);
+        }
+
+        /// <summary>
+        /// Performs validation of options compatibilities and generates diagnostics if needed
+        /// </summary>
+        internal abstract void ValidateOptions(ArrayBuilder<Diagnostic> builder);
+
+        internal void ValidateOptions(ArrayBuilder<Diagnostic> builder, CommonMessageProvider messageProvider)
+        {
+            // Validate SpecifiedKind not Kind, to catch deprecated specified kinds:
+            if (!SpecifiedKind.IsValid())
+            {
+                builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadSourceCodeKind, Location.None, SpecifiedKind.ToString()));
+            }
+
+            if (!DocumentationMode.IsValid())
+            {
+                builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadDocumentationMode, Location.None, DocumentationMode.ToString()));
+            }
         }
 
         // It was supposed to be a protected implementation detail. 
@@ -77,9 +130,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract IEnumerable<string> PreprocessorSymbolNames { get; }
 
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
 
-        protected bool EqualsHelper(ParseOptions other)
+        protected bool EqualsHelper([NotNullWhen(true)] ParseOptions? other)
         {
             if (object.ReferenceEquals(other, null))
             {
@@ -87,7 +140,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return
-                this.Kind == other.Kind &&
+                this.SpecifiedKind == other.SpecifiedKind &&
                 this.DocumentationMode == other.DocumentationMode &&
                 this.Features.SequenceEqual(other.Features) &&
                 (this.PreprocessorSymbolNames == null ? other.PreprocessorSymbolNames == null : this.PreprocessorSymbolNames.SequenceEqual(other.PreprocessorSymbolNames, StringComparer.Ordinal));
@@ -98,7 +151,7 @@ namespace Microsoft.CodeAnalysis
         protected int GetHashCodeHelper()
         {
             return
-                Hash.Combine((int)this.Kind,
+                Hash.Combine((int)this.SpecifiedKind,
                 Hash.Combine((int)this.DocumentationMode,
                 Hash.Combine(HashFeatures(this.Features),
                 Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0))));
@@ -116,12 +169,12 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        public static bool operator ==(ParseOptions left, ParseOptions right)
+        public static bool operator ==(ParseOptions? left, ParseOptions? right)
         {
             return object.Equals(left, right);
         }
 
-        public static bool operator !=(ParseOptions left, ParseOptions right)
+        public static bool operator !=(ParseOptions? left, ParseOptions? right)
         {
             return !object.Equals(left, right);
         }

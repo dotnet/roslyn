@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -14,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly ImmutableArray<TypedConstant> _constructorArguments;
         private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
 
-        protected override INamedTypeSymbol CommonAttributeClass { get { return _attributeClass; } }
-        protected override IMethodSymbol CommonAttributeConstructor { get { return null; } }
-        protected override ImmutableArray<TypedConstant> CommonConstructorArguments { get { return _constructorArguments; } }
-        protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments { get { return _namedArguments; } }
-        protected override SyntaxReference CommonApplicationSyntaxReference { get { return null; } }
+        protected override INamedTypeSymbol CommonAttributeClass => _attributeClass;
+        protected override IMethodSymbol CommonAttributeConstructor => null;
+        protected override ImmutableArray<TypedConstant> CommonConstructorArguments => _constructorArguments;
+        protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _namedArguments;
+        protected override SyntaxReference CommonApplicationSyntaxReference => null;
 
         public CodeGenerationAttributeData(
             INamedTypeSymbol attributeClass,

@@ -1,33 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.MakeMethodSynchronous;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous.CSharpMakeMethodSynchronousCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodSynchronous
 {
-    public class MakeMethodSynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class MakeMethodSynchronousTests
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpMakeMethodSynchronousCodeFixProvider());
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTaskReturnType()
         {
-            await TestAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task [|Foo|]()
+    async Task {|CS1998:Goo|}()
     {
     }
 }",
@@ -36,24 +35,24 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTaskOfTReturnType()
         {
-            await TestAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task<int> [|Foo|]()
+    async Task<int> {|CS1998:Goo|}()
     {
+        return 1;
     }
 }",
 @"
@@ -61,23 +60,23 @@ using System.Threading.Tasks;
 
 class C
 {
-    int Foo()
+    int {|#0:Goo|}()
     {
+        return 1;
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestSecondModifier()
         {
-            await TestAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    public async Task [|Foo|]()
+    public async Task {|CS1998:Goo|}()
     {
     }
 }",
@@ -86,23 +85,22 @@ using System.Threading.Tasks;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestFirstModifier()
         {
-            await TestAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async public Task [|Foo|]()
+    async public Task {|CS1998:Goo|}()
     {
     }
 }",
@@ -111,24 +109,23 @@ using System.Threading.Tasks;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTrailingTrivia()
         {
-            await TestAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
     async // comment
-    Task [|Foo|]()
+    Task {|CS1998:Goo|}()
     {
     }
 }",
@@ -137,23 +134,22 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestRenameMethod()
         {
-            await TestAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task [|FooAsync|]()
+    async Task {|CS1998:GooAsync|}()
     {
     }
 }",
@@ -162,29 +158,28 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestRenameMethod1()
         {
-            await TestAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task [|FooAsync|]()
+    async Task {|CS1998:GooAsync|}()
     {
     }
 
     void Bar()
     {
-        FooAsync();
+        GooAsync();
     }
 }",
 @"
@@ -192,165 +187,836 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 
     void Bar()
     {
-        Foo();
+        Goo();
     }
-}",
-compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestParenthesizedLambda()
         {
-            await TestAsync(
+            var source =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
-            async [|()|] => { };
+            async () {|CS1998:=>|} { };
     }
-}",
+}";
+            var expected =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
-            () => { };
+            () {|#0:=>|} { };
     }
-}",
-compareTokens: false);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(10,16): error CS1643: Not all code paths return a value in lambda expression of type 'Func<Task>'
+                        DiagnosticResult.CompilerError("CS1643").WithLocation(0),
+                    },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestSimpleLambda()
         {
-            await TestAsync(
+            var source =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
-            async [|a|] => { };
+            async a {|CS1998:=>|} { };
     }
-}",
+}";
+            var expected =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
-            a => { };
+            a {|#0:=>|} { };
     }
-}",
-compareTokens: false);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(10,15): error CS1643: Not all code paths return a value in lambda expression of type 'Func<Task>'
+                        DiagnosticResult.CompilerError("CS1643").WithLocation(0),
+                    },
+                },
+            }.RunAsync();
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestLambdaWithExpressionBody()
         {
-            await TestAsync(
+            var source =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
-        Func<string, Task> f =
-            async [|a|] => 1;
+        Func<string, Task<int>> f =
+            async a {|CS1998:=>|} 1;
     }
-}",
+}";
+            var expected =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
-        Func<string, Task> f =
-            a => 1;
+        Func<string, Task<int>> f =
+            a => {|#0:1|};
     }
-}",
-compareTokens: false);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(10,18): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
+                        DiagnosticResult.CompilerError("CS0029").WithLocation(0).WithArguments("int", "System.Threading.Tasks.Task<int>"),
+                        // /0/Test0.cs(10,18): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                        DiagnosticResult.CompilerError("CS1662").WithLocation(0),
+                    },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestAnonymousMethod()
         {
-            await TestAsync(
+            var source =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
-            async [|delegate|] { };
+            async {|CS1998:delegate|} { };
     }
-}",
+}";
+            var expected =
 @"
+using System;
 using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
-            delegate { };
+            {|#0:delegate|} { };
     }
-}",
-compareTokens: false);
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(10,13): error CS1643: Not all code paths return a value in anonymous method of type 'Func<Task>'
+                        DiagnosticResult.CompilerError("CS1643").WithLocation(0),
+                    },
+                },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestFixAll()
         {
-            await TestAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    {|FixAllInDocument:async Task FooAsync()
+    async Task {|CS1998:GooAsync|}()
     {
         BarAsync();
     }
 
-    async Task<int> BarAsync()
+    async Task<int> {|#0:{|CS1998:BarAsync|}|}()
     {
-        FooAsync();
-    }|}
+        GooAsync();
+        return 1;
+    }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
         Bar();
     }
 
-    int Bar()
+    int {|#0:Bar|}()
     {
-        Foo();
+        Goo();
+        return 1;
     }
-}", compareTokens: false, fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCaller1()
+        {
+            var source =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task {|CS1998:GooAsync|}()
+    {
+    }
+
+    async void BarAsync()
+    {
+        await GooAsync();
+    }
+}";
+            var expected =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Goo()
+    {
+    }
+
+    async void {|CS1998:BarAsync|}()
+    {
+        Goo();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCaller2()
+        {
+            var source =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task {|CS1998:GooAsync|}()
+    {
+    }
+
+    async void BarAsync()
+    {
+        await GooAsync().ConfigureAwait(false);
+    }
+}";
+            var expected =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Goo()
+    {
+    }
+
+    async void {|CS1998:BarAsync|}()
+    {
+        Goo();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCaller3()
+        {
+            var source =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task {|CS1998:GooAsync|}()
+    {
+    }
+
+    async void BarAsync()
+    {
+        await this.GooAsync();
+    }
+}";
+            var expected =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Goo()
+    {
+    }
+
+    async void {|CS1998:BarAsync|}()
+    {
+        this.Goo();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCaller4()
+        {
+            var source =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task {|CS1998:GooAsync|}()
+    {
+    }
+
+    async void BarAsync()
+    {
+        await this.GooAsync().ConfigureAwait(false);
+    }
+}";
+            var expected =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Goo()
+    {
+    }
+
+    async void {|CS1998:BarAsync|}()
+    {
+        this.Goo();
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCallerNested1()
+        {
+            var source =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task<int> {|CS1998:GooAsync|}(int i)
+    {
+        return 1;
+    }
+
+    async void BarAsync()
+    {
+        await this.GooAsync(await this.GooAsync(0));
+    }
+}";
+            var expected =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    int Goo(int i)
+    {
+        return 1;
+    }
+
+    async void {|CS1998:BarAsync|}()
+    {
+        this.Goo(this.Goo(0));
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCallerNested()
+        {
+            var source =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task<int> {|CS1998:GooAsync|}(int i)
+    {
+        return 1;
+    }
+
+    async void BarAsync()
+    {
+        await this.GooAsync(await this.GooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
+    }
+}";
+            var expected =
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    int Goo(int i)
+    {
+        return 1;
+    }
+
+    async void {|CS1998:BarAsync|}()
+    {
+        this.Goo(this.Goo(0));
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedState =
+                {
+                    Sources = { expected },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task RemoveAsyncInLocalFunction()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async Task {|CS1998:M2Async|}()
+        {
+        }
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+        }
+    }
+}");
+        }
+
+        [Theory]
+        [InlineData("Task<C>", "C")]
+        [InlineData("Task<int>", "int")]
+        [InlineData("Task", "void")]
+        [InlineData("void", "void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ async {asyncReturn} /*2*/ {{|CS1998:M2Async|}}/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/
+        {expectedReturn} /*2*/ M2/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}");
+        }
+
+        [Theory]
+        [InlineData("", "Task<C>", "\r\n    C")]
+        [InlineData("", "Task<int>", "\r\n    int")]
+        [InlineData("", "Task", "\r\n    void")]
+        [InlineData("", "void", "\r\n    void")]
+        [InlineData("public", "Task<C>", " C")]
+        [InlineData("public", "Task<int>", " int")]
+        [InlineData("public", "Task", " void")]
+        [InlineData("public", "void", " void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ async {asyncReturn} /*2*/ {{|CS1998:M2Async|}}/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/{expectedReturn} /*2*/ M2/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithUsingAwait()
+        {
+            var source =
+@"class C
+{
+    async System.Threading.Tasks.Task MAsync()
+    {
+        await using ({|#0:var x = new object()|})
+        {
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(5,22): error CS8410: 'object': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                    DiagnosticResult.CompilerError("CS8410").WithLocation(0).WithArguments("object"),
+                },
+                FixedCode = source,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithUsingNoAwait()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task {|CS1998:MAsync|}()
+    {
+        using ({|#0:var x = new object()|})
+        {
+        }
+    }
+}",
+                // /0/Test0.cs(5,16): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                DiagnosticResult.CompilerError("CS1674").WithLocation(0).WithArguments("object"),
+@"class C
+{
+    void M()
+    {
+        using ({|#0:var x = new object()|})
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithAwaitForEach()
+        {
+            var source =
+@"class C
+{
+    async System.Threading.Tasks.Task MAsync()
+    {
+        await foreach (var n in {|#0:new int[] { }|})
+        {
+        }
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(
+                source,
+                // /0/Test0.cs(5,33): error CS1061: 'bool' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'bool' could be found (are you missing a using directive or an assembly reference?)
+                DiagnosticResult.CompilerError("CS1061").WithLocation(0).WithArguments("bool", "GetAwaiter"),
+                source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachNoAwait()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task {|CS1998:MAsync|}()
+    {
+        foreach (var n in new int[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        foreach (var n in new int[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachVariableAwait()
+        {
+            var source =
+@"class C
+{
+    async System.Threading.Tasks.Task MAsync()
+    {
+        await foreach (var (a, b) in {|#0:new(int, int)[] { }|})
+        {
+        }
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(
+                source,
+                // /0/Test0.cs(5,38): error CS1061: 'bool' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'bool' could be found (are you missing a using directive or an assembly reference?)
+                DiagnosticResult.CompilerError("CS1061").WithLocation(0).WithArguments("bool", "GetAwaiter"),
+                source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachVariableNoAwait()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task {|CS1998:MAsync|}()
+    {
+        foreach (var (a, b) in new(int, int)[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        foreach (var (a, b) in new (int, int)[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestIAsyncEnumerableReturnType()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    async IAsyncEnumerable<int> {|CS1998:MAsync|}()
+    {
+        yield return 1;
+    }
+}";
+            var expected =
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                FixedCode = expected,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        async IAsyncEnumerator<int> {|CS1998:MAsync|}()
+        {
+            yield return 1;
+        }
+    }
+}";
+            var expected =
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        IEnumerator<int> M()
+        {
+            yield return 1;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+                TestCode = source,
+                FixedCode = expected,
+            }.RunAsync();
         }
     }
 }

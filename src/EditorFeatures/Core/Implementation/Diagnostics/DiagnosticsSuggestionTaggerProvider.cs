@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,10 +8,13 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
@@ -17,43 +22,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [TagType(typeof(SuggestionTag))]
-    internal partial class DiagnosticsSuggestionTaggerProvider : 
-        AbstractDiagnosticsAdornmentTaggerProvider<SuggestionTag>
+    [ContentType(ContentTypeNames.XamlContentType)]
+    [TagType(typeof(IErrorTag))]
+    internal partial class DiagnosticsSuggestionTaggerProvider :
+        AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
+        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
-        protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+
+        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticsSuggestionTaggerProvider(
+            IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
-            : base(diagnosticService, notificationService, listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, diagnosticService, notificationService, listenerProvider)
         {
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
-        {
-            return diagnostic.Severity == DiagnosticSeverity.Info;
-        }
+            => diagnostic.Severity == DiagnosticSeverity.Info;
 
-        protected override SuggestionTag CreateTag(DiagnosticData diagnostic)
-        {
-            return SuggestionTag.Instance;
-        }
+        protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
+            => new ErrorTag(
+                PredefinedErrorTypeNames.HintedSuggestion,
+                CreateToolTipContent(workspace, diagnostic));
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {
-            snapshotSpan = base.AdjustSnapshotSpan(snapshotSpan, minimumLength);
-
-            // Cap a suggestion line length at two characters.
-            var span = snapshotSpan.Span;
-            snapshotSpan = new SnapshotSpan(snapshotSpan.Snapshot,
-                new Span(span.Start, Math.Min(span.Length, 2)));
-
-            return snapshotSpan;
+            // We always want suggestion tags to be two characters long.
+            return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
     }
 }

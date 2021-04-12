@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,27 +17,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            var rewrittenCondition = (BoundExpression)Visit(node.Condition);
-            var rewrittenBody = (BoundStatement)Visit(node.Body);
-
-            TextSpan conditionSequencePointSpan = default(TextSpan);
-            if (this.GenerateDebugInfo)
-            {
-                if (!node.WasCompilerGenerated)
-                {
-                    WhileStatementSyntax whileSyntax = (WhileStatementSyntax)node.Syntax;
-                    conditionSequencePointSpan = TextSpan.FromBounds(
-                        whileSyntax.WhileKeyword.SpanStart,
-                        whileSyntax.CloseParenToken.Span.End);
-                }
-            }
+            var rewrittenCondition = VisitExpression(node.Condition);
+            var rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
+            if (!node.WasCompilerGenerated && this.Instrument)
+            {
+                rewrittenCondition = _instrumenter.InstrumentWhileStatementCondition(node, rewrittenCondition, _factory);
+            }
+
             return RewriteWhileStatement(
-                node.Syntax,
-                AddConditionSequencePoint(rewrittenCondition, node),
-                conditionSequencePointSpan,
+                node,
+                node.Locals,
+                rewrittenCondition,
                 rewrittenBody,
                 node.BreakLabel,
                 node.ContinueLabel,
@@ -42,21 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundStatement RewriteWhileStatement(
-            CSharpSyntaxNode syntax,
+            BoundLoopStatement loop,
             BoundExpression rewrittenCondition,
-            TextSpan conditionSequencePointSpan,
             BoundStatement rewrittenBody,
             GeneratedLabelSymbol breakLabel,
             GeneratedLabelSymbol continueLabel,
             bool hasErrors)
         {
-            var startLabel = new GeneratedLabelSymbol("start");
-            BoundStatement ifConditionGotoStart = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, true, startLabel);
-
-            if (this.GenerateDebugInfo)
-            {
-                ifConditionGotoStart = new BoundSequencePointWithSpan(syntax, ifConditionGotoStart, conditionSequencePointSpan);
-            }
+            Debug.Assert(loop.Kind == BoundKind.WhileStatement || loop.Kind == BoundKind.ForEachStatement);
 
             // while (condition) 
             //   body;
@@ -72,13 +62,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
             // break:
 
+            SyntaxNode syntax = loop.Syntax;
+            var startLabel = new GeneratedLabelSymbol("start");
+            BoundStatement ifConditionGotoStart = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, true, startLabel);
             BoundStatement gotoContinue = new BoundGotoStatement(syntax, continueLabel);
-            if (this.GenerateDebugInfo)
+
+            if (this.Instrument && !loop.WasCompilerGenerated)
             {
+                switch (loop.Kind)
+                {
+                    case BoundKind.WhileStatement:
+                        ifConditionGotoStart = _instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak((BoundWhileStatement)loop, ifConditionGotoStart);
+                        break;
+
+                    case BoundKind.ForEachStatement:
+                        ifConditionGotoStart = _instrumenter.InstrumentForEachStatementConditionalGotoStart((BoundForEachStatement)loop, ifConditionGotoStart);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(loop.Kind);
+                }
+
                 // mark the initial jump as hidden. We do it to tell that this is not a part of previous statement. This
                 // jump may be a target of another jump (for example if loops are nested) and that would give the
                 // impression that the previous statement is being re-executed.
-                gotoContinue = new BoundSequencePoint(null, gotoContinue);
+                gotoContinue = BoundSequencePoint.CreateHidden(gotoContinue);
             }
 
             return BoundStatementList.Synthesized(syntax, hasErrors,
@@ -87,6 +95,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBody,
                 new BoundLabelStatement(syntax, continueLabel),
                 ifConditionGotoStart,
+                new BoundLabelStatement(syntax, breakLabel));
+        }
+
+        private BoundStatement RewriteWhileStatement(
+            BoundWhileStatement loop,
+            ImmutableArray<LocalSymbol> locals,
+            BoundExpression rewrittenCondition,
+            BoundStatement rewrittenBody,
+            GeneratedLabelSymbol breakLabel,
+            GeneratedLabelSymbol continueLabel,
+            bool hasErrors)
+        {
+            if (locals.IsEmpty)
+            {
+                return RewriteWhileStatement(loop, rewrittenCondition, rewrittenBody, breakLabel, continueLabel, hasErrors);
+            }
+
+            // We need to enter scope-block from the top, that is where an instance of a display class will be created
+            // if any local is captured within a lambda.
+
+            // while (condition) 
+            //   body;
+            //
+            // becomes
+            //
+            // continue:
+            // {
+            //     GotoIfFalse condition break;
+            //     body
+            //     goto continue;
+            // }
+            // break:
+
+            SyntaxNode syntax = loop.Syntax;
+            BoundStatement continueLabelStatement = new BoundLabelStatement(syntax, continueLabel);
+            BoundStatement ifNotConditionGotoBreak = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, breakLabel);
+
+            if (this.Instrument && !loop.WasCompilerGenerated)
+            {
+                ifNotConditionGotoBreak = _instrumenter.InstrumentWhileStatementConditionalGotoStartOrBreak(loop, ifNotConditionGotoBreak);
+                continueLabelStatement = BoundSequencePoint.CreateHidden(continueLabelStatement);
+            }
+
+            return BoundStatementList.Synthesized(syntax, hasErrors,
+                continueLabelStatement,
+                new BoundBlock(syntax,
+                               locals,
+                               ImmutableArray.Create(
+                                    ifNotConditionGotoBreak,
+                                    rewrittenBody,
+                                    new BoundGotoStatement(syntax, continueLabel))),
                 new BoundLabelStatement(syntax, breakLabel));
         }
     }

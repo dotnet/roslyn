@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -8,17 +11,22 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTypeNames
 {
     public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+        public BatchFixerTests(ITestOutputHelper logger)
+             : base(logger)
         {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(new QualifyWithThisAnalyzer(), new QualifyWithThisFixer());
         }
+
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new QualifyWithThisAnalyzer(), new QualifyWithThisFixer());
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private class QualifyWithThisAnalyzer : DiagnosticAnalyzer
@@ -34,14 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
             }
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterSyntaxNodeAction<SyntaxKind>(AnalyzeNode, SyntaxKind.IdentifierName);
-            }
+                => context.RegisterSyntaxNodeAction<SyntaxKind>(AnalyzeNode, SyntaxKind.IdentifierName);
 
             private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var node = context.Node as SimpleNameSyntax;
-                if (node != null)
+                if (context.Node is SimpleNameSyntax node)
                 {
                     var symbol = context.SemanticModel.GetSymbolInfo(node).Symbol;
                     if (symbol != null && symbol.Kind == SymbolKind.Field)
@@ -63,11 +68,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                 }
             }
 
-            public async override Task RegisterCodeFixesAsync(CodeFixContext context)
+            public override async Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-                var node = root.FindNode(context.Span, getInnermostNodeForTie: true) as SimpleNameSyntax;
-                if (node != null)
+                if (root.FindNode(context.Span, getInnermostNodeForTie: true) is SimpleNameSyntax node)
                 {
                     var leadingTrivia = node.GetLeadingTrivia();
                     var newNode = SyntaxFactory.MemberAccessExpression(
@@ -89,9 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
             }
 
             public override FixAllProvider GetFixAllProvider()
-            {
-                return WellKnownFixAllProviders.BatchFixer;
-            }
+                => WellKnownFixAllProviders.BatchFixer;
         }
 
         #region "Fix all occurrences tests"
@@ -113,7 +115,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + {|FixAllInDocument:Sign|} + @"" "" + Sign + @""3;
             }
@@ -139,7 +141,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + this.Sign + @"" "" + this.Sign + @""3;
             }
@@ -152,7 +154,7 @@ class C
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         #endregion

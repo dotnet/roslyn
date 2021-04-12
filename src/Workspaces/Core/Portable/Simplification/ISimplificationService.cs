@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -28,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         Task<Document> ReduceAsync(
             Document document,
-            IEnumerable<TextSpan> spans,
+            ImmutableArray<TextSpan> spans,
             OptionSet optionSet = null,
-            IEnumerable<AbstractReducer> reducers = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            ImmutableArray<AbstractReducer> reducers = default,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -8,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class SyntaxDiagnosticInfo : DiagnosticInfo
     {
+        static SyntaxDiagnosticInfo()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(SyntaxDiagnosticInfo), r => new SyntaxDiagnosticInfo(r));
+        }
+
         internal readonly int Offset;
         internal readonly int Width;
 
@@ -20,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal SyntaxDiagnosticInfo(int offset, int width, ErrorCode code)
-            : this(offset, width, code, SpecializedCollections.EmptyObjects)
+            : this(offset, width, code, Array.Empty<object>())
         {
         }
 
@@ -46,11 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.WriteTo(writer);
             writer.WriteInt32(this.Offset);
             writer.WriteInt32(this.Width);
-        }
-
-        protected override Func<ObjectReader, object> GetReader()
-        {
-            return (r) => new SyntaxDiagnosticInfo(r);
         }
 
         protected SyntaxDiagnosticInfo(ObjectReader reader)

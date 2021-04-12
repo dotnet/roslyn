@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
 Imports Roslyn.Test.Utilities
@@ -38,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub TestScopes1()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Compilation">
         <file name="a.vb">
             Option Strict On
@@ -46,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Imports System
             Imports System.Collections
 
-            Namespace Foo.Bar
+            Namespace Goo.Bar
                 ' ClassA
                 Public Class Apple(Of TBravo)
                     Public alpha As Integer 'alpha
@@ -131,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub TestScopes2()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Compilation">
         <file name="a.vb">
             Option Strict On
@@ -139,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Imports System
             Imports System.Collections
 
-            Namespace Foo.Bar
+            Namespace Goo.Bar
                 ' ClassA
                 Public Class Apple(Of TBravo)
                     ' this is before mango
@@ -178,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub TestScopes3()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Compilation">
         <file name="a.vb">
 Public Class Apple(Of TBravo)
@@ -220,7 +222,7 @@ End Class 'hello
 
         <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub TestScopes4()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Compilation">
         <file name="a.vb">
 Public Class Apple(Of TBravo)
@@ -246,7 +248,7 @@ End Class 'hello
 
         <Fact(), WorkItem(546396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546396")>
         Public Sub TestPropertyScopes()
-            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="Compilation">
         <file name="c.vb">
 Class C

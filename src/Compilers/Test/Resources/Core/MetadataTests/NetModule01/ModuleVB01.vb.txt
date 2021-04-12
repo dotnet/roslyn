@@ -1,4 +1,4 @@
-﻿Imports System.Collections.Generic
+Imports System.Collections.Generic
 
 ' Use types exposed from ModuleCS00
 Public Class ModVBClass
@@ -40,7 +40,7 @@ End Class
 Public Structure ModVBStruct
 
     Public Structure ModVBInnerStruct
-        Public Interface ModVBInnerIFoo
+        Public Interface ModVBInnerIGoo
 
         End Interface
     End Structure

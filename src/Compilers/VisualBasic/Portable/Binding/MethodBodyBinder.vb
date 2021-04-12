@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -24,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Create binder for binding the body of a method. 
         ''' </summary>
-        Public Sub New(methodSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder)
+        Public Sub New(methodSymbol As MethodSymbol, root As SyntaxNode, containingBinder As Binder)
             MyBase.New(methodSymbol, root, containingBinder)
 
             ' this could be a synthetic method that does not have syntax for the method body
@@ -40,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function CreateFunctionValueLocal(methodSymbol As MethodSymbol, root As VisualBasicSyntaxNode) As LocalSymbol
+        Private Function CreateFunctionValueLocal(methodSymbol As MethodSymbol, root As SyntaxNode) As LocalSymbol
             Dim methodBlock = TryCast(root, MethodBlockBaseSyntax)
 
             Debug.Assert(Not TypeOf methodSymbol Is SourceMethodSymbol OrElse

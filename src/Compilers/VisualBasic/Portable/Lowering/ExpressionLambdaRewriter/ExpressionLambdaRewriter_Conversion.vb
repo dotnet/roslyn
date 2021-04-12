@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -20,8 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.VisitInternal(node.Operand)
             End If
 
-            Debug.Assert(node.RelaxationLambdaOpt Is Nothing)
-            Debug.Assert(node.RelaxationReceiverPlaceholderOpt Is Nothing)
+            Debug.Assert(node.ExtendedInfoOpt Is Nothing)
             Return ConvertExpression(node.Operand, node.ConversionKind, node.Operand.Type, node.Type, node.Checked, node.ExplicitCastInCode, ConversionSemantics.[Default])
         End Function
 
@@ -144,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If typeTo.IsObjectType Then
                             ' Fall through
 
-                        ElseIf notNullableFrom = notNullableTo Then
+                        ElseIf TypeSymbol.Equals(notNullableFrom, notNullableTo, TypeCompareKind.ConsiderEverything) Then
                             Debug.Assert(semantics <> ConversionSemantics.TryCast)
 
                             ' X? -> X
@@ -158,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(semantics <> ConversionSemantics.TryCast)
 
                             Dim interimType As TypeSymbol = notNullableFrom
-                            Debug.Assert(interimType <> typeTo)
+                            Debug.Assert(Not TypeSymbol.Equals(interimType, typeTo, TypeCompareKind.ConsiderEverything))
                             rewrittenOperand = CreateBuiltInConversion(typeFrom, interimType, rewrittenOperand, isChecked, isExplicit,
                                                                        ConversionSemantics.[Default], specialConversionForNullable:=True)
                             Return CreateBuiltInConversion(interimType, typeTo, rewrittenOperand, isChecked, isExplicit,
@@ -172,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If typeFrom.IsObjectType Then
                             ' Fall through
 
-                        ElseIf notNullableFrom = notNullableTo Then
+                        ElseIf TypeSymbol.Equals(notNullableFrom, notNullableTo, TypeCompareKind.ConsiderEverything) Then
                             Debug.Assert(semantics <> ConversionSemantics.TryCast)
 
                             ' X -> X?
@@ -186,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(semantics <> ConversionSemantics.TryCast)
 
                             Dim interimType As TypeSymbol = notNullableTo
-                            Debug.Assert(interimType <> typeTo)
+                            Debug.Assert(Not TypeSymbol.Equals(interimType, typeTo, TypeCompareKind.ConsiderEverything))
                             rewrittenOperand = CreateBuiltInConversion(typeFrom, interimType, rewrittenOperand, isChecked, isExplicit,
                                                                        ConversionSemantics.[Default], specialConversionForNullable:=True)
                             Return CreateBuiltInConversion(interimType, typeTo, rewrittenOperand, isChecked, isExplicit,
@@ -389,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If there's an outer conversion, create that.
             Dim outerConversion As BoundConversion = node.OutConversionOpt
             If outerConversion IsNot Nothing Then
-                Debug.Assert(outerConversion.Type.IsSameTypeIgnoringCustomModifiers(resultType))
+                Debug.Assert(outerConversion.Type.IsSameTypeIgnoringAll(resultType))
                 Return CreateBuiltInConversion(methodCallType, resultType, userDefinedConversion,
                                                outerConversion.Checked, outerConversion.ExplicitCastInCode, ConversionSemantics.[Default])
             Else
@@ -402,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateTypeAsIfNeeded(operand As BoundExpression, oldType As TypeSymbol, newType As TypeSymbol) As BoundExpression
-            Return If((oldType = newType), operand, CreateTypeAs(operand, newType))
+            Return If((TypeSymbol.Equals(oldType, newType, TypeCompareKind.ConsiderEverything)), operand, CreateTypeAs(operand, newType))
         End Function
 
         ' Emit a Convert node to a specific type with no helper method.
@@ -417,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Emit a convert node if types are different.
         Private Function ConvertIfNeeded(operand As BoundExpression, oldType As TypeSymbol, newType As TypeSymbol, isChecked As Boolean) As BoundExpression
-            Return If((oldType = newType), operand, Convert(operand, newType, isChecked))
+            Return If((TypeSymbol.Equals(oldType, newType, TypeCompareKind.ConsiderEverything)), operand, Convert(operand, newType, isChecked))
         End Function
 
         ''' <summary>

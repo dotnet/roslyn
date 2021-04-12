@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 
@@ -22,13 +26,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             _tokenBeingRenamed = tokenBeingRenamed;
         }
 
-        public IEnumerable<SyntaxToken> ConflictingTokens
-        {
-            get
-            {
-                return _conflictingTokensToReport;
-            }
-        }
+        public IEnumerable<SyntaxToken> ConflictingTokens => _conflictingTokensToReport;
 
         public void AddIdentifier(SyntaxToken token)
         {
@@ -37,11 +35,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return;
             }
 
-            string name = token.ValueText;
+            var name = token.ValueText;
 
-            if (_currentIdentifiersInScope.ContainsKey(name))
+            if (_currentIdentifiersInScope.TryGetValue(name, out var conflictingTokens))
             {
-                var conflictingTokens = _currentIdentifiersInScope[name];
                 conflictingTokens.Add(token);
 
                 // If at least one of the identifiers is the one we're renaming,
@@ -81,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return;
             }
 
-            string name = token.ValueText;
+            var name = token.ValueText;
 
             var currentIdentifiers = _currentIdentifiersInScope[name];
             currentIdentifiers.Remove(token);

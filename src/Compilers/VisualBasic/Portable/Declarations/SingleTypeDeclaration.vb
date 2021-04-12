@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -16,7 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _flags As TypeDeclarationFlags
         Private ReadOnly _arity As UShort
         Private ReadOnly _modifiers As DeclarationModifiers
-        Private ReadOnly _memberNames As ICollection(Of String)
 
         Friend Enum TypeDeclarationFlags As Byte
             None = 0
@@ -33,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        declFlags As TypeDeclarationFlags,
                        syntaxReference As SyntaxReference,
                        nameLocation As Location,
-                       memberNames As ICollection(Of String),
+                       memberNames As ImmutableHashSet(Of String),
                        children As ImmutableArray(Of SingleTypeDeclaration))
             MyBase.New(name, syntaxReference, nameLocation)
 
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._arity = CUShort(arity)
             Me._flags = declFlags
             Me._modifiers = modifiers
-            Me._memberNames = memberNames
+            Me.MemberNames = memberNames
             Me._children = children
         End Sub
 
@@ -95,11 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property MemberNames As ICollection(Of String)
-            Get
-                Return Me._memberNames
-            End Get
-        End Property
+        Public ReadOnly Property MemberNames As ImmutableHashSet(Of String)
 
         Protected Overrides Function GetNamespaceOrTypeDeclarationChildren() As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
             Return StaticCast(Of SingleNamespaceOrTypeDeclaration).From(_children)

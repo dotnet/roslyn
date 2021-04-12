@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,6 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
         Public Overrides Function VisitBlock(node As BoundBlock) As BoundNode
+
+            Dim original As BoundBlock = node
 
             ' Static locals should be removed from the list of locals,
             ' they are replaced with fields.
@@ -41,50 +46,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If GenerateDebugInfo Then
-                Dim builder As ArrayBuilder(Of BoundStatement) = Nothing
+            If Instrument Then
+                Dim builder = ArrayBuilder(Of BoundStatement).GetInstance()
 
-                ' method block needs to get a sequence point inside the method scope, 
-                ' but before starting any statements
-                Dim asMethod = TryCast(node.Syntax, MethodBlockBaseSyntax)
-                If asMethod IsNot Nothing Then
-                    builder = ArrayBuilder(Of BoundStatement).GetInstance
-                    Dim methodStatement As MethodBaseSyntax = asMethod.BlockStatement
-
-                    ' For methods we want the span of the statement without any leading attributes.
-                    ' The span begins at the first modifier or the 'Sub'/'Function' keyword.
-                    ' There is no need to do this adjustment for lambdas because they cannot
-                    ' have attributes.
-
-                    Dim firstModifierOrKeyword As SyntaxToken
-
-                    If methodStatement.Modifiers.Count > 0 Then
-                        firstModifierOrKeyword = methodStatement.Modifiers(0)
-                    Else
-                        firstModifierOrKeyword = methodStatement.DeclarationKeyword
+                For Each s In node.Statements
+                    Dim rewrittenStatement = TryCast(Visit(s), BoundStatement)
+                    If rewrittenStatement IsNot Nothing Then
+                        builder.Add(rewrittenStatement)
                     End If
+                Next
 
-                    Dim statementSpanWithoutAttributes = TextSpan.FromBounds(firstModifierOrKeyword.SpanStart, methodStatement.Span.End)
-
-                    builder.Add(New BoundSequencePointWithSpan(methodStatement, Nothing, statementSpanWithoutAttributes))
-                Else
-                    Dim asLambda = TryCast(node.Syntax, LambdaExpressionSyntax)
-                    If asLambda IsNot Nothing Then
-                        builder = ArrayBuilder(Of BoundStatement).GetInstance
-                        builder.Add(New BoundSequencePoint(asLambda.SubOrFunctionHeader, Nothing))
-                    End If
+                Dim synthesizedLocal As LocalSymbol = Nothing
+                Dim prologue As BoundStatement = _instrumenterOpt.CreateBlockPrologue(original, node, synthesizedLocal)
+                If prologue IsNot Nothing Then
+                    builder.Insert(0, prologue)
                 End If
 
-                If builder IsNot Nothing Then
-                    For Each s In node.Statements
-                        Dim rewrittenStatement = TryCast(Visit(s), BoundStatement)
-                        If rewrittenStatement IsNot Nothing Then
-                            builder.Add(rewrittenStatement)
-                        End If
-                    Next
-
-                    Return New BoundBlock(node.Syntax, node.StatementListSyntax, node.Locals, builder.ToImmutableAndFree())
-                End If
+                Return New BoundBlock(node.Syntax, node.StatementListSyntax, If(synthesizedLocal Is Nothing, node.Locals, node.Locals.Add(synthesizedLocal)), builder.ToImmutableAndFree())
             End If
 
             Return MyBase.VisitBlock(node)

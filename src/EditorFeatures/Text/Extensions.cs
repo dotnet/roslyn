@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -12,64 +13,46 @@ namespace Microsoft.CodeAnalysis.Text
     public static partial class Extensions
     {
         public static SourceTextContainer AsTextContainer(this ITextBuffer buffer)
-        {
-            return TextBufferContainer.From(buffer);
-        }
+            => TextBufferContainer.From(buffer);
 
         public static ITextBuffer GetTextBuffer(this SourceTextContainer textContainer)
-        {
-            var textBuffer = TryGetTextBuffer(textContainer);
-            if (textBuffer == null)
-            {
-                throw new ArgumentException(TextEditorResources.TextContainerNotFromTextBuffer, nameof(textContainer));
-            }
+            => TryGetTextBuffer(textContainer) ?? throw new ArgumentException(TextEditorResources.textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer, nameof(textContainer));
 
-            return textBuffer;
-        }
-
-        public static ITextBuffer TryGetTextBuffer(this SourceTextContainer textContainer)
-        {
-            var t = textContainer as TextBufferContainer;
-            return t == null ? null : t.EditorTextBuffer;
-        }
+        public static ITextBuffer? TryGetTextBuffer(this SourceTextContainer? textContainer)
+            => (textContainer as TextBufferContainer)?.TryFindEditorTextBuffer();
 
         /// <summary>
-        /// Returns the ITextSnapshot behind this SourceText, or null if it wasn't created from one.
+        /// Returns the <see cref="ITextSnapshot"/> behind this <see cref="SourceText"/>, or null if it wasn't created from one.
         /// 
-        /// Note that multiple ITextSnapshots may map to the same SourceText instance if
-        /// ITextSnapshot.Version.ReiteratedVersionNumber doesn't change.
+        /// Note that multiple <see cref="ITextSnapshot"/>s may map to the same <see cref="SourceText"/> instance if it's
+        /// <see cref="ITextVersion.ReiteratedVersionNumber" /> doesn't change.
         /// </summary>
         /// <returns>The underlying ITextSnapshot.</returns>
-        public static ITextSnapshot FindCorrespondingEditorTextSnapshot(this SourceText text)
-        {
-            var t = text as SnapshotSourceText;
-            return t == null ? null : t.EditorSnapshot;
-        }
+        public static ITextSnapshot? FindCorrespondingEditorTextSnapshot(this SourceText? text)
+            => (text as SnapshotSourceText)?.TryFindEditorSnapshot();
+
+        internal static ITextImage? TryFindCorrespondingEditorTextImage(this SourceText? text)
+            => (text as SnapshotSourceText)?.TextImage;
 
         internal static TextLine AsTextLine(this ITextSnapshotLine line)
-        {
-            return line.Snapshot.AsText().Lines[line.LineNumber];
-        }
+            => line.Snapshot.AsText().Lines[line.LineNumber];
 
         public static SourceText AsText(this ITextSnapshot textSnapshot)
         {
-            return SnapshotSourceText.From(textSnapshot);
+            textSnapshot.TextBuffer.Properties.TryGetProperty<ITextBufferCloneService>(typeof(ITextBufferCloneService), out var textBufferCloneServiceOpt);
+            return SnapshotSourceText.From(textBufferCloneServiceOpt, textSnapshot);
         }
 
-        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, Encoding encoding)
-        {
-            return new SnapshotSourceText.ClosedSnapshotSourceText(textSnapshot, encoding);
-        }
+        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding? encoding)
+            => new SnapshotSourceText.ClosedSnapshotSourceText(textBufferCloneServiceOpt, ((ITextSnapshot2)textSnapshot).TextImage, encoding);
 
         /// <summary>
         /// Gets the workspace corresponding to the text buffer.
         /// </summary>
-        public static Workspace GetWorkspace(this ITextBuffer buffer)
+        public static Workspace? GetWorkspace(this ITextBuffer buffer)
         {
             var container = buffer.AsTextContainer();
-
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(container, out workspace))
+            if (Workspace.TryGetWorkspace(container, out var workspace))
             {
                 return workspace;
             }
@@ -83,9 +66,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// if the file is linked into multiple projects or is part of a Shared Project.
         /// </summary>
         public static IEnumerable<Document> GetRelatedDocumentsWithChanges(this ITextSnapshot text)
-        {
-            return text.AsText().GetRelatedDocumentsWithChanges();
-        }
+            => text.AsText().GetRelatedDocumentsWithChanges();
 
         /// <summary>
         /// Gets the <see cref="Document"/> from the corresponding <see cref="Workspace.CurrentSolution"/> that is associated with the <see cref="ITextSnapshot"/>'s buffer
@@ -93,51 +74,19 @@ namespace Microsoft.CodeAnalysis.Text
         /// associated with the buffer if it is linked into multiple projects or is part of a Shared Project. In this case, the <see cref="Workspace"/>
         /// is responsible for keeping track of which of these <see cref="Document"/>s is in the current project context.
         /// </summary>
-        public static Document GetOpenDocumentInCurrentContextWithChanges(this ITextSnapshot text)
-        {
-            return text.AsText().GetOpenDocumentInCurrentContextWithChanges();
-        }
+        public static Document? GetOpenDocumentInCurrentContextWithChanges(this ITextSnapshot text)
+            => text.AsText().GetOpenDocumentInCurrentContextWithChanges();
 
         /// <summary>
         /// Gets the <see cref="Document"/>s from the corresponding <see cref="Workspace.CurrentSolution"/> that are associated with the <see cref="ITextBuffer"/>.
         /// There may be multiple <see cref="Document"/>s associated with the buffer if it is linked into multiple projects or is part of a Shared Project. 
         /// </summary>
         public static IEnumerable<Document> GetRelatedDocuments(this ITextBuffer buffer)
-        {
-            return buffer.AsTextContainer().GetRelatedDocuments();
-        }
-
-        /// <summary>
-        /// Tries to get the document corresponding to the text from the current partial solution 
-        /// associated with the text's container. If the document does not contain the exact text a document 
-        /// from a new solution containing the specified text is constructed. If no document is associated
-        /// with the specified text's container, or the text's container isn't associated with a workspace,
-        /// then the method returns false.
-        /// </summary>
-        internal static async Task<Document> GetDocumentWithFrozenPartialSemanticsAsync(this SourceText text, CancellationToken cancellationToken)
-        {
-            var document = text.GetOpenDocumentInCurrentContextWithChanges();
-
-            if (document != null)
-            {
-                return await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return null;
-        }
+            => buffer.AsTextContainer().GetRelatedDocuments();
 
         internal static bool CanApplyChangeDocumentToWorkspace(this ITextBuffer buffer)
-        {
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace))
-            {
-                return workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
-            }
-            else
-            {
-                return false;
-            }
-        }
+            => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace) &&
+               workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
 
         /// <summary>
         /// Get the encoding used to load this <see cref="ITextBuffer"/> if possible.
@@ -148,14 +97,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// </para>
         /// </summary>
         internal static Encoding GetEncodingOrUTF8(this ITextBuffer textBuffer)
-        {
-            ITextDocument textDocument;
-            if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out textDocument))
-            {
-                return textDocument.Encoding;
-            }
-
-            return Encoding.UTF8;
-        }
+            => textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument textDocument)
+                ? textDocument.Encoding
+                : Encoding.UTF8;
     }
 }

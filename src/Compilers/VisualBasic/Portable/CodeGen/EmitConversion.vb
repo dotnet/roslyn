@@ -1,12 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
 
         Private Shared Function IsSimpleType(type As PrimitiveTypeCode) As Boolean
             Dim result = False
@@ -23,6 +26,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                      PrimitiveTypeCode.UInt32,
                      PrimitiveTypeCode.UInt64,
                      PrimitiveTypeCode.UInt8
+
+                    result = True
+            End Select
+
+            Return result
+        End Function
+
+        Private Shared Function IsIntegral(type As PrimitiveTypeCode) As Boolean
+            Dim result = False
+
+            Select Case type
+                Case PrimitiveTypeCode.Int8,
+                     PrimitiveTypeCode.UInt8,
+                     PrimitiveTypeCode.Int16,
+                     PrimitiveTypeCode.UInt16,
+                     PrimitiveTypeCode.Int32,
+                     PrimitiveTypeCode.UInt32,
+                     PrimitiveTypeCode.Int64,
+                     PrimitiveTypeCode.UInt64
 
                     result = True
             End Select
@@ -85,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' Handle conversion between simple numeric types
 
-            If underlyingFrom = PrimitiveTypeCode.Float32 AndAlso underlyingTo.IsIntegral() Then
+            If underlyingFrom = PrimitiveTypeCode.Float32 AndAlso IsIntegral(underlyingTo) Then
                 ' If converting from an intermediate value, we need to guarantee that
                 ' the intermediate value keeps the precision of its type.  The JIT will try to
                 ' promote the precision of intermediate values if it can, and this can lead to
@@ -120,15 +142,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitConvertSimpleNumeric(conversion As BoundConversion, typeFrom As PrimitiveTypeCode, typeTo As PrimitiveTypeCode, checked As Boolean)
-            Debug.Assert(typeFrom.IsIntegral() OrElse typeFrom.IsFloatingPoint() OrElse typeFrom = PrimitiveTypeCode.Char)
-            Debug.Assert(typeTo.IsIntegral() OrElse typeTo.IsFloatingPoint())
-
-            Debug.Assert(Not (typeFrom.IsFloatingPoint() AndAlso typeTo.IsIntegral() AndAlso
-                              Not (conversion.Operand.Kind = BoundKind.Call AndAlso
-                                   DirectCast(conversion.Operand, BoundCall).Method.Equals(
-                                       Me._module.SourceModule.ContainingSourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble)))),
-                         "About to ignore VB rules for rounding float numbers.")
-
+            Debug.Assert(IsIntegral(typeFrom) OrElse typeFrom.IsFloatingPoint() OrElse typeFrom = PrimitiveTypeCode.Char)
+            Debug.Assert(IsIntegral(typeTo) OrElse typeTo.IsFloatingPoint())
             _builder.EmitNumericConversion(typeFrom, typeTo, checked)
         End Sub
 
@@ -159,19 +174,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ElseIf typeFrom.IsNullableType Then
                     Debug.Assert(typeTo.IsReferenceType)
 
+                    EmitExpression(conversion.Operand, used:=True)
+
                     If (conversion.ConversionKind And ConversionKind.Narrowing) <> 0 Then
-                        EmitExpression(conversion.Operand, True)
                         EmitBox(typeFrom, conversion.Operand.Syntax)
                         _builder.EmitOpCode(ILOpCode.Castclass)
                         EmitSymbolToken(typeTo, conversion.Syntax)
-
-                    Else
+                    ElseIf used Then
                         ' boxing itself is CLR-widening, so no need to emit unused boxing
-                        EmitExpression(conversion.Operand, used)
-                        If used Then
-                            EmitBox(typeFrom, conversion.Operand.Syntax)
-                        End If
-
+                        EmitBox(typeFrom, conversion.Operand.Syntax)
                     End If
 
                 ElseIf typeTo.IsNullableType Then
@@ -211,8 +222,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         ' But first Pop off the Null reference cause we don't need it anymore.
                         _builder.EmitOpCode(ILOpCode.Pop)
 
+                        Dim constructor = GetParameterlessValueTypeConstructor(DirectCast(typeTo, NamedTypeSymbol))
+
                         'TODO: used
-                        EmitLoadDefaultValueOfTypeFromConstructorCall(conversion.ConstructorOpt, used:=True, syntaxNode:=conversion.Syntax)
+                        If constructor Is Nothing OrElse constructor.IsDefaultValueTypeConstructor() Then
+                            EmitInitObj(typeTo, used:=True, syntaxNode:=conversion.Syntax)
+                        Else
+                            ' before we use constructor symbol we need to report use site error if any
+                            Dim diagnosticInfo As DiagnosticInfo = constructor.GetUseSiteInfo().DiagnosticInfo
+                            If diagnosticInfo IsNot Nothing Then
+                                _diagnostics.Add(New VBDiagnostic(diagnosticInfo, conversion.Syntax.Location))
+                            End If
+
+                            EmitNewObj(constructor, ImmutableArray(Of BoundExpression).Empty, used:=True, syntaxNode:=conversion.Syntax)
+                        End If
+
                         _builder.EmitBranch(ILOpCode.Br_s, resultLabel)
 
                         _builder.MarkLabel(unboxLabel)
@@ -230,13 +254,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         End Sub
 
+        ''' <summary> 
+        ''' Returns parameterless value type constructor.
+        ''' </summary>
+        Private Function GetParameterlessValueTypeConstructor(typeTo As NamedTypeSymbol) As MethodSymbol
+            Debug.Assert(typeTo.IsValueType AndAlso Not typeTo.IsTypeParameter)
+
+            '  find valuetype parameterless constructor and check the accessibility
+            For Each constr In typeTo.InstanceConstructors
+                ' NOTE: we intentionally skip constructors with all 
+                '       optional parameters; this matches Dev10 behavior
+                If constr.ParameterCount = 0 Then
+                    '  check 'constr' 
+                    If AccessCheck.IsSymbolAccessible(constr, _method.ContainingType, typeTo, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
+                        Return constr
+                    End If
+
+                    '  exit for each in any case
+                    Return Nothing
+                End If
+            Next
+
+            ' This point should not be reachable, because if there is no constructor in the 
+            ' loaded value type, we should have generated a synthesized constructor.
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         Private Function IsUnboxingDirectCast(conversion As BoundDirectCast) As Boolean
             Dim typeTo As TypeSymbol = conversion.Type
             Dim typeFrom As TypeSymbol = conversion.Operand.Type
 
             Return Not conversion.Operand.IsNothingLiteral AndAlso
                    Not Conversions.IsIdentityConversion(conversion.ConversionKind) AndAlso
-                   Not typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(typeTo.GetEnumUnderlyingTypeOrSelf()) AndAlso
+                   Not typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(typeTo.GetEnumUnderlyingTypeOrSelf()) AndAlso
                    Not typeFrom.IsTypeParameter() AndAlso
                    Not typeFrom.IsValueType AndAlso
                    Not typeTo.IsReferenceType
@@ -275,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim typeTo = conversion.Type
                     Dim typeFrom = conversion.Operand.Type
 
-                    If typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(typeTo.GetEnumUnderlyingTypeOrSelf()) Then
+                    If typeFrom.GetEnumUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(typeTo.GetEnumUnderlyingTypeOrSelf()) Then
                         ' Do nothing, it is the same as identity.
                     ElseIf typeFrom.IsTypeParameter() Then
                         ' For any conversion from a generic parameter to any other type,
@@ -358,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                     Dim [interface] = DirectCast(typeTo, NamedTypeSymbol)
 
                                     If [interface].Arity = 1 AndAlso
-                                       Not [interface].TypeArgumentsNoUseSiteDiagnostics(0).IsSameTypeIgnoringCustomModifiers(fromElementType) Then
+                                       Not [interface].TypeArgumentsNoUseSiteDiagnostics(0).IsSameTypeIgnoringAll(fromElementType) Then
                                         needExplicitCastClass = True
                                     End If
                                 End If

@@ -1,9 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Partial Class DeclarationTable
+    Partial Friend Class DeclarationTable
         ' The structure of the DeclarationTable provides us with a set of 'old' declarations that
         ' stay relatively unchanged and a 'new' declaration that is repeatedly added and removed.
         ' This mimics the expected usage pattern of a user repeatedly typing in a single file.

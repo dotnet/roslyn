@@ -1,6 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -16,31 +21,31 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         {
             protected abstract bool IsIdentifierName();
 
-            protected abstract IList<ITypeParameterSymbol> GetCapturedTypeParameters(CancellationToken cancellationToken);
-            protected abstract IList<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken);
+            protected abstract ImmutableArray<ITypeParameterSymbol> GetCapturedTypeParameters(CancellationToken cancellationToken);
+            protected abstract ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken);
 
             protected AbstractInvocationInfo(SemanticDocument document, State state)
                 : base(document, state)
             {
             }
 
-            protected override IList<ITypeParameterSymbol> DetermineTypeParametersWorker(
+            protected override ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(
                 CancellationToken cancellationToken)
             {
                 var typeParameters = ComputeTypeParameters(cancellationToken);
-                return typeParameters.Select(tp => MassageTypeParameter(tp, cancellationToken)).ToList();
+                return typeParameters.SelectAsArray(tp => MassageTypeParameter(tp));
             }
 
-            private IList<ITypeParameterSymbol> ComputeTypeParameters(
+            private ImmutableArray<ITypeParameterSymbol> ComputeTypeParameters(
                 CancellationToken cancellationToken)
             {
                 if (IsIdentifierName())
                 {
-                    // If the user wrote something like Foo(x) then we still might want to generate
+                    // If the user wrote something like Goo(x) then we still might want to generate
                     // a generic method if the expression 'x' captured any method type variables.
                     var capturedTypeParameters = GetCapturedTypeParameters(cancellationToken);
-                    var availableTypeParameters = this.State.TypeToGenerateIn.GetAllTypeParameters();
-                    var result = capturedTypeParameters.Except(availableTypeParameters).ToList();
+                    var availableTypeParameters = State.TypeToGenerateIn.GetAllTypeParameters();
+                    var result = capturedTypeParameters.Except<ITypeParameterSymbol>(availableTypeParameters, SymbolEqualityComparer.Default).ToImmutableArray();
                     return result;
                 }
                 else
@@ -50,14 +55,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             private ITypeParameterSymbol MassageTypeParameter(
-                ITypeParameterSymbol typeParameter,
-                CancellationToken cancellationToken)
+                ITypeParameterSymbol typeParameter)
             {
                 var constraints = typeParameter.ConstraintTypes.Where(ts => !ts.IsUnexpressibleTypeParameterConstraint()).ToList();
                 var classTypes = constraints.Where(ts => ts.TypeKind == TypeKind.Class).ToList();
                 var nonClassTypes = constraints.Where(ts => ts.TypeKind != TypeKind.Class).ToList();
 
-                classTypes = MergeClassTypes(classTypes, cancellationToken);
+                classTypes = MergeClassTypes(classTypes);
                 constraints = classTypes.Concat(nonClassTypes).ToList();
                 if (constraints.SequenceEqual(typeParameter.ConstraintTypes))
                 {
@@ -65,34 +69,36 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
 
                 return CodeGenerationSymbolFactory.CreateTypeParameter(
-                    attributes: null,
+                    attributes: default,
                     varianceKind: typeParameter.Variance,
                     name: typeParameter.Name,
-                    constraintTypes: constraints.AsImmutable<ITypeSymbol>(),
+                    constraintTypes: constraints.AsImmutable(),
                     hasConstructorConstraint: typeParameter.HasConstructorConstraint,
                     hasReferenceConstraint: typeParameter.HasReferenceTypeConstraint,
-                    hasValueConstraint: typeParameter.HasValueTypeConstraint);
+                    hasValueConstraint: typeParameter.HasValueTypeConstraint,
+                    hasUnmanagedConstraint: typeParameter.HasUnmanagedTypeConstraint,
+                    hasNotNullConstraint: typeParameter.HasNotNullConstraint);
             }
 
-            private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes, CancellationToken cancellationToken)
+            private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes)
             {
-                var compilation = this.Document.SemanticModel.Compilation;
-                for (int i = classTypes.Count - 1; i >= 0; i--)
+                var compilation = Document.SemanticModel.Compilation;
+                for (var i = classTypes.Count - 1; i >= 0; i--)
                 {
                     // For example, 'Attribute'.
                     var type1 = classTypes[i];
 
-                    for (int j = 0; j < classTypes.Count; j++)
+                    for (var j = 0; j < classTypes.Count; j++)
                     {
                         if (j != i)
                         {
-                            // For example 'FooAttribute'.
+                            // For example 'GooAttribute'.
                             var type2 = classTypes[j];
 
                             if (IsImplicitReferenceConversion(compilation, type2, type1))
                             {
                                 // If there's an implicit reference conversion (i.e. from
-                                // FooAttribute to Attribute), then we don't need Attribute as it's
+                                // GooAttribute to Attribute), then we don't need Attribute as it's
                                 // implied by the second attribute;
                                 classTypes.RemoveAt(i);
                                 break;

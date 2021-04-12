@@ -1,11 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Scanner = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Scanner
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Extension()>
-        Public Function IsLambdaExpressionSyntax(this As VisualBasicSyntaxNode) As Boolean
+        Public Function IsLambdaExpressionSyntax(this As SyntaxNode) As Boolean
             Select Case this.Kind
                 Case SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression,
@@ -319,7 +319,7 @@ TryAgain:
         ''' Given a syntax node of query clause returns its leading keyword
         ''' </summary>
         <Extension()>
-        Public Function QueryClauseKeywordOrRangeVariableIdentifier(syntax As VisualBasicSyntaxNode) As SyntaxToken
+        Public Function QueryClauseKeywordOrRangeVariableIdentifier(syntax As SyntaxNode) As SyntaxToken
             Select Case syntax.Kind
 
                 Case SyntaxKind.CollectionRangeVariable

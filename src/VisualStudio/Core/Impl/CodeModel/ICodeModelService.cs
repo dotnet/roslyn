@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Threading;
@@ -99,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         bool IsOptionNode(SyntaxNode node);
         bool IsImportNode(SyntaxNode node);
 
-        ISymbol ResolveSymbol(Workspace workspace, ProjectId projectId, SymbolKey symbolId);
+        ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId);
 
         string GetUnescapedName(string name);
 
@@ -120,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
-        void Rename(ISymbol symbol, string newName, Solution solution);
+        void Rename(ISymbol symbol, string newName, Workspace workspace, ProjectCodeModelFactory projectCodeModelFactory);
 
         /// <summary>
         /// Returns true if the given <paramref name="symbol"/> can be used to create an external code element; otherwise, false.
@@ -146,10 +150,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         SyntaxNode SetAccess(SyntaxNode node, EnvDTE.vsCMAccess access);
         EnvDTE.vsCMElement GetElementKind(SyntaxNode node);
 
+        bool IsExpressionBodiedProperty(SyntaxNode node);
         bool IsAccessorNode(SyntaxNode node);
         MethodKind GetAccessorKind(SyntaxNode node);
 
         bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, out SyntaxNode accessorNode);
+        bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, out SyntaxNode expressionBody);
         bool TryGetParameterNode(SyntaxNode parentNode, string name, out SyntaxNode parameterNode);
         bool TryGetImportNode(SyntaxNode parentNode, string dottedName, out SyntaxNode importNode);
         bool TryGetOptionNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode optionNode);

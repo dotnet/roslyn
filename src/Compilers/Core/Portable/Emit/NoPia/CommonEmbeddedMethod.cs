@@ -1,9 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -65,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract Cci.TypeMemberVisibility Visibility { get; }
             protected abstract string Name { get; }
             protected abstract bool AcceptsExtraArguments { get; }
-            protected abstract Cci.CallingConvention CallingConvention { get; }
             protected abstract Cci.ISignature UnderlyingMethodSignature { get; }
             protected abstract Cci.INamespace ContainingNamespace { get; }
 
@@ -110,15 +115,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     _method = method;
                 }
 
-                void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
-                {
-                    visitor.Visit(this);
-                }
-
                 ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions =>
                     ImmutableArray<Cci.ExceptionHandlerRegion>.Empty;
 
-                bool Cci.IMethodBody.LocalsAreZeroed => false;
+                bool Cci.IMethodBody.HasStackalloc => false;
+
+                bool Cci.IMethodBody.AreLocalsZeroed => false;
 
                 ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables =>
                     ImmutableArray<Cci.ILocalDefinition>.Empty;
@@ -129,21 +131,21 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 ImmutableArray<byte> Cci.IMethodBody.IL => ImmutableArray<byte>.Empty;
 
-                bool Cci.IMethodBody.HasAnySequencePoints => false;
-
-                void Cci.IMethodBody.GetSequencePoints(ArrayBuilder<Cci.SequencePoint> builder) { }
+                ImmutableArray<Cci.SequencePoint> Cci.IMethodBody.SequencePoints => ImmutableArray<Cci.SequencePoint>.Empty;
 
                 bool Cci.IMethodBody.HasDynamicLocalVariables => false;
 
-                Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo => null;
+                StateMachineMoveNextBodyDebugInfo Cci.IMethodBody.MoveNextBodyInfo => null;
+
+                DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => null;
 
                 ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes =>
                     ImmutableArray<Cci.LocalScope>.Empty;
 
                 Cci.IImportScope Cci.IMethodBody.ImportScope => null;
 
-                ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes =>
-                    default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
+                ImmutableArray<StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes =>
+                    default(ImmutableArray<StateMachineHoistedLocalScope>);
 
                 string Cci.IMethodBody.StateMachineTypeName => null;
 
@@ -163,8 +165,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             }
 
             IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters => _typeParameters;
-
-            bool Cci.IMethodDefinition.IsImplicitlyDeclared => true;
 
             bool Cci.IMethodDefinition.HasDeclarativeSecurity => false;
 
@@ -209,13 +209,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             bool Cci.IMethodDefinition.RequiresSecurityObject => false;
 
-            IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
+            IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
             {
-                get
-                {
-                    // TODO:
-                    return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-                }
+                // TODO:
+                return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
             }
 
             bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly => ReturnValueIsMarshalledExplicitly;
@@ -274,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             Cci.ISpecializedMethodReference Cci.IMethodReference.AsSpecializedMethodReference => null;
 
-            Cci.CallingConvention Cci.ISignature.CallingConvention => CallingConvention;
+            Cci.CallingConvention Cci.ISignature.CallingConvention => UnderlyingMethodSignature.CallingConvention;
 
             ushort Cci.ISignature.ParameterCount => (ushort)_parameters.Length;
 
@@ -282,6 +279,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
             }
+
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers =>
+                UnderlyingMethodSignature.RefCustomModifiers;
 
             ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers =>
                 UnderlyingMethodSignature.ReturnValueCustomModifiers;
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbol)UnderlyingMethod).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return UnderlyingMethod.GetInternalSymbol().GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }

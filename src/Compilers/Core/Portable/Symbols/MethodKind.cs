@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,6 +15,9 @@ namespace Microsoft.CodeAnalysis
         /// An anonymous method or lambda expression
         /// </summary>
         AnonymousFunction = 0,
+        /// <summary>
+        /// <inheritdoc cref="AnonymousFunction"/>
+        /// </summary>
         LambdaMethod = 0,  // VB term
 
         /// <summary>
@@ -84,6 +89,9 @@ namespace Microsoft.CodeAnalysis
         /// Method is a static constructor.
         /// </summary>
         StaticConstructor = 14,
+        /// <summary>
+        /// <inheritdoc cref="StaticConstructor"/>
+        /// </summary>
         SharedConstructor = 14, // VB Term
 
         /// <summary>
@@ -99,6 +107,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Method is declared inside of another method.
         /// </summary>
-        LocalFunction = 17
+        LocalFunction = 17,
+
+        /// <summary>
+        /// Method represents the signature of a function pointer type.
+        /// </summary>
+        FunctionPointerSignature = 18,
     }
 }

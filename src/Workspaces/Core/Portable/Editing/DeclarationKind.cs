@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.CodeAnalysis.Text;
+#nullable disable
 
+#if CODE_STYLE
+namespace Microsoft.CodeAnalysis.Internal.Editing
+#else
 namespace Microsoft.CodeAnalysis.Editing
+#endif
 {
     public enum DeclarationKind
     {
@@ -35,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editing
         SetAccessor,
         AddAccessor,
         RemoveAccessor,
-        RaiseAccessor
+        RaiseAccessor,
+        RecordClass,
     }
 }

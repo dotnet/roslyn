@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,27 +17,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class NamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public NamedParameterCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new NamedParameterCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(NamedParameterCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
@@ -45,14 +44,14 @@ class Foo
         public async Task CommitCharacterTest()
         {
             const string markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
@@ -63,44 +62,44 @@ class Foo
         public async Task InObjectCreation()
         {
             var markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InBaseConstructor()
         {
             var markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 }
 
-class DogBed : Foo
+class DogBed : Goo
 {
     public DogBed(int b) : base($$
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvocationExpression()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a)
     {
@@ -109,14 +108,14 @@ class Foo
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvocationExpressionAfterComma()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a, string b)
     {
@@ -125,7 +124,7 @@ class Foo
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -158,7 +157,7 @@ class Program
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "i:");
+            await VerifyItemExistsAsync(markup, "i", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -167,26 +166,47 @@ class Program
             var markup = @"
 partial class PartialClass
 {
-    static partial void Foo(int declaring);
-    static partial void Foo(int implementing)
+    static partial void Goo(int declaring);
+    static partial void Goo(int implementing)
     {
     }
     static void Caller()
     {
-        Foo($$
+        Goo($$
     }
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "declaring:");
-            await VerifyItemIsAbsentAsync(markup, "implementing:");
+            await VerifyItemExistsAsync(markup, "declaring", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtendedPartialMethods()
+        {
+            var markup = @"
+partial class PartialClass
+{
+    public static partial void Goo(int declaring);
+    public static partial void Goo(int implementing)
+    {
+    }
+    static void Caller()
+    {
+        Goo($$
+    }
+}
+";
+
+            await VerifyItemExistsAsync(markup, "declaring", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "implementing", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterColon()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a, string b)
     {
@@ -204,7 +224,7 @@ class Foo
         {
             var markup = @"
 using System.Collections.Generic;
-class Foo
+class Goo
 {
     void Bar(List<int> integers)
     {
@@ -225,19 +245,19 @@ class Class1
 {
     void Test()
     {
-        Foo(boolean:true, $$)
+        Goo(boolean:true, $$)
     }
  
-    void Foo(string str = ""hello"", char character = 'a')
+    void Goo(string str = ""hello"", char character = 'a')
     { }
  
-    void Foo(string str = ""hello"", bool boolean = false)
+    void Goo(string str = ""hello"", bool boolean = false)
     { }
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "str:");
-            await VerifyItemIsAbsentAsync(markup, "character:");
+            await VerifyItemExistsAsync(markup, "str", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "character", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -248,19 +268,19 @@ class Class1
 {
     void Test()
     {
-        Foo(str:"""", $$)
+        Goo(str:"""", $$)
     }
  
-    void Foo(string str = ""hello"", char character = 'a')
+    void Goo(string str = ""hello"", char character = 'a')
     { }
  
-    void Foo(string str = ""hello"", bool boolean = false)
+    void Goo(string str = ""hello"", bool boolean = false)
     { }
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "boolean:");
-            await VerifyItemExistsAsync(markup, "character:");
+            await VerifyItemExistsAsync(markup, "boolean", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "character", displayTextSuffix: ":");
         }
 
         [WorkItem(544191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
@@ -268,7 +288,7 @@ class Class1
         public async Task FilteringOverloadsByCallSiteComplex()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -291,17 +311,17 @@ class Foo
 }
 class Bar { }
 ";
-            await VerifyItemExistsAsync(markup, "str:");
-            await VerifyItemExistsAsync(markup, "num:");
-            await VerifyItemExistsAsync(markup, "b:");
-            await VerifyItemIsAbsentAsync(markup, "dbl:");
+            await VerifyItemExistsAsync(markup, "str", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "num", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "b", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "dbl", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MethodOverloads()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -320,16 +340,16 @@ class Foo
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "str:");
-            await VerifyItemExistsAsync(markup, "num:");
-            await VerifyItemExistsAsync(markup, "b:");
+            await VerifyItemExistsAsync(markup, "str", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "num", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "b", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExistingNamedParamsAreFilteredOut()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -351,10 +371,10 @@ class Foo
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "num:");
-            await VerifyItemExistsAsync(markup, "b:");
-            await VerifyItemIsAbsentAsync(markup, "obj:");
-            await VerifyItemIsAbsentAsync(markup, "str:");
+            await VerifyItemExistsAsync(markup, "num", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "b", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "obj", displayTextSuffix: ":");
+            await VerifyItemIsAbsentAsync(markup, "str", displayTextSuffix: ":");
         }
 
         [WorkItem(529369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
@@ -364,13 +384,13 @@ class Foo
             var markup = @"
 class Program
 {
-    void Foo(int @integer)
+    void Goo(int @integer)
     {
-        Foo(@i$$
+        Goo(@i$$
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "integer:");
+            await VerifyItemExistsAsync(markup, "integer", displayTextSuffix: ":");
         }
 
         [WorkItem(544209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
@@ -382,18 +402,18 @@ class Class1
 {
     void Test()
     {
-        Foo(boolean: true, $$)
+        Goo(boolean: true, $$)
     }
  
-    void Foo(string obj = ""hello"")
+    void Goo(string obj = ""hello"")
     { }
  
-    void Foo(bool boolean = false, Class1 obj = default(Class1))
+    void Goo(bool boolean = false, Class1 obj = default(Class1))
     { }
 }
 ";
-            await VerifyItemExistsAsync(markup, "obj:",
-                expectedDescriptionOrNull: $"({FeaturesResources.Parameter}) Class1 obj = default(Class1)");
+            await VerifyItemExistsAsync(markup, "obj", displayTextSuffix: ":",
+                expectedDescriptionOrNull: $"({FeaturesResources.parameter}) Class1 obj = default(Class1)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -415,7 +435,7 @@ class Program
         handler($$
     }
 }";
-            await VerifyItemExistsAsync(markup, "message:");
+            await VerifyItemExistsAsync(markup, "message", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -437,7 +457,7 @@ class Program
         handler.Invoke($$
     }
 }";
-            await VerifyItemExistsAsync(markup, "message:");
+            await VerifyItemExistsAsync(markup, "message", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -455,6 +475,56 @@ static void M(int x, int y) { }
 }
 ";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitWithColonWordFullyTyped()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args$$)
+    }
+}
+";
+
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args:)
+    }
+}
+";
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitWithColonWordPartiallyTyped()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(arg$$)
+    }
+}
+";
+
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args:)
+    }
+}
+";
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':');
         }
     }
 }

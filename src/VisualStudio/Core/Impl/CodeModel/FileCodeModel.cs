@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +12,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
@@ -15,6 +21,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -45,8 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private string _incomingFilePath;
         private Document _previousDocument;
 
-        private readonly ITextManagerAdapter _textManagerAdapter;
-
         private readonly CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement> _codeElementTable;
 
         // These are used during batching.
@@ -72,9 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             _parentHandle = new ComHandle<object, object>(parent);
             _documentId = documentId;
-            _textManagerAdapter = textManagerAdapter;
+            TextManagerAdapter = textManagerAdapter;
 
-            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>();
+            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
 
             _batchMode = false;
             _batchDocument = null;
@@ -83,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal ITextManagerAdapter TextManagerAdapter
         {
-            get { return _textManagerAdapter; }
+            get; set;
         }
 
         /// <summary>
@@ -113,10 +119,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             if (_invisibleEditor != null)
             {
-                // we are shutting down, so do not worry about editCount. If the editor is still alive, dispose it.
+                // we are shutting down, so do not worry about editCount. We will detach our format tracking from the text
+                // buffer now; if anybody else had an invisible editor open to this file, we wouldn't want our format tracking
+                // to trigger. We can safely do that on a background thread since it's just disconnecting a few event handlers.
+                // We have to defer the shutdown of the invisible editor though as that requires talking to the UI thread.
+                // We don't want to block up file removal on the UI thread since we want that path to stay asynchronous.
                 CodeModelService.DetachFormatTrackingToBuffer(_invisibleEditor.TextBuffer);
-                _invisibleEditor.Dispose();
-                _invisibleEditor = null;
+
+                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(
+                    cancellationToken =>
+                    {
+                        // Ignore cancellationToken: we always need to call Dispose since it triggers the file save.
+                        _ = cancellationToken;
+
+                        _invisibleEditor.Dispose();
+                    });
             }
 
             base.Shutdown();
@@ -138,24 +155,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return false;
             }
 
-            var project = ((VisualStudioWorkspaceImpl)this.State.Workspace).ProjectTracker.GetProject(_incomingProjectId);
+            var project = this.State.Workspace.CurrentSolution.GetProject(_incomingProjectId);
             if (project == null)
             {
                 return false;
             }
 
-            var hostDocument = project.GetCurrentDocumentFromPath(_incomingFilePath);
-            if (hostDocument == null)
+            documentId = project.Solution.GetDocumentIdsWithFilePath(_incomingFilePath).FirstOrDefault(d => d.ProjectId == project.Id);
+            if (documentId == null)
             {
                 return false;
             }
 
-            _documentId = hostDocument.Id;
+            _documentId = documentId;
             _incomingProjectId = null;
             _incomingFilePath = null;
             _previousDocument = null;
 
-            documentId = _documentId;
             return true;
         }
 
@@ -166,8 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return _documentId;
             }
 
-            DocumentId documentId;
-            if (TryGetDocumentId(out documentId))
+            if (TryGetDocumentId(out var documentId))
             {
                 return documentId;
             }
@@ -177,8 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal void UpdateCodeElementNodeKey(AbstractKeyedCodeElement keyedElement, SyntaxNodeKey oldNodeKey, SyntaxNodeKey newNodeKey)
         {
-            EnvDTE.CodeElement codeElement;
-            if (!_codeElementTable.TryGetValue(oldNodeKey, out codeElement))
+            if (!_codeElementTable.TryGetValue(oldNodeKey, out var codeElement))
             {
                 throw new InvalidOperationException($"Could not find {oldNodeKey} in Code Model element table.");
             }
@@ -191,14 +205,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw new InvalidOperationException($"Unexpected failure in Code Model while updating node keys {oldNodeKey} -> {newNodeKey}");
             }
 
+            // If we're updating this element with the same node key as an element that's already in the table,
+            // just remove the old element. The old element will continue to function (through its node key), but
+            // the new element will replace it in the cache.
+            if (_codeElementTable.ContainsKey(newNodeKey))
+            {
+                _codeElementTable.Remove(newNodeKey);
+            }
+
             _codeElementTable.Add(newNodeKey, codeElement);
         }
 
         internal void OnCodeElementCreated(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
         {
-            // If we're creating an element with the same node key as an element that's already in the table, just remove
-            // the old element. The old element will continue to function but the new element will replace it in the cache.
-
+            // If we're updating this element with the same node key as an element that's already in the table,
+            // just remove the old element. The old element will continue to function (through its node key), but
+            // the new element will replace it in the cache.
             if (_codeElementTable.ContainsKey(nodeKey))
             {
                 _codeElementTable.Remove(nodeKey);
@@ -208,9 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         internal void OnCodeElementDeleted(SyntaxNodeKey nodeKey)
-        {
-            _codeElementTable.Remove(nodeKey);
-        }
+            => _codeElementTable.Remove(nodeKey);
 
         internal T GetOrCreateCodeElement<T>(SyntaxNode node)
         {
@@ -221,18 +241,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // Since the node already has a key, check to see if a code element already
                 // exists for it. If so, return that element it it's still valid; otherwise,
                 // remove it from the table.
-
-                EnvDTE.CodeElement codeElement;
-                if (_codeElementTable.TryGetValue(nodeKey, out codeElement))
+                if (_codeElementTable.TryGetValue(nodeKey, out var codeElement))
                 {
                     if (codeElement != null)
                     {
                         var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
                         if (element.IsValidNode())
                         {
-                            if (codeElement is T)
+                            if (codeElement is T tcodeElement)
                             {
-                                return (T)codeElement;
+                                return tcodeElement;
                             }
 
                             throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");
@@ -312,8 +330,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var result = action(document);
 
-                var formatted = Formatter.FormatAsync(result, Formatter.Annotation).WaitAndGetResult_CodeModel(CancellationToken.None);
-                formatted = Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).WaitAndGetResult_CodeModel(CancellationToken.None);
+                var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(true);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(true);
+
+                    return formatted;
+                });
 
                 ApplyChanges(workspace, formatted);
             });
@@ -350,8 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal Document GetDocument()
         {
-            Document document;
-            if (!TryGetDocument(out document))
+            if (!TryGetDocument(out var document))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -367,13 +389,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return true;
             }
 
-            DocumentId documentId;
-            if (!TryGetDocumentId(out documentId) && _previousDocument != null)
+            if (!TryGetDocumentId(out _) && _previousDocument != null)
             {
                 document = _previousDocument;
             }
             else
             {
+                // HACK HACK HACK: Ensure we've processed all files being opened before we let designers work further.
+                // In https://devdiv.visualstudio.com/DevDiv/_workitems/edit/728035, a file is opened in an invisible editor and contents are written
+                // to it. The file isn't saved, but it's added to the workspace; we won't have yet hooked up to the open file since that work was deferred.
+                // Since we're on the UI thread here, we can ensure those are all wired up since the analysis of this document may depend on that other file.
+                // We choose to do this here rather than in the project system code when it's added because we don't want to pay the penalty of checking the RDT for
+                // all files being opened on the UI thread if we really don't need it. This uses an 'as' cast, because in unit tests the workspace is a different
+                // derived form of VisualStudioWorkspace, and there we aren't dealing with open files at all so it doesn't matter.
+                (State.Workspace as VisualStudioWorkspaceImpl)?.ProcessQueuedWorkOnUIThread();
+
                 document = Workspace.CurrentSolution.GetDocument(GetDocumentId());
             }
 
@@ -382,46 +412,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal SyntaxTree GetSyntaxTree()
         {
-            return GetDocument()
-                .GetSyntaxTreeAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return GetDocument().GetSyntaxTreeSynchronously(CancellationToken.None);
         }
 
         internal SyntaxNode GetSyntaxRoot()
         {
-            return GetDocument()
-                .GetSyntaxRootAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return GetDocument().GetSyntaxRootSynchronously(CancellationToken.None);
         }
 
         internal SemanticModel GetSemanticModel()
-        {
-            return GetDocument()
-                .GetSemanticModelAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
-        }
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetSemanticModelAsync(CancellationToken.None);
+            });
 
         internal Compilation GetCompilation()
-        {
-            return GetDocument().Project
-                .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
-        }
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument().Project
+                    .GetCompilationAsync(CancellationToken.None);
+            });
 
         internal ProjectId GetProjectId()
-        {
-            return GetDocumentId().ProjectId;
-        }
-
-        internal AbstractProject GetAbstractProject()
-        {
-            return ((VisualStudioWorkspaceImpl)Workspace).ProjectTracker.GetProject(GetProjectId());
-        }
+            => GetDocumentId().ProjectId;
 
         internal SyntaxNode LookupNode(SyntaxNodeKey nodeKey)
-        {
-            return CodeModelService.LookupNode(nodeKey, GetSyntaxTree());
-        }
+            => CodeModelService.LookupNode(nodeKey, GetSyntaxTree());
 
         internal TSyntaxNode LookupNode<TSyntaxNode>(SyntaxNodeKey nodeKey)
             where TSyntaxNode : SyntaxNode
@@ -462,9 +479,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeFunction AddFunction(string name, EnvDTE.vsCMFunction kind, object type, object position, EnvDTE.vsCMAccess access)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public EnvDTE80.CodeImport AddImport(string name, object position, string alias)
         {
@@ -499,9 +514,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeVariable AddVariable(string name, object type, object position, EnvDTE.vsCMAccess access)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public EnvDTE.CodeElement CodeElementFromPoint(EnvDTE.TextPoint point, EnvDTE.vsCMElement scope)
         {
@@ -524,7 +537,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var lineNumber = point.Line - 1;
             var column = point.LineCharOffset - 1;
-            var line = GetDocument().GetTextAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None).Lines[lineNumber];
+            var line = GetDocument().GetTextSynchronously(CancellationToken.None).Lines[lineNumber];
             var position = line.Start + column;
 
             return position;
@@ -545,7 +558,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     // If both tokens are touching, we prefer identifiers and keywords to
                     // separators. Note that the language doesn't allow both tokens to be a
                     // keyword or identifier.
-                    if (SyntaxFactsService.IsKeyword(rightToken) ||
+                    if (SyntaxFactsService.IsReservedOrContextualKeyword(rightToken) ||
                         SyntaxFactsService.IsIdentifier(rightToken))
                     {
                         token = rightToken;
@@ -578,9 +591,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            var node = parent != null
-                ? parent.AncestorsAndSelf().FirstOrDefault(n => CodeModelService.MatchesScope(n, scope))
-                : null;
+            var node = parent?.AncestorsAndSelf().FirstOrDefault(n => CodeModelService.MatchesScope(n, scope));
 
             if (node == null)
             {
@@ -625,7 +636,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (codeElement == null)
             {
-                throw new ArgumentException(ServicesVSResources.ElementIsNotValid, nameof(element));
+                throw new ArgumentException(ServicesVSResources.Element_is_not_valid, nameof(element));
             }
 
             codeElement.Delete();
@@ -665,7 +676,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                             var node = element.LookupNode();
                             if (node != null)
                             {
-                                elementAndPaths = elementAndPaths ?? new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
+                                elementAndPaths ??= new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
                                 elementAndPaths.Add(ValueTuple.Create(element, new SyntaxPath(node)));
                             }
                         }
@@ -674,7 +685,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(() =>
+                            Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None));
+
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 
                         // done using batch document
@@ -689,8 +702,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         foreach (var elementAndPath in elementAndPaths)
                         {
                             // make sure the element is there.
-                            EnvDTE.CodeElement existingElement;
-                            if (_codeElementTable.TryGetValue(elementAndPath.Item1.NodeKey, out existingElement))
+                            if (_codeElementTable.TryGetValue(elementAndPath.Item1.NodeKey, out var existingElement))
                             {
                                 elementAndPath.Item1.ReacquireNodeKey(elementAndPath.Item2, CancellationToken.None);
                             }
@@ -738,9 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeElement ElementFromID(string id)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public EnvDTE80.vsCMParseStatus ParseStatus
         {
@@ -754,14 +764,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public void Synchronize()
-        {
-            FireEvents();
-        }
+            => FireEvents();
 
         EnvDTE.CodeElements ICodeElementContainer<AbstractCodeElement>.GetCollection()
-        {
-            return CodeElements;
-        }
+            => CodeElements;
 
         internal List<GlobalNodeKey> GetCurrentNodeKeys()
         {
@@ -775,8 +781,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     continue;
                 }
 
-                SyntaxNode node;
-                if (keyedElement.TryLookupNode(out node))
+                if (keyedElement.TryLookupNode(out var node))
                 {
                     var nodeKey = keyedElement.NodeKey;
                     currentNodeKeys.Add(new GlobalNodeKey(nodeKey, new SyntaxPath(node)));
@@ -798,14 +803,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             // Failure to find the element is not an error -- it just means the code
             // element didn't exist...
-
-            EnvDTE.CodeElement element;
-            if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out element))
+            if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out var element))
             {
                 var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
                 if (keyedElement != null)
                 {
-                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default(CancellationToken));
+                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default);
                 }
             }
         }

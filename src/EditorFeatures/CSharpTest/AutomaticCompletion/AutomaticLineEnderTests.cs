@@ -1,55 +1,56 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
+    [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Creation()
+        [WpfFact]
+        public void Creation()
         {
-            await TestAsync(@"
+            Test(@"
 $$", "$$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Usings()
+        [WpfFact]
+        public void Usings()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 $$", @"using System$$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Namespace()
+        [WpfFact]
+        public void Namespace()
         {
-            await TestAsync(@"namespace {}
+            Test(@"namespace {}
 $$", @"namespace {$$}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Class()
+        [WpfFact]
+        public void Class()
         {
-            await TestAsync(@"class {}
+            Test(@"class {}
 $$", "class {$$}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Method()
+        [WpfFact]
+        public void Method()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     void Method() {$$}
 }", @"class C
@@ -58,36 +59,36 @@ $$", "class {$$}");
 }", assertNextHandlerInvoked: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Field()
+        [WpfFact]
+        public void Field()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     private readonly int i = 3;
     $$
 }", @"class C
 {
-    private readonly int i = 3$$
+    pri$$vate re$$adonly i$$nt i = 3$$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task EventField()
+        [WpfFact]
+        public void EventField()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     event System.EventHandler e = null;
     $$
 }", @"class C
 {
-    event System.EventHandler e = null$$
+    e$$vent System.Even$$tHandler e$$ = null$$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Field2()
+        [WpfFact]
+        public void Field2()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     private readonly int i;
     $$
@@ -97,23 +98,25 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task EventField2()
+        [WpfFact]
+        public void EventField2()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
-    event System.EventHandler e;
-    $$
+    event System.EventHandler e
+    {
+        $$
+    }
 }", @"class C
 {
-    event System.EventHandler e$$
+    eve$$nt System.E$$ventHandler e$$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Field3()
+        [WpfFact]
+        public void Field3()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     private readonly int
         $$
@@ -123,10 +126,10 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task EventField3()
+        [WpfFact]
+        public void EventField3()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     event System.EventHandler
         $$
@@ -136,15 +139,17 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task EmbededStatement()
+        [WpfFact]
+        public void EmbededStatement()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     void Method()
     {
-        if (true) 
+        if (true)
+        {
             $$
+        }
     }
 }", @"class C
 {
@@ -155,10 +160,10 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task EmbededStatement1()
+        [WpfFact]
+        public void EmbededStatement1()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     void Method()
     {
@@ -176,10 +181,10 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task EmbededStatement2()
+        [WpfFact]
+        public void EmbededStatement2()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     void Method()
     {
@@ -197,10 +202,10 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Statement()
+        [WpfFact]
+        public void Statement()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     void Method()
     {
@@ -216,10 +221,10 @@ $$", "class {$$}");
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Statement1()
+        [WpfFact]
+        public void Statement1()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     void Method()
     {
@@ -236,10 +241,10 @@ $$", "class {$$}");
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedMethod()
+        [WpfFact]
+        public void ExpressionBodiedMethod()
         {
-            await TestAsync(@"class T
+            Test(@"class T
 {
     int M() => 1 + 2;
     $$
@@ -250,10 +255,10 @@ $$", "class {$$}");
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedOperator()
+        [WpfFact]
+        public void ExpressionBodiedOperator()
         {
-            await TestAsync(@"class Complex
+            Test(@"class Complex
 {
     int real; int imaginary;
     public static Complex operator +(Complex a, Complex b) => a.Add(b.real + 1);
@@ -268,10 +273,10 @@ $$", "class {$$}");
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedConversionOperator()
+        [WpfFact]
+        public void ExpressionBodiedConversionOperator()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 public struct DBBool
 {
     public static readonly DBBool dbFalse = new DBBool(-1);
@@ -300,10 +305,10 @@ public struct DBBool
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedProperty()
+        [WpfFact]
+        public void ExpressionBodiedProperty()
         {
-            await TestAsync(@"class T
+            Test(@"class T
 {
     int P1 => 1 + 2;
     $$
@@ -314,10 +319,10 @@ public struct DBBool
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedIndexer()
+        [WpfFact]
+        public void ExpressionBodiedIndexer()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 class SampleCollection<T>
 {
     private T[] arr = new T[100];
@@ -332,10 +337,10 @@ class SampleCollection<T>
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
+        [WpfFact]
+        public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 class TestClass
 {
     Func<int, int> Y() => delegate (int x)
@@ -354,10 +359,10 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
+        [WpfFact]
+        public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 class TestClass
 {
     Func<int, int> Y() => delegate (int x) { return 9; };
@@ -370,10 +375,10 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
+        [WpfFact]
+        public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 class TestClass
 {
     Func<int, int> Y() => f =>
@@ -392,10 +397,10 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
+        [WpfFact]
+        public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 class TestClass
 {
     Func<int, int> Y() => f => f * 9;
@@ -408,10 +413,10 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
+        [WpfFact]
+        public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 class TestClass
 {
     public int Prop => Method1(delegate ()
@@ -434,10 +439,10 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Format_SimpleExpressionBodiedMember()
+        [WpfFact]
+        public void Format_SimpleExpressionBodiedMember()
         {
-            await TestAsync(@"class T
+            Test(@"class T
 {
     int M() => 1 + 2;
     $$
@@ -448,10 +453,10 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Format_ExpressionBodiedMemberWithSingleLineBlock()
+        [WpfFact]
+        public void Format_ExpressionBodiedMemberWithSingleLineBlock()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 class TestClass
 {
     Func<int, int> Y() => delegate (int x) { return 9; };
@@ -464,10 +469,10 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Format_ExpressionBodiedMemberWithMultiLineBlock()
+        [WpfFact]
+        public void Format_ExpressionBodiedMemberWithMultiLineBlock()
         {
-            await TestAsync(@"using System;
+            Test(@"using System;
 class TestClass
 {
     Func<int, int> Y() => delegate (int x)
@@ -485,10 +490,10 @@ class TestClass
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Format_Statement()
+        [WpfFact]
+        public void Format_Statement()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     void Method()
     {
@@ -504,26 +509,26 @@ class TestClass
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Format_Using()
+        [WpfFact]
+        public void Format_Using()
         {
-            await TestAsync(@"using System.Linq;
+            Test(@"using System.Linq;
 $$", @"         using           System          .                   Linq            $$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Format_Using2()
+        [WpfFact]
+        public void Format_Using2()
         {
-            await TestAsync(@"using
+            Test(@"using
     System.Linq;
 $$", @"         using           
              System          .                   Linq            $$");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Format_Field()
+        [WpfFact]
+        public void Format_Field()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     int i = 1;
     $$
@@ -533,31 +538,31 @@ $$", @"         using
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task Statement_Trivia()
+        [WpfFact]
+        public void Statement_Trivia()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
-    void foo()
+    void goo()
     {
-        foo(); //comment
+        goo(); //comment
         $$
     }
 }", @"class C
 {
-    void foo()
+    void goo()
     {
-        foo()$$ //comment
+        goo()$$ //comment
     }
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task TrailingText_Negative()
+        [WpfFact]
+        public void TrailingText_Negative()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
-    event System.EventHandler e = null  int i = 2;  
+    event System.EventHandler e = null  int i = 2;
     $$
 }", @"class C
 {
@@ -565,35 +570,37 @@ $$", @"         using
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task CompletionSetUp()
+        [WpfFact]
+        public void CompletionSetUp()
         {
-            await TestAsync(@"class Program
+            Test(@"class Program
 {
-    object foo(object o)
+    object goo(object o)
     {
-        return foo();
+        return goo();
         $$
     }
 }", @"class Program
 {
-    object foo(object o)
+    object goo(object o)
     {
-        return foo($$)
+        return goo($$)
     }
 }", completionActive: true);
         }
 
         [WorkItem(530352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530352")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task EmbededStatement3()
+        [WpfFact]
+        public void EmbededStatement3()
         {
-            await TestAsync(@"class Program
+            Test(@"class Program
 {
     void Method()
     {
         foreach (var x in y)
+        {
             $$
+        }
     }
 }", @"class Program
 {
@@ -605,10 +612,10 @@ $$", @"         using
         }
 
         [WorkItem(530716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530716")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task DontAssertOnMultilineToken()
+        [WpfFact]
+        public void DontAssertOnMultilineToken()
         {
-            await TestAsync(@"interface I
+            Test(@"interface I
 {
     void M(string s = @""""""
 $$
@@ -619,10 +626,10 @@ $$
         }
 
         [WorkItem(530718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530718")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task AutomaticLineFormat()
+        [WpfFact]
+        public void AutomaticLineFormat()
         {
-            await TestAsync(@"class C
+            Test(@"class C
 {
     public string P { set; get; }
     $$
@@ -632,10 +639,10 @@ $$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotAfterExisitingSemicolon()
+        [WpfFact]
+        public void NotAfterExisitingSemicolon()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     private int i;
     $$
@@ -645,10 +652,10 @@ $$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotAfterCloseBraceInMethod()
+        [WpfFact]
+        public void NotAfterCloseBraceInMethod()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Test() { }
     $$
@@ -658,10 +665,10 @@ $$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotAfterCloseBraceInStatement()
+        [WpfFact]
+        public void NotAfterCloseBraceInStatement()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Test()
     {
@@ -677,10 +684,10 @@ $$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotAfterAutoPropertyAccessor()
+        [WpfFact]
+        public void NotAfterAutoPropertyAccessor()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     public int A { get; set }
     $$
@@ -690,10 +697,10 @@ $$
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotAfterAutoPropertyDeclaration()
+        [WpfFact]
+        public void NotAfterAutoPropertyDeclaration()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     public int A { get; set; }
     $$
@@ -704,10 +711,10 @@ $$
         }
 
         [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task DelegatedInEmptyBlock()
+        [WpfFact]
+        public void DelegatedInEmptyBlock()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Method()
     {
@@ -723,10 +730,10 @@ $$
         }
 
         [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task DelegatedInEmptyBlock2()
+        [WpfFact]
+        public void DelegatedInEmptyBlock2()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Method()
     {
@@ -742,10 +749,10 @@ $$
         }
 
         [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotDelegatedOutsideEmptyBlock()
+        [WpfFact]
+        public void NotDelegatedOutsideEmptyBlock()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Method()
     {
@@ -762,10 +769,10 @@ $$
         }
 
         [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotDelegatedAfterOpenBraceAndMissingCloseBrace()
+        [WpfFact]
+        public void NotDelegatedAfterOpenBraceAndMissingCloseBrace()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Method()
     {
@@ -782,10 +789,10 @@ $$
         }
 
         [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotDelegatedInNonEmptyBlock()
+        [WpfFact]
+        public void NotDelegatedInNonEmptyBlock()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Method()
     {
@@ -802,10 +809,10 @@ $$
         }
 
         [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
+        [WpfFact]
+        public void NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Method()
     {
@@ -822,14 +829,14 @@ $$
         }
 
         [WorkItem(150480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150480")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public async Task NotDelegatedAfterOpenBraceObjectCreationExpression()
+        [WpfFact]
+        public void NotDelegatedAfterOpenBraceObjectCreationExpression()
         {
-            await TestAsync(@"class TestClass
+            Test(@"class TestClass
 {
     void Method()
     {
-        var pet = new List<int> { };
+        var pet = new List<int>();
         $$
     }
 }", @"class TestClass
@@ -841,22 +848,2142 @@ $$
 }");
         }
 
-        protected override Task<TestWorkspace> CreateWorkspaceAsync(string code)
+        [WpfFact]
+        public void TestMulitpleNamespace()
         {
-            return TestWorkspace.CreateCSharpAsync(code);
+            Test($@"
+namespace Bar2
+{{
+    $$
+}}
+namespace Bar
+{{
+}}", $@"
+namespace B$$ar2$$
+namespace Bar
+{{
+}}");
         }
+
+        [WpfTheory]
+        [InlineData("namespace")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("enum")]
+        [InlineData("interface")]
+        public void TestEmptyBaseTypeDeclarationAndNamespace(string typeKeyword)
+        {
+            Test($@"
+public {typeKeyword} Bar
+{{
+    $$
+}}", $@"
+pu$$blic {typeKeyword} $$Bar$$");
+        }
+
+        [WpfTheory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("enum")]
+        [InlineData("interface")]
+        public void TestMultipleBaseTypeDeclaration(string typeKeyword)
+        {
+            Test($@"
+public {typeKeyword} Bar2
+{{
+    $$
+}}
+
+public {typeKeyword} Bar
+{{
+}}", $@"
+pub$$lic {typeKeyword} B$$ar2$$
+public {typeKeyword} Bar
+{{
+}}");
+        }
+
+        [WpfFact]
+        public void TestNestedTypeDeclaration()
+        {
+            Test(@"
+public class Bar1
+{
+    public class Bar2
+    {
+        $$
+    }
+}",
+@"
+public class Bar1
+{
+    pu$$blic cla$$ss B$$ar2$$
+}");
+        }
+
+        [WpfFact]
+        public void TestNestedNamespace()
+        {
+            Test(@"
+namespace Bar1
+{
+    namespace Bar2
+    {
+        $$
+    }
+}",
+@"
+namespace Bar1
+{
+    namespa$$ce $$B$$ar2$$
+}");
+        }
+
+        [WpfTheory]
+        [InlineData("namespace")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("enum")]
+        [InlineData("interface")]
+        public void TestBaseTypeDeclarationAndNamespaceWithOpenBrace(string typeKeyword)
+        {
+            Test($@"
+public {typeKeyword} Bar {{
+    $$", $@"
+pub$$lic {typeKeyword} B$$ar {{$$");
+        }
+
+        [WpfTheory]
+        [InlineData("namespace")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("enum")]
+        [InlineData("interface")]
+        public void TestValidTypeDeclarationAndNamespace(string typeKeyword)
+        {
+            Test($@"public {typeKeyword} Bar {{}}
+$$",
+                $@"public {typeKeyword}$$ Ba$$r {{}}$$");
+        }
+
+        [WpfFact]
+        public void TestMethod()
+        {
+            Test(@"
+public class Bar
+{
+    void Main()
+    {
+        $$
+    }
+}", @"
+public class Bar
+{
+    v$$oid Ma$$in($$)$$
+}");
+        }
+
+        [WpfFact]
+        public void TestConstructor()
+        {
+            Test(@"
+public class Bar
+{
+    void Bar()
+    {
+        $$
+    }
+}", @"
+public class Bar
+{
+    v$$oid Ba$$r($$)$$
+}");
+        }
+
+        [WpfFact]
+        public void TestValidMethodInInterface()
+        {
+            Test(@"
+public interface Bar
+{
+    void Main();
+    $$
+}", @"
+public interface Bar
+{
+    v$$oid Mai$$n($$)$$;
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingSemicolonMethodInInterface()
+        {
+            Test(@"
+public interface Bar
+{
+    void Main()
+        $$
+}", @"
+public interface Bar
+{
+    v$$oid Mai$$n($$)$$
+}");
+        }
+
+        [WpfFact]
+        public void TestValidLocalFunction()
+        {
+            Test(@"
+public class Bar
+{
+    void Main()
+    {
+        void Local()
+            $$
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    void Main()
+    {
+        v$$oid Loc$$al($$)$$
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestLocalFunction()
+        {
+            Test(@"
+public class Bar
+{
+    void Main()
+    {
+        void Local()
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    void Main()
+    {
+        v$$oid Loca$$l($$)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestIndexerAsLastElementInClass()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        $$
+    }
+}", @"
+public class Bar
+{
+    p$$ublic in$$t thi$$s[in$$t i]$$
+}");
+        }
+
+        [WpfFact]
+        public void TestIndexerNotAsLastElementInClass()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        $$
+    }
+    void Main() {}
+}", @"
+public class Bar
+{
+    p$$ublic in$$t thi$$s[in$$t i]$$
+    void Main() {}
+}");
+        }
+
+        [WpfFact]
+        public void TestValidIndexer()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+        $$
+    {
+    }
+}", @"
+public class Bar
+{
+    p$$ublic i$$nt thi$$s[in$$t i]$$
+    {
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestGetAccessorOfProperty()
+        {
+            var initialMarkup = @"
+public class Bar
+{
+    public int P
+    {
+        ge$$t
+    }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public int P
+    {
+        get
+        {
+            $$
+        }
+    }
+}";
+            var secondResult = @"
+public class Bar
+{
+    public int P
+    {
+        get;
+        $$
+    }
+}";
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestSetAccessorOfProperty()
+        {
+            var initialMarkup = @"
+public class Bar
+{
+    public int P
+    {
+        set$$
+    }
+}";
+            var firstResult = @"
+public class Bar
+{
+    public int P
+    {
+        set
+        {
+            $$
+        }
+    }
+}";
+            var secondResult = @"
+public class Bar
+{
+    public int P
+    {
+        set;
+        $$
+    }
+}";
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestGetAccessorOfIndexer()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        get
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int this[int i]
+    {
+        ge$$t
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidGetAccessorOfIndexer()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        get
+        {
+
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int this[int i]
+    {
+        get
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNonEmptyGetAccessor()
+        {
+            Test(@"
+public Class Bar
+{
+    public int P
+    {
+        get
+        {
+            if (true)
+            $$
+            {
+                return 1;
+            }
+        }
+    }   
+}",
+                @"
+public Class Bar
+{
+    public int P
+    {
+        get
+        {
+            i$$f ($$true$$)$$
+            {
+                return 1;
+            }
+        }
+    }   
+}");
+        }
+
+        [WpfFact]
+        public void TestNonEmptySetAccessor()
+        {
+            Test(@"
+public Class Bar
+{
+    public int P
+    {
+        get;
+        set
+        {
+            if (true)
+            $$
+            {
+            }
+        }
+    }   
+}",
+                @"
+public Class Bar
+{
+    public int P
+    {
+        get;
+        set
+        {
+            i$$f (t$$rue)$$
+            {
+            }
+        }
+    }   
+}");
+        }
+
+        [WpfFact]
+        public void TestSetAccessorOfIndexer()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        get;
+        set
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int this[int i]
+    {
+        get;
+        se$$t
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidSetAccessorOfIndexer()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        get;
+        set
+        {
+
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int this[int i]
+    {
+        get;
+        set
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestAddAccessorInEventDeclaration()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        {
+            $$
+        }
+        remove
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        ad$$d
+        remove
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidAddAccessorInEventDeclaration()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        {
+
+            $$
+        }
+        remove { }
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        {
+            $$
+        }
+        remove { }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestRemoveAccessor()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        remove
+        {
+            $$
+        }
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        remo$$ve
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidRemoveAccessor()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add { }
+        remove
+        {
+
+            $$
+        }
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add { }
+        remove
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestField()
+        {
+            var initialMarkup = @"
+public class Bar
+{
+    p$$ublic i$$nt i$$ii$$
+}";
+            var firstResult = @"
+public class Bar
+{
+    public int iii
+    {
+        $$
+    }
+}";
+            var secondResult = @"
+public class Bar
+{
+    public int iii;
+    $$
+}";
+
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestReadonlyField()
+        {
+            Test(@"
+public class Bar
+{
+    public readonly int iii;
+    $$
+}", @"
+public class Bar
+{
+    p$$ublic reado$$nly i$$nt i$$ii$$
+}");
+        }
+
+        [WpfFact]
+        public void TestNonEmptyProperty()
+        {
+            Test(@"
+public class Bar
+{
+    public int Foo
+    {
+        get { }
+        $$
+    }
+}", @"
+public class Bar
+{
+    public int Foo
+    {
+        $$get$$ { }$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestMulitpleFields()
+        {
+            Test(@"
+public class Bar
+{
+    public int apple, banana;
+    $$
+}", @"
+public class Bar
+{
+    p$$ublic i$$nt ap$$ple$$, ba$$nana;$$
+}");
+        }
+
+        [WpfFact]
+        public void TestMultipleEvents()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler apple, banana;
+    $$
+}", @"
+using System;
+public class Bar
+{
+    p$$ublic event EventHandler ap$$ple$$, ba$$nana$$;$$
+}");
+        }
+
+        [WpfFact]
+        public void TestEvent()
+        {
+            var initialMarkup = @"
+using System;
+public class Bar
+{
+    pu$$blic e$$vent EventHand$$ler c$$c$$
+}";
+            var firstResult = @"
+using System;
+public class Bar
+{
+    public event EventHandler cc
+    {
+        $$
+    }
+}";
+            var secondResult = @"
+using System;
+public class Bar
+{
+    public event EventHandler cc;
+    $$
+}";
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestNonEmptyEvent()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler Foo
+    {
+        add { }
+        $$
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler Foo
+    {
+        $$add$$ {$$ }$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionWithParenthesis()
+        {
+            var initialMarkup = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = n$$ew F$$oo($$)$$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo()
+        {
+            $$
+        };
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo();
+        $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionWithNoParenthesis()
+        {
+            var initialMarkUp = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = n$$ew F$$oo$$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo()
+        {
+            $$
+        };
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo();
+        $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkUp);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionWithCorrectSemicolon()
+        {
+            var initialMarkUp = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = n$$ew F$$oo$$;
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo()
+        {
+            $$
+        };
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo();
+        $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkUp);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionUsedAsExpression()
+        {
+            var initialMarkUp = @"
+public class Bar
+{
+    public void M()
+    {
+        N(ne$$w Fo$$o$$);
+    }
+
+    private void N(Foo f)
+    {
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        N(new Foo()
+        {
+            $$
+        });
+    }
+
+    private void N(Foo f)
+    {
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        N(new Foo());
+        $$
+    }
+
+    private void N(Foo f)
+    {
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkUp);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionInUsingStatement()
+        {
+            var initialMarkup = @"
+public class Bar
+{
+    public void M()
+    {
+        using(var a = n$$ew F$$oo($$)$$)
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        using(var a = new Foo()
+        {
+            $$
+        })
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        using(var a = new Foo())
+            $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionWithNonEmptyInitializer()
+        {
+            Test(
+                @"
+public class Bar
+{
+    public void M()
+    {
+        var a = new Foo() { HH = 1, PP = 2 };
+        $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}",
+                @"
+public class Bar
+{
+    public void M()
+    {
+        var a = n$$ew Fo$$o($$) {$$ HH = 1$$, PP = 2 $$};
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestIfStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        if (x)
+        {
+            $$
+        }
+        var z = 1;
+    }
+}", @"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        i$$f$$ ($$x)$$
+        var z = 1;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestIfStatementWithFollowingElseClause()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        if (x)
+        {
+            $$
+            var z = 1;
+        }
+        else if (!x)
+    }
+}", @"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        i$$f$$ ($$x)$$
+        var z = 1;
+        else if (!x)
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestIfStatementWithoutStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        if (x)
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        i$$f$$ ($$x)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNestIfStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                    if (x == 4)
+                    {
+                        $$
+                        var a = 1000;
+                    }
+    }
+}", @"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                    i$$f ($$x =$$= 4)$$
+                        var a = 1000;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNestIfStatementWithoutInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                    if (x == 4)
+                    {
+                        $$
+                    }
+    }
+}", @"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                    i$$f ($$x =$$= 4)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNestedElseIfStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo(int i)
+    {
+        if (i == 1)
+        {
+        }
+        else if (i == 2)
+            if (i == 3)
+            {
+                $$
+                var i = 10;
+            }
+            else
+            {
+            }
+    }
+}", @"
+public class Bar
+{
+    public void Fo(int i)
+    {
+        if (i == 1)
+        {
+        }
+        else if (i == 2)
+            i$$f (i$$ == 3)$$
+                var i = 10;
+            else
+            {
+            }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNestIfElseStatementWithBlockWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                {
+                    if (x == 4)
+                    {
+                        $$
+                    }
+                    var i = 10;
+                }
+                else
+                {
+                }
+    }
+}", @"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                {
+                    i$$f ($$x =$$= 4)$$
+                    var i = 10;
+                }
+                else
+                {
+                }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestEmptyDoStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main()
+    {
+        do
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Main()
+    {
+        d$$o$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestDoStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main()
+    {
+        do
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Main()
+    {
+        d$$o$$
+        var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestDoStatementWithWhileClause()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main()
+    {
+        do
+        {
+            $$
+            var c = 10;
+        }
+        while (true);
+    }
+}", @"
+public class Bar
+{
+    public void Main()
+    {
+        d$$o$$
+        var c = 10;
+        while (true);
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestSingleElseStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        else
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        e$$lse$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestElseStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        else
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        e$$lse$$
+        var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestElseIfStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        else if (false)
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        e$$lse i$$f ($$false)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestElseIfInTheMiddleWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        else if (false)
+        {
+            $$
+            var i = 10;
+        }
+        else
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        e$$lse i$$f ($$false)$$
+        var i = 10;
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestElseClauseInNestedIfStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo(int i)
+    {
+        if (i == 1)
+        {
+            if (i == 2)
+                var i = 10;
+            else
+            {
+                $$
+            }
+            var c = 100;
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo(int i)
+    {
+        if (i == 1)
+        {
+            if (i == 2)
+                var i = 10;
+            el$$se
+            var c = 100;
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestForStatementWithoutStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        for (int i; i < 10; i++)
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        f$$or (i$$nt i; i < 10;$$ i++)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestForStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        for (int i; i < 10; i++)
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        f$$or (i$$nt i; i < 10;$$ i++)$$
+        var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestForEachStatementWithoutInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        foreach (var x in """")
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        forea$$ch (var x $$in """")$$
+        var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestLockStatementWithoutInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    object o = new object();
+    public void Fo()
+    {
+        lock (o)
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    object o = new object();
+    public void Fo()
+    {
+        l$$ock$$(o)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestLockStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    object o = new object();
+    public void Fo()
+    {
+        lock (o)
+        {
+            $$
+        }
+        var i = 10;
+    }
+}", @"
+public class Bar
+{
+    object o = new object();
+    public void Fo()
+    {
+        l$$ock$$(o)$$
+        var i = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestUsingStatementWithoutInnerStatement()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        using (var d = new D())
+        {
+            $$
+        }
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}", @"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        usi$$ng (va$$r d = new D())$$
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}");
+        }
+
+        [WpfFact]
+        public void TestUsingStatementWithInnerStatement()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        using (var d = new D())
+        {
+            $$
+        }
+        var c = 10;
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}", @"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        usi$$ng (va$$r d = new D())$$
+        var c = 10;
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}");
+        }
+
+        [WpfFact]
+        public void TestUsingInLocalDeclarationStatement()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        using var d = new D();
+        $$
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}", @"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        usi$$ng v$$ar$$ d = new D()
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}");
+        }
+
+        [WpfFact]
+        public void TestWhileStatementWithoutInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        while (true)
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        wh$$ile (tr$$ue)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestWhileStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        while (true)
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        wh$$ile (tr$$ue)$$
+        var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestSwitchStatement()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        int i = 10;
+        switch (i)
+        {
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        int i = 10;
+        switc$$h ($$i)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidSwitchStatement()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        int i = 10;
+        switch (i)
+            $$
+        {
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        int i = 10;
+        switc$$h ($$i)$$
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidTryStatement()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        try
+            $$
+        {
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        tr$$y$$
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestTryStatement()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        try
+        {
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        tr$$y$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidCatchClause()
+        {
+            Test(@"
+public class Bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        $$
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        cat$$ch (Syste$$m.Exception)$$
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestCatchClauseWithException()
+        {
+            Test(@"
+public class Bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        cat$$ch (Syste$$m.Exception)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestSingleCatchClause()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        catch
+        {
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        cat$$ch$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestCatchClauseWithWhenClause()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        catch (Exception) when (true)
+        {
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        c$$atch (Ex$$ception) whe$$n (tru$$e)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestFinallyCaluse()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+        finally
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Bar2()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+        fin$$ally$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidFinallyCaluse()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+        finally
+        $$
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Bar2()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+        fin$$ally
+        {
+        }
+    }
+}");
+        }
+
+        protected override string Language => LanguageNames.CSharp;
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
-        {
-            return () => { };
-        }
+            => () => { };
 
-        internal override ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
-            Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
-            ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations)
+        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace)
         {
-            return new AutomaticLineEnderCommandHandler(waitIndicator, undoRegistry, editorOperations);
+            return Assert.IsType<AutomaticLineEnderCommandHandler>(
+                workspace.GetService<ICommandHandler>(
+                    ContentTypeNames.CSharpContentType,
+                    PredefinedCommandHandlerNames.AutomaticLineEnder));
         }
     }
 }

@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -33,19 +38,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _name; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _getter.ReturnType; }
+            get { return _getter.ReturnTypeWithAnnotations; }
         }
 
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return _getter.ReturnTypeCustomModifiers; }
+            get { return _getter.RefCustomModifiers; }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _getter.HasMethodBodyDependency; }
         }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
         {
             get { return ((ISynthesizedMethodBodyImplementationSymbol)ContainingSymbol).Method; }
         }

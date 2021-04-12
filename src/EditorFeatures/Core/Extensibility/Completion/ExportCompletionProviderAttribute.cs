@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.ComponentModel.Composition;
@@ -16,18 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor
         public ExportCompletionProviderMef1Attribute(string name, string language)
             : base(typeof(CompletionProvider))
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
-            this.Name = name;
-            this.Language = language;
+            this.Name = name ?? throw new ArgumentNullException(nameof(name));
+            this.Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

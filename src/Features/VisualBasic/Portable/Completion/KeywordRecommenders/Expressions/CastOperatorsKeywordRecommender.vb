@@ -1,5 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -28,14 +31,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             SyntaxKind.CULngKeyword,
             SyntaxKind.CUShortKeyword}
 
-        Protected Overloads Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overloads Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext Then
                 Dim recommendedKeywords As New List(Of RecommendedKeyword)
 
                 For Each keyword In PredefinedKeywordList
                     recommendedKeywords.Add(CreateRecommendedKeywordForIntrinsicOperator(
                         keyword,
-                        String.Format(VBFeaturesResources.Function1, SyntaxFacts.GetText(keyword)),
+                        String.Format(VBFeaturesResources._0_function, SyntaxFacts.GetText(keyword)),
                         Glyph.MethodPublic,
                         New PredefinedCastExpressionDocumentation(keyword, context.SemanticModel.Compilation),
                         context.SemanticModel,
@@ -44,26 +47,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
 
                 recommendedKeywords.Add(CreateRecommendedKeywordForIntrinsicOperator(
                     SyntaxKind.CTypeKeyword,
-                    VBFeaturesResources.CtypeFunction,
+                    VBFeaturesResources.CType_function,
                     Glyph.MethodPublic,
                     New CTypeCastExpressionDocumentation()))
 
                 recommendedKeywords.Add(CreateRecommendedKeywordForIntrinsicOperator(
                     SyntaxKind.DirectCastKeyword,
-                    VBFeaturesResources.DirectcastFunction,
+                    VBFeaturesResources.DirectCast_function,
                     Glyph.MethodPublic,
                     New DirectCastExpressionDocumentation()))
 
                 recommendedKeywords.Add(CreateRecommendedKeywordForIntrinsicOperator(
                     SyntaxKind.TryCastKeyword,
-                    VBFeaturesResources.TrycastFunction,
+                    VBFeaturesResources.TryCast_function,
                     Glyph.MethodPublic,
                     New TryCastExpressionDocumentation()))
 
-                Return recommendedKeywords
+                Return recommendedKeywords.ToImmutableArray()
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

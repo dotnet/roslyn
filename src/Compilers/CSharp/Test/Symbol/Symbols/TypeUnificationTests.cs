@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -39,7 +43,7 @@ class C
     System.Collections.Generic.Dictionary<long, int> g2;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -115,6 +119,7 @@ class C<T, U>
     int[,] a3;
     int* p1;
     int** p2;
+    delegate*<void> fp1;
     System.Collections.Generic.Dictionary<int, long> g1;
     System.Collections.Generic.Dictionary<long, int> g2;
 
@@ -122,7 +127,7 @@ class C<T, U>
     U tp2;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -138,6 +143,7 @@ class C<T, U>
             var arrayType3 = @class.GetMember<FieldSymbol>("a3").Type;
             var pointerType1 = @class.GetMember<FieldSymbol>("p1").Type;
             var pointerType2 = @class.GetMember<FieldSymbol>("p2").Type;
+            var functionPointerType = @class.GetMember<FieldSymbol>("fp1").Type;
             var genericType1 = @class.GetMember<FieldSymbol>("g1").Type;
             var genericType2 = @class.GetMember<FieldSymbol>("g2").Type;
 
@@ -165,8 +171,9 @@ class C<T, U>
             var unsubstitutableTypes = new[]
             {
                 voidType,
-                //UNDONE: pointerType1,
-                //UNDONE: pointerType2,
+                pointerType1,
+                pointerType2,
+                functionPointerType,
             };
 
             foreach (var t in unsubstitutableTypes)
@@ -193,7 +200,7 @@ class C<T>
     T[,] g3;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -235,7 +242,7 @@ class D<T>
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -286,7 +293,7 @@ public class L<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -323,7 +330,7 @@ class C<T>
     C<T> containing;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -356,7 +363,7 @@ public class L<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
@@ -407,9 +414,9 @@ public class L<T>
 interface IB<T, U> : IA<U, object>, IA<T, U>
 {
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             var type = comp.GetMember<NamedTypeSymbol>("IB");
-            AssertCanUnify(type.Interfaces[0], type.Interfaces[1]);
+            AssertCanUnify(type.Interfaces()[0], type.Interfaces()[1]);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 4, Column = 11 });
         }

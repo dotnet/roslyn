@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -14,7 +16,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As BindingDiagnosticBag,
+                                                                       syntax As VisualBasicSyntaxNode,
+                                                                       id As ERRID) As BoundExpression
+            Return ReportDiagnosticAndProduceBadExpression(diagBag, syntax, ErrorFactory.ErrorInfo(id))
+        End Function
+
+        ''' <summary>
+        ''' Report a diagnostic, and also produce an error expression with error type.
+        ''' </summary>
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As BindingDiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As BoundExpression
@@ -24,19 +35,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As BindingDiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo,
-                                                                  ParamArray nodes As BoundNode()) As BoundExpression
+                                                                  ParamArray nodes As BoundExpression()) As BoundExpression
             Return BadExpression(syntax,
-                                 If(nodes.IsEmpty, ImmutableArray(Of BoundNode).Empty, ImmutableArray.Create(Of BoundNode)(nodes)),
+                                 If(nodes.IsEmpty, ImmutableArray(Of BoundExpression).Empty, ImmutableArray.Create(nodes)),
                                  ReportDiagnosticAndProduceErrorTypeSymbol(diagBag, syntax, info))
         End Function
 
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As BindingDiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As ErrorTypeSymbol
@@ -46,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As BindingDiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo) As ErrorTypeSymbol
             ReportDiagnostic(diagBag, syntax, info)

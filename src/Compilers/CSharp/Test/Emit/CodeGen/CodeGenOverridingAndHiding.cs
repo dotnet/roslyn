@@ -1,13 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1112,55 +1113,157 @@ class Test
 
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
+
         [Fact]
-
-        private void TestAmbiguousOverridesWarningCase()
+        public void TestAmbiguousOverridesRefOut()
         {
-            // Tests:
-            // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
-            // override only differ by ref / out - test that only a warning (for runtime ambiguity) is reported 
-            // in the case where ambiguous signatures differ by just ref / out
-
-            var source = @"
-using System;
+            var method1 = @"public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine(""Base<T, U>.Method(ref List<T> x, out List<U> y)""); }";
+            var method2 = @"public virtual void Method(out List<U> y, ref List<T> x) { y = null; Console.WriteLine(""Base<T, U>.Method(out List<U> y, ref List<T> x)""); }";
+            var source =
+@"using System;
 using System.Collections.Generic;
 abstract class Base<T, U>
 {
-    public virtual void Method(ref List<T> x, out List<U> y) { Console.WriteLine(""Base.Method(ref, out)""); y = null; }
-    public virtual void Method(out List<U> y, ref List<T> x) { Console.WriteLine(""Base.Method(out, ref)""); y = null; }
-    public virtual void Method(ref List<U> x) { Console.WriteLine(""Base.Method(ref)""); }
+    METHOD1
+    METHOD2
+    public virtual void Method(BASEREF List<U> x) { x = null; Console.WriteLine(""Base<T, U>.Method(ref List<U> x)""); }  
 }
 class Base2<A, B> : Base<A, B>
 {
-    public virtual void Method(out List<A> x) { Console.WriteLine(""Base2.Method(out)""); x = null; }
+    public virtual void Method(BASE2REF List<A> x)
+    {
+        x = null;
+        Console.WriteLine(""Base2<A, B>.Method(BASE2REF List<A> x)"");
+    }
 }
 class Derived : Base2<int, int>
 {
-    public override void Method(ref List<int> a, out List<int> b) { Console.WriteLine(""Derived.Method(ref, out)""); b = null; } // Reports warning about runtime ambiguity
-    public override void Method(ref List<int> a) { Console.WriteLine(""Derived.Method(ref)""); } // No warning when ambiguous signatures are spread across multiple base types
-}
-class Test
-{
-    public static void Main()
+    public override void Method(ref List<int> a, out List<int> b)
     {
-        Base<int, int> b = new Derived();
-        List<int> arg = new List<int>();
-        b.Method(out arg, ref arg);
-        b.Method(ref arg, out arg);
-        b.Method(ref arg);
+        b = null;
+        Console.WriteLine(""Derived.Method(ref List<int> a, out List<int> b)"");
+    }
+    public override void Method(BASEREF List<int> a)
+    {
+        a = null;
+        Console.WriteLine(""Derived.Method(BASEREF List<int> a)"");
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        List<int> t = null;
+        Console.WriteLine();
+        Derived d = new Derived();
+        d.Method(ref t, out t);
+        d.Method(out t, ref t);
+        d.Method(BASEREF t);
+        d.Method(BASE2REF t);
+        Console.WriteLine();
+        Base2<int, int> b2 = d;
+        b2.Method(ref t, out t);
+        b2.Method(out t, ref t);
+        b2.Method(BASEREF t);
+        b2.Method(BASE2REF t);
+        Console.WriteLine();
+        Base<int, int> b1 = d;
+        b1.Method(ref t, out t);
+        b1.Method(out t, ref t);
+        b1.Method(BASEREF t);
     }
 }
 ";
-            // Note: This test is exercising a case that is 'Runtime Ambiguous'. In the generated IL, it is ambiguous which
-            // method is being overridden. As far as I can tell, the output won't change from build to build / machine to machine
-            // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
-            // the test flaky, we can delete this test.
+            for (int i = 0; i < 2; i++)
+            {
+                var substitutedSource0 = i switch
+                {
+                    0 => source.Replace("METHOD1", method1).Replace("METHOD2", method2),
+                    _ => source.Replace("METHOD2", method1).Replace("METHOD1", method2),
+                };
+                for (int j = 0; j < 2; j++)
+                {
+                    string subst(string s) => j switch
+                    {
+                        0 => s.Replace("BASEREF", "ref").Replace("BASE2REF", "out"),
+                        _ => s.Replace("BASEREF", "out").Replace("BASE2REF", "ref"),
+                    };
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
-Derived.Method(ref, out)
-Base.Method(ref, out)
-Base.Method(ref)");
+                    var substitutedSource = subst(substitutedSource0);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe);
+                    string expectedOutput;
+                    if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
+                    {
+                        // Correct runtime behavior with no warning
+                        compilation.VerifyDiagnostics();
+                        expectedOutput = @"
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+Derived.Method(ref List<int> a, out List<int> b)
+Base<T, U>.Method(out List<U> y, ref List<T> x)
+Derived.Method(BASEREF List<int> a)
+";
+                    }
+                    else if (ExecutionConditionUtil.IsCoreClr || ExecutionConditionUtil.IsDesktop)
+                    {
+                        // Imperfect runtime behavior with warning
+                        switch (i)
+                        {
+                            case 0:
+                                compilation.VerifyDiagnostics(
+                                    // (5,25): warning CS1957: Member 'Derived.Method(ref List<int>, out List<int>)' overrides 'Base<int, int>.Method(ref List<int>, out List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                                    //     public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine("Base<T, U>.Method(ref List<T> x, out List<U> y)"); }
+                                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)").WithLocation(5, 25)
+                                    );
+                                break;
+                            default:
+                                compilation.VerifyDiagnostics(
+                                    // (6,25): warning CS1957: Member 'Derived.Method(ref List<int>, out List<int>)' overrides 'Base<int, int>.Method(ref List<int>, out List<int>)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                                    //     public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine("Base<T, U>.Method(ref List<T> x, out List<U> y)"); }
+                                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)", "Derived.Method(ref System.Collections.Generic.List<int>, out System.Collections.Generic.List<int>)").WithLocation(6, 25)
+                                    );
+                                break;
+                        }
+                        var (m1, m2) = i switch
+                        {
+                            0 => ("Base<T, U>.Method(ref List<T> x, out List<U> y)", "Derived.Method(ref List<int> a, out List<int> b)"),
+                            _ => ("Derived.Method(ref List<int> a, out List<int> b)", "Base<T, U>.Method(out List<U> y, ref List<T> x)"),
+                        };
+                        expectedOutput = $@"
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)
+Base2<A, B>.Method(BASE2REF List<A> x)
+
+{m1}
+{m2}
+Derived.Method(BASEREF List<int> a)";
+                    }
+                    else
+                    {
+                        // unknown runtime behavior
+                        continue;
+                    }
+
+                    var substitutedExpected = subst(expectedOutput);
+                    var verifier = CompileAndVerify(compilation, expectedOutput: substitutedExpected);
+                }
+            }
         }
+
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
 
@@ -1631,26 +1734,28 @@ Derived2.Field3");
             comp.VerifyDiagnostics(
                 // (12,21): warning CS0108: 'Base.Derived.Method()' hides inherited member 'Base.Method()'. Use the new keyword if hiding was intended.
                 //         static void Method() { Console.WriteLine("Derived.Method()"); }
-                Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("Base.Derived.Method()", "Base.Method()"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("Base.Derived.Method()", "Base.Method()").WithLocation(12, 21),
                 // (62,13): warning CS0108: 'Base2.Derived2.Field' hides inherited member 'Base2.Field'. Use the new keyword if hiding was intended.
                 //         int Field = 2;
-                Diagnostic(ErrorCode.WRN_NewRequired, "Field").WithArguments("Base2.Derived2.Field", "Base2.Field"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Field").WithArguments("Base2.Derived2.Field", "Base2.Field").WithLocation(62, 13),
                 // (63,20): warning CS0108: 'Base2.Derived2.Field2' hides inherited member 'Base2.Field2'. Use the new keyword if hiding was intended.
                 //         public int Field2 = 3;
-                Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("Base2.Derived2.Field2", "Base2.Field2"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("Base2.Derived2.Field2", "Base2.Field2").WithLocation(63, 20),
                 // (74,22): warning CS0108: 'Base2.Derived2.Type2<T>' hides inherited member 'Base2.Type2<T>'. Use the new keyword if hiding was intended.
                 //         public class Type2<T>
-                Diagnostic(ErrorCode.WRN_NewRequired, "Type2").WithArguments("Base2.Derived2.Type2<T>", "Base2.Type2<T>"),
-                // (99,13): warning CS0109: The member 'Derived3.Field' does not hide an inherited member. The new keyword is not required.
+                Diagnostic(ErrorCode.WRN_NewRequired, "Type2").WithArguments("Base2.Derived2.Type2<T>", "Base2.Type2<T>").WithLocation(74, 22),
+                // (99,13): warning CS0109: The member 'Derived3.Field' does not hide an accessible member. The new keyword is not required.
                 //     new int Field = 2;
-                Diagnostic(ErrorCode.WRN_NewNotRequired, "Field").WithArguments("Derived3.Field"),
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "Field").WithArguments("Derived3.Field").WithLocation(99, 13),
                 // (101,26): warning CS0108: 'Derived3.Field2' hides inherited member 'Base3.Field2'. Use the new keyword if hiding was intended.
                 //     protected static int Field2 = 1;
-                Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("Derived3.Field2", "Base3.Field2"),
+                Diagnostic(ErrorCode.WRN_NewRequired, "Field2").WithArguments("Derived3.Field2", "Base3.Field2").WithLocation(101, 26),
                 // (92,9): warning CS0414: The field 'Base3.Field' is assigned but its value is never used
                 //     int Field = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Field").WithArguments("Base3.Field")
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Field").WithArguments("Base3.Field").WithLocation(92, 9),
+                // (99,13): warning CS0414: The field 'Derived3.Field' is assigned but its value is never used
+                //     new int Field = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Field").WithArguments("Derived3.Field").WithLocation(99, 13));
         }
 
         [Fact]
@@ -1808,13 +1913,13 @@ Derived2.Property1
 Base<T>.Method3()");
 
             comp.VerifyDiagnostics(
-                // (43,21): warning CS0109: The member 'Derived<U>.Method(U, U)' does not hide an inherited member. The new keyword is not required.
+                // (43,21): warning CS0109: The member 'Derived<U>.Method(U, U)' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("Derived<U>.Method(U, U)"),
                 // (47,17): warning CS0114: 'Derived<U>.Method(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)' hides inherited member 'Base<U>.Method(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method").WithArguments("Derived<U>.Method(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)", "Base<U>.Method(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)"),
                 // (51,17): warning CS0114: 'Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<U, V>)' hides inherited member 'Base<U>.Method<U>(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method").WithArguments("Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<U, V>)", "Base<U>.Method<U>(U, U, System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<U, U>)"),
-                // (55,21): warning CS0109: The member 'Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<V, U>)' does not hide an inherited member. The new keyword is not required.
+                // (55,21): warning CS0109: The member 'Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<V, U>)' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("Derived<U>.Method<V>(V, U, System.Collections.Generic.List<V>, System.Collections.Generic.Dictionary<V, U>)"),
                 // (64,24): warning CS0114: 'Derived<U>.Method(U)' hides inherited member 'Base<U>.Method(U)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method").WithArguments("Derived<U>.Method(U)", "Base<U>.Method(U)"),
@@ -2134,7 +2239,7 @@ public class Base<T>
     public virtual List<T> Property1 { get { return null; } protected internal set { } }
     public virtual List<T> Property2 { protected internal get { return null; } set { } }
 }";
-            var compilation1 = CreateCompilationWithMscorlib(source1);
+            var compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 using System.Collections.Generic;
@@ -2426,12 +2531,12 @@ public class Test
 }";
 
             var referencedCompilation =
-                CreateCompilationWithMscorlib(source,
+                CreateCompilation(source,
                     options: TestOptions.ReleaseDll,
                     assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember1");
 
             var outerCompilation =
-                CreateCompilationWithMscorlib(source2,
+                CreateCompilation(source2,
                     new[] { new CSharpCompilationReference(referencedCompilation) },
                     options: TestOptions.ReleaseExe,
                     assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember2");
@@ -2450,7 +2555,7 @@ public class Test
             // from assembly 'Dev10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
             // is overriding a method that is not visible from that assembly.
 
-            CompileAndVerify(outerCompilation, verify: false).VerifyIL("Test.Main", @"
+            CompileAndVerify(outerCompilation, verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       65 (0x41)
   .maxstack  4
@@ -2545,7 +2650,7 @@ public class Test
     }
 }";
 
-            var referencedCompilation = CreateCompilationWithMscorlib(source, assemblyName: "OHI_CodeGen_TestHideWithInaccessibleMember");
+            var referencedCompilation = CreateCompilation(source, assemblyName: "OHI_CodeGen_TestHideWithInaccessibleMember");
 
             var comp = CompileAndVerify(
                 source2,
@@ -2650,7 +2755,7 @@ public class Test
     }
 }";
 
-            var referencedCompilation = CreateCompilationWithMscorlib(source, assemblyName: "OHI_CodeGen_TestHideSealedMember");
+            var referencedCompilation = CreateCompilation(source, assemblyName: "OHI_CodeGen_TestHideSealedMember");
 
             var comp = CompileAndVerify(
                 source2,
@@ -2720,11 +2825,11 @@ class Test
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateCompilationWithMscorlib(text1, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload001",
+            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload001",
                             options: TestOptions.ReleaseDll);
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp = CreateCompilationWithMscorlib(text2, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload002",
+            var comp = CreateCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideNewVirtualOverload002",
                         options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"CSS1_OV CSS1_OV VBS11_OL CSS1_OV CSF1_New VBF1_V VBF11 VBF1_V");
@@ -2813,11 +2918,11 @@ class Test
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateCompilationWithMscorlib(text1, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp001",
+            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp001",
                             options: TestOptions.ReleaseDll);
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp = CreateCompilationWithMscorlib(text2, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp002",
+            var comp = CreateCompilation(text2, references: refs, assemblyName: "OHI_DeriveOverrideVirtualProp002",
                         options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"VBDefault VBDefault VBWriteReadOnly VBWriteReadOnly 100200900900");
@@ -2873,12 +2978,12 @@ class Test
             var asm01 = TestReferences.MetadataTests.InterfaceAndClass.CSInterfaces01;
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
 
-            var comp1 = CreateCompilationWithMscorlib(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new[] { asm01, asm02 },
                 assemblyName: "OHI_DeriveBaseInMetadataProp001");
 
-            var comp2 = CreateCompilationWithMscorlib(
+            var comp2 = CreateCompilation(
                 text2,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) },
                 options: TestOptions.ReleaseExe,
@@ -3051,19 +3156,19 @@ class Test
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp1 = CreateCompilationWithMscorlib(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
+            var comp1 = CreateCompilation(text1, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata001",
                             options: TestOptions.ReleaseDll);
             // better output with error info if any
             comp1.VerifyDiagnostics(); // No Errors
 
             refs.Add(new CSharpCompilationReference(comp1));
 
-            var comp2 = CreateCompilationWithMscorlib(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
+            var comp2 = CreateCompilation(text2, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata002",
                             options: TestOptions.ReleaseDll);
             Assert.Equal(0, comp2.GetDiagnostics().Count());
             refs.Add(new CSharpCompilationReference(comp2));
 
-            var comp = CreateCompilationWithMscorlib(text3, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata003",
+            var comp = CreateCompilation(text3, references: refs, assemblyName: "OHI_GenericDDeriveBaseInMetadata003",
                             options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(); // No Errors
 
@@ -3110,7 +3215,7 @@ partial class Test
             var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses02;
 
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateCompilation(
                 new string[] { text1, text2 },
                 references: new[] { asm01, asm02 },
                 options: TestOptions.ReleaseExe,
@@ -3262,17 +3367,17 @@ class Test
             var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
 
-            var comp1 = CreateCompilationWithMscorlib(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new MetadataReference[] { asm01, asm02 },
                 assemblyName: "OHI_OverloadGetSetMethodWithProp001");
 
-            var comp2 = CreateCompilationWithMscorlib(
+            var comp2 = CreateCompilation(
                 text2,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) },
                 assemblyName: "OHI_OverloadGetSetMethodWithProp002");
 
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateCompilation(
                 text3,
                 references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -3366,17 +3471,17 @@ class Test
 
             var asmfile = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateCompilationWithMscorlib(
+            var comp1 = CreateCompilation(
                 text1,
                 references: new[] { asmfile },
                 assemblyName: "OHI_ClassOverrideNewVBNested001");
 
-            var comp2 = CreateCompilationWithMscorlib(
+            var comp2 = CreateCompilation(
                 text2,
                 references: new[] { asmfile, comp1.EmitToImageReference() },
                 assemblyName: "OHI_ClassOverrideNewVBNested002");
 
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateCompilation(
                 text,
                 references: new MetadataReference[] { asmfile, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,
@@ -3422,7 +3527,7 @@ namespace Metadata
                 expectedOutput: @"Hello 3",
                 expectedSignatures: new[]
                 {
-                    // The ILDASM output is following,and Roslyn handles it correctly. 
+                    // The ILDASM output is following, and Roslyn handles it correctly. 
                     // Verifier tool gives different output due to the limitation of Reflection
                     // @".method public hidebysig virtual instance System.Void Method<X>(" +
                     // @"System.String modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) x," +
@@ -3436,7 +3541,7 @@ namespace Metadata
         }
 
         [WorkItem(540516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540516")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12422")]
         public void TestCallMethodsWithLeastCustomModifiers()
         {
             var text = @"using Metadata;
@@ -3451,7 +3556,7 @@ public class Program
 }
 ";
             var verifier = CompileAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "51");
         }
 
@@ -3478,7 +3583,7 @@ public class Test
 }
 ";
             var verifier = CompileAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: @"88
 88
 ",
@@ -3595,7 +3700,7 @@ class Test
             //Assert.Equal(109, errs.First().Code);
 
             var verifier = CompileAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "1122",
                 expectedSignatures: new[]
                 {
@@ -3694,17 +3799,46 @@ public class C : B
             var text = @"
 public class A
 {
-    public virtual int get_P() { return 0; }
+    public virtual int get_P()
+    {
+        System.Console.WriteLine(""A::get_P"");
+        return 0;
+    }
 }
 
 public class B : A
 {
-    public virtual int P { get; set; }
+    public virtual int P
+    {
+        get
+        {
+            System.Console.WriteLine(""B::P.get"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""B::P.set"");
+        }
+    }
 }
 
 public class C : B
 {
-    public override int get_P() { return 0; }
+    public override int get_P()
+    {
+        System.Console.WriteLine(""C::get_P"");
+        return 0;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C c = new C();
+        _ = c.P;
+        _ = c.get_P();
+    }
 }
 ";
             Action<ModuleSymbol> validator = module =>
@@ -3728,7 +3862,9 @@ public class C : B
                 Assert.Equal(methodA, methodC.OverriddenMethod);
             };
 
-            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput:
+@"B::P.get
+C::get_P");
         }
 
         /// <summary>
@@ -3859,8 +3995,8 @@ class Program
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("DerivedNonVirtual");
                 var classC = globalNamespace.GetMember<NamedTypeSymbol>("Derived2Override");
 
-                Assert.Equal(classA, classB.BaseType);
-                Assert.Equal(classB, classC.BaseType);
+                Assert.Equal(classA, classB.BaseType());
+                Assert.Equal(classB, classC.BaseType());
 
                 var methodA = classA.GetMember<MethodSymbol>("M");
                 var methodB = classB.GetMember<MethodSymbol>("M");
@@ -3879,7 +4015,7 @@ class Program
             var references = new MetadataReference[] { TestReferences.SymbolsTests.Methods.ILMethods };
             var verifier = CompileAndVerify(
                 source,
-                additionalRefs: references,
+                references: references,
                 sourceSymbolValidator: validator,
                 expectedOutput: @"BaseVirtual
 DerivedNonVirtual
@@ -3955,19 +4091,19 @@ class B : A
     }
 }
 ";
-            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromMetadata => module =>
             {
                 var globalNamespace = module.GlobalNamespace;
 
                 var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
 
-                Assert.Equal(classA, classB.BaseType);
+                Assert.Equal(classA, classB.BaseType());
 
                 var fooA = classA.GetMember<MethodSymbol>("Foo");
                 var fooB = classB.GetMember<MethodSymbol>("Foo");
 
-                Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB));
+                Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB, requireSameReturnType: false));
 
                 Assert.Equal(1, fooA.ParameterCount);
                 var parameterA = fooA.Parameters[0];
@@ -3982,14 +4118,13 @@ class B : A
                 Assert.Equal(ConstantValue.Null, parameterB.ExplicitDefaultConstantValue);
                 Assert.False(parameterB.IsOptional, "ParameterArray param cannot be optional");
 
-                if (isFromSource)
+                if (isFromMetadata)
                 {
-                    var srcModule = (SourceModuleSymbol)module;
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB, srcModule);
-                }
+                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
+                };
             };
 
-            var verifier = CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
+            var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
         }
 
         [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]
@@ -4017,8 +4152,8 @@ public class Test
         obj.M();
     }
 }";
-            var compref = CreateCompilationWithMscorlib(source, assemblyName: "XNoDefaultForParams_Dev10781558_Library");
-            var comp = CompileAndVerify(source2, additionalRefs: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
+            var compref = CreateCompilation(source, assemblyName: "XNoDefaultForParams_Dev10781558_Library");
+            var comp = CompileAndVerify(source2, references: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
         }
 
         [Fact]
@@ -4222,11 +4357,11 @@ Derived.M(y:2)");
         [Fact]
         public void MissingAssemblyReference02()
         {
-            var A = CreateCompilationWithMscorlib(@"public class A {}", assemblyName: "A");
-            var B = CreateCompilationWithMscorlib(@"public interface B { void M(A a); }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "B");
-            var C = CreateCompilationWithMscorlib(@"public class C { public void M(A a) { } }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "C");
+            var A = CreateCompilation(@"public class A {}", assemblyName: "A");
+            var B = CreateCompilation(@"public interface B { void M(A a); }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "B");
+            var C = CreateCompilation(@"public class C { public void M(A a) { } }", references: new[] { new CSharpCompilationReference(A) }, assemblyName: "C");
 
-            var D = CreateCompilationWithMscorlib(@"public class D : C, B { }", references: new[] { new CSharpCompilationReference(B), new CSharpCompilationReference(C) }, assemblyName: "D");
+            var D = CreateCompilation(@"public class D : C, B { }", references: new[] { new CSharpCompilationReference(B), new CSharpCompilationReference(C) }, assemblyName: "D");
 
             A.VerifyDiagnostics();
             B.VerifyDiagnostics();

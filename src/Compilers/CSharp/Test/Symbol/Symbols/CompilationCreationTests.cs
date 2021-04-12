@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -13,6 +17,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -73,13 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
                 NamedTypeSymbol type = c1.GetSpecialType((SpecialType)i);
-                Assert.False(type.IsErrorType());
+                if (i == (int)SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
+                    i == (int)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
+                {
+                    Assert.True(type.IsErrorType()); // Not available
+                }
+                else
+                {
+                    Assert.False(type.IsErrorType());
+                }
+
                 Assert.Equal((SpecialType)i, type.SpecialType);
             }
 
             Assert.Equal(SpecialType.None, c107.SpecialType);
 
-            var arrayOfc107 = ArrayTypeSymbol.CreateCSharpArray(c1.Assembly, c107);
+            var arrayOfc107 = ArrayTypeSymbol.CreateCSharpArray(c1.Assembly, TypeWithAnnotations.Create(c107));
 
             Assert.Equal(SpecialType.None, arrayOfc107.SpecialType);
 
@@ -91,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void CyclicReference()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_30319.mscorlib;
+            var mscorlibRef = Net451.mscorlib;
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
 
             var tc1 = CSharpCompilation.Create("Cyclic1", references: new[] { mscorlibRef, cyclic2Ref });
@@ -113,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var varV1MTTestLib2Ref = TestReferences.SymbolsTests.V1.MTTestLib2.dll;
             var asm1 = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     varV1MTTestLib2Ref
                 });
 
@@ -128,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var asm2 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     varV1MTTestLib2Ref,
                     TestReferences.SymbolsTests.V1.MTTestLib1.dll
                 });
@@ -157,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var varV2MTTestLib3Ref = TestReferences.SymbolsTests.V2.MTTestLib3.dll;
             var asm3 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    Net451.mscorlib,
                     varV1MTTestLib2Ref,
                     TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                     varV2MTTestLib3Ref
@@ -214,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var varV3MTTestLib4Ref = TestReferences.SymbolsTests.V3.MTTestLib4.dll;
             var asm4 = MetadataTestHelpers.GetSymbolsForReferences(new MetadataReference[]
                 {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
+                Net451.mscorlib,
                 varV1MTTestLib2Ref,
                 TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                 varV2MTTestLib3Ref,
@@ -311,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var asm5 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
+                Net451.mscorlib,
                 varV2MTTestLib3Ref
             });
 
@@ -320,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var asm6 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
+                Net451.mscorlib,
                 varV1MTTestLib2Ref
             });
 
@@ -329,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var asm7 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
+                Net451.mscorlib,
                 varV1MTTestLib2Ref,
                 varV2MTTestLib3Ref,
                 varV3MTTestLib4Ref
@@ -398,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // This test shows that simple reordering of references doesn't pick different set of assemblies
             var asm8 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
+                Net451.mscorlib,
                 varV3MTTestLib4Ref,
                 varV1MTTestLib2Ref,
                 varV2MTTestLib3Ref
@@ -414,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var asm9 = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
+                Net451.mscorlib,
                 varV3MTTestLib4Ref
             });
 
@@ -423,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var asm10 = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
+                Net451.mscorlib,
                 varV1MTTestLib2Ref,
                 TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                 varV2MTTestLib3Ref,
@@ -676,7 +690,7 @@ public class Class1
 }
 "
                                },
-                           new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                           new[] { Net451.mscorlib });
 
             var asm_MTTestLib1_V1 = varC_MTTestLib1_V1.SourceAssembly().BoundReferences();
 
@@ -698,7 +712,7 @@ public class Class4
 }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, varC_MTTestLib1_V1.ToMetadataReference() });
+                           new MetadataReference[] { Net451.mscorlib, varC_MTTestLib1_V1.ToMetadataReference() });
 
             var asm_MTTestLib2 = varC_MTTestLib2.SourceAssembly().BoundReferences();
 
@@ -709,7 +723,7 @@ public class Class4
                            null,
                            new MetadataReference[]
                                {
-                                   TestReferences.NetFx.v4_0_30319.mscorlib,
+                                   Net451.mscorlib,
                                    varC_MTTestLib2.ToMetadataReference(),
                                    varC_MTTestLib1_V1.ToMetadataReference()
                                });
@@ -752,7 +766,7 @@ public class Class2
 }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                           new MetadataReference[] { Net451.mscorlib });
 
             var asm_MTTestLib1_V2 = varC_MTTestLib1_V2.SourceAssembly().BoundReferences();
 
@@ -787,7 +801,7 @@ public class Class5
                    },
                new MetadataReference[]
                    {
-                       TestReferences.NetFx.v4_0_30319.mscorlib,
+                       Net451.mscorlib,
                        varC_MTTestLib2.ToMetadataReference(),
                        varC_MTTestLib1_V2.ToMetadataReference()
                    });
@@ -802,7 +816,7 @@ public class Class5
                 null,
                 new MetadataReference[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         varC_MTTestLib2.ToMetadataReference(),
                         varC_MTTestLib1_V2.ToMetadataReference(),
                         varC_MTTestLib3.ToMetadataReference()
@@ -878,7 +892,7 @@ public class Class3
 }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                           new MetadataReference[] { Net451.mscorlib });
 
             var asm_MTTestLib1_V3 = varC_MTTestLib1_V3.SourceAssembly().BoundReferences();
 
@@ -924,7 +938,7 @@ public class Class6
 }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib,
+                           new MetadataReference[] { Net451.mscorlib,
                                     varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V3.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference() });
 
             var asm_MTTestLib4 = varC_MTTestLib4.SourceAssembly().BoundReferences();
@@ -938,7 +952,7 @@ public class Class6
                            null,
                            new MetadataReference[]
                                {
-                                   TestReferences.NetFx.v4_0_30319.mscorlib,
+                                   Net451.mscorlib,
                                    varC_MTTestLib2.ToMetadataReference(),
                                    varC_MTTestLib1_V3.ToMetadataReference(),
                                    varC_MTTestLib3.ToMetadataReference(),
@@ -1041,7 +1055,7 @@ public class Class6
 
             var c5 = CreateCompilation(new AssemblyIdentity("c5"),
                            null,
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, varC_MTTestLib3.ToMetadataReference() });
+                           new MetadataReference[] { Net451.mscorlib, varC_MTTestLib3.ToMetadataReference() });
 
             var asm5 = c5.SourceAssembly().BoundReferences();
 
@@ -1050,7 +1064,7 @@ public class Class6
 
             var c6 = CreateCompilation(new AssemblyIdentity("c6"),
                            null,
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, varC_MTTestLib2.ToMetadataReference() });
+                           new MetadataReference[] { Net451.mscorlib, varC_MTTestLib2.ToMetadataReference() });
 
             var asm6 = c6.SourceAssembly().BoundReferences();
 
@@ -1059,7 +1073,7 @@ public class Class6
 
             var c7 = CreateCompilation(new AssemblyIdentity("c7"),
                            null,
-                          new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference(), varC_MTTestLib4.ToMetadataReference() });
+                          new MetadataReference[] { Net451.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference(), varC_MTTestLib4.ToMetadataReference() });
 
             var asm7 = c7.SourceAssembly().BoundReferences();
 
@@ -1127,7 +1141,7 @@ public class Class6
             // This test shows that simple reordering of references doesn't pick different set of assemblies
             var c8 = CreateCompilation(new AssemblyIdentity("c8"),
                            null,
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, varC_MTTestLib4.ToMetadataReference(), varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference() });
+                           new MetadataReference[] { Net451.mscorlib, varC_MTTestLib4.ToMetadataReference(), varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference() });
 
             var asm8 = c8.SourceAssembly().BoundReferences();
 
@@ -1141,7 +1155,7 @@ public class Class6
 
             var c9 = CreateCompilation(new AssemblyIdentity("c9"),
                            null,
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, varC_MTTestLib4.ToMetadataReference() });
+                           new MetadataReference[] { Net451.mscorlib, varC_MTTestLib4.ToMetadataReference() });
 
             var asm9 = c9.SourceAssembly().BoundReferences();
 
@@ -1151,7 +1165,7 @@ public class Class6
             var c10 = CreateCompilation(new AssemblyIdentity("c10"),
                            null,
                            new MetadataReference[] {
-                                   TestReferences.NetFx.v4_0_30319.mscorlib,
+                                   Net451.mscorlib,
                                    varC_MTTestLib2.ToMetadataReference(),
                                    varC_MTTestLib1_V3.ToMetadataReference(),
                                    varC_MTTestLib3.ToMetadataReference(),
@@ -1405,7 +1419,7 @@ public class Class6
 
             var varC_MTTestLib2 = CreateCompilation(varMTTestLib2_Name, (string[])null,
                            new[] {
-                                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                                        Net451.mscorlib,
                                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                                         TestReferences.SymbolsTests.V1.MTTestModule2.netmodule
                                      });
@@ -1415,7 +1429,7 @@ public class Class6
             var c2 = CreateCompilation(new AssemblyIdentity("c2"),
                            null,
                            new MetadataReference[] {
-                                                           TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                           Net451.mscorlib,
                                                            TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                                                            new CSharpCompilationReference(varC_MTTestLib2)
                                                        });
@@ -1454,7 +1468,7 @@ public class Class6
                            null,
                            new MetadataReference[]
                                {
-                                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                                    Net451.mscorlib,
                                     TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                                     new CSharpCompilationReference(varC_MTTestLib2),
                                     TestReferences.SymbolsTests.V2.MTTestModule3.netmodule
@@ -1471,7 +1485,7 @@ public class Class6
                            null,
                            new MetadataReference[]
                                {
-                                   TestReferences.NetFx.v4_0_30319.mscorlib,
+                                   Net451.mscorlib,
                                    TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                                    new CSharpCompilationReference(varC_MTTestLib2),
                                    new CSharpCompilationReference(varC_MTTestLib3)
@@ -1539,7 +1553,7 @@ public class Class6
                            null,
                            new MetadataReference[]
                                 {
-                                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                                    Net451.mscorlib,
                                     TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                                     new CSharpCompilationReference(varC_MTTestLib2),
                                     new CSharpCompilationReference(varC_MTTestLib3),
@@ -1558,7 +1572,7 @@ public class Class6
             var c4 = CreateCompilation(new AssemblyIdentity("c4"),
                            null,
                            new MetadataReference[] {
-                                                           TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                           Net451.mscorlib,
                                                            TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                                                            new CSharpCompilationReference(varC_MTTestLib2),
                                                            new CSharpCompilationReference(varC_MTTestLib3),
@@ -1663,7 +1677,7 @@ public class Class6
             var c5 = CreateCompilation(new AssemblyIdentity("c5"),
                            null,
                            new MetadataReference[] {
-                                                            TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                            Net451.mscorlib,
                                                             new CSharpCompilationReference(varC_MTTestLib3)
                                                        });
 
@@ -1675,7 +1689,7 @@ public class Class6
             var c6 = CreateCompilation(new AssemblyIdentity("c6"),
                            null,
                            new MetadataReference[] {
-                                                           TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                           Net451.mscorlib,
                                                            new CSharpCompilationReference(varC_MTTestLib2)
                                                        });
 
@@ -1687,7 +1701,7 @@ public class Class6
             var c7 = CreateCompilation(new AssemblyIdentity("c7"),
                            null,
                            new MetadataReference[] {
-                                                           TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                           Net451.mscorlib,
                                                            new CSharpCompilationReference(varC_MTTestLib2),
                                                            new CSharpCompilationReference(varC_MTTestLib3),
                                                            new CSharpCompilationReference(varC_MTTestLib4)
@@ -1764,7 +1778,7 @@ public class Class6
             var c8 = CreateCompilation(new AssemblyIdentity("c8"),
                            null,
                            new MetadataReference[] {
-                                                           TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                           Net451.mscorlib,
                                                            new CSharpCompilationReference(varC_MTTestLib4),
                                                            new CSharpCompilationReference(varC_MTTestLib2),
                                                            new CSharpCompilationReference(varC_MTTestLib3)
@@ -1783,7 +1797,7 @@ public class Class6
             var c9 = CreateCompilation(new AssemblyIdentity("c9"),
                            null,
                            new MetadataReference[] {
-                                                           TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                           Net451.mscorlib,
                                                            new CSharpCompilationReference(varC_MTTestLib4)
                                                        });
 
@@ -1795,7 +1809,7 @@ public class Class6
             var c10 = CreateCompilation(new AssemblyIdentity("c10"),
                            null,
                            new MetadataReference[] {
-                                                           TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                           Net451.mscorlib,
                                                            TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                                                            new CSharpCompilationReference(varC_MTTestLib2),
                                                            new CSharpCompilationReference(varC_MTTestLib3),
@@ -2067,7 +2081,7 @@ public class C1<T>
 }
 "
                                },
-                           new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                           new[] { Net451.mscorlib });
 
             var asm1_V1 = localC1_V1.SourceAssembly();
 
@@ -2089,7 +2103,7 @@ public class C1<T>
 }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                           new MetadataReference[] { Net451.mscorlib });
 
             var asm1_V2 = localC1_V2.SourceAssembly();
 
@@ -2104,7 +2118,7 @@ public class C4
 }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                           new MetadataReference[] { Net451.mscorlib });
 
             var asm4_V1 = localC4_V1.SourceAssembly();
 
@@ -2119,7 +2133,7 @@ public class C4
 }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                           new MetadataReference[] { Net451.mscorlib });
 
             var asm4_V2 = localC4_V2.SourceAssembly();
 
@@ -2134,7 +2148,7 @@ public class C8<T>
 { }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                           new MetadataReference[] { Net451.mscorlib });
 
             var asm7 = c7.SourceAssembly();
 
@@ -2216,7 +2230,7 @@ namespace ns1
 }
 "
                                },
-                           new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib,
+                           new MetadataReference[] { Net451.mscorlib,
                                                            new CSharpCompilationReference(localC1_V1),
                                                            new CSharpCompilationReference(localC4_V1),
                                                            new CSharpCompilationReference(c7)
@@ -2237,7 +2251,7 @@ public class C5 :
 "
                                },
                            new MetadataReference[] {
-                                                           TestReferences.NetFx.v4_0_30319.mscorlib,
+                                                           Net451.mscorlib,
                                                            new CSharpCompilationReference(c3),
                                                            new CSharpCompilationReference(localC1_V2),
                                                            new CSharpCompilationReference(localC4_V2),
@@ -2270,7 +2284,7 @@ public class C5 :
 
             Assert.Same(retval1.OriginalDefinition, type2);
 
-            var args1 = retval1.ContainingType.TypeArguments.Concat(retval1.TypeArguments);
+            var args1 = retval1.ContainingType.TypeArguments().Concat(retval1.TypeArguments());
             var params1 = retval1.ContainingType.TypeParameters.Concat(retval1.TypeParameters);
 
             Assert.Same(params1[0], type1.TypeParameters[0]);
@@ -2295,7 +2309,7 @@ public class C5 :
             Assert.Same(retval3.OriginalDefinition, type6);
             Assert.Same(retval3.ContainingAssembly, asm5[1]);
 
-            var args3 = retval3.TypeArguments;
+            var args3 = retval3.TypeArguments();
             var params3 = retval3.TypeParameters;
 
             Assert.Same(params3[0], type6.TypeParameters[0]);
@@ -2369,7 +2383,7 @@ public class C5 :
             Assert.False(foo2.IsVirtual);
             Assert.True(foo2.ReturnsVoid);
             Assert.Equal(0, foo2.TypeParameters.Length);
-            Assert.Equal(0, foo2.TypeArguments.Length);
+            Assert.Equal(0, foo2.TypeArgumentsWithAnnotations.Length);
 
             Assert.True(bar.IsStatic);
             Assert.False(bar.ReturnsVoid);
@@ -2382,8 +2396,8 @@ public class C5 :
 
             var foo3TypeParams = foo3.TypeParameters;
             Assert.Equal(1, foo3TypeParams.Length);
-            Assert.Equal(1, foo3.TypeArguments.Length);
-            Assert.Same(foo3TypeParams[0], foo3.TypeArguments[0]);
+            Assert.Equal(1, foo3.TypeArgumentsWithAnnotations.Length);
+            Assert.Same(foo3TypeParams[0], foo3.TypeArgumentsWithAnnotations[0].Type);
 
             var typeC301 = type3.GetTypeMembers("C301").Single();
             var typeC302 = type3.GetTypeMembers("C302").Single();
@@ -2414,15 +2428,15 @@ public class C5 :
             Assert.Equal(0, type3.Arity);
             Assert.Equal(1, typeC6.Arity);
 
-            Assert.NotNull(type3.BaseType);
-            Assert.Equal("System.Object", type3.BaseType.ToTestDisplayString());
+            Assert.NotNull(type3.BaseType());
+            Assert.Equal("System.Object", type3.BaseType().ToTestDisplayString());
 
             Assert.Equal(Accessibility.Public, type3.DeclaredAccessibility);
             Assert.Equal(Accessibility.Internal, typeC302.DeclaredAccessibility);
 
-            Assert.Equal(0, type3.Interfaces.Length);
-            Assert.Equal(1, typeC301.Interfaces.Length);
-            Assert.Equal("I1", typeC301.Interfaces.Single().Name);
+            Assert.Equal(0, type3.Interfaces().Length);
+            Assert.Equal(1, typeC301.Interfaces().Length);
+            Assert.Equal("I1", typeC301.Interfaces().Single().Name);
 
             Assert.False(type3.IsAbstract);
             Assert.True(typeC301.IsAbstract);
@@ -2430,13 +2444,13 @@ public class C5 :
             Assert.False(type3.IsSealed);
             Assert.False(type3.IsStatic);
 
-            Assert.Equal(0, type3.TypeArguments.Length);
+            Assert.Equal(0, type3.TypeArguments().Length);
             Assert.Equal(0, type3.TypeParameters.Length);
 
             var localC6Params = typeC6.TypeParameters;
             Assert.Equal(1, localC6Params.Length);
-            Assert.Equal(1, typeC6.TypeArguments.Length);
-            Assert.Same(localC6Params[0], typeC6.TypeArguments[0]);
+            Assert.Equal(1, typeC6.TypeArguments().Length);
+            Assert.Same(localC6Params[0], typeC6.TypeArguments()[0]);
 
             Assert.Same(((RetargetingNamedTypeSymbol)type3).UnderlyingNamedType,
                 asm3.GlobalNamespace.GetTypeMembers("C3").Single());
@@ -2448,10 +2462,10 @@ public class C5 :
             var localC6_T = localC6Params[0];
             var foo3TypeParam = foo3TypeParams[0];
 
-            Assert.Equal(0, localC6_T.ConstraintTypes.Length);
+            Assert.Equal(0, localC6_T.ConstraintTypes().Length);
 
-            Assert.Equal(1, foo3TypeParam.ConstraintTypes.Length);
-            Assert.Same(type4, foo3TypeParam.ConstraintTypes.Single());
+            Assert.Equal(1, foo3TypeParam.ConstraintTypes().Length);
+            Assert.Same(type4, foo3TypeParam.ConstraintTypes().Single());
 
             Assert.Same(typeC6, localC6_T.ContainingSymbol);
             Assert.False(foo3TypeParam.HasConstructorConstraint);
@@ -2508,8 +2522,8 @@ public class C5 :
 
             var typeC5 = c5.Assembly.GlobalNamespace.GetTypeMembers("C5").Single();
 
-            Assert.Same(asm5[1], typeC5.BaseType.ContainingAssembly);
-            Assert.Equal("ns1.C304.C305", typeC5.BaseType.ToTestDisplayString());
+            Assert.Same(asm5[1], typeC5.BaseType().ContainingAssembly);
+            Assert.Equal("ns1.C304.C305", typeC5.BaseType().ToTestDisplayString());
             Assert.NotEqual(SymbolKind.ErrorType, typeC5.Kind);
         }
 
@@ -2531,10 +2545,9 @@ class Module1
     {}
 }
 ";
-            var tree = Parse(text);
-
-            var c1 = CreateCompilationWithMscorlib(tree, new MetadataReference[]
+            var c1 = CreateEmptyCompilation(text, new MetadataReference[]
             {
+                MscorlibRef,
                 TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                 TestReferences.SymbolsTests.V1.MTTestModule2.netmodule
             });
@@ -2543,7 +2556,7 @@ class Module1
 
             var c2 = CreateCompilation(c2_Name, null, new MetadataReference[]
             {
-                TestReferences.NetFx.v4_0_30319.mscorlib,
+                Net451.mscorlib,
                 TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                 new CSharpCompilationReference(c1)
             });
@@ -2597,9 +2610,9 @@ class Module1
         [Fact]
         public void AddRemoveReferences()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_30319.mscorlib;
-            var systemCoreRef = TestReferences.NetFx.v4_0_30319.System_Core;
-            var systemRef = TestReferences.NetFx.v4_0_30319.System;
+            var mscorlibRef = Net451.mscorlib;
+            var systemCoreRef = Net451.SystemCore;
+            var systemRef = Net451.System;
 
             CSharpCompilation c = CSharpCompilation.Create("Test");
             Assert.False(HasSingleTypeOfKind(c, TypeKind.Struct, "System.Int32"));
@@ -2660,10 +2673,10 @@ class Module1
         [Fact]
         public void CompilationWithReferenceDirectives()
         {
-            var data = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System_Data).Path;
-            var core = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System_Core).Path;
-            var xml = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System_Xml).Path;
-            var system = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
+            var data = Temp.CreateFile().WriteAllBytes(ResourcesNet451.SystemData).Path;
+            var core = Temp.CreateFile().WriteAllBytes(ResourcesNet451.SystemCore).Path;
+            var xml = Temp.CreateFile().WriteAllBytes(ResourcesNet451.SystemXml).Path;
+            var system = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             var trees = new[]
             {
@@ -2705,9 +2718,9 @@ System.Diagnostics.Process.GetCurrentProcess();
         [Fact]
         public void CompilationWithReferenceDirectives_Errors()
         {
-            var data = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System_Data).Path;
-            var core = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System_Core).Path;
-            var system = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
+            var data = Temp.CreateFile().WriteAllBytes(ResourcesNet451.SystemData).Path;
+            var core = Temp.CreateFile().WriteAllBytes(ResourcesNet451.SystemCore).Path;
+            var system = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
 
             var trees = new[] {
                     SyntaxFactory.ParseSyntaxTree(@"
@@ -2717,7 +2730,7 @@ System.Diagnostics.Process.GetCurrentProcess();
 ", options: TestOptions.Script),
                 SyntaxFactory.ParseSyntaxTree(@"
 #r ""System.Core""
-")
+", TestOptions.Regular)
                 };
 
             var compilation = CreateCompilationWithMscorlib45(
@@ -2761,7 +2774,6 @@ System.Diagnostics.Process.GetCurrentProcess();
             var csInterfaces01 = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01).Path;
 
             var source = @"
-#r """ + typeof(object).Assembly.Location + @"""
 #r """ + "!@#$%^/&*-resolve" + @"""
 #r """ + csInterfaces01 + @"""
 class C : Metadata.ICSPropImpl { }";
@@ -2800,7 +2812,7 @@ class C
 { 
     void Foo() { Console.WriteLine(3); }
 }
-")
+", TestOptions.Regular)
             };
 
             var compilation = CreateCompilationWithMscorlib45(
@@ -2956,10 +2968,10 @@ Console.WriteLine(2);
             var source1 = "public class C1 { }";
             var source2 = "public class C2 { }";
 
-            var lib1 = CreateCompilationWithMscorlib(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
+            var lib1 = CreateCompilation(source1, assemblyName: "Lib1", options: TestOptions.ReleaseModule);
             var ref1 = lib1.EmitToImageReference(); // NOTE: can't use a compilation reference for a module.
 
-            var lib2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "Lib2");
+            var lib2 = CreateCompilation(source2, new[] { ref1 }, assemblyName: "Lib2");
             lib2.VerifyDiagnostics();
 
             var sourceAssembly = lib2.Assembly;

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
@@ -19,6 +22,13 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
     [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Host), Shared]
     internal class VisualStudioProjectManagementService : ForegroundThreadAffinitizedObject, IProjectManagementService
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioProjectManagementService(IThreadingContext threadingContext)
+            : base(threadingContext)
+        {
+        }
+
         public string GetDefaultNamespace(Microsoft.CodeAnalysis.Project project, Workspace workspace)
         {
             this.AssertIsForeground();
@@ -28,16 +38,12 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
                 return "";
             }
 
-            IVisualStudioHostProject ivisualStudioHostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project envDTEProject;
-
-            var folders = new List<string>();
             var defaultNamespace = "";
 
-            if (workspace is VisualStudioWorkspaceImpl)
+            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                ((VisualStudioWorkspaceImpl)workspace).GetProjectData(project.Id, out ivisualStudioHostProject, out hierarchy, out envDTEProject);
+                vsWorkspace.GetProjectData(project.Id,
+                    out _, out var envDTEProject);
 
                 try
                 {
@@ -54,15 +60,12 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
 
         public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
         {
-            IVisualStudioHostProject ivisualStudioHostProject;
-            IVsHierarchy hierarchy;
-            EnvDTE.Project envDTEProject;
-
             var folders = new List<string>();
 
-            if (workspace is VisualStudioWorkspaceImpl)
+            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                ((VisualStudioWorkspaceImpl)workspace).GetProjectData(projectId, out ivisualStudioHostProject, out hierarchy, out envDTEProject);
+                vsWorkspace.GetProjectData(projectId,
+                    out var hierarchy, out var envDTEProject);
 
                 var projectItems = envDTEProject.ProjectItems;
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Xunit;
 
@@ -68,8 +72,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reader = new XmlDocumentationCommentTextReader();
 
             Assert.Null(reader.ParseInternal("<a>aaa</a>"));
-            Assert.Null(reader.ParseInternal("<a><b x='foo'></b></a>"));
-            Assert.NotNull(reader.ParseInternal("<a><b x='foo'></a>"));
+            Assert.Null(reader.ParseInternal("<a><b x='goo'></b></a>"));
+            Assert.NotNull(reader.ParseInternal("<a><b x='goo'></a>"));
             Assert.NotNull(reader.ParseInternal("<a>/a>"));
             Assert.NotNull(reader.ParseInternal("<a>"));
             Assert.Null(reader.ParseInternal("<a></a>"));

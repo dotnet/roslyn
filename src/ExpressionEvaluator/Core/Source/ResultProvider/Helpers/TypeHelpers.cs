@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +33,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Type declaredType,
             DkmClrAppDomain appDomain,
             bool includeInherited,
-            bool hideNonPublic)
+            bool hideNonPublic,
+            bool isProxyType,
+            bool includeCompilerGenerated,
+            bool supportsFavorites,
+            DkmClrObjectFavoritesInfo favoritesInfo)
         {
             Debug.Assert(!type.IsInterface);
 
@@ -48,6 +56,32 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // Get the state from DebuggerBrowsableAttributes for the members of the current type.
                 var browsableState = DkmClrType.Create(appDomain, type).GetDebuggerBrowsableAttributeState();
 
+                // Disable favorites if any of the members have a browsable state of RootHidden
+                if (supportsFavorites && browsableState != null)
+                {
+                    foreach (var browsableStateValue in browsableState.Values)
+                    {
+                        if (browsableStateValue == DkmClrDebuggerBrowsableAttributeState.RootHidden)
+                        {
+                            supportsFavorites = false;
+                            break;
+                        }
+                    }
+                }
+
+                // Get the favorites information if it is supported.
+                // NOTE: Using a Dictionary since Hashset is not available in .net 2.0
+                Dictionary<string, object> favoritesMemberNames = null;
+                if (supportsFavorites && favoritesInfo?.Favorites != null)
+                {
+                    favoritesMemberNames = new Dictionary<string, object>(favoritesInfo.Favorites.Count);
+
+                    foreach (var favorite in favoritesInfo.Favorites)
+                    {
+                        favoritesMemberNames.Add(favorite, null);
+                    }
+                }
+
                 // Hide non-public members if hideNonPublic is specified (intended to reflect the
                 // DkmInspectionContext's DkmEvaluationFlags), and the type is from an assembly
                 // with no symbols.
@@ -64,12 +98,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
-                    if (!predicate(member))
+                    var memberName = member.Name;
+                    if (!includeCompilerGenerated && memberName.IsCompilerGenerated())
                     {
                         continue;
                     }
 
-                    var memberName = member.Name;
+                    // The native EE shows proxy members regardless of accessibility if they have a
+                    // DebuggerBrowsable attribute of any value. Match that behaviour here.
+                    if (!isProxyType || browsableState == null || !browsableState.ContainsKey(memberName))
+                    {
+                        if (!predicate(member))
+                        {
+                            continue;
+                        }
+                    }
+
                     // This represents information about the immediately preceding (more derived)
                     // declaration with the same name as the current member.
                     var previousDeclaration = DeclarationInfo.None;
@@ -125,7 +169,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                         previousDeclaration |= hideNonPublicBehavior;
 
-                        includedMembers.Add(new MemberAndDeclarationInfo(member, browsableStateValue, previousDeclaration, inheritanceLevel));
+                        includedMembers.Add(
+                            new MemberAndDeclarationInfo(
+                                member,
+                                browsableStateValue,
+                                previousDeclaration,
+                                inheritanceLevel,
+                                canFavorite: supportsFavorites,
+                                isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true));
                     }
                 }
 
@@ -260,6 +311,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return type.IsMscorlibType("System.Collections", "IEnumerable");
         }
 
+        internal static bool IsIntPtr(this Type type)
+            => type.IsMscorlibType("System", "IntPtr");
+
+        internal static bool IsUIntPtr(this Type type)
+            => type.IsMscorlibType("System", "UIntPtr");
+
         internal static bool IsIEnumerableOfT(this Type type)
         {
             return type.IsMscorlibType("System.Collections.Generic", "IEnumerable`1");
@@ -324,6 +381,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null, InspectionContext: inspectionContext);
         }
 
+        internal static DkmClrValue GetPropertyValue(this DkmClrValue value, string name, DkmInspectionContext inspectionContext)
+        {
+            return value.GetMemberValue(name, (int)MemberTypes.Property, ParentTypeName: null, InspectionContext: inspectionContext);
+        }
+
         internal static DkmClrValue GetNullableValue(this DkmClrValue value, Type nullableTypeArg, DkmInspectionContext inspectionContext)
         {
             var valueType = value.Type.GetLmrType();
@@ -347,6 +409,99 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return value.GetFieldValue(InternalWellKnownMemberNames.NullableValue, inspectionContext);
         }
 
+        internal const int TupleFieldRestPosition = 8;
+        private const string TupleTypeNamePrefix = "ValueTuple`";
+        private const string TupleFieldItemNamePrefix = "Item";
+        internal const string TupleFieldRestName = "Rest";
+
+        // See NamedTypeSymbol.IsTupleCompatible.
+        internal static bool IsTupleCompatible(this Type type, out int cardinality)
+        {
+            if (type.IsGenericType &&
+                AreNamesEqual(type.Namespace, "System") &&
+                type.Name.StartsWith(TupleTypeNamePrefix, StringComparison.Ordinal))
+            {
+                var typeArguments = type.GetGenericArguments();
+                int n = typeArguments.Length;
+                if ((n > 0) && (n <= TupleFieldRestPosition))
+                {
+                    if (!AreNamesEqual(type.Name, TupleTypeNamePrefix + n))
+                    {
+                        cardinality = 0;
+                        return false;
+                    }
+
+                    if (n < TupleFieldRestPosition)
+                    {
+                        cardinality = n;
+                        return true;
+                    }
+
+                    var restType = typeArguments[n - 1];
+                    int restCardinality;
+                    if (restType.IsTupleCompatible(out restCardinality))
+                    {
+                        cardinality = n - 1 + restCardinality;
+                        return true;
+                    }
+                }
+            }
+
+            cardinality = 0;
+            return false;
+        }
+
+        // Returns cardinality if tuple type, otherwise 0.
+        internal static int GetTupleCardinalityIfAny(this Type type)
+        {
+            int cardinality;
+            type.IsTupleCompatible(out cardinality);
+            return cardinality;
+        }
+
+        internal static FieldInfo GetTupleField(this Type type, string name)
+        {
+            return type.GetField(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        }
+
+        internal static string GetTupleFieldName(int index)
+        {
+            Debug.Assert(index >= 0);
+            return TupleFieldItemNamePrefix + (index + 1);
+        }
+
+        internal static bool TryGetTupleFieldValues(this DkmClrValue tuple, int cardinality, ArrayBuilder<string> values, DkmInspectionContext inspectionContext)
+        {
+            while (true)
+            {
+                var type = tuple.Type.GetLmrType();
+                int n = Math.Min(cardinality, TupleFieldRestPosition - 1);
+                for (int index = 0; index < n; index++)
+                {
+                    var fieldName = GetTupleFieldName(index);
+                    var fieldInfo = type.GetTupleField(fieldName);
+                    if (fieldInfo == null)
+                    {
+                        return false;
+                    }
+                    var value = tuple.GetFieldValue(fieldName, inspectionContext);
+                    var str = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
+                    values.Add(str);
+                }
+                cardinality -= n;
+                if (cardinality == 0)
+                {
+                    return true;
+                }
+                var restInfo = type.GetTupleField(TypeHelpers.TupleFieldRestName);
+                if (restInfo == null)
+                {
+                    return false;
+                }
+                tuple = tuple.GetFieldValue(TupleFieldRestName, inspectionContext);
+            }
+        }
+
         internal static Type GetBaseTypeOrNull(this Type underlyingType, DkmClrAppDomain appDomain, out DkmClrType type)
         {
             Debug.Assert((underlyingType.BaseType != null) || underlyingType.IsPointer || underlyingType.IsArray, "BaseType should only return null if the underlyingType is a pointer or array.");
@@ -358,7 +513,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes"/> (including inherited attributes)
+        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes()"/> (including inherited attributes)
         /// that is of type T, as well as the type that it targeted.
         /// </summary>
         internal static bool TryGetEvalAttribute<T>(this DkmClrType type, out DkmClrType attributeTarget, out T evalAttribute)
@@ -406,7 +561,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     result = new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
                 }
-                result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
+
+                // There can be multiple same attributes for derived classes.
+                // Debugger provides attributes starting from derived classes and then up to base ones.
+                // We should use derived attributes if there is more than one instance.
+                if (!result.ContainsKey(browsableAttribute.TargetMember))
+                {
+                    result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
+                }
             }
             return result;
         }
@@ -416,7 +578,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         internal static bool TryGetDebuggerDisplayInfo(this DkmClrValue value, out DebuggerDisplayInfo displayInfo)
         {
-            displayInfo = default(DebuggerDisplayInfo);
+            displayInfo = null;
 
             // The native EE does not consider DebuggerDisplayAttribute
             // on null or error instances.
@@ -426,16 +588,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var clrType = value.Type;
+            displayInfo = new DebuggerDisplayInfo(clrType);
+
+            DkmClrObjectFavoritesInfo favoritesInfo = clrType.GetFavorites();
+            if (favoritesInfo != null)
+            {
+                displayInfo = displayInfo.WithFavoritesInfo(favoritesInfo);
+            }
 
             DkmClrType attributeTarget;
             DkmClrDebuggerDisplayAttribute attribute;
             if (clrType.TryGetEvalAttribute(out attributeTarget, out attribute)) // First, as in dev12.
             {
-                displayInfo = new DebuggerDisplayInfo(attributeTarget, attribute);
-                return true;
+                displayInfo = displayInfo.WithDebuggerDisplayAttribute(attribute, attributeTarget);
             }
 
-            return false;
+            return displayInfo.HasValues;
         }
 
         /// <summary>
@@ -648,8 +816,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             Debug.Assert((@namespace == null) || (@namespace.Length > 0)); // Type.Namespace is null not empty.
             Debug.Assert(!string.IsNullOrEmpty(name));
-            return string.Equals(type.Namespace, @namespace, StringComparison.Ordinal) &&
-                string.Equals(type.Name, name, StringComparison.Ordinal);
+            return AreNamesEqual(type.Namespace, @namespace) &&
+                AreNamesEqual(type.Name, name);
+        }
+
+        private static bool AreNamesEqual(string nameA, string nameB)
+        {
+            return string.Equals(nameA, nameB, StringComparison.Ordinal);
         }
 
         internal static MemberInfo GetOriginalDefinition(this MemberInfo member)
@@ -669,7 +842,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             foreach (var candidate in declaringTypeOriginalDefinition.GetMember(member.Name, MemberBindingFlags))
             {
                 var memberType = candidate.MemberType;
-                if (memberType != member.MemberType) continue;
+                if (memberType != member.MemberType)
+                    continue;
 
                 switch (memberType)
                 {
@@ -711,7 +885,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var members = type.GetLmrType().GetMember(name, TypeHelpers.MemberBindingFlags);
             Debug.Assert(members.Length == 1);
-            return new MemberAndDeclarationInfo(members[0], browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0);
+            return new MemberAndDeclarationInfo(members[0], browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0, canFavorite: false, isFavorite: false);
         }
     }
 }

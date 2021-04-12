@@ -1,77 +1,56 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Cci = Microsoft.Cci;
 
+#if !DEBUG
+using PropertySymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedProperty : EmbeddedTypesManager.CommonEmbeddedProperty
     {
-        public EmbeddedProperty(PropertySymbol underlyingProperty, EmbeddedMethod getter, EmbeddedMethod setter) :
+        public EmbeddedProperty(PropertySymbolAdapter underlyingProperty, EmbeddedMethod getter, EmbeddedMethod setter) :
             base(underlyingProperty, getter, setter)
         {
         }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingProperty.GetCustomAttributesToEmit(compilationState);
+            return UnderlyingProperty.AdaptedPropertySymbol.GetCustomAttributesToEmit(moduleBuilder);
         }
 
         protected override ImmutableArray<EmbeddedParameter> GetParameters()
         {
-            return EmbeddedTypesManager.EmbedParameters(this, UnderlyingProperty.Parameters);
+            return EmbeddedTypesManager.EmbedParameters(this, UnderlyingProperty.AdaptedPropertySymbol.Parameters);
         }
 
         protected override bool IsRuntimeSpecial
         {
-            get { return UnderlyingProperty.HasRuntimeSpecialName; }
+            get { return UnderlyingProperty.AdaptedPropertySymbol.HasRuntimeSpecialName; }
         }
 
         protected override bool IsSpecialName
         {
             get
             {
-                return UnderlyingProperty.HasSpecialName;
+                return UnderlyingProperty.AdaptedPropertySymbol.HasSpecialName;
             }
         }
 
-        protected override Cci.CallingConvention CallingConvention
+        protected override Cci.ISignature UnderlyingPropertySignature
         {
             get
             {
-                return UnderlyingProperty.CallingConvention;
+                return (Cci.ISignature)UnderlyingProperty;
             }
-        }
-
-        protected override bool ReturnValueIsModified
-        {
-            get
-            {
-                return UnderlyingProperty.TypeCustomModifiers.Length != 0;
-            }
-        }
-
-        protected override ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers
-        {
-            get
-            {
-                return UnderlyingProperty.TypeCustomModifiers.As<Cci.ICustomModifier>();
-            }
-        }
-
-        protected override bool ReturnValueIsByRef
-        {
-            get
-            {
-                return UnderlyingProperty.RefKind == RefKind.Ref;
-            }
-        }
-
-        protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
-        {
-            return moduleBuilder.Translate(UnderlyingProperty.Type, syntaxNodeOpt, diagnostics);
         }
 
         protected override EmbeddedType ContainingType
@@ -83,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return PEModuleBuilder.MemberVisibility(UnderlyingProperty);
+                return PEModuleBuilder.MemberVisibility(UnderlyingProperty.AdaptedPropertySymbol);
             }
         }
 
@@ -91,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingProperty.MetadataName;
+                return UnderlyingProperty.AdaptedPropertySymbol.MetadataName;
             }
         }
     }

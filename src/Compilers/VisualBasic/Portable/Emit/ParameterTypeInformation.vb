@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
@@ -28,9 +30,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private ReadOnly Property IParameterTypeInformationCountOfCustomModifiersPrecedingByRef As UShort Implements Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
+        Private ReadOnly Property IParameterTypeInformationRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.IParameterTypeInformation.RefCustomModifiers
             Get
-                Return _underlyingParameter.CountOfCustomModifiersPrecedingByRef
+                Return _underlyingParameter.RefCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
@@ -45,5 +47,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return CType(_underlyingParameter.Ordinal, UShort)
             End Get
         End Property
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
     End Class
 End Namespace

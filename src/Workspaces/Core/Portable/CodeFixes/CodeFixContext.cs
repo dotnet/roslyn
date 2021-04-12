@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,14 +9,13 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Context for code fixes provided by an <see cref="CodeFixProvider"/>.
+    /// Context for code fixes provided by a <see cref="CodeFixProvider"/>.
     /// </summary>
-    public struct CodeFixContext
+    public struct CodeFixContext : ITypeScriptCodeFixContext
     {
         private readonly Document _document;
         private readonly Project _project;
@@ -26,28 +27,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Document corresponding to the <see cref="CodeFixContext.Span"/> to fix.
         /// </summary>
-        public Document Document { get { return _document; } }
+        public Document Document => _document;
 
         /// <summary>
         /// Project corresponding to the diagnostics to fix.
         /// </summary>
-        internal Project Project { get { return _project; } }
+        internal Project Project => _project;
 
         /// <summary>
         /// Text span within the <see cref="CodeFixContext.Document"/> to fix.
         /// </summary>
-        public TextSpan Span { get { return _span; } }
+        public TextSpan Span => _span;
 
         /// <summary>
         /// Diagnostics to fix.
         /// NOTE: All the diagnostics in this collection have the same <see cref="CodeFixContext.Span"/>.
         /// </summary>
-        public ImmutableArray<Diagnostic> Diagnostics { get { return _diagnostics; } }
+        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
 
         /// <summary>
         /// CancellationToken.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
+
+        private readonly bool _isBlocking;
+        bool ITypeScriptCodeFixContext.IsBlocking => _isBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -103,16 +107,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
             CancellationToken cancellationToken)
-            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, cancellationToken)
+            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, isBlocking: false, cancellationToken)
         {
         }
 
         internal CodeFixContext(
-            Project project,
+            Document document,
+            TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            bool verifyArguments,
+            bool isBlocking,
             CancellationToken cancellationToken)
-            : this(document: null, project: project, span: default(TextSpan), diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
+            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, isBlocking, cancellationToken)
         {
         }
 
@@ -123,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             if (verifyArguments)
@@ -146,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _diagnostics = diagnostics;
             _registerCodeFix = registerCodeFix;
             _cancellationToken = cancellationToken;
+
+            _isBlocking = isBlocking;
         }
 
         internal CodeFixContext(
@@ -224,18 +234,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (diagnostics.Length == 0)
             {
-                throw new ArgumentException(WorkspacesResources.DiagnosticsCannotBeEmpty, nameof(diagnostics));
+                throw new ArgumentException(WorkspacesResources.At_least_one_diagnostic_must_be_supplied, nameof(diagnostics));
             }
 
             if (diagnostics.Any(d => d == null))
             {
-                throw new ArgumentException(WorkspacesResources.DiagnosticCannotBeNull, nameof(diagnostics));
+                throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
             }
 
             if (diagnostics.Any(d => d.Location.SourceSpan != span))
             {
-                throw new ArgumentException(string.Format(WorkspacesResources.DiagnosticMustHaveMatchingSpan, span.ToString()), nameof(diagnostics));
+                throw new ArgumentException(string.Format(WorkspacesResources.Diagnostic_must_have_span_0, span.ToString()), nameof(diagnostics));
             }
         }
+    }
+
+    internal interface ITypeScriptCodeFixContext
+    {
+        bool IsBlocking { get; }
     }
 }

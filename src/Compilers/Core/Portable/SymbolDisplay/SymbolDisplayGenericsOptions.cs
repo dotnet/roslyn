@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Includes the type parameters. 
-        /// For example, "Foo&lt;T&gt;" in C# or "Foo(Of T)" in Visual Basic.
+        /// For example, "Goo&lt;T&gt;" in C# or "Goo(Of T)" in Visual Basic.
         /// </summary>
         IncludeTypeParameters = 1 << 0,
 
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Includes <c>in</c> or <c>out</c> keywords before variant type parameters.
-        /// For example, "Foo&lt;out T&gt;" in C# or (Foo Of Out T" in Visual Basic.
+        /// For example, "Goo&lt;out T&gt;" in C# or (Goo Of Out T" in Visual Basic.
         /// </summary>
         IncludeVariance = 1 << 2,
     }

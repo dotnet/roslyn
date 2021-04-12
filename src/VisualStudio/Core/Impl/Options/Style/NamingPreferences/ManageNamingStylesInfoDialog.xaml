@@ -1,0 +1,209 @@
+﻿<vs:DialogWindow x:Uid="NamingStyle"
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences.ManageNamingStylesInfoDialog"
+             x:ClassModifier="internal"
+             x:Name="dialog"
+             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:s="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="300"
+             Height="400" Width="300"
+             MinHeight="400" MinWidth="300"
+             Title="{Binding DialogTitle}"
+             HasHelpButton="False"
+             ResizeMode="CanResizeWithGrip"
+             ShowInTaskbar="False"
+             HasDialogFrame="True"
+             WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <vs:NegateBooleanConverter x:Key="NegateBooleanConverter"/>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="IsTabStop" 
+                    Value="False" />
+        </Style>
+        <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+    </Window.Resources>
+    <Grid Margin="5,6,11,11">
+        <Grid.Resources>
+            <Style x:Key="DataGridStyle" TargetType="DataGrid">
+                <Setter Property="CellStyle">
+                    <Setter.Value>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="1" />
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Thickness x:Key="cellPadding">8 0 8 0</Thickness>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <DataGrid
+            Grid.Row="0"
+            Grid.ColumnSpan="4"
+            x:Uid="NamingStylesInfo"
+            x:Name="NamingStylesInfo"
+            AutomationProperties.Name="{Binding DialogTitle}"
+            Margin="0,5,0,0"
+            ItemsSource="{Binding Items, Mode=OneWay}"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            CanUserSortColumns="False"
+            CanUserAddRows="False"
+            CanUserDeleteRows="False"
+            CanUserResizeRows="False"
+            CanUserResizeColumns="False"
+            IsReadOnly="True"
+            BorderThickness="1"
+            BorderBrush="Gray"
+            RowHeaderWidth="0"
+            GridLinesVisibility="None"
+            VerticalAlignment="Stretch"
+            SelectionMode="Single"
+            SelectionUnit="FullRow"
+            HorizontalAlignment="Stretch"
+            HeadersVisibility="None"
+            Style="{StaticResource ResourceKey=DataGridStyle}">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="MinHeight" Value="26"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="IsTabStop" Value="False"/>
+                </Style>
+            </DataGrid.CellStyle>
+            <DataGrid.Resources>
+                <Style x:Key="GroupHeaderStyle" TargetType="{x:Type GroupItem}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type GroupItem}">
+                                <StackPanel>
+                                    <TextBlock Margin="5" Text="{Binding Name}"/>
+                                    <ItemsPresenter/>
+                                </StackPanel>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <Style x:Key="DataGridCellStyle" TargetType="{x:Type DataGridCell}">
+                    <Setter Property="IsTabStop" Value="False"/>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.GroupStyle>
+                <GroupStyle ContainerStyle="{StaticResource GroupHeaderStyle}">
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <DataGridRowsPresenter/>
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn 
+                    x:Name="ItemName" 
+                    Width="3*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding ItemName}" Margin="5" Focusable="True"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn
+                    x:Name="Edit"
+                    Width="30">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Click="EditButton_Click" Height="Auto" Width="Auto" Margin="5, 0, 0, 0"
+                                    AutomationProperties.Name="{Binding ElementName=dialog, Path=EditButtonAutomationText}"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <imaging:CrispImage 
+                                    Moniker="{x:Static imagecatalog:KnownMonikers.Edit}"
+                                    Height="16" 
+                                    Width="16" />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn
+                    x:Name="Delete"
+                    Width="30">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Click="RemoveButton_Click"  Height="Auto" Width="Auto" Margin="5, 0, 0, 0"
+                                    AutomationProperties.Name="{Binding ElementName=dialog, Path=RemoveButtonAutomationText}"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    IsEnabled="{Binding CanBeDeleted}"
+                                    ToolTip="{Binding ElementName=dialog, Path=CannotBeDeletedExplanation}"
+                                    ToolTipService.IsEnabled="{Binding Path=IsEnabled, RelativeSource={RelativeSource Self}, Converter={StaticResource NegateBooleanConverter}}"
+                                    ToolTipService.ShowOnDisabled="True">
+                                <imaging:CrispImage
+                                    Moniker="{x:Static imagecatalog:KnownMonikers.DeleteListItem}"
+                                    Grayscale="{Binding CanBeDeleted, Converter={StaticResource NegateBooleanConverter}}"
+                                    Height="16" 
+                                    Width="16"/>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Button Name="AddButton" 
+                       Grid.Row="1"
+                        DockPanel.Dock="Left"
+                        Click="AddButton_Click" 
+                        AutomationProperties.Name="{Binding ElementName=dialog, Path=AddItemAutomationText}"
+                        AutomationProperties.AutomationId="Add"
+                        Height="24" Width="24" 
+                        Margin="0 7 0 0">
+            <imaging:CrispImage Name="AddButtonImage"
+                                        Height="16" 
+                                        Width="16"
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.Add}" />
+        </Button>
+        <vs:DialogButton x:Uid="OkButton" 
+                         Grid.Row="1"
+                         Grid.Column="2"
+                         Click="OK_Click"
+                         Content="{Binding ElementName=dialog, Path=OK}" 
+                         Margin="0, 7, 0, 0" 
+                         Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                         IsDefault="True"
+                         MinWidth="73"
+                         MinHeight="21"/>
+        <vs:DialogButton x:Uid="CancelButton" 
+                         Grid.Row="1"
+                         Grid.Column="3"
+                         Click="Cancel_Click"
+                         Content="{Binding ElementName=dialog, Path=Cancel}" 
+                         Margin="7, 7, 0, 0" 
+                         Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                         IsCancel="True"
+                         MinWidth="73"
+                         MinHeight="21"/>
+    </Grid>
+</vs:DialogWindow>

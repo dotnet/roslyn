@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
@@ -167,8 +169,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             codeElement.RemoveInterface(element)
         End Sub
 
-        Protected Async Function TestGetBaseName(code As XElement, expectedBaseName As String) As Task
-            Await TestElement(code,
+        Protected Sub TestGetBaseName(code As XElement, expectedBaseName As String)
+            TestElement(code,
                 Sub(codeClass)
                     Dim codeClassBase = TryCast(codeClass, ICodeClassBase)
                     Assert.NotNull(codeClassBase)
@@ -179,6 +181,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                     Assert.Equal(expectedBaseName, baseName)
                 End Sub)
-        End Function
+        End Sub
     End Class
 End Namespace

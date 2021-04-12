@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,25 +10,11 @@ namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayExtensions
     {
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T> items)
-        {
-            if (items == null)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            return ImmutableArray.CreateRange<T>(items);
-        }
+        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T>? items)
+            => items == null ? ImmutableArray<T>.Empty : ImmutableArray.CreateRange(items);
 
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
-        {
-            if (items.IsDefault)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            return items;
-        }
+            => items.IsDefault ? ImmutableArray<T>.Empty : items;
 
         // same as Array.BinarySearch but the ability to pass arbitrary value to the comparer without allocation
         internal static int BinarySearch<TElement, TValue>(this ImmutableArray<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
@@ -55,6 +43,11 @@ namespace Roslyn.Utilities
             }
 
             return ~low;
+        }
+
+        internal static ImmutableArray<TDerived> CastDown<TOriginal, TDerived>(this ImmutableArray<TOriginal> array) where TDerived : class, TOriginal
+        {
+            return array.CastArray<TDerived>();
         }
     }
 }

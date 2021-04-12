@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -15,21 +19,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #region Verifiers
         internal static void PointerNameVerification(ExpressionSyntax nameTree, string name)
         {
-            Assert.IsType(typeof(PointerTypeSyntax), nameTree);
+            Assert.IsType<PointerTypeSyntax>(nameTree);
             var pointerName = nameTree as PointerTypeSyntax;
             Assert.Equal(pointerName.ElementType.ToString(), name);
         }
 
         internal static void PredefinedNameVerification(ExpressionSyntax nameTree, string typeName)
         {
-            Assert.IsType(typeof(PredefinedTypeSyntax), nameTree);
+            Assert.IsType<PredefinedTypeSyntax>(nameTree);
             var predefName = nameTree as PredefinedTypeSyntax;
             Assert.Equal(predefName.ToString(), typeName);
         }
 
         internal static void ArrayNameVerification(ExpressionSyntax nameTree, string arrayName, int numRanks)
         {
-            Assert.IsType(typeof(ArrayTypeSyntax), nameTree);
+            Assert.IsType<ArrayTypeSyntax>(nameTree);
             var arrayType = nameTree as ArrayTypeSyntax;
             Assert.Equal(arrayType.ElementType.ToString(), arrayName);
             Assert.Equal(arrayType.RankSpecifiers.Count(), numRanks);
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static void AliasedNameVerification(ExpressionSyntax nameTree, string alias, string name)
         {
             // Verification of the change
-            Assert.IsType(typeof(AliasQualifiedNameSyntax), nameTree);
+            Assert.IsType<AliasQualifiedNameSyntax>(nameTree);
             var aliasName = nameTree as AliasQualifiedNameSyntax;
             Assert.Equal(aliasName.Alias.ToString(), alias);
             Assert.Equal(aliasName.Name.ToString(), name);
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static void DottedNameVerification(ExpressionSyntax nameTree, string left, string right)
         {
             // Verification of the change
-            Assert.IsType(typeof(QualifiedNameSyntax), nameTree);
+            Assert.IsType<QualifiedNameSyntax>(nameTree);
             var dottedName = nameTree as QualifiedNameSyntax;
             Assert.Equal(dottedName.Left.ToString(), left);
             Assert.Equal(dottedName.Right.ToString(), right);
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static void GenericNameVerification(ExpressionSyntax nameTree, string name, params string[] typeNames)
         {
             // Verification of the change
-            Assert.IsType(typeof(GenericNameSyntax), nameTree);
+            Assert.IsType<GenericNameSyntax>(nameTree);
             var genericName = nameTree as GenericNameSyntax;
             Assert.Equal(genericName.Identifier.ToString(), name);
             Assert.Equal(genericName.TypeArgumentList.Arguments.Count, typeNames.Count());
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static void BasicNameVerification(ExpressionSyntax nameTree, string name)
         {
             // Verification of the change
-            Assert.IsType(typeof(IdentifierNameSyntax), nameTree);
+            Assert.IsType<IdentifierNameSyntax>(nameTree);
             var genericName = nameTree as IdentifierNameSyntax;
             Assert.Equal(genericName.ToString(), name);
         }

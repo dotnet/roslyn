@@ -1,8 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -11,13 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public class DocCommentFormatterTests
     {
-        private CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
-        private VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
+        private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
+        private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
 
         private void TestFormat(string docCommentXmlFragment, string expected)
-        {
-            TestFormat(docCommentXmlFragment, expected, expected);
-        }
+            => TestFormat(docCommentXmlFragment, expected, expected);
 
         private void TestFormat(string docCommentXmlFragment, string expectedCSharp, string expectedVB)
         {
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var comment = "<summary>This is a summary.</summary>";
 
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     This is a summary.";
 
             TestFormat(comment, expected);
@@ -48,7 +51,7 @@ $@"{FeaturesResources.Summary}
             var comment = "<summary>I am the very model of a modern major general. This is a very long comment. And getting longer by the minute.</summary>";
 
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     I am the very model of a modern major general. This is a very long comment. And
     getting longer by the minute.";
 
@@ -60,7 +63,7 @@ $@"{FeaturesResources.Summary}
         {
             var comment = "<summary>I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe minute.</summary>";
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     I amtheverymodelofamodernmajorgeneral.Thisisaverylongcomment.Andgettinglongerbythe
     minute.";
 
@@ -73,7 +76,7 @@ $@"{FeaturesResources.Summary}
             var comment = @"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>";
 
             var expected =
-$@"{FeaturesResources.Exceptions}
+$@"{FeaturesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException";
 
@@ -89,7 +92,7 @@ $@"{FeaturesResources.Exceptions}
 <exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>";
 
             var expected =
-$@"{FeaturesResources.Exceptions}
+$@"{FeaturesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException
 
@@ -109,7 +112,7 @@ $@"{FeaturesResources.Exceptions}
 <exception cref=""T:System.NotImplementedException"">also throws NotImplementedException for reason Y</exception>";
 
             var expected =
-$@"{FeaturesResources.Exceptions}
+$@"{FeaturesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException for reason X
 
@@ -128,8 +131,20 @@ $@"{FeaturesResources.Exceptions}
             var comment = @"<returns>A string is returned</returns>";
 
             var expected =
-$@"{FeaturesResources.Returns}
+$@"{FeaturesResources.Returns_colon}
     A string is returned";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public void Value()
+        {
+            var comment = @"<value>A string value</value>";
+
+            var expected =
+$@"{FeaturesResources.Value_colon}
+    A string value";
 
             TestFormat(comment, expected);
         }
@@ -143,10 +158,10 @@ $@"{FeaturesResources.Returns}
 <param name=""b"">The param named 'b'</param>";
 
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     This is the summary.
 
-{FeaturesResources.Parameters}
+{FeaturesResources.Parameters_colon}
   a:
     The param named 'a'
 
@@ -164,7 +179,7 @@ $@"{FeaturesResources.Summary}
 <typeparam name=""U"">The type param named 'U'</typeparam>";
 
             var expected =
-$@"{FeaturesResources.TypeParameters}
+$@"{FeaturesResources.Type_parameters_colon}
   T:
     The type param named 'T'
 
@@ -188,16 +203,17 @@ This is a summary of something.
 <typeparam name=""U""></typeparam>
 <typeparam name=""V"">Another type parameter.</typeparam>
 <returns>This returns nothing.</returns>
-<exception cref=""System.FooException"">Thrown for an unknown reason</exception>
+<value>This has no value.</value>
+<exception cref=""System.GooException"">Thrown for an unknown reason</exception>
 <exception cref=""System.BarException""></exception>
 <exception cref=""System.BlahException"">Thrown when blah blah blah</exception>
 <remarks>This doc comment is really not very remarkable.</remarks>";
 
             var expected =
-$@"{FeaturesResources.Summary}
+$@"{FeaturesResources.Summary_colon}
     This is a summary of something.
 
-{FeaturesResources.Parameters}
+{FeaturesResources.Parameters_colon}
   a:
     The param named 'a'.
 
@@ -206,7 +222,7 @@ $@"{FeaturesResources.Summary}
   c:
     The param named 'c'.
 
-{FeaturesResources.TypeParameters}
+{FeaturesResources.Type_parameters_colon}
   T:
     A type parameter.
 
@@ -215,11 +231,14 @@ $@"{FeaturesResources.Summary}
   V:
     Another type parameter.
 
-{FeaturesResources.Returns}
+{FeaturesResources.Returns_colon}
     This returns nothing.
 
-{FeaturesResources.Exceptions}
-  System.FooException:
+{FeaturesResources.Value_colon}
+    This has no value.
+
+{FeaturesResources.Exceptions_colon}
+  System.GooException:
     Thrown for an unknown reason
 
   System.BarException:
@@ -227,7 +246,7 @@ $@"{FeaturesResources.Summary}
   System.BlahException:
     Thrown when blah blah blah
 
-{FeaturesResources.Remarks}
+{FeaturesResources.Remarks_colon}
     This doc comment is really not very remarkable.";
 
             TestFormat(comment, expected);

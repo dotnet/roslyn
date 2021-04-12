@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -20,51 +22,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     End Class
 
     Friend Module ConstantValueUtils
-        Public Function EvaluateFieldConstant(field As SourceFieldSymbol, equalsValueOrAsNewNodeRef As SyntaxReference, inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
-            Debug.Assert(inProgress IsNot Nothing)
-            Dim value As ConstantValue = Nothing
-            Dim boundValueType As TypeSymbol = Nothing
-            Dim errorField = inProgress.GetStartOfCycleIfAny(field)
+        Public Function EvaluateFieldConstant(field As SourceFieldSymbol, equalsValueOrAsNewNodeRef As SyntaxReference, dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
+#If DEBUG Then
+            Debug.Assert(dependencies IsNot Nothing)
+            Debug.Assert(equalsValueOrAsNewNodeRef IsNot Nothing)
+#End If
 
-            If errorField IsNot Nothing Then
-                diagnostics.Add(ERRID.ERR_CircularEvaluation1,
-                                errorField.Locations(0),
-                                CustomSymbolDisplayFormatter.ShortErrorName(errorField))
-                value = ConstantValue.Bad
-                boundValueType = New ErrorTypeSymbol()
+            ' Set up a binder for this part of the type.
+            Dim containingModule = field.ContainingSourceType.ContainingSourceModule
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(containingModule, equalsValueOrAsNewNodeRef.SyntaxTree, field.ContainingSourceType)
+            Dim initValueSyntax As VisualBasicSyntaxNode = equalsValueOrAsNewNodeRef.GetVisualBasicSyntax()
+
+            Dim inProgressBinder = New ConstantFieldsInProgressBinder(New ConstantFieldsInProgress(field, dependencies), binder, field)
+            Dim constValue As ConstantValue = Nothing
+            Dim boundValue = BindFieldOrEnumInitializer(inProgressBinder, field, initValueSyntax, diagnostics, constValue)
+
+            Dim boundValueType As TypeSymbol
+
+            ' if an untyped constant gets initialized with a nothing literal, it's type should be System.Object.
+            If boundValue.IsNothingLiteral Then
+                boundValueType = binder.GetSpecialType(SpecialType.System_Object, initValueSyntax, diagnostics)
             Else
-                ' Set up a binder for this part of the type.
-                Dim containingModule = field.ContainingSourceType.ContainingSourceModule
-                Dim binder As Binder = BinderBuilder.CreateBinderForType(containingModule, equalsValueOrAsNewNodeRef.SyntaxTree, field.ContainingSourceType)
-                Dim initValueSyntax As VisualBasicSyntaxNode = equalsValueOrAsNewNodeRef.GetVisualBasicSyntax()
-
-                If initValueSyntax Is Nothing Then
-                    value = ConstantValue.Bad
-                    boundValueType = New ErrorTypeSymbol()
-                Else
-                    Dim inProgressBinder = New ConstantFieldsInProgressBinder(inProgress.Add(field), binder, field)
-                    Dim constValue As ConstantValue = Nothing
-                    Dim boundValue = BindFieldOrEnumInitializer(inProgressBinder, field, initValueSyntax, diagnostics, constValue)
-
-                    ' if an untyped constant gets initialized with a nothing literal, it's type should be System.Object.
-                    If boundValue.IsNothingLiteral Then
-                        boundValueType = binder.GetSpecialType(SpecialType.System_Object, initValueSyntax, diagnostics)
-                    Else
-                        boundValueType = boundValue.Type
-                    End If
-
-                    value = If(constValue Is Nothing, ConstantValue.Bad, constValue)
-                End If
-                Debug.Assert(value IsNot Nothing)
+                boundValueType = boundValue.Type
             End If
 
+            Dim value As ConstantValue = If(constValue, ConstantValue.Bad)
             Return New EvaluatedConstant(value, boundValueType)
         End Function
 
         Private Function BindFieldOrEnumInitializer(binder As Binder,
                                                     fieldOrEnumSymbol As FieldSymbol,
                                                     equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
-                                                    diagnostics As DiagnosticBag,
+                                                    diagnostics As BindingDiagnosticBag,
                                                     <Out> ByRef constValue As ConstantValue) As BoundExpression
 
             Debug.Assert(TypeOf fieldOrEnumSymbol Is SourceEnumConstantSymbol OrElse TypeOf fieldOrEnumSymbol Is SourceFieldSymbol)
@@ -77,6 +66,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return binder.BindFieldAndEnumConstantInitializer(fieldConstant, equalsValueOrAsNewSyntax, isEnum:=False, diagnostics:=diagnostics, constValue:=constValue)
             End If
         End Function
+
+        <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
+        Friend Structure FieldInfo
+            Public ReadOnly Field As SourceFieldSymbol
+            Public ReadOnly StartsCycle As Boolean
+
+            Public Sub New(field As SourceFieldSymbol, startsCycle As Boolean)
+                Me.Field = field
+                Me.StartsCycle = startsCycle
+            End Sub
+
+            Private Function GetDebuggerDisplay() As String
+                Dim value = Field.ToString()
+                If StartsCycle Then
+                    value += " [cycle]"
+                End If
+
+                Return value
+            End Function
+        End Structure
 
     End Module
 

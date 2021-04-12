@@ -1,5 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -10,13 +18,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class WorkspaceAnalyzerOptions : AnalyzerOptions
     {
-        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Workspace workspace)
-            : base(options.AdditionalFiles)
+        private readonly Solution _solution;
+
+        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Solution solution)
+            : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
         {
-            this.Workspace = workspace;
+            _solution = solution;
         }
 
-        public Workspace Workspace { get; }
+        public HostWorkspaceServices Services => _solution.Workspace.Services;
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<OptionSet> GetDocumentOptionSetAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            var documentId = _solution.GetDocumentId(syntaxTree);
+            if (documentId == null)
+            {
+                return _solution.Options;
+            }
+
+            var document = _solution.GetDocument(documentId);
+            if (document == null)
+            {
+                return _solution.Options;
+            }
+
+            return await document.GetOptionsAsync(_solution.Options, cancellationToken).ConfigureAwait(false);
+        }
 
         public override bool Equals(object obj)
         {
@@ -25,15 +53,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            var other = obj as WorkspaceAnalyzerOptions;
-            return other != null &&
-                this.Workspace == other.Workspace &&
+            return obj is WorkspaceAnalyzerOptions other &&
+                _solution.WorkspaceVersion == other._solution.WorkspaceVersion &&
+                _solution.Workspace == other._solution.Workspace &&
                 base.Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Workspace, base.GetHashCode());
+            return Hash.Combine(_solution.Workspace,
+                Hash.Combine(_solution.WorkspaceVersion, base.GetHashCode()));
         }
     }
 }

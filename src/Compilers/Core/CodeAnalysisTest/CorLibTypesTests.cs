@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
+using Roslyn.Test.Utilities;
 using Xunit;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class CorLibTypesAndConstantTests
+    public class CorLibTypesAndConstantTests : TestBase
     {
         [Fact]
         public void IntegrityTest()
@@ -54,6 +58,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(SpecialType.System_Double, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Float64));
             Assert.Equal(SpecialType.System_IntPtr, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.IntPtr));
             Assert.Equal(SpecialType.System_UIntPtr, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UIntPtr));
+        }
+
+        [Fact]
+        public void SpecialTypeIsValueType()
+        {
+            var comp = CSharp.CSharpCompilation.Create(
+                "c",
+                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel),
+                references: new[] { TestMetadata.NetCoreApp.SystemRuntime });
+
+            var knownMissingTypes = new HashSet<SpecialType>()
+            {
+            };
+
+            for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
+            {
+                var symbol = comp.GetSpecialType(specialType);
+                if (knownMissingTypes.Contains(specialType))
+                {
+                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind);
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                    Assert.Equal(symbol.IsValueType, specialType.IsValueType());
+                }
+            }
         }
 
         [Fact]

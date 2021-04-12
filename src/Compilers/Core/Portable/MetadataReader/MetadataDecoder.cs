@@ -1,13 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -26,14 +33,22 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
+    internal static class ModifierInfoExtensions
+    {
+        internal static bool AnyRequired<TypeSymbol>(this ImmutableArray<ModifierInfo<TypeSymbol>> modifiers) where TypeSymbol : class
+        {
+            return !modifiers.IsDefaultOrEmpty && modifiers.Any(m => !m.IsOptional);
+        }
+    }
+
     [StructLayout(LayoutKind.Auto)]
     internal struct ParamInfo<TypeSymbol>
         where TypeSymbol : class
     {
         internal bool IsByRef;
-        internal ushort CountOfCustomModifiersPrecedingByRef;
         internal TypeSymbol Type;
         internal ParameterHandle Handle; // may be nil
+        internal ImmutableArray<ModifierInfo<TypeSymbol>> RefCustomModifiers;
         internal ImmutableArray<ModifierInfo<TypeSymbol>> CustomModifiers;
     }
 
@@ -66,13 +81,21 @@ namespace Microsoft.CodeAnalysis
         public bool IsPinned => (Constraints & LocalSlotConstraints.Pinned) != 0;
     }
 
+#nullable enable
+    internal interface IAttributeNamedArgumentDecoder
+    {
+        (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader);
+    }
+
     internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
-        TypeNameDecoder<ModuleSymbol, TypeSymbol>
-        where ModuleSymbol : class
-        where TypeSymbol : class, Symbol, ITypeSymbol
-        where MethodSymbol : class, Symbol, IMethodSymbol
-        where FieldSymbol : class, Symbol, IFieldSymbol
-        where Symbol : class, ISymbol
+        TypeNameDecoder<ModuleSymbol, TypeSymbol>,
+        IAttributeNamedArgumentDecoder
+        where ModuleSymbol : class, IModuleSymbolInternal
+        where TypeSymbol : class, Symbol, ITypeSymbolInternal
+        where MethodSymbol : class, Symbol, IMethodSymbolInternal
+        where FieldSymbol : class, Symbol, IFieldSymbolInternal
+        where Symbol : class, ISymbolInternal
+#nullable disable
     {
         public readonly PEModule Module;
 
@@ -318,6 +341,18 @@ namespace Microsoft.CodeAnalysis
                     typeSymbol = DecodeGenericTypeInstanceOrThrow(ref ppSig, out refersToNoPiaLocalType);
                     break;
 
+                case SignatureTypeCode.FunctionPointer:
+                    var signatureHeader = ppSig.ReadSignatureHeader();
+                    var parameters = DecodeSignatureParametersOrThrow(ref ppSig, signatureHeader, typeParameterCount: out int typeParamCount, shouldProcessAllBytes: false, isFunctionPointerSignature: true);
+
+                    if (typeParamCount != 0)
+                    {
+                        throw new UnsupportedSignatureContent();
+                    }
+
+                    typeSymbol = MakeFunctionPointerTypeSymbol(Cci.CallingConventionUtils.FromSignatureConvention(signatureHeader.CallingConvention), ImmutableArray.Create(parameters));
+                    break;
+
                 default:
                     throw new UnsupportedSignatureContent();
             }
@@ -351,7 +386,7 @@ namespace Microsoft.CodeAnalysis
                 bool argumentRefersToNoPia;
                 SignatureTypeCode typeCode;
                 ImmutableArray<ModifierInfo<TypeSymbol>> modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
-                argumentsBuilder.Add(KeyValuePair.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
+                argumentsBuilder.Add(KeyValuePairUtil.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
                 argumentRefersToNoPiaLocalTypeBuilder.Add(argumentRefersToNoPia);
             }
 
@@ -475,7 +510,7 @@ namespace Microsoft.CodeAnalysis
             if (cache != null && !isNoPiaLocalType)
             {
                 TypeSymbol result1 = cache.GetOrAdd(typeRef, result);
-                Debug.Assert(result1.Equals(result));
+                Debug.Assert(result1.Equals(result, TypeCompareKind.ConsiderEverything));
             }
 
             return result;
@@ -672,36 +707,42 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private ImmutableArray<ModifierInfo<TypeSymbol>> DecodeModifiersOrThrow(ref BlobReader signatureReader, out SignatureTypeCode typeCode)
+        private ImmutableArray<ModifierInfo<TypeSymbol>> DecodeModifiersOrThrow(
+            ref BlobReader signatureReader,
+            out SignatureTypeCode typeCode)
         {
             ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
 
-            for (;;)
+            for (; ; )
             {
                 typeCode = signatureReader.ReadSignatureTypeCode();
+                bool isOptional;
 
                 if (typeCode == SignatureTypeCode.RequiredModifier)
                 {
-                    throw new UnsupportedSignatureContent();
+                    isOptional = false;
                 }
-
-                if (typeCode == SignatureTypeCode.OptionalModifier)
+                else if (typeCode == SignatureTypeCode.OptionalModifier)
                 {
-                    ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>(true, DecodeModifierTypeOrThrow(ref signatureReader));
-
-                    if (modifiers == null)
-                    {
-                        modifiers = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
-                    }
-
-                    modifiers.Add(modifier);
-                    continue;
+                    isOptional = true;
+                }
+                else
+                {
+                    break;
                 }
 
-                break;
+                TypeSymbol type = DecodeModifierTypeOrThrow(ref signatureReader);
+                ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>(isOptional, type);
+
+                if (modifiers == null)
+                {
+                    modifiers = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
+                }
+
+                modifiers.Add(modifier);
             }
 
-            return modifiers?.ToImmutableAndFree() ?? default(ImmutableArray<ModifierInfo<TypeSymbol>>);
+            return modifiers?.ToImmutableAndFree() ?? default;
         }
 
         private TypeSymbol DecodeModifierTypeOrThrow(ref BlobReader signatureReader)
@@ -710,10 +751,10 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             bool isNoPiaLocalType;
 
-        // According to ECMA spec:
-        //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
-        //  indexes a row in the TypeDef table or the TypeRef table.
-        tryAgain:
+// According to ECMA spec:
+//  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
+//  indexes a row in the TypeDef table or the TypeRef table.
+tryAgain:
             switch (token.Kind)
             {
                 case HandleKind.TypeDefinition:
@@ -840,6 +881,39 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal TypeSymbol DecodeGenericParameterConstraint(EntityHandle token, out ImmutableArray<ModifierInfo<TypeSymbol>> modifiers)
+        {
+            modifiers = ImmutableArray<ModifierInfo<TypeSymbol>>.Empty;
+
+            switch (token.Kind)
+            {
+                case HandleKind.TypeSpecification:
+                    {
+                        try
+                        {
+                            var memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
+                            modifiers = DecodeModifiersOrThrow(ref memoryReader, out var typeCode);
+                            var type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
+                            return type;
+                        }
+                        catch (BadImageFormatException mrEx)
+                        {
+                            return GetUnsupportedMetadataTypeSymbol(mrEx);
+                        }
+                        catch (UnsupportedSignatureContent)
+                        {
+                            return GetUnsupportedMetadataTypeSymbol();
+                        }
+                    }
+                case HandleKind.TypeReference:
+                    return GetTypeOfTypeRef((TypeReferenceHandle)token, out _);
+                case HandleKind.TypeDefinition:
+                    return GetTypeOfTypeDef((TypeDefinitionHandle)token);
+                default:
+                    return GetUnsupportedMetadataTypeSymbol();
+            }
+        }
+
         /// <exception cref="UnsupportedSignatureContent">If the encoded local variable type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal LocalInfo<TypeSymbol> DecodeLocalVariableOrThrow(ref BlobReader signatureReader)
@@ -847,6 +921,12 @@ namespace Microsoft.CodeAnalysis
             SignatureTypeCode typeCode;
 
             var customModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
+
+            if (customModifiers.AnyRequired())
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
             var constraints = LocalSlotConstraints.None;
             TypeSymbol typeSymbol;
 
@@ -889,9 +969,20 @@ namespace Microsoft.CodeAnalysis
 
             var customModifiers = DecodeModifiersOrThrow(ref sigReader, out typeCode);
 
+            if (customModifiers.AnyRequired())
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
                 // TypeDefOrRefOrSpec encoded
+                // From the PortablePDB spec: https://github.com/dotnet/runtime/blob/main/src/libraries/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#localconstant-table-0x34
+                // The encoding of the GeneralValue is determined based upon the type expressed by TypeDefOrRefOrSpecEncoded
+                // specified in GeneralConstant. GeneralValue for special types listed in the table below has to be present
+                // and is encoded as specified.
+                // If the GeneralValue is not present the value of the constant is the default value of the type. If the type 
+                // is a reference type the value is a null reference, if the type is a pointer type the value is a null pointer, etc.
                 bool refersToNoPiaLocalType;
                 type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
 
@@ -905,8 +996,9 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (sigReader.RemainingBytes == 0)
                 {
-                    // default(T)
-                    value = (type.IsReferenceType || type is IPointerTypeSymbol) ? ConstantValue.Null : ConstantValue.Bad;
+                    // Note: even though the PortablePDB spec permits constants of pointer types, C# does not, so those
+                    // should only ever be seen if the PDB being decoded is a custom-assembled PDB for non-legal C#.
+                    value = (type.IsReferenceType || type.TypeKind == TypeKind.Pointer || type.TypeKind == TypeKind.FunctionPointer) ? ConstantValue.Null : ConstantValue.Bad;
                 }
                 else
                 {
@@ -1023,31 +1115,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal bool TryGetLocals(MethodDefinitionHandle handle, out ImmutableArray<LocalInfo<TypeSymbol>> localInfo)
+        internal ImmutableArray<LocalInfo<TypeSymbol>> GetLocalsOrThrow(StandaloneSignatureHandle handle)
         {
-            try
-            {
-                Debug.Assert(Module.HasIL);
-                var methodBody = Module.GetMethodBodyOrThrow(handle);
-
-                if (!methodBody.LocalSignature.IsNil)
-                {
-                    var signatureHandle = Module.MetadataReader.GetStandaloneSignature(methodBody.LocalSignature).Signature;
-                    var signatureReader = Module.GetMemoryReaderOrThrow(signatureHandle);
-                    localInfo = DecodeLocalSignatureOrThrow(ref signatureReader);
-                }
-                else
-                {
-                    localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                }
-            }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
-            {
-                localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                return false;
-            }
-
-            return true;
+            var signatureHandle = Module.MetadataReader.GetStandaloneSignature(handle).Signature;
+            var signatureReader = Module.MetadataReader.GetBlobReader(signatureHandle);
+            return DecodeLocalSignatureOrThrow(ref signatureReader);
         }
 
         /// <summary>
@@ -1060,7 +1132,7 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            fixed (byte* ptr = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(signature))
+            fixed (byte* ptr = signature.AsSpan())
             {
                 var blobReader = new BlobReader(ptr, signature.Length);
                 var info = DecodeLocalVariableOrThrow(ref blobReader);
@@ -1093,44 +1165,23 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
         private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info)
         {
-            bool refersToNoPiaLocalType;
-
-            SignatureTypeCode typeCode;
-            info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
+            info.CustomModifiers = DecodeModifiersOrThrow(
+                ref signatureReader,
+                out SignatureTypeCode typeCode);
 
             if (typeCode == SignatureTypeCode.ByReference)
             {
                 info.IsByRef = true;
 
-                // The spec says that custom modifiers must precede SignatureTypeCode.ByReference, but the managed C++
-                // compiler emits them in the reverse order.  In order to avoid breaking interop scenarios, we need to
-                // support decoding (and later emitting) such signatures.
-                var additionalModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
-
-                if (!info.CustomModifiers.IsDefault)
-                {
-                    info.CountOfCustomModifiersPrecedingByRef = (ushort)info.CustomModifiers.Length;
-                    if (info.CountOfCustomModifiersPrecedingByRef != info.CustomModifiers.Length)
-                    {
-                        throw new UnsupportedSignatureContent();
-                    }
-
-                    if (!additionalModifiers.IsDefaultOrEmpty)
-                    {
-                        info.CustomModifiers = info.CustomModifiers.Concat(additionalModifiers);
-                    }
-                }
-                else
-                {
-                    info.CustomModifiers = additionalModifiers;
-                }
+                info.RefCustomModifiers = info.CustomModifiers;
+                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
             }
 
-            info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
+            info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
         }
 
         // MetaImport::DecodeMethodSignature
-        internal ParamInfo<TypeSymbol>[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool allowByRefReturn, bool setParamHandles = true)
+        internal ParamInfo<TypeSymbol>[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool setParamHandles = true)
         {
             ParamInfo<TypeSymbol>[] paramInfo = null;
             signatureHeader = default(SignatureHeader);
@@ -1141,7 +1192,7 @@ namespace Microsoft.CodeAnalysis
                 BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
-                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount, allowByRefReturn);
+                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount);
 
                 if (setParamHandles)
                 {
@@ -1188,7 +1239,7 @@ namespace Microsoft.CodeAnalysis
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out parameterCount, out typeParameterCount);
         }
 
-        internal ParamInfo<TypeSymbol>[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException, bool allowByRefReturn)
+        internal ParamInfo<TypeSymbol>[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException)
         {
             ParamInfo<TypeSymbol>[] paramInfo = null;
             signatureHeader = default(SignatureHeader);
@@ -1199,7 +1250,7 @@ namespace Microsoft.CodeAnalysis
                 BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
-                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount, allowByRefReturn);
+                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount);
                 BadImageFormatException = null;
             }
             catch (BadImageFormatException mrEx)
@@ -1454,7 +1505,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (count == 0)
             {
-                values = SpecializedCollections.EmptyArray<TypedConstant>();
+                values = Array.Empty<TypedConstant>();
             }
             else
             {
@@ -1540,7 +1591,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded named argument is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private KeyValuePair<string, TypedConstant> DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader)
+        public (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) DecodeCustomAttributeNamedArgumentOrThrow(ref BlobReader argReader)
         {
             // Ecma-335 23.3 - A NamedArg is simply a FixedArg preceded by information to identify which field or
             // property it represents. [Note: Recall that the CLI allows fields and properties to have the same name; so
@@ -1567,7 +1618,7 @@ namespace Microsoft.CodeAnalysis
                 ? DecodeCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode, elementType, type)
                 : DecodeCustomAttributeElementOrThrow(ref argReader, typeCode, type);
 
-            return new KeyValuePair<string, TypedConstant>(name, value);
+            return (new KeyValuePair<string, TypedConstant>(name, value), kind == CustomAttributeNamedArgumentKind.Property, typeCode, elementTypeCode);
         }
 
         internal bool IsTargetAttribute(
@@ -1612,8 +1663,8 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
-                namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
+                positionalArgs = Array.Empty<TypedConstant>();
+                namedArgs = Array.Empty<KeyValuePair<string, TypedConstant>>();
 
                 // We could call decoder.GetSignature and use that to decode the arguments. However, materializing the
                 // constructor signature is more work. We try to decode the arguments directly from the metadata bytes.
@@ -1668,7 +1719,7 @@ namespace Microsoft.CodeAnalysis
 
                         for (int i = 0; i < namedArgs.Length; i++)
                         {
-                            namedArgs[i] = DecodeCustomAttributeNamedArgumentOrThrow(ref argsReader);
+                            (namedArgs[i], _, _, _) = DecodeCustomAttributeNamedArgumentOrThrow(ref argsReader);
                         }
                     }
 
@@ -1677,14 +1728,15 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
-                positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
-                namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
+                positionalArgs = Array.Empty<TypedConstant>();
+                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
             }
 
             return false;
         }
 
-        internal bool GetCustomAttribute(CustomAttributeHandle handle, out TypeSymbol attributeClass, out MethodSymbol attributeCtor)
+#nullable enable
+        internal bool GetCustomAttribute(CustomAttributeHandle handle, [NotNullWhen(true)] out TypeSymbol? attributeClass, [NotNullWhen(true)] out MethodSymbol? attributeCtor)
         {
             EntityHandle attributeType;
             EntityHandle ctor;
@@ -1709,6 +1761,7 @@ namespace Microsoft.CodeAnalysis
             attributeCtor = GetMethodSymbolForMethodDefOrMemberRef(ctor, attributeClass);
             return true;
         }
+#nullable disable
 
         internal bool GetCustomAttributeWellKnownType(CustomAttributeHandle handle, out WellKnownType wellKnownAttribute)
         {
@@ -1784,7 +1837,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount, bool allowByRefReturn)
+        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount, bool shouldProcessAllBytes = true, bool isFunctionPointerSignature = false)
         {
             int paramCount;
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out paramCount, out typeParameterCount);
@@ -1805,24 +1858,17 @@ namespace Microsoft.CodeAnalysis
                     DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex]);
                 }
 
-                if (signatureReader.RemainingBytes > 0)
+                if (shouldProcessAllBytes && signatureReader.RemainingBytes > 0)
                 {
                     throw new UnsupportedSignatureContent();
                 }
             }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
+            catch (Exception e) when ((e is UnsupportedSignatureContent || e is BadImageFormatException) && !isFunctionPointerSignature)
             {
                 for (; paramIndex <= paramCount; paramIndex++)
                 {
                     paramInfo[paramIndex].Type = GetUnsupportedMetadataTypeSymbol(e as BadImageFormatException);
                 }
-            }
-
-            if (paramInfo[0].IsByRef && !allowByRefReturn)
-            {
-                paramInfo[0].IsByRef = false; // Info reflected in the error type.
-                paramInfo[0].Type = GetByRefReturnTypeSymbol(paramInfo[0].Type, paramInfo[0].CountOfCustomModifiersPrecedingByRef);
-                paramInfo[0].CountOfCustomModifiersPrecedingByRef = 0;
             }
 
             return paramInfo;
@@ -1838,7 +1884,7 @@ namespace Microsoft.CodeAnalysis
             parameterCount = signatureReader.ReadCompressedInteger();
         }
 
-        internal TypeSymbol DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out bool isVolatile, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        internal TypeSymbol DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             try
             {
@@ -1849,87 +1895,32 @@ namespace Microsoft.CodeAnalysis
 
                 if (signatureHeader.Kind != SignatureKind.Field)
                 {
-                    isVolatile = false;
                     customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
                     return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
                 }
 
-                return DecodeFieldSignature(ref signatureReader, out isVolatile, out customModifiers);
+                return DecodeFieldSignature(ref signatureReader, out customModifiers);
             }
             catch (BadImageFormatException mrEx)
             {
-                isVolatile = false;
                 customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
                 return GetUnsupportedMetadataTypeSymbol(mrEx);
             }
         }
 
         // MetaImport::DecodeFieldSignature
-        protected TypeSymbol DecodeFieldSignature(ref BlobReader signatureReader, out bool isVolatile, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        protected TypeSymbol DecodeFieldSignature(ref BlobReader signatureReader, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            isVolatile = false;
-            customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
+            customModifiers = default;
 
             try
             {
-                // See if there is a Volatile modifier.
                 SignatureTypeCode typeCode;
-                ArrayBuilder<ModifierInfo<TypeSymbol>> customModifierBuilder = null;
+                customModifiers = DecodeModifiersOrThrow(
+                    ref signatureReader,
+                    out typeCode);
 
-                for (;;)
-                {
-                    typeCode = signatureReader.ReadSignatureTypeCode();
-
-                    if (typeCode == SignatureTypeCode.OptionalModifier ||
-                        typeCode == SignatureTypeCode.RequiredModifier)
-                    {
-                        TypeSymbol type;
-
-                        try
-                        {
-                            type = DecodeModifierTypeOrThrow(ref signatureReader);
-                        }
-                        catch (BadImageFormatException mrEx)
-                        {
-                            return GetUnsupportedMetadataTypeSymbol(mrEx); // an exception from metadata reader.
-                        }
-                        catch (UnsupportedSignatureContent)
-                        {
-                            return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
-                        }
-
-                        ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>((typeCode == SignatureTypeCode.OptionalModifier), type);
-
-                        if (IsVolatileModifierType(modifier.Modifier))
-                        {
-                            isVolatile = true;
-                        }
-                        else if (!modifier.IsOptional)
-                        {
-                            return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
-                        }
-
-                        if (customModifierBuilder == null)
-                        {
-                            customModifierBuilder = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
-                        }
-
-                        customModifierBuilder.Add(modifier);
-
-                        continue;
-                    }
-
-                    break;
-                }
-
-                if (customModifierBuilder != null)
-                {
-                    customModifiers = customModifierBuilder.ToImmutableAndFree();
-                }
-
-                // get the type
-                bool refersToNoPiaLocalType;
-                return DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
+                return DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
             }
             catch (UnsupportedSignatureContent)
             {
@@ -2412,7 +2403,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return false;
                 }
-                if (!param2.Type.Equals(param1.Type))
+                if (!param2.Type.Equals(param1.Type, TypeCompareKind.ConsiderEverything))
                 {
                     return false;
                 }

@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -15,11 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             _builder = builder;
         }
 
-        internal static ImmutableArray<SyntaxNode> GetDeclarators(SourceMethodSymbol method)
+        internal static ImmutableArray<SyntaxNode> GetDeclarators(SourceMemberMethodSymbol method)
         {
             var builder = ArrayBuilder<SyntaxNode>.GetInstance();
             var visitor = new LocalVariableDeclaratorsCollector(builder);
-            visitor.Visit(method.BodySyntax);
+            var bodies = method.Bodies;
+            visitor.Visit(bodies.Item1 ?? (SyntaxNode)bodies.Item2);
             return builder.ToImmutableAndFree();
         }
 
@@ -83,6 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             _builder.Add(node);
             base.VisitVariableDeclarator(node);
+        }
+
+        public override void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
+        {
+            _builder.Add(node);
+            base.VisitSingleVariableDesignation(node);
         }
 
         public override void VisitCatchDeclaration(CatchDeclarationSyntax node)

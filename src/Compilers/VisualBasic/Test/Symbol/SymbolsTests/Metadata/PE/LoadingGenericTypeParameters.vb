@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
@@ -17,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestMetadata.ResourcesNet40.mscorlib)
             Dim module0 = assembly.Modules(0)
 
             Dim objectType = module0.GlobalNamespace.GetMembers("System").
@@ -50,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal("C1_T", C1_T.Name)
             Assert.Equal("C1_T", C1_T.ToTestDisplayString())
             Assert.Equal(0, C1_T.GetMembers().Length())
-            Assert.Equal(0, C1_T.GetMembers("foo").Length())
+            Assert.Equal(0, C1_T.GetMembers("goo").Length())
             Assert.Equal(0, C1_T.GetTypeMembers().Length())
-            Assert.Equal(0, C1_T.GetTypeMembers("foo").Length())
-            Assert.Equal(0, C1_T.GetTypeMembers("foo", 1).Length())
+            Assert.Equal(0, C1_T.GetTypeMembers("goo").Length())
+            Assert.Equal(0, C1_T.GetTypeMembers("goo", 1).Length())
             Assert.False(C1_T.HasConstructorConstraint)
             Assert.False(C1_T.HasReferenceTypeConstraint)
             Assert.False(C1_T.HasValueTypeConstraint)

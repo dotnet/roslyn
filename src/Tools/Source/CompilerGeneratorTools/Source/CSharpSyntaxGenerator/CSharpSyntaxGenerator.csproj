@@ -1,57 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{288089C5-8721-458E-BE3E-78990DAB5E2D}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <OutDir>$(CompilerGeneratorToolsDir)</OutDir>
-    <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpSyntaxGenerator</RootNamespace>
-    <AssemblyName>CSharpSyntaxGenerator</AssemblyName>
-    <Nonshipping>true</Nonshipping>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Platforms>AnyCPU</Platforms>
+    <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
-    <CopyReferencesByDefault>false</CopyReferencesByDefault>
-    <NonShipping>true</NonShipping>
-    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <!-- We build this against netcoreapp3.1 to build the console app version, and against netstandard2.0 for
+         the Source Generator version. -->
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <OutputType Condition="'$(TargetFramework)' == 'netcoreapp3.1'">Exe</OutputType>
+    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
+    <IsShipping>false</IsShipping>
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AbstractFileWriter.cs" />
-    <Compile Include="Model\AbstractNode.cs" />
-    <Compile Include="Model\Comment.cs" />
-    <Compile Include="Model\Field.cs" />
-    <Compile Include="Model\Kind.cs" />
-    <Compile Include="Model\Node.cs" />
-    <Compile Include="Model\PredefinedNode.cs" />
-    <Compile Include="Model\Tree.cs" />
-    <Compile Include="Model\TreeType.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="SignatureWriter.cs" />
-    <Compile Include="SourceWriter.cs" />
-    <Compile Include="TestWriter.cs" />
+    <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
+    <!-- If we're building the command line tool, we have to include some dependencies used for grammar generation -->
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs" Link="Grammar\WellKnownMemberNames.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Declarations\DeclarationModifiers.cs" Link="Grammar\DeclarationModifiers.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\Syntax.xml">
-      <Link>Syntax.xml</Link>
-    </Content>
-  </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
 </Project>

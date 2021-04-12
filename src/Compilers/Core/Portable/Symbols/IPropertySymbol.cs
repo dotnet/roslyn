@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -41,9 +43,21 @@ namespace Microsoft.CodeAnalysis
         bool ReturnsByRef { get; }
 
         /// <summary>
+        /// Returns true if this property returns by reference a readonly variable.
+        /// </summary>
+        bool ReturnsByRefReadonly { get; }
+
+        /// <summary>
+        /// Returns the RefKind of the property.
+        /// </summary>
+        RefKind RefKind { get; }
+
+        /// <summary>
         /// The type of the property. 
         /// </summary>
         ITypeSymbol Type { get; }
+
+        NullableAnnotation NullableAnnotation { get; }
 
         /// <summary>
         /// The parameters of this property. If this property has no parameters, returns
@@ -55,12 +69,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
         /// </summary>
-        IMethodSymbol GetMethod { get; }
+        IMethodSymbol? GetMethod { get; }
 
         /// <summary>
         /// The 'set' accessor of the property, or null if the property is read-only.
         /// </summary>
-        IMethodSymbol SetMethod { get; }
+        IMethodSymbol? SetMethod { get; }
 
         /// <summary>
         /// The original definition of the property. If the property is constructed from another
@@ -72,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the overridden property, or null.
         /// </summary>
-        IPropertySymbol OverriddenProperty { get; }
+        IPropertySymbol? OverriddenProperty { get; }
 
         /// <summary>
         /// Returns interface properties explicitly implemented by this property.
@@ -81,6 +95,11 @@ namespace Microsoft.CodeAnalysis
         /// Properties imported from metadata can explicitly implement more than one property.
         /// </remarks>
         ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// The list of custom modifiers, if any, associated with the type of the property. 

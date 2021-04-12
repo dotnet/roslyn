@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         private SyntaxTrivia _parent;
 
-        internal StructuredTriviaSyntax(Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal StructuredTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
             : base(green, position, parent == null ? null : parent.SyntaxTree)
         {
             System.Diagnostics.Debug.Assert(parent == null || position >= 0);
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal static StructuredTriviaSyntax Create(SyntaxTrivia trivia)
         {
             var node = trivia.UnderlyingNode;
-            var parent = (CSharpSyntaxNode)trivia.Token.Parent;
+            var parent = trivia.Token.Parent;
             var position = trivia.Position;
             var red = (StructuredTriviaSyntax)node.CreateRed(parent, position);
             red._parent = trivia;
@@ -32,12 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>
         /// Get parent trivia.
         /// </summary>
-        public override SyntaxTrivia ParentTrivia
-        {
-            get
-            {
-                return _parent;
-            }
-        }
+        public override SyntaxTrivia ParentTrivia => _parent;
     }
 }

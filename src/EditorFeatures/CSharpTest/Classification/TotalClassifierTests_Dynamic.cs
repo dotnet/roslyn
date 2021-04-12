@@ -1,34 +1,46 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class TotalClassifierTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsParamTypeAndDefault()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsParamTypeAndDefault(TestHost testHost)
         {
             await TestInClassAsync(@"void M(dynamic d = default(dynamic",
+                testHost,
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Operators.Equals,
                 Keyword("default"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicExplicitConversion()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicExplicitConversion(TestHost testHost)
         {
-            await TestInMethodAsync(@"dynamic d = (dynamic)a;",
+            await TestInMethodAsync(
+@"dynamic d = (dynamic)a;",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Local("d"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
@@ -37,10 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicMethodCall()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicMethodCall(TestHost testHost)
         {
             await TestInMethodAsync(@"dynamic.Equals(1, 1);",
+                testHost,
                 Identifier("dynamic"),
                 Operators.Dot,
                 Identifier("Equals"),
@@ -52,104 +66,130 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicNullable()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicNullable(TestHost testHost)
         {
             await TestInMethodAsync(@"dynamic? a",
+                testHost,
                 Keyword("dynamic"),
                 Operators.QuestionMark,
-                Identifier("a"));
+                Local("a"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsUsingAliasForClass()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsUsingAliasForClass(TestHost testHost)
         {
-            await TestAsync(@"using dynamic = System.EventArgs;",
+            await TestAsync(
+@"using dynamic = System.EventArgs;",
+                testHost,
                 Keyword("using"),
                 Class("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Class("EventArgs"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsUsingAliasForDelegate()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsUsingAliasForDelegate(TestHost testHost)
         {
-            await TestAsync(@"using dynamic = System.Action;",
+            await TestAsync(
+@"using dynamic = System.Action;",
+                testHost,
                 Keyword("using"),
                 Delegate("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Delegate("Action"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsUsingAliasForStruct()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsUsingAliasForStruct(TestHost testHost)
         {
-            await TestAsync(@"using dynamic = System.DateTime;",
+            await TestAsync(
+@"using dynamic = System.DateTime;",
+                testHost,
                 Keyword("using"),
                 Struct("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Struct("DateTime"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsUsingAliasForEnum()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsUsingAliasForEnum(TestHost testHost)
         {
-            await TestAsync(@"using dynamic = System.DayOfWeek;",
+            await TestAsync(
+@"using dynamic = System.DayOfWeek;",
+                testHost,
                 Keyword("using"),
                 Enum("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Enum("DayOfWeek"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsUsingAliasForInterface()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsUsingAliasForInterface(TestHost testHost)
         {
-            await TestAsync(@"using dynamic = System.IDisposable;",
+            await TestAsync(
+@"using dynamic = System.IDisposable;",
+                testHost,
                 Keyword("using"),
                 Interface("dynamic"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Interface("IDisposable"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsExternAlias()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsExternAlias(TestHost testHost)
         {
-            await TestAsync(@"extern alias dynamic;
-class C { dynamic::Foo a; }",
+            await TestAsync(
+@"extern alias dynamic;
+
+class C
+{
+    dynamic::Goo a;
+}",
+                testHost,
                 Keyword("extern"),
                 Keyword("alias"),
-                Identifier("dynamic"),
+                Namespace("dynamic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
-                Operators.Text("::"),
-                Identifier("Foo"),
-                Identifier("a"),
+                Namespace("dynamic"),
+                Operators.ColonColon,
+                Identifier("Goo"),
+                Field("a"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsDelegateType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsDelegateType(TestHost testHost)
         {
             await TestAsync(@"delegate void dynamic()",
+                testHost,
                 Keyword("delegate"),
                 Keyword("void"),
                 Delegate("dynamic"),
@@ -157,40 +197,49 @@ class C { dynamic::Foo a; }",
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsDelegateReturnTypeAndParam()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsDelegateReturnTypeAndParam(TestHost testHost)
         {
             await TestAsync(@"delegate dynamic MyDelegate (dynamic d)",
+                testHost,
                 Keyword("delegate"),
                 Keyword("dynamic"),
                 Delegate("MyDelegate"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsDelegateLocalVariable()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsDelegateLocalVariable(TestHost testHost)
         {
-            await TestInMethodAsync(@"Func<string> f = delegate { int dynamic = 10; return dynamic.ToString();};",
+            await TestInMethodAsync(
+@"Func<string> f = delegate
+{
+    int dynamic = 10;
+    return dynamic.ToString();
+};",
+                testHost,
                 Identifier("Func"),
                 Punctuation.OpenAngle,
                 Keyword("string"),
                 Punctuation.CloseAngle,
-                Identifier("f"),
+                Local("f"),
                 Operators.Equals,
                 Keyword("delegate"),
                 Punctuation.OpenCurly,
                 Keyword("int"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Operators.Equals,
                 Number("10"),
                 Punctuation.Semicolon,
-                Keyword("return"),
-                Identifier("dynamic"),
+                ControlKeyword("return"),
+                Local("dynamic"),
                 Operators.Dot,
-                Identifier("ToString"),
+                Method("ToString"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
@@ -198,10 +247,20 @@ class C { dynamic::Foo a; }",
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsGenericTypeName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsGenericTypeName(TestHost testHost)
         {
-            await TestAsync(@"partial class dynamic<T> { } class C { dynamic<int> d; }",
+            await TestAsync(
+@"partial class dynamic<T>
+{
+}
+
+class C
+{
+    dynamic<int> d;
+}",
+                testHost,
                 Keyword("partial"),
                 Keyword("class"),
                 Class("dynamic"),
@@ -217,15 +276,21 @@ class C { dynamic::Foo a; }",
                 Punctuation.OpenAngle,
                 Keyword("int"),
                 Punctuation.CloseAngle,
-                Identifier("d"),
+                Field("d"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsGenericField()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsGenericField(TestHost testHost)
         {
-            await TestAsync(@"class A<T> { T dynamic; }",
+            await TestAsync(
+@"class A<T>
+{
+    T dynamic;
+}",
+                testHost,
                 Keyword("class"),
                 Class("A"),
                 Punctuation.OpenAngle,
@@ -233,57 +298,65 @@ class C { dynamic::Foo a; }",
                 Punctuation.CloseAngle,
                 Punctuation.OpenCurly,
                 TypeParameter("T"),
-                Identifier("dynamic"),
+                Field("dynamic"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsIndexerTypeAndParameter()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsIndexerTypeAndParameter(TestHost testHost)
         {
             await TestInClassAsync(@"dynamic this[dynamic i]",
+                testHost,
                 Keyword("dynamic"),
                 Keyword("this"),
                 Punctuation.OpenBracket,
                 Keyword("dynamic"),
-                Identifier("i"),
+                Parameter("i"),
                 Punctuation.CloseBracket);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsOperatorTypeAndParameter()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsOperatorTypeAndParameter(TestHost testHost)
         {
             await TestInClassAsync(@"static dynamic operator +(dynamic d1)",
+                testHost,
                 Keyword("static"),
                 Keyword("dynamic"),
                 Keyword("operator"),
-                Operators.Text("+"),
+                Operators.Plus,
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d1"),
+                Parameter("d1"),
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsOperatorName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsOperatorName(TestHost testHost)
         {
             await TestInClassAsync(@"static explicit operator dynamic(dynamic s)",
+                testHost,
                 Keyword("static"),
                 Keyword("explicit"),
                 Keyword("operator"),
                 Keyword("dynamic"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("s"),
+                Parameter("s"),
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsPropertyTypeAndName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsPropertyTypeAndName(TestHost testHost)
         {
             await TestInClassAsync(@"dynamic dynamic { get; set; }",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Property("dynamic"),
                 Punctuation.OpenCurly,
                 Keyword("get"),
                 Punctuation.Semicolon,
@@ -292,21 +365,25 @@ class C { dynamic::Foo a; }",
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsEventName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsEventName(TestHost testHost)
         {
             await TestInClassAsync(@"event Action dynamic",
+                testHost,
                 Keyword("event"),
                 Identifier("Action"),
-                Identifier("dynamic"));
+                Event("dynamic"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsLinqLocalVariable()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsLinqLocalVariable(TestHost testHost)
         {
             await TestInMethodAsync(@"var v = from dynamic in names",
+                testHost,
                 Keyword("var"),
-                Identifier("v"),
+                Local("v"),
                 Operators.Equals,
                 Keyword("from"),
                 Identifier("dynamic"),
@@ -314,12 +391,16 @@ class C { dynamic::Foo a; }",
                 Identifier("names"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsAnonymousTypePropertyName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsAnonymousTypePropertyName(TestHost testHost)
         {
-            await TestInMethodAsync(@"var v = from dynamic in names select new { dynamic = dynamic};",
+            await TestInMethodAsync(
+@"var v = from dynamic in names
+        select new { dynamic = dynamic };",
+                testHost,
                 Keyword("var"),
-                Identifier("v"),
+                Local("v"),
                 Operators.Equals,
                 Keyword("from"),
                 Identifier("dynamic"),
@@ -328,174 +409,222 @@ class C { dynamic::Foo a; }",
                 Keyword("select"),
                 Keyword("new"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
+                Property("dynamic"),
                 Operators.Equals,
                 Identifier("dynamic"),
                 Punctuation.CloseCurly,
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsArgumentToLambdaExpression()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsArgumentToLambdaExpression(TestHost testHost)
         {
-            await TestInMethodAsync(@"var p = names.Select(dynamic => dynamic.Length);",
+            await TestInMethodAsync(
+@"var p = names.Select(dynamic => dynamic.Length);",
+                testHost,
                 Keyword("var"),
-                Identifier("p"),
+                Local("p"),
                 Operators.Equals,
                 Identifier("names"),
                 Operators.Dot,
                 Identifier("Select"),
                 Punctuation.OpenParen,
-                Identifier("dynamic"),
-                Operators.Text("=>"),
-                Identifier("dynamic"),
+                Parameter("dynamic"),
+                Operators.EqualsGreaterThan,
+                Parameter("dynamic"),
                 Operators.Dot,
                 Identifier("Length"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsAnonymousMethodLocalVariable()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsAnonymousMethodLocalVariable(TestHost testHost)
         {
-            await TestInMethodAsync(@"D f = delegate { string dynamic = ""a""; return dynamic.Length; };",
+            await TestInMethodAsync(
+@"D f = delegate
+{
+    string dynamic = ""a"";
+    return dynamic.Length;
+};",
+                testHost,
                 Identifier("D"),
-                Identifier("f"),
+                Local("f"),
                 Operators.Equals,
                 Keyword("delegate"),
                 Punctuation.OpenCurly,
                 Keyword("string"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Operators.Equals,
                 String(@"""a"""),
                 Punctuation.Semicolon,
-                Keyword("return"),
-                Identifier("dynamic"),
+                ControlKeyword("return"),
+                Local("dynamic"),
                 Operators.Dot,
-                Identifier("Length"),
+                Property("Length"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsMethodName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsMethodName(TestHost testHost)
         {
-            await TestInClassAsync(@"dynamic dynamic () { }",
+            await TestInClassAsync(
+@"dynamic dynamic()
+{
+}",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Method("dynamic"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsStaticMethodTypeAndParams()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsStaticMethodTypeAndParams(TestHost testHost)
         {
-            await TestInClassAsync(@"static dynamic dynamic(params dynamic[] dynamic){}",
+            await TestInClassAsync(
+@"static dynamic dynamic(params dynamic[] dynamic)
+{
+}",
+                testHost,
                 Keyword("static"),
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Method("dynamic"),
+                Static("dynamic"),
                 Punctuation.OpenParen,
                 Keyword("params"),
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("dynamic"),
+                Parameter("dynamic"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicArraysInMethodSignature()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicArraysInMethodSignature(TestHost testHost)
         {
-            await TestInClassAsync(@"dynamic[] M(dynamic[] p, params dynamic[] pa) { }",
+            await TestInClassAsync(
+@"dynamic[] M(dynamic[] p, params dynamic[] pa)
+{
+}",
+                testHost,
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("p"),
+                Parameter("p"),
                 Punctuation.Comma,
                 Keyword("params"),
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("pa"),
+                Parameter("pa"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicInPartialMethods()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicInPartialMethods(TestHost testHost)
         {
-            await TestInClassAsync(@"partial void F(dynamic d); partial void F(dynamic d) { }",
+            await TestInClassAsync(
+@"partial void F(dynamic d);
+
+partial void F(dynamic d)
+{
+}",
+                testHost,
                 Keyword("partial"),
                 Keyword("void"),
-                Identifier("F"),
+                Method("F"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Keyword("partial"),
                 Keyword("void"),
-                Identifier("F"),
+                Method("F"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicRefAndOutParameters()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicRefAndOutParameters(TestHost testHost)
         {
-            await TestInClassAsync(@"void F(ref dynamic r, out dynamic o) { }",
+            await TestInClassAsync(
+@"void F(ref dynamic r, out dynamic o)
+{
+}",
+                testHost,
                 Keyword("void"),
-                Identifier("F"),
+                Method("F"),
                 Punctuation.OpenParen,
                 Keyword("ref"),
                 Keyword("dynamic"),
-                Identifier("r"),
+                Parameter("r"),
                 Punctuation.Comma,
                 Keyword("out"),
                 Keyword("dynamic"),
-                Identifier("o"),
+                Parameter("o"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicInExtensionMethod()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicInExtensionMethod(TestHost testHost)
         {
-            await TestInClassAsync(@"dynamic F(this dynamic self, dynamic p) { }",
+            await TestInClassAsync(
+@"dynamic F(this dynamic self, dynamic p)
+{
+}",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("F"),
+                ExtensionMethod("F"),
                 Punctuation.OpenParen,
                 Keyword("this"),
                 Keyword("dynamic"),
-                Identifier("self"),
+                Parameter("self"),
                 Punctuation.Comma,
                 Keyword("dynamic"),
-                Identifier("p"),
+                Parameter("p"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsBaseClass()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsBaseClass(TestHost testHost)
         {
-            await TestAsync(@"class C : dynamic { }",
+            await TestAsync(
+@"class C : dynamic
+{
+}",
+                testHost,
                 Keyword("class"),
                 Class("C"),
                 Punctuation.Colon,
@@ -504,10 +633,15 @@ class C { dynamic::Foo a; }",
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsGenericConstraint()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsGenericConstraint(TestHost testHost)
         {
-            await TestAsync(@"class C<T> where T : dynamic { }",
+            await TestAsync(
+@"class C<T> where T : dynamic
+{
+}",
+                testHost,
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenAngle,
@@ -521,17 +655,23 @@ class C { dynamic::Foo a; }",
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicSizeOf()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicSizeOf(TestHost testHost)
         {
-            await TestInClassAsync(@"unsafe int M() { return sizeof(dynamic); }",
+            await TestInClassAsync(
+@"unsafe int M()
+{
+    return sizeof(dynamic);
+}",
+                testHost,
                 Keyword("unsafe"),
                 Keyword("int"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Keyword("sizeof"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
@@ -540,24 +680,39 @@ class C { dynamic::Foo a; }",
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicTypeOf()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicTypeOf(TestHost testHost)
         {
             await TestInMethodAsync(@"typeof(dynamic)",
+                testHost,
                 Keyword("typeof"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsArrayName()
+        [Theory]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [CombinatorialData]
+        public async Task DynamicAsArrayName(bool script, TestHost testHost)
         {
-            await TestAsync(@"int[] dynamic = { 1 };",
+            var code =
+@"int[] dynamic = {
+    1
+};";
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                testHost,
+                parseOptions,
                 Keyword("int"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("dynamic"),
+                script ? Field("dynamic") : Local("dynamic"),
                 Operators.Equals,
                 Punctuation.OpenCurly,
                 Number("1"),
@@ -565,65 +720,90 @@ class C { dynamic::Foo a; }",
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicInForeach()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicInForeach(TestHost testHost)
         {
             await TestInMethodAsync(@"foreach (dynamic dynamic in dynamic",
-                Keyword("foreach"),
+                testHost,
+                ControlKeyword("foreach"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("dynamic"),
-                Keyword("in"),
+                Local("dynamic"),
+                ControlKeyword("in"),
                 Identifier("dynamic"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicInUsing()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicInUsing(TestHost testHost)
         {
             await TestInMethodAsync(@"using(dynamic d",
+                testHost,
                 Keyword("using"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"));
+                Local("d"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsLocalVariableName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsLocalVariableName(TestHost testHost)
         {
-            await TestInMethodAsync(@"dynamic dynamic;",
+            await TestInMethodAsync(
+@"dynamic dynamic;",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsNamespaceName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsNamespaceName(TestHost testHost)
         {
-            await TestAsync(@"namespace dynamic { }",
+            await TestAsync(
+@"namespace dynamic
+{
+}",
+                testHost,
                 Keyword("namespace"),
-                Identifier("dynamic"),
+                Namespace("dynamic"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsClassName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsClassName(TestHost testHost)
         {
-            await TestAsync(@"class dynamic { }",
+            await TestAsync(
+@"class dynamic
+{
+}",
+                testHost,
                 Keyword("class"),
                 Class("dynamic"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsConstructorDeclarationName()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsConstructorDeclarationName(TestHost testHost)
         {
-            await TestAsync(@"class dynamic { dynamic() { } }",
+            await TestAsync(
+@"class dynamic
+{
+    dynamic()
+    {
+    }
+}",
+                testHost,
                 Keyword("class"),
                 Class("dynamic"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
+                Class("dynamic"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -631,40 +811,49 @@ class C { dynamic::Foo a; }",
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsNamespaceAlias()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsNamespaceAlias(TestHost testHost)
         {
-            await TestInMethodAsync(@"dynamic.FileInfo file;",
+            await TestInMethodAsync(
+@"dynamic.FileInfo file;",
+                testHost,
                 Identifier("dynamic"),
                 Operators.Dot,
                 Identifier("FileInfo"),
-                Identifier("file"),
+                Local("file"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsGotoLabel()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsGotoLabel(TestHost testHost)
         {
-            await TestInMethodAsync(@"dynamic: int i = 0;
+            await TestInMethodAsync(
+@"dynamic: int i = 0;
         goto dynamic;",
-                Identifier("dynamic"),
+                testHost,
+                Label("dynamic"),
                 Punctuation.Colon,
                 Keyword("int"),
-                Identifier("i"),
+                Local("i"),
                 Operators.Equals,
                 Number("0"),
                 Punctuation.Semicolon,
-                Keyword("goto"),
-                Identifier("dynamic"),
+                ControlKeyword("goto"),
+                Label("dynamic"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsEnumField()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsEnumField(TestHost testHost)
         {
-            await TestInMethodAsync(@"A a = A.dynamic;",
+            await TestInMethodAsync(
+@"A a = A.dynamic;",
+                testHost,
                 Identifier("A"),
-                Identifier("a"),
+                Local("a"),
                 Operators.Equals,
                 Identifier("A"),
                 Operators.Dot,
@@ -672,31 +861,48 @@ class C { dynamic::Foo a; }",
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsEnumFieldDefinition()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsEnumFieldDefinition(TestHost testHost)
         {
-            await TestAsync(@"enum A { dynamic }",
+            await TestAsync(
+@"enum A
+{
+    dynamic
+}",
+                testHost,
                 Keyword("enum"),
                 Enum("A"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
+                EnumMember("dynamic"),
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsEnumType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsEnumType(TestHost testHost)
         {
-            await TestAsync(@"enum dynamic { }",
+            await TestAsync(
+@"enum dynamic
+{
+}",
+                testHost,
                 Keyword("enum"),
                 Enum("dynamic"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsGenericTypeParameter()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsGenericTypeParameter(TestHost testHost)
         {
-            await TestAsync(@"class C<dynamic, T> where dynamic : T { dynamic d; }",
+            await TestAsync(
+@"class C<dynamic, T> where dynamic : T
+{
+    dynamic d;
+}",
+                testHost,
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenAngle,
@@ -710,52 +916,64 @@ class C { dynamic::Foo a; }",
                 TypeParameter("T"),
                 Punctuation.OpenCurly,
                 TypeParameter("dynamic"),
-                Identifier("d"),
+                Field("d"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsFieldType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsFieldType(TestHost testHost)
         {
             await TestInClassAsync(@"dynamic d",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("d"));
+                Field("d"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsStaticFieldType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsStaticFieldType(TestHost testHost)
         {
             await TestInClassAsync(@"static dynamic d",
+                testHost,
                 Keyword("static"),
                 Keyword("dynamic"),
-                Identifier("d"));
+                Field("d"),
+                Static("d"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsLocalVariableType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsLocalVariableType(TestHost testHost)
         {
             await TestInMethodAsync(@"dynamic d",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("d"));
+                Local("d"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsArrayLocalVariableType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsArrayLocalVariableType(TestHost testHost)
         {
             await TestInMethodAsync(@"dynamic[] d",
+                testHost,
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("d"));
+                Local("d"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsLambdaParameterType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsLambdaParameterType(TestHost testHost)
         {
-            await TestInMethodAsync(@"var q = a.Where((dynamic d) => d == dynamic);",
+            await TestInMethodAsync(
+@"var q = a.Where((dynamic d) => d == dynamic);",
+                testHost,
                 Keyword("var"),
-                Identifier("q"),
+                Local("q"),
                 Operators.Equals,
                 Identifier("a"),
                 Operators.Dot,
@@ -763,22 +981,25 @@ class C { dynamic::Foo a; }",
                 Punctuation.OpenParen,
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Punctuation.CloseParen,
-                Operators.Text("=>"),
-                Identifier("d"),
-                Operators.Text("=="),
+                Operators.EqualsGreaterThan,
+                Parameter("d"),
+                Operators.EqualsEquals,
                 Identifier("dynamic"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicArray()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicArray(TestHost testHost)
         {
-            await TestInMethodAsync(@"dynamic d = new dynamic[5];",
+            await TestInMethodAsync(
+@"dynamic d = new dynamic[5];",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Local("d"),
                 Operators.Equals,
                 Keyword("new"),
                 Keyword("dynamic"),
@@ -788,12 +1009,15 @@ class C { dynamic::Foo a; }",
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicConstructor()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicConstructor(TestHost testHost)
         {
-            await TestInMethodAsync(@"dynamic d = new dynamic();",
+            await TestInMethodAsync(
+@"dynamic d = new dynamic();",
+                testHost,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Local("d"),
                 Operators.Equals,
                 Keyword("new"),
                 Keyword("dynamic"),
@@ -802,11 +1026,13 @@ class C { dynamic::Foo a; }",
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAfterIs()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAfterIs(TestHost testHost)
         {
             await TestInMethodAsync(@"if (a is dynamic)",
-                Keyword("if"),
+                testHost,
+                ControlKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("a"),
                 Keyword("is"),
@@ -814,10 +1040,12 @@ class C { dynamic::Foo a; }",
                 Punctuation.CloseParen);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAfterAs()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAfterAs(TestHost testHost)
         {
             await TestInMethodAsync(@"a = a as dynamic",
+                testHost,
                 Identifier("a"),
                 Operators.Equals,
                 Identifier("a"),
@@ -825,15 +1053,18 @@ class C { dynamic::Foo a; }",
                 Keyword("dynamic"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsGenericTypeArgument()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsGenericTypeArgument(TestHost testHost)
         {
-            await TestInMethodAsync(@"List<dynamic> l = new List<dynamic>();",
+            await TestInMethodAsync(
+@"List<dynamic> l = new List<dynamic>();",
+                testHost,
                 Identifier("List"),
                 Punctuation.OpenAngle,
                 Keyword("dynamic"),
                 Punctuation.CloseAngle,
-                Identifier("l"),
+                Local("l"),
                 Operators.Equals,
                 Keyword("new"),
                 Identifier("List"),
@@ -845,27 +1076,32 @@ class C { dynamic::Foo a; }",
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsSecondGenericTypeArgument()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsSecondGenericTypeArgument(TestHost testHost)
         {
-            await TestInMethodAsync(@"KVP<string, dynamic> kvp;",
+            await TestInMethodAsync(
+@"KVP<string, dynamic> kvp;",
+                testHost,
                 Identifier("KVP"),
                 Punctuation.OpenAngle,
                 Keyword("string"),
                 Punctuation.Comma,
                 Keyword("dynamic"),
                 Punctuation.CloseAngle,
-                Identifier("kvp"),
+                Local("kvp"),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsRegionLabel()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsRegionLabel(TestHost testHost)
         {
             var code =
 @"#region dynamic
 #endregion";
             await TestAsync(code,
+                testHost,
                 PPKeyword("#"),
                 PPKeyword("region"),
                 PPText("dynamic"),
@@ -873,35 +1109,48 @@ class C { dynamic::Foo a; }",
                 PPKeyword("endregion"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsInterfaceType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsInterfaceType(TestHost testHost)
         {
-            await TestAsync(@"interface dynamic{}",
+            await TestAsync(
+@"interface dynamic
+{
+}",
+                testHost,
                 Keyword("interface"),
                 Interface("dynamic"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsStructType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsStructType(TestHost testHost)
         {
-            await TestAsync(@"struct dynamic {  }",
+            await TestAsync(
+@"struct dynamic
+{
+}",
+                testHost,
                 Keyword("struct"),
                 Struct("dynamic"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DynamicAsUndefinedGenericType()
+        [Theory]
+        [CombinatorialData]
+        public async Task DynamicAsUndefinedGenericType(TestHost testHost)
         {
-            await TestInMethodAsync(@"dynamic<int> d;",
+            await TestInMethodAsync(
+@"dynamic<int> d;",
+                testHost,
                 Identifier("dynamic"),
                 Punctuation.OpenAngle,
                 Keyword("int"),
                 Punctuation.CloseAngle,
-                Identifier("d"),
+                Local("d"),
                 Punctuation.Semicolon);
         }
     }

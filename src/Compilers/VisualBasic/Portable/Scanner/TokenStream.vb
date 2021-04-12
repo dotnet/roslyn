@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -7,9 +9,7 @@ Option Compare Binary
 Option Strict On
 
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Module ScannerStateExtensions
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             currentToken = tk
         End Sub
 
-        Friend Sub TransitionFromXmlToVB(toCompare As SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As SyntaxList(Of VisualBasicSyntaxNode))
+        Friend Sub TransitionFromXmlToVB(toCompare As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim tk = _prevToken.InnerTokenObject
             Debug.Assert(tk IsNot Nothing)
 
@@ -321,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AbandonAllTokens()
             RevertState(_prevToken)
 
-            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia())
+            Dim trivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia())
             Dim index = trivia.Count - GetLengthOfCommonEnd(trivia, toCompare)
             toRemove = trivia.GetEndOfTrivia(index)
 
@@ -338,14 +338,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _currentToken = New ScannerToken(_scannerPreprocessorState, _lineBufferOffset, _endOfTerminatorTrivia, Nothing, state)
         End Sub
 
-        Friend Sub TransitionFromVBToXml(state As ScannerState, toCompare As SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As SyntaxList(Of VisualBasicSyntaxNode))
+        Friend Sub TransitionFromVBToXml(state As ScannerState, toCompare As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ByRef toRemove As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode), ByRef toAdd As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode))
             Dim tk = _prevToken.InnerTokenObject
             Debug.Assert(tk IsNot Nothing)
 
             AbandonAllTokens()
             RevertState(_prevToken)
 
-            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia())
+            Dim trivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(tk.GetTrailingTrivia())
             Dim index = trivia.Count - GetLengthOfCommonEnd(trivia, toCompare)
             toRemove = trivia.GetEndOfTrivia(index)
 

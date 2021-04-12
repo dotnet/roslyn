@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -98,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 End If
 
-                ' Builds tailing spaces up to the end of this line
+                ' Builds trailing spaces up to the end of this line
                 For position = Math.Min(sourceSpanEnd, line.End) To line.End - 1
                     If (text(position) = vbTab) Then
                         ' normalize tabs with 4 spaces

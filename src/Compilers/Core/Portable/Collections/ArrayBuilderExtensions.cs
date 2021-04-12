@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,11 +23,35 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        public static bool Any<T, A>(this ArrayBuilder<T> builder, Func<T, A, bool> predicate, A arg)
+        {
+            foreach (var item in builder)
+            {
+                if (predicate(item, arg))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool All<T>(this ArrayBuilder<T> builder, Func<T, bool> predicate)
         {
             foreach (var item in builder)
             {
                 if (!predicate(item))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool All<T, A>(this ArrayBuilder<T> builder, Func<T, A, bool> predicate, A arg)
+        {
+            foreach (var item in builder)
+            {
+                if (!predicate(item, arg))
                 {
                     return false;
                 }
@@ -111,7 +137,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static void AddOptional<T>(this ArrayBuilder<T> builder, T item)
+        public static void AddOptional<T>(this ArrayBuilder<T> builder, T? item)
             where T : class
         {
             if (item != null)
@@ -135,14 +161,55 @@ namespace Microsoft.CodeAnalysis
             return e;
         }
 
+        public static bool TryPop<T>(this ArrayBuilder<T> builder, [MaybeNullWhen(false)] out T result)
+        {
+            if (builder.Count > 0)
+            {
+                result = builder.Pop();
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
         public static T Peek<T>(this ArrayBuilder<T> builder)
         {
             return builder[builder.Count - 1];
         }
 
-        public static ImmutableArray<T> ToImmutableOrEmptyAndFree<T>(this ArrayBuilder<T> builderOpt)
+        public static ImmutableArray<T> ToImmutableOrEmptyAndFree<T>(this ArrayBuilder<T>? builder)
         {
-            return builderOpt?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
+            return builder?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
         }
+
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T? value)
+            where T : struct
+        {
+            if (value != null)
+            {
+                builder.Add(value.Value);
+            }
+        }
+
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T? value)
+            where T : class
+        {
+            if (value != null)
+            {
+                builder.Add(value);
+            }
+        }
+
+#nullable disable
+        public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>> getNested)
+        {
+            foreach (var item in builder)
+            {
+                getNested(item)?.FreeAll(getNested);
+            }
+            builder.Free();
+        }
+#nullable enable
     }
 }

@@ -1,10 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
@@ -13,6 +18,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         public override bool Include(StackFrame frame)
         {
             var method = frame.GetMethod();
+
+            // TODO (https://github.com/dotnet/roslyn/issues/23101): investigate which submission frames *can* be excluded
+            if (method.DeclaringType?.FullName.StartsWith("Submission#0").ToThreeState() == ThreeState.True)
+            {
+                return true;
+            }
+
             if (IsHiddenMember(method))
             {
                 return false;
@@ -29,6 +41,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             // Type is null for DynamicMethods and global methods.
             // TODO (tomat): we don't want to include awaiter helpers, shouldn't they be marked by DebuggerHidden in FX?
             if (type == null || IsTaskAwaiter(type) || IsTaskAwaiter(type.DeclaringType))
+            {
+                return false;
+            }
+
+            if (type == typeof(ExceptionDispatchInfo) && method.Name == nameof(ExceptionDispatchInfo.Throw))
             {
                 return false;
             }

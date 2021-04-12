@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+     Licensed to the .NET Foundation under one or more agreements.
+     The .NET Foundation licenses this file to you under the MIT license.
+     See the LICENSE file in the project root for more information.
+
+-->
+<Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
+  <DefineGuid Name="VisualBasicFunctionResolverId" Value="5901F6C2-5681-4371-8DF5-143821E1E4A1"/>
+  <ManagedComponent
+    ComponentId="VisualBasicFunctionResolverId"
+    ComponentLevel="65100"
+    Synchronized="true"
+    AssemblyName="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver">
+    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFunctionResolver">
+      <Implements>
+        <InterfaceGroup Priority="Normal">
+          <Filter>
+            <LanguageId RequiredValue="DkmLanguageId.VB"/>
+            <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.TimeTravelTraceInterop"/>
+            <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.InProcessManagedNativeInterop"/>
+            <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.ClrVirtualMachine"/>
+          </Filter>
+          <Interface Name="IDkmRuntimeFunctionResolver"/>
+        </InterfaceGroup>
+        <InterfaceGroup CallOnlyWhenLoaded="true" Priority="Normal">
+          <Filter>
+            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
+          </Filter>
+          <Interface Name="IDkmModuleInstanceLoadNotification"/>
+          <Interface Name="IDkmModuleInstanceUnloadNotification"/>
+          <Interface Name="IDkmModuleModifiedNotification"/>
+          <Interface Name="IDkmModuleSymbolsLoadedNotification"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+  </ManagedComponent>
+</Configuration>

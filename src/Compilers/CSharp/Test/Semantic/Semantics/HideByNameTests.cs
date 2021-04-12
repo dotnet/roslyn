@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     ret
   }
 
-  .method public static string Foo(string x) cil managed
+  .method public static string Goo(string x) cil managed
   {
     ldarg.0
     ret
@@ -48,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     ret
   }
 
-  .method public static void Foo(int32 x) cil managed
+  .method public static void Goo(int32 x) cil managed
   {
     ret
   }
@@ -60,13 +64,13 @@ class Program
 {
     static void Main()
     {
-        B.Foo("""");
+        B.Goo("""");
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,15): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         B.Foo("");
+                //         B.Goo("");
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
         }
 
@@ -85,7 +89,7 @@ class Program
     ret
   }
 
-  .method public instance string Foo(string x) cil managed
+  .method public instance string Goo(string x) cil managed
   {
     ldarg.0
     ret
@@ -104,7 +108,7 @@ class Program
     ret
   }
 
-  .method public instance void Foo(int32 x) cil managed
+  .method public instance void Goo(int32 x) cil managed
   {
     ret
   }
@@ -116,13 +120,13 @@ class Program
 {
     static void Main()
     {
-        new B().Foo("""");
+        new B().Goo("""");
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,21): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         new B().Foo("");
+                //         new B().Goo("");
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
         }
 
@@ -185,7 +189,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
             CompileAndVerify(comp).VerifyIL("Program.Main", @"
 {
   // Code size       23 (0x17)
@@ -255,7 +259,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         new B().M(1, 2); // This would work if B.M was not hide-by-name (since A.M is params)
                 Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2"));
@@ -310,7 +314,7 @@ public class C : B
 }";
 
             // NOTE: unlike overload resolution, override resolution does not respect hide-by-name.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         [Fact]
@@ -366,7 +370,7 @@ public class C : B, I
 }";
 
             // NOTE: unlike overload resolution, implicit interface implementation resolution does not respect hide-by-name.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         #endregion Methods
@@ -440,7 +444,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,25): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         int x = new B()[0];
                 Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string"));
@@ -517,7 +521,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
             CompileAndVerify(comp).VerifyIL("Program.Main", @"
 {
   // Code size       25 (0x19)
@@ -603,7 +607,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (6,17): error CS1501: No overload for method 'this' takes 2 arguments
                 //         int x = new B()[1, 2]; // This would work if B.Item was not hide-by-name (since A.Item is params)
                 Diagnostic(ErrorCode.ERR_BadArgCount, "new B()[1, 2]").WithArguments("this", "2"));
@@ -672,7 +676,7 @@ public class C : B
 }";
 
             // NOTE: unlike overload resolution, override resolution does not respect hide-by-name.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -742,7 +746,7 @@ public class C : B, I
 }";
 
             // NOTE: unlike overload resolution, implicit interface implementation resolution does not respect hide-by-name.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
         }
 
         #endregion Indexers
@@ -750,7 +754,7 @@ public class C : B, I
         [Fact, WorkItem(897971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897971")]
         public void LocalHideFieldByName()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilation(@"
 using System;
 
 public class M
@@ -773,7 +777,7 @@ public class M
 }
 ").VerifyDiagnostics();
 
-            CreateCompilationWithMscorlib(@"
+            CreateCompilation(@"
 using System;
 
 public class M
@@ -794,7 +798,7 @@ public class M
 }
 ").VerifyDiagnostics();
 
-            CreateCompilationWithMscorlib(@"
+            CreateCompilation(@"
 using System;
 
 public class M

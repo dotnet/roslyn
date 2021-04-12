@@ -1,0 +1,44 @@
+# Branches that trigger a build on commit
+trigger:
+- main
+- main-vs-deps
+- release/*
+- features/*
+- demos/*
+
+# Branches that trigger builds on PR
+pr:
+- main
+- main-vs-deps
+- release/*
+- features/*
+- demos/*
+
+jobs:
+- job: VS_Integration
+  pool:
+    name: NetCorePublic-Pool
+    queue: $(queueName)
+  strategy:
+    maxParallel: 4
+    matrix:
+      debug_32:
+        _configuration: Debug
+        _oop64bit: false
+      debug_64:
+        _configuration: Debug
+        _oop64bit: true
+      release_32:
+        _configuration: Release
+        _oop64bit: false
+      release_64:
+        _configuration: Release
+        _oop64bit: true
+  timeoutInMinutes: 135
+
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: $(_configuration)
+        oop64bit: $(_oop64bit)
+        lspEditor: false

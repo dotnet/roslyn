@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -8,6 +12,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -58,26 +63,26 @@ End Namespace
         public void TestResolveNamespaceWithSameNameAsGenericInterface1()
         {
             VerifyNamespaceResolution(@"
-namespace $$IFoo
+namespace $$IGoo
 {
 }
-interface IFoo<T>
+interface IGoo<T>
 {
 }
 ",
-                LanguageNames.CSharp, false, "IFoo");
+                LanguageNames.CSharp, false, "IGoo");
         }
 
         [Fact]
         public void TestResolveNamespaceWithSameNameAsGenericInterface2()
         {
             VerifyNamespaceResolution(@"
-Namespace $$IFoo
+Namespace $$IGoo
 End Namespace
-Interface IFoo(Of T)
+Interface IGoo(Of T)
 End Interface
 ",
-                LanguageNames.VisualBasic, false, "IFoo");
+                LanguageNames.VisualBasic, false, "IGoo");
         }
 
         [Fact]
@@ -363,6 +368,20 @@ End Class
                 "C.s");
         }
 
+        [Fact, WorkItem(1141257, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1141257")]
+        public void TestResolveEnumFieldWithoutName()
+        {
+            var source = @"
+enum E
+{
+    $$,
+}
+";
+            var syntaxTree = CreateSyntaxTree(source, LanguageNames.CSharp);
+            var compilation = CreateCompilation(syntaxTree, LanguageNames.CSharp, "");
+            _ = SuppressMessageAttributeState.ResolveTargetSymbols(compilation, "E.", SuppressMessageAttributeState.TargetScope.Member);
+        }
+
         [Fact]
         public void TestResolveProperty1()
         {
@@ -521,14 +540,14 @@ class C
             VerifyMemberResolution(@"
 class C
 {
-    void Foo() {}
-    void $$Foo(int x) {}
-    void Foo(string x) {}
+    void Goo() {}
+    void $$Goo(int x) {}
+    void Goo(string x) {}
 }
 ",
             LanguageNames.CSharp, false,
-            "C.#Foo(System.Int32)",
-            "C.Foo(System.Int32):System.Void");
+            "C.#Goo(System.Int32)",
+            "C.Goo(System.Int32):System.Void");
         }
 
         [Fact]
@@ -536,17 +555,17 @@ class C
         {
             VerifyMemberResolution(@"
 Class C
-    Sub Foo() 
+    Sub Goo() 
     End Sub
-    Sub $$Foo(ByVal x as Integer)
+    Sub $$Goo(ByVal x as Integer)
     End Sub
-    Sub Foo(ByVal x as String)
+    Sub Goo(ByVal x as String)
     End Sub
 End Class
 ",
             LanguageNames.VisualBasic, false,
-            "C.#Foo(System.Int32)",
-            "C.Foo(System.Int32):System.Void");
+            "C.#Goo(System.Int32)",
+            "C.Goo(System.Int32):System.Void");
         }
 
         [Fact]
@@ -555,14 +574,14 @@ End Class
             VerifyMemberResolution(@"
 class C
 {
-    void Foo() {}
-    string Foo(int x) {}
-    string $$Foo(string x) {}
+    void Goo() {}
+    string Goo(int x) {}
+    string $$Goo(string x) {}
 }
 ",
             LanguageNames.CSharp, false,
-            "C.#Foo(System.String)",
-            "C.Foo(System.String):System.String");
+            "C.#Goo(System.String)",
+            "C.Goo(System.String):System.String");
         }
 
         [Fact]
@@ -570,17 +589,17 @@ class C
         {
             VerifyMemberResolution(@"
 Class C
-    Sub Foo() 
+    Sub Goo() 
     End Sub
-    Function Foo(ByVal x As Integer) As String
+    Function Goo(ByVal x As Integer) As String
     End Function
-    Function $$Foo(ByVal x As String) As String 
+    Function $$Goo(ByVal x As String) As String 
     End Function
 End Class
 ",
             LanguageNames.VisualBasic, false,
-            "C.#Foo(System.String)",
-            "C.Foo(System.String):System.String");
+            "C.#Goo(System.String)",
+            "C.Goo(System.String):System.String");
         }
 
         [Fact]
@@ -589,22 +608,22 @@ End Class
             VerifyMemberResolution(@"
 class C
 {
-    int Foo<T>(T x) {}
-    int $$Foo<T>(T x, params T[] y) {}
+    int Goo<T>(T x) {}
+    int $$Goo<T>(T x, params T[] y) {}
 }
 ",
                 LanguageNames.CSharp, false,
-                "C.#Foo`1(!!0,!!0[])",
-                "C.Foo(T,T[]):System.Int32");
+                "C.#Goo`1(!!0,!!0[])",
+                "C.Goo(T,T[]):System.Int32");
 
             VerifyMemberResolution(@"
 class C
 {
-    int [|Foo|]<T>(T x) {}
-    int [|Foo|]<T>(T x, T y) {}
+    int [|Goo|]<T>(T x) {}
+    int [|Goo|]<T>(T x, T y) {}
 }
 ",
-                LanguageNames.CSharp, false, "C.Foo():System.Int32");
+                LanguageNames.CSharp, false, "C.Goo():System.Int32");
         }
 
         [Fact]
@@ -612,25 +631,25 @@ class C
         {
             VerifyMemberResolution(@"
 Class C
-    Function Foo(Of T)(ByVal x As T) As Integer
+    Function Goo(Of T)(ByVal x As T) As Integer
     End Function
-    Function $$Foo(Of T)(ByVal x As T, ByVal y as T()) As Integer
+    Function $$Goo(Of T)(ByVal x As T, ByVal y as T()) As Integer
     End Function
 End Class
 ",
                 LanguageNames.VisualBasic, false,
-                "C.#Foo`1(!!0,!!0[])",
-                "C.Foo(T,T[]):System.Int32");
+                "C.#Goo`1(!!0,!!0[])",
+                "C.Goo(T,T[]):System.Int32");
 
             VerifyMemberResolution(@"
 Class C
-    Function [|Foo|](Of T)(ByVal x As T) As Integer
+    Function [|Goo|](Of T)(ByVal x As T) As Integer
     End Function
-    Function [|Foo|](Of T)(ByVal x As T, ByVal y As T) As Integer
+    Function [|Goo|](Of T)(ByVal x As T, ByVal y As T) As Integer
     End Function
 End Class
 ",
-                LanguageNames.VisualBasic, false, "C.Foo():System.Int32");
+                LanguageNames.VisualBasic, false, "C.Goo():System.Int32");
         }
 
         [Fact]
@@ -1137,15 +1156,15 @@ End Namespace
             VerifyMemberResolution(@"
 class C
 {
-    string $$Foo(string x) {}
+    string $$Goo(string x) {}
 }
 ",
             LanguageNames.CSharp, false,
-            "C.#[vararg]Foo(System.String)",
-            "C.#[cdecl]Foo(System.String)",
-            "C.#[fastcall]Foo(System.String)",
-            "C.#[stdcall]Foo(System.String)",
-            "C.#[thiscall]Foo(System.String)");
+            "C.#[vararg]Goo(System.String)",
+            "C.#[cdecl]Goo(System.String)",
+            "C.#[fastcall]Goo(System.String)",
+            "C.#[stdcall]Goo(System.String)",
+            "C.#[thiscall]Goo(System.String)");
         }
 
         [Fact]
@@ -1153,16 +1172,16 @@ class C
         {
             VerifyMemberResolution(@"
 Class C
-    Private Function $$Foo(x As String) As String
+    Private Function $$Goo(x As String) As String
 End Function
 End Class
 ",
             LanguageNames.VisualBasic, false,
-            "C.#[vararg]Foo(System.String)",
-            "C.#[cdecl]Foo(System.String)",
-            "C.#[fastcall]Foo(System.String)",
-            "C.#[stdcall]Foo(System.String)",
-            "C.#[thiscall]Foo(System.String)");
+            "C.#[vararg]Goo(System.String)",
+            "C.#[cdecl]Goo(System.String)",
+            "C.#[fastcall]Goo(System.String)",
+            "C.#[stdcall]Goo(System.String)",
+            "C.#[thiscall]Goo(System.String)");
         }
 
         [Fact]
@@ -1285,10 +1304,8 @@ End Class
         private static void VerifyResolution(string markup, string[] fxCopFullyQualifiedNames, SuppressMessageAttributeState.TargetScope scope, string language, string rootNamespace)
         {
             // Parse out the span containing the declaration of the expected symbol
-            string source;
-            int? pos;
-            IDictionary<string, IList<TextSpan>> spans;
-            MarkupTestFile.GetPositionAndSpans(markup, out source, out pos, out spans);
+            MarkupTestFile.GetPositionAndSpans(markup,
+                out var source, out var pos, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             Assert.True(pos != null || spans.Count > 0, "Must specify a position or spans marking expected symbols for resolution");
 

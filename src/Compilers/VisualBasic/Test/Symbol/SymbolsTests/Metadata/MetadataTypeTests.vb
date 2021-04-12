@@ -1,9 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports CompilationCreationTestHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -14,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 
         <Fact>
         Public Sub MetadataNamespaceSymbol01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -58,7 +63,7 @@ End Class
         <WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")>
         <Fact>
         Public Sub MetadataTypeSymbolModule01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Module A
@@ -67,26 +72,25 @@ End Module
 </compilation>, TestOptions.ReleaseDll)
 
             CompileAndVerify(compilation,
-                             symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim a = m.GlobalNamespace.GetTypeMember("A")
-                                                  Assert.Equal(TypeKind.Module, a.TypeKind)
-                                                  Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
-                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit(New ModuleCompilationState).Single().ToString())
-                                              End Sub)
+                             sourceSymbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim a = m.GlobalNamespace.GetTypeMember("A")
+                                                        Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
+                                                        Assert.Equal(TypeKind.Module, a.TypeKind)
+                                                    End Sub,
+                            symbolValidator:=Sub(m As ModuleSymbol)
+                                                 Dim a = m.GlobalNamespace.GetTypeMember("A")
+                                                 Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
+                                                 Assert.Equal(TypeKind.Module, a.TypeKind)
 
-            CompileAndVerify(compilation,
-                             symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim a = m.GlobalNamespace.GetTypeMember("A")
-                                                  Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
-                                                  Assert.Equal(TypeKind.Module, a.TypeKind)
-                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit(New ModuleCompilationState).Single().ToString())
-                                              End Sub)
+                                                 Dim emittedAttributes = DirectCast(m, PEModuleSymbol).GetCustomAttributesForToken(DirectCast(a, PENamedTypeSymbol).Handle)
+                                                 Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", emittedAttributes.Single().ToString())
+                                             End Sub)
         End Sub
 
         <WorkItem(537324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537324")>
         <Fact>
         Public Sub MetadataTypeSymbolClass01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -140,7 +144,7 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolGenClass02()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -178,8 +182,8 @@ End Class
             Assert.False(type1.IsOverrides)
 
             ' 4 nested types, 64 members overall
-            Assert.Equal(64, type1.GetMembers().Length)
-            Assert.Equal(4, type1.GetTypeMembers().Length())
+            Assert.Equal(63, type1.GetMembers().Length)
+            Assert.Equal(3, type1.GetTypeMembers().Length())
             ' IDictionary<TKey, TValue>, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, 
             ' IDictionary, ICollection, IEnumerable, ISerializable, IDeserializationCallback
             Assert.Equal(8, type1.Interfaces.Length())
@@ -195,7 +199,7 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolGenInterface01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -249,13 +253,13 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolStruct01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
 End Class
     </file>
-</compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+</compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim mscorNS = compilation.GetReferencedAssemblySymbol(compilation.References(0))
             Assert.Equal("mscorlib", mscorNS.Name)
@@ -301,7 +305,7 @@ End Class
 
         <Fact>
         Public Sub MetadataArrayTypeSymbol01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -570,7 +574,7 @@ End Class
             Dim iEquatable As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_IEquatable_T)
             Assert.False(iEquatable.IsErrorType())
             Assert.Equal(1, iEquatable.Arity)
-            Assert.Null(compilation.GetTypeByMetadataName("System.IEquatable`1"))
+            Assert.Same(iEquatable, compilation.GetTypeByMetadataName("System.IEquatable`1"))
 
             Dim iQueryable_T As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T)
             Assert.True(iQueryable_T.IsErrorType())
@@ -1146,6 +1150,87 @@ End Class
             Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name) ' The name has been reconstructed correctly.
             Assert.Equal("C.<I<System.Int32>.F>d__0", stateMachineClass.ToTestDisplayString()) ' SymbolDisplay works.
             Assert.Equal(stateMachineClass, comp.GetTypeByMetadataName("C+<I<System.Int32>.F>d__0")) ' GetTypeByMetadataName works.
+        End Sub
+
+        <WorkItem(233668, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=233668")>
+        <Fact>
+        Public Sub EmptyNamespaceNames()
+            Dim ilSource = <![CDATA[
+.class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+}
+.namespace '.N'
+{
+  .class public B
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '.'
+{
+  .class public C
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '..'
+{
+  .class public D
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '..N'
+{
+  .class public E
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace N.M
+{
+  .class public F
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace 'N.M.'
+{
+  .class public G
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace 'N.M..'
+{
+  .class public H
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="a.vb"/>
+                </compilation>
+            Dim comp = CreateCompilationWithCustomILSource(vbSource, ilSource)
+            comp.AssertTheseDiagnostics()
+            Dim builder = ArrayBuilder(Of String).GetInstance()
+            Dim [module] = comp.GetMember(Of NamedTypeSymbol)("A").ContainingModule
+            GetAllNamespaceNames(builder, [module].GlobalNamespace)
+            Assert.Equal({"Global", "", ".", "..N", ".N", "N", "N.M", "N.M."}, builder)
+            builder.Free()
+        End Sub
+
+        Private Shared Sub GetAllNamespaceNames(builder As ArrayBuilder(Of String), [namespace] As NamespaceSymbol)
+            builder.Add([namespace].ToTestDisplayString())
+            For Each member In [namespace].GetMembers()
+                If member.Kind <> SymbolKind.Namespace Then
+                    Continue For
+                End If
+                GetAllNamespaceNames(builder, DirectCast(member, NamespaceSymbol))
+            Next
         End Sub
 
     End Class

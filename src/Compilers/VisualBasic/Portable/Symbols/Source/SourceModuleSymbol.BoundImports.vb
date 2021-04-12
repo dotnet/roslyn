@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -7,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Partial Class SourceModuleSymbol
+    Partial Friend Class SourceModuleSymbol
         ' A class to hold the bound project-level imports, and associated binding diagnostics.
         Private NotInheritable Class BoundImports
             ' can be Nothing if no member imports
@@ -22,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' can be Nothing if no xmlns imports
             Public ReadOnly XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-            Public ReadOnly Diagnostics As DiagnosticBag
+            Public ReadOnly Diagnostics As BindingDiagnosticBag
 
             Public Sub New(memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
                            memberImportsInfo As ImmutableArray(Of GlobalImportInfo),
@@ -30,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            aliasImports As ImmutableArray(Of AliasAndImportsClausePosition),
                            aliasImportsInfo As ImmutableArray(Of GlobalImportInfo),
                            xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition),
-                           diags As DiagnosticBag)
+                           diags As BindingDiagnosticBag)
                 Me.MemberImports = memberImports
                 Me.MemberImportsInfo = memberImportsInfo
                 Me.AliasImportsMap = aliasImportsMap

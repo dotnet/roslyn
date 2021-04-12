@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,23 +18,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class SpeculativeSyntaxTreeSemanticModel : SyntaxTreeSemanticModel
     {
-        private readonly CSharpSemanticModel _parentSemanticModel;
+        private readonly SyntaxTreeSemanticModel _parentSemanticModel;
         private readonly CSharpSyntaxNode _root;
         private readonly Binder _rootBinder;
         private readonly int _position;
         private readonly SpeculativeBindingOption _bindingOption;
 
-        public static SpeculativeSyntaxTreeSemanticModel Create(CSharpSemanticModel parentSemanticModel, TypeSyntax root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
+        public static SpeculativeSyntaxTreeSemanticModel Create(SyntaxTreeSemanticModel parentSemanticModel, TypeSyntax root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
         {
             return CreateCore(parentSemanticModel, root, rootBinder, position, bindingOption);
         }
 
-        public static SpeculativeSyntaxTreeSemanticModel Create(CSharpSemanticModel parentSemanticModel, CrefSyntax root, Binder rootBinder, int position)
+        public static SpeculativeSyntaxTreeSemanticModel Create(SyntaxTreeSemanticModel parentSemanticModel, CrefSyntax root, Binder rootBinder, int position)
         {
             return CreateCore(parentSemanticModel, root, rootBinder, position, bindingOption: SpeculativeBindingOption.BindAsTypeOrNamespace);
         }
 
-        private static SpeculativeSyntaxTreeSemanticModel CreateCore(CSharpSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
+        private static SpeculativeSyntaxTreeSemanticModel CreateCore(SyntaxTreeSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
         {
             Debug.Assert(parentSemanticModel is SyntaxTreeSemanticModel);
             Debug.Assert(root != null);
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return speculativeModel;
         }
 
-        private SpeculativeSyntaxTreeSemanticModel(CSharpSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
+        private SpeculativeSyntaxTreeSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
             : base(parentSemanticModel.Compilation, parentSemanticModel.SyntaxTree, root.SyntaxTree)
         {
             _parentSemanticModel = parentSemanticModel;
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             return _parentSemanticModel.Bind(binder, node, diagnostics);
         }
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((options & SymbolInfoOptions.PreserveAliases) != 0)
             {
-                var aliasSymbol = (AliasSymbol)_parentSemanticModel.GetSpeculativeAliasInfo(_position, expression, this.GetSpeculativeBindingOption(expression));
+                var aliasSymbol = _parentSemanticModel.GetSpeculativeAliasInfo(_position, expression, this.GetSpeculativeBindingOption(expression));
                 return new SymbolInfo(aliasSymbol, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
 

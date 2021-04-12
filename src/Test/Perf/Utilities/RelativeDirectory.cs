@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -10,7 +15,6 @@ namespace Roslyn.Test.Performance.Utilities
     public class RelativeDirectory
     {
         private string _workingDir;
-
 
         public RelativeDirectory()
         {
@@ -73,20 +77,13 @@ namespace Roslyn.Test.Performance.Utilities
             // in a project in the solution and have already been deployed
             // to a binaries folder
 
-            // Debug?
-            var debug = "debug";
-            var debugIndex = _workingDir.IndexOf(debug, StringComparison.CurrentCultureIgnoreCase);
-            if (debugIndex != -1)
+            foreach (var configuration in new string[] { "debug", "release" })
             {
-                return _workingDir.Substring(0, debugIndex + debug.Length);
-            }
-
-            // Release?
-            var release = "release";
-            var releaseIndex = _workingDir.IndexOf(release, StringComparison.CurrentCultureIgnoreCase);
-            if (releaseIndex != -1)
-            {
-                return _workingDir.Substring(0, releaseIndex + release.Length);
+                var configurationIndex = _workingDir.IndexOf(configuration, StringComparison.CurrentCultureIgnoreCase);
+                if (configurationIndex != -1)
+                {
+                    return _workingDir.Substring(0, configurationIndex + configuration.Length);
+                }
             }
 
             throw new Exception("Couldn't find binaries. Are you running from the binaries directory?");
@@ -95,7 +92,7 @@ namespace Roslyn.Test.Performance.Utilities
         /// <returns>
         /// The path to TAO
         /// </returns>
-        public string TaoPath => Path.Combine(MyBinaries(), "Tao");
+        public string TaoPath => Path.Combine(MyBinaries(), "exes", "EditorTestApp", "Tao");
 
         /// Downloads a zip from azure store and extracts it into
         /// the ./temp directory.
@@ -111,7 +108,7 @@ namespace Roslyn.Test.Performance.Utilities
             // has been downloaded *and* extracted.
             if (File.Exists(zipPath))
             {
-                logger.Log($"Didn't download and extract {zipFileName} because one already exists.");
+                logger.Log($"Didn't download and extract {zipFileName} because one already exists at {zipPath}.");
                 return;
             }
 

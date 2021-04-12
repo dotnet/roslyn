@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -17,10 +20,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
         {
             public INamedTypeSymbol ClassType { get; private set; }
 
-            public IList<IMethodSymbol> UnimplementedConstructors { get; private set; }
-            public IMethodSymbol UnimplementedDefaultConstructor { get; private set; }
-
-            public SyntaxNode BaseTypeNode { get; private set; }
+            public ImmutableArray<IMethodSymbol> UnimplementedConstructors { get; private set; }
 
             private State()
             {
@@ -43,61 +43,57 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 
             private bool TryInitialize(
                 TService service,
-                SemanticDocument document,
+                SemanticDocument semanticDocument,
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                SyntaxNode baseTypeNode;
-                INamedTypeSymbol classType;
-                if (!service.TryInitializeState(document, textSpan, cancellationToken, out baseTypeNode, out classType))
+                if (!service.TryInitializeState(semanticDocument, textSpan, cancellationToken, out var classType))
                 {
                     return false;
                 }
 
-                if (!baseTypeNode.Span.IntersectsWith(textSpan.Start))
-                {
-                    return false;
-                }
+                ClassType = classType;
 
-                this.BaseTypeNode = baseTypeNode;
-                this.ClassType = classType;
-
-                var baseType = this.ClassType.BaseType;
-
-                if (this.ClassType.TypeKind != TypeKind.Class ||
-                    this.ClassType.IsStatic ||
+                var baseType = ClassType.BaseType;
+                if (ClassType.IsStatic ||
                     baseType == null ||
-                    baseType.SpecialType == SpecialType.System_Object ||
                     baseType.TypeKind == TypeKind.Error)
                 {
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                var classConstructors = this.ClassType.InstanceConstructors;
-                var baseTypeConstructors =
-                    baseType.InstanceConstructors
-                            .Where(c => c.IsAccessibleWithin(this.ClassType));
+                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var classConstructors = ClassType.InstanceConstructors;
 
-                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassType.Language);
+                var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
+                var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
-                var missingConstructors =
-                    baseTypeConstructors.Where(c1 => !classConstructors.Any(
-                        c2 => SignatureComparer.Instance.HaveSameSignature(c1.Parameters, c2.Parameters, compareParameterName: true, isCaseSensitive: syntaxFacts.IsCaseSensitive))).ToList();
+                UnimplementedConstructors =
+                    baseType.InstanceConstructors
+                            .WhereAsArray(c => c.IsAccessibleWithin(ClassType) &&
+                                               IsMissing(c, classConstructors, isCaseSensitive));
 
-                this.UnimplementedConstructors = missingConstructors;
+                return UnimplementedConstructors.Length > 0;
+            }
 
-                this.UnimplementedDefaultConstructor = baseTypeConstructors.FirstOrDefault(c => c.Parameters.Length == 0);
-                if (this.UnimplementedDefaultConstructor != null)
+            private static bool IsMissing(
+                IMethodSymbol constructor,
+                ImmutableArray<IMethodSymbol> classConstructors,
+                bool isCaseSensitive)
+            {
+                var matchingConstructor = classConstructors.FirstOrDefault(
+                    c => SignatureComparer.Instance.HaveSameSignature(
+                        constructor.Parameters, c.Parameters, compareParameterName: true, isCaseSensitive: isCaseSensitive));
+
+                if (matchingConstructor == null)
                 {
-                    if (classConstructors.Any(c => c.Parameters.Length == 0 && !c.IsImplicitlyDeclared))
-                    {
-                        this.UnimplementedDefaultConstructor = null;
-                    }
+                    return true;
                 }
 
-                return this.UnimplementedConstructors.Count > 0;
+                // We have a matching constructor in this type.  But we'll still offer to create the
+                // constructor if the constructor that we have is implicit. 
+                return matchingConstructor.IsImplicitlyDeclared;
             }
         }
     }

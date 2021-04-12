@@ -1,13 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Rename
 {
@@ -16,9 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private readonly ConflictingIdentifierTracker _tracker;
 
         public LocalConflictVisitor(SyntaxToken tokenBeingRenamed)
-        {
-            _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
-        }
+            => _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
 
         public override void DefaultVisit(SyntaxNode node)
         {
@@ -37,17 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         }
 
         public override void VisitBlock(BlockSyntax node)
+            => VisitBlockStatements(node, node.Statements);
+
+        private void VisitBlockStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
         {
             var tokens = new List<SyntaxToken>();
 
             // We want to collect any variable declarations that are in the block
             // before visiting nested statements
-            foreach (var statement in node.Statements)
+            foreach (var statement in statements)
             {
-                if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
+                if (statement.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax declarationStatement))
                 {
-                    var declarationStatement = (LocalDeclarationStatementSyntax)statement;
-
                     foreach (var declarator in declarationStatement.Declaration.Variables)
                     {
                         tokens.Add(declarator.Identifier);
@@ -125,9 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         }
 
         public override void VisitQueryExpression(QueryExpressionSyntax node)
-        {
-            VisitQueryInternal(node.FromClause, node.Body);
-        }
+            => VisitQueryInternal(node.FromClause, node.Body);
 
         private void VisitQueryInternal(FromClauseSyntax fromClause, QueryBodySyntax body)
         {
@@ -181,6 +180,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             _tracker.AddIdentifier(node.Identifier);
             VisitQueryInternal(null, node.Body);
             _tracker.RemoveIdentifier(node.Identifier);
+        }
+
+        public override void VisitSwitchStatement(SwitchStatementSyntax node)
+        {
+            var statements = node.ChildNodes().Where(x => x.IsKind(SyntaxKind.SwitchSection)).SelectMany(x => x.ChildNodes());
+
+            VisitBlockStatements(node, statements);
         }
 
         public IEnumerable<SyntaxToken> ConflictingTokens

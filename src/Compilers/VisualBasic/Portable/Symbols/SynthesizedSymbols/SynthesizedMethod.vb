@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -17,10 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly _isShared As Boolean
         Private ReadOnly _name As String
-        Private ReadOnly _syntaxNodeOpt As VisualBasicSyntaxNode
+        Private ReadOnly _syntaxNodeOpt As SyntaxNode
 
         Friend Sub New(
-                syntaxNode As VisualBasicSyntaxNode,
+                syntaxNode As SyntaxNode,
                 containingSymbol As NamedTypeSymbol,
                 name As String,
                 isShared As Boolean
@@ -92,12 +95,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim type = ContainingAssembly.GetSpecialType(SpecialType.System_Void)
                 ' WARN: We assume that if System_Void was not found we would never reach 
                 '       this point because the error should have been/processed generated earlier
-                Debug.Assert(type.GetUseSiteErrorInfo() Is Nothing)
+                Debug.Assert(type.GetUseSiteInfo().DiagnosticInfo Is Nothing)
                 Return type
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Dim sourceType = TryCast(ContainingSymbol, SourceMemberContainerTypeSymbol)
@@ -175,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Dim node As VisualBasicSyntaxNode = Me.Syntax
+                Dim node As SyntaxNode = Me.Syntax
                 Dim asLambda = TryCast(node, LambdaExpressionSyntax)
                 If asLambda IsNot Nothing Then
                     node = asLambda.SubOrFunctionHeader
@@ -196,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return _syntaxNodeOpt
             End Get
@@ -208,5 +211,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
     End Class
-
 End Namespace

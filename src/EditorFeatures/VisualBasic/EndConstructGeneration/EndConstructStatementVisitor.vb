@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Text
 Imports System.Threading
@@ -111,10 +113,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                         Return New SpitLinesResult(
                             {
                                 "",
-                                innerAligningWhitespace & "' " & VBEditorResources.ThisCallIsRequiredByTheDesigner,
+                                innerAligningWhitespace & "' " & VBEditorResources.This_call_is_required_by_the_designer,
                                 innerAligningWhitespace & "InitializeComponent()",
                                 "",
-                                innerAligningWhitespace & "' " & VBEditorResources.AddAnyInitializationAfter,
+                                innerAligningWhitespace & "' " & VBEditorResources.Add_any_initialization_after_the_InitializeComponent_call,
                                 "",
                                 aligningWhitespace & "End Sub"
                              })

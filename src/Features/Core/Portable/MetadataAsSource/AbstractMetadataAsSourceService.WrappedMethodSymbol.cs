@@ -1,6 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -17,87 +22,38 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 _symbol = methodSymbol;
             }
 
-            public int Arity
-            {
-                get
-                {
-                    return _symbol.Arity;
-                }
-            }
+            public int Arity => _symbol.Arity;
 
-            public ISymbol AssociatedSymbol
-            {
-                get
-                {
-                    return _symbol.AssociatedSymbol;
-                }
-            }
+            public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
 
-            public INamedTypeSymbol AssociatedAnonymousDelegate
-            {
-                get
-                {
-                    return _symbol.AssociatedAnonymousDelegate;
-                }
-            }
+            public INamedTypeSymbol AssociatedAnonymousDelegate => _symbol.AssociatedAnonymousDelegate;
 
-            public IMethodSymbol ConstructedFrom
-            {
-                get
-                {
-                    return _symbol.ConstructedFrom;
-                }
-            }
+            public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
+
+            public bool IsReadOnly => _symbol.IsReadOnly;
+            public bool IsInitOnly => _symbol.IsInitOnly;
+
+            public System.Reflection.MethodImplAttributes MethodImplementationFlags => _symbol.MethodImplementationFlags;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {
                 get
                 {
-                    return this.CanImplementImplicitly
+                    return CanImplementImplicitly
                         ? ImmutableArray.Create<IMethodSymbol>()
                         : _symbol.ExplicitInterfaceImplementations;
                 }
             }
 
-            public bool HidesBaseMethodsByName
-            {
-                get
-                {
-                    return _symbol.HidesBaseMethodsByName;
-                }
-            }
+            public bool HidesBaseMethodsByName => _symbol.HidesBaseMethodsByName;
 
-            public bool IsExtensionMethod
-            {
-                get
-                {
-                    return _symbol.IsExtensionMethod;
-                }
-            }
+            public bool IsExtensionMethod => _symbol.IsExtensionMethod;
 
-            public bool IsGenericMethod
-            {
-                get
-                {
-                    return _symbol.IsGenericMethod;
-                }
-            }
+            public bool IsGenericMethod => _symbol.IsGenericMethod;
 
-            public bool IsAsync
-            {
-                get
-                {
-                    return _symbol.IsAsync;
-                }
-            }
+            public bool IsAsync => _symbol.IsAsync;
 
-            public MethodKind MethodKind
-            {
-                get
-                {
-                    return _symbol.MethodKind;
-                }
-            }
+            public MethodKind MethodKind => _symbol.MethodKind;
 
             public new IMethodSymbol OriginalDefinition
             {
@@ -107,54 +63,23 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            public IMethodSymbol OverriddenMethod
-            {
-                get
-                {
-                    return _symbol.OverriddenMethod;
-                }
-            }
+            public IMethodSymbol OverriddenMethod => _symbol.OverriddenMethod;
 
-            public ImmutableArray<IParameterSymbol> Parameters
-            {
-                get
-                {
-                    return _symbol.Parameters;
-                }
-            }
+            public ImmutableArray<IParameterSymbol> Parameters => _symbol.Parameters;
 
-            public IMethodSymbol PartialDefinitionPart
-            {
-                get
-                {
-                    return _symbol.PartialDefinitionPart;
-                }
-            }
+            public IMethodSymbol PartialDefinitionPart => _symbol.PartialDefinitionPart;
 
-            public IMethodSymbol PartialImplementationPart
-            {
-                get
-                {
-                    return _symbol.PartialImplementationPart;
-                }
-            }
+            public IMethodSymbol PartialImplementationPart => _symbol.PartialImplementationPart;
 
-            public ITypeSymbol ReceiverType
-            {
-                get
-                {
-                    return _symbol.ReceiverType;
-                }
-            }
+            public bool IsPartialDefinition => _symbol.IsPartialDefinition;
 
-            public IMethodSymbol ReducedFrom
-            {
-                get
-                {
+            public ITypeSymbol ReceiverType => _symbol.ReceiverType;
+
+            public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;
+
+            public IMethodSymbol ReducedFrom =>
                     // This implementation feels incorrect!
-                    return _symbol.ReducedFrom;
-                }
-            }
+                    _symbol.ReducedFrom;
 
             public ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
             {
@@ -162,68 +87,39 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _symbol.GetTypeInferredDuringReduction(reducedFromTypeParameter);
             }
 
-            public bool ReturnsVoid
-            {
-                get
-                {
-                    return _symbol.ReturnsVoid;
-                }
-            }
+            public bool ReturnsVoid => _symbol.ReturnsVoid;
 
-            public bool ReturnsByRef
-            {
-                get
-                {
-                    return _symbol.ReturnsByRef;
-                }
-            }
+            public bool ReturnsByRef => _symbol.ReturnsByRef;
 
-            public ITypeSymbol ReturnType
-            {
-                get
-                {
-                    return _symbol.ReturnType;
-                }
-            }
+            public bool ReturnsByRefReadonly => _symbol.ReturnsByRefReadonly;
+
+            public RefKind RefKind => _symbol.RefKind;
+
+            public ITypeSymbol ReturnType => _symbol.ReturnType;
+
+            public NullableAnnotation ReturnNullableAnnotation => _symbol.ReturnNullableAnnotation;
 
             public ImmutableArray<AttributeData> GetReturnTypeAttributes()
-            {
-                return _symbol.GetReturnTypeAttributes();
-            }
+                => _symbol.GetReturnTypeAttributes();
 
-            public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-            {
-                get
-                {
-                    return _symbol.ReturnTypeCustomModifiers;
-                }
-            }
+            public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
 
-            public ImmutableArray<ITypeSymbol> TypeArguments
-            {
-                get
-                {
-                    return _symbol.TypeArguments;
-                }
-            }
+            public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => _symbol.ReturnTypeCustomModifiers;
 
-            public ImmutableArray<ITypeParameterSymbol> TypeParameters
-            {
-                get
-                {
-                    return _symbol.TypeParameters;
-                }
-            }
+            public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
+
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _symbol.TypeArgumentNullableAnnotations;
+
+            public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
 
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
-            {
-                return _symbol.Construct(typeArguments);
-            }
+                => _symbol.Construct(typeArguments);
+
+            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
+                => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public DllImportData GetDllImportData()
-            {
-                return _symbol.GetDllImportData();
-            }
+                => _symbol.GetDllImportData();
 
             public IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
             {
@@ -231,21 +127,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _symbol.ReduceExtensionMethod(receiverType);
             }
 
-            public bool IsVararg
-            {
-                get
-                {
-                    return _symbol.IsVararg;
-                }
-            }
+            public bool IsVararg => _symbol.IsVararg;
 
-            public bool IsCheckedBuiltin
-            {
-                get
-                {
-                    return _symbol.IsCheckedBuiltin;
-                }
-            }
+            public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
+
+            public bool IsConditional => _symbol.IsConditional;
+
+            public SignatureCallingConvention CallingConvention => _symbol.CallingConvention;
+
+            public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => _symbol.UnmanagedCallingConventionTypes;
         }
     }
 }

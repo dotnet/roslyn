@@ -1,18 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
+using Microsoft.VisualStudio.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -21,28 +28,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private TLanguageService _languageService;
-        private MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
 
         private PackageInstallerService _packageInstallerService;
-        private SymbolSearchService _symbolSearchService;
-
-        public VisualStudioWorkspaceImpl Workspace { get; private set; }
+        private VisualStudioSymbolSearchService _symbolSearchService;
+        private IComponentModel _componentModel_doNotAccessDirectly;
 
         protected AbstractPackage()
         {
         }
 
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(shell);
+            Assumes.Present(solution);
 
             foreach (var editorFactory in CreateEditorFactories())
             {
                 RegisterEditorFactory(editorFactory);
             }
 
-            RegisterLanguageService(typeof(TLanguageService), () =>
+            RegisterLanguageService(typeof(TLanguageService), async ct =>
             {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+
                 // Create the language service, tell it to set itself up, then store it in a field
                 // so we can notify it that it's time to clean up.
                 _languageService = CreateLanguageService();
@@ -50,60 +65,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return _languageService.ComAggregate;
             });
 
-            // Okay, this is also a bit strange.  We need to get our Interop dll into our process,
-            // but we're in the GAC.  Ask the base Roslyn Package to load, and it will take care of
-            // it for us.
-            // * NOTE * workspace should never be created before loading roslyn package since roslyn package
-            //          installs a service roslyn visual studio workspace requires
-            IVsPackage setupPackage;
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
-            shell.LoadPackage(Guids.RoslynPackageId, out setupPackage);
+            await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
-            _miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-            if (_miscellaneousFilesWorkspace != null)
+            var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+            RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+            if (!IVsShellExtensions.IsInCommandLineMode)
             {
-                // make sure solution crawler start once everything has been setup.
-                _miscellaneousFilesWorkspace.StartSolutionCrawler();
+                // not every derived package support object browser and for those languages
+                // this is a no op
+                await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }
 
-            RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
-
-            this.Workspace = this.CreateWorkspace();
-            if (this.Workspace != null)
-            {
-                // make sure solution crawler start once everything has been setup.
-                // this also should be started before any of workspace events start firing
-                this.Workspace.StartSolutionCrawler();
-            }
-
-            // Ensure services that must be created on the UI thread have been.
-            HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
-
-            LoadComponentsInUIContextOnceSolutionFullyLoaded();
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
         }
 
-        protected override void LoadComponentsInUIContext()
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
-            ForegroundObject.AssertIsForeground();
+            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
 
-            // Ensure the nuget package services are initialized after we've loaded
-            // the solution.
-            _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
-            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as SymbolSearchService;
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // Ensure the nuget package services are initialized. This initialization pass will only run
+            // once our package is loaded indirectly through a legacy COM service we proffer (like the legacy project systems
+            // loading us) or through something like the IVsEditorFactory or a debugger service. Right now it's fine
+            // we only load this there, because we only use these to provide code fixes. But we only show code fixes in
+            // open files, and so you would have had to open a file, which loads the editor factory, which loads our package,
+            // which will run this.
+            //
+            // This code will have to be moved elsewhere once any of that load path is changed such that the package
+            // no longer loads if a file is opened.
+            _packageInstallerService = workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
+            _symbolSearchService = workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
         }
 
-        protected abstract VisualStudioWorkspaceImpl CreateWorkspace();
-
         internal IComponentModel ComponentModel
         {
             get
             {
-                ForegroundObject.AssertIsForeground();
+                ThreadHelper.ThrowIfNotOnUIThread();
 
-                return (IComponentModel)GetService(typeof(SComponentModel));
+                if (_componentModel_doNotAccessDirectly == null)
+                    _componentModel_doNotAccessDirectly = (IComponentModel)GetService(typeof(SComponentModel));
+
+                return _componentModel_doNotAccessDirectly;
             }
         }
 
@@ -112,42 +120,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected abstract IEnumerable<IVsEditorFactory> CreateEditorFactories();
         protected abstract TLanguageService CreateLanguageService();
 
-        protected void RegisterService<T>(Func<T> serviceCreator)
-        {
-            ((IServiceContainer)this).AddService(typeof(T), (container, type) => serviceCreator(), promote: true);
-        }
+        protected void RegisterService<T>(Func<CancellationToken, Task<T>> serviceCreator)
+            => AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
 
         // When registering a language service, we need to take its ComAggregate wrapper.
-        protected void RegisterLanguageService(Type t, Func<object> serviceCreator)
-        {
-            ((IServiceContainer)this).AddService(t, (container, type) => serviceCreator(), promote: true);
-        }
+        protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
+            => AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
 
         protected override void Dispose(bool disposing)
         {
-            _packageInstallerService?.Disconnect(this.RoslynLanguageName);
-            _symbolSearchService?.Disconnect(this.RoslynLanguageName);
-
-            if (_miscellaneousFilesWorkspace != null)
+            if (disposing)
             {
-                _miscellaneousFilesWorkspace.StopSolutionCrawler();
-            }
+                if (!IVsShellExtensions.IsInCommandLineMode)
+                {
+                    ThreadHelper.JoinableTaskFactory.Run(async () => await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true));
+                }
 
-            if (this.Workspace != null)
-            {
-                this.Workspace.StopSolutionCrawler();
-            }
-
-            // If we've created the language service then tell it it's time to clean itself up now.
-            if (_languageService != null)
-            {
-                _languageService.TearDown();
-                _languageService = null;
+                // If we've created the language service then tell it it's time to clean itself up now.
+                if (_languageService != null)
+                {
+                    _languageService.TearDown();
+                    _languageService = null;
+                }
             }
 
             base.Dispose(disposing);
         }
 
         protected abstract string RoslynLanguageName { get; }
+
+        protected virtual Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        {
+            // it is virtual rather than abstract to not break other languages which derived from our
+            // base package implementations
+            return Task.CompletedTask;
+        }
+
+        protected virtual Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        {
+            // it is virtual rather than abstract to not break other languages which derived from our
+            // base package implementations
+            return Task.CompletedTask;
+        }
     }
 }

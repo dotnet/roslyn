@@ -1,15 +1,20 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 // Note: the easiest way to create new unit tests that use GetSemanticInfo
-// is to use the SemanticInfo unit test generate in Editor Test App. 
+// is to use the SemanticInfo unit test generate in Editor Test App.
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -46,14 +51,14 @@ class X
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void X.f()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("void X.f(System.Int32 i)", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void X.f()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("void X.f(System.Int32 i)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -116,7 +121,7 @@ class K<T>
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.WrongArity, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("K<T>", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -150,7 +155,7 @@ class K<T>
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.WrongArity, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("K<T>", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -191,7 +196,7 @@ class K<T>
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.WrongArity, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("K<T>", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -232,7 +237,7 @@ class K<T>
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.WrongArity, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("K<T>", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -272,7 +277,7 @@ class K
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotInvocable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 K.f", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
 
@@ -309,7 +314,7 @@ class K
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 K.f", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
 
@@ -369,7 +374,7 @@ namespace Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Test.Base..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
         }
@@ -462,7 +467,7 @@ class K
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("K", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -502,7 +507,7 @@ class K
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("K.J", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -545,7 +550,7 @@ namespace N2
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("N1.A", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("N2.A", sortedCandidates[1].ToTestDisplayString());
@@ -593,7 +598,7 @@ namespace N2
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("N1.A", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("N2.A", sortedCandidates[1].ToTestDisplayString());
@@ -641,7 +646,7 @@ namespace N2
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("N1.A<T>", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("N2.A<U>", sortedCandidates[1].ToTestDisplayString());
@@ -694,7 +699,7 @@ public class Class1
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 I1.P { get; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
             Assert.Equal("System.String I2.P { get; }", sortedCandidates[1].ToTestDisplayString());
@@ -795,12 +800,12 @@ class C
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void Array.Find<System.Int32>(System.Int32 t)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void Array.Find<System.Int32>(System.Int32 t)", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -832,17 +837,17 @@ static class S
 }";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
             Assert.Null(semanticInfo.Symbol);
-            Utils.CheckSymbols(semanticInfo.MethodGroup,
+            Utils.CheckISymbols(semanticInfo.MethodGroup,
                 "void object.M(int x)",
                 "void A.M(int x, int y)",
                 "void A.M<A>(object o)",
                 "void A.M<A, U>(I<A> y, U z)");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols,
                 "void object.M(int x)",
                 "void A.M(int x, int y)",
                 "void A.M<A>(object o)",
                 "void A.M<A, U>(I<A> y, U z)");
-            Utils.CheckReducedExtensionMethod((MethodSymbol)semanticInfo.MethodGroup[3],
+            Utils.CheckReducedExtensionMethod(semanticInfo.MethodGroup[3].GetSymbol(),
                 "void A.M<A, U>(I<A> y, U z)",
                 "void S.M<T, U>(T x, I<T> y, U z)",
                 "void T.M<T, U>(I<T> y, U z)",
@@ -869,7 +874,7 @@ static class S
     internal static void M<T, U>(this I<T> x, I<T> y, U z) { }
 }";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
-            Utils.CheckSymbols(semanticInfo.MethodGroup,
+            Utils.CheckISymbols(semanticInfo.MethodGroup,
                 "void object.M()",
                 "void I<A>.M<I<A>>(object o)",
                 "void I<A>.M<A, U>(I<A> y, U z)");
@@ -888,9 +893,9 @@ class C
         /*<bind>*/a.Where/*</bind>*/(
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            var compilation = CreateCompilation(source: sourceCode);
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
-            Utils.CheckSymbols(semanticInfo.MethodGroup,
+            Utils.CheckISymbols(semanticInfo.MethodGroup,
                 "IEnumerable<double> IEnumerable<double>.Where<double>(Func<double, bool> predicate)",
                 "IEnumerable<double> IEnumerable<double>.Where<double>(Func<double, int, bool> predicate)");
         }
@@ -919,10 +924,10 @@ static class S
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
             Utils.CheckSymbol(semanticInfo.Symbol,
                 "void object.E<int>()");
-            Utils.CheckSymbols(semanticInfo.MethodGroup,
+            Utils.CheckISymbols(semanticInfo.MethodGroup,
                 "void object.E<int>()",
                 "void object.E<int>(int t)");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
         }
 
         [Fact]
@@ -945,7 +950,7 @@ static class S
     internal static void E<T, U>(this I<T> t, U u) { }
 }";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
-            Utils.CheckSymbols(semanticInfo.MethodGroup,
+            Utils.CheckISymbols(semanticInfo.MethodGroup,
                 "void T.E<T, U>(U u)");
         }
 
@@ -969,8 +974,8 @@ static class S
 }");
             Utils.CheckSymbol(semanticInfo.Symbol,
                 "void string.E<string, string>(string y)");
-            Utils.CheckSymbols(semanticInfo.MethodGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.MethodGroup);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
 
             // Multiple applicable overloads with valid arguments.
             semanticInfo = GetSemanticInfoForTest(
@@ -987,8 +992,8 @@ static class S
     internal static void E<T, U>(this T x, object y, U z) { }
 }");
             Assert.Null(semanticInfo.Symbol);
-            Utils.CheckSymbols(semanticInfo.MethodGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
+            Utils.CheckISymbols(semanticInfo.MethodGroup);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols,
                 "void object.E<string>(string y, object z)",
                 "void string.E<string, object>(object y, object z)");
 
@@ -1007,8 +1012,8 @@ static class S
     internal static void E<T, U>(this T x, string y, U z) { }
 }");
             Assert.Null(semanticInfo.Symbol);
-            Utils.CheckSymbols(semanticInfo.MethodGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
+            Utils.CheckISymbols(semanticInfo.MethodGroup);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols,
                 "void string.E<string>(string y, object z)",
                 "void string.E<string, string>(string y, string z)");
 
@@ -1027,10 +1032,9 @@ static class S
     static void E<T>(this T x) { }
 }");
             Assert.Null(semanticInfo.Symbol);
-            Utils.CheckSymbols(semanticInfo.MethodGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
-                "void string.E()",
-                "void string.E<string>()"
+            Utils.CheckISymbols(semanticInfo.MethodGroup);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols
+                /* no candidates */
                 );
         }
 
@@ -1053,10 +1057,10 @@ static class S
 }");
             Utils.CheckSymbol(semanticInfo.Symbol,
                 "void string.E<string>(string y)");
-            Utils.CheckSymbols(semanticInfo.MethodGroup,
+            Utils.CheckISymbols(semanticInfo.MethodGroup,
                 "void string.E<string>(string y)",
                 "void object.E<T>(T y)");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
 
             // Multiple applicable overloads.
             semanticInfo = GetSemanticInfoForTest(
@@ -1073,10 +1077,10 @@ static class S
     internal static void E<T, U>(this T x, U y) { }
 }");
             Assert.Null(semanticInfo.Symbol);
-            Utils.CheckSymbols(semanticInfo.MethodGroup,
+            Utils.CheckISymbols(semanticInfo.MethodGroup,
                 "void string.E<string>(string y)",
                 "void string.E<string, U>(U y)");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols,
                 "void string.E<string>(string y)",
                 "void string.E<string, U>(U y)");
         }
@@ -1104,21 +1108,21 @@ static class E
 {
     internal static void F(this object x, object y) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var tree = compilation.SyntaxTrees[0];
+            var compilation = (Compilation)CreateCompilation(source: sourceCode);
+            var type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
             var expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             var symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(int x)",
                 "void C.F(object x, object y)");
             symbols = model.LookupSymbols(expr.SpanStart, container: null, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(int x)",
                 "void C.F(object x, object y)");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(int x)",
                 "void C.F(object x, object y)",
                 "void object.F(object y)");
@@ -1138,18 +1142,18 @@ static class E
 {
     internal static void F(this object x, object y) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
-            type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            tree = compilation.SyntaxTrees[0];
+            compilation = (Compilation)CreateCompilation(source: sourceCode);
+            type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(int x)",
                 "void C.F(object x, object y)",
                 "void object.F(object y)");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(int x)",
                 "void C.F(object x, object y)",
                 "void object.F(object y)");
@@ -1168,16 +1172,16 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
-            type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            tree = compilation.SyntaxTrees[0];
+            compilation = (Compilation)CreateCompilation(source: sourceCode);
+            type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F<string>(string t)");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F<T>(T t)",
                 "void object.F()");
 
@@ -1198,16 +1202,16 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
-            type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            tree = compilation.SyntaxTrees[0];
+            compilation = (Compilation)CreateCompilation(source: sourceCode);
+            type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("A");
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void object.F()");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void object.F()");
 
             // Inapplicable instance method and applicable extension method.
@@ -1224,16 +1228,16 @@ static class E
 {
     internal static void F<T>(this object x) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
-            type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            tree = compilation.SyntaxTrees[0];
+            compilation = (Compilation)CreateCompilation(source: sourceCode);
+            type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void object.F<string>()");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(object o)",
                 "void object.F<T>()");
 
@@ -1251,17 +1255,17 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
-            type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            tree = compilation.SyntaxTrees[0];
+            compilation = (Compilation)CreateCompilation(source: sourceCode);
+            type = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C");
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(object o)",
                 "void object.F()");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(object o)",
                 "void object.F()");
 
@@ -1279,16 +1283,16 @@ static class E
     internal static void F(this object x, object y) { }
     internal static void F<T>(this T t) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = (Compilation)CreateCompilation(source: sourceCode);
             type = compilation.GetSpecialType(SpecialType.System_String);
-            tree = compilation.SyntaxTrees[0];
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void string.F<string>()");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void object.F(object y)",
                 "void string.F<string>()");
 
@@ -1306,16 +1310,16 @@ static class E
     internal static void F(this object x, object y) { }
     private static void F<T>(this T t) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
+            compilation = (Compilation)CreateCompilation(source: sourceCode);
             type = compilation.GetSpecialType(SpecialType.System_String);
-            tree = compilation.SyntaxTrees[0];
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void string.F<string>()");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void object.F(object y)");
 
             // Multiple scopes.
@@ -1347,19 +1351,19 @@ static class E
 {
     internal static void F(this object x, object y, object z) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
-            type = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N2").GetMember<NamedTypeSymbol>("C");
-            tree = compilation.SyntaxTrees[0];
+            compilation = CreateCompilation(source: sourceCode);
+            type = compilation.GlobalNamespace.GetMember<INamespaceSymbol>("N2").GetMember<INamedTypeSymbol>("C");
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(int x)",
                 "void object.F(object y)",
                 "void object.F()",
                 "void object.F(object y, object z)");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void C.F(int x)",
                 "void object.F(object y)",
                 "void object.F()",
@@ -1385,17 +1389,17 @@ static class E
 {
     internal static void F(this object x, object y, object z) { }
 }";
-            compilation = CreateCompilationWithMscorlib(references: new MetadataReference[] { SystemCoreRef }, text: sourceCode);
-            type = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N").GetMember<NamedTypeSymbol>("C");
-            tree = compilation.SyntaxTrees[0];
+            compilation = CreateCompilation(source: sourceCode);
+            type = compilation.GlobalNamespace.GetMember<INamespaceSymbol>("N").GetMember<INamedTypeSymbol>("C");
+            tree = compilation.SyntaxTrees.First();
             model = compilation.GetSemanticModel(tree);
             expr = GetSyntaxNodeOfTypeForBinding<ExpressionSyntax>(GetSyntaxNodeList(tree));
             symbols = model.GetMemberGroup(expr);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void object.F(object y)",
                 "void object.F(object y, object z)");
             symbols = model.LookupSymbols(expr.SpanStart, container: type, name: "F", includeReducedExtensionMethods: true);
-            Utils.CheckSymbols(symbols,
+            Utils.CheckISymbols(symbols,
                 "void object.F(object y)",
                 "void object.F(object y, object z)");
         }
@@ -1407,7 +1411,7 @@ static class E
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
-<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
 <ComImport()>
 <Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
 Public Class A
@@ -1433,7 +1437,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
 
             // Assignment (property group).
             var source2 =
@@ -1444,14 +1448,14 @@ End Class";
         /*<bind>*/a.P/*</bind>*/[1, null] = string.Empty;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation = CreateCompilation(source2, new[] { reference1 });
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "string A.P[int x, string y]");
-            Utils.CheckSymbols(semanticInfo.MemberGroup,
+            Utils.CheckISymbols(semanticInfo.MemberGroup,
                 "object A.P[int x = 0]",
                 "int A.P[int x, int y]",
                 "string A.P[int x, string y]");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
 
             // Assignment (property access).
             source2 =
@@ -1462,11 +1466,11 @@ End Class";
         /*<bind>*/a.P[1, null]/*</bind>*/ = string.Empty;
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "string A.P[int x, string y]");
-            Utils.CheckSymbols(semanticInfo.MemberGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.MemberGroup);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
 
             // Object initializer.
             source2 =
@@ -1474,11 +1478,11 @@ End Class";
 {
     static A F = new A() { /*<bind>*/P/*</bind>*/ = 1 };
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "object A.P[int x = 0]");
-            Utils.CheckSymbols(semanticInfo.MemberGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.MemberGroup);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
 
             // Incomplete reference, overload resolution failure (property group).
             source2 =
@@ -1489,14 +1493,14 @@ End Class";
         var o = /*<bind>*/a.P/*</bind>*/[1, a
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Assert.Null(semanticInfo.Symbol);
-            Utils.CheckSymbols(semanticInfo.MemberGroup,
+            Utils.CheckISymbols(semanticInfo.MemberGroup,
                 "object A.P[int x = 0]",
                 "int A.P[int x, int y]",
                 "string A.P[int x, string y]");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols,
                 "object A.P[int x = 0]",
                 "int A.P[int x, int y]",
                 "string A.P[int x, string y]");
@@ -1510,11 +1514,11 @@ End Class";
         var o = /*<bind>*/a.P[1, a/*</bind>*/
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Assert.Null(semanticInfo.Symbol);
-            Utils.CheckSymbols(semanticInfo.MemberGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
+            Utils.CheckISymbols(semanticInfo.MemberGroup);
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols,
                 "object A.P[int x = 0]",
                 "int A.P[int x, int y]",
                 "string A.P[int x, string y]");
@@ -1527,7 +1531,7 @@ End Class";
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
-<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
 <ComImport()>
 <Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
 Public Class A
@@ -1572,7 +1576,7 @@ Public Class B
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
 
             // Overridden property.
             var source2 =
@@ -1583,11 +1587,11 @@ End Class";
         return /*<bind>*/b.P1/*</bind>*/[null];
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation = CreateCompilation(source2, new[] { reference1 });
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "object B.P1[object index]");
-            Utils.CheckSymbols(semanticInfo.MemberGroup, "object B.P1[object index]");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.MemberGroup, "object B.P1[object index]");
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
 
             // Hidden property.
             source2 =
@@ -1598,11 +1602,11 @@ End Class";
         return /*<bind>*/b.P2/*</bind>*/[null];
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "object B.P2[string index]");
-            Utils.CheckSymbols(semanticInfo.MemberGroup, "object B.P2[string index]");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.MemberGroup, "object B.P2[string index]");
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
 
             // Overloaded property.
             source2 =
@@ -1613,11 +1617,11 @@ End Class";
         return /*<bind>*/b.P3/*</bind>*/[null];
     }
 }";
-            compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            compilation = CreateCompilation(source2, new[] { reference1 });
             semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbol(semanticInfo.Symbol, "object A.P3[object index]");
-            Utils.CheckSymbols(semanticInfo.MemberGroup, "object A.P3[object index]", "object A.P3[object x, object y]");
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols);
+            Utils.CheckISymbols(semanticInfo.MemberGroup, "object A.P3[object index]", "object A.P3[object x, object y]");
+            Utils.CheckISymbols(semanticInfo.CandidateSymbols);
         }
 
         [WorkItem(538859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538859")]
@@ -1641,7 +1645,7 @@ class C
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("C @this", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("C this", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -1654,7 +1658,7 @@ class C
         [Fact]
         public void GetSemanticInfoOfNull()
         {
-            var compilation = CreateCompilationWithMscorlib("");
+            var compilation = CreateCompilation("");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
@@ -1752,7 +1756,7 @@ class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(3019, "DevDiv_Projects/Roslyn")]
@@ -2234,7 +2238,7 @@ using NSA = A;
 
 namespace A 
 {
-    class Foo {}
+    class Goo {}
 }
 
 namespace B
@@ -2247,7 +2251,7 @@ namespace B
 
         static void Main() 
         {
-            /*<bind>*/NSA::Foo/*</bind>*/ foo = new NSA::Foo();
+            /*<bind>*/NSA::Goo/*</bind>*/ goo = new NSA::Goo();
 
         }
     }
@@ -2255,13 +2259,13 @@ namespace B
 ";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
 
-            Assert.Equal("A.Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("A.Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("A.Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("A.Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("A.Foo", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("A.Goo", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2360,11 +2364,11 @@ namespace N2
         public void InvocExprWithAliasIdentifierNameSameAsType()
         {
             string sourceCode = @"
-using N1 = NFoo;
+using N1 = NGoo;
 
-namespace NFoo
+namespace NGoo
 {
-    class Foo 
+    class Goo 
     {
         public static void method() { }
     }
@@ -2378,7 +2382,7 @@ namespace N2
     {
         static void Main() 
         {
-            /*<bind>*/N1::Foo.method()/*</bind>*/;
+            /*<bind>*/N1::Goo.method()/*</bind>*/;
             
         }
     }
@@ -2392,7 +2396,7 @@ namespace N2
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("void NFoo.Foo.method()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("void NGoo.Goo.method()", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2456,29 +2460,29 @@ class Program
     {
         D d = new D();
         string s = ""hello""; long l = 1;
-        /*<bind>*/d.foo(ref s, l, l)/*</bind>*/;
+        /*<bind>*/d.goo(ref s, l, l)/*</bind>*/;
     }
 }
 public class B
 {
     // Should bind to this method.
-    public virtual int foo(ref string x, long y, long z)
+    public virtual int goo(ref string x, long y, long z)
     {
-        Console.WriteLine(""Base: foo(ref string x, long y, long z)"");
+        Console.WriteLine(""Base: goo(ref string x, long y, long z)"");
         return 0;
     }
-    public virtual void foo(ref string x, params long[] y)
+    public virtual void goo(ref string x, params long[] y)
     {
-        Console.WriteLine(""Base: foo(ref string x, params long[] y)"");
+        Console.WriteLine(""Base: goo(ref string x, params long[] y)"");
     }
 }
 public class D: B
 {
     // Roslyn erroneously binds to this override.
     // Roslyn binds to the correct method above if you comment out this override.
-    public override void foo(ref string x, params long[] y)
+    public override void goo(ref string x, params long[] y)
     {
-        Console.WriteLine(""Derived: foo(ref string x, params long[] y)"");
+        Console.WriteLine(""Derived: goo(ref string x, params long[] y)"");
     }
 }
 ";
@@ -2490,7 +2494,7 @@ public class D: B
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("System.Int32 B.foo(ref System.String x, System.Int64 y, System.Int64 z)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 B.goo(ref System.String x, System.Int64 y, System.Int64 z)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2511,26 +2515,26 @@ class Program
     {
         D d = new D();
         int i = 1;
-        /*<bind>*/d.foo(i, i)/*</bind>*/;
+        /*<bind>*/d.goo(i, i)/*</bind>*/;
     } 
 }
 public class B
 {
-    public virtual int foo(params int[] x)
+    public virtual int goo(params int[] x)
     {
-        Console.WriteLine(""""Base: foo(params int[] x)"""");
+        Console.WriteLine(""""Base: goo(params int[] x)"""");
         return 0;
     }
-    public virtual void foo(params object[] x)
+    public virtual void goo(params object[] x)
     {
-        Console.WriteLine(""""Base: foo(params object[] x)"""");
+        Console.WriteLine(""""Base: goo(params object[] x)"""");
     }
 }
 public class D: B
 {
-    public override void foo(params object[] x)
+    public override void goo(params object[] x)
     {
-        Console.WriteLine(""""Derived: foo(params object[] x)"""");
+        Console.WriteLine(""""Derived: goo(params object[] x)"""");
     }
 }
 ";
@@ -2542,7 +2546,7 @@ public class D: B
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("System.Int32 B.foo(params System.Int32[] x)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 B.goo(params System.Int32[] x)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2576,14 +2580,13 @@ class Program
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("Program @this", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("Program this", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal(CandidateReason.StaticInstanceMismatch, semanticInfo.CandidateReason);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
-
 
         [Fact]
         public void Constructor1()
@@ -2653,7 +2656,7 @@ class A
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("A..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("A..ctor(System.Int32 x)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -2692,7 +2695,7 @@ class A
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void A.f(System.Int32 x, System.Int32 y)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("void A.f(System.String z)", sortedCandidates[1].ToTestDisplayString());
@@ -2733,14 +2736,14 @@ class A
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void A.f(System.Int32 x, System.Int32 y)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("void A.f(System.String z)", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void A.f(System.Int32 x, System.Int32 y)", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("void A.f(System.String z)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -2765,7 +2768,7 @@ static class Extensions2
     public static int M(this C c) { return 0; }
 }
 
-class Foo
+class Goo
 {
     void M()
     {
@@ -2783,14 +2786,14 @@ class Foo
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 C.M()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("System.Int32 C.M()", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 C.M()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("System.Int32 C.M()", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -2811,7 +2814,7 @@ static class Extensions
 {
     public static int M(this C c, int i) { return 0; }
 }
-class Foo
+class Goo
 {
     void M()
     {
@@ -2829,12 +2832,12 @@ class Foo
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 C.M(System.Int32 i)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 C.M(System.Int32 i)", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -2910,7 +2913,7 @@ class A
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 A.f(System.String z)", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("void A.f(System.Int32 x, System.Int32 y)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -2948,7 +2951,7 @@ class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void Test.NestedTest.Method1()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
         }
@@ -2984,7 +2987,7 @@ class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Test.NestedTest.NestedNestedTest..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
         }
@@ -3018,12 +3021,12 @@ public class B : A
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 B.m()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 B.m()", sortedMethodGroup[0].ToTestDisplayString());
         }
 
@@ -3162,7 +3165,7 @@ public class MyClass : MyBase
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void MyClass.MyMeth()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -3204,7 +3207,7 @@ class C
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void D.M2(System.Int32 x)", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("void D.M2(System.Int32 x, System.Int32 y)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -3250,7 +3253,7 @@ public class Test
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void C2.M1()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -3289,7 +3292,7 @@ public class TestClass : AbsClass
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void TestClass.Test()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -3325,7 +3328,7 @@ public class Program
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void IB.M()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -3362,7 +3365,7 @@ public class Program
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void IR.M()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -3526,7 +3529,7 @@ public class A
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotATypeOrNamespace, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("B B", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Local, sortedCandidates[0].Kind);
 
@@ -3837,7 +3840,7 @@ class D {
 
             Assert.Null(semanticInfo.Symbol);
 
-            // Should bind to "field" with a candidateReason (not a typeornamespace>)Skip:
+            // Should bind to "field" with a candidateReason (not a typeornamespace>)
             Assert.NotEqual(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.NotEqual(0, semanticInfo.CandidateSymbols.Length);
 
@@ -3943,7 +3946,7 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(538215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538215")]
@@ -4023,7 +4026,7 @@ class B : /*<bind>*/A<B.Y.Z>/*</bind>*/
             string sourceCode = @"
 class C
 {
-  static void Foo()
+  static void Goo()
   {
     int x = 10;
     /*<bind>*/x/*</bind>*/();
@@ -4072,7 +4075,7 @@ class C
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("C..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
@@ -4216,7 +4219,7 @@ class C<T1>
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.WrongArity, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("C<T1>", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -4251,7 +4254,7 @@ class C<T1>
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("C<T1>..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -4283,7 +4286,7 @@ class B {
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("B..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("B..ctor(System.String a, System.String b)", sortedCandidates[1].ToTestDisplayString());
@@ -4381,7 +4384,7 @@ class C1
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
             Assert.Equal(SymbolKind.Namespace, semanticInfo.Type.ContainingSymbol.Kind);
-            Assert.True(((NamespaceSymbol)semanticInfo.Type.ContainingSymbol).IsGlobalNamespace);
+            Assert.True(((INamespaceSymbol)semanticInfo.Type.ContainingSymbol).IsGlobalNamespace);
         }
 
         [WorkItem(538538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538538")]
@@ -4427,7 +4430,7 @@ using S = System.String;
 {
     class X 
     { 
-        void Foo()
+        void Goo()
         {
             string x;
             x = /*<bind>*/S/*</bind>*/.Empty;
@@ -4578,7 +4581,7 @@ class C
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(2, semanticInfo.ConstantValue);
 
-            var symbol = (LocalSymbol)semanticInfo.Symbol;
+            var symbol = (ILocalSymbol)semanticInfo.Symbol;
             Assert.True(symbol.HasConstantValue);
             Assert.Equal(2, symbol.ConstantValue);
         }
@@ -4614,7 +4617,7 @@ class C
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(2, semanticInfo.ConstantValue);
 
-            var symbol = (FieldSymbol)semanticInfo.Symbol;
+            var symbol = (IFieldSymbol)semanticInfo.Symbol;
             Assert.Equal("j", symbol.Name);
             Assert.True(symbol.HasConstantValue);
             Assert.Equal(2, symbol.ConstantValue);
@@ -4680,7 +4683,9 @@ class C
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(2, semanticInfo.ConstantValue);
 
-            var symbol = (SourceEnumConstantSymbol)semanticInfo.Symbol;
+            var symbol = (IFieldSymbol)semanticInfo.Symbol;
+
+            Assert.IsAssignableFrom<SourceEnumConstantSymbol>(symbol.GetSymbol());
             Assert.Equal("C", symbol.Name);
             Assert.True(symbol.HasConstantValue);
             Assert.Equal(2, symbol.ConstantValue);
@@ -4715,7 +4720,9 @@ class C
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
-            var symbol = (SourceEnumConstantSymbol)semanticInfo.Symbol;
+            var symbol = (IFieldSymbol)semanticInfo.Symbol;
+
+            Assert.IsAssignableFrom<SourceEnumConstantSymbol>(symbol.GetSymbol());
             Assert.Equal("Y", symbol.Name);
             Assert.False(symbol.HasConstantValue);
         }
@@ -4749,7 +4756,9 @@ class C
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
-            var symbol = (SourceEnumConstantSymbol)semanticInfo.Symbol;
+            var symbol = (IFieldSymbol)semanticInfo.Symbol;
+
+            Assert.IsAssignableFrom<SourceEnumConstantSymbol>(symbol.GetSymbol());
             Assert.Equal("B", symbol.Name);
             Assert.False(symbol.HasConstantValue);
         }
@@ -4783,7 +4792,9 @@ class C
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
-            var symbol = (SourceEnumConstantSymbol)semanticInfo.Symbol;
+            var symbol = (IFieldSymbol)semanticInfo.Symbol;
+
+            Assert.IsAssignableFrom<SourceEnumConstantSymbol>(symbol.GetSymbol());
             Assert.Equal("D", symbol.Name);
             Assert.False(symbol.HasConstantValue);
         }
@@ -4813,7 +4824,9 @@ enum F { C, D = 1 + /*<bind>*/E.B/*</bind>*/ }
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(3, semanticInfo.ConstantValue);
 
-            var symbol = (SourceEnumConstantSymbol)semanticInfo.Symbol;
+            var symbol = (IFieldSymbol)semanticInfo.Symbol;
+
+            Assert.IsAssignableFrom<SourceEnumConstantSymbol>(symbol.GetSymbol());
             Assert.Equal("B", symbol.Name);
             Assert.True(symbol.HasConstantValue);
             Assert.Equal(3, symbol.ConstantValue);
@@ -4869,14 +4882,14 @@ class Class
             Assert.Equal("System.Int32 x", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal(MethodKind.Constructor, ((MethodSymbol)semanticInfo.Symbol.ContainingSymbol).MethodKind);
+            Assert.Equal(MethodKind.Constructor, ((IMethodSymbol)semanticInfo.Symbol.ContainingSymbol).MethodKind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.ContainingSymbol.Kind);
-            Assert.Equal(MethodKind.Constructor, ((MethodSymbol)semanticInfo.Symbol.ContainingSymbol).MethodKind);
+            Assert.Equal(MethodKind.Constructor, ((IMethodSymbol)semanticInfo.Symbol.ContainingSymbol).MethodKind);
         }
 
         [WorkItem(541011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541011")]
@@ -4893,7 +4906,7 @@ class C
 }
 class D
 {
-    void Foo()
+    void Goo()
     {
         C./*<bind>*/M/*</bind>*/(1);
     }
@@ -4908,14 +4921,14 @@ class D
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void C.M(System.Int32 i)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal("void C.M(System.Int64 i)", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void C.M(System.Int32 i)", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("void C.M(System.Int64 i)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -4955,7 +4968,7 @@ class Class1
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(3, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[1].ToTestDisplayString());
@@ -4964,7 +4977,59 @@ class Class1
             Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            sortedCandidates = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            sortedCandidates = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Class1..ctor()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 x)", sortedCandidates[2].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void InaccessibleMethodGroup_Constructors_ImplicitObjectCreationExpressionSyntax()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Class1 x = /*<bind>*/new(3, 7)/*</bind>*/;
+    }
+}
+
+class Class1
+{
+    protected Class1() { }
+    protected Class1(int x) { }
+    private Class1(int a, long b) { }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<ImplicitObjectCreationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("Class1", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("Class1", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
+            Assert.Equal(3, semanticInfo.CandidateSymbols.Length);
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Class1..ctor()", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
+            Assert.Equal("Class1..ctor(System.Int32 x)", sortedCandidates[2].ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
+
+            Assert.Equal(3, semanticInfo.MethodGroup.Length);
+            sortedCandidates = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[1].ToTestDisplayString());
@@ -5046,12 +5111,12 @@ class Class1 : Attribute
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
 
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedMethodGroup[1].ToTestDisplayString());
             Assert.Equal("Class1..ctor(System.Int32 x)", sortedMethodGroup[2].ToTestDisplayString());
@@ -5092,12 +5157,12 @@ class Class1 : Attribute
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedMethodGroup[1].ToTestDisplayString());
             Assert.Equal("Class1..ctor(System.Int32 x)", sortedMethodGroup[2].ToTestDisplayString());
@@ -5140,7 +5205,7 @@ class Class1
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("Class1..ctor(System.Int32 x)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -5219,7 +5284,7 @@ class Class1 : Attribute
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("Class1..ctor(System.Int32 x)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -5261,7 +5326,7 @@ class Class1 : Attribute
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Class1..ctor(System.Int32 a, System.Int64 b)", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("Class1..ctor(System.Int32 x)", sortedMethodGroup[1].ToTestDisplayString());
 
@@ -5281,7 +5346,7 @@ public class C
 }
 class Main
 {
-    void Foo(int a)
+    void Goo(int a)
     {
         new C(a.).M(x => /*<bind>*/x/*</bind>*/);
     }
@@ -5306,7 +5371,7 @@ public class C
 }
 class Main
 {
-    void Foo(int a)
+    void Goo(int a)
     {
         new C(a.).M(x => /*<bind>*/x/*</bind>*/);
     }
@@ -5326,7 +5391,7 @@ class C
 }
 class D
 {
-    void Foo()
+    void Goo()
     {
         C./*<bind>*/set_P/*</bind>*/(1);
     }
@@ -5341,13 +5406,13 @@ class D
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotReferencable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void C.P.set", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
-            Assert.Equal(MethodKind.PropertySet, ((MethodSymbol)sortedCandidates[0]).MethodKind);
+            Assert.Equal(MethodKind.PropertySet, ((IMethodSymbol)sortedCandidates[0]).MethodKind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("void C.P.set", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -5383,7 +5448,7 @@ class D
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(3, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("C", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("C", sortedCandidates[1].ToTestDisplayString());
@@ -5469,7 +5534,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateCompilation(sourceCode);
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(compilation);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
@@ -5485,7 +5550,7 @@ class C
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
-            Assert.True(((Symbol)semanticInfo.Symbol).IsFromCompilation(compilation));
+            Assert.True(semanticInfo.Symbol.GetSymbol().IsFromCompilation(compilation));
         }
 
         [WorkItem(540541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540541")]
@@ -5596,7 +5661,7 @@ public class TestClass
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
-            MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
+            var lambdaSym = (IMethodSymbol)(semanticInfo.Symbol);
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
             Assert.Equal("System.String", lambdaSym.Parameters[0].Type.ToTestDisplayString());
@@ -5632,7 +5697,7 @@ public class TestClass
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
-            MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
+            var lambdaSym = (IMethodSymbol)(semanticInfo.Symbol);
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
             Assert.Equal(TypeKind.Error, lambdaSym.Parameters[0].Type.TypeKind);
@@ -6161,7 +6226,7 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
 
-            Assert.Equal(SpecialType.System_String, ((ArrayTypeSymbol)semanticInfo.Type).ElementType.SpecialType);
+            Assert.Equal(SpecialType.System_String, ((IArrayTypeSymbol)semanticInfo.Type).ElementType.SpecialType);
             // CONSIDER: we could conceivable use the foreach collection type (vs the type of the collection expr).
             Assert.Equal(SpecialType.System_Collections_IEnumerable, semanticInfo.ConvertedType.SpecialType);
             Assert.Equal("args", semanticInfo.Symbol.Name);
@@ -6187,7 +6252,7 @@ class Program
 
             var symbol = semanticInfo.Symbol;
             Assert.Equal(SymbolKind.NamedType, symbol.Kind);
-            Assert.Equal(SpecialType.System_String, ((TypeSymbol)symbol).SpecialType);
+            Assert.Equal(SpecialType.System_String, ((ITypeSymbol)symbol).SpecialType);
         }
 
         [Fact]
@@ -6275,7 +6340,7 @@ class Program
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
             // Parameter's type is an error type, because Outer.Inner is inaccessible.
-            ParameterSymbol param = (ParameterSymbol)semanticInfo.Symbol;
+            var param = (IParameterSymbol)semanticInfo.Symbol;
             Assert.Equal(TypeKind.Error, param.Type.TypeKind);
 
             // It's type is not equal to the SemanticInfo type, because that is
@@ -6305,13 +6370,13 @@ struct Struct{
             var symbol = semanticInfo.Symbol;
             Assert.NotNull(symbol);
             Assert.Equal(SymbolKind.Method, symbol.Kind);
-            Assert.Equal(MethodKind.Constructor, ((MethodSymbol)symbol).MethodKind);
+            Assert.Equal(MethodKind.Constructor, ((IMethodSymbol)symbol).MethodKind);
             Assert.True(symbol.IsImplicitlyDeclared);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Struct..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -6336,12 +6401,12 @@ class Class { string M(int i) { new T(/*<bind>*/M/*</bind>*/); } }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.String Class.M(System.Int32 i)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.String Class.M(System.Int32 i)", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -6355,11 +6420,11 @@ class C
 {
     public delegate int Func(int i);
  
-    public Func Foo()
+    public Func Goo()
     {
-        return /*<bind>*/Foo/*</bind>*/;
+        return /*<bind>*/Goo/*</bind>*/;
     }
-    private int Foo(int i)
+    private int Goo(int i)
     {
         return i;
     }
@@ -6371,16 +6436,16 @@ class C
             Assert.Equal("C.Func", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Delegate, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
-            Assert.Equal("C.Foo(int)", semanticInfo.ImplicitConversion.Method.ToString());
+            Assert.Equal("C.Goo(int)", semanticInfo.ImplicitConversion.Method.ToString());
 
-            Assert.Equal("System.Int32 C.Foo(System.Int32 i)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Goo(System.Int32 i)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("C.Func C.Foo()", sortedMethodGroup[0].ToTestDisplayString());
-            Assert.Equal("System.Int32 C.Foo(System.Int32 i)", sortedMethodGroup[1].ToTestDisplayString());
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("C.Func C.Goo()", sortedMethodGroup[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Goo(System.Int32 i)", sortedMethodGroup[1].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -6616,7 +6681,7 @@ class Program
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("C..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
@@ -6714,10 +6779,6 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<InitializerExpressionSyntax>(sourceCode);
             Assert.Null(semanticInfo.Type);
-            //Assert.Equal("int[]", semanticInfo.Type.ToString());
-            //Assert.Equal("int[]", semanticInfo.ConvertedType.ToString());
-            //Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
-            //Assert.True(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]
@@ -6730,13 +6791,13 @@ using System.Linq;
 
 class Program
 {
-    static void foo(short s)
+    static void goo(short s)
     {
     }
 
     static void Main(string[] args)
     {
-        foo(/*<bind>*/123/*</bind>*/);
+        goo(/*<bind>*/123/*</bind>*/);
     }
 }
 ";
@@ -6805,7 +6866,7 @@ class TestAttribute : Attribute
 
 class C1
 {
-    [Test(/*<bind>*/F/*</bind>*/=""method"")] 
+    [Test(/*<bind>*/F/*</bind>*/=""method"")]
     int f() { return 0; }
 }
 
@@ -7028,7 +7089,7 @@ struct Struct{
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Struct..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -7056,7 +7117,7 @@ class MyAttribute : System.Attribute { }
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("MyAttribute..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -7087,7 +7148,7 @@ namespace N1
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("N1.MyAttribute..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -7163,11 +7224,11 @@ class Program
             string sourceCode = @"
 class Program
 {
-     int foo(int i) { return i;}
+     int goo(int i) { return i;}
  
     static void Main(string[] args)
     {
-        var r = /*<bind>*/new System.Func<int, int>((arg)=> { return 1;}, foo)/*</bind>*/; 
+        var r = /*<bind>*/new System.Func<int, int>((arg)=> { return 1;}, goo)/*</bind>*/; 
     }
 }
 ";
@@ -7194,11 +7255,11 @@ class Program
             string sourceCode = @"
 class Program
 {
-     int foo(int i) { return i;}
+     int goo(int i) { return i;}
  
     static void Main(string[] args)
     {
-        var r = new /*<bind>*/System.Func<int, int>/*</bind>*/((arg)=> { return 1;}, foo); 
+        var r = new /*<bind>*/System.Func<int, int>/*</bind>*/((arg)=> { return 1;}, goo); 
     }
 }
 ";
@@ -7236,7 +7297,7 @@ class C
 
             Assert.Equal("System.Object..ctor()", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(MethodKind.Constructor, ((MethodSymbol)semanticInfo.Symbol).MethodKind);
+            Assert.Equal(MethodKind.Constructor, ((IMethodSymbol)semanticInfo.Symbol).MethodKind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -7487,7 +7548,7 @@ class Program
     public void f(int x, int y, int z) { }
     public void f(string y, string z) { }
 
-    public void foo()
+    public void goo()
     {
         f(3, /*<bind>*/z/*</bind>*/: 4, y: 9);
     }
@@ -7520,9 +7581,9 @@ class Program
     public void f(string y, string z, int q) { }
     public void f(string q, int w, int b) { }
 
-    public void foo()
+    public void goo()
     {
-        f(3, /*<bind>*/z/*</bind>*/: ""foo"", y: 9);
+        f(3, /*<bind>*/z/*</bind>*/: ""goo"", y: 9);
     }
 }
 ";
@@ -7535,7 +7596,7 @@ class Program
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 z", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, sortedCandidates[0].Kind);
             Assert.Equal("System.String z", sortedCandidates[1].ToTestDisplayString());
@@ -7558,9 +7619,9 @@ class Program
     public void f(string y, string z, int q) { }
     public void f(string q, int w, int b) { }
 
-    public void foo()
+    public void goo()
     {
-        f(3, z: ""foo"", /*<bind>*/yagga/*</bind>*/: 9);
+        f(3, z: ""goo"", /*<bind>*/yagga/*</bind>*/: 9);
     }
 }
 ";
@@ -7944,6 +8005,8 @@ class Program
         [Fact]
         public void DelegateSignatureMismatch3()
         {
+            // This test and the DelegateSignatureMismatch4 should have identical results, as they are semantically identical
+
             string sourceCode = @"
 using System;
 using System.Collections.Generic;
@@ -7958,21 +8021,97 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            {
+                var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode,
+                    parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Null(semanticInfo.ConvertedType);
-            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("System.Int32 Program.f()", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+                Assert.Null(semanticInfo.Type);
+                Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                Assert.Empty(semanticInfo.CandidateSymbols);
 
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+                Assert.Equal(1, semanticInfo.MethodGroup.Length);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
+            {
+                var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+
+                Assert.Null(semanticInfo.Type);
+                Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
+
+                Assert.Null(semanticInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+
+                Assert.Equal(1, semanticInfo.MethodGroup.Length);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
+        }
+
+        [Fact]
+        public void DelegateSignatureMismatch4()
+        {
+            string sourceCode = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static int f() { return 1; }
+    static void Main(string[] args)
+    {
+        Action a = /*<bind>*/f/*</bind>*/;
+    }
+}
+";
+            {
+                var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode,
+                    parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+
+
+                Assert.Null(semanticInfo.Type);
+                Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
+
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                Assert.Empty(semanticInfo.CandidateSymbols);
+
+                Assert.Equal(1, semanticInfo.MethodGroup.Length);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
+            {
+                var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+
+                Assert.Null(semanticInfo.Type);
+                Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+
+                Assert.Null(semanticInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+
+                Assert.Equal(1, semanticInfo.MethodGroup.Length);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
         }
 
         [WorkItem(541802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541802")]
@@ -8101,10 +8240,10 @@ class Test
     static void Main()
     {
         /*<bind>*/var/*</bind>*/ q = 
-    from  Foo  i in i
-    from  Foo<int>  j in j
+    from  Goo  i in i
+    from  Goo<int>  j in j
     group i by  i
-    join  Foo
+    join  Goo
     }
 }
 ";
@@ -8135,14 +8274,15 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
             var selectClauseNode = tree.FindNodeOrTokenByKind(SyntaxKind.SelectClause).AsNode() as SelectClauseSyntax;
 
             var symbolInfo = semanticModel.GetSymbolInfo(selectClauseNode);
 
-            Assert.NotNull(symbolInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, symbolInfo);
             Assert.Null(symbolInfo.Symbol);
         }
 
@@ -8246,12 +8386,12 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen<T>..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen<T>..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -8262,31 +8402,31 @@ public class Test
         public void OpenGenericTypeInAttribute02()
         {
             string sourceCode = @"
-class Foo {}
+class Goo {}
     
-[/*<bind>*/Foo/*</bind>*/]
+[/*<bind>*/Goo/*</bind>*/]
 public class Test
 {
 }
 ";
             var semanticInfo = GetSemanticInfoForTest<AttributeSyntax>(sourceCode);
 
-            Assert.Equal("Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("Foo..ctor()", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Goo..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("Foo..ctor()", sortedMethodGroup[0].ToTestDisplayString());
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Goo..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -8299,7 +8439,7 @@ public class Test
 public class CSEvent {
     [
 ";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateCompilation(sourceCode);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
             var attributeNode = tree.FindNodeOrTokenByKind(SyntaxKind.Attribute).AsNode() as AttributeSyntax;
@@ -8323,7 +8463,7 @@ public class CSEvent {
 public class CSEvent {
     [
 }";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateCompilation(sourceCode);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
             var attributeNode = tree.FindNodeOrTokenByKind(SyntaxKind.Attribute).AsNode() as AttributeSyntax;
@@ -8399,6 +8539,7 @@ public class Test
         }
 
         [Fact]
+        [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_Constant02()
         {
             string sourceCode = @"
@@ -8425,6 +8566,8 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.ConvertedNullability.FlowState);
             Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
             Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8438,10 +8581,11 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [Fact]
+        [WorkItem(40352, "https://github.com/dotnet/roslyn/issues/40352")]
         public void SwitchExpression_NotConstant()
         {
             string sourceCode = @"
@@ -8467,6 +8611,8 @@ public class Test
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.Nullability.FlowState);
+            Assert.Equal(CodeAnalysis.NullableFlowState.None, semanticInfo.ConvertedNullability.FlowState);
             Assert.Equal("System.String", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
             Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8557,7 +8703,7 @@ public class Test
             Assert.Equal("System.Int32 Test.M()", semanticInfo.CandidateSymbols.Single().ToTestDisplayString());
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 Test.M()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -8590,8 +8736,8 @@ public class Test
 
             Assert.Equal("System.Double", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -8643,7 +8789,7 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [Fact]
@@ -8836,20 +8982,26 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
-
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+            CreateCompilation(sourceCode).VerifyDiagnostics(
+                // (12,30): error CS1003: Syntax error, ':' expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(12, 30),
+                // (12,30): error CS1513: } expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(12, 30),
+                // (12,44): error CS1002: ; expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(12, 44),
+                // (12,44): error CS1513: } expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(12, 44),
+                // (12,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(12, 28),
+                // (12,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(12, 28)
+                );
         }
 
         [Fact]
@@ -8877,20 +9029,20 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
-
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+            CreateCompilation(sourceCode).VerifyDiagnostics(
+                // (13,30): error CS1003: Syntax error, ':' expected
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(13, 30),
+                // (13,30): error CS1513: } expected
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30),
+                // (13,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(13, 28),
+                // (13,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(13, 28)
+                );
         }
 
         [Fact]
@@ -8930,7 +9082,7 @@ public class Test
             Assert.Equal("System.Int32 Test.M()", semanticInfo.CandidateSymbols.Single().ToTestDisplayString());
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 Test.M()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -8989,7 +9141,7 @@ class Program
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("A.B", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -9018,8 +9170,8 @@ class B<T>
 }";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
             var type = semanticInfo.Type;
-            Assert.True((type as NamedTypeSymbol).IsUnboundGenericType);
-            Assert.False((type as NamedTypeSymbol).IsErrorType());
+            Assert.True((type as INamedTypeSymbol).IsUnboundGenericType);
+            Assert.False((type as INamedTypeSymbol).IsErrorType());
         }
 
         [Fact]
@@ -9042,8 +9194,8 @@ class B<T>
 }";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
             var type = semanticInfo.Type;
-            Assert.True((type as NamedTypeSymbol).IsUnboundGenericType);
-            Assert.False((type as NamedTypeSymbol).IsErrorType());
+            Assert.True((type as INamedTypeSymbol).IsUnboundGenericType);
+            Assert.False((type as INamedTypeSymbol).IsErrorType());
         }
 
         [Fact]
@@ -9070,8 +9222,8 @@ class D : B<int>
 }";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
             var type = semanticInfo.Type;
-            Assert.False((type as NamedTypeSymbol).IsUnboundGenericType);
-            Assert.False((type as NamedTypeSymbol).IsErrorType());
+            Assert.False((type as INamedTypeSymbol).IsUnboundGenericType);
+            Assert.False((type as INamedTypeSymbol).IsErrorType());
         }
 
         [Fact]
@@ -9095,8 +9247,8 @@ class B<T>
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
             var type = semanticInfo.Type;
             Assert.Equal("B", type.Name);
-            Assert.True((type as NamedTypeSymbol).IsUnboundGenericType);
-            Assert.False((type as NamedTypeSymbol).IsErrorType());
+            Assert.True((type as INamedTypeSymbol).IsUnboundGenericType);
+            Assert.False((type as INamedTypeSymbol).IsErrorType());
         }
 
         [WorkItem(542430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542430")]
@@ -9123,7 +9275,7 @@ class Program
     }
 }";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
-            var type = (NamedTypeSymbol)semanticInfo.Type;
+            var type = (INamedTypeSymbol)semanticInfo.Type;
             Assert.Equal("B", type.Name);
             Assert.True(type.IsUnboundGenericType);
             Assert.False(type.IsErrorType());
@@ -9224,7 +9376,7 @@ namespace Green
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Blue.DescriptionAttribute", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("Red.DescriptionAttribute", sortedCandidates[1].ToTestDisplayString());
@@ -9283,7 +9435,7 @@ namespace Green
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Blue.DescriptionAttribute", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("Red.DescriptionAttribute", sortedCandidates[1].ToTestDisplayString());
@@ -9321,7 +9473,7 @@ class Program
 
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(3, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.ObsoleteAttribute..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", sortedCandidates[1].ToTestDisplayString());
@@ -9330,7 +9482,7 @@ class Program
             Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.ObsoleteAttribute..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", sortedMethodGroup[1].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)", sortedMethodGroup[2].ToTestDisplayString());
@@ -9394,7 +9546,7 @@ class Class1
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("X", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("XAttribute", sortedCandidates[1].ToTestDisplayString());
@@ -9431,7 +9583,7 @@ class Class1
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
 
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("X", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("XAttribute", sortedCandidates[1].ToTestDisplayString());
@@ -9480,10 +9632,10 @@ namespace TestNamespace_01
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("ValidWithoutSuffix.Description", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("ValidWithSuffix.DescriptionAttribute", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
-            Assert.Equal("ValidWithSuffix.DescriptionAttribute", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal("ValidWithoutSuffix.Description", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[1].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -9646,10 +9798,10 @@ namespace TestNamespace_04
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("ValidWithoutSuffix.Description", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("ValidWithSuffix_And_ValidWithoutSuffix.Description", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
-            Assert.Equal("ValidWithSuffix_And_ValidWithoutSuffix.Description", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal("ValidWithoutSuffix.Description", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[1].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -9697,12 +9849,12 @@ namespace TestNamespace_05
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("InvalidWithoutSuffix.Description..ctor(System.String name)", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("InvalidWithoutSuffix.Description..ctor(System.String name)", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -9752,10 +9904,10 @@ namespace TestNamespace_07
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("InvalidWithoutSuffix.Description", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("InvalidWithSuffix_And_InvalidWithoutSuffix.Description", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
-            Assert.Equal("InvalidWithSuffix_And_InvalidWithoutSuffix.Description", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal("InvalidWithoutSuffix.Description", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[1].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -9785,7 +9937,7 @@ class A1 : System.Attribute { }
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("A1..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -9801,9 +9953,9 @@ class A1 : System.Attribute { }
         public void AliasAttributeName_02_AttributeSyntax()
         {
             string sourceCode = @"
-using FooAttribute = System.ObsoleteAttribute;
+using GooAttribute = System.ObsoleteAttribute;
 
-[/*<bind>*/Foo/*</bind>*/]
+[/*<bind>*/Goo/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<AttributeSyntax>(sourceCode);
@@ -9819,7 +9971,7 @@ class C { }
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.ObsoleteAttribute..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", sortedMethodGroup[1].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)", sortedMethodGroup[2].ToTestDisplayString());
@@ -9828,7 +9980,7 @@ class C { }
 
             var aliasInfo = GetAliasInfoForTest(sourceCode);
             Assert.NotNull(aliasInfo);
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
@@ -9837,9 +9989,9 @@ class C { }
         public void AliasAttributeName_02_IdentifierNameSyntax()
         {
             string sourceCode = @"
-using FooAttribute = System.ObsoleteAttribute;
+using GooAttribute = System.ObsoleteAttribute;
 
-[/*<bind>*/Foo/*</bind>*/]
+[/*<bind>*/Goo/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
@@ -9855,7 +10007,7 @@ class C { }
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.ObsoleteAttribute..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", sortedMethodGroup[1].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)", sortedMethodGroup[2].ToTestDisplayString());
@@ -9864,7 +10016,7 @@ class C { }
 
             var aliasInfo = GetAliasInfoForTest(sourceCode);
             Assert.NotNull(aliasInfo);
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
@@ -9873,9 +10025,9 @@ class C { }
         public void AliasAttributeName_03_AttributeSyntax()
         {
             string sourceCode = @"
-using FooAttribute = System.ObsoleteAttribute;
+using GooAttribute = System.ObsoleteAttribute;
 
-[/*<bind>*/FooAttribute/*</bind>*/]
+[/*<bind>*/GooAttribute/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<AttributeSyntax>(sourceCode);
@@ -9891,7 +10043,7 @@ class C { }
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.ObsoleteAttribute..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", sortedMethodGroup[1].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)", sortedMethodGroup[2].ToTestDisplayString());
@@ -9900,7 +10052,7 @@ class C { }
 
             var aliasInfo = GetAliasInfoForTest(sourceCode);
             Assert.NotNull(aliasInfo);
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
@@ -9909,9 +10061,9 @@ class C { }
         public void AliasAttributeName_03_IdentifierNameSyntax()
         {
             string sourceCode = @"
-using FooAttribute = System.ObsoleteAttribute;
+using GooAttribute = System.ObsoleteAttribute;
 
-[/*<bind>*/FooAttribute/*</bind>*/]
+[/*<bind>*/GooAttribute/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
@@ -9927,7 +10079,7 @@ class C { }
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.ObsoleteAttribute..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", sortedMethodGroup[1].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)", sortedMethodGroup[2].ToTestDisplayString());
@@ -9936,7 +10088,7 @@ class C { }
 
             var aliasInfo = GetAliasInfoForTest(sourceCode);
             Assert.NotNull(aliasInfo);
-            Assert.Equal("FooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
+            Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString());
             Assert.Equal(SymbolKind.Alias, aliasInfo.Kind);
         }
 
@@ -9974,7 +10126,7 @@ namespace N
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
-            Assert.False(SyntaxFacts.IsAttributeName(((SourceNamedTypeSymbol)semanticInfo.Symbol).SyntaxReferences.First().GetSyntax()),
+            Assert.False(SyntaxFacts.IsAttributeName(((SourceNamedTypeSymbol)((CSharp.Symbols.PublicModel.NamedTypeSymbol)semanticInfo.Symbol).UnderlyingNamedTypeSymbol).SyntaxReferences.First().GetSyntax()),
                 "IsAttributeName can be true only for alias name being qualified");
         }
 
@@ -10011,7 +10163,7 @@ namespace N
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
 
-            Assert.False(SyntaxFacts.IsAttributeName(((SourceNamedTypeSymbol)semanticInfo.Symbol).SyntaxReferences.First().GetSyntax()),
+            Assert.False(SyntaxFacts.IsAttributeName(((SourceNamedTypeSymbol)((CSharp.Symbols.PublicModel.NamedTypeSymbol)semanticInfo.Symbol).UnderlyingNamedTypeSymbol).SyntaxReferences.First().GetSyntax()),
                 "IsAttributeName can be true only for alias name being qualified");
         }
 
@@ -10043,12 +10195,12 @@ namespace N
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("AttributeClass.NonAttributeClass..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("AttributeClass.NonAttributeClass..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -10082,12 +10234,12 @@ namespace N
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("AttributeClass.NonAttributeClass..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("AttributeClass.NonAttributeClass..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -10097,9 +10249,9 @@ namespace N
         public void AliasAttributeName_NonAttributeAlias()
         {
             string sourceCode = @"
-using FooAttribute = C;
+using GooAttribute = C;
 
-[/*<bind>*/FooAttribute/*</bind>*/]
+[/*<bind>*/GooAttribute/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<AttributeSyntax>(sourceCode);
@@ -10113,12 +10265,12 @@ class C { }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("C..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("C..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -10131,9 +10283,9 @@ class C { }
         public void AliasAttributeName_NonAttributeAlias_GenericType()
         {
             string sourceCode = @"
-using FooAttribute = Gen<int>;
+using GooAttribute = Gen<int>;
 
-[/*<bind>*/FooAttribute/*</bind>*/]
+[/*<bind>*/GooAttribute/*</bind>*/]
 class C { }
 class Gen<T> { }
 ";
@@ -10148,12 +10300,12 @@ class Gen<T> { }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen<System.Int32>..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen<System.Int32>..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -10183,7 +10335,7 @@ class A2 : System.Attribute { }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("A1", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("A2", sortedCandidates[1].ToTestDisplayString());
@@ -10201,24 +10353,24 @@ class A2 : System.Attribute { }
         public void AmbigAliasAttributeName_02()
         {
             string sourceCode = @"
-using Foo = System.ObsoleteAttribute;
-class FooAttribute : System.Attribute { }
-[/*<bind>*/Foo/*</bind>*/]
+using Goo = System.ObsoleteAttribute;
+class GooAttribute : System.Attribute { }
+[/*<bind>*/Goo/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal("Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
-            Assert.Equal("Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("FooAttribute", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("GooAttribute", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("System.ObsoleteAttribute", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[1].Kind);
@@ -10235,26 +10387,26 @@ class C { }
         public void AmbigAliasAttributeName_03()
         {
             string sourceCode = @"
-using Foo = FooAttribute;
-class FooAttribute : System.Attribute { }
-[/*<bind>*/Foo/*</bind>*/]
+using Goo = GooAttribute;
+class GooAttribute : System.Attribute { }
+[/*<bind>*/Goo/*</bind>*/]
 class C { }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
-            Assert.Equal("Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
-            Assert.Equal("Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("FooAttribute", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("GooAttribute", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
-            Assert.Equal("FooAttribute", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal("GooAttribute", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[1].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10294,7 +10446,7 @@ class Class1
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
 
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("X", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("X", sortedCandidates[1].ToTestDisplayString());
@@ -10331,7 +10483,7 @@ class MyClass
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.StaticInstanceMismatch, semanticInfo.CandidateReason);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 MyClass.intTest", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
 
@@ -10358,9 +10510,9 @@ class MyClass
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotReferencable, semanticInfo.CandidateReason);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal(1, sortedCandidates.Length);
-            Assert.Equal("MyClass @this", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("MyClass this", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10388,9 +10540,9 @@ class MyClass
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(SymbolKind.Parameter, semanticInfo.CandidateSymbols[0].Kind);
             Assert.Equal(CandidateReason.NotReferencable, semanticInfo.CandidateReason);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal(1, sortedCandidates.Length);
-            Assert.Equal("MyClass @this", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("MyClass this", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10423,7 +10575,7 @@ class MyClass2
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 MyClass1.myInt1", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
 
@@ -10466,8 +10618,8 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAValue, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 MyClass.Property { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("System.Int32 MyClass.Property { private get; set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10503,7 +10655,7 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 Test.Class1.a { get; set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
@@ -10540,7 +10692,7 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 Test.Class1.a", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
 
@@ -10579,7 +10731,7 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("event System.Action Test.Class1.a", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Event, sortedCandidates[0].Kind);
 
@@ -10622,8 +10774,8 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 MyClass.Property { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("System.Int32 MyClass.Property { get; private set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10664,8 +10816,8 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Object MyClass.this[System.Int32 index] { get; set; }", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("System.Object MyClass.this[System.Int32 index] { get; private set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10701,12 +10853,12 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen<T>..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen<T>..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -10901,9 +11053,9 @@ class Program
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, semanticInfo.ImplicitConversion.Kind);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(21, semanticInfo.ConstantValue);
@@ -10967,9 +11119,9 @@ class Program
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
-            Assert.Equal("Double", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal("System.Double", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.ImplicitNumeric, semanticInfo.ImplicitConversion.Kind);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
             Assert.Equal(21, semanticInfo.ConstantValue);
@@ -11010,7 +11162,7 @@ class Program
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(3, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.ObsoleteAttribute..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", sortedCandidates[1].ToTestDisplayString());
@@ -11019,7 +11171,7 @@ class Program
             Assert.Equal(SymbolKind.Method, sortedCandidates[2].Kind);
 
             Assert.Equal(3, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.ObsoleteAttribute..ctor()", sortedMethodGroup[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", sortedMethodGroup[1].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)", sortedMethodGroup[2].ToTestDisplayString());
@@ -11033,14 +11185,14 @@ class Program
         {
             string sourceCode = @"
 using System;
-class Foo
+class Goo
 {
-    public Foo() { }
-    public Foo(int x) { }
+    public Goo() { }
+    public Goo(int x) { }
 
     public static void Main()
     {
-        var x = new /*<bind>*/Foo/*</bind>*/(typeof(.<>));
+        var x = new /*<bind>*/Goo/*</bind>*/(typeof(.<>));
     }
 }
 
@@ -11051,7 +11203,7 @@ class Foo
             Assert.Null(semanticInfo.ConvertedType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("Foo", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -11065,39 +11217,39 @@ class Foo
         {
             string sourceCode = @"
 using System;
-class Foo
+class Goo
 {
-    public Foo() { }
-    public Foo(int x) { }
+    public Goo() { }
+    public Goo(int x) { }
 
     public static void Main()
     {
-        var x = /*<bind>*/new Foo(typeof(Foo))/*</bind>*/;
+        var x = /*<bind>*/new Goo(typeof(Goo))/*</bind>*/;
     }
 }
 
 ";
             var semanticInfo = GetSemanticInfoForTest<ObjectCreationExpressionSyntax>(sourceCode);
 
-            Assert.Equal("Foo", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("Foo", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Goo", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("Foo..ctor()", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Goo..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
-            Assert.Equal("Foo..ctor(System.Int32 x)", sortedCandidates[1].ToTestDisplayString());
+            Assert.Equal("Goo..ctor(System.Int32 x)", sortedCandidates[1].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("Foo..ctor()", sortedMethodGroup[0].ToTestDisplayString());
-            Assert.Equal("Foo..ctor(System.Int32 x)", sortedMethodGroup[1].ToTestDisplayString());
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("Goo..ctor()", sortedMethodGroup[0].ToTestDisplayString());
+            Assert.Equal("Goo..ctor(System.Int32 x)", sortedMethodGroup[1].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11259,15 +11411,8 @@ public class Class1
         {
             string sourceCode = "/*<bind>*/C<object, string/*</bind>*/";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
-            var type = (NamedTypeSymbol)semanticInfo.Type;
-            Assert.Equal("C<System.Object, System.String>", type.ToTestDisplayString());
-            Assert.Equal(2, type.TypeParameters.Length);
-            var typeParameter = type.TypeParameters[0];
-            Assert.Equal(0, typeParameter.Ordinal);
-            Assert.Equal(string.Empty, typeParameter.Name);
-            typeParameter = type.TypeParameters[1];
-            Assert.Equal(1, typeParameter.Ordinal);
-            Assert.Equal(string.Empty, typeParameter.Name);
+            var type = (INamedTypeSymbol)semanticInfo.Type;
+            Assert.Equal("System.Boolean", type.ToTestDisplayString());
         }
 
         [WorkItem(542452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542452")]
@@ -11283,7 +11428,7 @@ class Test
 {
     static void Main() { }
 
-    static void Foo(List<int> Scores)
+    static void Goo(List<int> Scores)
     {
         var z = from y in Scores select new Action(() => { /*<bind>*/var/*</bind>*/ x = y; });
     }
@@ -11317,7 +11462,7 @@ using System.Linq;
 class Program
 {
     const bool v = true;
-    public void Foo(bool b = /*<bind>*/v == true/*</bind>*/)
+    public void Goo(bool b = /*<bind>*/v == true/*</bind>*/)
     {
     }
 }
@@ -11350,7 +11495,7 @@ using System.Linq;
 
 class Program
 {
-    public void Foo<T, U>(T t = /*<bind>*/default(U)/*</bind>*/) where U : class, T
+    public void Goo<T, U>(T t = /*<bind>*/default(U)/*</bind>*/) where U : class, T
     {
     }
     static void Main(string[] args)
@@ -11374,7 +11519,7 @@ class Program
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(542850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542850")]
@@ -11388,14 +11533,14 @@ using System.Linq;
 
 public static class Extensions
 {
-    private static int Foo(this string z) { return 3; }
+    private static int Goo(this string z) { return 3; }
 }
 
 class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(args[0]./*<bind>*/Foo/*</bind>*/());
+        args[0]./*<bind>*/Goo/*</bind>*/();
     }
 }
 ";
@@ -11406,15 +11551,15 @@ class Program
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 System.String.Foo()", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("System.Int32 System.String.Goo()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.Int32 System.String.Foo()", sortedMethodGroup[0].ToTestDisplayString());
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("System.Int32 System.String.Goo()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11445,7 +11590,7 @@ public class D { }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 B.X", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, sortedCandidates[0].Kind);
 
@@ -11482,7 +11627,7 @@ public interface Interface1
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Runtime.CompilerServices.IndexerNameAttribute..ctor(System.String indexerName)", sortedMethodGroup[0].ToTestDisplayString());
 
 
@@ -11512,7 +11657,7 @@ class Test
 
             Assert.Equal("<global namespace>", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Namespace, semanticInfo.Symbol.Kind);
-            Assert.True(((NamespaceSymbol)semanticInfo.Symbol).IsGlobalNamespace);
+            Assert.True(((INamespaceSymbol)semanticInfo.Symbol).IsGlobalNamespace);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -11520,7 +11665,7 @@ class Test
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
             Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
-            Assert.Equal(false, aliasInfo.IsExtern);
+            Assert.False(aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11546,7 +11691,7 @@ class Test
 
             Assert.Equal("<global namespace>", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Namespace, semanticInfo.Symbol.Kind);
-            Assert.True(((NamespaceSymbol)semanticInfo.Symbol).IsGlobalNamespace);
+            Assert.True(((INamespaceSymbol)semanticInfo.Symbol).IsGlobalNamespace);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -11554,7 +11699,7 @@ class Test
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
             Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
-            Assert.Equal(false, aliasInfo.IsExtern);
+            Assert.False(aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11567,7 +11712,7 @@ class Test
 class Program
 {
     const int y = 1;
-    public void Foo(bool x = (undeclared == /*<bind>*/y/*</bind>*/)) { }
+    public void Goo(bool x = (undeclared == /*<bind>*/y/*</bind>*/)) { }
     static void Main(string[] args)
     {
         
@@ -11722,7 +11867,7 @@ namespace Test
 {
     public class Program
     {
-        public int[][, , ] Foo()
+        public int[][, , ] Goo()
         {
             var a3 = new[] { /*<bind>*/new [,,] {{{1, 2}}}/*</bind>*/, new [,,] {{{3, 4}}} };
             return a3;
@@ -11757,7 +11902,7 @@ namespace Test
 {
     public class Program
     {
-        public int[][, , ] Foo()
+        public int[][, , ] Goo()
         {
             var a3 = new[] { new [,,] {{{3, 4}}}, new [,,] {{{3, 4}}} };
             return /*<bind>*/a3/*</bind>*/;
@@ -11788,7 +11933,7 @@ namespace Test
             string sourceCode = @"
 public class C
 {
-    public int[] Foo()
+    public int[] Goo()
     {
         char c = 'c';
         short s1 = 0;
@@ -11824,7 +11969,7 @@ public class C
             string sourceCode = @"
 public class C
 {
-    public int[] Foo()
+    public int[] Goo()
     {
         char c = 'c';
         short s1 = 0;
@@ -11864,7 +12009,7 @@ namespace Test
 {
     public class Program
     {
-        public int[][,,] Foo()
+        public int[][,,] Goo()
         {
             var a3 = new[] { /*<bind>*/new[,,] { { { 3, 4 } }, 3, 4 }/*</bind>*/, new[,,] { { { 3, 4 } } } };
             return a3;
@@ -11899,7 +12044,7 @@ namespace Test
 {
     public class Program
     {
-        public int[][,,] Foo()
+        public int[][,,] Goo()
         {
             var a3 = new[] { /*<bind>*/new[,,] { { { 3, 4 } }, x, y }/*</bind>*/, new[,,] { { { 3, 4 } } } };
             return a3;
@@ -11930,7 +12075,7 @@ namespace Test
             string sourceCode = @"
 public class C
 {
-    public int[] Foo()
+    public int[] Goo()
     {
         char c = 'c';
         short s1 = 0;
@@ -11991,7 +12136,7 @@ class D {
 }
 ";
             var tree = Parse(sourceCode);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -12095,7 +12240,7 @@ interface X { }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("X", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -12163,7 +12308,7 @@ class Program<T>
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("T", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.TypeParameter, sortedCandidates[0].Kind);
 
@@ -12231,7 +12376,7 @@ abstract class X { }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("X", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -12290,12 +12435,9 @@ class Program
             Assert.Null(semanticInfo.ConvertedType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("dynamic", sortedCandidates[0].ToTestDisplayString());
-            Assert.Equal(SymbolKind.DynamicType, sortedCandidates[0].Kind);
+            Assert.Equal("dynamic", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -12318,8 +12460,8 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<ObjectCreationExpressionSyntax>(sourceCode);
 
-            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
+            Assert.Equal("dynamic", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Dynamic, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
@@ -12382,7 +12524,7 @@ struct Conv
             // The specification requires that the user-defined conversion chosen be one
             // which converts to an integral or string type, but *not* a nullable integral type,
             // oddly enough. Since the only applicable user-defined conversion here would be the
-            // lifted conversion from Conv? to int?, the resolution of the conversion fails 
+            // lifted conversion from Conv? to int?, the resolution of the conversion fails
             // and this program produces an error.
 
             string sourceCode = @"
@@ -12447,7 +12589,7 @@ struct Conv
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("Conv", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Conv C", semanticInfo.Symbol.ToTestDisplayString());
@@ -12481,7 +12623,7 @@ struct Conv
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
             Assert.Equal("Conv", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("Conv C", semanticInfo.Symbol.ToTestDisplayString());
@@ -12664,13 +12806,13 @@ public class Base
 
     public static void Main()
     {
-        MemberInitializerTest<Base>.Foo();
+        MemberInitializerTest<Base>.Goo();
     }
 }
 
 public class MemberInitializerTest<T> where T : Base, new()
 {
-    public static void Foo()
+    public static void Goo()
     {
         var i = new T() { /*<bind>*/x/*</bind>*/ = 1, y = 2 };
         System.Console.WriteLine(i.x);
@@ -12801,7 +12943,7 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 MemberInitializerTest.y { get; set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
@@ -12839,7 +12981,7 @@ public struct Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 MemberInitializerTest.y { get; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
@@ -12880,7 +13022,7 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAValue, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("MemberInitializerTest Test.Prop { set; }", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Property, sortedCandidates[0].Kind);
 
@@ -12954,10 +13096,10 @@ public class MemberInitializerTest
 public class MemberInitializerTest
 {
     public int x;
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Foo()/*</bind>*/};
+        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Goo()/*</bind>*/};
     }
 }
 ";
@@ -12969,9 +13111,12 @@ public class MemberInitializerTest
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Foo()", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            var symbol = semanticInfo.CandidateSymbols[0];
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, symbol.Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -12979,16 +13124,16 @@ public class MemberInitializerTest
         }
 
         [Fact]
-        public void ObjectInitializer_BadNamedAssignmentLeft_InvocationExpressionSyntax()
+        public void ObjectInitializer_BadNamedAssignmentLeft_InvocationExpressionSyntax_01()
         {
             string sourceCode = @"
 public class MemberInitializerTest
 {
     public int x;
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Foo()/*</bind>*/ = new MemberInitializerTest() };
+        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Goo()/*</bind>*/ = new MemberInitializerTest() };
     }
 }
 ";
@@ -13000,9 +13145,46 @@ public class MemberInitializerTest
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Foo()", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            var symbol = semanticInfo.CandidateSymbols[0];
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, symbol.Kind);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ObjectInitializer_BadNamedAssignmentLeft_InvocationExpressionSyntax_02()
+        {
+            string sourceCode = @"
+public class MemberInitializerTest
+{
+    public int x;
+    public static MemberInitializerTest Goo() { return new MemberInitializerTest(); }
+    public static void Main()
+    {
+        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Goo()/*</bind>*/ = new MemberInitializerTest() };
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("MemberInitializerTest", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("MemberInitializerTest", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            var symbol = semanticInfo.CandidateSymbols[0];
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, symbol.Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -13015,30 +13197,29 @@ public class MemberInitializerTest
             string sourceCode = @"
 public class MemberInitializerTest
 {
-    public MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { /*<bind>*/Foo/*</bind>*/ };
+        var i = new MemberInitializerTest() { /*<bind>*/Goo/*</bind>*/ };
     }
 }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Null(semanticInfo.Type);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Null(semanticInfo.ConvertedType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotInvocable, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Foo()", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Foo()", sortedMethodGroup[0].ToTestDisplayString());
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -13599,10 +13780,11 @@ public class MemberInitializerTest
 ";
             var semanticInfo = GetSemanticInfoForTest<PostfixUnaryExpressionSyntax>(sourceCode);
 
-            Assert.Equal("System.Object", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
@@ -13622,12 +13804,12 @@ using System.Collections.Generic;
 public class MemberInitializerTest
 {
     public int x;
-    static MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    static MemberInitializerTest Goo() { return new MemberInitializerTest(); }
 
     public static void Main()
     {
         int y = 0;
-        var i = new List<int> { 1, /*<bind>*/Foo().x = 1/*</bind>*/};
+        var i = new List<int> { 1, /*<bind>*/Goo().x = 1/*</bind>*/};
     }
 }
 ";
@@ -13676,12 +13858,12 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen<T>..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen<T>..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -13715,12 +13897,12 @@ public class Test
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotAnAttributeType, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen2<T>..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Gen2<T>..ctor()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -13794,7 +13976,7 @@ class Program
             string sourceCode = @"
 class Program
 {
-    /*<bind>*/var/*</bind>*/ Foo() {}
+    /*<bind>*/var/*</bind>*/ Goo() {}
 }
 ";
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
@@ -14050,7 +14232,7 @@ public class MainClass
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("GenericCoClassType<System.Int32, System.String>..ctor(System.String x)", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -14140,7 +14322,7 @@ public class MainClass
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("Wrapper.CoClassType..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
 
@@ -14221,7 +14403,7 @@ public class MainClass
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("InterfaceType", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
@@ -14277,13 +14459,13 @@ class A
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateCompilation(sourceCode);
             var tree = compilation.SyntaxTrees.First();
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<OmittedArraySizeExpressionSyntax>().Last();
             var model = compilation.GetSemanticModel(tree);
             var typeInfo = model.GetTypeInfo(node); // Ensure that this doesn't throw.
 
-            Assert.NotNull(typeInfo);
+            Assert.NotEqual(default, typeInfo);
         }
 
         [WorkItem(11451, "DevDiv_Projects/Roslyn")]
@@ -14296,7 +14478,7 @@ public class Program
 {
     static void Main(string[] args)
     {
-        var c = new /*<bind>*/IAppDomainSetup/*</bind>*/
+        var c = new /*<bind>*/IFormattable/*</bind>*/
     }
 }
 
@@ -14310,8 +14492,8 @@ public class Program
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("System.IAppDomainSetup", sortedCandidates[0].ToTestDisplayString());
+            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("System.IFormattable", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -14328,23 +14510,23 @@ public class Program
 {
     static void Main(string[] args)
     {
-        var c = /*<bind>*/new IAppDomainSetup()/*</bind>*/
+        var c = /*<bind>*/new IFormattable()/*</bind>*/
     }
 }
 
 ";
             var semanticInfo = GetSemanticInfoForTest<ObjectCreationExpressionSyntax>(sourceCode);
 
-            Assert.Equal("System.IAppDomainSetup", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.IFormattable", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Interface, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.IAppDomainSetup", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.IFormattable", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Interface, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("System.IAppDomainSetup", semanticInfo.CandidateSymbols.First().ToTestDisplayString());
+            Assert.Equal("System.IFormattable", semanticInfo.CandidateSymbols.First().ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -14371,9 +14553,9 @@ struct Class1
         public void VarEvent()
         {
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(@"
-event /*<bind>*/var/*</bind>*/ foo;
+event /*<bind>*/var/*</bind>*/ goo;
 ");
-            Assert.True(((TypeSymbol)semanticInfo.Type).IsErrorType());
+            Assert.True(((ITypeSymbol)semanticInfo.Type).IsErrorType());
         }
 
         [WorkItem(546083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546083")]
@@ -14412,9 +14594,9 @@ class C : B
     static void Main()
     {
     }
-    void Foo(int x)
+    void Goo(int x)
     {
-        /*<bind>*/(this).Foo(1)/*</bind>*/;
+        /*<bind>*/(this).Goo(1)/*</bind>*/;
     }
 }
 ";
@@ -14426,7 +14608,7 @@ class C : B
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("void C.Foo(System.Int32 x)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("void C.Goo(System.Int32 x)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -14445,7 +14627,7 @@ class C<[T(a: 1)]T>
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilation(source);
             comp.GetParseDiagnostics().Verify(); // Syntactically correct.
 
             var tree = comp.SyntaxTrees.Single();
@@ -14465,13 +14647,13 @@ class C<[T(a: 1)]T>
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Equal("void C.Foo()", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("void C.Goo()", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString()).ToArray();
-            Assert.Equal("void C.Foo()", sortedMethodGroup[0].ToTestDisplayString());
+            var sortedMethodGroup = semanticInfo.MethodGroup.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
+            Assert.Equal("void C.Goo()", sortedMethodGroup[0].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -14483,9 +14665,9 @@ class C<[T(a: 1)]T>
             string sourceCode = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        /*<bind>*/Foo/*</bind>*/();
+        /*<bind>*/Goo/*</bind>*/();
     }
 }";
 
@@ -14494,9 +14676,9 @@ class C
             sourceCode = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        ((/*<bind>*/Foo/*</bind>*/))();
+        ((/*<bind>*/Goo/*</bind>*/))();
     }
 }";
 
@@ -14510,7 +14692,7 @@ class C
             var sourceCode1 = @"
 class C1
 {
-    void Foo()
+    void Goo()
     {
         int x = 2;
         long? z = /*<bind>*/x/*</bind>*/;
@@ -14520,14 +14702,14 @@ class C1
             var sourceCode2 = @"
 class C2
 {
-    void Foo()
+    void Goo()
     {
         long? y = /*<bind>*/x/*</bind>*/;
         int x = 2;
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { sourceCode1, sourceCode2 });
+            var compilation = CreateCompilation(new[] { sourceCode1, sourceCode2 });
 
             for (int i = 0; i < 2; i++)
             {
@@ -14537,7 +14719,7 @@ class C2
 
                 var info1 = model.GetTypeInfo(syntaxToBind);
 
-                Assert.NotNull(info1);
+                Assert.NotEqual(default, info1);
                 Assert.Equal("System.Int32", info1.Type.ToTestDisplayString());
             }
         }
@@ -14545,7 +14727,7 @@ class C2
         [Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
         public void ObjectCreation1()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilation(
 @"
 using System.Collections;
 
@@ -14628,7 +14810,7 @@ namespace Test
         [Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
         public void ObjectCreation2()
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilation(
 @"
 using System.Collections;
 
@@ -14721,10 +14903,11 @@ namespace Test
             }
         }
 
-        [Fact, WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(665920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665920")]
         public void ObjectCreation3()
         {
-            var pia = CreateCompilationWithMscorlib(
+            var pia = CreateCompilation(
 @"
 using System;
 using System.Collections;
@@ -14763,7 +14946,7 @@ namespace Test
 
             pia.VerifyDiagnostics();
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilation(
 @"
 namespace Test
 {
@@ -14845,7 +15028,7 @@ namespace Test
         return this;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateCompilation(sourceCode);
             var tree = compilation.SyntaxTrees.First();
             var expr = (ExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ThisKeyword).Parent;
             var model = compilation.GetSemanticModel(tree);
@@ -14915,14 +15098,14 @@ public class C
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(s => s.ToDisplayString()).ToArray();
+            var sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(s => s.ToDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("string.ToString()", sortedCandidates[0].ToDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("string.ToString(System.IFormatProvider)", sortedCandidates[1].ToDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
 
             Assert.Equal(2, semanticInfo.MethodGroup.Length);
-            var sortedMethodGroup = semanticInfo.MethodGroup.AsEnumerable().OrderBy(s => s.ToDisplayString()).ToArray();
+            var sortedMethodGroup = semanticInfo.MethodGroup.AsEnumerable().OrderBy(s => s.ToDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("string.ToString()", sortedMethodGroup[0].ToDisplayString());
             Assert.Equal("string.ToString(System.IFormatProvider)", sortedMethodGroup[1].ToDisplayString());
 
@@ -15087,7 +15270,7 @@ public class C
         [Fact, WorkItem(998050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998050")]
         public void Bug998050()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateCompilation(@"
 class BaselineLog
 {}
 
@@ -15163,7 +15346,7 @@ public class C {
             select true?i:i;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(sourceCode);
+            var compilation = CreateCompilation(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -15177,6 +15360,60 @@ public class C {
             var qe = tree.GetRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
             var infoSymbol2 = semanticModel.GetSymbolInfo(qe.Body.SelectOrGroup).Symbol;
             Assert.Equal(expectedNames[i++], infoSymbol2.Name);
+        }
+
+        [Fact]
+        public void TestIncompleteMember()
+        {
+            // Note: binding information in an incomplete member is not available.
+            // When https://github.com/dotnet/roslyn/issues/7536 is fixed this test
+            // will have to be updated.
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    public /*<bind>*/K/*</bind>*/
+}
+
+class K
+{ }
+";
+            var semanticInfo = GetSemanticInfoForTest(sourceCode);
+
+            Assert.Equal("K", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("K", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("K", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, semanticInfo.Symbol.Kind);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [WorkItem(18763, "https://github.com/dotnet/roslyn/issues/18763")]
+        [Fact]
+        public void AttributeArgumentLambdaThis()
+        {
+            string source =
+@"class C
+{
+    [X(() => this._Y)]
+    public void Z()
+    {
+    }
+}";
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.ThisExpression);
+            var info = model.GetSemanticInfoSummary(syntax);
+            Assert.Equal("C", info.Type.Name);
         }
     }
 }

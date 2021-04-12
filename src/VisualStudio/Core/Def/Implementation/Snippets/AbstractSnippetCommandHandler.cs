@@ -1,261 +1,281 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract class AbstractSnippetCommandHandler :
         ForegroundThreadAffinitizedObject,
         ICommandHandler<TabKeyCommandArgs>,
         ICommandHandler<BackTabKeyCommandArgs>,
         ICommandHandler<ReturnKeyCommandArgs>,
         ICommandHandler<EscapeKeyCommandArgs>,
-        ICommandHandler<InsertSnippetCommandArgs>
+        ICommandHandler<InsertSnippetCommandArgs>,
+        IChainedCommandHandler<AutomaticLineEnderCommandArgs>
     {
+        protected readonly SignatureHelpControllerProvider SignatureHelpControllerProvider;
+        protected readonly IEditorCommandHandlerServiceFactory EditorCommandHandlerServiceFactory;
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
         protected readonly SVsServiceProvider ServiceProvider;
 
-        public AbstractSnippetCommandHandler(IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+        public string DisplayName => FeaturesResources.Snippets;
+
+        public AbstractSnippetCommandHandler(IThreadingContext threadingContext, SignatureHelpControllerProvider signatureHelpControllerProvider, IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
+            this.SignatureHelpControllerProvider = signatureHelpControllerProvider;
+            this.EditorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
             this.ServiceProvider = serviceProvider;
         }
 
         protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);
         protected abstract bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken);
-        protected abstract void InvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, Action nextHandler, bool surroundWith = false);
+        protected abstract bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false);
 
         protected virtual bool TryInvokeSnippetPickerOnQuestionMark(ITextView textView, ITextBuffer textBuffer)
-        {
-            return false;
-        }
+            => false;
 
-        public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
-            AbstractSnippetExpansionClient snippetExpansionClient;
-            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out snippetExpansionClient) &&
+            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
                 snippetExpansionClient.TryHandleTab())
             {
-                return;
+                return true;
             }
 
             // Insert snippet/show picker only if we don't have a selection: the user probably wants to indent instead
             if (args.TextView.Selection.IsEmpty)
             {
-                if (TryHandleTypedSnippet(args.TextView, args.SubjectBuffer))
+                if (TryHandleTypedSnippet(args.TextView, args.SubjectBuffer, context.OperationContext.UserCancellationToken))
                 {
-                    return;
+                    return true;
                 }
 
                 if (TryInvokeSnippetPickerOnQuestionMark(args.TextView, args.SubjectBuffer))
                 {
-                    return;
+                    return true;
                 }
             }
 
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(TabKeyCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextCommandHandler)
+        {
+            return nextCommandHandler();
+        }
+
+        public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
+        {
+            AssertIsForeground();
+            if (AreSnippetsEnabled(args)
+                && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient)
+                && snippetExpansionClient.IsFullMethodCallSnippet)
+            {
+                // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
+                // chain will handle the remaining Smart Break Line operations.
+                snippetExpansionClient.CommitSnippet(leaveCaret: true);
+                args.TextView.Selection.Clear();
+            }
+
+            nextCommandHandler();
+        }
+
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
-            AbstractSnippetExpansionClient snippetExpansionClient;
-            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out snippetExpansionClient) &&
+            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
                 snippetExpansionClient.TryHandleReturn())
             {
-                return;
+                return true;
             }
 
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
-            AbstractSnippetExpansionClient snippetExpansionClient;
-            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out snippetExpansionClient) &&
+            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
                 snippetExpansionClient.TryHandleEscape())
             {
-                return;
+                return true;
             }
 
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(EscapeKeyCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(BackTabKeyCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
-            AbstractSnippetExpansionClient snippetExpansionClient;
-            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out snippetExpansionClient) &&
+            if (args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient) &&
                 snippetExpansionClient.TryHandleBackTab())
             {
-                return;
+                return true;
             }
 
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(BackTabKeyCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out _))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        public void ExecuteCommand(InsertSnippetCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(InsertSnippetCommandArgs args, CommandExecutionContext context)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
-            InvokeInsertionUI(args.TextView, args.SubjectBuffer, nextHandler);
+            return TryInvokeInsertionUI(args.TextView, args.SubjectBuffer);
         }
 
-        public CommandState GetCommandState(InsertSnippetCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(InsertSnippetCommandArgs args)
         {
             AssertIsForeground();
 
             if (!AreSnippetsEnabled(args))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return CommandState.Unspecified;
             }
 
             return CommandState.Available;
         }
 
-        protected bool TryHandleTypedSnippet(ITextView textView, ITextBuffer subjectBuffer)
+        protected bool TryHandleTypedSnippet(ITextView textView, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            Document document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return false;
             }
 
             var currentText = subjectBuffer.AsTextContainer().CurrentText;
-            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             var endPositionInSubjectBuffer = textView.GetCaretPoint(subjectBuffer);
             if (endPositionInSubjectBuffer == null)
@@ -269,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // Find the snippet shortcut
             while (startPosition > 0)
             {
-                char c = currentText[startPosition - 1];
+                var c = currentText[startPosition - 1];
                 if (!syntaxFactsService.IsIdentifierPartCharacter(c) && c != '#' && c != '~')
                 {
                     break;
@@ -283,12 +303,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            if (!IsSnippetExpansionContext(document, startPosition, CancellationToken.None))
+            if (!IsSnippetExpansionContext(document, startPosition, cancellationToken))
             {
                 return false;
             }
 
-            return GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(startPosition, endPosition);
+            return GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(startPosition, endPosition, cancellationToken);
         }
 
         protected bool TryGetExpansionManager(out IVsExpansionManager expansionManager)
@@ -304,12 +324,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return expansionManager != null;
         }
 
-        protected static bool AreSnippetsEnabled(CommandArgs args)
+        protected static bool AreSnippetsEnabled(EditorCommandArgs args)
         {
-            Workspace workspace;
-            return args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets) &&
+            // Don't execute in cloud environment, should be handled by LSP
+            if (args.SubjectBuffer.IsInLspEditorContext())
+            {
+                return false;
+            }
+
+            return args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.Snippets) &&
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive
-                !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace) && workspace.Kind == WorkspaceKind.Interactive);
+                !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace) && workspace.Kind == WorkspaceKind.Interactive);
         }
     }
 }

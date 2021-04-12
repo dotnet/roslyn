@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,25 +18,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new CSharpSuggestionModeCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(CSharpSuggestionModeCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterFirstExplicitArgument()
         {
-            await VerifyNotBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
+            // The right-hand-side parses like a possible deconstruction or tuple type
+            await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterFirstImplicitArgument()
         {
-            await VerifyNotBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
+            // The right-hand-side parses like a possible deconstruction or tuple type
+            await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -40,13 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     private void bar(Func<int, int, bool> f) { }
     
-    private void foo()
+    private void goo()
     {
         bar((x, i $$
     }
 }
 ";
-            await VerifyNotBuilderAsync(markup);
+            // The right-hand-side parses like a possible deconstruction or tuple type
+            await VerifyBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -56,13 +59,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     private void bar(Func<int, int, bool> f) { }
     
-    private void foo()
+    private void goo()
     {
         bar((int x, i $$
     }
 }
 ";
-            await VerifyNotBuilderAsync(markup);
+            // Could be a deconstruction expression
+            await VerifyBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -74,7 +78,7 @@ class c
 {
     private void bar(Func<int, int, bool> f) { }
     
-    private void foo()
+    private void goo()
     {
         bar($$
     }
@@ -85,9 +89,7 @@ class c
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DelegateTypeExpected2()
-        {
-            await VerifyBuilderAsync(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
-        }
+            => await VerifyBuilderAsync(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObjectInitializerDelegateType()
@@ -103,7 +105,7 @@ class Program
 
 class a
 {
-    void foo()
+    void goo()
     {
         var b = new Program() { myfunc = $$
     }
@@ -118,7 +120,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         Func<int, int>[] myfunc = new Func<int, int>[] { $$;
     }
@@ -133,7 +135,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         var a = new [] { $$;
     }
@@ -148,7 +150,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         var a = new [] { x => 2 * x, $$
     }
@@ -163,7 +165,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         var a = true ? $$
     }
@@ -178,7 +180,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         var a = true ? x => x * 2 : $$
     }
@@ -193,7 +195,7 @@ class a
 
 class a
 {
-    void foo()
+    void goo()
     {
         Func<int, int> a = true ? $$
     }
@@ -208,12 +210,12 @@ class a
 
 class a
 {
-    void foo(int a) { }
-    void foo(Func<int, int> a) { }
+    void goo(int a) { }
+    void goo(Func<int, int> a) { }
 
     void bar()
     {
-        this.foo($$
+        this.goo($$
     }
 }";
             await VerifyBuilderAsync(markup);
@@ -226,12 +228,12 @@ class a
 
 class a
 {
-    void foo(int i, int a) { }
-    void foo(int i, Func<int, int> a) { }
+    void goo(int i, int a) { }
+    void goo(int i, Func<int, int> a) { }
 
     void bar()
     {
-        this.foo(1, $$
+        this.goo(1, $$
     }
 }";
             await VerifyBuilderAsync(markup);
@@ -391,11 +393,11 @@ class Program
         Console.CancelKeyPress += new ConsoleCancelEventHandler(((a$$
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ParenthesizedExpression()
+        public async Task ParenthesizedExpressionInVarDeclaration()
         {
             var markup = @"using System;
 class Program
@@ -405,11 +407,56 @@ class Program
         var x = (a$$
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TupleExpressionAfterParen()
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInObjectCreation()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program x = new P$$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInArrayCreation()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program[] x = new $$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInArrayCreation2()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program[] x = new Pr$$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleExpressionInVarDeclaration()
         {
             var markup = @"using System;
 class Program
@@ -419,10 +466,11 @@ class Program
         var x = (a$$, b)
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
-        public async Task TupleExpressionAfterComma()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleExpressionInVarDeclaration2()
         {
             var markup = @"using System;
 class Program
@@ -432,9 +480,64 @@ class Program
         var x = (a, b$$)
     }
 }";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task IncompleteLambdaInActionDeclaration()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = (a$$, b)
+    }
+}";
             await VerifyBuilderAsync(markup);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleWithNamesInActionDeclaration()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = (a$$, b: b)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleWithNamesInActionDeclaration2()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = (a: a, b$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleWithNamesInVarDeclaration()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = (a: a, b$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
 
         [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -445,9 +548,9 @@ using System.Linq.Expressions;
  
 public class Class
 {
-    public void Foo(Expression<Action<int>> arg)
+    public void Goo(Expression<Action<int>> arg)
     {
-        Foo($$
+        Goo($$
     }
 }";
             await VerifyBuilderAsync(markup);
@@ -462,7 +565,7 @@ using System.Linq.Expressions;
  
 public class Class
 {
-    public void Foo(Expression<Action<int>> arg)
+    public void Goo(Expression<Action<int>> arg)
     {
         Enumerable.Empty<$$
     }
@@ -526,7 +629,7 @@ using System;
  
 public class Class
 {
-    public void Foo()
+    public void Goo()
     {
         EventHandler h = (s$$)
     }
@@ -582,12 +685,12 @@ class D : B
 
 class a
 {
-    void foo()
+    void goo()
     {
         int[] a = new $$;
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -606,30 +709,736 @@ class a
             await VerifyBuilderAsync(markup);
         }
 
-        private async Task VerifyNotBuilderAsync(string markup)
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartialClassName()
         {
-            await VerifyWorkerAsync(markup, isBuilder: false);
+            var markup = @"partial class $$";
+            await VerifyBuilderAsync(markup);
         }
 
-        private async Task VerifyBuilderAsync(string markup)
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartialStructName()
         {
-            await VerifyWorkerAsync(markup, isBuilder: true);
+            var markup = @"partial struct $$";
+            await VerifyBuilderAsync(markup);
         }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartialInterfaceName()
+        {
+            var markup = @"partial interface $$";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UnwrapParamsArray()
+        {
+            var markup = @"
+using System;
+class C {
+    C(params Action<int>[] a) {
+        new C($$
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(12818, "https://github.com/dotnet/roslyn/issues/12818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotUnwrapRegularArray()
+        {
+            var markup = @"
+using System;
+class C {
+    C(Action<int>[] a) {
+        new C($$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(47662, "https://github.com/dotnet/roslyn/issues/47662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LambdaExpressionInImplicitObjectCreation()
+        {
+            var markup = @"
+using System;
+class C {
+    C(Action<int> a) {
+        C c = new($$
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotBuilderWhenDelegateInferredRightOfDotInInvocation()
+        {
+            var markup = @"
+class C {
+	Action a = Task.$$
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotBuilderInTypeArgument()
+        {
+            var markup = @"
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        class N { }
+        static void Main(string[] args)
+        {
+            Program.N n = Load<Program.$$
+        }
+
+        static T Load<T>() => default(T);
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(16176, "https://github.com/dotnet/roslyn/issues/16176")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotBuilderForLambdaAfterNew()
+        {
+            var markup = @"
+class C {
+	Action a = new $$
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AsyncLambda()
+        {
+            var markup = @"
+using System;
+using System.Threading.Tasks;
+class Program
+{
+    public void B(Func<int, int, Task<int>> f) { }
+
+    void A()
+    {
+        B(async($$";
+
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(20937, "https://github.com/dotnet/roslyn/issues/20937")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AsyncLambdaAfterComma()
+        {
+            var markup = @"
+using System;
+using System.Threading.Tasks;
+class Program
+{
+    public void B(Func<int, int, Task<int>> f) { }
+
+    void A()
+    {
+        B(async(p1, $$";
+
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod1()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(a$$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod2()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(a$$)
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod3()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(($$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod4()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(($$)
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod5()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(($$))
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod6()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar((a, $$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithExtensionAndInstanceMethod7()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, Action<int> action)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(async (a$$
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task WithNonDelegateExtensionAndInstanceMethod1()
+        {
+            var markup = @"
+using System;
+
+public sealed class Goo
+{
+    public void Bar()
+    {
+    }
+}
+
+public static class GooExtensions
+{
+    public static void Bar(this Goo goo, int val)
+    {
+    }
+}
+
+public static class Repro
+{
+    public static void ReproMethod(Goo goo)
+    {
+        goo.Bar(a$$
+    }
+}
+";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInDeclarationPattern()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is int o$$)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInDeclarationPattern2()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is System.Collections.Generic.List<int> an$$)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInRecursivePattern()
+        {
+            var markup = @"
+class C
+{
+    int P { get; }
+
+    void M(C test)
+    {
+        if (test is { P: 1 } o$$)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInPropertyPattern()
+        {
+            var markup = @"
+class C
+{
+    int P { get; }
+
+    void M(C test)
+    {
+        if (test is { P: int o$$ })
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAndPattern()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is 1 and int a$$)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAndOrPattern()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is (int or 1) and int a$$)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInSwitchStatement()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        switch (e)
+        {
+            case int o$$
+        }
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInSwitchExpression()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        var result = e switch
+        {
+            int o$$
+        }
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestMissingInNotPattern_Declaration()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is not int o$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestMissingInNotPattern_Declaration2()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is not (1 and int o$$))
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestMissingInNotPattern_Recursive()
+        {
+            var markup = @"
+class C
+{
+    int P { get; }
+
+    void M(C test)
+    {
+        if (test is not { P: 1 } o$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestMissingInOrPattern()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is 1 or int o$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestMissingInAndOrPattern()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        var e = new object();
+        if (e is 1 or int and int o$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestMissingInRecursiveOrPattern()
+        {
+            var markup = @"
+class C
+{
+    int P { get; }
+
+    void M(C test)
+    {
+        if (test is null or { P: 1 } o$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstArgumentOfInvocation_NoParameter(bool hasTypedChar)
+        {
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar() => true;
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar({(hasTypedChar ? "s" : "")}$$
+    }}
+}}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstArgumentOfInvocation_PossibleLambdaExpression(bool isLambda, bool hasTypedChar)
+        {
+            var overload = isLambda
+                ? "bool Bar(Func<int, bool> predicate) => true;"
+                : "bool Bar(int x) => true;";
+
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar() => true;
+    {overload}
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar({(hasTypedChar ? "s" : "")}$$
+    }}
+}}";
+            if (isLambda)
+            {
+                await VerifyBuilderAsync(markup);
+            }
+            else
+            {
+                await VerifyNotBuilderAsync(markup);
+            }
+        }
+
+        [InlineData("params string[] x")]
+        [InlineData("string x = null, string y = null")]
+        [InlineData("string x = null, string y = null, params string[] z")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(49656, "https://github.com/dotnet/roslyn/issues/49656")]
+        public async Task FirstArgumentOfInvocation_WithOverloadAcceptEmptyArgumentList(string overloadParameterList)
+        {
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar({overloadParameterList}) => true;
+    bool Bar(Func<int, bool> predicate) => true;
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar($$)
+    }}
+}}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        private async Task VerifyNotBuilderAsync(string markup)
+            => await VerifyWorkerAsync(markup, isBuilder: false);
+
+        private async Task VerifyBuilderAsync(string markup)
+            => await VerifyWorkerAsync(markup, isBuilder: true);
 
         private async Task VerifyWorkerAsync(string markup, bool isBuilder)
         {
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markup, out code, out position);
+            MarkupTestFile.GetPosition(markup, out var code, out int position);
 
             using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
-                var document1 = await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular);
+                workspaceFixture.GetWorkspace(ExportProvider);
+                var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
                 await CheckResultsAsync(document1, position, isBuilder);
 
                 if (await CanUseSpeculativeSemanticModelAsync(document1, position))
                 {
-                    var document2 = await workspaceFixture.UpdateDocumentAsync(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
+                    var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, isBuilder);
                 }
             }
@@ -637,22 +1446,31 @@ class a
 
         private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
         {
-            var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
-            var service = GetCompletionService(document.Project.Solution.Workspace);
-            var completionList = await service.GetContextAsync(
-                service.ExclusiveProviders?[0], document, position, triggerInfo,
-                options: null, cancellationToken: CancellationToken.None);
+            var triggerInfos = new List<CompletionTrigger>();
+            triggerInfos.Add(CompletionTrigger.CreateInsertionTrigger('a'));
+            triggerInfos.Add(CompletionTrigger.Invoke);
+            triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
 
-            if (isBuilder)
+            var service = GetCompletionService(document.Project);
+            var provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty));
+
+            foreach (var triggerInfo in triggerInfos)
             {
-                Assert.NotNull(completionList);
-                Assert.NotNull(completionList.SuggestionModeItem);
-            }
-            else
-            {
-                if (completionList != null)
+                var completionList = await service.GetTestAccessor().GetContextAsync(
+                    provider, document, position, triggerInfo,
+                    options: null, cancellationToken: CancellationToken.None);
+
+                if (isBuilder)
                 {
-                    Assert.True(completionList.SuggestionModeItem == null, "group.Builder == " + (completionList.SuggestionModeItem != null ? completionList.SuggestionModeItem.DisplayText : "null"));
+                    Assert.NotNull(completionList);
+                    Assert.True(completionList.SuggestionModeItem != null, "Expecting a suggestion mode, but none was present");
+                }
+                else
+                {
+                    if (completionList != null)
+                    {
+                        Assert.True(completionList.SuggestionModeItem == null, "group.Builder == " + (completionList.SuggestionModeItem != null ? completionList.SuggestionModeItem.DisplayText : "null"));
+                    }
                 }
             }
         }

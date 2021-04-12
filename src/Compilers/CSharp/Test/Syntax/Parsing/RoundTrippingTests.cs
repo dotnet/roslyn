@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static void ParseAndRoundTripping(string text, int errorCount = 0, int memberCount = 0)
         {
-            ParseAndRoundTripping(text, TestOptions.RegularWithDocumentationComments, errorCount, memberCount);
+            ParseAndRoundTripping(text, TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview), errorCount, memberCount);
         }
 
         internal static void ParseAndRoundTripping(string text, CSharpParseOptions options, int errorCount = 0, int memberCount = 0)
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ParentChecker.CheckParents(tree.GetCompilationUnitRoot(), tree);
         }
 
-        public static void ParseAndCheckTerminalSpans(string text)
+        private static void ParseAndCheckTerminalSpans(string text)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var toText = tree.GetCompilationUnitRoot().ToFullString();
@@ -117,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNegInvalidExternAlias01()
         {
-            ParseAndRoundTripping(Resources.InvalidExternAlias01, -1);
+            ParseAndRoundTripping(Resources.InvalidExternAlias01, errorCount: 1); // Parsed as local with an initializer
         }
 
         [WorkItem(901348, "DevDiv/Personal")]
@@ -257,13 +261,13 @@ class myClass
             var text = @"
 using System;
 [AttributeUsage(AttributeTargets.All)]
-public class Foo : Attribute
+public class Goo : Attribute
     {
     public int Name;
-    public Foo (int sName) {Name = sName;}
+    public Goo (int sName) {Name = sName;}
     }
 public class Class1 {
- int Meth2 ([event:Foo(5)]int parm) {return 0;}
+ int Meth2 ([event:Goo(5)]int parm) {return 0;}
  public int IP { get {return 0;} set {}}
 }
 ";
@@ -278,7 +282,7 @@ using System;
 public class Test
 {
  [method:MyAttribute(TypeObject = new int[1].GetType())]
- public void foo()
+ public void goo()
  {
  }
 }
@@ -398,7 +402,7 @@ partial class partial
         public void TestNegBug876575()
         {
             var text = @"partial enum E{}";
-            ParseAndRoundTripping(text, 1);
+            ParseAndRoundTripping(text, errorCount: 1);
         }
 
         [Fact]
@@ -421,7 +425,7 @@ private namespace test
 {
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text, 0);
         }
 
         [Fact]
@@ -525,7 +529,7 @@ end module
             var text = @"
 class c1
 {
-void foo(int a, int b, int c)
+void goo(int a, int b, int c)
 {
 }
 }
@@ -595,12 +599,12 @@ class Test
 public class Class1
 {
     public int Meth2(int i) {
-        [return:Foo(5)]
+        [return:Goo(5)]
         return 0;
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text, errorCount: 0);
         }
 
         [Fact]
@@ -626,7 +630,7 @@ public class HelpAttribute : Attribute
             var text = @"
 public class MyClass {
  //invalid simple name
- int -foo(){
+ int -goo(){
   return 1;
  }
 }
@@ -721,7 +725,7 @@ class Test
             var text = @"
 #define \u0066oxbar
 #if foxbar
-class Foo { }
+class Goo { }
 #endif
 ";
             ParseAndRoundTripping(text, 0, 1);
@@ -823,7 +827,7 @@ public class otherClass{}";
             var text = @"using System;
 class C
 {
-void Foo()
+void Goo()
 {
 Func<string> i = 3.ToString;
 }
@@ -843,7 +847,7 @@ class AAttribute : Attribute {
 class C {
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text);
         }
 
         [Fact]
@@ -981,7 +985,7 @@ where V : class { }
             var text = @"using System;
 using System.Runtime.InteropServices;
 
-interface IFoo
+interface IGoo
 {
     [return: MarshalAs(UnmanagedType.I2)]
     short M();
@@ -1002,7 +1006,7 @@ interface IFoo
     }
 }
 
-public class Foo
+public class Goo
 {
     public delegate void MyDelegate();
     public event MyDelegate eventMethod
@@ -1363,7 +1367,7 @@ namespace N2
             var text = @"using System;
 using System.Reflection;
 
-public class foo 
+public class goo 
 {
     [method: method:A]
     public static void Main() 
@@ -1439,7 +1443,7 @@ public class Test
 
         [WorkItem(911518, "DevDiv/Personal")]
         [Fact]
-        public void RegressError4AnonymousTypeWithTailingComma()
+        public void RegressError4AnonymousTypeWithTrailingComma()
         {
             var text = @"using System;
 public class Test

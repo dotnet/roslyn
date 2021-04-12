@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -13,28 +15,39 @@ namespace Microsoft.CodeAnalysis
         /// This implementation of <see cref="Compilation.EmitStreamProvider"/> will delay the creation
         /// of the PE / PDB file until the compiler determines the compilation has succeeded.  This prevents
         /// the compiler from deleting output from the previous compilation when a new compilation 
-        /// fails.
+        /// fails. The <see cref="Close"/> method must be called to retrieve all diagnostics.
         /// </summary>
-        private sealed class CompilerEmitStreamProvider : Compilation.EmitStreamProvider, IDisposable
+        private sealed class CompilerEmitStreamProvider : Compilation.EmitStreamProvider
         {
             private readonly CommonCompiler _compiler;
             private readonly string _filePath;
-            private Stream _streamToDispose;
+            private Stream? _streamToDispose;
 
-            internal CompilerEmitStreamProvider(CommonCompiler compiler, string filePath)
+            internal CompilerEmitStreamProvider(
+                CommonCompiler compiler,
+                string filePath)
             {
                 _compiler = compiler;
                 _filePath = filePath;
             }
 
-            public void Dispose()
+            public void Close(DiagnosticBag diagnostics)
             {
-                _streamToDispose?.Dispose();
+                try
+                {
+                    _streamToDispose?.Dispose();
+                }
+                catch (Exception e)
+                {
+                    var messageProvider = _compiler.MessageProvider;
+                    var diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_OutputWriteFailed, _filePath, e.Message);
+                    diagnostics.Add(messageProvider.CreateDiagnostic(diagnosticInfo));
+                }
             }
 
-            public override Stream Stream => null;
+            public override Stream? Stream => null;
 
-            public override Stream CreateStream(DiagnosticBag diagnostics)
+            protected override Stream? CreateStream(DiagnosticBag diagnostics)
             {
                 Debug.Assert(_streamToDispose == null);
 
@@ -61,21 +74,21 @@ namespace Microsoft.CodeAnalysis
                             {
                                 // Unix & Mac are simple: just delete the file in the directory. 
                                 // The memory mapped content remains available for the reader.
-                                PortableShim.File.Delete(_filePath);
+                                File.Delete(_filePath);
                             }
                             else if (e.HResult == eWin32SharingViolation)
                             {
-                                // On Windows File.Delete only marks the file for deletion, but doens't remove it from the directory.
-                                var newFilePath = Path.Combine(Path.GetDirectoryName(_filePath), Guid.NewGuid().ToString() + "_" + Path.GetFileName(_filePath));
+                                // On Windows File.Delete only marks the file for deletion, but doesn't remove it from the directory.
+                                var newFilePath = Path.Combine(Path.GetDirectoryName(_filePath)!, Guid.NewGuid().ToString() + "_" + Path.GetFileName(_filePath));
 
                                 // Try to rename the existing file. This fails unless the file is open with FileShare.Delete.
-                                PortableShim.File.Move(_filePath, newFilePath);
+                                File.Move(_filePath, newFilePath);
 
                                 // hide the renamed file:
-                                PortableShim.File.SetAttributes(newFilePath, PortableShim.FileAttributes.Hidden);
+                                File.SetAttributes(newFilePath, FileAttributes.Hidden);
 
                                 // Mark the renamed file for deletion, so that it's deleted as soon as the current reader is finished reading it
-                                PortableShim.File.Delete(newFilePath);
+                                File.Delete(newFilePath);
                             }
                         }
                         catch
@@ -97,7 +110,7 @@ namespace Microsoft.CodeAnalysis
 
             private Stream OpenFileStream()
             {
-                return _streamToDispose = _compiler.FileOpen(_filePath, PortableShim.FileMode.Create, PortableShim.FileAccess.ReadWrite, PortableShim.FileShare.None);
+                return _streamToDispose = _compiler.FileSystem.OpenFile(_filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             }
 
             private void ReportOpenFileDiagnostic(DiagnosticBag diagnostics, Exception e)

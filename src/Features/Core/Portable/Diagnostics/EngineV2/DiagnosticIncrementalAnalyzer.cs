@@ -1,14 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -18,32 +27,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer2
     {
         private readonly int _correlationId;
-
+        private readonly DiagnosticAnalyzerTelemetry _telemetry;
         private readonly StateManager _stateManager;
-        private readonly Executor _executor;
-        private readonly CompilationManager _compilationManager;
+        private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
+        private readonly IDocumentTrackingService? _documentTrackingService;
+        private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
 
+        internal DiagnosticAnalyzerService AnalyzerService { get; }
+        internal Workspace Workspace { get; }
+        internal IPersistentStorageService PersistentStorageService { get; }
+
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
-            DiagnosticAnalyzerService owner,
+            DiagnosticAnalyzerService analyzerService,
             int correlationId,
             Workspace workspace,
-            HostAnalyzerManager hostAnalyzerManager,
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
-            : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
+            DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
+            Contract.ThrowIfNull(analyzerService);
+
+            AnalyzerService = analyzerService;
+            Workspace = workspace;
+            PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
+            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(hostAnalyzerManager);
+            _stateManager = new StateManager(PersistentStorageService, analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
+            _telemetry = new DiagnosticAnalyzerTelemetry();
 
-            _executor = new Executor(this);
-            _compilationManager = new CompilationManager(this);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
+            _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
-        public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
+
+        public bool ContainsDiagnostics(ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))
             {
@@ -56,26 +79,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return false;
         }
 
-        private bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
+        public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            // compiler diagnostic analyzer always support all kinds
-            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer))
-            {
-                return true;
-            }
-
-            switch (kind)
-            {
-                case AnalysisKind.Syntax:
-                    return analyzer.SupportsSyntaxDiagnosticAnalysis();
-                case AnalysisKind.Semantic:
-                    return analyzer.SupportsSemanticDiagnosticAnalysis();
-                default:
-                    return Contract.FailWithReturn<bool>("shouldn't reach here");
-            }
+            return e.Option.Feature == nameof(SimplificationOptions) ||
+                   e.Option.Feature == nameof(CodeStyleOptions) ||
+                   e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption ||
+#pragma warning disable CS0618 // Type or member is obsolete - F# is still on the older ClosedFileDiagnostic option.
+                   e.Option == SolutionCrawlerOptions.ClosedFileDiagnostic;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)
+        private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
         {
             if (e.Removed.Length == 0)
             {
@@ -96,19 +110,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ClearAllDiagnostics(stateSets, project.Id);
         }
 
-        public override void Shutdown()
+        public void Shutdown()
         {
-            var stateSets = _stateManager.GetStateSets();
+            var stateSets = _stateManager.GetAllStateSets();
 
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
+
                 foreach (var stateSet in stateSets)
                 {
                     var projectIds = stateSet.GetProjectsWithDiagnostics();
                     foreach (var projectId in projectIds)
                     {
-                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                        stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
+                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile, raiseEvents);
+                        documentSet.Clear();
                     }
                 }
             });
@@ -116,18 +134,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
         {
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
-                var handleActiveFile = true;
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
+
                 foreach (var stateSet in stateSets)
                 {
-                    // PERF: don't fire events for ones that we dont have any diagnostics on
-                    if (!stateSet.ContainsAnyDocumentOrProjectDiagnostics(projectId))
-                    {
-                        continue;
-                    }
+                    Debug.Assert(documentSet.Count == 0);
 
-                    RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                    stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
+
+                    // PERF: don't fire events for ones that we dont have any diagnostics on
+                    if (documentSet.Count > 0)
+                    {
+                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile: true, raiseEvents);
+                        documentSet.Clear();
+                    }
                 }
             });
         }
@@ -138,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet.Analyzer, project.Id, AnalysisKind.NonLocal, stateSet.ErrorSourceName),
+                CreateId(stateSet, project.Id, AnalysisKind.NonLocal),
                 project.Solution.Workspace,
                 project.Solution,
                 project.Id,
@@ -147,12 +169,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDiagnosticsRemoved(
-            ProjectId projectId, Solution solution, StateSet stateSet, Action<DiagnosticsUpdatedArgs> raiseEvents)
+            ProjectId projectId, Solution? solution, StateSet stateSet, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet.Analyzer, projectId, AnalysisKind.NonLocal, stateSet.ErrorSourceName),
+                CreateId(stateSet, projectId, AnalysisKind.NonLocal),
                 Workspace,
                 solution,
                 projectId,
@@ -160,12 +182,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDiagnosticsCreated(
-            Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
+            TextDocument document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet.Analyzer, document.Id, kind, stateSet.ErrorSourceName),
+                CreateId(stateSet, document.Id, kind),
                 document.Project.Solution.Workspace,
                 document.Project.Solution,
                 document.Project.Id,
@@ -174,106 +196,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDiagnosticsRemoved(
-            DocumentId documentId, Solution solution, StateSet stateSet, AnalysisKind kind, Action<DiagnosticsUpdatedArgs> raiseEvents)
+            DocumentId documentId, Solution? solution, StateSet stateSet, AnalysisKind kind, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet.Analyzer, documentId, kind, stateSet.ErrorSourceName),
+                CreateId(stateSet, documentId, kind),
                 Workspace,
                 solution,
                 documentId.ProjectId,
                 documentId));
         }
 
-        private object CreateId(DiagnosticAnalyzer analyzer, DocumentId key, AnalysisKind kind, string errorSourceName)
-        {
-            return CreateIdInternal(analyzer, key, kind, errorSourceName);
-        }
+        private static object CreateId(StateSet stateSet, DocumentId documentId, AnalysisKind kind)
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, documentId, (int)kind, stateSet.ErrorSourceName);
 
-        private object CreateId(DiagnosticAnalyzer analyzer, ProjectId key, AnalysisKind kind, string errorSourceName)
-        {
-            return CreateIdInternal(analyzer, key, kind, errorSourceName);
-        }
-
-        private static object CreateIdInternal(DiagnosticAnalyzer analyzer, object key, AnalysisKind kind, string errorSourceName)
-        {
-            return new LiveDiagnosticUpdateArgsId(analyzer, key, (int)kind, errorSourceName);
-        }
+        private static object CreateId(StateSet stateSet, ProjectId projectId, AnalysisKind kind)
+            => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, (int)kind, stateSet.ErrorSourceName);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
-        {
-            return project.GetDependentVersionAsync(cancellationToken);
-        }
+            => project.GetDependentVersionAsync(cancellationToken);
 
-        private static AnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
+        private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
         {
-            AnalysisResult result;
-            if (map.TryGetValue(analyzer, out result))
+            if (map.TryGetValue(analyzer, out var result))
             {
                 return result;
             }
 
-            return new AnalysisResult(projectId, version);
+            return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
 
-        private static ImmutableArray<DiagnosticData> GetResult(AnalysisResult result, AnalysisKind kind, DocumentId id)
-        {
-            if (result.IsEmpty || !result.DocumentIds.Contains(id) || result.IsAggregatedForm)
-            {
-                return ImmutableArray<DiagnosticData>.Empty;
-            }
+        public void LogAnalyzerCountSummary()
+            => _telemetry.ReportAndClear(_correlationId);
 
-            switch (kind)
-            {
-                case AnalysisKind.Syntax:
-                    return result.GetResultOrEmpty(result.SyntaxLocals, id);
-                case AnalysisKind.Semantic:
-                    return result.GetResultOrEmpty(result.SemanticLocals, id);
-                case AnalysisKind.NonLocal:
-                    return result.GetResultOrEmpty(result.NonLocals, id);
-                default:
-                    return Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here");
-            }
-        }
+        internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
+            => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
 
-        public override void LogAnalyzerCountSummary()
-        {
-            DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, DiagnosticLogAggregator);
-            DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, DiagnosticLogAggregator);
-
-            // reset the log aggregator
-            ResetDiagnosticLogAggregator();
-        }
-
-        private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
-        {
-            return string.Format($"{title}: {document.FilePath ?? document.Name}, {analyzer.ToString()}");
-        }
+        private static string GetDocumentLogMessage(string title, TextDocument document, DiagnosticAnalyzer analyzer)
+            => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
 
         private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)
-        {
-            return string.Format($"project: {project.FilePath ?? project.Name}, {string.Join(",", stateSets.Select(s => s.Analyzer.ToString()))}");
-        }
+            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
 
-        private static string GetResetLogMessage(Document document)
-        {
-            return string.Format($"document close/reset: {document.FilePath ?? document.Name}");
-        }
+        private static string GetResetLogMessage(TextDocument document)
+            => $"document close/reset: ({document.FilePath ?? document.Name})";
 
-        private static string GetOpenLogMessage(Document document)
-        {
-            return string.Format($"document open: {document.FilePath ?? document.Name}");
-        }
+        private static string GetOpenLogMessage(TextDocument document)
+            => $"document open: ({document.FilePath ?? document.Name})";
 
         private static string GetRemoveLogMessage(DocumentId id)
-        {
-            return string.Format($"document remove: {id.ToString()}");
-        }
+            => $"document remove: {id.ToString()}";
 
         private static string GetRemoveLogMessage(ProjectId id)
-        {
-            return string.Format($"project remove: {id.ToString()}");
-        }
+            => $"project remove: {id.ToString()}";
     }
 }

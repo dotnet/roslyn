@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
@@ -10,35 +11,47 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Design;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudiorFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
+    internal sealed class VisualStudioFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        private readonly IThreadingContext _threadingContext;
+        private readonly IServiceProvider _serviceProvider;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioFrameworkAssemblyPathResolverFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
-            return new Service(workspaceServices.Workspace as VisualStudioWorkspaceImpl);
+            _threadingContext = threadingContext;
+            _serviceProvider = serviceProvider;
         }
+
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            => new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
 
         private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
         {
-            private readonly VisualStudioWorkspaceImpl _workspace;
+            private readonly VisualStudioWorkspace? _workspace;
+            private readonly IServiceProvider _serviceProvider;
 
-            public Service(VisualStudioWorkspaceImpl workspace)
-                : base(assertIsForeground: false)
+            public Service(IThreadingContext threadingContext, VisualStudioWorkspace? workspace, IServiceProvider serviceProvider)
+                : base(threadingContext, assertIsForeground: false)
             {
                 _workspace = workspace;
+                _serviceProvider = serviceProvider;
             }
 
-            public string ResolveAssemblyPath(
+            public string? ResolveAssemblyPath(
                 ProjectId projectId,
                 string assemblyName,
-                string fullyQualifiedTypeName = null)
+                string? fullyQualifiedTypeName)
             {
-                this.AssertIsForeground();
+                AssertIsForeground();
 
                 var assembly = ResolveAssembly(projectId, assemblyName);
                 if (assembly != null)
@@ -46,8 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // Codebase specifies where the assembly is on disk.  However, it's in 
                     // full URI format (i.e. file://c:/...). This will allow us to get the 
                     // actual local in the normal path format.
-                    Uri uri;
-                    if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out uri) &&
+                    if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out var uri) &&
                         this.CanResolveType(assembly, fullyQualifiedTypeName))
                     {
                         return uri.LocalPath;
@@ -57,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            private bool CanResolveType(Assembly assembly, string fullyQualifiedTypeName)
+            private bool CanResolveType(Assembly assembly, string? fullyQualifiedTypeName)
             {
                 if (fullyQualifiedTypeName == null)
                 {
@@ -97,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return false;
             }
 
-            private Assembly ResolveAssembly(ProjectId projectId, string assemblyName)
+            private Assembly? ResolveAssembly(ProjectId projectId, string assemblyName)
             {
                 this.AssertIsForeground();
 
@@ -106,10 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return null;
                 }
 
-                IVsHierarchy hierarchy;
-                string targetMoniker;
-                if (!_workspace.TryGetHierarchy(projectId, out hierarchy) ||
-                    !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetMoniker) ||
+                var hierarchy = _workspace.GetHierarchy(projectId);
+                if (hierarchy == null ||
+                    !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out string? targetMoniker) ||
                     targetMoniker == null)
                 {
                     return null;
@@ -143,15 +154,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 try
                 {
                     var frameworkProvider = new VsTargetFrameworkProvider(
-                        _workspace.GetVsService<SVsFrameworkMultiTargeting, IVsFrameworkMultiTargeting>(),
+                        (IVsFrameworkMultiTargeting)_serviceProvider.GetService(typeof(SVsFrameworkMultiTargeting)),
                         targetMoniker,
-                        _workspace.GetVsService<SVsSmartOpenScope, IVsSmartOpenScope>());
+                        (IVsSmartOpenScope)_serviceProvider.GetService(typeof(SVsSmartOpenScope)));
                     return frameworkProvider.GetReflectionAssembly(new AssemblyName(assemblyName));
                 }
                 catch (InvalidOperationException)
                 {
                     // VsTargetFrameworkProvider throws InvalidOperationException in the 
-                    // some cases (like when targetting packs are missing).  In that case
+                    // some cases (like when targeting packs are missing).  In that case
                     // we can't resolve this path.
                     return null;
                 }

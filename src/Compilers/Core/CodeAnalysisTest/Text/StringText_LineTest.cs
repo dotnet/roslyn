@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.Text;
@@ -11,18 +15,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanNotIncludingBreaks()
         {
-            var text = SourceText.From("foo" + Environment.NewLine);
+            string newLine = Environment.NewLine;
+            var text = SourceText.From("goo" + newLine);
             var span = new TextSpan(0, 3);
             var line = TextLine.FromSpan(text, span);
             Assert.Equal(span, line.Span);
-            Assert.Equal(5, line.EndIncludingLineBreak);
+            Assert.Equal(3 + newLine.Length, line.EndIncludingLineBreak);
             Assert.Equal(0, line.LineNumber);
         }
 
         [Fact]
         public void FromSpanIncludingBreaksAtEnd()
         {
-            var text = SourceText.From("foo" + Environment.NewLine);
+            var text = SourceText.From("goo" + Environment.NewLine);
             var span = TextSpan.FromBounds(0, text.Length);
             var line = TextLine.FromSpan(text, span);
             Assert.Equal(span, line.SpanIncludingLineBreak);
@@ -33,20 +38,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanIncludingBreaks()
         {
-            var text = SourceText.From("foo" + Environment.NewLine + "bar");
-            var span = TextSpan.FromBounds(0, 5);
+            var text = SourceText.From("goo" + Environment.NewLine + "bar");
+            var span = TextSpan.FromBounds(0, text.Length);
             var line = TextLine.FromSpan(text, span);
             Assert.Equal(span, line.SpanIncludingLineBreak);
-            Assert.Equal(3, line.End);
+            Assert.Equal(text.Length, line.End);
             Assert.Equal(0, line.LineNumber);
         }
 
         [Fact]
         public void FromSpanNoBreaksBeforeOrAfter()
         {
-            var text = SourceText.From("foo");
+            var text = SourceText.From("goo");
             var line = TextLine.FromSpan(text, new TextSpan(0, 3));
-            Assert.Equal("foo", line.ToString());
+            Assert.Equal("goo", line.ToString());
             Assert.Equal(0, line.LineNumber);
         }
 
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void FromSpanZeroLengthAtEnd()
         {
-            var text = SourceText.From("foo" + Environment.NewLine);
+            var text = SourceText.From("goo" + Environment.NewLine);
             var start = text.Length;
             var line = TextLine.FromSpan(text, new TextSpan(start, 0));
             Assert.Equal("", line.ToString());

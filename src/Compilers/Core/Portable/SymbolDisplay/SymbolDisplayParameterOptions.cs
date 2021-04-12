@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         IncludeExtensionThis = 1 << 0,
 
         /// <summary>
-        /// Includes the <c>params</c>, <c>ref</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
+        /// Includes the <c>params</c>, <c>ref</c>, <c>in</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
         /// </summary>
         IncludeParamsRefOut = 1 << 1,
 

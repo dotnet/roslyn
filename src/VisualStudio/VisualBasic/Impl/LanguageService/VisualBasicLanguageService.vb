@@ -1,14 +1,14 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
-Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -17,7 +17,7 @@ Imports Microsoft.VisualStudio.TextManager.Interop
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <Guid(Guids.VisualBasicLanguageServiceIdString)>
     Partial Friend Class VisualBasicLanguageService
-        Inherits AbstractLanguageService(Of VisualBasicPackage, VisualBasicLanguageService, VisualBasicProject)
+        Inherits AbstractLanguageService(Of VisualBasicPackage, VisualBasicLanguageService)
 
         Public Sub New(package As VisualBasicPackage)
             MyBase.New(package)
@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get
-                Return BasicVSResources.MicrosoftVisualBasic
+                Return BasicVSResources.Microsoft_Visual_Basic
             End Get
         End Property
 
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides Function CreateContainedLanguage(
             bufferCoordinator As IVsTextBufferCoordinator,
-            project As VisualBasicProject,
+            project As VisualStudioProject,
             hierarchy As IVsHierarchy,
             itemid As UInteger
         ) As IVsContainedLanguage
@@ -84,7 +84,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 project,
                 hierarchy,
                 itemid,
-                Me, SourceCodeKind.Regular)
+                Me.LanguageServiceId)
         End Function
     End Class
 End Namespace

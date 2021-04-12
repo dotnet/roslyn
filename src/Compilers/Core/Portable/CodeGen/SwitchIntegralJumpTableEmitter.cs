@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -139,11 +142,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ConstantValue firstConstant = first.Key;
             ConstantValue secondConstant = second.Key;
 
-            Debug.Assert(firstConstant != null);
+            RoslynDebug.Assert(firstConstant != null);
             Debug.Assert(SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(firstConstant)
                 && !firstConstant.IsString);
 
-            Debug.Assert(secondConstant != null);
+            RoslynDebug.Assert(secondConstant != null);
             Debug.Assert(SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(secondConstant)
                 && !secondConstant.IsString);
 
@@ -217,22 +220,28 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             Debug.Assert(!switchBucketsStack.IsEmpty());
 
-            // crumble leaf buckets that are too small
+            // crumble leaf buckets into degenerate buckets where possible
             var crumbled = ArrayBuilder<SwitchBucket>.GetInstance();
             foreach (var uncrumbled in switchBucketsStack)
             {
-                if (uncrumbled.BucketCost > uncrumbled.LabelsCount)
+                var degenerateSplit = uncrumbled.DegenerateBucketSplit;
+                switch (degenerateSplit)
                 {
-                    // this bucket is no better than testing each label individually.
-                    // we do not want to keep it.
-                    for (int i = uncrumbled.StartLabelIndex, l = uncrumbled.EndLabelIndex; i <= l; i++)
-                    {
-                        crumbled.Add(new SwitchBucket(_sortedCaseLabels, i));
-                    }
-                }
-                else
-                {
-                    crumbled.Add(uncrumbled);
+                    case -1:
+                        // cannot be split
+                        crumbled.Add(uncrumbled);
+                        break;
+
+                    case 0:
+                        // already degenerate
+                        crumbled.Add(new SwitchBucket(_sortedCaseLabels, uncrumbled.StartLabelIndex, uncrumbled.EndLabelIndex, isDegenerate: true));
+                        break;
+
+                    default:
+                        // can split
+                        crumbled.Add(new SwitchBucket(_sortedCaseLabels, uncrumbled.StartLabelIndex, degenerateSplit - 1, isDegenerate: true));
+                        crumbled.Add(new SwitchBucket(_sortedCaseLabels, degenerateSplit, uncrumbled.EndLabelIndex, isDegenerate: true));
+                        break;
                 }
             }
 
@@ -322,19 +331,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                //  Emit key normalized to startConstant (i.e. key - startConstant)
-                //  switch (N, label1, label2... labelN)
-                //  goto fallThroughLabel;
+                if (switchBucket.IsDegenerate)
+                {
+                    EmitRangeCheckedBranch(switchBucket.StartConstant, switchBucket.EndConstant, switchBucket[0].Value);
+                }
+                else
+                {
+                    //  Emit key normalized to startConstant (i.e. key - startConstant)
+                    this.EmitNormalizedSwitchKey(switchBucket.StartConstant, switchBucket.EndConstant, bucketFallThroughLabel);
 
-                this.EmitNormalizedSwitchKey(switchBucket.StartConstant, switchBucket.EndConstant, bucketFallThroughLabel);
+                    // Create the labels array for emitting a switch instruction for the bucket
+                    object[] labels = this.CreateBucketLabels(switchBucket);
 
-                // Create the labels array for emitting a switch instruction for the bucket
-                object[] labels = this.CreateBucketLabels(switchBucket);
-
-                // Emit the switch instruction
-                _builder.EmitSwitch(labels);
+                    //  switch (N, label1, label2... labelN)
+                    // Emit the switch instruction
+                    _builder.EmitSwitch(labels);
+                }
             }
 
+            //  goto fallThroughLabel;
             _builder.EmitBranch(ILOpCode.Br, bucketFallThroughLabel);
         }
 
@@ -400,9 +415,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private void EmitCondBranchForSwitch(ILOpCode branchCode, ConstantValue constant, object targetLabel)
         {
             Debug.Assert(branchCode.IsBranch());
-            Debug.Assert(constant != null &&
+            RoslynDebug.Assert(constant != null &&
                 SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant));
-            Debug.Assert(targetLabel != null);
+            RoslynDebug.Assert(targetLabel != null);
 
             // ldloc key
             // ldc constant
@@ -415,9 +430,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitEqBranchForSwitch(ConstantValue constant, object targetLabel)
         {
-            Debug.Assert(constant != null &&
+            RoslynDebug.Assert(constant != null &&
                 SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant));
-            Debug.Assert(targetLabel != null);
+            RoslynDebug.Assert(targetLabel != null);
 
             _builder.EmitLoad(_key);
 
@@ -432,6 +447,45 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _builder.EmitConstantValue(constant);
                 _builder.EmitBranch(ILOpCode.Beq, targetLabel);
             }
+        }
+
+        private void EmitRangeCheckedBranch(ConstantValue startConstant, ConstantValue endConstant, object targetLabel)
+        {
+            _builder.EmitLoad(_key);
+
+            // Normalize the key to 0 if needed
+
+            // Emit:    ldc constant
+            //          sub
+            if (!startConstant.IsDefaultValue)
+            {
+                _builder.EmitConstantValue(startConstant);
+                _builder.EmitOpCode(ILOpCode.Sub);
+            }
+
+            if (_keyTypeCode.Is64BitIntegral())
+            {
+                _builder.EmitLongConstant(endConstant.Int64Value - startConstant.Int64Value);
+            }
+            else
+            {
+                int Int32Value(ConstantValue value)
+                {
+                    // ConstantValue does not correctly convert byte and ushort values to int.
+                    // It sign extends them rather than padding them. We compensate for that here.
+                    // See also https://github.com/dotnet/roslyn/issues/18579
+                    switch (value.Discriminator)
+                    {
+                        case ConstantValueTypeDiscriminator.Byte: return value.ByteValue;
+                        case ConstantValueTypeDiscriminator.UInt16: return value.UInt16Value;
+                        default: return value.Int32Value;
+                    }
+                }
+
+                _builder.EmitIntConstant(Int32Value(endConstant) - Int32Value(startConstant));
+            }
+
+            _builder.EmitBranch(ILOpCode.Ble_un, targetLabel, ILOpCode.Bgt_un);
         }
 
         private static ILOpCode GetReverseBranchCode(ILOpCode branchCode)

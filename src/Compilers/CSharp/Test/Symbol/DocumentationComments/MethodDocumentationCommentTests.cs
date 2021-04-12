@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public MethodDocumentationCommentTests()
         {
-            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
+            _compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme
 {
     struct ValueType
     {
@@ -45,6 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public unsafe void M4(char *pc, Color **pf) { }
         public unsafe void M5(void *pv, double *[][,] pd) { }
         public void M6(int i, params object[] args) { }
+        public void M7((int x1, int x2, int x3, int x4, int x5, int x6, short x7) z) { }
+        public void M8((int x1, int x2, int x3, int x4, int x5, int x6, short x7, int x8) z) { }
+        public void M9((int x1, int x2, int x3, int x4, int x5, int x6, short x7, (string y1, string y2)) z) { }
+        public void M10((int x1, short x2) y, System.Tuple<int, short> z) { }
     }
     class MyList<T>
     {
@@ -125,6 +133,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTupleLength7()
+        {
+            Assert.Equal("M:Acme.Widget.M7(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16})",
+                _widgetClass.GetMembers("M7").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestTupleLength8()
+        {
+            Assert.Equal("M:Acme.Widget.M8(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.ValueTuple{System.Int32}})",
+                _widgetClass.GetMembers("M8").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestTupleLength9()
+        {
+            Assert.Equal("M:Acme.Widget.M9(System.ValueTuple{System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.ValueTuple{System.ValueTuple{System.String,System.String}}})",
+                _widgetClass.GetMembers("M9").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestTupleLength2()
+        {
+            Assert.Equal("M:Acme.Widget.M10(System.ValueTuple{System.Int32,System.Int16},System.Tuple{System.Int32,System.Int16})",
+                _widgetClass.GetMembers("M10").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
         public void TestMethodInGenericClass()
         {
             Assert.Equal("M:Acme.MyList`1.Test(`0)", _acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Test").Single().GetDocumentationCommentId());
@@ -161,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
-            var compilation = CreateCompilationWithMscorlib(references: new[] { csharpAssemblyReference, ilAssemblyReference }, text:
+            var compilation = CreateCompilation(references: new[] { csharpAssemblyReference, ilAssemblyReference }, source:
 @"class C
 {
     internal static CSharpErrors.ClassMethods F = null;
@@ -183,7 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("M:Acme.ValueType.op_Explicit(System.Byte)~Acme.ValueType", _acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("op_Explicit").Single().GetDocumentationCommentId());
         }
 
-        [Fact, WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
+        [WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
+        [WorkItem(25781, "https://github.com/dotnet/roslyn/issues/25781")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void GetMalformedDocumentationCommentXml()
         {
             var source = @"
@@ -196,17 +234,17 @@ class Test
     static void Main() {}
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
             var main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
-            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
+            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull).Trim());
 
-            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
+            compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
-            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
+            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull).Trim());
 
-            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
+            compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
             Assert.Equal(@"", main.GetDocumentationCommentXml().Trim());

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -6,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundUserDefinedUnaryOperator
+    Partial Friend Class BoundUserDefinedUnaryOperator
 
         Public ReadOnly Property Operand As BoundExpression
             Get
@@ -37,15 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(OverloadResolution.CanLiftType(parameter.Type) AndAlso
                                  argument.Type.IsNullableType() AndAlso
-                                 argument.Type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(parameter.Type))
+                                 argument.Type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(parameter.Type))
 
                     Debug.Assert(underlyingCall.Type.IsNullableType())
-                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType) OrElse
+                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType) OrElse
                                  (OverloadResolution.CanLiftType(underlyingCall.Method.ReturnType) AndAlso
-                                  underlyingCall.Type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType)))
+                                  underlyingCall.Type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType)))
                 Else
-                    Debug.Assert(argument.Type.IsSameTypeIgnoringCustomModifiers(parameter.Type))
-                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType))
+                    Debug.Assert(argument.Type.IsSameTypeIgnoringAll(parameter.Type))
+                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType))
                 End If
             End If
         End Sub

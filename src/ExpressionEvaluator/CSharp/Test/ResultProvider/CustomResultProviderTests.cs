@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -210,17 +214,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new NotImplementedException();
             }
 
-            string IDkmClrFullNameProvider.GetClrArrayIndexExpression(DkmInspectionContext inspectionContext, int[] indices)
+            string IDkmClrFullNameProvider.GetClrArrayIndexExpression(DkmInspectionContext inspectionContext, string[] indices)
             {
                 throw new NotImplementedException();
             }
 
-            string IDkmClrFullNameProvider.GetClrCastExpression(DkmInspectionContext inspectionContext, string argument, DkmClrType type, DkmClrCustomTypeInfo customTypeInfo, bool parenthesizeArgument, bool parenthesizeEntireExpression)
+            string IDkmClrFullNameProvider.GetClrCastExpression(DkmInspectionContext inspectionContext, string argument, DkmClrType type, DkmClrCustomTypeInfo customTypeInfo, DkmClrCastExpressionOptions castExpressionOptions)
             {
                 throw new NotImplementedException();
             }
 
-            string IDkmClrFullNameProvider.GetClrObjectCreationExpression(DkmInspectionContext inspectionContext, DkmClrType type, DkmClrCustomTypeInfo customTypeInfo, string arguments)
+            string IDkmClrFullNameProvider.GetClrObjectCreationExpression(DkmInspectionContext inspectionContext, DkmClrType type, DkmClrCustomTypeInfo customTypeInfo, string[] arguments)
             {
                 throw new NotImplementedException();
             }
@@ -250,6 +254,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 bool memberIsStatic)
             {
                 return ((IDkmClrFullNameProvider)_fallback).GetClrMemberName(inspectionContext, parentFullName, declaringType, declaringTypeInfo, memberName, memberAccessRequiresExplicitCast, memberIsStatic);
+            }
+
+            string IDkmClrFullNameProvider.GetClrExpressionForNull(DkmInspectionContext inspectionContext)
+            {
+                throw new NotImplementedException();
+            }
+
+            string IDkmClrFullNameProvider.GetClrExpressionForThis(DkmInspectionContext inspectionContext)
+            {
+                throw new NotImplementedException();
             }
         }
     }

@@ -1,21 +1,25 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class TypeSubstitutedLocalSymbol : LocalSymbol
     {
         private readonly LocalSymbol _originalVariable;
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _type;
         private readonly Symbol _containingSymbol;
 
-        public TypeSubstitutedLocalSymbol(LocalSymbol originalVariable, TypeSymbol type, Symbol containingSymbol)
+        public TypeSubstitutedLocalSymbol(LocalSymbol originalVariable, TypeWithAnnotations type, Symbol containingSymbol)
         {
             Debug.Assert(originalVariable != null);
-            Debug.Assert(type != null);
+            Debug.Assert(type.HasType);
             Debug.Assert(containingSymbol != null);
 
             _originalVariable = originalVariable;
@@ -36,6 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override SynthesizedLocalKind SynthesizedKind
         {
             get { return _originalVariable.SynthesizedKind; }
+        }
+
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return _originalVariable.ScopeDesignatorOpt; }
         }
 
         public override string Name
@@ -63,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.Locations; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
@@ -83,17 +92,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.IsPinned; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _originalVariable.RefKind; }
         }
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Compiler should always be synthesizing locals with correct escape semantics.
+        /// Checking escape scopes is not valid here.
+        /// </summary>
+        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        /// <summary>
+        /// Compiler should always be synthesizing locals with correct escape semantics.
+        /// Checking escape scopes is not valid here.
+        /// </summary>
+        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {
             return _originalVariable.GetConstantValue(node, inProgress, diagnostics);
         }
 
-        internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
             return _originalVariable.GetConstantValueDiagnostics(boundInitValue);
         }

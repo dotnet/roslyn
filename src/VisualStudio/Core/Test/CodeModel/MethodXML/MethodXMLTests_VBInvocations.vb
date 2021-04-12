@@ -1,13 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBInvocations_InvocationWithoutMe() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestVBInvocations_InvocationWithoutMe()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -15,10 +17,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
         <Document>
 Public Class Class1
     $$Sub M()
-        Foo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
         </Document>
@@ -35,7 +37,7 @@ End Class
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
             </MethodCall>
@@ -43,11 +45,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBInvocations_InvocationWithMe() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestVBInvocations_InvocationWithMe()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -55,10 +57,10 @@ End Class
         <Document>
 Public Class Class1
     $$Sub M()
-        Me.Foo()
+        Me.Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
         </Document>
@@ -75,7 +77,7 @@ End Class
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
             </MethodCall>
@@ -83,11 +85,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBInvocations_WithArrayInitializer1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestVBInvocations_WithArrayInitializer1()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -95,7 +97,7 @@ End Class
         <Document>
 Public Class C
     $$Sub M()
-        Me.list.AddRange(New String() { "foo", "bar", "baz" })
+        Me.list.AddRange(New String() { "goo", "bar", "baz" })
     End Sub
 
     Dim list As System.Collections.ArrayList
@@ -137,7 +139,7 @@ End Class
                             </Bound>
                             <Expression>
                                 <Literal>
-                                    <String>foo</String>
+                                    <String>goo</String>
                                 </Literal>
                             </Expression>
                             <Expression>
@@ -158,11 +160,11 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBInvocations_InvokeOnCast() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestVBInvocations_InvokeOnCast()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -228,11 +230,11 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBInvocations_InvokeFixInCast() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestVBInvocations_InvokeFixInCast()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -282,12 +284,12 @@ End Class
     </Local>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
         <WorkItem(870422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870422")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestVBAssignments_MethodCallWithoutTypeQualification() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestVBAssignments_MethodCallWithoutTypeQualification()
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -343,8 +345,8 @@ End Class
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
     End Class
 End Namespace

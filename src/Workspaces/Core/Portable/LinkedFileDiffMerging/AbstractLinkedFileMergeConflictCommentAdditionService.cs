@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             return commentChanges;
         }
 
-        private IEnumerable<IEnumerable<TextChange>> PartitionChangesForDocument(IEnumerable<TextChange> changes, SourceText originalSourceText)
+        private static IEnumerable<IEnumerable<TextChange>> PartitionChangesForDocument(IEnumerable<TextChange> changes, SourceText originalSourceText)
         {
             var partitionedChanges = new List<IEnumerable<TextChange>>();
             var currentPartition = new List<TextChange>();
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 var newText = oldText.WithChanges(adjustedChanges);
 
                 var warningText = GetConflictCommentText(
-                    string.Format(WorkspacesResources.UnmergedChangeFromProject, projectName),
+                    string.Format(WorkspacesResources.Unmerged_change_from_project_0, projectName),
                     TrimBlankLines(oldText),
                     TrimBlankLines(newText));
 
@@ -87,7 +91,7 @@ namespace Microsoft.CodeAnalysis
             return commentChanges;
         }
 
-        private string TrimBlankLines(SourceText text)
+        private static string TrimBlankLines(SourceText text)
         {
             int startLine, endLine;
             for (startLine = 0; startLine < text.Lines.Count; startLine++)

@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -6,7 +8,6 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 _semanticModel = semanticModel
                 _expressionToInline = expressionToInline
                 _cancellationToken = cancellationToken
-                _localSymbol = DirectCast(_semanticModel.GetDeclaredSymbol(_definition), ILocalSymbol)
+                _localSymbol = DirectCast(_semanticModel.GetDeclaredSymbol(_definition, cancellationToken), ILocalSymbol)
             End Sub
 
             Private Function IsReference(node As SimpleNameSyntax) As Boolean
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 End If
 
                 Dim symbolInfo = _semanticModel.GetSymbolInfo(node)
-                Return symbolInfo.Symbol Is _localSymbol
+                Return Equals(symbolInfo.Symbol, _localSymbol)
             End Function
 
             Public Overrides Function VisitIdentifierName(node As IdentifierNameSyntax) As SyntaxNode
@@ -49,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 If IsReference(node) Then
                     If HasConflict(node, _definition, _expressionToInline, _semanticModel) Then
                         Return node.Update(node.Identifier.WithAdditionalAnnotations(
-                            ConflictAnnotation.Create(VBFeaturesResources.ConflictsDetected)))
+                            ConflictAnnotation.Create(VBFeaturesResources.Conflict_s_detected)))
                     End If
 
                     ' Make sure we attach any trailing trivia from the identifier node we're replacing
@@ -61,6 +62,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 End If
 
                 Return MyBase.VisitIdentifierName(node)
+            End Function
+
+            Public Overrides Function VisitNameColonEquals(node As NameColonEqualsSyntax) As SyntaxNode
+                If node.IsParentKind(SyntaxKind.SimpleArgument) AndAlso
+                    node.Parent.IsParentKind(SyntaxKind.TupleExpression) Then
+
+                    ' Temporaries should not be inlined in the name portion of a named tuple element
+                    ' This special case should be removed once https://github.com/dotnet/roslyn/issues/16697 is fixed
+                    Return node
+                End If
+
+                Return MyBase.VisitNameColonEquals(node)
             End Function
 
             Public Overloads Shared Function Visit(

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static EmitResult Emit(
             this CSharpCompilation compilation,
             string outputPath,
-            string pdbPath = null,
-            string xmlDocumentationPath = null,
-            string win32ResourcesPath = null,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            string? pdbPath = null,
+            string? xmlDocumentationPath = null,
+            string? win32ResourcesPath = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            CancellationToken cancellationToken = default)
         {
             return FileSystemExtensions.Emit(compilation, outputPath, pdbPath, xmlDocumentationPath, win32ResourcesPath, manifestResources, cancellationToken);
         }

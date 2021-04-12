@@ -1,0 +1,284 @@
+﻿<local:AbstractOptionPageControl
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingStyleOptionPageControl"
+    x:ClassModifier="internal"
+    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:style="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style"
+    xmlns:converters="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+    mc:Ignorable="d" 
+    d:DesignHeight="279" 
+    d:DesignWidth="514">
+    <Grid>
+        <Grid.Resources>
+            <Style x:Key="DataGridStyle" TargetType="DataGrid">
+                <Setter Property="CellStyle">
+                    <Setter.Value>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="IsTabStop" Value="False" />
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Thickness x:Key="cellPadding">8 0 8 0</Thickness>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <RoutedUICommand x:Key="MoveUp" />
+            <RoutedUICommand x:Key="MoveDown" />
+            <vs:NegateBooleanConverter x:Key="NegateBooleanConverter"/>
+        </Grid.Resources>
+        <Grid.CommandBindings>
+            <CommandBinding Command="{StaticResource MoveUp}" Executed="MoveUp_Click" />
+            <CommandBinding Command="{StaticResource MoveDown}" Executed="MoveDown_Click" />
+        </Grid.CommandBindings>
+        <Grid.InputBindings>
+            <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUp}" />
+            <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDown}" />
+        </Grid.InputBindings>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Margin="5 0 5 0 " TextWrapping="Wrap" Text="{x:Static style:NamingStyleOptionPageControl.ExplanatoryText}" />
+        <options:CodeStyleNoticeTextBlock Grid.Row="1" Margin="5 5 5 0" />
+        <DataGrid
+            Grid.Row="2"
+            x:Uid="CodeStyleContent"
+            x:Name="CodeStyleMembers"
+            Margin="0,5,0,0"
+            ItemsSource="{Binding CodeStyleItems, Mode=OneWay}"
+            AutoGenerateColumns="False"
+            CanUserReorderColumns="False"
+            CanUserSortColumns="False"
+            CanUserAddRows="False"
+            CanUserDeleteRows="False"
+            CanUserResizeRows="False"
+            CanUserResizeColumns="False"
+            IsReadOnly="True"
+            BorderThickness="1"
+            BorderBrush="Gray"
+            RowHeaderWidth="0"
+            GridLinesVisibility="None"
+            VerticalAlignment="Stretch"
+            SelectionMode="Single"
+            SelectionUnit="FullRow"
+            HorizontalAlignment="Stretch"
+            SelectionChanged="CodeStyleMembers_SelectionChanged"
+            Style="{StaticResource ResourceKey=DataGridStyle}"
+            AutomationProperties.Name="{Binding CodeStyleMembersAutomationText}">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="MinHeight" Value="26"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="IsTabStop" Value="False"/>
+                </Style>
+            </DataGrid.CellStyle>
+            <DataGrid.Resources>
+                <Style x:Key="GroupHeaderStyle" TargetType="{x:Type GroupItem}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type GroupItem}">
+                                <StackPanel>
+                                    <TextBlock Margin="5" Text="{Binding Name}"/>
+                                    <ItemsPresenter/>
+                                </StackPanel>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <Style x:Key="DataGridCellStyle" TargetType="{x:Type DataGridCell}">
+                    <Setter Property="IsTabStop" Value="False"/>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.GroupStyle>
+                <GroupStyle ContainerStyle="{StaticResource GroupHeaderStyle}">
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <DataGridRowsPresenter/>
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn 
+                    x:Name="selectable" 
+                    Header="{x:Static style:NamingStyleOptionPageControl.ReorderHeader}"
+                    Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Name="UpButton" 
+                                        AutomationProperties.Name="{Binding MoveUpAutomationText}"
+                                        MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                        MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                        IsEnabled="{Binding CanMoveUp, Mode=OneWay}" 
+                                        Margin="5 0 0 0"
+                                        Command="{StaticResource MoveUp}">
+                                    <imaging:CrispImage Name="UpArrowImage" 
+                                            MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                            MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                            Moniker="{x:Static imagecatalog:KnownMonikers.MoveUp}" 
+                                            Grayscale="{Binding IsEnabled, ElementName=UpButton, Converter={StaticResource NegateBooleanConverter}}"/>
+                                </Button>
+                                <Button Name="DownButton" 
+                                        AutomationProperties.Name="{Binding MoveDownAutomationText}"
+                                        IsEnabled="{Binding CanMoveDown, Mode=OneWay}" 
+                                        AutomationProperties.AutomationId="Down"
+                                        MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                        MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                        Margin="5 0 5 0"
+                                        Command="{StaticResource MoveDown}">
+                                    <imaging:CrispImage Name="DownArrowImage" 
+                                            MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                            MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                            Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" 
+                                            Grayscale="{Binding IsEnabled, ElementName=DownButton, Converter={StaticResource NegateBooleanConverter}}"/>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn 
+                    x:Name="symbolSpec" 
+                    Header="{x:Static style:NamingStyleOptionPageControl.SpecificationHeader}"
+                    Width="3*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox
+                                MinHeight="22"
+                                ItemsSource="{Binding Specifications}"
+                                DisplayMemberPath="Name"
+                                SelectedItem="{Binding SelectedSpecification, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Left"
+                                ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}"
+                                AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.SymbolSpecificationAutomationText}">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn 
+                    x:Name="style"
+                    Header="{x:Static style:NamingStyleOptionPageControl.RequiredStyleHeader}"
+                    Width="3*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox
+                                    MinHeight="22"
+                                    ItemsSource="{Binding NamingStyles}"
+                                    DisplayMemberPath="Name"
+                                    SelectedItem="{Binding SelectedStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left"
+                                    ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}"
+                                    AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.NamingStyleAutomationText}">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn 
+                    x:Name="severity" 
+                    Header="{x:Static style:NamingStyleOptionPageControl.SeverityHeader}"
+                    Width="2.5*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox
+                                    MinHeight="22"
+                                    ItemsSource="{Binding NotificationPreferences}"
+                                    SelectedItem="{Binding SelectedNotificationPreference,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Visibility="{Binding NotificationsAvailable, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Left"
+                                    ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}"
+                                    AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.SeverityAutomationText}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <imaging:CrispImage MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                                                MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                                                Moniker="{Binding Moniker}"
+                                                                Grid.Column="0"/>
+                                            <TextBlock Margin="5, 0, 0, 0" 
+                                                       Text="{Binding Name}"
+                                                       Grid.Column="1"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn x:Name="Delete"
+                                        Width="30">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Click="RemoveButton_Click"
+                                    MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                    MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                    Margin="5, 0, 0, 0"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.RemoveAutomationText}">
+                                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.DeleteListItem}" />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Border Grid.Row="3">
+            <StackPanel Orientation="Horizontal"
+                        Margin="7">
+                <Button Name="AddButton" 
+                        Click="AddButton_Click"
+                        AutomationProperties.Name="{x:Static style:NamingStyleOptionPageControl.AddRuleAutomationText}"
+                        AutomationProperties.AutomationId="Add"
+                        MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                        MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                        Margin="0 0 0 0">
+                    <imaging:CrispImage Name="AddButtonImage"
+                                        MinHeight="{Binding ActualWidth, RelativeSource={RelativeSource Self}}"
+                                        MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                                        Moniker="{x:Static imagecatalog:KnownMonikers.Add}" />
+                </Button>
+                <vs:DialogButton Margin="7 0 0 0" Content="{Binding Path=ManageSpecificationsButtonText}" Click="ManageSpecificationsButton_Click"/>
+                <vs:DialogButton Margin="7 0 0 0" Content="{Binding Path=ManageStylesButtonText}" Click="ManageStylesButton_Click" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</local:AbstractOptionPageControl>

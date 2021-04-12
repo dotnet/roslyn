@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -10,6 +12,7 @@ Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -76,11 +79,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyDefaultPropertyName As String
 
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         Private _lazyMightContainExtensionMethods As Byte = ThreeState.Unknown
 
-        Private _lazyHasEmbeddedAttribute As Integer = ThreeState.Unknown
+        Private _lazyHasCodeAnalysisEmbeddedAttribute As Integer = ThreeState.Unknown
+
+        Private _lazyHasVisualBasicEmbeddedAttribute As Integer = ThreeState.Unknown
 
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
@@ -158,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If makeBad OrElse metadataArity < containerMetadataArity Then
-                _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
+                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me))
             End If
 
             Debug.Assert(Not _mangleName OrElse _name.Length < name.Length)
@@ -211,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsSerializable As Boolean
+        Public Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return (_flags And TypeAttributes.Serializable) <> 0
             End Get
@@ -239,14 +244,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return InterfacesNoUseSiteDiagnostics
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             If (Me._flags And TypeAttributes.Interface) = 0 Then
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
 
                 Try
                     Dim token As EntityHandle = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(Me._handle)
                     If Not token.IsNil Then
-                        Return DirectCast(New MetadataDecoder(moduleSymbol, Me).GetTypeOfToken(token), NamedTypeSymbol)
+                        Dim decodedType = New MetadataDecoder(moduleSymbol, Me).GetTypeOfToken(token)
+                        Return DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, _handle, moduleSymbol), NamedTypeSymbol)
+
                     End If
                 Catch mrEx As BadImageFormatException
                     Return New UnsupportedMetadataTypeSymbol(mrEx)
@@ -255,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Try
                 Dim moduleSymbol As PEModuleSymbol = Me.ContainingPEModule
                 Dim interfaceImpls = moduleSymbol.Module.GetInterfaceImplementationsOrThrow(Me._handle)
@@ -269,8 +276,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim i = 0
                 For Each interfaceImpl In interfaceImpls
                     Dim interfaceHandle As EntityHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface
-                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(tokenDecoder.GetTypeOfToken(interfaceHandle), NamedTypeSymbol)
+                    Dim typeSymbol As TypeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle)
+
+                    typeSymbol = DirectCast(TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol), NamedTypeSymbol)
+
                     'TODO: how to pass reason to unsupported
+                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
                     symbols(i) = If(namedTypeSymbol IsNot Nothing, namedTypeSymbol, New UnsupportedMetadataTypeSymbol()) ' "interface tmpList contains a bad type"
                     i = i + 1
                 Next
@@ -286,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return New ExtendedErrorTypeSymbol(diag, True)
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim diag = BaseTypeAnalysis.GetDependencyDiagnosticsForImportedClass(Me)
             If diag IsNot Nothing Then
                 Return CyclicInheritanceError(diag)
@@ -295,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return GetDeclaredBase(Nothing)
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim declaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(Nothing)
             If (Not Me.IsInterface) Then
                 ' only interfaces needs to check for inheritance cycles via interfaces.
@@ -496,15 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             EnsureNestedTypesAreLoaded()
             EnsureNonTypeMembersAreLoaded()
 
-            Dim result = _lazyMembers.Flatten()
-
-#If DEBUG Then
-            ' In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            ' more obviously.
-            Return result.DeOrder()
-#Else
-            Return result
-#End If
+            Return _lazyMembers.Flatten().ConditionallyDeOrder()
         End Function
 
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
@@ -800,7 +803,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Public Overloads Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            Return GetTypeMembers(name).WhereAsArray(Function(type) type.Arity = arity)
+            Return GetTypeMembers(name).WhereAsArray(Function(type, arity_) type.Arity = arity_, arity)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -927,15 +930,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+        Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
             Get
-                If Me._lazyHasEmbeddedAttribute = ThreeState.Unknown Then
-                    Interlocked.CompareExchange(Me._lazyHasEmbeddedAttribute,
-                                                If(Me.ContainingPEModule.Module.HasVisualBasicEmbeddedAttribute(Me._handle),
-                                                   ThreeState.True, ThreeState.False),
-                                                ThreeState.Unknown)
+                If Me._lazyHasCodeAnalysisEmbeddedAttribute = ThreeState.Unknown Then
+                    Interlocked.CompareExchange(
+                        Me._lazyHasCodeAnalysisEmbeddedAttribute,
+                        Me.ContainingPEModule.Module.HasCodeAnalysisEmbeddedAttribute(Me._handle).ToThreeState(),
+                        ThreeState.Unknown)
                 End If
-                Return Me._lazyHasEmbeddedAttribute = ThreeState.True
+                Return Me._lazyHasCodeAnalysisEmbeddedAttribute = ThreeState.True
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+            Get
+                If Me._lazyHasVisualBasicEmbeddedAttribute = ThreeState.Unknown Then
+                    Interlocked.CompareExchange(
+                        Me._lazyHasVisualBasicEmbeddedAttribute,
+                        Me.ContainingPEModule.Module.HasVisualBasicEmbeddedAttribute(Me._handle).ToThreeState(),
+                        ThreeState.Unknown)
+                End If
+                Return Me._lazyHasVisualBasicEmbeddedAttribute = ThreeState.True
             End Get
         End Property
 
@@ -1196,7 +1211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Setter)
 
                         If (getMethod IsNot Nothing) OrElse (setMethod IsNot Nothing) Then
-                            members.Add(New PEPropertySymbol(moduleSymbol, Me, propertyDef, getMethod, setMethod))
+                            members.Add(PEPropertySymbol.Create(moduleSymbol, Me, propertyDef, getMethod, setMethod))
                         End If
                     Catch mrEx As BadImageFormatException
                     End Try
@@ -1241,34 +1256,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return method
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
 
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfoImpl()
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfoImpl())
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
-        Private Function CalculateUseSiteErrorInfoImpl() As DiagnosticInfo
-            Dim diagnostic = CalculateUseSiteErrorInfo()
+        Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo = CalculateUseSiteInfo()
 
-            If diagnostic Is Nothing Then
+            If useSiteInfo.DiagnosticInfo Is Nothing Then
 
                 ' Check if this type Is marked by RequiredAttribute attribute.
                 ' If so mark the type as bad, because it relies upon semantics that are not understood by the VB compiler.
                 If Me.ContainingPEModule.Module.HasRequiredAttributeAttribute(Me.Handle) Then
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
+                    Return New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me))
+                End If
+
+                Dim typeKind = Me.TypeKind
+                Dim specialtype = Me.SpecialType
+                If (typeKind = TypeKind.Class OrElse typeKind = TypeKind.Module) AndAlso
+                   specialtype <> SpecialType.System_Enum AndAlso specialtype <> SpecialType.System_MulticastDelegate Then
+                    Dim base As TypeSymbol = GetDeclaredBase(Nothing)
+
+                    If base IsNot Nothing AndAlso base.SpecialType = SpecialType.None AndAlso base.ContainingAssembly?.IsMissing Then
+                        Dim missingType = TryCast(base, MissingMetadataTypeSymbol.TopLevel)
+
+                        If missingType IsNot Nothing AndAlso missingType.Arity = 0 Then
+                            Dim emittedName As String = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName)
+
+                            Select Case SpecialTypes.GetTypeFromMetadataName(emittedName)
+                                Case SpecialType.System_Enum,
+                                     SpecialType.System_Delegate,
+                                     SpecialType.System_MulticastDelegate,
+                                     SpecialType.System_ValueType
+                                    ' This might be a structure, an enum, or a delegate
+                                    Return missingType.GetUseSiteInfo()
+                            End Select
+                        End If
+                    End If
                 End If
 
                 ' Verify type parameters for containing types
                 ' match those on the containing types.
                 If Not MatchesContainingTypeParameters() Then
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_NestingViolatesCLS1, Me)
+                    Return New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_NestingViolatesCLS1, Me))
                 End If
             End If
 
-            Return diagnostic
+            Return useSiteInfo
         End Function
 
         ''' <summary>
@@ -1469,6 +1509,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
         End Function
 
+        Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
     End Class
 
 End Namespace

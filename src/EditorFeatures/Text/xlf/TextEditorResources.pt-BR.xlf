@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../TextEditorResources.resx">
+    <body>
+      <trans-unit id="The_snapshot_does_not_contain_the_specified_position">
+        <source>The snapshot does not contain the specified position.</source>
+        <target state="translated">O instantâneo não contém a posição especificada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_snapshot_does_not_contain_the_specified_span">
+        <source>The snapshot does not contain the specified span.</source>
+        <target state="translated">O instantâneo não contém o intervalo especificado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer">
+        <source>textContainer is not a SourceTextContainer that was created from an ITextBuffer.</source>
+        <target state="translated">textContainer não é um SourceTextContainer que foi criado por meio de um ITextBuffer.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

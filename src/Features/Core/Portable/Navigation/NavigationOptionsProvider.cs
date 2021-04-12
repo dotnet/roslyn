@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -11,8 +16,13 @@ namespace Microsoft.CodeAnalysis.Navigation
     [ExportOptionProvider, Shared]
     internal class NavigationOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = ImmutableArray.Create(NavigationOptions.PreferProvisionalTab);
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public NavigationOptionsProvider()
+        {
+        }
 
-        public IEnumerable<IOption> GetOptions() => _options;
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            NavigationOptions.PreferProvisionalTab);
     }
 }

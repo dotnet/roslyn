@@ -1,7 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -32,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     {
         public static bool IsValidId(Document document, string identifier)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return syntaxFacts.IsValidIdentifier(identifier);
         }
 
@@ -57,13 +62,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
-            var codeModel = document.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
-            var point = codeModel.GetStartPoint(typeNode, EnvDTE.vsCMPart.vsCMPartBody);
+            var codeModel = document.GetRequiredLanguageService<ICodeModelNavigationPointService>();
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
             var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
 
-            return NameGenerator.EnsureUniqueness(name, reservedNames, document.Project.LanguageServices.GetService<ISyntaxFactsService>().IsCaseSensitive);
+            return NameGenerator.EnsureUniqueness(name, reservedNames, document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive);
         }
 
         /// <summary>
@@ -97,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var eventType = ((IEventSymbol)eventMember).Type;
             if (eventType.Kind != SymbolKind.NamedType)
             {
-                throw new InvalidOperationException(ServicesVSResources.EventTypeIsInvalid);
+                throw new InvalidOperationException(ServicesVSResources.Event_type_is_invalid);
             }
 
             var methods = type.GetMembers().OfType<IMethodSymbol>().Where(m => m.CompatibleSignatureToDelegate((INamedTypeSymbol)eventType));
@@ -134,6 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// <returns>Either the unique id of the method if it already exists, or the unique id of
         /// the to be generated method, the text of the to be generated method, and the position in
         /// <paramref name="itemidInsertionPoint"/> where the text should be inserted.</returns>
+#pragma warning disable IDE0060 // Remove unused parameter - API used by partner (Venus), avoid build break.
         public static Tuple<string, string, VsTextSpan> EnsureEventHandler(
             Document thisDocument,
             Document targetDocument,
@@ -144,8 +151,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             string eventHandlerName,
             uint itemidInsertionPoint,
             bool useHandlesClause,
-            IFormattingRule additionalFormattingRule,
+            AbstractFormattingRule additionalFormattingRule,
             CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var thisCompilation = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var type = thisCompilation.GetTypeByMetadataName(className);
@@ -169,61 +177,61 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var eventType = ((IEventSymbol)eventMember).Type;
             if (eventType.Kind != SymbolKind.NamedType || ((INamedTypeSymbol)eventType).DelegateInvokeMethod == null)
             {
-                throw new InvalidOperationException(ServicesVSResources.EventTypeIsInvalid);
+                throw new InvalidOperationException(ServicesVSResources.Event_type_is_invalid);
             }
 
-            var handlesExpressions = useHandlesClause ?
-                new[]
-                {
-                    syntaxFactory.MemberAccessExpression(
+            var handlesExpressions = useHandlesClause
+                ? ImmutableArray.Create(syntaxFactory.MemberAccessExpression(
                         objectName != null ? syntaxFactory.IdentifierName(objectName) : syntaxFactory.ThisExpression(),
-                        syntaxFactory.IdentifierName(nameOfEvent))
-                }
-            : null;
+                        syntaxFactory.IdentifierName(nameOfEvent)))
+                : default;
 
             var invokeMethod = ((INamedTypeSymbol)eventType).DelegateInvokeMethod;
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default,
                 accessibility: Accessibility.Protected,
                 modifiers: new DeclarationModifiers(),
                 returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
-                explicitInterfaceSymbol: null,
+                refKind: RefKind.None,
+                explicitInterfaceImplementations: default,
                 name: eventHandlerName,
-                typeParameters: null,
-                parameters: invokeMethod.Parameters.ToArray(),
-                statements: null,
+                typeParameters: default,
+                parameters: invokeMethod.Parameters,
+                statements: default,
                 handlesExpressions: handlesExpressions);
 
             var annotation = new SyntaxAnnotation();
             newMethod = annotation.AddAnnotationToSymbol(newMethod);
-            var codeModel = targetDocument.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
-            var syntaxFacts = targetDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var codeModel = targetDocument.Project.LanguageServices.GetRequiredService<ICodeModelNavigationPointService>();
+            var syntaxFacts = targetDocument.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
-            var targetSyntaxTree = targetDocument.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var targetSyntaxTree = targetDocument.GetSyntaxTreeSynchronously(cancellationToken);
 
             var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
             var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
-            var insertionPoint = codeModel.GetEndPoint(destinationType, EnvDTE.vsCMPart.vsCMPartBody);
+            var options = targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var insertionPoint = codeModel.GetEndPoint(destinationType, options, EnvDTE.vsCMPart.vsCMPartBody);
 
             if (insertionPoint == null)
             {
-                throw new InvalidOperationException(ServicesVSResources.MemberInsertionFailed);
+                throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
             var newType = codeGenerationService.AddMethod(destinationType, newMethod, new CodeGenerationOptions(autoInsertionLocation: false), cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
-            newRoot = Simplifier.ReduceAsync(targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            newRoot = Simplifier.ReduceAsync(
+                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
 
-            newRoot = Formatter.FormatAsync(
+            newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
                 targetDocument.Project.Solution.Workspace,
-                targetDocument.Options,
+                targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
                 formattingRules,
-                cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                cancellationToken);
 
             var newMember = newRoot.GetAnnotatedNodesAndTokens(annotation).Single();
             var newMemberText = newMember.ToFullString();
@@ -247,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             CancellationToken cancellationToken)
         {
             targetDocument = null;
-            textSpan = default(VsTextSpan);
+            textSpan = default;
 
             var type = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetTypeByMetadataName(className);
             var member = LookupMemberId(type, uniqueMemberID);
@@ -261,10 +269,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var memberNode = member.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
             if (memberNode != null)
             {
-                var navigationPoint = codeModel.GetStartPoint(memberNode, EnvDTE.vsCMPart.vsCMPartNavigate);
+                var memberNodeDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
+                var options = memberNodeDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                var navigationPoint = codeModel.GetStartPoint(memberNode, options, EnvDTE.vsCMPart.vsCMPartNavigate);
                 if (navigationPoint != null)
                 {
-                    targetDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
+                    targetDocument = memberNodeDocument;
                     textSpan = navigationPoint.Value.ToVsTextSpan();
                     return true;
                 }
@@ -312,15 +322,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return false;
             }
 
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).Container, out workspace))
+            if (CodeAnalysis.Workspace.TryGetWorkspace(document.GetTextSynchronously(cancellationToken).Container, out var workspace))
             {
                 var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
                 var optionSet = document.Project.Solution.Workspace.Options;
                 var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, newName, optionSet, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
-                var undoTitle = string.Format(EditorFeaturesResources.RenameTo, symbol.Name, newName);
+                var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);
                 using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoTitle))
                 {
                     // Notify third parties about the coming rename operation on the workspace, and let
@@ -418,7 +427,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 case ContainedLanguageRenameType.CLRT_NAMESPACE:
                     var ns = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GlobalNamespace;
                     var parts = fullyQualifiedName.Split('.');
-                    for (int i = 0; i < parts.Length && ns != null; i++)
+                    for (var i = 0; i < parts.Length && ns != null; i++)
                     {
                         ns = ns.GetNamespaceMembers().SingleOrDefault(n => n.Name == parts[i]);
                     }
@@ -426,10 +435,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return ns;
 
                 case ContainedLanguageRenameType.CLRT_OTHER:
-                    throw new NotSupportedException(ServicesVSResources.ElementRenameFailed);
+                    throw new NotSupportedException(ServicesVSResources.Can_t_rename_other_elements);
 
                 default:
-                    throw new InvalidOperationException(ServicesVSResources.UnknownRenameType);
+                    throw new InvalidOperationException(ServicesVSResources.Unknown_rename_type);
             }
         }
 
@@ -445,7 +454,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
             else
             {
-                throw new NotSupportedException(ServicesVSResources.SymbolTypeIdInvalid);
+                throw new NotSupportedException(ServicesVSResources.IDs_are_not_supported_for_this_symbol_type);
             }
         }
 
@@ -477,7 +486,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException();
             }
 
-            var containingTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var containingTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeLocation = type.Locations.FirstOrDefault(d => d.SourceTree == containingTree);
             if (typeLocation == null)
             {

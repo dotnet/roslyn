@@ -1,7 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -26,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _constructor As SynthesizedLambdaConstructor
         Friend ReadOnly TypeMap As TypeSubstitution
 
-        Private ReadOnly _scopeSyntaxOpt As VisualBasicSyntaxNode
+        Private ReadOnly _scopeSyntaxOpt As SyntaxNode
 
         Private Shared ReadOnly s_typeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
             Function(container)
@@ -40,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                         GeneratedNames.MakeDisplayClassGenericParameterName(typeParameter.Ordinal),
                                                                                         s_typeSubstitutionFactory)
         Friend Sub New(topLevelMethod As MethodSymbol,
-                       scopeSyntaxOpt As VisualBasicSyntaxNode,
+                       scopeSyntaxOpt As SyntaxNode,
                        methodId As DebugId,
                        closureId As DebugId,
                        copyConstructor As Boolean,
@@ -91,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Conditional("DEBUG")>
-        Private Shared Sub AssertIsClosureScopeSyntax(syntaxOpt As VisualBasicSyntaxNode)
+        Private Shared Sub AssertIsClosureScopeSyntax(syntaxOpt As SyntaxNode)
             ' static lambdas technically have the class scope so the scope syntax is nothing
             If syntaxOpt Is Nothing Then
                 Return
@@ -110,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind())
         End Sub
 
-        Public ReadOnly Property ScopeSyntax As VisualBasicSyntaxNode
+        Public ReadOnly Property ScopeSyntax As SyntaxNode
             Get
                 Return _constructor.Syntax
             End Get
@@ -156,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsSerializable As Boolean
+        Public Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return _singletonCache IsNot Nothing
             End Get
@@ -171,27 +175,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim type = ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             ' WARN: We assume that if System_Object was not found we would never reach 
             '       this point because the error should have been/processed generated earlier
-            Debug.Assert(type.GetUseSiteErrorInfo() Is Nothing)
+            Debug.Assert(type.GetUseSiteInfo().DiagnosticInfo Is Nothing)
             Return type
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim type = ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             ' WARN: We assume that if System_Object was not found we would never reach 
             '       this point because the error should have been/processed generated earlier
-            Debug.Assert(type.GetUseSiteErrorInfo() Is Nothing)
+            Debug.Assert(type.GetUseSiteInfo().DiagnosticInfo Is Nothing)
             Return type
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
@@ -232,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public ReadOnly Property Method As IMethodSymbol Implements ISynthesizedMethodBodyImplementationSymbol.Method
+        Public ReadOnly Property Method As IMethodSymbolInternal Implements ISynthesizedMethodBodyImplementationSymbol.Method
             Get
                 Return _topLevelMethod
             End Get

@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
         protected abstract bool TryInitializeImplicitConversionState(SemanticDocument document, SyntaxNode expression, ISet<TypeKind> classInterfaceModuleStructTypes, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IMethodSymbol methodSymbol, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeExplicitConversionState(SemanticDocument document, SyntaxNode expression, ISet<TypeKind> classInterfaceModuleStructTypes, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IMethodSymbol methodSymbol, out INamedTypeSymbol typeToGenerateIn);
 
-        public async Task<IEnumerable<CodeAction>> GenerateConversionAsync(
+        public async Task<ImmutableArray<CodeAction>> GenerateConversionAsync(
             Document document,
             SyntaxNode node,
             CancellationToken cancellationToken)
@@ -32,10 +36,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var state = await State.GenerateConversionStateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state == null)
                 {
-                    return SpecializedCollections.EmptyEnumerable<CodeAction>();
+                    return ImmutableArray<CodeAction>.Empty;
                 }
 
-                return GetActions(document, state, cancellationToken);
+                return await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false);
             }
         }
     }

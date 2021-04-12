@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
@@ -6,10 +8,23 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Collections.Concurrent
 Imports System.Threading
 
+#If Not DEBUG Then
+Imports SymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbol
+Imports NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol
+Imports FieldSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol
+Imports MethodSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol
+Imports EventSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.EventSymbol
+Imports PropertySymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.PropertySymbol
+Imports ParameterSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.ParameterSymbol
+Imports TypeParameterSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeParameterSymbol
+#End If
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
     Friend NotInheritable Class EmbeddedTypesManager
-        Inherits Microsoft.CodeAnalysis.Emit.NoPia.EmbeddedTypesManager(Of PEModuleBuilder, ModuleCompilationState, EmbeddedTypesManager, VisualBasicSyntaxNode, VisualBasicAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter)
+        Inherits Microsoft.CodeAnalysis.Emit.NoPia.EmbeddedTypesManager(Of PEModuleBuilder, ModuleCompilationState, EmbeddedTypesManager, SyntaxNode, VisualBasicAttributeData,
+                                                                           SymbolAdapter, AssemblySymbol, NamedTypeSymbolAdapter, FieldSymbolAdapter, MethodSymbolAdapter, EventSymbolAdapter, PropertySymbolAdapter, ParameterSymbolAdapter, TypeParameterSymbolAdapter,
+                                                                           EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter)
 
         Private ReadOnly _assemblyGuidMap As New ConcurrentDictionary(Of AssemblySymbol, String)(ReferenceEqualityComparer.Instance)
         Private ReadOnly _reportedSymbolsMap As New ConcurrentDictionary(Of Symbol, Boolean)(ReferenceEqualityComparer.Instance)
@@ -25,18 +40,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Next
         End Sub
 
-        Public Function GetSystemStringType(syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Public Function GetSystemStringType(syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             If _lazySystemStringType Is ErrorTypeSymbol.UnknownResultType Then
                 Dim type = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String)
-                Dim info = type.GetUseSiteErrorInfo()
+                Dim info = type.GetUseSiteInfo()
 
                 If type.IsErrorType() Then
                     type = Nothing
                 End If
 
-                If Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType) = ErrorTypeSymbol.UnknownResultType Then
-                    If info IsNot Nothing Then
-                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
+                If TypeSymbol.Equals(Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything) Then
+                    If info.DiagnosticInfo IsNot Nothing Then
+                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info.DiagnosticInfo)
                     End If
                 End If
             End If
@@ -44,20 +59,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return _lazySystemStringType
         End Function
 
-        Public Function GetWellKnownMethod(method As WellKnownMember, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
+        Public Function GetWellKnownMethod(method As WellKnownMember, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
             Return LazyGetWellKnownTypeMethod(_lazyWellKnownTypeMethods(CInt(method)), method, syntaxNodeOpt, diagnostics)
         End Function
 
-        Private Function LazyGetWellKnownTypeMethod(ByRef lazyMethod As MethodSymbol, method As WellKnownMember, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
+        Private Function LazyGetWellKnownTypeMethod(ByRef lazyMethod As MethodSymbol, method As WellKnownMember, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
             If lazyMethod Is ErrorMethodSymbol.UnknownMethod Then
-                Dim info As DiagnosticInfo = Nothing
+                Dim info As UseSiteInfo(Of AssemblySymbol) = Nothing
                 Dim symbol = DirectCast(Binder.GetWellKnownTypeMember(ModuleBeingBuilt.Compilation, method, info), MethodSymbol)
 
-                Debug.Assert(info Is Nothing OrElse symbol Is Nothing)
+                Debug.Assert(info.DiagnosticInfo Is Nothing OrElse symbol Is Nothing)
 
                 If Interlocked.CompareExchange(Of MethodSymbol)(lazyMethod, symbol, ErrorMethodSymbol.UnknownMethod) = ErrorMethodSymbol.UnknownMethod Then
-                    If info IsNot Nothing Then
-                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
+                    If info.DiagnosticInfo IsNot Nothing Then
+                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info.DiagnosticInfo)
                     End If
                 End If
             End If
@@ -65,11 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return lazyMethod
         End Function
 
-        Friend Overrides Function GetTargetAttributeSignatureIndex(underlyingSymbol As Symbol, attrData As VisualBasicAttributeData, description As AttributeDescription) As Integer
-            Return attrData.GetTargetAttributeSignatureIndex(underlyingSymbol, description)
+        Friend Overrides Function GetTargetAttributeSignatureIndex(underlyingSymbol As SymbolAdapter, attrData As VisualBasicAttributeData, description As AttributeDescription) As Integer
+            Return attrData.GetTargetAttributeSignatureIndex(underlyingSymbol.AdaptedSymbol, description)
         End Function
 
-        Friend Overrides Function CreateSynthesizedAttribute(constructor As WellKnownMember, attrData As VisualBasicAttributeData, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
+        Friend Overrides Function CreateSynthesizedAttribute(constructor As WellKnownMember, attrData As VisualBasicAttributeData, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
             Dim ctor = GetWellKnownMethod(constructor, syntaxNodeOpt, diagnostics)
             If ctor Is Nothing Then
                 Return Nothing
@@ -115,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Protected Overrides Sub OnGetTypesCompleted(types As ImmutableArray(Of EmbeddedType), diagnostics As DiagnosticBag)
             For Each t In types
                 ' Note, once we reached this point we are no longer interested in guid values, using null.
-                _assemblyGuidMap.TryAdd(t.UnderlyingNamedType.ContainingAssembly, Nothing)
+                _assemblyGuidMap.TryAdd(t.UnderlyingNamedType.AdaptedNamedTypeSymbol.ContainingAssembly, Nothing)
             Next
 
             For Each a In ModuleBeingBuilt.GetReferencedAssembliesUsedSoFar()
@@ -124,8 +139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Sub
 
         Protected Overrides Sub ReportNameCollisionBetweenEmbeddedTypes(typeA As EmbeddedType, typeB As EmbeddedType, diagnostics As DiagnosticBag)
-            Dim underlyingTypeA = typeA.UnderlyingNamedType
-            Dim underlyingTypeB = typeB.UnderlyingNamedType
+            Dim underlyingTypeA = typeA.UnderlyingNamedType.AdaptedNamedTypeSymbol
+            Dim underlyingTypeB = typeB.UnderlyingNamedType.AdaptedNamedTypeSymbol
             ReportDiagnostic(diagnostics,
                 ERRID.ERR_DuplicateLocalTypes3,
                 Nothing,
@@ -135,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Sub
 
         Protected Overrides Sub ReportNameCollisionWithAlreadyDeclaredType(type As EmbeddedType, diagnostics As DiagnosticBag)
-            Dim underlyingType = type.UnderlyingNamedType
+            Dim underlyingType = type.UnderlyingNamedType.AdaptedNamedTypeSymbol
             ReportDiagnostic(diagnostics,
                 ERRID.ERR_LocalTypeNameClash2,
                 Nothing,
@@ -170,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         ''' </summary>
         Friend Shared Function IsValidEmbeddableType(
             type As NamedTypeSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag,
             Optional typeManagerOpt As EmbeddedTypesManager = Nothing
         ) As Boolean
@@ -189,10 +204,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim id = ERRID.ERR_None
 
             Select Case type.TypeKind
-                Case TypeKind.Interface,
-                    TypeKind.Structure,
+                Case TypeKind.Interface
+                    For Each member As Symbol In type.GetMembersUnordered()
+                        If member.Kind <> SymbolKind.NamedType Then
+                            If Not member.IsMustOverride Then
+                                id = ERRID.ERR_DefaultInterfaceImplementationInNoPIAType
+                            ElseIf member.IsNotOverridable Then
+                                id = ERRID.ERR_ReAbstractionInNoPIAType
+                            End If
+                        End If
+                    Next
+
+                    If id = ERRID.ERR_None Then
+                        GoTo checksForAllEmbedabbleTypes
+                    End If
+
+                Case TypeKind.Structure,
                     TypeKind.Enum,
                     TypeKind.Delegate
+checksForAllEmbedabbleTypes:
+                    If type.IsTupleType Then
+                        type = type.TupleUnderlyingType
+                    End If
 
                     If type.ContainingType IsNot Nothing Then
                         ' We do not support nesting for embedded types.
@@ -226,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End If
         End Sub
 
-        Private Shared Sub ReportNotEmbeddableSymbol(id As ERRID, symbol As Symbol, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, typeManagerOpt As EmbeddedTypesManager)
+        Private Shared Sub ReportNotEmbeddableSymbol(id As ERRID, symbol As Symbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag, typeManagerOpt As EmbeddedTypesManager)
             ' Avoid reporting multiple errors for the symbol.
             If typeManagerOpt Is Nothing OrElse
                 typeManagerOpt._reportedSymbolsMap.TryAdd(symbol.OriginalDefinition, True) Then
@@ -235,15 +268,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             End If
         End Sub
 
-        Friend Shared Sub ReportDiagnostic(diagnostics As DiagnosticBag, id As ERRID, syntaxNodeOpt As VisualBasicSyntaxNode, ParamArray args As Object())
+        Friend Shared Sub ReportDiagnostic(diagnostics As DiagnosticBag, id As ERRID, syntaxNodeOpt As SyntaxNode, ParamArray args As Object())
             ReportDiagnostic(diagnostics, syntaxNodeOpt, ErrorFactory.ErrorInfo(id, args))
         End Sub
 
-        Private Shared Sub ReportDiagnostic(diagnostics As DiagnosticBag, syntaxNodeOpt As VisualBasicSyntaxNode, info As DiagnosticInfo)
+        Private Shared Sub ReportDiagnostic(diagnostics As DiagnosticBag, syntaxNodeOpt As SyntaxNode, info As DiagnosticInfo)
             diagnostics.Add(New VBDiagnostic(info, If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())))
         End Sub
 
-        Friend Function EmbedTypeIfNeedTo(namedType As NamedTypeSymbol, fromImplements As Boolean, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
+        Friend Function EmbedTypeIfNeedTo(namedType As NamedTypeSymbol, fromImplements As Boolean, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Debug.Assert(namedType.IsDefinition)
             Debug.Assert(ModuleBeingBuilt.SourceModule.AnyReferencedAssembliesAreLinked)
 
@@ -251,14 +284,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                 Return EmbedType(namedType, fromImplements, syntaxNodeOpt, diagnostics)
             End If
 
-            Return namedType
+            Return Nothing
         End Function
 
-        Private Function EmbedType(namedType As NamedTypeSymbol, fromImplements As Boolean, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As EmbeddedType
+        Private Function EmbedType(namedType As NamedTypeSymbol, fromImplements As Boolean, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As EmbeddedType
             Debug.Assert(namedType.IsDefinition)
 
-            Dim embedded = New EmbeddedType(Me, namedType)
-            Dim cached = EmbeddedTypesMap.GetOrAdd(namedType, embedded)
+            Dim adapter = namedType.GetCciAdapter()
+            Dim embedded = New EmbeddedType(Me, adapter)
+            Dim cached = EmbeddedTypesMap.GetOrAdd(adapter, embedded)
 
             Dim isInterface = (namedType.IsInterface)
 
@@ -274,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' We do not expect this method to be called on a different thread once GetTypes is called.
             VerifyNotFrozen()
 
-            Dim noPiaIndexer = New Cci.NoPiaReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics))
+            Dim noPiaIndexer = New Cci.TypeReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly:=False, includePrivateMembers:=True))
 
             ' Make sure we embed all types referenced by the type declaration: implemented interfaces, etc.
             noPiaIndexer.VisitTypeDefinitionNoMembers(embedded)
@@ -292,11 +326,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                 End If
 
                 For Each f In namedType.GetFieldsToEmit()
-                    EmbedField(embedded, f, syntaxNodeOpt, diagnostics)
+                    EmbedField(embedded, f.GetCciAdapter(), syntaxNodeOpt, diagnostics)
                 Next
 
                 For Each m In namedType.GetMethodsToEmit()
-                    EmbedMethod(embedded, m, syntaxNodeOpt, diagnostics)
+                    EmbedMethod(embedded, m.GetCciAdapter(), syntaxNodeOpt, diagnostics)
                 Next
 
                 ' We also should embed properties and events, but we don't need to do this explicitly here
@@ -308,12 +342,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Friend Overrides Function EmbedField(
             type As EmbeddedType,
-            field As FieldSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            field As FieldSymbolAdapter,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag
         ) As EmbeddedField
 
-            Debug.Assert(field.IsDefinition)
+            Debug.Assert(field.AdaptedFieldSymbol.IsDefinition)
 
             Dim embedded = New EmbeddedField(type, field)
             Dim cached = EmbeddedFieldsMap.GetOrAdd(field, embedded)
@@ -328,14 +362,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' Embed types referenced by this field declaration.
             EmbedReferences(embedded, syntaxNodeOpt, diagnostics)
 
-            Dim containerKind = field.ContainingType.TypeKind
+            Dim containerKind = field.AdaptedFieldSymbol.ContainingType.TypeKind
 
             ' Structures may contain only public instance fields.
             If containerKind = TypeKind.Interface OrElse
                 containerKind = TypeKind.Delegate OrElse
-                (containerKind = TypeKind.Structure AndAlso (field.IsShared OrElse field.DeclaredAccessibility <> Accessibility.Public)) Then
+                (containerKind = TypeKind.Structure AndAlso (field.AdaptedFieldSymbol.IsShared OrElse field.AdaptedFieldSymbol.DeclaredAccessibility <> Accessibility.Public)) Then
                 ' ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods
-                ReportNotEmbeddableSymbol(ERRID.ERR_InvalidStructMemberNoPIA1, type.UnderlyingNamedType, syntaxNodeOpt, diagnostics, Me)
+                ReportNotEmbeddableSymbol(ERRID.ERR_InvalidStructMemberNoPIA1, type.UnderlyingNamedType.AdaptedNamedTypeSymbol, syntaxNodeOpt, diagnostics, Me)
             End If
 
             Return embedded
@@ -343,13 +377,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Friend Overrides Function EmbedMethod(
             type As EmbeddedType,
-            method As MethodSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            method As MethodSymbolAdapter,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag
         ) As EmbeddedMethod
 
-            Debug.Assert(method.IsDefinition)
-            Debug.Assert(Not method.IsDefaultValueTypeConstructor())
+            Debug.Assert(method.AdaptedMethodSymbol.IsDefinition)
+            Debug.Assert(Not method.AdaptedMethodSymbol.IsDefaultValueTypeConstructor())
 
             Dim embedded = New EmbeddedMethod(type, method)
             Dim cached = EmbeddedMethodsMap.GetOrAdd(method, embedded)
@@ -364,25 +398,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' Embed types referenced by this method declaration.
             EmbedReferences(embedded, syntaxNodeOpt, diagnostics)
 
-            Select Case type.UnderlyingNamedType.TypeKind
+            Select Case type.UnderlyingNamedType.AdaptedNamedTypeSymbol.TypeKind
                 Case TypeKind.Structure, TypeKind.Enum
                     ' ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods
-                    ReportNotEmbeddableSymbol(ERRID.ERR_InvalidStructMemberNoPIA1, type.UnderlyingNamedType, syntaxNodeOpt, diagnostics, Me)
+                    ReportNotEmbeddableSymbol(ERRID.ERR_InvalidStructMemberNoPIA1, type.UnderlyingNamedType.AdaptedNamedTypeSymbol, syntaxNodeOpt, diagnostics, Me)
                 Case Else
                     If Cci.Extensions.HasBody(embedded) Then
                         ' ERRID.ERR_InteropMethodWithBody1/ERR_InteropMethodWithBody
-                        ReportDiagnostic(diagnostics, ERRID.ERR_InteropMethodWithBody1, syntaxNodeOpt, method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat))
+                        ReportDiagnostic(diagnostics, ERRID.ERR_InteropMethodWithBody1, syntaxNodeOpt, method.AdaptedMethodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat))
                     End If
             End Select
 
             ' If this proc happens to belong to a property/event, we should include the property/event as well.
-            Dim propertyOrEvent = method.AssociatedSymbol
+            Dim propertyOrEvent = method.AdaptedMethodSymbol.AssociatedSymbol
             If propertyOrEvent IsNot Nothing Then
                 Select Case propertyOrEvent.Kind
                     Case SymbolKind.Property
-                        EmbedProperty(type, DirectCast(propertyOrEvent, PropertySymbol), syntaxNodeOpt, diagnostics)
+                        EmbedProperty(type, DirectCast(propertyOrEvent, PropertySymbol).GetCciAdapter(), syntaxNodeOpt, diagnostics)
                     Case SymbolKind.Event
-                        EmbedEvent(type, DirectCast(propertyOrEvent, EventSymbol), syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding:=False)
+                        EmbedEvent(type, DirectCast(propertyOrEvent, EventSymbol).GetCciAdapter(), syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding:=False)
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(propertyOrEvent.Kind)
                 End Select
@@ -393,19 +427,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Friend Overrides Function EmbedProperty(
             type As EmbeddedType,
-            [property] As PropertySymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            [property] As PropertySymbolAdapter,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag
         ) As EmbeddedProperty
 
-            Debug.Assert([property].IsDefinition)
+            Debug.Assert([property].AdaptedPropertySymbol.IsDefinition)
 
             ' Make sure accessors are embedded.
-            Dim getMethod = [property].GetMethod
-            Dim setMethod = [property].SetMethod
+            Dim getMethod = [property].AdaptedPropertySymbol.GetMethod
+            Dim setMethod = [property].AdaptedPropertySymbol.SetMethod
 
-            Dim embeddedGet = If(getMethod IsNot Nothing, EmbedMethod(type, getMethod, syntaxNodeOpt, diagnostics), Nothing)
-            Dim embeddedSet = If(setMethod IsNot Nothing, EmbedMethod(type, setMethod, syntaxNodeOpt, diagnostics), Nothing)
+            Dim embeddedGet = If(getMethod IsNot Nothing, EmbedMethod(type, getMethod.GetCciAdapter(), syntaxNodeOpt, diagnostics), Nothing)
+            Dim embeddedSet = If(setMethod IsNot Nothing, EmbedMethod(type, setMethod.GetCciAdapter(), syntaxNodeOpt, diagnostics), Nothing)
 
             Dim embedded = New EmbeddedProperty([property], embeddedGet, embeddedSet)
             Dim cached = EmbeddedPropertiesMap.GetOrAdd([property], embedded)
@@ -426,22 +460,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Friend Overrides Function EmbedEvent(
             type As EmbeddedType,
-            [event] As EventSymbol,
-            syntaxNodeOpt As VisualBasicSyntaxNode,
+            [event] As EventSymbolAdapter,
+            syntaxNodeOpt As SyntaxNode,
             diagnostics As DiagnosticBag,
             isUsedForComAwareEventBinding As Boolean
         ) As EmbeddedEvent
 
-            Debug.Assert([event].IsDefinition)
+            Debug.Assert([event].AdaptedEventSymbol.IsDefinition)
 
             ' Make sure accessors are embedded.
-            Dim addMethod = [event].AddMethod
-            Dim removeMethod = [event].RemoveMethod
-            Dim callMethod = [event].RaiseMethod
+            Dim addMethod = [event].AdaptedEventSymbol.AddMethod
+            Dim removeMethod = [event].AdaptedEventSymbol.RemoveMethod
+            Dim callMethod = [event].AdaptedEventSymbol.RaiseMethod
 
-            Dim embeddedAdd = If(addMethod IsNot Nothing, EmbedMethod(type, addMethod, syntaxNodeOpt, diagnostics), Nothing)
-            Dim embeddedRemove = If(removeMethod IsNot Nothing, EmbedMethod(type, removeMethod, syntaxNodeOpt, diagnostics), Nothing)
-            Dim embeddedCall = If(callMethod IsNot Nothing, EmbedMethod(type, callMethod, syntaxNodeOpt, diagnostics), Nothing)
+            Dim embeddedAdd = If(addMethod IsNot Nothing, EmbedMethod(type, addMethod.GetCciAdapter(), syntaxNodeOpt, diagnostics), Nothing)
+            Dim embeddedRemove = If(removeMethod IsNot Nothing, EmbedMethod(type, removeMethod.GetCciAdapter(), syntaxNodeOpt, diagnostics), Nothing)
+            Dim embeddedCall = If(callMethod IsNot Nothing, EmbedMethod(type, callMethod.GetCciAdapter(), syntaxNodeOpt, diagnostics), Nothing)
 
             Dim embedded = New EmbeddedEvent([event], embeddedAdd, embeddedRemove, embeddedCall)
             Dim cached = EmbeddedEventsMap.GetOrAdd([event], embedded)
@@ -465,11 +499,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return embedded
         End Function
 
-        Protected Overrides Function GetEmbeddedTypeForMember(member As Symbol, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As EmbeddedType
-            Debug.Assert(member.IsDefinition)
+        Protected Overrides Function GetEmbeddedTypeForMember(member As SymbolAdapter, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As EmbeddedType
+            Debug.Assert(member.AdaptedSymbol.IsDefinition)
             Debug.Assert(ModuleBeingBuilt.SourceModule.AnyReferencedAssembliesAreLinked)
 
-            Dim namedType = member.ContainingType
+            Dim namedType = member.AdaptedSymbol.ContainingType
 
             If IsValidEmbeddableType(namedType, syntaxNodeOpt, diagnostics, Me) Then
                 ' It is possible that we have found a reference to a member before
@@ -481,7 +515,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Function
 
         Friend Shared Function EmbedParameters(containingPropertyOrMethod As CommonEmbeddedMember, underlyingParameters As ImmutableArray(Of ParameterSymbol)) As ImmutableArray(Of EmbeddedParameter)
-            Return underlyingParameters.SelectAsArray(Function(parameter, container) New EmbeddedParameter(container, parameter), containingPropertyOrMethod)
+            Return underlyingParameters.SelectAsArray(Function(parameter, container) New EmbeddedParameter(container, parameter.GetCciAdapter()), containingPropertyOrMethod)
+        End Function
+
+        Protected Overrides Function CreateCompilerGeneratedAttribute() As VisualBasicAttributeData
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+            Dim compilation = ModuleBeingBuilt.Compilation
+            Return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor)
         End Function
 
     End Class

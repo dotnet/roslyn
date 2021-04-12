@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -18,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataNamespaceSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -58,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolClass01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -93,12 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // 18 members
             Assert.Equal(18, class1.GetMembers().Length);
             Assert.Equal(0, class1.GetTypeMembers().Length);
-            Assert.Equal(0, class1.Interfaces.Length);
+            Assert.Equal(0, class1.Interfaces().Length);
 
             var fullName = "Microsoft.Runtime.Hosting.StrongNameHelpers";
             // Internal: Assert.Equal(fullName, class1.GetFullNameWithoutGenericArgs());
             Assert.Equal(fullName, class1.ToTestDisplayString());
-            Assert.Equal(0, class1.TypeArguments.Length);
+            Assert.Equal(0, class1.TypeArguments().Length);
             Assert.Equal(0, class1.TypeParameters.Length);
 
             Assert.Empty(compilation.GetDeclarationDiagnostics());
@@ -108,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenClass02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -138,17 +143,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(type1.IsVirtual);
             Assert.False(type1.IsOverride);
 
-            // 4 nested types, 64 members overall
-            Assert.Equal(64, type1.GetMembers().Length);
-            Assert.Equal(4, type1.GetTypeMembers().Length);
+            // 4 nested types, 67 members overall
+            Assert.Equal(67, type1.GetMembers().Length);
+            Assert.Equal(3, type1.GetTypeMembers().Length);
             // IDictionary<TKey, TValue>, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, 
             // IDictionary, ICollection, IEnumerable, ISerializable, IDeserializationCallback
-            Assert.Equal(8, type1.Interfaces.Length);
+            Assert.Equal(10, type1.Interfaces().Length);
 
             var fullName = "System.Collections.Generic.Dictionary<TKey, TValue>";
             // Internal Assert.Equal(fullName, class1.GetFullNameWithoutGenericArgs());
             Assert.Equal(fullName, type1.ToTestDisplayString());
-            Assert.Equal(2, type1.TypeArguments.Length);
+            Assert.Equal(2, type1.TypeArguments().Length);
             Assert.Equal(2, type1.TypeParameters.Length);
 
             Assert.Empty(compilation.GetDeclarationDiagnostics());
@@ -158,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenInterface01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -191,12 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(6, type1.GetMembers().Length);
             Assert.Equal(0, type1.GetTypeMembers().Length);
             // ICollection<T>, IEnumerable<T>, IEnumerable
-            Assert.Equal(3, type1.Interfaces.Length);
+            Assert.Equal(3, type1.Interfaces().Length);
 
             var fullName = "System.Collections.Generic.IList<T>";
             // Internal Assert.Equal(fullName, class1.GetFullNameWithoutGenericArgs());
             Assert.Equal(fullName, type1.ToTestDisplayString());
-            Assert.Equal(1, type1.TypeArguments.Length);
+            Assert.Equal(1, type1.TypeArguments().Length);
             Assert.Equal(1, type1.TypeParameters.Length);
 
             Assert.Empty(compilation.GetDeclarationDiagnostics());
@@ -206,7 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolStruct01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var compilation = CreateEmptyCompilation(text,
+                new[] { MscorlibRef },
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -237,12 +244,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // 4 method + 1 synthesized ctor, 2 get_<Prop> method, 2 Properties, 2 fields
             Assert.Equal(11, type1.GetMembers().Length);
             Assert.Equal(0, type1.GetTypeMembers().Length);
-            Assert.Equal(0, type1.Interfaces.Length);
+            Assert.Equal(0, type1.Interfaces().Length);
 
             var fullName = "System.Runtime.Serialization.StreamingContext";
             // Internal Assert.Equal(fullName, class1.GetFullNameWithoutGenericArgs());
             Assert.Equal(fullName, type1.ToTestDisplayString());
-            Assert.Equal(0, type1.TypeArguments.Length);
+            Assert.Equal(0, type1.TypeArguments().Length);
             Assert.Equal(0, type1.TypeParameters.Length);
 
             Assert.Empty(compilation.GetDeclarationDiagnostics());
@@ -251,13 +258,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void MetadataArrayTypeSymbol01()
         {
-            var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            // This is a copy of the EventProviderBase type which existed in a beta of .NET framework
+            // 4.5. Replicating the structure of the type to maintain the test validation.
+            var source1 = @"
+namespace System.Diagnostics.Eventing
+{
+    internal class EventProviderBase
+    {
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
-            Assert.Equal("mscorlib", mscorNS.Name);
-            var ns1 = mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
+        internal struct EventData { }
+
+        internal EventData[] m_eventData = null;
+
+        protected void WriteTransferEventHelper(int eventId, Guid relatedActivityId, params object[] args) { }
+    }
+}
+";
+
+            var compilation1 = CreateEmptyCompilation(source1, new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore });
+            compilation1.VerifyDiagnostics();
+
+            var source2 = "public class A {}";
+            var compilation2 = CreateEmptyCompilation(source2, new MetadataReference[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore, compilation1.EmitToImageReference() },
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+
+            var compilation1Lib = compilation2.ExternalReferences[2];
+            var systemCoreNS = compilation2.GetReferencedAssemblySymbol(compilation1Lib);
+            var ns1 = systemCoreNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Diagnostics").Single() as NamespaceSymbol;
             var ns3 = ns2.GetMembers("Eventing").Single() as NamespaceSymbol;
 
@@ -280,13 +307,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(TypeKind.Array, type3.TypeKind);
 
             Assert.Equal("EventData", type2.ElementType.Name);
-            Assert.Equal("Array", type2.BaseType.Name);
+            Assert.Equal("Array", type2.BaseType().Name);
             Assert.Equal("Object", type3.ElementType.Name);
             Assert.Equal("System.Diagnostics.Eventing.EventProviderBase.EventData[]", type2.ToTestDisplayString());
             Assert.Equal("System.Object[]", type3.ToTestDisplayString());
 
-            Assert.Equal(1, type2.Interfaces.Length);
-            Assert.Equal(1, type3.Interfaces.Length);
+            Assert.Equal(1, type2.Interfaces().Length);
+            Assert.Equal(1, type3.Interfaces().Length);
             // bug
             // Assert.False(type2.IsDefinition);
             Assert.False(type2.IsNamespace);
@@ -310,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, type2.GetTypeMembers(String.Empty).Length);
             Assert.Equal(0, type3.GetTypeMembers(String.Empty, 0).Length);
 
-            Assert.Empty(compilation.GetDeclarationDiagnostics());
+            Assert.Empty(compilation2.GetDeclarationDiagnostics());
         }
 
         [Fact, WorkItem(531619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619"), WorkItem(531619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619")]
@@ -327,7 +354,7 @@ class Test : StaticModClass
         r";
 
             var tree = SyntaxFactory.ParseSyntaxTree(String.Empty);
-            var comp = CreateCompilationWithMscorlib(syntaxTree: tree, references: new[] { modRef });
+            var comp = CreateCompilation(source: tree, references: new[] { modRef });
 
             var currComp = comp;
 
@@ -481,12 +508,92 @@ class Test : StaticModClass
 } // end of class C
 ";
 
-            var comp = CreateCompilationWithCustomILSource("", ilSource);
+            var comp = CreateCompilationWithILAndMscorlib40("", ilSource);
 
             var stateMachineClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<NamedTypeSymbol>().Single();
             Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name); // The name has been reconstructed correctly.
             Assert.Equal("C.<I<System.Int32>.F>d__0", stateMachineClass.ToTestDisplayString()); // SymbolDisplay works.
             Assert.Equal(stateMachineClass, comp.GetTypeByMetadataName("C+<I<System.Int32>.F>d__0")); // GetTypeByMetadataName works.
+        }
+
+        [ConditionalFact(typeof(ClrOnly))]
+        [WorkItem(23761, "https://github.com/dotnet/roslyn/issues/23761")] // reason for skipping mono
+        public void EmptyNamespaceNames()
+        {
+            var ilSource =
+@".class public A
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+}
+.namespace '.N'
+{
+  .class public B
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '.'
+{
+  .class public C
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '..'
+{
+  .class public D
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace '..N'
+{
+  .class public E
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace N.M
+{
+  .class public F
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace 'N.M.'
+{
+  .class public G
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}
+.namespace 'N.M..'
+{
+  .class public H
+  {
+    .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
+  }
+}";
+            var comp = CreateCompilationWithILAndMscorlib40("", ilSource);
+            comp.VerifyDiagnostics();
+            var builder = ArrayBuilder<string>.GetInstance();
+            var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            GetAllNamespaceNames(builder, module.GlobalNamespace);
+            Assert.Equal(new[] { "<global namespace>", "", ".", "..N", ".N", "N", "N.M", "N.M." }, builder);
+            builder.Free();
+        }
+
+        private static void GetAllNamespaceNames(ArrayBuilder<string> builder, NamespaceSymbol @namespace)
+        {
+            builder.Add(@namespace.ToTestDisplayString());
+            foreach (var member in @namespace.GetMembers())
+            {
+                if (member.Kind != SymbolKind.Namespace)
+                {
+                    continue;
+                }
+                GetAllNamespaceNames(builder, (NamespaceSymbol)member);
+            }
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -13,7 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _hasUsings;
         private readonly bool _hasExternAliases;
 
-        public SingleNamespaceDeclarationEx(string name, bool hasUsings, bool hasExternAliases, SyntaxReference syntaxReference, SourceLocation nameLocation, ImmutableArray<SingleNamespaceOrTypeDeclaration> children) : base(name, syntaxReference, nameLocation, children)
+        public SingleNamespaceDeclarationEx(
+            string name, bool hasUsings, bool hasExternAliases,
+            SyntaxReference syntaxReference, SourceLocation nameLocation,
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name, syntaxReference, nameLocation, children, diagnostics)
         {
             _hasUsings = hasUsings;
             _hasExternAliases = hasExternAliases;

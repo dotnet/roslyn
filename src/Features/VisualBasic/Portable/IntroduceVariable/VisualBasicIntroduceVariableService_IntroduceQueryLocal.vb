@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -7,13 +9,18 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Friend Partial Class VisualBasicIntroduceVariableService
-        Protected Overrides Function IntroduceQueryLocalAsync(document As SemanticDocument,
-                                                         expression As ExpressionSyntax,
-                                                         allOccurrences As Boolean,
-                                                         cancellationToken As CancellationToken) As Task(Of Document)
+    Partial Friend Class VisualBasicIntroduceVariableService
+        Protected Overrides Function IntroduceQueryLocalAsync(
+                document As SemanticDocument,
+                expression As ExpressionSyntax,
+                allOccurrences As Boolean,
+                cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim newLocalNameToken = GenerateUniqueLocalName(document, expression, isConstant:=False, cancellationToken:=cancellationToken)
+            Dim oldOutermostQuery = expression.GetAncestorsOrThis(Of QueryExpressionSyntax)().LastOrDefault()
+
+            Dim newLocalNameToken = GenerateUniqueLocalName(
+                document, expression, isConstant:=False,
+                containerOpt:=oldOutermostQuery, cancellationToken:=cancellationToken)
             Dim newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken)
 
             Dim letClause = SyntaxFactory.LetClause(
@@ -22,7 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                             SyntaxFactory.ModifiedIdentifier(newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()))),
                         expression)).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Dim oldOutermostQuery = expression.GetAncestorsOrThis(Of QueryExpressionSyntax)().LastOrDefault()
             Dim matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken)
             Dim innermostClauses = New HashSet(Of QueryClauseSyntax)(
                 matches.Select(Function(expr) expr.GetAncestor(Of QueryClauseSyntax)()))
@@ -76,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return document.Document.WithSyntaxRoot(newRoot)
         End Function
 
-        Private Function GetNewQuery(
+        Private Shared Function GetNewQuery(
             oldQuery As QueryExpressionSyntax,
             oldClause As QueryClauseSyntax,
             newClause As QueryClauseSyntax,

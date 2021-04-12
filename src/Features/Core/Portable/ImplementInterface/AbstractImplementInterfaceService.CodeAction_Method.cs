@@ -1,7 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Linq;
-using System.Threading;
+#nullable disable
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -20,62 +23,33 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 DeclarationModifiers modifiers,
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
-                string memberName,
-                CancellationToken cancellationToken)
+                string memberName)
             {
-                var syntaxFacts = this.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
 
-                var updatedMethod = method.EnsureNonConflictingNames(
-                    this.State.ClassOrStructType, syntaxFacts, cancellationToken);
+                var updatedMethod = method.EnsureNonConflictingNames(State.ClassOrStructType, syntaxFacts);
 
-                updatedMethod = updatedMethod.RemoveInaccessibleAttributesAndAttributesOfType(
-                    accessibleWithin: this.State.ClassOrStructType,
-                    removeAttributeType: compilation.ComAliasNameAttributeType());
+                updatedMethod = updatedMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
+                    State.ClassOrStructType,
+                    AttributesToRemove(compilation));
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     updatedMethod,
                     accessibility: accessibility,
                     modifiers: modifiers,
-                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? updatedMethod : null,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(updatedMethod) : default,
                     name: memberName,
-                    statements: generateAbstractly ? null : new[] { CreateStatement(compilation, updatedMethod, cancellationToken) });
+                    statements: generateAbstractly
+                        ? default
+                        : ImmutableArray.Create(CreateStatement(compilation, updatedMethod)));
             }
 
-            private SyntaxNode CreateStatement(
-                Compilation compilation,
-                IMethodSymbol method,
-                CancellationToken cancellationToken)
+            private SyntaxNode CreateStatement(Compilation compilation, IMethodSymbol method)
             {
-                if (ThroughMember == null)
-                {
-                    var factory = this.Document.GetLanguageService<SyntaxGenerator>();
-                    return factory.CreateThrowNotImplementStatement(compilation);
-                }
-                else
-                {
-                    return CreateDelegationStatement(method);
-                }
-            }
-
-            private SyntaxNode CreateDelegationStatement(
-                IMethodSymbol method)
-            {
-                var factory = this.Document.GetLanguageService<SyntaxGenerator>();
-                var through = CreateThroughExpression(factory);
-
-                var memberName = method.IsGenericMethod
-                    ? factory.GenericName(method.Name, method.TypeArguments.OfType<ITypeSymbol>().ToList())
-                    : factory.IdentifierName(method.Name);
-
-                through = factory.MemberAccessExpression(
-                    through, memberName);
-
-                var arguments = factory.CreateArguments(method.Parameters.As<IParameterSymbol>());
-                var invocationExpression = factory.InvocationExpression(through, arguments);
-
-                return method.ReturnsVoid
-                    ? factory.ExpressionStatement(invocationExpression)
-                    : factory.ReturnStatement(invocationExpression);
+                var factory = Document.GetLanguageService<SyntaxGenerator>();
+                return ThroughMember == null
+                    ? factory.CreateThrowNotImplementedStatement(compilation)
+                    : factory.GenerateDelegateThroughMemberStatement(method, ThroughMember);
             }
         }
     }

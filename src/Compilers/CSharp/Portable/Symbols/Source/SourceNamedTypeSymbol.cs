@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,8 +11,9 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -20,21 +25,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 
         /// <summary>
-        /// A collection of type parameter constraints, populated when
-        /// constraints for the first type parameter are requested.
+        /// A collection of type parameter constraint types, populated when
+        /// constraint types for the first type parameter are requested.
         /// </summary>
-        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
+        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
+
+        /// <summary>
+        /// A collection of type parameter constraint kinds, populated when
+        /// constraint kinds for the first type parameter are requested.
+        /// </summary>
+        private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
         private string _lazyDocComment;
+        private string _lazyExpandedDocComment;
 
         private ThreeState _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown;
 
         protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
         {
             Location backupLocation = null;
-            var unusedDiagnostics = DiagnosticBag.GetInstance();
 
             foreach (SyntaxReference part in SyntaxReferences)
             {
@@ -57,33 +68,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (BaseTypeSyntax baseTypeSyntax in inheritedTypeDecls)
                 {
                     TypeSyntax t = baseTypeSyntax.Type;
-                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics);
+                    TypeSymbol bt = baseBinder.BindType(t, BindingDiagnosticBag.Discarded).Type;
 
-                    if (bt == @base)
+                    if (TypeSymbol.Equals(bt, @base, TypeCompareKind.ConsiderEverything2))
                     {
-                        unusedDiagnostics.Free();
                         return t.GetLocation();
                     }
                 }
             }
-            unusedDiagnostics.Free();
+
             return backupLocation;
         }
 
-        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
-            : base(containingSymbol, declaration, diagnostics)
+        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics, TupleExtraData tupleData = null)
+            : base(containingSymbol, declaration, diagnostics, tupleData)
         {
-            Debug.Assert(declaration.Kind == DeclarationKind.Struct ||
-                         declaration.Kind == DeclarationKind.Interface ||
-                         declaration.Kind == DeclarationKind.Enum ||
-                         declaration.Kind == DeclarationKind.Delegate ||
-                         declaration.Kind == DeclarationKind.Class);
+            switch (declaration.Kind)
+            {
+                case DeclarationKind.Struct:
+                case DeclarationKind.Interface:
+                case DeclarationKind.Enum:
+                case DeclarationKind.Delegate:
+                case DeclarationKind.Class:
+                case DeclarationKind.Record:
+                    break;
+                default:
+                    Debug.Assert(false, "bad declaration kind");
+                    break;
+            }
 
             if (containingSymbol.Kind == SymbolKind.NamedType)
             {
                 // Nested types are never unified.
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new SourceNamedTypeSymbol(ContainingType, declaration, BindingDiagnosticBag.Discarded, newData);
         }
 
         #region Syntax
@@ -99,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return ((BaseTypeDeclarationSyntax)node).Identifier;
                 default:
                     return default(SyntaxToken);
@@ -107,14 +131,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
+            ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
         #endregion
 
         #region Type Parameters
 
-        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
+        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(BindingDiagnosticBag diagnostics)
         {
             if (declaration.Arity == 0)
             {
@@ -132,11 +157,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var syntaxTree = syntaxRef.SyntaxTree;
 
                 TypeParameterListSyntax tpl;
-                switch (typeDecl.Kind())
+                SyntaxKind typeKind = typeDecl.Kind();
+                switch (typeKind)
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -150,14 +177,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
                 }
 
+                bool isInterfaceOrDelegate = typeKind == SyntaxKind.InterfaceDeclaration || typeKind == SyntaxKind.DelegateDeclaration;
                 var parameterBuilder = new List<TypeParameterBuilder>();
                 parameterBuilders1.Add(parameterBuilder);
                 int i = 0;
                 foreach (var tp in tpl.Parameters)
                 {
+                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None &&
+                        !isInterfaceOrDelegate)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                    }
+
                     var name = typeParameterNames[i];
                     var location = new SourceLocation(tp.Identifier);
                     var varianceKind = typeParameterVarianceKeywords[i];
+
+                    ReportTypeNamedRecord(tp.Identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
+
                     if (name == null)
                     {
                         name = typeParameterNames[i] = tp.Identifier.ValueText;
@@ -181,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
                             }
                         }
-                    next:;
+next:;
                     }
                     else if (!typeParameterMismatchReported)
                     {
@@ -217,35 +254,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters.AsImmutable();
         }
 
-        internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
+        /// <summary>
+        /// Returns the constraint types for the given type parameter.
+        /// </summary>
+        internal ImmutableArray<TypeWithAnnotations> GetTypeParameterConstraintTypes(int ordinal)
         {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
+            var constraintTypes = GetTypeParameterConstraintTypes();
+            return (constraintTypes.Length > 0) ? constraintTypes[ordinal] : ImmutableArray<TypeWithAnnotations>.Empty;
         }
 
-        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
+        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
         {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
-        }
-
-        private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
-        {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            var constraintTypes = _lazyTypeParameterConstraintTypes;
+            if (constraintTypes.IsDefault)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                GetTypeParameterConstraintKinds();
+
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintTypes, MakeTypeParameterConstraintTypes(diagnostics)))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
+                constraintTypes = _lazyTypeParameterConstraintTypes;
             }
 
-            var clauses = _lazyTypeParameterConstraints;
-            return (clauses.Length > 0) ? clauses[ordinal] : null;
+            return constraintTypes;
         }
 
-        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
+        /// <summary>
+        /// Returns the constraint kind for the given type parameter.
+        /// </summary>
+        internal TypeParameterConstraintKind GetTypeParameterConstraintKind(int ordinal)
+        {
+            var constraintKinds = GetTypeParameterConstraintKinds();
+            return (constraintKinds.Length > 0) ? constraintKinds[ordinal] : TypeParameterConstraintKind.None;
+        }
+
+        private ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+        {
+            var constraintKinds = _lazyTypeParameterConstraintKinds;
+            if (constraintKinds.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraintKinds, MakeTypeParameterConstraintKinds());
+                constraintKinds = _lazyTypeParameterConstraintKinds;
+            }
+
+            return constraintKinds;
+        }
+
+        private ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(BindingDiagnosticBag diagnostics)
         {
             var typeParameters = this.TypeParameters;
             var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
@@ -253,128 +311,424 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int arity = typeParameters.Length;
             if (arity > 0)
             {
+                bool skipPartialDeclarationsWithoutConstraintClauses = SkipPartialDeclarationsWithoutConstraintClauses();
+                ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses = null;
+
                 foreach (var decl in declaration.Declarations)
                 {
                     var syntaxRef = decl.SyntaxReference;
-                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
-                    if (constraintClauses.Count == 0)
+                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax(), out TypeParameterListSyntax typeParameterList);
+
+                    if (skipPartialDeclarationsWithoutConstraintClauses && constraintClauses.Count == 0)
                     {
                         continue;
                     }
 
                     var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntaxRef.SyntaxTree);
-                    var binder = binderFactory.GetBinder(constraintClauses[0]);
+                    Binder binder;
+                    ImmutableArray<TypeParameterConstraintClause> constraints;
 
-                    // Wrap binder from factory in a generic constraints specific binder 
-                    // to avoid checking constraints when binding type names.
-                    Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-                    binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+                    if (constraintClauses.Count == 0)
+                    {
+                        binder = binderFactory.GetBinder(typeParameterList.Parameters[0]);
 
-                    var constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
+                        constraints = binder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
+                    }
+                    else
+                    {
+                        binder = binderFactory.GetBinder(constraintClauses[0]);
+
+                        // Wrap binder from factory in a generic constraints specific binder 
+                        // to avoid checking constraints when binding type names.
+                        Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+                        binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, diagnostics, performOnlyCycleSafeValidation: false);
+                    }
+
                     Debug.Assert(constraints.Length == arity);
 
                     if (results.Length == 0)
                     {
-                        this.CheckConstraintTypesVisibility(decl.NameLocation, constraints, diagnostics);
                         results = constraints;
                     }
                     else
                     {
-                        // Constraints defined on multiple partial declarations.
-                        // Report any mismatched constraints.
-                        for (int i = 0; i < arity; i++)
-                        {
-                            if (!HaveSameConstraints(results[i], constraints[i]))
-                            {
-                                // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
-                                diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
-                            }
-                        }
+                        (otherPartialClauses ??= ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>>.GetInstance()).Add(constraints);
                     }
+                }
+
+                results = MergeConstraintTypesForPartialDeclarations(results, otherPartialClauses, diagnostics);
+
+                if (results.All(clause => clause.ConstraintTypes.IsEmpty))
+                {
+                    results = ImmutableArray<TypeParameterConstraintClause>.Empty;
+                }
+
+                otherPartialClauses?.Free();
+            }
+
+            return results.SelectAsArray(clause => clause.ConstraintTypes);
+        }
+
+        private bool SkipPartialDeclarationsWithoutConstraintClauses()
+        {
+            foreach (var decl in declaration.Declarations)
+            {
+                if (GetConstraintClauses((CSharpSyntaxNode)decl.SyntaxReference.GetSyntax(), out _).Count != 0)
+                {
+                    return true;
                 }
             }
 
-            return results;
+            return false;
         }
 
-        private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node)
+        private ImmutableArray<TypeParameterConstraintKind> MakeTypeParameterConstraintKinds()
+        {
+            var typeParameters = this.TypeParameters;
+            var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
+
+            int arity = typeParameters.Length;
+            if (arity > 0)
+            {
+                bool skipPartialDeclarationsWithoutConstraintClauses = SkipPartialDeclarationsWithoutConstraintClauses();
+                ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses = null;
+
+                foreach (var decl in declaration.Declarations)
+                {
+                    var syntaxRef = decl.SyntaxReference;
+                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax(), out TypeParameterListSyntax typeParameterList);
+
+                    if (skipPartialDeclarationsWithoutConstraintClauses && constraintClauses.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntaxRef.SyntaxTree);
+                    Binder binder;
+                    ImmutableArray<TypeParameterConstraintClause> constraints;
+
+                    if (constraintClauses.Count == 0)
+                    {
+                        binder = binderFactory.GetBinder(typeParameterList.Parameters[0]);
+                        constraints = binder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
+                    }
+                    else
+                    {
+                        binder = binderFactory.GetBinder(constraintClauses[0]);
+
+                        // Wrap binder from factory in a generic constraints specific binder 
+                        // to avoid checking constraints when binding type names.
+                        // Also, suppress type argument binding in constraint types, this helps to avoid cycles while we figure out constraint kinds. 
+                        Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+                        binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressTypeArgumentBinding);
+
+                        // We will recompute this diagnostics more accurately later, when binding without BinderFlags.SuppressTypeArgumentBinding  
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, BindingDiagnosticBag.Discarded, performOnlyCycleSafeValidation: true);
+                    }
+
+                    Debug.Assert(constraints.Length == arity);
+
+                    if (results.Length == 0)
+                    {
+                        results = constraints;
+                    }
+                    else
+                    {
+                        (otherPartialClauses ??= ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>>.GetInstance()).Add(constraints);
+                    }
+                }
+
+                results = MergeConstraintKindsForPartialDeclarations(results, otherPartialClauses);
+                results = ConstraintsHelper.AdjustConstraintKindsBasedOnConstraintTypes(this, typeParameters, results);
+
+                if (results.All(clause => clause.Constraints == TypeParameterConstraintKind.None))
+                {
+                    results = ImmutableArray<TypeParameterConstraintClause>.Empty;
+                }
+
+                otherPartialClauses?.Free();
+            }
+
+            return results.SelectAsArray(clause => clause.Constraints);
+        }
+
+        private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node, out TypeParameterListSyntax typeParameterList)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                    return ((TypeDeclarationSyntax)node).ConstraintClauses;
+                case SyntaxKind.RecordDeclaration:
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
+                    typeParameterList = typeDeclaration.TypeParameterList;
+                    return typeDeclaration.ConstraintClauses;
                 case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)node).ConstraintClauses;
+                    var delegateDeclaration = (DelegateDeclarationSyntax)node;
+                    typeParameterList = delegateDeclaration.TypeParameterList;
+                    return delegateDeclaration.ConstraintClauses;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 
-        private static bool HaveSameConstraints(TypeParameterConstraintClause clause1, TypeParameterConstraintClause clause2)
+        /// <summary>
+        /// Note, only nullability aspects are merged if possible, other mismatches are treated as failures.
+        /// </summary>
+        private ImmutableArray<TypeParameterConstraintClause> MergeConstraintTypesForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses,
+                                                                                                         ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses,
+                                                                                                         BindingDiagnosticBag diagnostics)
         {
-            if ((clause1 == null) || (clause2 == null))
+            if (otherPartialClauses == null)
             {
-                return (clause1 == null) && (clause2 == null);
+                return constraintClauses;
             }
 
-            if (clause1.Constraints != clause2.Constraints)
-            {
-                return false;
-            }
+            ArrayBuilder<TypeParameterConstraintClause> builder = null;
+            var typeParameters = TypeParameters;
+            int arity = typeParameters.Length;
 
-            var constraintTypes1 = clause1.ConstraintTypes;
-            var constraintTypes2 = clause2.ConstraintTypes;
+            Debug.Assert(constraintClauses.Length == arity);
 
-            int n = constraintTypes1.Length;
-            if (constraintTypes2.Length != n)
+            for (int i = 0; i < arity; i++)
             {
-                return false;
-            }
+                var constraint = constraintClauses[i];
 
-            // Construct a HashSet<T> for one of the sets
-            // to allow O(n) comparison of the two sets.
-            var setTypes2 = new HashSet<TypeSymbol>();
-            foreach (var constraintType in constraintTypes2)
-            {
-                // Binder should have dropped any duplicates.
-                Debug.Assert(!setTypes2.Contains(constraintType));
-                setTypes2.Add(constraintType);
-            }
+                ImmutableArray<TypeWithAnnotations> originalConstraintTypes = constraint.ConstraintTypes;
+                ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes = null;
+                SmallDictionary<TypeWithAnnotations, int> originalConstraintTypesMap = null;
 
-            foreach (var constraintType in constraintTypes1)
-            {
-                if (!setTypes2.Contains(constraintType))
+                // Constraints defined on multiple partial declarations.
+                // Report any mismatched constraints.
+                bool report = (GetTypeParameterConstraintKind(i) & TypeParameterConstraintKind.PartialMismatch) != 0;
+                foreach (ImmutableArray<TypeParameterConstraintClause> otherPartialConstraints in otherPartialClauses)
                 {
-                    return false;
+                    if (!mergeConstraints(originalConstraintTypes, ref originalConstraintTypesMap, ref mergedConstraintTypes, otherPartialConstraints[i]))
+                    {
+                        report = true;
+                    }
+                }
+
+                if (report)
+                {
+                    // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
+                    diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
+                }
+
+                if (mergedConstraintTypes != null)
+                {
+#if DEBUG
+                    Debug.Assert(originalConstraintTypes.Length == mergedConstraintTypes.Count);
+
+                    for (int j = 0; j < originalConstraintTypes.Length; j++)
+                    {
+                        Debug.Assert(originalConstraintTypes[j].Equals(mergedConstraintTypes[j], TypeCompareKind.ObliviousNullableModifierMatchesAny));
+                    }
+#endif
+                    if (builder == null)
+                    {
+                        builder = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(constraintClauses.Length);
+                        builder.AddRange(constraintClauses);
+                    }
+
+                    builder[i] = TypeParameterConstraintClause.Create(constraint.Constraints,
+                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes);
                 }
             }
 
-            return true;
-        }
-
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
-        {
-            get
+            if (builder != null)
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                constraintClauses = builder.ToImmutableAndFree();
+            }
+
+            return constraintClauses;
+
+            static bool mergeConstraints(ImmutableArray<TypeWithAnnotations> originalConstraintTypes,
+                                         ref SmallDictionary<TypeWithAnnotations, int> originalConstraintTypesMap, ref ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes,
+                                         TypeParameterConstraintClause clause)
+            {
+                bool result = true;
+
+                if (originalConstraintTypes.Length == 0)
+                {
+                    if (clause.ConstraintTypes.Length == 0)
+                    {
+                        return result;
+                    }
+
+                    return false;
+                }
+                else if (clause.ConstraintTypes.Length == 0)
+                {
+                    return false;
+                }
+
+                originalConstraintTypesMap ??= toDictionary(originalConstraintTypes,
+                                                            TypeWithAnnotations.EqualsComparer.IgnoreNullableModifiersForReferenceTypesComparer);
+                SmallDictionary<TypeWithAnnotations, int> clauseConstraintTypesMap = toDictionary(clause.ConstraintTypes, originalConstraintTypesMap.Comparer);
+
+                foreach (int index1 in originalConstraintTypesMap.Values)
+                {
+                    TypeWithAnnotations constraintType1 = mergedConstraintTypes?[index1] ?? originalConstraintTypes[index1];
+                    int index2;
+
+                    if (!clauseConstraintTypesMap.TryGetValue(constraintType1, out index2))
+                    {
+                        // No matching type
+                        result = false;
+                        continue;
+                    }
+
+                    TypeWithAnnotations constraintType2 = clause.ConstraintTypes[index2];
+
+                    if (!constraintType1.Equals(constraintType2, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                    {
+                        // Nullability mismatch that doesn't involve oblivious
+                        result = false;
+                        continue;
+                    }
+
+                    if (!constraintType1.Equals(constraintType2, TypeCompareKind.ConsiderEverything))
+                    {
+                        // Mismatch with oblivious, merge
+                        if (mergedConstraintTypes == null)
+                        {
+                            mergedConstraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(originalConstraintTypes.Length);
+                            mergedConstraintTypes.AddRange(originalConstraintTypes);
+                        }
+
+                        mergedConstraintTypes[index1] = constraintType1.MergeEquivalentTypes(constraintType2, VarianceKind.None);
+                    }
+                }
+
+                foreach (var constraintType in clauseConstraintTypesMap.Keys)
+                {
+                    if (!originalConstraintTypesMap.ContainsKey(constraintType))
+                    {
+                        result = false;
+                        break;
+                    }
+                }
+
+                return result;
+            }
+
+            static SmallDictionary<TypeWithAnnotations, int> toDictionary(ImmutableArray<TypeWithAnnotations> constraintTypes, IEqualityComparer<TypeWithAnnotations> comparer)
+            {
+                var result = new SmallDictionary<TypeWithAnnotations, int>(comparer);
+
+                for (int i = constraintTypes.Length - 1; i >= 0; i--)
+                {
+                    result[constraintTypes[i]] = i; // Use the first type among the duplicates as the source of the nullable information
+                }
+
+                return result;
             }
         }
 
-        internal override bool HasTypeArgumentsCustomModifiers
+        /// <summary>
+        /// Note, only nullability aspects are merged if possible, other mismatches are treated as failures.
+        /// </summary>
+        private ImmutableArray<TypeParameterConstraintClause> MergeConstraintKindsForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses,
+                                                                                                         ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses)
         {
-            get
+            if (otherPartialClauses == null)
             {
-                return false;
+                return constraintClauses;
+            }
+
+            ArrayBuilder<TypeParameterConstraintClause> builder = null;
+            var typeParameters = TypeParameters;
+            int arity = typeParameters.Length;
+
+            Debug.Assert(constraintClauses.Length == arity);
+
+            for (int i = 0; i < arity; i++)
+            {
+                var constraint = constraintClauses[i];
+
+                TypeParameterConstraintKind mergedKind = constraint.Constraints;
+                ImmutableArray<TypeWithAnnotations> originalConstraintTypes = constraint.ConstraintTypes;
+
+                foreach (ImmutableArray<TypeParameterConstraintClause> otherPartialConstraints in otherPartialClauses)
+                {
+                    mergeConstraints(ref mergedKind, originalConstraintTypes, otherPartialConstraints[i]);
+                }
+
+                if (constraint.Constraints != mergedKind)
+                {
+                    Debug.Assert((constraint.Constraints & (TypeParameterConstraintKind.AllNonNullableKinds | TypeParameterConstraintKind.NotNull)) ==
+                                 (mergedKind & (TypeParameterConstraintKind.AllNonNullableKinds | TypeParameterConstraintKind.NotNull)));
+                    Debug.Assert((mergedKind & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
+                                 (constraint.Constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) != 0);
+                    Debug.Assert((constraint.Constraints & TypeParameterConstraintKind.AllReferenceTypeKinds) == (mergedKind & TypeParameterConstraintKind.AllReferenceTypeKinds) ||
+                                 (constraint.Constraints & TypeParameterConstraintKind.AllReferenceTypeKinds) == TypeParameterConstraintKind.ReferenceType);
+
+                    if (builder == null)
+                    {
+                        builder = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(constraintClauses.Length);
+                        builder.AddRange(constraintClauses);
+                    }
+
+                    builder[i] = TypeParameterConstraintClause.Create(mergedKind, originalConstraintTypes);
+                }
+            }
+
+            if (builder != null)
+            {
+                constraintClauses = builder.ToImmutableAndFree();
+            }
+
+            return constraintClauses;
+
+            static void mergeConstraints(ref TypeParameterConstraintKind mergedKind, ImmutableArray<TypeWithAnnotations> originalConstraintTypes, TypeParameterConstraintClause clause)
+            {
+                if ((mergedKind & (TypeParameterConstraintKind.AllNonNullableKinds | TypeParameterConstraintKind.NotNull)) != (clause.Constraints & (TypeParameterConstraintKind.AllNonNullableKinds | TypeParameterConstraintKind.NotNull)))
+                {
+                    mergedKind |= TypeParameterConstraintKind.PartialMismatch;
+                }
+
+                if ((mergedKind & TypeParameterConstraintKind.ReferenceType) != 0 && (clause.Constraints & TypeParameterConstraintKind.ReferenceType) != 0)
+                {
+                    // Try merging nullability of a 'class' constraint
+                    TypeParameterConstraintKind clause1Constraints = mergedKind & TypeParameterConstraintKind.AllReferenceTypeKinds;
+                    TypeParameterConstraintKind clause2Constraints = clause.Constraints & TypeParameterConstraintKind.AllReferenceTypeKinds;
+                    if (clause1Constraints != clause2Constraints)
+                    {
+                        if (clause1Constraints == TypeParameterConstraintKind.ReferenceType) // Oblivious
+                        {
+                            // Take nullability from clause2
+                            mergedKind = (mergedKind & (~TypeParameterConstraintKind.AllReferenceTypeKinds)) | clause2Constraints;
+                        }
+                        else if (clause2Constraints != TypeParameterConstraintKind.ReferenceType)
+                        {
+                            // Neither nullability is oblivious and they do not match. Cannot merge.
+                            mergedKind |= TypeParameterConstraintKind.PartialMismatch;
+                        }
+                    }
+                }
+
+                if (originalConstraintTypes.Length == 0 && clause.ConstraintTypes.Length == 0)
+                {
+                    // Try merging nullability of implied 'object' constraint
+                    if (((mergedKind | clause.Constraints) & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor)) == 0 &&
+                        (mergedKind & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) != 0 && // 'object~'
+                        (clause.Constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0)   // 'object?' 
+                    {
+                        // Merged value is 'object?'
+                        mergedKind &= ~TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType;
+                    }
+                }
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        internal sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
-                return CreateEmptyTypeArgumentsCustomModifiers();
+                return GetTypeParametersAsTypeArguments();
             }
         }
 
@@ -384,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyTypeParameters.IsDefault)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters, MakeTypeParameters(diagnostics)))
                     {
                         AddDeclarationDiagnostics(diagnostics);
@@ -478,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal TypeWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private TypeWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -526,6 +880,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CodeAnalysisEmbeddedAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+            }
+
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
             {
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
@@ -543,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ObsoleteAttributeData obsoleteData;
-            if (EarlyDecodeDeprecatedOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
             {
                 if (obsoleteData != null)
                 {
@@ -623,6 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -630,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.AttributeUsageAttribute))
             {
-                DecodeAttributeUsageAttribute(attribute, arguments.AttributeSyntaxOpt, diagnose: true, diagnosticsOpt: arguments.Diagnostics);
+                DecodeAttributeUsageAttribute(attribute, arguments.AttributeSyntaxOpt, diagnose: true, diagnosticsOpt: diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultMemberAttribute))
             {
@@ -642,11 +1012,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
-                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
             {
-                arguments.GetOrCreateData<TypeWellKnownAttributeData>().GuidString = attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().GuidString = attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
@@ -655,6 +1025,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SerializableAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSerializableAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.StructLayoutAttribute))
             {
@@ -667,11 +1041,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ClassInterfaceAttribute))
             {
-                attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InterfaceTypeAttribute))
             {
-                attribute.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                attribute.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.WindowsRuntimeImportAttribute))
             {
@@ -680,22 +1054,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.RequiredAttributeAttribute))
             {
                 // CS1608: The Required attribute is not permitted on C# types
-                arguments.Diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NullableContextAttribute | ReservedAttributes.NativeIntegerAttribute | ReservedAttributes.CaseSensitiveExtensionAttribute))
             {
-                // ExtensionAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
-            {
-                // DynamicAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
                 || attribute.IsTargetAttribute(this, AttributeDescription.SecuritySafeCriticalAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSecurityCriticalAttributes = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                CSharpAttributeData.DecodeSkipLocalsInitAttribute<TypeWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
             else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(this, AttributeDescription.TypeIdentifierAttribute))
             {
@@ -717,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                 {
-                    GetAttributes();
+                    CheckPresenceOfTypeIdentifierAttribute();
 
                     if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                     {
@@ -730,8 +1102,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private void CheckPresenceOfTypeIdentifierAttribute()
+        {
+            // Have we already decoded well-known attributes?
+            if (_lazyCustomAttributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
+            {
+                return;
+            }
+
+            // We want this function to be as cheap as possible, it is called for every top level type
+            // and we don't want to bind attributes attached to the declaration unless there is a chance
+            // that one of them is TypeIdentifier attribute.
+            ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists = GetAttributeDeclarations();
+
+            foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
+            {
+                var syntaxTree = list.Node.SyntaxTree;
+                QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickAttributeChecker;
+
+                foreach (AttributeListSyntax attrList in list)
+                {
+                    foreach (AttributeSyntax attr in attrList.Attributes)
+                    {
+                        if (checker.IsPossibleMatch(attr, QuickAttributes.TypeIdentifier))
+                        {
+                            // This attribute syntax might be an application of TypeIdentifierAttribute.
+                            // Let's bind it.
+                            // For simplicity we bind all attributes.
+                            GetAttributes();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
         // Process the specified AttributeUsage attribute on the given ownerSymbol
-        private AttributeUsageInfo DecodeAttributeUsageAttribute(CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, DiagnosticBag diagnosticsOpt = null)
+        private AttributeUsageInfo DecodeAttributeUsageAttribute(CSharpAttributeData attribute, AttributeSyntax node, bool diagnose, BindingDiagnosticBag diagnosticsOpt = null)
         {
             Debug.Assert(diagnose == (diagnosticsOpt != null));
             Debug.Assert(!attribute.HasErrors);
@@ -779,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypedConstant argument = attribute.CommonConstructorArguments[0];
                 Debug.Assert(argument.Kind == TypedConstantKind.Type);
 
-                var coClassType = argument.Value as NamedTypeSymbol;
+                var coClassType = argument.ValueInternal as NamedTypeSymbol;
                 if ((object)coClassType != null && coClassType.TypeKind == TypeKind.Class)
                 {
                     arguments.GetOrCreateData<TypeWellKnownAttributeData>().ComImportCoClass = coClassType;
@@ -805,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, DiagnosticBag diagnostics)
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
             Debug.Assert(!attribute.HasErrors);
@@ -837,6 +1244,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasCodeAnalysisEmbeddedAttribute
+        {
+            get
+            {
+                var data = GetEarlyDecodedWellKnownAttributeData();
+                return data != null && data.HasCodeAnalysisEmbeddedAttribute;
+            }
+        }
+
         internal sealed override bool ShouldAddWinRTMembers
         {
             get { return false; }
@@ -851,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsSerializable
+        public sealed override bool IsSerializable
         {
             get
             {
@@ -860,26 +1276,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                return data?.HasSkipLocalsInitAttribute != true && (ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed);
+            }
+        }
+
+        internal override bool IsDirectlyExcludedFromCodeCoverage =>
+            GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
+
         private bool HasInstanceFields()
         {
-            var members = this.GetMembersUnordered();
-            for (var i = 0; i < members.Length; i++)
+            var fields = this.GetFieldsToEmit();
+            foreach (var field in fields)
             {
-                var m = members[i];
-                if (!m.IsStatic)
+                if (!field.IsStatic)
                 {
-                    switch (m.Kind)
-                    {
-                        case SymbolKind.Field:
-                            return true;
-
-                        case SymbolKind.Event:
-                            if (((EventSymbol)m).AssociatedField != null)
-                            {
-                                return true;
-                            }
-                            break;
-                    }
+                    return true;
                 }
             }
 
@@ -968,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -1054,9 +1470,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// These won't be returned by GetAttributes on source methods, but they
         /// will be returned by GetAttributes on metadata symbols.
         /// </remarks>
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 
@@ -1065,6 +1481,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
+            }
+
+            if (this.IsRefLikeType)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
+
+                var obsoleteData = ObsoleteAttributeData;
+                Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
+
+                // If user specified an Obsolete attribute, we cannot emit ours.
+                // NB: we do not check the kind of deprecation. 
+                //     we will not emit Obsolete even if Deprecated or Experimental was used.
+                //     we do not want to get into a scenario where different kinds of deprecation are combined together.
+                //
+                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes: true))
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
+                        ImmutableArray.Create(
+                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker), // message
+                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
+                        isOptionalUse: true));
+                }
+            }
+
+            if (this.IsReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
             if (this.Indexers.Any())
@@ -1076,22 +1519,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                     ImmutableArray.Create(defaultMemberNameConstant)));
             }
-
-            NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
-            if ((object)baseType != null)
-            {
-                if (baseType.ContainsDynamic())
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
-                }
-
-                if (baseType.ContainsTuple())
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
-                }
-            }
         }
 
         #endregion
+
+        internal override NamedTypeSymbol AsNativeInteger()
+        {
+            Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
+
+            return ContainingAssembly.GetNativeIntegerType(this);
+        }
+
+        internal override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        {
+            return t2 is NativeIntegerTypeSymbol nativeInteger ?
+                nativeInteger.Equals(this, comparison) :
+                base.Equals(t2, comparison);
+        }
     }
 }

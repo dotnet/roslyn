@@ -1,12 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -17,155 +20,129 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// It ensures the following for the lifetime of analyzer host:
     /// 1) <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> is invoked only once per-analyzer.
     /// 2) <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is invoked only once per-analyzer.
-    /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-compilation per-<see cref="AnalyzerAndOptions"/>
+    /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-compilation per-analyzer and analyzer options.
     /// </summary>
-    /// <remarks>
-    /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/>
-    /// out of the AnalyzerManager and into analyzer drivers.
-    /// </remarks>
     internal partial class AnalyzerManager
     {
-        /// <summary>
-        /// Gets the default instance of the AnalyzerManager for the lifetime of the analyzer host process.
-        /// </summary>
-        public static readonly AnalyzerManager Instance = new AnalyzerManager();
+        // This cache stores the analyzer execution context per-analyzer (i.e. registered actions, supported descriptors, etc.).
+        private readonly ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
 
-        // This map stores the tasks to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
-        // These are run only once per every analyzer.
-        private readonly Dictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> _sessionScopeMap =
-            new Dictionary<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>>(capacity: 5);
-
-        // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
-        // Compilation start actions will get executed once per-each AnalyzerAndOptions as user might want to return different set of custom actions for each compilation/analyzer options.
-        private readonly Dictionary<AnalyzerAndOptions, ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>> _compilationScopeMap =
-            new Dictionary<AnalyzerAndOptions, ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>>(capacity: 5);
-
-        /// <summary>
-        /// Cache descriptors for each diagnostic analyzer. We do this since <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> is
-        /// a property rather than metadata. We expect it to be cheap and immutable, but we can't force them to be so, we cache them
-        /// and ask only once.
-        /// </summary>
-        private readonly Dictionary<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>> _descriptorMap =
-            new Dictionary<DiagnosticAnalyzer, Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>>>(capacity: 5);
-
-        private ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> GetOrCreateCompilationActionsCache(AnalyzerAndOptions analyzerAndOptions)
+        public AnalyzerManager(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            lock (_compilationScopeMap)
-            {
-                ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> value;
-                if (_compilationScopeMap.TryGetValue(analyzerAndOptions, out value))
-                {
-                    return value;
-                }
+            _analyzerExecutionContextMap = CreateAnalyzerExecutionContextMap(analyzers);
+        }
 
-                value = new ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>();
-                _compilationScopeMap.Add(analyzerAndOptions, value);
-                return value;
+        public AnalyzerManager(DiagnosticAnalyzer analyzer)
+        {
+            _analyzerExecutionContextMap = CreateAnalyzerExecutionContextMap(SpecializedCollections.SingletonEnumerable(analyzer));
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> CreateAnalyzerExecutionContextMap(IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerExecutionContext>();
+            foreach (var analyzer in analyzers)
+            {
+                builder.Add(analyzer, new AnalyzerExecutionContext(analyzer));
             }
+
+            return builder.ToImmutable();
         }
 
-        private void ClearCompilationScopeMap(AnalyzerAndOptions analyzerAndOptions, AnalyzerExecutor analyzerExecutor)
-        {
-            ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> compilationActionsCache;
-            lock (_compilationScopeMap)
-            {
-                if (_compilationScopeMap.TryGetValue(analyzerAndOptions, out compilationActionsCache))
-                {
-                    compilationActionsCache.Remove(analyzerExecutor.Compilation);
-                }
-            }
-        }
+        private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
 
-        private Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
-            AnalyzerAndOptions analyzerAndOptions,
-            HostSessionStartAnalysisScope sessionScope,
-            AnalyzerExecutor analyzerExecutor)
-        {
-            Func<Compilation, Task<HostCompilationStartAnalysisScope>> getTask = comp =>
-            {
-                return Task.Run(() =>
-                {
-                    var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
-                    analyzerExecutor.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope);
-                    return compilationAnalysisScope;
-                }, analyzerExecutor.CancellationToken);
-            };
-
-            var callback = new ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>.CreateValueCallback(getTask);
-            var compilationActionsCache = GetOrCreateCompilationActionsCache(analyzerAndOptions);
-            return compilationActionsCache.GetValue(analyzerExecutor.Compilation, callback);
-        }
-
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
         {
-            var analyzerAndOptions = new AnalyzerAndOptions(analyzer, analyzerExecutor.AnalyzerOptions);
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+        }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
+            HostSessionStartAnalysisScope sessionScope,
+            AnalyzerExecutor analyzerExecutor,
+            AnalyzerExecutionContext analyzerExecutionContext)
+        {
             try
             {
-                return await GetCompilationAnalysisScopeCoreAsync(analyzerAndOptions, sessionScope, analyzerExecutor).ConfigureAwait(false);
+                return await analyzerExecutionContext.GetCompilationAnalysisScopeAsync(sessionScope, analyzerExecutor).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
                 // Task to compute the scope was cancelled.
-                // Clear the entry in scope map for analyzer, so we can attempt a retry.
-                ClearCompilationScopeMap(analyzerAndOptions, analyzerExecutor);
+                // Clear the compilation scope for analyzer, so we can attempt a retry.
+                analyzerExecutionContext.ClearCompilationScopeTask();
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
-                return await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
+                return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
             }
         }
 
-        private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask(
+        private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
+            ISymbol symbol,
             DiagnosticAnalyzer analyzer,
+            ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
             AnalyzerExecutor analyzerExecutor)
         {
-            lock (_sessionScopeMap)
-            {
-                return GetSessionAnalysisScopeTask_NoLock(analyzer, analyzerExecutor);
-            }
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            return await GetSymbolAnalysisScopeCoreAsync(symbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
-        private Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask_NoLock(
-            DiagnosticAnalyzer analyzer,
-            AnalyzerExecutor analyzerExecutor)
-        {
-            Task<HostSessionStartAnalysisScope> task;
-            if (_sessionScopeMap.TryGetValue(analyzer, out task))
-            {
-                return task;
-            }
-
-            task = Task.Run(() =>
-            {
-                var sessionScope = new HostSessionStartAnalysisScope();
-                analyzerExecutor.ExecuteInitializeMethod(analyzer, sessionScope);
-                return sessionScope;
-            }, analyzerExecutor.CancellationToken);
-
-            _sessionScopeMap.Add(analyzer, task);
-            return task;
-        }
-
-        private async Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
-            DiagnosticAnalyzer analyzer,
-            AnalyzerExecutor analyzerExecutor)
+        private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeCoreAsync(
+            ISymbol symbol,
+            ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
+            AnalyzerExecutor analyzerExecutor,
+            AnalyzerExecutionContext analyzerExecutionContext)
         {
             try
             {
-                var task = GetSessionAnalysisScopeTask(analyzer, analyzerExecutor);
+                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, symbolStartActions, analyzerExecutor).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Task to compute the scope was cancelled.
+                // Clear the symbol scope for analyzer, so we can attempt a retry.
+                analyzerExecutionContext.ClearSymbolScopeTask(symbol);
+
+                analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
+                return await GetSymbolAnalysisScopeCoreAsync(symbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+            }
+        }
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        private async ValueTask<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
+            DiagnosticAnalyzer analyzer,
+            AnalyzerExecutor analyzerExecutor)
+        {
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            return await GetSessionAnalysisScopeCoreAsync(analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+        }
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        private async ValueTask<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
+            AnalyzerExecutor analyzerExecutor,
+            AnalyzerExecutionContext analyzerExecutionContext)
+        {
+            try
+            {
+                var task = analyzerExecutionContext.GetSessionAnalysisScopeAsync(analyzerExecutor);
                 return await task.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
                 // Task to compute the scope was cancelled.
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
-                ClearSessionScopeMap(analyzer);
+                analyzerExecutionContext.ClearSessionScopeTask();
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
-                return await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                return await GetSessionAnalysisScopeCoreAsync(analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
             }
         }
 
@@ -174,10 +151,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// The returned actions include the actions registered during <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> method as well as
         /// the actions registered during <see cref="CompilationStartAnalyzerAction"/> for the given compilation.
         /// </summary>
-        public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
+            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
                 return compilationScope.GetAnalyzerActions(analyzer);
@@ -186,6 +164,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return sessionScope.GetAnalyzerActions(analyzer);
         }
 
+        /// <summary>
+        /// Get the per-symbol analyzer actions to be executed by the given analyzer.
+        /// These are the actions registered during the various RegisterSymbolStartAction method invocations for the given symbol on different analysis contexts.
+        /// </summary>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            if (analyzerActions.SymbolStartActionsCount > 0)
+            {
+                var filteredSymbolStartActions = getFilteredActionsByKind(analyzerActions.SymbolStartActions);
+                if (filteredSymbolStartActions.Length > 0)
+                {
+                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, analyzer, filteredSymbolStartActions, analyzerExecutor).ConfigureAwait(false);
+                    return symbolScope.GetAnalyzerActions(analyzer);
+                }
+            }
+
+            return AnalyzerActions.Empty;
+
+            ImmutableArray<SymbolStartAnalyzerAction> getFilteredActionsByKind(ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions)
+            {
+                ArrayBuilder<SymbolStartAnalyzerAction>? filteredActionsBuilderOpt = null;
+                for (int i = 0; i < symbolStartActions.Length; i++)
+                {
+                    var symbolStartAction = symbolStartActions[i];
+                    if (symbolStartAction.Kind != symbol.Kind)
+                    {
+                        if (filteredActionsBuilderOpt == null)
+                        {
+                            filteredActionsBuilderOpt = ArrayBuilder<SymbolStartAnalyzerAction>.GetInstance();
+                            filteredActionsBuilderOpt.AddRange(symbolStartActions, i);
+                        }
+                    }
+                    else if (filteredActionsBuilderOpt != null)
+                    {
+                        filteredActionsBuilderOpt.Add(symbolStartAction);
+                    }
+                }
+
+                return filteredActionsBuilderOpt != null ? filteredActionsBuilderOpt.ToImmutableAndFree() : symbolStartActions;
+            }
+        }
         /// <summary>
         /// Returns true if the given analyzer has enabled concurrent execution by invoking <see cref="AnalysisContext.EnableConcurrentExecution"/>.
         /// </summary>
@@ -205,47 +226,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
         }
 
-        /// <summary>
-        /// Compute <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> and exception handler for the given <paramref name="analyzer"/>.
-        /// </summary>
-        private static Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> ComputeDescriptorsAndHandler(
-            DiagnosticAnalyzer analyzer,
-            AnalyzerExecutor analyzerExecutor)
+        private static void ForceLocalizableStringExceptions(LocalizableString localizableString, EventHandler<Exception> handler)
         {
-            var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
-
-            // Catch Exception from analyzer.SupportedDiagnostics
-            analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () =>
+            if (localizableString.CanThrowExceptions)
             {
-                var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
-                if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
-                {
-                    supportedDiagnostics = supportedDiagnosticsLocal;
-                }
-            });
-
-            EventHandler<Exception> handler = null;
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
-            if (onAnalyzerException != null)
-            {
-                handler = new EventHandler<Exception>((sender, ex) =>
-                {
-                    var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
-                    onAnalyzerException(ex, analyzer, diagnostic);
-                });
-
-                // Subscribe for exceptions from lazily evaluated localizable strings in the descriptors.
-                // REVIEW: find out better way to handle these exception handlers. right now, it can leak
-                //         so easily unless ClearAnalyzerState is called from host properly
-                foreach (var descriptor in supportedDiagnostics)
-                {
-                    descriptor.Title.OnException += handler;
-                    descriptor.MessageFormat.OnException += handler;
-                    descriptor.Description.OnException += handler;
-                }
+                localizableString.OnException += handler;
+                localizableString.ToString();
+                localizableString.OnException -= handler;
             }
-
-            return Tuple.Create(supportedDiagnostics, handler);
         }
 
         /// <summary>
@@ -255,130 +243,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
-            // Check if the value has already been computed and stored.
-            Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> value;
-            lock (_descriptorMap)
-            {
-                // REVIEW: how one knows exception handler is same as the one cached?
-                if (_descriptorMap.TryGetValue(analyzer, out value))
-                {
-                    return value.Item1;
-                }
-            }
-
-            // Otherwise, compute the value.
-            // We do so outside the lock statement as we are calling into user code, which may be a long running operation.
-            value = ComputeDescriptorsAndHandler(analyzer, analyzerExecutor);
-
-            lock (_descriptorMap)
-            {
-                // Check if another thread already stored the computed value.
-                Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> storedValue;
-                if (_descriptorMap.TryGetValue(analyzer, out storedValue))
-                {
-                    // If so, we return the stored value.
-                    value = storedValue;
-                }
-                else
-                {
-                    // Otherwise, store the value computed here.
-                    _descriptorMap.Add(analyzer, value);
-                }
-            }
-
-            return value.Item1;
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            return analyzerExecutionContext.GetOrComputeDiagnosticDescriptors(analyzer, analyzerExecutor);
         }
 
         /// <summary>
-        /// This method should be invoked when the analyzer host is disposing off the analyzers.
-        /// It unregisters the exception handler hooked up to the descriptors' LocalizableString fields and subsequently removes the cached descriptors for the analyzers.
+        /// Return <see cref="DiagnosticSuppressor.SupportedSuppressions"/> of given <paramref name="suppressor"/>.
         /// </summary>
-        internal void ClearAnalyzerState(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        public ImmutableArray<SuppressionDescriptor> GetSupportedSuppressionDescriptors(
+            DiagnosticSuppressor suppressor,
+            AnalyzerExecutor analyzerExecutor)
         {
-            if (!analyzers.IsDefaultOrEmpty)
-            {
-                ClearDescriptorState(analyzers);
-                ClearAnalysisScopeState(analyzers);
-            }
-        }
-
-        private void ClearDescriptorState(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            lock (_descriptorMap)
-            {
-                foreach (var analyzer in analyzers)
-                {
-                    // Host is disposing the analyzer instance, unsubscribe analyzer exception handlers.
-                    Tuple<ImmutableArray<DiagnosticDescriptor>, EventHandler<Exception>> value;
-                    if (_descriptorMap.TryGetValue(analyzer, out value))
-                    {
-                        var descriptors = value.Item1;
-                        var handler = value.Item2;
-                        if (handler != null)
-                        {
-                            foreach (var descriptor in descriptors)
-                            {
-                                descriptor.Title.OnException -= handler;
-                                descriptor.MessageFormat.OnException -= handler;
-                                descriptor.Description.OnException -= handler;
-                            }
-                        }
-
-                        _descriptorMap.Remove(analyzer);
-                    }
-                }
-            }
-        }
-
-        private void ClearSessionScopeMap(DiagnosticAnalyzer analyzer)
-        {
-            lock (_sessionScopeMap)
-            {
-                _sessionScopeMap.Remove(analyzer);
-            }
-        }
-
-        private void ClearAnalysisScopeState(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            // Clear session scope.
-            lock (_sessionScopeMap)
-            {
-                ClearSessionScopeMap_NoLock(analyzers);
-            }
-
-            // Clear compilation scope.
-            lock (_compilationScopeMap)
-            {
-                ClearCompilationScopeMap_NoLock(analyzers);
-            }            
-        }
-
-        private void ClearSessionScopeMap_NoLock(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            foreach (var analyzer in analyzers)
-            {
-                _sessionScopeMap.Remove(analyzer);
-            }
-        }
-
-        private void ClearCompilationScopeMap_NoLock(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            var keysToRemove = ArrayBuilder<AnalyzerAndOptions>.GetInstance();
-            var analyzersSet = analyzers.ToImmutableHashSet();
-            foreach (var analyzerAndOptions in _compilationScopeMap.Keys)
-            {
-                if (analyzersSet.Contains(analyzerAndOptions.Analyzer))
-                {
-                    keysToRemove.Add(analyzerAndOptions);
-                }
-            }
-
-            foreach (var analyzerAndOptions in keysToRemove)
-            {
-                _compilationScopeMap.Remove(analyzerAndOptions);
-            }
-
-            keysToRemove.Free();
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(suppressor);
+            return analyzerExecutionContext.GetOrComputeSuppressionDescriptors(suppressor, analyzerExecutor);
         }
 
         internal bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer, AnalyzerExecutor analyzerExecutor)
@@ -410,7 +287,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             CompilationOptions options,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            SeverityFilter severityFilter)
         {
             if (isCompilerAnalyzer(analyzer))
             {
@@ -420,6 +298,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
+            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {
@@ -440,10 +319,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
-                // If the user said something about it, that overrides the author.
-                if (diagnosticOptions.ContainsKey(diag.Id))
+                // Global editorconfig settings overrides the analyzer author
+                // Compilation wide user settings (diagnosticOptions) from ruleset/nowarn/warnaserror overrides the analyzer author and global editorconfig settings.
+                // Note that "/warnaserror-:DiagnosticId" adds a diagnostic option with value 'ReportDiagnostic.Default',
+                // which should not alter 'isSuppressed'.
+                if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) ||
+                    options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, analyzerExecutor.CancellationToken, out severity)) &&
+                    severity != ReportDiagnostic.Default)
                 {
-                    isSuppressed = diagnosticOptions[diag.Id] == ReportDiagnostic.Suppress;
+                    isSuppressed = severity == ReportDiagnostic.Suppress;
+                }
+                else
+                {
+                    severity = isSuppressed ? ReportDiagnostic.Suppress : DiagnosticDescriptor.MapSeverityToReport(diag.DefaultSeverity);
+                }
+
+                // Is this diagnostic suppressed due to its severity
+                if (severityFilter.Contains(severity))
+                {
+                    isSuppressed = true;
+                }
+
+                // Editorconfig user settings override compilation wide settings.
+                if (isSuppressed &&
+                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analyzerExecutor.CancellationToken))
+                {
+                    isSuppressed = false;
                 }
 
                 if (!isSuppressed)
@@ -452,7 +353,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            if (analyzer is DiagnosticSuppressor suppressor)
+            {
+                foreach (var suppressionDescriptor in GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor))
+                {
+                    if (!suppressionDescriptor.IsDisabled(options))
+                    {
+                        return false;
+                    }
+                }
+            }
+
             return true;
+
+            static bool isEnabledWithAnalyzerConfigOptions(
+                DiagnosticDescriptor descriptor,
+                SeverityFilter severityFilter,
+                Compilation? compilation,
+                AnalyzerOptions? analyzerOptions,
+                CancellationToken cancellationToken)
+            {
+                if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
+                {
+                    foreach (var tree in compilation.SyntaxTrees)
+                    {
+                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
+                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
+                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out configuredValue))
+                        {
+                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         internal static bool HasNotConfigurableTag(IEnumerable<string> customTags)
@@ -466,6 +404,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
+        }
+
+        public bool TryProcessCompletedMemberAndGetPendingSymbolEndActionsForContainer(
+            ISymbol containingSymbol,
+            ISymbol processedMemberSymbol,
+            DiagnosticAnalyzer analyzer,
+            out (ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions, SymbolDeclaredCompilationEvent symbolDeclaredEvent) containerEndActionsAndEvent)
+        {
+            return GetAnalyzerExecutionContext(analyzer).TryProcessCompletedMemberAndGetPendingSymbolEndActionsForContainer(containingSymbol, processedMemberSymbol, out containerEndActionsAndEvent);
+        }
+
+        public bool TryStartExecuteSymbolEndActions(ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions, DiagnosticAnalyzer analyzer, SymbolDeclaredCompilationEvent symbolDeclaredEvent)
+        {
+            return GetAnalyzerExecutionContext(analyzer).TryStartExecuteSymbolEndActions(symbolEndActions, symbolDeclaredEvent);
+        }
+
+        public void MarkSymbolEndAnalysisPending(
+            ISymbol symbol,
+            DiagnosticAnalyzer analyzer,
+            ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent)
+        {
+            GetAnalyzerExecutionContext(analyzer).MarkSymbolEndAnalysisPending(symbol, symbolEndActions, symbolDeclaredEvent);
+        }
+
+        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        {
+            GetAnalyzerExecutionContext(analyzer).MarkSymbolEndAnalysisComplete(symbol);
+        }
+
+        [Conditional("DEBUG")]
+        public void VerifyAllSymbolEndActionsExecuted()
+        {
+            foreach (var analyzerExecutionContext in _analyzerExecutionContextMap.Values)
+            {
+                analyzerExecutionContext.VerifyAllSymbolEndActionsExecuted();
+            }
         }
     }
 }

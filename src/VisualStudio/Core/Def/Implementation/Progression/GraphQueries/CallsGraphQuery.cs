@@ -1,16 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.GraphModel;
-using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var newNode = await graphBuilder.AddNodeForSymbolAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
+                        var newNode = await graphBuilder.AddNodeAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
                         graphBuilder.AddLink(node, CodeLinkCategories.Calls, newNode);
                     }
                 }
@@ -39,14 +39,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return graphBuilder;
         }
 
-        private static async Task<IEnumerable<ISymbol>> GetCalledMethodSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ISymbol>> GetCalledMethodSymbolsAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var symbols = new List<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             foreach (var reference in symbol.DeclaringSyntaxReferences)
             {
                 var semanticModel = await solution.GetDocument(reference.SyntaxTree).GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var syntaxNode in reference.GetSyntax(cancellationToken).DescendantNodes())
+                foreach (var syntaxNode in (await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false)).DescendantNodes())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -59,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            return symbols;
+            return symbols.ToImmutable();
         }
     }
 }

@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -9,32 +12,35 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
-    public sealed class ProcessOutput
+    public readonly struct ProcessResult
     {
-        private readonly int _exitCode;
-        private readonly IList<string> _outputLines;
-        private readonly IList<string> _errorLines;
+        public Process Process { get; }
+        public int ExitCode { get; }
+        public ReadOnlyCollection<string> OutputLines { get; }
+        public ReadOnlyCollection<string> ErrorLines { get; }
 
-        public int ExitCode
+        public ProcessResult(Process process, int exitCode, ReadOnlyCollection<string> outputLines, ReadOnlyCollection<string> errorLines)
         {
-            get { return _exitCode; }
+            Process = process;
+            ExitCode = exitCode;
+            OutputLines = outputLines;
+            ErrorLines = errorLines;
         }
+    }
 
-        public IList<string> OutputLines
-        {
-            get { return _outputLines; }
-        }
+    public readonly struct ProcessInfo
+    {
+        public Process Process { get; }
+        public ProcessStartInfo StartInfo { get; }
+        public Task<ProcessResult> Result { get; }
 
-        public IList<string> ErrorLines
-        {
-            get { return _errorLines; }
-        }
+        public int Id => Process.Id;
 
-        public ProcessOutput(int exitCode, IList<string> outputLines, IList<string> errorLines)
+        public ProcessInfo(Process process, ProcessStartInfo startInfo, Task<ProcessResult> result)
         {
-            _exitCode = exitCode;
-            _outputLines = outputLines;
-            _errorLines = errorLines;
+            Process = process;
+            StartInfo = startInfo;
+            Result = result;
         }
     }
 
@@ -48,73 +54,44 @@ namespace RunTests
             }
         }
 
-        public static Task<ProcessOutput> RunProcessAsync(
+        public static ProcessInfo CreateProcess(
             string executable,
             string arguments,
-            bool lowPriority,
-            CancellationToken cancellationToken,
-            string workingDirectory = null,
+            bool lowPriority = false,
+            string? workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
-            Dictionary<string, string> environmentVariables = null,
-            Action<Process> processMonitor = null)
+            Dictionary<string, string>? environmentVariables = null,
+            Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
+            CancellationToken cancellationToken = default) =>
+            CreateProcess(
+                CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
+                lowPriority: lowPriority,
+                onProcessStartHandler: onProcessStartHandler,
+                onOutputDataReceived: onOutputDataReceived,
+                cancellationToken: cancellationToken);
+
+        public static ProcessInfo CreateProcess(
+            ProcessStartInfo processStartInfo,
+            bool lowPriority = false,
+            Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
+            CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var taskCompletionSource = new TaskCompletionSource<ProcessOutput>();
-
-            var process = new Process();
-            process.EnableRaisingEvents = true;
-            process.StartInfo = CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow);
-
-            var task = CreateTask(process, taskCompletionSource, cancellationToken);
-
-            process.Start();
-
-            processMonitor?.Invoke(process);
-
-            if (lowPriority)
-            {
-                process.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-
-            if (process.StartInfo.RedirectStandardOutput)
-            {
-                process.BeginOutputReadLine();
-            }
-
-            if (process.StartInfo.RedirectStandardError)
-            {
-                process.BeginErrorReadLine();
-            }
-
-            return task;
-        }
-
-        private static Task<ProcessOutput> CreateTask(
-            Process process,
-            TaskCompletionSource<ProcessOutput> taskCompletionSource,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (taskCompletionSource == null)
-            {
-                throw new ArgumentException("taskCompletionSource");
-            }
-
-            if (process == null)
-            {
-                return taskCompletionSource.Task;
-            }
-
             var errorLines = new List<string>();
             var outputLines = new List<string>();
+            var process = new Process();
+            var tcs = new TaskCompletionSource<ProcessResult>();
+
+            process.EnableRaisingEvents = true;
+            process.StartInfo = processStartInfo;
 
             process.OutputDataReceived += (s, e) =>
                 {
                     if (e.Data != null)
                     {
+                        onOutputDataReceived?.Invoke(e);
                         outputLines.Add(e.Data);
                     }
                 };
@@ -135,14 +112,18 @@ namespace RunTests
                     Task.Run(() =>
                     {
                         process.WaitForExit();
-                        var processOutput = new ProcessOutput(process.ExitCode, outputLines, errorLines);
-                        taskCompletionSource.TrySetResult(processOutput);
-                    });
+                        var result = new ProcessResult(
+                            process,
+                            process.ExitCode,
+                            new ReadOnlyCollection<string>(outputLines),
+                            new ReadOnlyCollection<string>(errorLines));
+                        tcs.TrySetResult(result);
+                    }, cancellationToken);
                 };
 
             var registration = cancellationToken.Register(() =>
                 {
-                    if (taskCompletionSource.TrySetCanceled())
+                    if (tcs.TrySetCanceled())
                     {
                         // If the underlying process is still running, we should kill it
                         if (!process.HasExited)
@@ -159,16 +140,34 @@ namespace RunTests
                     }
                 });
 
-            return taskCompletionSource.Task;
+            process.Start();
+            onProcessStartHandler?.Invoke(process);
+
+            if (lowPriority)
+            {
+                process.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+
+            if (processStartInfo.RedirectStandardOutput)
+            {
+                process.BeginOutputReadLine();
+            }
+
+            if (processStartInfo.RedirectStandardError)
+            {
+                process.BeginErrorReadLine();
+            }
+
+            return new ProcessInfo(process, processStartInfo, tcs.Task);
         }
 
-        private static ProcessStartInfo CreateProcessStartInfo(
+        public static ProcessStartInfo CreateProcessStartInfo(
             string executable,
             string arguments,
-            string workingDirectory,
-            bool captureOutput,
-            bool displayWindow,
-            Dictionary<string, string> environmentVariables = null)
+            string? workingDirectory = null,
+            bool captureOutput = false,
+            bool displayWindow = true,
+            Dictionary<string, string>? environmentVariables = null)
         {
             var processStartInfo = new ProcessStartInfo(executable, arguments);
 

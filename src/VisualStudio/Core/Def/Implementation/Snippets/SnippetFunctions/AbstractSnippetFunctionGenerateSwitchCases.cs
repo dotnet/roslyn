@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Text;
@@ -20,8 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         protected abstract string CaseFormat { get; }
         protected abstract string DefaultCase { get; }
 
-        public AbstractSnippetFunctionGenerateSwitchCases(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
-            : base(snippetExpansionClient, textView, subjectBuffer)
+        public AbstractSnippetFunctionGenerateSwitchCases(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
+            : base(snippetExpansionClient, subjectBuffer)
         {
             this.CaseGenerationLocationField = caseGenerationLocationField;
             this.SwitchExpressionField = (switchExpressionField.Length >= 2 && switchExpressionField[0] == '$' && switchExpressionField[switchExpressionField.Length - 1] == '$')
@@ -42,9 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             // If the switch expression is invalid, still show the default case
             value = DefaultCase;
             hasCurrentValue = 1;
-
-            ITypeSymbol typeSymbol;
-            if (!TryGetEnumTypeSymbol(cancellationToken, out typeSymbol) || typeSymbol.TypeKind != TypeKind.Enum)
+            if (!TryGetEnumTypeSymbol(cancellationToken, out var typeSymbol) || typeSymbol.TypeKind != TypeKind.Enum)
             {
                 return VSConstants.S_OK;
             }
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             var enumFields = typeSymbol.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.IsStatic);
 
             // Find and use the most simplified legal version of the enum type name in this context
-            string simplifiedTypeName = string.Empty;
+            var simplifiedTypeName = string.Empty;
             if (!enumFields.Any() ||
                 !TryGetSimplifiedTypeName(
                     typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
@@ -78,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         private bool TryGetSimplifiedTypeName(string fullyQualifiedTypeName, string firstEnumMemberName, CancellationToken cancellationToken, out string simplifiedTypeName)
         {
             simplifiedTypeName = string.Empty;
-
-            Document document;
-            if (!TryGetDocument(out document))
+            if (!TryGetDocument(out var document))
             {
                 return false;
             }
@@ -93,8 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
                 return false;
             }
 
-            SnapshotSpan subjectBufferFieldSpan;
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan[0], out subjectBufferFieldSpan))
+            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan[0], out var subjectBufferFieldSpan))
             {
                 return false;
             }

@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -17,22 +21,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _isWritable = isWritable;
         }
 
-        internal override bool IsWritable
+        internal override bool IsWritableVariable
         {
             get { return _isWritable; }
         }
 
-        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return RewriteLocalInternal(compilation, container, syntax, this);
         }
 
-        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, LocalSymbol local)
+        internal static BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
         {
             return RewriteLocalInternal(compilation, container, syntax, local);
         }
 
-        private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, EENamedTypeSymbol container, CSharpSyntaxNode syntax, LocalSymbol local)
+        private static BoundExpression RewriteLocalInternal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, LocalSymbol local)
         {
             return new BoundPseudoVariable(
                 syntax,
@@ -73,12 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     method.Name,
                     m => method.TypeParameters.SelectAsArray(t => (TypeParameterSymbol)new SimpleTypeParameterSymbol(m, t.Ordinal, t.Name)),
                     m => m.TypeParameters[0], // return type is <>T&
-                    m => method.Parameters.SelectAsArray(p => (ParameterSymbol)new SynthesizedParameterSymbol(m, p.Type, p.Ordinal, p.RefKind, p.Name, p.CustomModifiers, p.CountOfCustomModifiersPrecedingByRef)));
+                    m => method.Parameters.SelectAsArray(p => (ParameterSymbol)SynthesizedParameterSymbol.Create(m, p.TypeWithAnnotations, p.Ordinal, p.RefKind, p.Name, p.RefCustomModifiers)));
                 var local = variable.LocalSymbol;
                 return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name);
             }
 
-            private static BoundExpression InvokeGetMethod(MethodSymbol method, CSharpSyntaxNode syntax, string name)
+            private static BoundExpression InvokeGetMethod(MethodSymbol method, SyntaxNode syntax, string name)
             {
                 var argument = new BoundLiteral(
                     syntax,

@@ -1,256 +1,249 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports System.Windows.Media
-Imports System.Windows.Media.Imaging
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
-Imports Moq
+Imports Microsoft.VisualStudio.Text.PatternMatching
 Imports Roslyn.Test.EditorUtilities.NavigateTo
 
+#Disable Warning BC40000 ' MatchKind is obsolete
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
+    <Trait(Traits.Feature, Traits.Features.NavigateTo)>
     Public Class NavigateToTests
-        Private _glyphServiceMock As New Mock(Of IGlyphService)(MockBehavior.Strict)
-        Private _provider As NavigateToItemProvider
-        Private _aggregator As NavigateToTestAggregator
+        Inherits AbstractNavigateToTests
 
-        Private Async Function SetupWorkspaceAsync(content As String) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
-            SetupNavigateTo(workspace)
-            Return workspace
+        Protected Overrides ReadOnly Property Language As String = "vb"
+
+        Protected Overrides Function CreateWorkspace(content As String, exportProvider As ExportProvider) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(content, exportProvider:=exportProvider)
         End Function
 
-        Private Sub SetupNavigateTo(workspace As TestWorkspace)
-            Dim aggregateListener = New AggregateAsynchronousOperationListener(Array.Empty(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))(), FeatureAttribute.NavigateTo)
-            _provider = New NavigateToItemProvider(workspace, _glyphServiceMock.Object, aggregateListener)
-            _aggregator = New NavigateToTestAggregator(_provider)
-        End Sub
-
-        Private Async Function SetupWorkspaceAsync(workspaceElement As XElement) As Task(Of TestWorkspace)
-            Dim workspace = Await TestWorkspace.CreateAsync(workspaceElement)
-            SetupNavigateTo(workspace)
-            Return workspace
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestNoItemsForEmptyFile(testHost As TestHost) As Task
+            Await TestAsync(testHost, "", Async Function(w)
+                                              Assert.Empty(Await _aggregator.GetItemsAsync("Hello"))
+                                          End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestNoItemsForEmptyFile() As Task
-            Using worker = Await SetupWorkspaceAsync("")
-                Assert.Empty(_aggregator.GetItems("Hello"))
-            End Using
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindClass(testHost As TestHost) As Task
+            Await TestAsync(testHost,
+"Class Goo
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Goo")).Single()
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal)
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindClass() As Task
-            Using worker = Await SetupWorkspaceAsync(
-"Class Foo
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
-                Dim item As NavigateToItem = _aggregator.GetItems("Foo").Single()
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class)
-            End Using
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindVerbatimClass() As Task
-            Using worker = Await SetupWorkspaceAsync(
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindVerbatimClass(testHost As TestHost) As Task
+            Await TestAsync(testHost,
 "Class [Class]
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
-                Dim item As NavigateToItem = _aggregator.GetItems("class").Single()
-                VerifyNavigateToResultItem(item, "Class", MatchKind.Exact, NavigateToItemKind.Class, displayName:="[Class]")
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("class")).Single()
+                VerifyNavigateToResultItem(item, "Class", "[|Class|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal)
 
-                item = _aggregator.GetItems("[class]").Single()
-                VerifyNavigateToResultItem(item, "Class", MatchKind.Exact, NavigateToItemKind.Class, displayName:="[Class]")
-            End Using
+                item = (Await _aggregator.GetItemsAsync("[class]")).Single()
+                VerifyNavigateToResultItem(item, "Class", "[|Class|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal)
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindNestedClass() As Task
-            Using worker = Await SetupWorkspaceAsync(
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindNestedClass(testHost As TestHost) As Task
+            Await TestAsync(testHost,
 "Class Alpha
 Class Beta
 Class Gamma
 End Class
 End Class
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("Gamma").Single()
-                VerifyNavigateToResultItem(item, "Gamma", MatchKind.Exact, NavigateToItemKind.Class)
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Gamma")).Single()
+                VerifyNavigateToResultItem(item, "Gamma", "[|Gamma|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPublic)
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindMemberInANestedClass() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Alpha
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindMemberInANestedClass(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Alpha
 Class Beta
 Class Gamma
 Sub DoSomething()
 End Sub
 End Class
 End Class
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("DS").Single()
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething()", $"{EditorFeaturesResources.Type}Alpha.Beta.Gamma")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DS")).Single()
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method,
+                                           Glyph.MethodPublic, String.Format(FeaturesResources.in_0_project_1, "Alpha.Beta.Gamma", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindGenericConstrainedClass() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo(Of M As IComparable)
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
-                Dim item As NavigateToItem = _aggregator.GetItems("Foo").Single()
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class, displayName:="Foo(Of M)")
-            End Using
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindGenericConstrainedClass(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo(Of M As IComparable)
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Goo")).Single()
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|](Of M)", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal)
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindGenericConstrainedMethod() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo(Of M As IComparable)
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindGenericConstrainedMethod(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo(Of M As IComparable)
 Public Sub Bar(Of T As IComparable)()
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("Bar").Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar(Of T)()", $"{EditorFeaturesResources.Type}Foo(Of M)")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|](Of T)()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, String.Format(FeaturesResources.in_0_project_1, "Goo(Of M)", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindPartialClass() As Task
-            Using worker = Await SetupWorkspaceAsync("Partial Public Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindPartialClass(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Partial Public Class Goo
 Private a As Integer
 End Class
-Partial Class Foo
+Partial Class Goo
 Private b As Integer
-End Class")
+End Class", Async Function(w)
 
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing),
-                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                    New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                    New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
                 }
 
-                Dim items As List(Of NavigateToItem) = _aggregator.GetItems("Foo").ToList()
+                Dim items As List(Of NavigateToItem) = (Await _aggregator.GetItemsAsync("Goo")).ToList()
 
                 VerifyNavigateToResultItems(expecteditems, items)
-
-            End Using
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindClassInNamespace() As Task
-            Using worker = Await SetupWorkspaceAsync("Namespace Bar
-Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindClassInNamespace(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Namespace Bar
+Class Goo
 End Class
-End Namespace")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
-                Dim item As NavigateToItem = _aggregator.GetItems("Foo").Single()
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Class)
-            End Using
+End Namespace", Async Function(w)
+                    Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Goo")).Single()
+                    VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindStruct() As Task
-            Using worker = Await SetupWorkspaceAsync("Structure Bar
-End Structure")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupStruct, StandardGlyphItem.GlyphItemFriend)
-                Dim item As NavigateToItem = _aggregator.GetItems("B").Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Structure)
-            End Using
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindStruct(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Structure Bar
+End Structure", Async Function(w)
+                    Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("B")).Single()
+                    VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Structure, Glyph.StructureInternal)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindEnum() As Task
-            Using worker = Await SetupWorkspaceAsync("Enum Colors
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindEnum(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Enum Colors
 Red
 Green
 Blue
-End Enum")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnum, StandardGlyphItem.GlyphItemFriend)
-                Dim item As NavigateToItem = _aggregator.GetItems("C").Single()
-                VerifyNavigateToResultItem(item, "Colors", MatchKind.Prefix, NavigateToItemKind.Enum)
-            End Using
+End Enum", Async Function(w)
+               Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("C")).Single()
+               VerifyNavigateToResultItem(item, "Colors", "[|C|]olors", PatternMatchKind.Prefix, NavigateToItemKind.Enum, Glyph.EnumInternal)
+           End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindEnumMember() As Task
-            Using worker = Await SetupWorkspaceAsync("Enum Colors
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindEnumMember(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Enum Colors
 Red
 Green
 Blue
-End Enum")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnumMember, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("G").Single()
-                VerifyNavigateToResultItem(item, "Green", MatchKind.Prefix, NavigateToItemKind.EnumItem)
-            End Using
+End Enum", Async Function(w)
+               Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
+               VerifyNavigateToResultItem(item, "Green", "[|G|]reen", PatternMatchKind.Prefix, NavigateToItemKind.EnumItem, Glyph.EnumMemberPublic)
+           End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindField1() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindField1(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private Bar As Integer
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("Ba").Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Ba")).Single()
+                VerifyNavigateToResultItem(item, "Bar", "[|Ba|]r", PatternMatchKind.Prefix, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindField2() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindField2(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private Bar As Integer
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("ba").Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Prefix, NavigateToItemKind.Field, additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("ba")).Single()
+                VerifyNavigateToResultItem(item, "Bar", "[|Ba|]r", PatternMatchKind.Prefix, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindField3() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindField3(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private Bar As Integer
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
-                Assert.Empty(_aggregator.GetItems("ar"))
-            End Using
+End Class", Async Function(w)
+                Assert.Empty(Await _aggregator.GetItemsAsync("ar"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindVerbatimField() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindVerbatimField(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private [string] As String
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("string").Single()
-                VerifyNavigateToResultItem(item, "string", MatchKind.Exact, NavigateToItemKind.Field, displayName:="[string]", additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("string")).Single()
+                VerifyNavigateToResultItem(item, "string", "[|string|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
 
-                item = _aggregator.GetItems("[string]").Single()
-                VerifyNavigateToResultItem(item, "string", MatchKind.Exact, NavigateToItemKind.Field, displayName:="[string]", additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+                item = (Await _aggregator.GetItemsAsync("[string]")).Single()
+                VerifyNavigateToResultItem(item, "string", "[|string|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindConstField() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindConstField(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private Const bar As String = ""bar""
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupConstant, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("bar").Single()
-                VerifyNavigateToResultItem(item, "bar", MatchKind.Exact, NavigateToItemKind.Constant, additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("bar")).Single()
+                VerifyNavigateToResultItem(item, "bar", "[|bar|]", PatternMatchKind.Exact, NavigateToItemKind.Constant, Glyph.ConstantPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindIndexer() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindIndexer(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private arr As Integer()
 Default Public Property Item(ByVal i As Integer) As Integer
 Get
@@ -260,516 +253,527 @@ Set(ByVal value As Integer)
 arr(i) = value
 End Set
 End Property
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("Item").Single()
-                VerifyNavigateToResultItem(item, "Item", MatchKind.Exact, NavigateToItemKind.Property, "Item(Integer)", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Item")).Single()
+                VerifyNavigateToResultItem(item, "Item", "[|Item|](Integer)", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
-        Public Async Function TestFindEvent() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        <WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
+        Public Async Function TestFindEvent(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Public Event Bar as EventHandler
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEvent, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("Bar").Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Event, additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]", PatternMatchKind.Exact, NavigateToItemKind.Event, Glyph.EventPublic, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindNormalProperty() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindNormalProperty(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Property Name As String
 Get
 Return String.Empty
 End Get
 Set(value As String)
 End Set
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("Name").Single()
-                VerifyNavigateToResultItem(item, "Name", MatchKind.Exact, NavigateToItemKind.Property, additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Name")).Single()
+                VerifyNavigateToResultItem(item, "Name", "[|Name|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindAutoImplementedProperty() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindAutoImplementedProperty(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Property Name As String
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("Name").Single()
-                VerifyNavigateToResultItem(item, "Name", MatchKind.Exact, NavigateToItemKind.Property, additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Name")).Single()
+                VerifyNavigateToResultItem(item, "Name", "[|Name|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindMethod() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindMethod(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private Sub DoSomething()
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("DS").Single()
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething()", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DS")).Single()
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindVerbatimMethod() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindVerbatimMethod(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private Sub [Sub]()
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("sub").Single()
-                VerifyNavigateToResultItem(item, "Sub", MatchKind.Exact, NavigateToItemKind.Method, "[Sub]()", $"{EditorFeaturesResources.Type}Foo")
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("sub")).Single()
+                VerifyNavigateToResultItem(item, "Sub", "[|Sub|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
 
-                item = _aggregator.GetItems("[sub]").Single()
-                VerifyNavigateToResultItem(item, "Sub", MatchKind.Exact, NavigateToItemKind.Method, "[Sub]()", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+                item = (Await _aggregator.GetItemsAsync("[sub]")).Single()
+                VerifyNavigateToResultItem(item, "Sub", "[|Sub|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindParameterizedMethod() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindParameterizedMethod(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private Sub DoSomething(ByVal i As Integer, s As String)
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("DS").Single()
-                VerifyNavigateToResultItem(item, "DoSomething", MatchKind.Regular, NavigateToItemKind.Method, "DoSomething(Integer, String)", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DS")).Single()
+                VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething(Integer, String)", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindConstructor() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindConstructor(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Sub New()
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("Foo").Single(Function(i) i.Kind = NavigateToItemKind.Method)
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "New()", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Goo")).Single(Function(i) i.Kind = NavigateToItemKind.Method)
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|].New()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindStaticConstructor() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindStaticConstructor(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Shared Sub New()
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("Foo").Single(Function(i) i.Kind = NavigateToItemKind.Method)
-                VerifyNavigateToResultItem(item, "Foo", MatchKind.Exact, NavigateToItemKind.Method, "Shared New()", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Goo")).Single(Function(i) i.Kind = NavigateToItemKind.Method)
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|].New()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindDestructor() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindDestructor(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Implements IDisposable
 Public Sub Dispose() Implements IDisposable.Dispose
 End Sub
 Protected Overrides Sub Finalize()
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemProtected)
-                Dim item As NavigateToItem = _aggregator.GetItems("Finalize").Single()
-                VerifyNavigateToResultItem(item, "Finalize", MatchKind.Exact, NavigateToItemKind.Method, "Finalize()", $"{EditorFeaturesResources.Type}Foo")
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Finalize")).Single()
+                VerifyNavigateToResultItem(item, "Finalize", "[|Finalize|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodProtected, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
 
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
-                item = _aggregator.GetItems("Dispose").Single()
-                VerifyNavigateToResultItem(item, "Dispose", MatchKind.Exact, NavigateToItemKind.Method, "Dispose()", $"{EditorFeaturesResources.Type}Foo")
+                item = (Await _aggregator.GetItemsAsync("Dispose")).Single()
+                VerifyNavigateToResultItem(item, "Dispose", "[|Dispose|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
 
-            End Using
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindPartialMethods() As Task
-            Using worker = Await SetupWorkspaceAsync("Partial Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindPartialMethods(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Partial Class Goo
 Partial Private Sub Bar()
 End Sub
 End Class
-Partial Class Foo
+Partial Class Goo
 Private Sub Bar()
 End Sub
-End Class")
+End Class", Async Function(w)
 
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing),
-                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
                 }
 
-                Dim items As List(Of NavigateToItem) = _aggregator.GetItems("Bar").ToList()
+                Dim items As List(Of NavigateToItem) = (Await _aggregator.GetItemsAsync("Bar")).ToList()
 
                 VerifyNavigateToResultItems(expecteditems, items)
 
-            End Using
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindPartialMethodDefinitionOnly() As Task
-            Using worker = Await SetupWorkspaceAsync("Partial Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindPartialMethodDefinitionOnly(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Partial Class Goo
 Partial Private Sub Bar()
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("Bar").Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar()", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_1_2, "Goo", "test1.vb", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindPartialMethodImplementationOnly() As Task
-            Using worker = Await SetupWorkspaceAsync("Partial Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindPartialMethodImplementationOnly(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Partial Class Goo
 Private Sub Bar()
 End Sub
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("Bar").Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar()", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindOverriddenMethods() As Task
-            Using worker = Await SetupWorkspaceAsync("Class BaseFoo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindOverriddenMethods(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class BaseGoo
 Public Overridable Sub Bar()
 End Sub
 End Class
-Class DerivedFoo
-Inherits BaseFoo
+Class DerivedGoo
+Inherits BaseGoo
 Public Overrides Sub Bar()
 MyBase.Bar()
 End Sub
-End Class")
+End Class", Async Function(w)
 
                 Dim expecteditems = New List(Of NavigateToItem) From
                 {
-                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing),
-                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
+                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                    New NavigateToItem("Bar", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
                 }
 
-                Dim items As List(Of NavigateToItem) = _aggregator.GetItems("Bar").ToList()
+                Dim items As List(Of NavigateToItem) = (Await _aggregator.GetItemsAsync("Bar")).ToList()
                 VerifyNavigateToResultItems(expecteditems, items)
-            End Using
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestDottedPattern1() As Task
-            Using workspace = Await SetupWorkspaceAsync("namespace Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestDottedPattern1(testHost As TestHost) As Task
+            Await TestAsync(testHost, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
 end sub
 end class
 end namespace
-end namespace")
-                Dim expecteditems = New List(Of NavigateToItem) From
-                {
-                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Prefix, True, Nothing)
-                }
+end namespace", Async Function(w)
+                    Dim expecteditems = New List(Of NavigateToItem) From
+                        {
+                            New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyPrefixPatternMatch, Nothing)
+                        }
 
-                Dim items = _aggregator.GetItems("B.Q").ToList()
+                    Dim items = (Await _aggregator.GetItemsAsync("B.Q")).ToList()
 
-                VerifyNavigateToResultItems(expecteditems, items)
-            End Using
+                    VerifyNavigateToResultItems(expecteditems, items)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestDottedPattern2() As Task
-            Using workspace = Await SetupWorkspaceAsync("namespace Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestDottedPattern2(testHost As TestHost) As Task
+            Await TestAsync(testHost, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
 end sub
 end class
 end namespace
-end namespace")
-                Dim expecteditems = New List(Of NavigateToItem) From
-                {
-                }
+end namespace", Async Function(w)
+                    Dim expecteditems = New List(Of NavigateToItem) From
+                        {
+                        }
 
-                Dim items = _aggregator.GetItems("C.Q").ToList()
+                    Dim items = (Await _aggregator.GetItemsAsync("C.Q")).ToList()
 
-                VerifyNavigateToResultItems(expecteditems, items)
-            End Using
+                    VerifyNavigateToResultItems(expecteditems, items)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestDottedPattern3() As Task
-            Using workspace = Await SetupWorkspaceAsync("namespace Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestDottedPattern3(testHost As TestHost) As Task
+            Await TestAsync(testHost, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
 end sub
 end class
 end namespace
-end namespace")
-                Dim expecteditems = New List(Of NavigateToItem) From
-                {
-                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Prefix, True, Nothing)
-                }
+end namespace", Async Function(w)
+                    Dim expecteditems = New List(Of NavigateToItem) From
+                        {
+                            New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyPrefixPatternMatch, Nothing)
+                        }
 
-                Dim items = _aggregator.GetItems("B.B.Q").ToList()
+                    Dim items = (Await _aggregator.GetItemsAsync("B.B.Q")).ToList()
 
-                VerifyNavigateToResultItems(expecteditems, items)
-            End Using
+                    VerifyNavigateToResultItems(expecteditems, items)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestDottedPattern4() As Task
-            Using workspace = Await SetupWorkspaceAsync("namespace Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestDottedPattern4(testHost As TestHost) As Task
+            Await TestAsync(testHost, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
 end sub
 end class
 end namespace
-end namespace")
-                Dim expecteditems = New List(Of NavigateToItem) From
-                {
-                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
-                }
+end namespace", Async Function(w)
+                    Dim expecteditems = New List(Of NavigateToItem) From
+                        {
+                            New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                        }
 
-                Dim items = _aggregator.GetItems("Baz.Quux").ToList()
+                    Dim items = (Await _aggregator.GetItemsAsync("Baz.Quux")).ToList()
 
-                VerifyNavigateToResultItems(expecteditems, items)
-            End Using
+                    VerifyNavigateToResultItems(expecteditems, items)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestDottedPattern5() As Task
-            Using workspace = Await SetupWorkspaceAsync("namespace Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestDottedPattern5(testHost As TestHost) As Task
+            Await TestAsync(testHost, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
 end sub
 end class
 end namespace
-end namespace")
-                Dim expecteditems = New List(Of NavigateToItem) From
-                {
-                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
-                }
+end namespace", Async Function(w)
+                    Dim expecteditems = New List(Of NavigateToItem) From
+                        {
+                            New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                        }
 
-                Dim items = _aggregator.GetItems("F.B.B.Quux").ToList()
+                    Dim items = (Await _aggregator.GetItemsAsync("G.B.B.Quux")).ToList()
 
-                VerifyNavigateToResultItems(expecteditems, items)
-            End Using
+                    VerifyNavigateToResultItems(expecteditems, items)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestDottedPattern6() As Task
-            Using workspace = Await SetupWorkspaceAsync("namespace Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestDottedPattern6(testHost As TestHost) As Task
+            Await TestAsync(testHost, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
 end sub
 end class
 end namespace
-end namespace")
-                Dim expecteditems = New List(Of NavigateToItem)
+end namespace", Async Function(w)
+                    Dim expecteditems = New List(Of NavigateToItem)
 
-                Dim items = _aggregator.GetItems("F.F.B.B.Quux").ToList()
+                    Dim items = (Await _aggregator.GetItemsAsync("F.F.B.B.Quux")).ToList()
 
-                VerifyNavigateToResultItems(expecteditems, items)
-            End Using
+                    VerifyNavigateToResultItems(expecteditems, items)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <Theory>
+        <CombinatorialData>
         <WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")>
-        Public Async Function TestDottedPattern7() As Task
-            Using workspace = Await SetupWorkspaceAsync("namespace Foo
+        Public Async Function TestDottedPattern7(testHost As TestHost) As Task
+            Await TestAsync(testHost, "namespace Goo
 namespace Bar
 class Baz(of X, Y, Z)
 sub Quux()
 end sub
 end class
 end namespace
-end namespace")
-                Dim expecteditems = New List(Of NavigateToItem) From
-                {
-                    New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Prefix, True, Nothing)
-                }
+end namespace", Async Function(w)
+                    Dim expecteditems = New List(Of NavigateToItem) From
+                        {
+                            New NavigateToItem("Quux", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyPrefixPatternMatch, Nothing)
+                        }
 
-                Dim items = _aggregator.GetItems("Baz.Q").ToList()
+                    Dim items = (Await _aggregator.GetItemsAsync("Baz.Q")).ToList()
 
-                VerifyNavigateToResultItems(expecteditems, items)
-            End Using
+                    VerifyNavigateToResultItems(expecteditems, items)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindInterface() As Task
-            Using worker = Await SetupWorkspaceAsync("Public Interface IFoo
-End Interface")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupInterface, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("IF").Single()
-                VerifyNavigateToResultItem(item, "IFoo", MatchKind.Prefix, NavigateToItemKind.Interface)
-            End Using
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindInterface(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Public Interface IGoo
+End Interface", Async Function(w)
+                    Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("IG")).Single()
+                    VerifyNavigateToResultItem(item, "IGoo", "[|IG|]oo", PatternMatchKind.Prefix, NavigateToItemKind.Interface, Glyph.InterfacePublic)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindDelegateInNamespace() As Task
-            Using worker = Await SetupWorkspaceAsync("Namespace Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindDelegateInNamespace(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Namespace Goo
 Delegate Sub DoStuff()
-End Namespace")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupDelegate, StandardGlyphItem.GlyphItemFriend)
-                Dim item As NavigateToItem = _aggregator.GetItems("DoStuff").Single()
-                VerifyNavigateToResultItem(item, "DoStuff", MatchKind.Exact, NavigateToItemKind.Delegate)
-            End Using
+End Namespace", Async Function(w)
+                    Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DoStuff")).Single()
+                    VerifyNavigateToResultItem(item, "DoStuff", "[|DoStuff|]", PatternMatchKind.Exact, NavigateToItemKind.Delegate, Glyph.DelegateInternal)
+                End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindLambdaExpression() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindLambdaExpression(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Dim sqr As Func(Of Integer, Integer) = Function(x) x*x
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("sqr").Single()
-                VerifyNavigateToResultItem(item, "sqr", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("sqr")).Single()
+                VerifyNavigateToResultItem(item, "sqr", "[|sqr|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindModule() As Task
-            Using worker = Await SetupWorkspaceAsync("Module ModuleTest
-End Module")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
-                Dim item As NavigateToItem = _aggregator.GetItems("MT").Single()
-                VerifyNavigateToResultItem(item, "ModuleTest", MatchKind.Regular, NavigateToItemKind.Module)
-            End Using
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindModule(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Module ModuleTest
+End Module", Async Function(w)
+                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("MT")).Single()
+                 VerifyNavigateToResultItem(item, "ModuleTest", "[|M|]odule[|T|]est", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Module, Glyph.ModuleInternal)
+             End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindLineContinuationMethod() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindLineContinuationMethod(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Public Sub Bar(x as Integer,
 y as Integer)
-End Sub")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
-                Dim item As NavigateToItem = _aggregator.GetItems("Bar").Single()
-                VerifyNavigateToResultItem(item, "Bar", MatchKind.Exact, NavigateToItemKind.Method, "Bar(Integer, Integer)", $"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Sub", Async Function(w)
+              Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
+              VerifyNavigateToResultItem(item, "Bar", "[|Bar|](Integer, Integer)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+          End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindArray() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindArray(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 Private itemArray as object()
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
-                Dim item As NavigateToItem = _aggregator.GetItems("itemArray").Single
-                VerifyNavigateToResultItem(item, "itemArray", MatchKind.Exact, NavigateToItemKind.Field, additionalInfo:=$"{EditorFeaturesResources.Type}Foo")
-            End Using
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("itemArray")).Single
+                VerifyNavigateToResultItem(item, "itemArray", "[|itemArray|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindClassAndMethodWithSameName() As Task
-            Using worker = Await SetupWorkspaceAsync("Class Foo
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindClassAndMethodWithSameName(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class Goo
 End Class
 Class Test
-Private Sub Foo()
+Private Sub Goo()
 End Sub
-End Class")
+End Class", Async Function(w)
                 Dim expectedItems = New List(Of NavigateToItem) From
-                {
-                    New NavigateToItem("Foo", NavigateToItemKind.Method, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing),
-                    New NavigateToItem("Foo", NavigateToItemKind.Class, "vb", Nothing, Nothing, MatchKind.Exact, True, Nothing)
-                }
+                    {
+                        New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Goo", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    }
 
-                Dim items As List(Of NavigateToItem) = _aggregator.GetItems("Foo").ToList()
+                Dim items As List(Of NavigateToItem) = (Await _aggregator.GetItemsAsync("Goo")).ToList()
 
                 VerifyNavigateToResultItems(expectedItems, items)
 
-            End Using
+            End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindMethodNestedInGenericTypes() As Task
-            Using worker = Await SetupWorkspaceAsync("Class A(Of T)
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindMethodNestedInGenericTypes(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Class A(Of T)
 Class B
 Structure C(Of U)
 Sub M()
 End Sub
 End Structure
 End Class
-End Class")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
-                Dim item = _aggregator.GetItems("M").Single
-                VerifyNavigateToResultItem(item, "M", MatchKind.Exact, NavigateToItemKind.Method, displayName:="M()", additionalInfo:=$"{EditorFeaturesResources.Type}A(Of T).B.C(Of U)")
-            End Using
+End Class", Async Function(w)
+                Dim item = (Await _aggregator.GetItemsAsync("M")).Single
+                VerifyNavigateToResultItem(item, "M", "[|M|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "A(Of T).B.C(Of U)", "Test"))
+            End Function)
         End Function
 
         <WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindClassInNamespaceWithGlobalPrefix() As Task
-            Using worker = Await SetupWorkspaceAsync("Namespace Global.MyNS
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindClassInNamespaceWithGlobalPrefix(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Namespace Global.MyNS
 Public Class C
 End Class
-End Namespace")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
-                Dim item = _aggregator.GetItems("C").Single
-                VerifyNavigateToResultItem(item, "C", MatchKind.Exact, NavigateToItemKind.Class, displayName:="C")
-            End Using
+End Namespace", Async Function(w)
+                    Dim item = (Await _aggregator.GetItemsAsync("C")).Single
+                    VerifyNavigateToResultItem(item, "C", "[|C|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPublic)
+                End Function)
         End Function
 
         <WorkItem(1121267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestFindClassInGlobalNamespace() As Task
-            Using worker = Await SetupWorkspaceAsync("Namespace Global
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindClassInGlobalNamespace(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Namespace Global
 Public Class C(Of T)
 End Class
-End Namespace")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
-                Dim item = _aggregator.GetItems("C").Single
-                VerifyNavigateToResultItem(item, "C", MatchKind.Exact, NavigateToItemKind.Class, displayName:="C(Of T)")
-            End Using
+End Namespace", Async Function(w)
+                    Dim item = (Await _aggregator.GetItemsAsync("C")).Single
+                    VerifyNavigateToResultItem(item, "C", "[|C|](Of T)", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPublic)
+                End Function)
         End Function
 
         <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestConstructorNotParentedByTypeBlock() As Task
-            Using worker = Await SetupWorkspaceAsync("Module Program
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestConstructorNotParentedByTypeBlock(testHost As TestHost) As Task
+            Await TestAsync(testHost, "Module Program
 End Module
 Public Sub New()
-End Sub")
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
-                Assert.Equal(0, _aggregator.GetItems("New").Count)
-                Dim item = _aggregator.GetItems("Program").Single
-                VerifyNavigateToResultItem(item, "Program", MatchKind.Exact, NavigateToItemKind.Module, displayName:="Program")
-            End Using
+End Sub", Async Function(w)
+              Assert.Equal(0, (Await _aggregator.GetItemsAsync("New")).Count)
+              Dim item = (Await _aggregator.GetItemsAsync("Program")).Single
+              VerifyNavigateToResultItem(item, "Program", "[|Program|]", PatternMatchKind.Exact, NavigateToItemKind.Module, Glyph.ModuleInternal)
+          End Function)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestStartStopSanity() As Task
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestStartStopSanity(testHost As TestHost) As Task
             ' Verify that multiple calls to start/stop don't blow up
-            Using worker = Await SetupWorkspaceAsync("Public Class Foo
-End Class")
+            Await TestAsync(testHost, "Public Class Goo
+End Class", Async Function(w)
                 ' Do one query
-                Assert.Single(_aggregator.GetItems("Foo"))
+                Assert.Single(Await _aggregator.GetItemsAsync("Goo"))
                 _provider.StopSearch()
 
                 ' Do the same query again, and make sure nothing was left over
-                Assert.Single(_aggregator.GetItems("Foo"))
+                Assert.Single(Await _aggregator.GetItemsAsync("Goo"))
                 _provider.StopSearch()
 
                 ' Dispose the provider
                 _provider.Dispose()
-            End Using
+            End Function)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestDescriptionItems() As Task
-            Using workspace = Await SetupWorkspaceAsync("
-Public Class Foo
-End Class")
-                Dim item As NavigateToItem = _aggregator.GetItems("F").Single()
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestDescriptionItems(testHost As TestHost) As Task
+            Await TestAsync(testHost, "
+Public Class Goo
+End Class", Async Function(w)
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
                 Dim itemDisplay As INavigateToItemDisplay = item.DisplayFactory.CreateItemDisplay(item)
 
                 Dim descriptionItems = itemDisplay.DescriptionItems
@@ -780,25 +784,26 @@ End Class")
                         Assert.Equal(value, descriptionItem.Details.Single().Text)
                     End Sub
 
-                assertDescription("File:", workspace.Documents.Single().Name)
+                assertDescription("File:", w.Documents.Single().Name)
                 assertDescription("Line:", "2")
                 assertDescription("Project:", "Test")
-            End Using
+            End Function)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
-        Public Async Function TestDescriptionItemsFilePath() As Task
-            Using workspace = Await SetupWorkspaceAsync(
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestDescriptionItemsFilePath(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
-                        <Document FilePath="foo\Test1.vb">
-Public Class Foo
+                        <Document FilePath="goo\Test1.vb">
+Public Class Goo
 End Class
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, testHost, createTrackingService:=Nothing)
 
-                Dim item As NavigateToItem = _aggregator.GetItems("F").Single()
+                Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
                 Dim itemDisplay As INavigateToItemDisplay = item.DisplayFactory.CreateItemDisplay(item)
 
                 Dim descriptionItems = itemDisplay.DescriptionItems
@@ -815,51 +820,225 @@ End Class
             End Using
         End Function
 
-        Private Sub VerifyNavigateToResultItems(ByRef expectedItems As List(Of NavigateToItem), ByRef items As List(Of NavigateToItem))
-            Assert.Equal(expectedItems.Count(), items.Count())
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeTrivialPartialContainer(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
 
-            For index = 0 To items.Count - 1
-                Assert.Equal(expectedItems(index).Name, items(index).Name)
-                Assert.Equal(expectedItems(index).MatchKind, items(index).MatchKind)
-                Assert.Equal(expectedItems(index).Language, items(index).Language)
-                Assert.Equal(expectedItems(index).Kind, items(index).Kind)
-                Assert.Equal(expectedItems(index).IsCaseSensitive, items(index).IsCaseSensitive)
-            Next
-        End Sub
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
 
-        Private Sub VerifyNavigateToResultItem(ByRef result As NavigateToItem, name As String, matchKind As MatchKind,
-                                               navigateToItemKind As String, Optional displayName As String = Nothing,
-                                               Optional additionalInfo As String = Nothing)
-            ' Verify Symbol Information
-            Assert.Equal(name, result.Name)
-            Assert.Equal(matchKind, result.MatchKind)
-            Assert.Equal("vb", result.Language)
-            Assert.Equal(navigateToItemKind, result.Kind)
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
 
-            ' Verify Display
-            Dim itemDisplay As INavigateToItemDisplay = result.DisplayFactory.CreateItemDisplay(result)
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeTrivialPartialContainerWithMultipleNestedTypes(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner1
+    End Class
+    Public Partial Class Inner2
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
 
-            Assert.Equal(If(displayName, name), itemDisplay.Name)
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
 
-            If additionalInfo IsNot Nothing Then
-                Assert.Equal(additionalInfo, itemDisplay.AdditionalInformation)
-            End If
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
 
-            ' Make sure to fetch the glyph
-            Dim unused = itemDisplay.Glyph
-            _glyphServiceMock.Verify()
-        End Sub
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeWhenAllAreTrivialPartialContainer(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Partial Class Inner1
+    End Class
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner2
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
 
-        Private Sub SetupVerifiableGlyph(standardGlyphGroup As StandardGlyphGroup, standardGlyphItem As StandardGlyphItem)
-            _glyphServiceMock.Setup(Function(service) service.GetGlyph(standardGlyphGroup, standardGlyphItem)) _
-                            .Returns(CreateIconBitmapSource()) _
-                            .Verifiable()
-        End Sub
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
 
-        Private Function CreateIconBitmapSource() As BitmapSource
-            Dim stride As Integer = (PixelFormats.Bgr32.BitsPerPixel \ 8) * 16
-            Dim bytes(16 * stride - 1) As Byte
-            Return BitmapSource.Create(16, 16, 96, 96, PixelFormats.Bgr32, Nothing, bytes, stride)
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem),
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonTrivialPartialContainer(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Sub Goo2
+    End Sub
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonTrivialPartialContainerWithNestedType(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Sub Goo2
+    End Sub
+    Public Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludePartialWithNoContents(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonPartialOnlyContainingNestedTypes(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Class Outer
+    Public Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
         End Function
     End Class
 End Namespace
+#Enable Warning BC40000 ' MatchKind is obsolete

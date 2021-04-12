@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -19,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Binding
             Dim cl2 = TestReferences.SymbolsTests.MissingTypes.CL2
             Dim cl3 = TestReferences.SymbolsTests.MissingTypes.CL3
 
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="MissingTypes1_1">
         <file name="a.vb">
 Option Strict Off
@@ -296,7 +298,7 @@ BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, 
 </errors>
 
 
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {cl3}, options:=TestOptions.ReleaseExe)
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {cl3}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation2, errors)
 
@@ -305,17 +307,17 @@ BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, 
         <file name="a.vb"><%= TestResources.SymbolsTests.MissingTypes.CL3_VB %></file>
     </compilation>
 
-            Dim cl3Compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(cl3Source, {cl2})
+            Dim cl3Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(cl3Source, {cl2})
 
             CompilationUtils.AssertNoErrors(cl3Compilation)
 
-            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3Compilation)}, options:=TestOptions.ReleaseExe)
+            Dim compilation3 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3Compilation)}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation3, errors)
 
-            Dim cl3BadCompilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(cl3Source, {cl3})
+            Dim cl3BadCompilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(cl3Source, {cl3})
 
-            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation1)}, options:=TestOptions.ReleaseExe)
+            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation1)}, options:=TestOptions.ReleaseExe)
 
             Dim errors2 =
 <errors>
@@ -370,7 +372,7 @@ BC30002: Type 'CL2_C1' is not defined.
 </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation4, errors2)
 
-            Dim cl3BadCompilation2 = CompilationUtils.CreateCompilationWithMscorlib(cl3Source)
+            Dim cl3BadCompilation2 = CompilationUtils.CreateCompilationWithMscorlib40(cl3Source)
 
             Dim errors3 =
 <errors>
@@ -411,7 +413,7 @@ BC30002: Type 'CL2_I1' is not defined.
 
             CompilationUtils.AssertTheseDiagnostics(cl3BadCompilation2, errors3)
 
-            Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation2)}, options:=TestOptions.ReleaseExe)
+            Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation2)}, options:=TestOptions.ReleaseExe)
 
             Dim errors5 =
 <errors>
@@ -500,7 +502,7 @@ BC30002: Type 'CL2_I1' is not defined.
         <file name="b.vb"><%= TestResources.SymbolsTests.MissingTypes.CL3_VB %></file>
     </compilation>
 
-            Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(cl4Source)
+            Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(cl4Source)
 
             CompilationUtils.AssertTheseDiagnostics(compilation6, errors6)
 
@@ -642,9 +644,9 @@ BC31143: Method 'Public Sub Test2(x As Integer)' does not have a signature compa
         <file name="a.vb"><%= TestResources.SymbolsTests.MissingTypes.CL3_VB %></file>
     </compilation>
 
-            Dim cl3BadCompilation = CompilationUtils.CreateCompilationWithMscorlib(cl3Source)
+            Dim cl3BadCompilation = CompilationUtils.CreateCompilationWithMscorlib40(cl3Source)
 
-            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation)}, options:=TestOptions.ReleaseExe)
+            Dim compilation4 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation)}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation4, errors)
         End Sub
@@ -661,7 +663,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             compilation.AssertTheseDeclarationDiagnostics(<expected>
 BC30500: Constant 'F' cannot depend on its own value.
     Const F As String = F
@@ -698,8 +700,8 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(source1)
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
+            Dim compilation1 = CreateCompilationWithMscorlib40(source1)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertNoErrors()
             compilation1.AssertNoErrors()
         End Sub
@@ -751,13 +753,13 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(source1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(source1)
             Dim reference1 = New VisualBasicCompilationReference(compilation1)
-            Dim compilation2 = CreateCompilationWithMscorlib(source2)
+            Dim compilation2 = CreateCompilationWithMscorlib40(source2)
             Dim reference2 = New VisualBasicCompilationReference(compilation2)
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(source3, {reference1})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(source3, {reference1})
             Dim reference3 = New VisualBasicCompilationReference(compilation3)
-            Dim compilation4 = CreateCompilationWithMscorlibAndReferences(source4, {reference2, reference3})
+            Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(source4, {reference2, reference3})
             compilation4.AssertNoErrors()
             compilation3.AssertNoErrors()
             compilation2.AssertTheseDiagnostics(<expected>
@@ -774,7 +776,7 @@ BC30500: Constant 'A1' cannot depend on its own value.
 
         <Fact()>
         Public Sub MissingTypeInTypeArgumentsOfImplementedInterface()
-            Dim lib1 = CreateCompilationWithMscorlib(
+            Dim lib1 = CreateCompilationWithMscorlib40(
                 <compilation name="MissingTypeInTypeArgumentsOfImplementedInterface1">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -793,11 +795,11 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, TestOptions.ReleaseDll)
+                </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
-            Dim lib2 = CreateCompilationWithMscorlibAndReferences(
+            Dim lib2 = CreateCompilationWithMscorlib40AndReferences(
                 <compilation name="MissingTypeInTypeArgumentsOfImplementedInterface2">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -813,7 +815,7 @@ End Namespace
 
             Dim lib2Ref = New VisualBasicCompilationReference(lib2)
 
-            Dim lib3 = CreateCompilationWithMscorlibAndReferences(
+            Dim lib3 = CreateCompilationWithMscorlib40AndReferences(
                 <compilation name="MissingTypeInTypeArgumentsOfImplementedInterface3">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -899,7 +901,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
+            Dim lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             Dim expectedErrors =
 <expected>
@@ -958,18 +960,18 @@ BC32044: Type argument 'I5' does not inherit from or implement the constraint ty
 
             AssertTheseDiagnostics(lib4, expectedErrors)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
+            lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             CompileAndVerify(lib4)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
+            lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(lib4, expectedErrors)
         End Sub
 
         <Fact()>
         Public Sub MissingImplementedInterface()
-            Dim lib1 = CreateCompilationWithMscorlib(
+            Dim lib1 = CreateCompilationWithMscorlib40(
                 <compilation name="MissingImplementedInterface1">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -983,11 +985,11 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, TestOptions.ReleaseDll)
+                </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
-            Dim lib2 = CreateCompilationWithMscorlibAndReferences(
+            Dim lib2 = CreateCompilationWithMscorlib40AndReferences(
                 <compilation name="MissingImplementedInterface2">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -1010,7 +1012,7 @@ End Namespace
 
             Dim lib2Ref = New VisualBasicCompilationReference(lib2)
 
-            Dim lib3 = CreateCompilationWithMscorlibAndReferences(
+            Dim lib3 = CreateCompilationWithMscorlib40AndReferences(
                 <compilation name="MissingImplementedInterface3">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -1111,7 +1113,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
+            Dim lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             Dim expectedErrors =
 <expected>
@@ -1188,7 +1190,7 @@ BC30652: Reference required to assembly 'MissingImplementedInterface2, Version=0
 
             AssertTheseDiagnostics(lib4, expectedErrors)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
+            lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(lib4,
 <expected>
@@ -1200,14 +1202,14 @@ BC30390: 'C4.Private Sub M1()' is not accessible in this context because it is '
             ~~~~~
 </expected>)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
+            lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(lib4, expectedErrors)
         End Sub
 
         <Fact()>
         Public Sub MissingBaseClass()
-            Dim lib1 = CreateCompilationWithMscorlib(
+            Dim lib1 = CreateCompilationWithMscorlib40(
                 <compilation name="MissingBaseClass1">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -1222,11 +1224,11 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, TestOptions.ReleaseDll)
+                </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
-            Dim lib2 = CreateCompilationWithMscorlibAndReferences(
+            Dim lib2 = CreateCompilationWithMscorlib40AndReferences(
                 <compilation name="MissingBaseClass2">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -1242,7 +1244,7 @@ End Namespace
 
             Dim lib2Ref = New VisualBasicCompilationReference(lib2)
 
-            Dim lib3 = CreateCompilationWithMscorlibAndReferences(
+            Dim lib3 = CreateCompilationWithMscorlib40AndReferences(
                 <compilation name="MissingBaseClass3">
                     <file name="c.vb"><![CDATA[
 Namespace ErrorTest
@@ -1301,7 +1303,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
+            Dim lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             Dim expectedErrors =
 <expected>
@@ -1342,24 +1344,24 @@ BC32044: Type argument 'C4' does not inherit from or implement the constraint ty
 
             AssertTheseDiagnostics(lib4, expectedErrors)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
+            lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1Ref, lib2Ref, lib3Ref}, TestOptions.ReleaseDll)
 
             CompileAndVerify(lib4)
 
-            lib4 = CreateCompilationWithMscorlibAndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
+            lib4 = CreateCompilationWithMscorlib40AndReferences(lib4Def, {lib1.EmitToImageReference(), lib3.EmitToImageReference()}, TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(lib4, expectedErrors)
         End Sub
 
         <Fact()>
         Public Sub OverloadResolutionUseSiteErrors()
-            Dim missing = CreateCompilationWithMscorlib(
+            Dim missing = CreateCompilationWithMscorlib40(
                 <compilation name="missing">
                     <file name="c.vb"><![CDATA[
 Public Class Missing
 End Class]]>
                     </file>
-                </compilation>, TestOptions.ReleaseDll)
+                </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim missingRef = New VisualBasicCompilationReference(missing)
 
@@ -1453,13 +1455,8 @@ BC30652: Reference required to assembly 'missing, Version=0.0.0.0, Culture=neutr
 ]]>
 
             compilation = CompilationUtils.CreateCompilationWithCustomILSource(compDef, ilSource2.Value, TestOptions.ReleaseDll)
-
-            AssertTheseDiagnostics(compilation,
-<expected>
-BC30657: 'M1' has a return type that is not supported or parameter types that are not supported.
-            Dim y as Integer = x.M1(1)
-                                 ~~
-</expected>)
+            ' ByRef return supported.
+            AssertTheseDiagnostics(compilation)
         End Sub
 
     End Class

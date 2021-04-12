@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -25,22 +29,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = lambdaSymbol.Parameters;
             if (!parameters.IsDefaultOrEmpty)
             {
-                RecordDefinitions(parameters);
+                recordDefinitions(parameters);
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
-                    this.parameterMap.Add(parameter.Name, parameter);
+                    if (!parameter.IsDiscard)
+                    {
+                        this.parameterMap.Add(parameter.Name, parameter);
+                    }
                 }
             }
-        }
 
-        private void RecordDefinitions(ImmutableArray<ParameterSymbol> definitions)
-        {
-            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
-            foreach (var s in definitions)
+            void recordDefinitions(ImmutableArray<ParameterSymbol> definitions)
             {
-                if (!declarationMap.ContainsKey(s.Name))
+                var declarationMap = _definitionMap ??= new SmallDictionary<string, ParameterSymbol>();
+                foreach (var s in definitions)
                 {
-                    declarationMap.Add(s.Name, s);
+                    if (!s.IsDiscard && !declarationMap.ContainsKey(s.Name))
+                    {
+                        declarationMap.Add(s.Name, s);
+                    }
                 }
             }
         }
@@ -59,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsNestedFunctionBinder => true;
+
         internal override bool IsDirectlyInIterator
         {
             get
@@ -69,17 +78,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: Specifically not overriding IsIndirectlyInIterator.
 
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType()
+        {
+            return TypeWithAnnotations.Create(CreateErrorType());
+        }
+
+        protected override void ValidateYield(YieldStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             if (node != null)
             {
                 diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
             }
-            return CreateErrorType();
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(result.IsClear);
 
@@ -90,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameterSymbol in parameterMap[name])
             {
-                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteInfo));
             }
         }
 
@@ -100,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
                         result.AddSymbol(parameter, parameter.Name, 0);
                     }
@@ -108,47 +121,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, BindingDiagnosticBag diagnostics)
         {
-            if (parameter.Locations[0] == newLocation)
+            var oldLocation = parameter.Locations[0];
+            if (oldLocation == newLocation)
             {
                 // a query variable and its corresponding lambda parameter, for example
                 return false;
             }
 
-            var oldLocation = parameter.Locations[0];
-
-            Debug.Assert(oldLocation != newLocation || oldLocation == Location.None, "same nonempty location refers to different symbols?");
-
-            SymbolKind parameterKind = parameter.Kind;
             // Quirk of the way we represent lambda parameters.                
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
 
-            if (newSymbolKind == SymbolKind.ErrorType)
+            switch (newSymbolKind)
             {
-                return true;
-            }
+                case SymbolKind.ErrorType:
+                    return true;
 
-            if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
-            {
-                // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
-                diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
-                return true;
-            }
+                case SymbolKind.Parameter:
+                case SymbolKind.Local:
+                    // Error: A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
+                    return true;
 
-            if (newSymbolKind == SymbolKind.RangeVariable)
-            {
-                // The range variable '{0}' conflicts with a previous declaration of '{0}'
-                diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
-                return true;
+                case SymbolKind.Method:
+                    // Local function declaration name conflicts are not reported, for backwards compatibility.
+                    return false;
+
+                case SymbolKind.TypeParameter:
+                    // Type parameter declaration name conflicts are not reported, for backwards compatibility.
+                    return false;
+
+                case SymbolKind.RangeVariable:
+                    // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
+                    return true;
             }
 
             Debug.Assert(false, "what else could be defined in a lambda?");
+            diagnostics.Add(ErrorCode.ERR_InternalError, newLocation);
             return false;
         }
 
-
-        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
+        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
         {
             ParameterSymbol existingDeclaration;
             var map = _definitionMap;
@@ -160,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -169,5 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override uint LocalScopeDepth => Binder.TopLevelScope;
     }
 }

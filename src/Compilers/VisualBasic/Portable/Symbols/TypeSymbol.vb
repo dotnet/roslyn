@@ -1,11 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -16,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class TypeSymbol
         Inherits NamespaceOrTypeSymbol
-        Implements ITypeSymbol
+        Implements ITypeSymbol, ITypeSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -25,23 +29,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ' TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
-        Friend Shared ReadOnly ImplicitTypeName As String = "<invalid-global-code>"
+        Friend Const ImplicitTypeName As String = "<invalid-global-code>"
 
-        Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = {}
+        Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = Array.Empty(Of TypeSymbol)
 
         Private _lazyAllInterfaces As ImmutableArray(Of NamedTypeSymbol)
-        Private _lazyInterfacesAndTheirBaseInterfaces As ImmutableHashSet(Of NamedTypeSymbol)
+
+        ''' <summary>
+        ''' <see cref="InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics"/>
+        ''' </summary>
+        Private _lazyInterfacesAndTheirBaseInterfaces As MultiDictionary(Of NamedTypeSymbol, NamedTypeSymbol)
+
+        Private Shared ReadOnly EmptyInterfacesAndTheirBaseInterfaces As New MultiDictionary(Of NamedTypeSymbol, NamedTypeSymbol)(0, EqualsIgnoringComparer.InstanceCLRSignatureCompare)
 
         ' Map with the interface member implementations for this type.
         ' Key is implemented method, value is implementing method (from the perspective of this type)
         ' Don't allocate until someone needs it.
         Private _lazyImplementationForInterfaceMemberMap As ConcurrentDictionary(Of Symbol, Symbol)
 
-        ' Map with all the explicitly implemented interface symbols declared on this type.
-        ' key = interface method/property/event, value = explicitly implementing method/property/event declared on this type
-        ' Access through ExplicitInterfaceImplementationMap property ONLY!
-        Friend m_lazyExplicitInterfaceImplementationMap As Dictionary(Of Symbol, Symbol)
-
+        ''' <summary>
+        ''' Map with all the explicitly implemented interface symbols declared on this type.
+        ''' key = interface method/property/event compared using <see cref="ExplicitInterfaceImplementationTargetMemberEqualityComparer"/>,
+        ''' value = explicitly implementing methods/properties/events declared on this type (normally a single value, multiple in case of
+        ''' an error).
+        ''' Access through <see cref="ExplicitInterfaceImplementationMap"/> property ONLY!
+        ''' </summary>
+        Protected m_lazyExplicitInterfaceImplementationMap As MultiDictionary(Of Symbol, Symbol)
 
         Public Shared ReadOnly Property EmptyTypeSymbolsList As IList(Of TypeSymbol)
             Get
@@ -79,30 +92,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' (for example, interfaces), Nothing is returned. Also the special class System.Object
         ''' always has a BaseType of Nothing.
         ''' </summary>
-        Public ReadOnly Property BaseType As NamedTypeSymbol
-            Get
-                Return BaseTypeNoUseSiteDiagnostics
-            End Get
-        End Property
-
         Friend MustOverride ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
 
-        Friend Function BaseTypeWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
+        Friend Function BaseTypeWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As NamedTypeSymbol
             Dim result = BaseTypeNoUseSiteDiagnostics
 
             If result IsNot Nothing Then
-                result.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                result.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             End If
 
             Return result
         End Function
 
-        Friend Function BaseTypeOriginalDefinition(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
+        Friend Function BaseTypeOriginalDefinition(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As NamedTypeSymbol
             Dim result = BaseTypeNoUseSiteDiagnostics
 
             If result IsNot Nothing Then
                 result = result.OriginalDefinition
-                result.AddUseSiteDiagnostics(useSiteDiagnostics)
+                result.AddUseSiteInfo(useSiteInfo)
             End If
 
             Return result
@@ -112,12 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Gets the set of interfaces that this type directly implements. This set does not
         ''' include interfaces that are base interfaces of directly implemented interfaces.
         ''' </summary>
-        Public ReadOnly Property Interfaces As ImmutableArray(Of NamedTypeSymbol)
-            Get
-                Return InterfacesNoUseSiteDiagnostics
-            End Get
-        End Property
-
         Friend MustOverride ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
 
         ''' <summary>
@@ -130,12 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' subtype" because it does not take into account variance: AllInterfaces for
         ''' IEnumerable(Of String) will not include IEnumerable(Of Object).
         ''' </summary>
-        Public ReadOnly Property AllInterfaces As ImmutableArray(Of NamedTypeSymbol)
-            Get
-                Return AllInterfacesNoUseSiteDiagnostics
-            End Get
-        End Property
-
         Friend ReadOnly Property AllInterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
                 If (_lazyAllInterfaces.IsDefault) Then
@@ -146,14 +141,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Function AllInterfacesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Function AllInterfacesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of NamedTypeSymbol)
             Dim result = AllInterfacesNoUseSiteDiagnostics
 
             ' Since bases affect content of AllInterfaces set, we need to make sure they all are good.
-            Me.AddUseSiteDiagnosticsForBaseDefinitions(useSiteDiagnostics)
+            Me.AddUseSiteDiagnosticsForBaseDefinitions(useSiteInfo)
 
             For Each iface In result
-                iface.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                iface.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             Next
 
             Return result
@@ -164,8 +159,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' long dependency cycles removed. Consequently, it is possible (and we do) use the
         ''' simplest version of Tarjan's topological sorting algorithm.
         Protected Overridable Function MakeAllInterfaces() As ImmutableArray(Of NamedTypeSymbol)
-            'TODO: Might want to use different implementation for substituted type (see C# code)
-
             Dim result = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
             Dim visited = New HashSet(Of NamedTypeSymbol)()
 
@@ -198,13 +191,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the set of interfaces that this type directly implements, plus the base interfaces
         ''' of all such types.
+        ''' Keys are compared using <see cref="EqualsIgnoringComparer.InstanceCLRSignatureCompare"/>,
+        ''' values are distinct interfaces corresponding to the key, according to <see cref="TypeCompareKind.ConsiderEverything"/> rules.
         ''' </summary>
         ''' <remarks>
         ''' CONSIDER: it probably isn't truly necessary to cache this.  If space gets tight, consider
         ''' alternative approaches (recompute every time, cache on the side, only store on some types,
         ''' etc).
         ''' </remarks>
-        Friend ReadOnly Property InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics As ImmutableHashSet(Of NamedTypeSymbol)
+        Friend ReadOnly Property InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics As MultiDictionary(Of NamedTypeSymbol, NamedTypeSymbol)
             Get
                 If _lazyInterfacesAndTheirBaseInterfaces Is Nothing Then
                     Interlocked.CompareExchange(_lazyInterfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(Me.InterfacesNoUseSiteDiagnostics), Nothing)
@@ -218,16 +213,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Note: Unlike MakeAllInterfaces, this doesn't need to be virtual. It depends on
         ' AllInterfaces for its implementation, so it will pick up all changes to MakeAllInterfaces
         ' indirectly.
-        Private Shared Function MakeInterfacesAndTheirBaseInterfaces(declaredInterfaces As ImmutableArray(Of NamedTypeSymbol)) As ImmutableHashSet(Of NamedTypeSymbol)
-            Dim resultBuilder = New HashSet(Of NamedTypeSymbol)()
+        Private Shared Function MakeInterfacesAndTheirBaseInterfaces(declaredInterfaces As ImmutableArray(Of NamedTypeSymbol)) As MultiDictionary(Of NamedTypeSymbol, NamedTypeSymbol)
+            If declaredInterfaces.IsEmpty Then
+                Return EmptyInterfacesAndTheirBaseInterfaces
+            End If
+
+            Dim result As New MultiDictionary(Of NamedTypeSymbol, NamedTypeSymbol)(declaredInterfaces.Length, EqualsIgnoringComparer.InstanceCLRSignatureCompare)
+
             For Each [interface] In declaredInterfaces
-                If Not resultBuilder.Contains([interface]) Then
-                    resultBuilder.Add([interface])
-                    resultBuilder.UnionWith([interface].AllInterfacesNoUseSiteDiagnostics)
+                If result.Add([interface], [interface]) Then
+                    For Each baseInterface In [interface].AllInterfacesNoUseSiteDiagnostics
+                        result.Add(baseInterface, baseInterface)
+                    Next
                 End If
             Next
 
-            Return If(resultBuilder.Count = 0, ImmutableHashSet.Create(Of NamedTypeSymbol)(), ImmutableHashSet.CreateRange(Of NamedTypeSymbol)(resultBuilder))
+            Return result
         End Function
 
         ''' <summary>
@@ -235,14 +236,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' that <see cref="IsReferenceType"/> and <see cref="IsValueType"/> both return true. However, for an unconstrained
         ''' type parameter, <see cref="IsReferenceType"/> and <see cref="IsValueType"/> will both return false.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsReferenceType As Boolean Implements ITypeSymbol.IsReferenceType
+        Public MustOverride ReadOnly Property IsReferenceType As Boolean Implements ITypeSymbol.IsReferenceType, ITypeSymbolInternal.IsReferenceType
 
         ''' <summary>
         ''' Returns true if this type is known to be a value type. It is never the case
         ''' that <see cref="IsReferenceType"/> and <see cref="IsValueType"/> both return true. However, for an unconstrained
         ''' type parameter, <see cref="IsReferenceType"/> and <see cref="IsValueType"/> will both return false.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsValueType As Boolean Implements ITypeSymbol.IsValueType
+        Public MustOverride ReadOnly Property IsValueType As Boolean Implements ITypeSymbol.IsValueType, ITypeSymbolInternal.IsValueType
 
         ''' <summary>
         ''' Is this a symbol for an anonymous type (including delegate).
@@ -267,12 +268,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the kind of this type.
         ''' </summary>
-        Public MustOverride ReadOnly Property TypeKind As TypeKind
+        Public MustOverride ReadOnly Property TypeKind As TYPEKIND
 
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
         ''' </summary>
-        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType
+        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
             Get
                 Return SpecialType.None
             End Get
@@ -299,6 +300,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overloads Function Equals(other As TypeWithModifiers) As Boolean
             Return other.Is(Me)
         End Function
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator =(left As TypeSymbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator <>(left As TypeSymbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator =(left As Symbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator <>(left As Symbol, right As TypeSymbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator =(left As TypeSymbol, right As Symbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        <Obsolete("Use TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind) method.", True)>
+        Public Overloads Shared Operator <>(left As TypeSymbol, right As Symbol) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Operator
+
+        Public Overloads Shared Function Equals(left As TypeSymbol, right As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return If(left?.Equals(right, comparison), right Is Nothing)
+        End Function
+
+        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+            Return Equals(TryCast(obj, TypeSymbol), TypeCompareKind.ConsiderEverything)
+        End Function
+
+        Public NotOverridable Overrides Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+            Return Equals(TryCast(other, TypeSymbol), compareKind)
+        End Function
+
+        Public MustOverride Overrides Function GetHashCode() As Integer
+
+        Public MustOverride Overloads Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
 
         ''' <summary>
         ''' Lookup an immediately nested type referenced from metadata, names should be
@@ -385,18 +432,80 @@ Done:
             Return namedType
         End Function
 
-        Friend Overridable Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
+        Friend Overridable Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             Return BaseTypeNoUseSiteDiagnostics
         End Function
 
-        Friend Overridable Function GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As NamedTypeSymbol
+        Friend Overridable Function GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As NamedTypeSymbol
             Dim result = GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved)
 
             If result IsNot Nothing Then
-                result.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                result.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             End If
 
             Return result
+        End Function
+
+        Public Overridable ReadOnly Property IsTupleType() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleUnderlyingType() As NamedTypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElements As ImmutableArray(Of FieldSymbol)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElementTypes() As ImmutableArray(Of TypeSymbol)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElementNames() As ImmutableArray(Of String)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Verify if the given type can be used to back a tuple type 
+        ''' and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        ''' </summary>
+        ''' <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        ''' <returns></returns>
+        Public Overridable Function IsTupleCompatible(<Out> ByRef tupleCardinality As Integer) As Boolean
+            tupleCardinality = 0
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Verify if the given type can be used to back a tuple type. 
+        ''' </summary>
+        Public Function IsTupleCompatible() As Boolean
+            Dim countOfItems As Integer
+            Return IsTupleCompatible(countOfItems)
+        End Function
+
+        ''' <summary>
+        ''' Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
+        ''' with the given cardinality. 
+        ''' </summary>
+        Public Function IsTupleOrCompatibleWithTupleOfCardinality(targetCardinality As Integer) As Boolean
+            If (IsTupleType) Then
+                Return TupleElementTypes.Length = targetCardinality
+            End If
+
+            Dim countOfItems As Integer
+            Return IsTupleCompatible(countOfItems) AndAlso countOfItems = targetCardinality
         End Function
 
 #Region "Use-Site Diagnostics"
@@ -412,7 +521,7 @@ Done:
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
                 Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedType1
             End Get
         End Property
@@ -454,15 +563,65 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_IsTupleSymbol As Boolean Implements ITypeSymbol.IsTupleType
             Get
+                Return Me.IsTupleType
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_IsNativeIntegerType As Boolean Implements ITypeSymbol.IsNativeIntegerType
+            Get
                 Return False
             End Get
         End Property
 
-        Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
+        Private ReadOnly Property ITypeSymbol_TypeKind As TYPEKIND Implements ITypeSymbol.TypeKind, ITypeSymbolInternal.TypeKind
             Get
-                Return Me.TypeKind.ToCommon()
+                Return Me.TypeKind
             End Get
         End Property
+
+        Private ReadOnly Property ITypeSymbol_IsRefLikeType As Boolean Implements ITypeSymbol.IsRefLikeType
+            Get
+                ' VB has no concept of ref-like types
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_IsUnmanagedType As Boolean Implements ITypeSymbol.IsUnmanagedType
+            Get
+                ' VB has no concept of unmanaged types
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_IsReadOnly As Boolean Implements ITypeSymbol.IsReadOnly
+            Get
+                ' VB does not have readonly structures
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_IsRecord As Boolean Implements ITypeSymbol.IsRecord
+            Get
+                ' VB does not have records
+                Return False
+            End Get
+        End Property
+
+        Private Function ITypeSymbol_ToDisplayString(topLevelNullability As NullableFlowState, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToDisplayString
+            Return ToDisplayString(format)
+        End Function
+
+        Private Function ITypeSymbol_ToDisplayParts(topLevelNullability As NullableFlowState, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart) Implements ITypeSymbol.ToDisplayParts
+            Return ToDisplayParts(format)
+        End Function
+
+        Private Function ITypeSymbol_ToMinimalDisplayString(semanticModel As SemanticModel, topLevelNullability As NullableFlowState, position As Integer, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToMinimalDisplayString
+            Return ToMinimalDisplayString(semanticModel, position, format)
+        End Function
+
+        Private Function ITypeSymbol_ToMinimalDisplayParts(semanticModel As SemanticModel, topLevelNullability As NullableFlowState, position As Integer, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart) Implements ITypeSymbol.ToMinimalDisplayParts
+            Return ToMinimalDisplayParts(semanticModel, position, format)
+        End Function
 
 #End Region
 
@@ -484,8 +643,9 @@ Done:
                 Throw New ArgumentNullException(NameOf(interfaceMember))
             End If
 
-            If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
-                Not Me.ImplementsInterface(interfaceMember.ContainingType, Nothing) Then
+            If Not interfaceMember.RequiresImplementation() OrElse
+               Me.IsInterfaceType() OrElse ' In VB interfaces do not implement anything
+               Not Me.ImplementsInterface(interfaceMember.ContainingType, comparer:=EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                 Return Nothing
             End If
 
@@ -543,20 +703,16 @@ Done:
             End Select
         End Function
 
-        ' Given a symbol in an interface, return a symbol in THIS type that explicitly implements that method.
-        ' Does NOT look into base types for implementations.
-        Friend Function GetExplicitImplementationForInterfaceMember(Of T As Symbol)(interfaceMethod As T) As T
-            Dim implementingMethod As Symbol = Nothing
-            Me.ExplicitInterfaceImplementationMap.TryGetValue(interfaceMethod, implementingMethod)
-
-            Return DirectCast(implementingMethod, T)
-        End Function
-
-        ' Get a dictionary with all the explicitly implemented interface symbols declared on this type.
-        ' key = interface method/property/event, value = explicitly implementing method/property/event declared on this type
-        '
-        ' Note: This implementation is overridden by source symbols, because they diagnose errors also.
-        Friend Overridable ReadOnly Property ExplicitInterfaceImplementationMap As Dictionary(Of Symbol, Symbol)
+        ''' <summary>
+        ''' Get a dictionary with all the explicitly implemented interface symbols declared on this type.
+        ''' 
+        ''' key = interface method/property/event compared using <see cref="ExplicitInterfaceImplementationTargetMemberEqualityComparer"/>,
+        ''' value = explicitly implementing methods/properties/events declared on this type (normally a single value, multiple in case of
+        ''' an error).
+        ''' 
+        ''' Note: This implementation is overridden by source symbols, because they diagnose errors also.
+        ''' </summary>
+        Friend Overridable ReadOnly Property ExplicitInterfaceImplementationMap As MultiDictionary(Of Symbol, Symbol)
             Get
                 If m_lazyExplicitInterfaceImplementationMap Is Nothing Then
                     Interlocked.CompareExchange(Me.m_lazyExplicitInterfaceImplementationMap, MakeExplicitInterfaceImplementationMap(), Nothing)
@@ -567,18 +723,16 @@ Done:
         End Property
 
         ' An empty dictionary to use if there are no members in the explicit interface map.
-        Friend Shared ReadOnly EmptyExplicitImplementationMap As Dictionary(Of Symbol, Symbol) = New Dictionary(Of Symbol, Symbol)
+        Protected Shared ReadOnly EmptyExplicitImplementationMap As MultiDictionary(Of Symbol, Symbol) = New MultiDictionary(Of Symbol, Symbol)
 
         ' Build the explicit interface map for this type. 
         ' This implementation is not used by source symbols, which additionally diagnose errors.
-        Private Function MakeExplicitInterfaceImplementationMap() As Dictionary(Of Symbol, Symbol)
+        Private Function MakeExplicitInterfaceImplementationMap() As MultiDictionary(Of Symbol, Symbol)
             If Me.IsClassType() OrElse Me.IsStructureType() Then
-                Dim map = New Dictionary(Of Symbol, Symbol)()
+                Dim map = New MultiDictionary(Of Symbol, Symbol)(ExplicitInterfaceImplementationTargetMemberEqualityComparer.Instance)
                 For Each implementingMember In Me.GetMembersUnordered()
                     For Each interfaceMember In GetExplicitInterfaceImplementations(implementingMember)
-                        If Not map.ContainsKey(interfaceMember) Then
-                            map.Add(interfaceMember, implementingMember) ' use first implementation found, even though duplicate is an error it could happen.
-                        End If
+                        map.Add(interfaceMember, implementingMember)
                     Next
                 Next
 
@@ -592,7 +746,39 @@ Done:
             End If
         End Function
 
+        Protected Class ExplicitInterfaceImplementationTargetMemberEqualityComparer
+            Implements IEqualityComparer(Of Symbol)
+
+            Public Shared ReadOnly Instance As New ExplicitInterfaceImplementationTargetMemberEqualityComparer()
+
+            Private Sub New()
+            End Sub
+
+            Public Overloads Function Equals(x As Symbol, y As Symbol) As Boolean Implements IEqualityComparer(Of Symbol).Equals
+                Return x.OriginalDefinition = y.OriginalDefinition AndAlso
+                       EqualsIgnoringComparer.InstanceCLRSignatureCompare.Equals(x.ContainingType, y.ContainingType)
+            End Function
+
+            Public Overloads Function GetHashCode(obj As Symbol) As Integer Implements IEqualityComparer(Of Symbol).GetHashCode
+                Return obj.OriginalDefinition.GetHashCode()
+            End Function
+        End Class
 
 #End Region
+
+        Private ReadOnly Property ITypeSymbol_NullableAnnotation As NullableAnnotation Implements ITypeSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
+        Private Function ITypeSymbol_WithNullability(nullableAnnotation As NullableAnnotation) As ITypeSymbol Implements ITypeSymbol.WithNullableAnnotation
+            Return Me
+        End Function
+
+        Private Function ITypeSymbolInternal_GetITypeSymbol() As ITypeSymbol Implements ITypeSymbolInternal.GetITypeSymbol
+            Return Me
+        End Function
+
     End Class
 End Namespace

@@ -1,16 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class GreenNode : IObjectWritable, IObjectReadable
+    internal abstract class GreenNode : IObjectWritable
     {
         private string GetDebuggerDisplay()
         {
@@ -30,8 +37,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> s_annotationsTable =
             new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
 
-        private static readonly DiagnosticInfo[] s_noDiagnostics = SpecializedCollections.EmptyArray<DiagnosticInfo>();
-        private static readonly SyntaxAnnotation[] s_noAnnotations = SpecializedCollections.EmptyArray<SyntaxAnnotation>();
+        private static readonly DiagnosticInfo[] s_noDiagnostics = Array.Empty<DiagnosticInfo>();
+        private static readonly SyntaxAnnotation[] s_noAnnotations = Array.Empty<SyntaxAnnotation>();
         private static readonly IEnumerable<SyntaxAnnotation> s_noAnnotationsEnumerable = SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
 
         protected GreenNode(ushort kind)
@@ -45,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             _fullWidth = fullWidth;
         }
 
-        protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, int fullWidth)
+        protected GreenNode(ushort kind, DiagnosticInfo[]? diagnostics, int fullWidth)
         {
             _kind = kind;
             _fullWidth = fullWidth;
@@ -56,7 +63,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics)
+        protected GreenNode(ushort kind, DiagnosticInfo[]? diagnostics)
         {
             _kind = kind;
             if (diagnostics?.Length > 0)
@@ -66,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations) :
+        protected GreenNode(ushort kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations) :
             this(kind, diagnostics)
         {
             if (annotations?.Length > 0)
@@ -81,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, int fullWidth) :
+        protected GreenNode(ushort kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations, int fullWidth) :
             this(kind, diagnostics, fullWidth)
         {
             if (annotations?.Length > 0)
@@ -98,7 +105,7 @@ namespace Microsoft.CodeAnalysis
 
         protected void AdjustFlagsAndWidth(GreenNode node)
         {
-            Debug.Assert(node != null, "PERF: caller must ensure that node!=null, we do not want to re-check that here.");
+            RoslynDebug.Assert(node != null, "PERF: caller must ensure that node!=null, we do not want to re-check that here.");
             this.flags |= (node.flags & NodeFlags.InheritMask);
             _fullWidth += node._fullWidth;
         }
@@ -120,9 +127,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         public abstract string KindText { get; }
-        public virtual bool IsStructuredTrivia { get { return false; } }
-        public virtual bool IsDirective { get { return false; } }
-        public virtual bool IsToken { get { return false; } }
+
+        public virtual bool IsStructuredTrivia => false;
+        public virtual bool IsDirective => false;
+        public virtual bool IsToken => false;
+        public virtual bool IsTrivia => false;
+        public virtual bool IsSkippedTokensTrivia => false;
+        public virtual bool IsDocumentationCommentTrivia => false;
 
         #endregion
 
@@ -146,7 +157,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal abstract GreenNode GetSlot(int index);
+        internal abstract GreenNode? GetSlot(int index);
+
+        internal GreenNode GetRequiredSlot(int index)
+        {
+            var node = GetSlot(index);
+            RoslynDebug.Assert(node is object);
+            return node;
+        }
 
         // for slot counts >= byte.MaxValue
         protected virtual int GetSlotCount()
@@ -154,7 +172,58 @@ namespace Microsoft.CodeAnalysis
             return _slotCount;
         }
 
-        public abstract int GetSlotOffset(int index);
+        public virtual int GetSlotOffset(int index)
+        {
+            int offset = 0;
+            for (int i = 0; i < index; i++)
+            {
+                var child = this.GetSlot(i);
+                if (child != null)
+                {
+                    offset += child.FullWidth;
+                }
+            }
+
+            return offset;
+        }
+
+        internal Syntax.InternalSyntax.ChildSyntaxList ChildNodesAndTokens()
+        {
+            return new Syntax.InternalSyntax.ChildSyntaxList(this);
+        }
+
+        /// <summary>
+        /// Enumerates all nodes of the tree rooted by this node (including this node).
+        /// </summary>
+        internal IEnumerable<GreenNode> EnumerateNodes()
+        {
+            yield return this;
+
+            var stack = new Stack<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>(24);
+            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
+
+            while (stack.Count > 0)
+            {
+                var en = stack.Pop();
+                if (!en.MoveNext())
+                {
+                    // no more down this branch
+                    continue;
+                }
+
+                var current = en.Current;
+                stack.Push(en); // put it back on stack (struct enumerator)
+
+                yield return current;
+
+                if (!current.IsToken)
+                {
+                    // not token, so consider children
+                    stack.Push(current.ChildNodesAndTokens().GetEnumerator());
+                    continue;
+                }
+            }
+        }
 
         /// <summary>
         /// Find the slot that contains the given offset.
@@ -323,14 +392,14 @@ namespace Microsoft.CodeAnalysis
         public virtual int GetLeadingTriviaWidth()
         {
             return this.FullWidth != 0 ?
-                this.GetFirstTerminal().GetLeadingTriviaWidth() :
+                this.GetFirstTerminal()!.GetLeadingTriviaWidth() :
                 0;
         }
 
         public virtual int GetTrailingTriviaWidth()
         {
             return this.FullWidth != 0 ?
-                this.GetLastTerminal().GetTrailingTriviaWidth() :
+                this.GetLastTerminal()!.GetTrailingTriviaWidth() :
                 0;
         }
 
@@ -378,6 +447,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => ShouldReuseInSerialization;
+
+        internal virtual bool ShouldReuseInSerialization => this.IsCacheable;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             this.WriteTo(writer);
@@ -392,23 +465,16 @@ namespace Microsoft.CodeAnalysis
             if (hasDiagnostics || hasAnnotations)
             {
                 kindBits |= ExtendedSerializationInfoMask;
-            }
-
-            writer.WriteUInt16(kindBits);
-
-            if (hasDiagnostics || hasAnnotations)
-            {
+                writer.WriteUInt16(kindBits);
                 writer.WriteValue(hasDiagnostics ? this.GetDiagnostics() : null);
                 writer.WriteValue(hasAnnotations ? this.GetAnnotations() : null);
             }
+            else
+            {
+                writer.WriteUInt16(kindBits);
+            }
         }
 
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return this.GetReader();
-        }
-
-        internal abstract Func<ObjectReader, object> GetReader();
         #endregion
 
         #region Annotations 
@@ -450,7 +516,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             var annotations = this.GetAnnotations();
             if (annotations == s_noAnnotations)
@@ -529,7 +595,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.ContainsAnnotations)
             {
-                SyntaxAnnotation[] annotations;
+                SyntaxAnnotation[]? annotations;
                 if (s_annotationsTable.TryGetValue(this, out annotations))
                 {
                     System.Diagnostics.Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
@@ -540,7 +606,7 @@ namespace Microsoft.CodeAnalysis
             return s_noAnnotations;
         }
 
-        internal abstract GreenNode SetAnnotations(SyntaxAnnotation[] annotations);
+        internal abstract GreenNode SetAnnotations(SyntaxAnnotation[]? annotations);
 
         #endregion
 
@@ -549,7 +615,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.ContainsDiagnostics)
             {
-                DiagnosticInfo[] diags;
+                DiagnosticInfo[]? diags;
                 if (s_diagnosticsTable.TryGetValue(this, out diags))
                 {
                     return diags;
@@ -559,69 +625,153 @@ namespace Microsoft.CodeAnalysis
             return s_noDiagnostics;
         }
 
-        internal abstract GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics);
+        internal abstract GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics);
         #endregion
 
         #region Text
-        public abstract string ToFullString();
 
-        public virtual void WriteTo(System.IO.TextWriter writer)
+        public virtual string ToFullString()
         {
-            this.WriteTo(writer, true, true);
+            var sb = PooledStringBuilder.GetInstance();
+            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            this.WriteTo(writer, leading: true, trailing: true);
+            return sb.ToStringAndFree();
         }
 
-        protected internal virtual void WriteTo(System.IO.TextWriter writer, bool leading, bool trailing)
+        public override string ToString()
         {
-            bool first = true;
-            int n = this.SlotCount;
-            int lastIndex = n - 1;
-            for (; lastIndex >= 0; lastIndex--)
+            var sb = PooledStringBuilder.GetInstance();
+            var writer = new System.IO.StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
+            this.WriteTo(writer, leading: false, trailing: false);
+            return sb.ToStringAndFree();
+        }
+
+        public void WriteTo(System.IO.TextWriter writer)
+        {
+            this.WriteTo(writer, leading: true, trailing: true);
+        }
+
+        protected internal void WriteTo(TextWriter writer, bool leading, bool trailing)
+        {
+            // Use an actual stack so we can write out deeply recursive structures without overflowing.
+            var stack = ArrayBuilder<(GreenNode node, bool leading, bool trailing)>.GetInstance();
+            stack.Push((this, leading, trailing));
+
+            // Separated out stack processing logic so that it does not unintentionally refer to 
+            // "this", "leading" or "trailing".
+            processStack(writer, stack);
+            stack.Free();
+            return;
+
+            static void processStack(
+                TextWriter writer,
+                ArrayBuilder<(GreenNode node, bool leading, bool trailing)> stack)
             {
-                var child = this.GetSlot(lastIndex);
+                while (stack.Count > 0)
+                {
+                    var current = stack.Pop();
+                    var currentNode = current.node;
+                    var currentLeading = current.leading;
+                    var currentTrailing = current.trailing;
+
+                    if (currentNode.IsToken)
+                    {
+                        currentNode.WriteTokenTo(writer, currentLeading, currentTrailing);
+                        continue;
+                    }
+
+                    if (currentNode.IsTrivia)
+                    {
+                        currentNode.WriteTriviaTo(writer);
+                        continue;
+                    }
+
+                    var firstIndex = GetFirstNonNullChildIndex(currentNode);
+                    var lastIndex = GetLastNonNullChildIndex(currentNode);
+
+                    for (var i = lastIndex; i >= firstIndex; i--)
+                    {
+                        var child = currentNode.GetSlot(i);
+                        if (child != null)
+                        {
+                            var first = i == firstIndex;
+                            var last = i == lastIndex;
+                            stack.Push((child, currentLeading | !first, currentTrailing | !last));
+                        }
+                    }
+                }
+            }
+        }
+
+        private static int GetFirstNonNullChildIndex(GreenNode node)
+        {
+            int n = node.SlotCount;
+            int firstIndex = 0;
+            for (; firstIndex < n; firstIndex++)
+            {
+                var child = node.GetSlot(firstIndex);
                 if (child != null)
                 {
                     break;
                 }
             }
 
-            for (var i = 0; i <= lastIndex; i++)
+            return firstIndex;
+        }
+
+        private static int GetLastNonNullChildIndex(GreenNode node)
+        {
+            int n = node.SlotCount;
+            int lastIndex = n - 1;
+            for (; lastIndex >= 0; lastIndex--)
             {
-                var child = this.GetSlot(i);
+                var child = node.GetSlot(lastIndex);
                 if (child != null)
                 {
-                    child.WriteTo(writer, leading | !first, trailing | (i < lastIndex));
-                    first = false;
+                    break;
                 }
             }
+
+            return lastIndex;
+        }
+
+        protected virtual void WriteTriviaTo(TextWriter writer)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected virtual void WriteTokenTo(TextWriter writer, bool leading, bool trailing)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
 
         #region Tokens 
+
         public virtual int RawContextualKind { get { return this.RawKind; } }
-        public virtual object GetValue() { return null; }
+        public virtual object? GetValue() { return null; }
         public virtual string GetValueText() { return string.Empty; }
-        public virtual GreenNode GetLeadingTriviaCore() { return null; }
-        public virtual GreenNode GetTrailingTriviaCore() { return null; }
-        public abstract AbstractSyntaxNavigator Navigator { get; }
+        public virtual GreenNode? GetLeadingTriviaCore() { return null; }
+        public virtual GreenNode? GetTrailingTriviaCore() { return null; }
 
-        public virtual GreenNode WithLeadingTrivia(GreenNode trivia)
+        public virtual GreenNode WithLeadingTrivia(GreenNode? trivia)
         {
             return this;
         }
 
-        public virtual GreenNode WithTrailingTrivia(GreenNode trivia)
+        public virtual GreenNode WithTrailingTrivia(GreenNode? trivia)
         {
             return this;
         }
 
-        internal GreenNode GetFirstTerminal()
+        internal GreenNode? GetFirstTerminal()
         {
-            GreenNode node = this;
+            GreenNode? node = this;
 
             do
             {
-                GreenNode firstChild = null;
+                GreenNode? firstChild = null;
                 for (int i = 0, n = node.SlotCount; i < n; i++)
                 {
                     var child = node.GetSlot(i);
@@ -637,13 +787,13 @@ namespace Microsoft.CodeAnalysis
             return node;
         }
 
-        internal GreenNode GetLastTerminal()
+        internal GreenNode? GetLastTerminal()
         {
-            GreenNode node = this;
+            GreenNode? node = this;
 
             do
             {
-                GreenNode lastChild = null;
+                GreenNode? lastChild = null;
                 for (int i = node.SlotCount - 1; i >= 0; i--)
                 {
                     var child = node.GetSlot(i);
@@ -659,13 +809,13 @@ namespace Microsoft.CodeAnalysis
             return node;
         }
 
-        internal GreenNode GetLastNonmissingTerminal()
+        internal GreenNode? GetLastNonmissingTerminal()
         {
-            GreenNode node = this;
+            GreenNode? node = this;
 
             do
             {
-                GreenNode nonmissingChild = null;
+                GreenNode? nonmissingChild = null;
                 for (int i = node.SlotCount - 1; i >= 0; i--)
                 {
                     var child = node.GetSlot(i);
@@ -684,7 +834,7 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Equivalence 
-        public virtual bool IsEquivalentTo(GreenNode other)
+        public virtual bool IsEquivalentTo([NotNullWhen(true)] GreenNode? other)
         {
             if (this == other)
             {
@@ -708,12 +858,12 @@ namespace Microsoft.CodeAnalysis
                 // child if necessary.
                 if (node1.IsList && node1.SlotCount == 1)
                 {
-                    node1 = node1.GetSlot(0);
+                    node1 = node1.GetRequiredSlot(0);
                 }
 
                 if (node2.IsList && node2.SlotCount == 1)
                 {
-                    node2 = node2.GetSlot(0);
+                    node2 = node2.GetRequiredSlot(0);
                 }
 
                 if (node1.RawKind != node2.RawKind)
@@ -751,21 +901,79 @@ namespace Microsoft.CodeAnalysis
 
         #region Factories 
 
-        public abstract GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode = false);
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
+
+        /*
+         * There are 3 overloads of this, because most callers already know what they have is a List<T> and only transform it.
+         * In those cases List<TFrom> performs much better.
+         * In other cases, the type is unknown / is IEnumerable<T>, where we try to find the best match.
+         * There is another overload for IReadOnlyList, since most collections already implement this, so checking for it will
+         * perform better then copying to a List<T>, though not as good as List<T> directly.
+         */
+        public static GreenNode? CreateList<TFrom>(IEnumerable<TFrom>? enumerable, Func<TFrom, GreenNode> select)
+            => enumerable switch
+            {
+                null => null,
+                List<TFrom> l => CreateList(l, select),
+                IReadOnlyList<TFrom> l => CreateList(l, select),
+                _ => CreateList(enumerable.ToList(), select)
+            };
+
+        public static GreenNode? CreateList<TFrom>(List<TFrom> list, Func<TFrom, GreenNode> select)
+        {
+            switch (list.Count)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return select(list[0]);
+                case 2:
+                    return SyntaxList.List(select(list[0]), select(list[1]));
+                case 3:
+                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                default:
+                    {
+                        var array = new ArrayElement<GreenNode>[list.Count];
+                        for (int i = 0; i < array.Length; i++)
+                            array[i].Value = select(list[i]);
+                        return SyntaxList.List(array);
+                    }
+            }
+        }
+
+        public static GreenNode? CreateList<TFrom>(IReadOnlyList<TFrom> list, Func<TFrom, GreenNode> select)
+        {
+            switch (list.Count)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return select(list[0]);
+                case 2:
+                    return SyntaxList.List(select(list[0]), select(list[1]));
+                case 3:
+                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                default:
+                    {
+                        var array = new ArrayElement<GreenNode>[list.Count];
+                        for (int i = 0; i < array.Length; i++)
+                            array[i].Value = select(list[i]);
+                        return SyntaxList.List(array);
+                    }
+            }
+        }
 
         public SyntaxNode CreateRed()
         {
             return CreateRed(null, 0);
         }
 
-        internal abstract SyntaxNode CreateRed(SyntaxNode parent, int position);
+        internal abstract SyntaxNode CreateRed(SyntaxNode? parent, int position);
 
         #endregion
 
         #region Caching
-
 
         internal const int MaxCachedChildNum = 3;
 
@@ -789,14 +997,14 @@ namespace Microsoft.CodeAnalysis
                 var child = GetSlot(i);
                 if (child != null)
                 {
-                    code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child), code);
+                    code = Hash.Combine(RuntimeHelpers.GetHashCode(child), code);
                 }
             }
 
             return code & Int32.MaxValue;
         }
 
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode child1)
+        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1)
         {
             Debug.Assert(this.IsCacheable);
 
@@ -805,7 +1013,7 @@ namespace Microsoft.CodeAnalysis
                 this.GetSlot(0) == child1;
         }
 
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode child1, GreenNode child2)
+        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2)
         {
             Debug.Assert(this.IsCacheable);
 
@@ -815,7 +1023,7 @@ namespace Microsoft.CodeAnalysis
                 this.GetSlot(1) == child2;
         }
 
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode child1, GreenNode child2, GreenNode child3)
+        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3)
         {
             Debug.Assert(this.IsCacheable);
 
@@ -826,5 +1034,35 @@ namespace Microsoft.CodeAnalysis
                 this.GetSlot(2) == child3;
         }
         #endregion //Caching
+
+        /// <summary>
+        /// Add an error to the given node, creating a new node that is the same except it has no parent,
+        /// and has the given error attached to it. The error span is the entire span of this node.
+        /// </summary>
+        /// <param name="err">The error to attach to this node</param>
+        /// <returns>A new node, with no parent, that has this error added to it.</returns>
+        /// <remarks>Since nodes are immutable, the only way to create nodes with errors attached is to create a node without an error,
+        /// then add an error with this method to create another node.</remarks>
+        internal GreenNode AddError(DiagnosticInfo err)
+        {
+            DiagnosticInfo[] errorInfos;
+
+            // If the green node already has errors, add those on.
+            if (GetDiagnostics() == null)
+            {
+                errorInfos = new[] { err };
+            }
+            else
+            {
+                // Add the error to the error list.
+                errorInfos = GetDiagnostics();
+                var length = errorInfos.Length;
+                Array.Resize(ref errorInfos, length + 1);
+                errorInfos[length] = err;
+            }
+
+            // Get a new green node with the errors added on.
+            return SetDiagnostics(errorInfos);
+        }
     }
 }

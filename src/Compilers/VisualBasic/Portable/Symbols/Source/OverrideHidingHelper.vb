@@ -1,13 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -15,14 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Methods, Properties, and Events all can override or hide members. 
     ''' This class has helper methods and extensions for sharing by multiple symbol types.
     ''' </summary>
-    ''' 
     Friend Class OverrideHidingHelper
         ''' <summary>
         ''' Check for overriding and hiding errors in container and report them via diagnostics.
         ''' </summary>
         ''' <param name="container">Containing type to check. Should be an original definition.</param>
         ''' <param name="diagnostics">Place diagnostics here.</param>
-        Public Shared Sub CheckHidingAndOverridingForType(container As SourceMemberContainerTypeSymbol, diagnostics As DiagnosticBag)
+        Public Shared Sub CheckHidingAndOverridingForType(container As SourceMemberContainerTypeSymbol, diagnostics As BindingDiagnosticBag)
             Debug.Assert(container.IsDefinition) ' Don't do this on constructed types
 
             Select Case container.TypeKind
@@ -95,14 +93,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared Function SignaturesMatch(sym1 As Symbol, sym2 As Symbol, <Out()> ByRef exactMatch As Boolean, <Out()> ByRef exactMatchIgnoringCustomModifiers As Boolean) As Boolean
             ' NOTE: we should NOT ignore extra required parameters as for overloading
             Const mismatchesForOverriding As SymbolComparisonResults =
-                (SymbolComparisonResults.AllMismatches And (Not SymbolComparisonResults.MismatchesForConflictingMethods)) Or SymbolComparisonResults.CustomModifierMismatch
+                (SymbolComparisonResults.AllMismatches And (Not SymbolComparisonResults.MismatchesForConflictingMethods)) Or
+                SymbolComparisonResults.CustomModifierMismatch
 
             ' 'Exact match' means that the number of parameters and 
-            ' parameter 'optionality' match on two symbol candidates
+            ' parameter 'optionality' match on two symbol candidates.
             Const exactMatchIgnoringCustomModifiersMask As SymbolComparisonResults =
                 SymbolComparisonResults.TotalParameterCountMismatch Or SymbolComparisonResults.OptionalParameterTypeMismatch
 
-            Const exactMatchMask As SymbolComparisonResults = exactMatchIgnoringCustomModifiersMask Or SymbolComparisonResults.CustomModifierMismatch
+            ' Note that exact match doesn't care about tuple element names.
+            Const exactMatchMask As SymbolComparisonResults =
+                exactMatchIgnoringCustomModifiersMask Or SymbolComparisonResults.CustomModifierMismatch
 
             Dim results As SymbolComparisonResults = DetailedSignatureCompare(sym1, sym2, mismatchesForOverriding)
 
@@ -141,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="container">Containing type to check. Should be an original definition.</param>
         ''' <param name="diagnostics">Place diagnostics here.</param>
         ''' <remarks></remarks>
-        Private Shared Sub CheckMembersAgainstBaseType(container As SourceMemberContainerTypeSymbol, diagnostics As DiagnosticBag)
+        Private Shared Sub CheckMembersAgainstBaseType(container As SourceMemberContainerTypeSymbol, diagnostics As BindingDiagnosticBag)
             For Each member In container.GetMembers()
                 If CanOverrideOrHide(member) Then
                     Select Case member.Kind
@@ -177,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If "container" is a MustInherit inheriting from a MustInherit, make sure that no MustOverride members
         ''' have been shadowed.
         ''' </summary>
-        Private Shared Sub CheckAllAbstractsAreOverriddenAndNotHidden(container As NamedTypeSymbol, diagnostics As DiagnosticBag)
+        Private Shared Sub CheckAllAbstractsAreOverriddenAndNotHidden(container As NamedTypeSymbol, diagnostics As BindingDiagnosticBag)
 
             ' Check that a non-MustInherit class doesn't have any MustOverride members
             If Not (container.IsMustInherit OrElse container.IsNotInheritable) Then
@@ -317,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Protected Shared Sub CheckShadowing(container As SourceMemberContainerTypeSymbol,
                                             member As Symbol,
-                                            diagnostics As DiagnosticBag)
+                                            diagnostics As BindingDiagnosticBag)
             Dim memberIsOverloads = member.IsOverloads()
             Dim warnForHiddenMember As Boolean = Not member.ShadowsExplicitly
 
@@ -344,13 +345,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                     member As Symbol,
                                                     memberIsOverloads As Boolean,
                                                     baseType As NamedTypeSymbol,
-                                                    diagnostics As DiagnosticBag,
+                                                    diagnostics As BindingDiagnosticBag,
                                                     ByRef warnForHiddenMember As Boolean)
             Debug.Assert(container.IsDefinition)
 
             If warnForHiddenMember Then
                 For Each hiddenMember In baseType.GetMembers(member.Name)
-                    If AccessCheck.IsSymbolAccessible(hiddenMember, container, Nothing, useSiteDiagnostics:=Nothing) AndAlso
+                    If AccessCheck.IsSymbolAccessible(hiddenMember, container, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) AndAlso
                        (Not memberIsOverloads OrElse
                         hiddenMember.Kind <> member.Kind OrElse
                         hiddenMember.IsWithEventsProperty OrElse
@@ -381,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Report diagnostic for one member shadowing another, but no Shadows modifier was present.
         Private Shared Sub ReportShadowingDiagnostic(hidingMember As Symbol,
                                                      hiddenMember As Symbol,
-                                                     diagnostics As DiagnosticBag)
+                                                     diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(Not (hidingMember.IsAccessor() AndAlso hiddenMember.IsAccessor))
 
@@ -464,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Report diagnostic for a member shadowing a MustOverride.
         Private Shared Sub ReportShadowingMustOverrideError(hidingMember As Symbol,
                                                             hiddenMember As Symbol,
-                                                            diagnostics As DiagnosticBag)
+                                                            diagnostics As BindingDiagnosticBag)
             Debug.Assert(hidingMember.Locations(0).IsInSource)
 
             If hidingMember.IsAccessor() Then
@@ -521,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' If a method had an virtual inaccessible override, then an explicit override in metadata is needed
+        ''' If a method had a virtual inaccessible override, then an explicit override in metadata is needed
         ''' to make it really override what it intends to override, and "skip" the inaccessible virtual
         ''' method.
         ''' </summary>
@@ -578,8 +579,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class OverrideHidingHelper(Of TSymbol As Symbol)
         Inherits OverrideHidingHelper
 
-        ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way
+        ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way.
+        ' It is not ReadOnly because it is initialized by a Shared Sub New of another instance of this class.
+#Disable Warning IDE0044 ' Add readonly modifier - Adding readonly generates compile error in the constructor. - see https://github.com/dotnet/roslyn/issues/47197
         Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
+#Enable Warning IDE0044 ' Add readonly modifier
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()
@@ -701,54 +705,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim overriddenInThisType As ArrayBuilder(Of TSymbol) = ArrayBuilder(Of TSymbol).GetInstance()
 
             For Each sym In currType.GetMembers(overridingSym.Name)
-                ' Use original definition for accessibility check, because substitutions can cause
-                ' reductions in accessibility that aren't appropriate (see bug #12038 for example).
-                Dim accessible = AccessCheck.IsSymbolAccessible(sym.OriginalDefinition, overridingContainingType.OriginalDefinition, Nothing, useSiteDiagnostics:=Nothing)
-
-                If sym.Kind = overridingSym.Kind AndAlso
-                    CanOverrideOrHide(sym) Then
-
-                    Dim member As TSymbol = DirectCast(sym, TSymbol)
-                    Dim exactMatch As Boolean = True ' considered to be True for all runtime signature comparisons
-                    Dim exactMatchIgnoringCustomModifiers As Boolean = True ' considered to be True for all runtime signature comparisons
-
-                    If If(overridingIsFromSomeCompilation,
-                        sym.IsWithEventsProperty = overridingSym.IsWithEventsProperty AndAlso
-                            SignaturesMatch(overridingSym, member, exactMatch, exactMatchIgnoringCustomModifiers),
-                        s_runtimeSignatureComparer.Equals(overridingSym, member)) Then
-
-                        If accessible Then
-                            If exactMatchIgnoringCustomModifiers Then
-                                If exactMatch Then
-                                    If Not haveExactMatch Then
-                                        haveExactMatch = True
-                                        stopLookup = True
-                                        overriddenInThisType.Clear()
-                                    End If
-
-                                    overriddenInThisType.Add(member)
-                                ElseIf Not haveExactMatch Then
-                                    overriddenInThisType.Add(member)
-                                End If
-                            Else
-                                ' Add only if not hidden by signature
-                                AddMemberToABuilder(member, inexactOverriddenMembers)
-                            End If
-                        Else
-                            If exactMatchIgnoringCustomModifiers Then
-                                ' only exact matched methods are to be added 
-                                inaccessibleBuilder.Add(member)
-                            End If
-                        End If
-                    ElseIf Not member.IsOverloads() AndAlso accessible Then
-                        ' hiding symbol by name
-                        stopLookup = True
-                    End If
-                ElseIf accessible Then
-                    ' Any accessible symbol of different kind stops further lookup
-                    stopLookup = True
-                End If
+                ProcessMemberWithMatchingName(sym, overridingSym, overridingIsFromSomeCompilation, overridingContainingType, inexactOverriddenMembers,
+                                              inaccessibleBuilder, overriddenInThisType, stopLookup, haveExactMatch)
             Next
+
+            If overridingSym.Kind = SymbolKind.Property Then
+                Dim prop = DirectCast(DirectCast(overridingSym, Object), PropertySymbol)
+
+                If prop.IsImplicitlyDeclared AndAlso prop.IsWithEvents Then
+                    For Each sym In currType.GetSynthesizedWithEventsOverrides()
+                        If sym.Name.Equals(prop.Name) Then
+                            ProcessMemberWithMatchingName(sym, overridingSym, overridingIsFromSomeCompilation, overridingContainingType, inexactOverriddenMembers,
+                                              inaccessibleBuilder, overriddenInThisType, stopLookup, haveExactMatch)
+                        End If
+                    Next
+                End If
+            End If
 
             If overriddenInThisType.Count > 1 Then
                 RemoveMembersWithConflictingAccessibility(overriddenInThisType)
@@ -768,6 +740,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             overriddenInThisType.Free()
             Return stopLookup
         End Function
+
+        Private Shared Sub ProcessMemberWithMatchingName(
+            sym As Symbol,
+            overridingSym As TSymbol,
+            overridingIsFromSomeCompilation As Boolean,
+            overridingContainingType As NamedTypeSymbol,
+            inexactOverriddenMembers As ArrayBuilder(Of TSymbol),
+            inaccessibleBuilder As ArrayBuilder(Of TSymbol),
+            overriddenInThisType As ArrayBuilder(Of TSymbol),
+            ByRef stopLookup As Boolean,
+            ByRef haveExactMatch As Boolean
+        )
+            ' Use original definition for accessibility check, because substitutions can cause
+            ' reductions in accessibility that aren't appropriate (see bug #12038 for example).
+            Dim accessible = AccessCheck.IsSymbolAccessible(sym.OriginalDefinition, overridingContainingType.OriginalDefinition, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+
+            If sym.Kind = overridingSym.Kind AndAlso
+                CanOverrideOrHide(sym) Then
+
+                Dim member As TSymbol = DirectCast(sym, TSymbol)
+                Dim exactMatch As Boolean = True ' considered to be True for all runtime signature comparisons
+                Dim exactMatchIgnoringCustomModifiers As Boolean = True ' considered to be True for all runtime signature comparisons
+
+                If If(overridingIsFromSomeCompilation,
+                    sym.IsWithEventsProperty = overridingSym.IsWithEventsProperty AndAlso
+                        SignaturesMatch(overridingSym, member, exactMatch, exactMatchIgnoringCustomModifiers),
+                    s_runtimeSignatureComparer.Equals(overridingSym, member)) Then
+
+                    If accessible Then
+                        If exactMatchIgnoringCustomModifiers Then
+                            If exactMatch Then
+                                If Not haveExactMatch Then
+                                    haveExactMatch = True
+                                    stopLookup = True
+                                    overriddenInThisType.Clear()
+                                End If
+
+                                overriddenInThisType.Add(member)
+                            ElseIf Not haveExactMatch Then
+                                overriddenInThisType.Add(member)
+                            End If
+                        Else
+                            ' Add only if not hidden by signature
+                            AddMemberToABuilder(member, inexactOverriddenMembers)
+                        End If
+                    Else
+                        If exactMatchIgnoringCustomModifiers Then
+                            ' only exact matched methods are to be added 
+                            inaccessibleBuilder.Add(member)
+                        End If
+                    End If
+                ElseIf Not member.IsOverloads() AndAlso accessible Then
+                    ' hiding symbol by name
+                    stopLookup = True
+                End If
+            ElseIf accessible Then
+                ' Any accessible symbol of different kind stops further lookup
+                stopLookup = True
+            End If
+        End Sub
 
         Private Shared Sub AddMemberToABuilder(member As TSymbol,
                                                builder As ArrayBuilder(Of TSymbol))
@@ -798,7 +830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim memberContainingType As NamedTypeSymbol = member.ContainingType
             For i = 0 To builder.Count - 1
                 Dim exactMatchIgnoringCustomModifiers As Boolean = False
-                If builder(i).ContainingType <> memberContainingType AndAlso
+                If Not TypeSymbol.Equals(builder(i).ContainingType, memberContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                         SignaturesMatch(builder(i), member, Nothing, exactMatchIgnoringCustomModifiers) AndAlso exactMatchIgnoringCustomModifiers Then
                     ' Do NOT add
                     Exit Sub
@@ -811,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' overridden members are passed in.
         Friend Shared Sub CheckOverrideMember(member As TSymbol,
                                               overriddenMembersResult As OverriddenMembersResult(Of TSymbol),
-                                              diagnostics As DiagnosticBag)
+                                              diagnostics As BindingDiagnosticBag)
             Debug.Assert(overriddenMembersResult IsNot Nothing)
 
             Dim memberIsShadows As Boolean = member.ShadowsExplicitly
@@ -863,6 +895,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_InvalidOverrideDueToReturn2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.PropertyAccessorMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverridingPropertyKind2, member, overriddenMember, diagnostics)
+                ElseIf (comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 Then
+                    ReportBadOverriding(ERRID.ERR_OverridingInitOnlyProperty, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverrideWithArrayVsParamArray2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then
@@ -873,6 +907,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_OverrideWithConstraintMismatch2, member, overriddenMember, diagnostics)
                 ElseIf Not ConsistentAccessibility(member, overriddenMember, errorId) Then
                     ReportBadOverriding(errorId, member, overriddenMember, diagnostics)
+                ElseIf member.ContainsTupleNames() AndAlso (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    ' it is ok to override with no tuple names, for compatibility with VB 14, but otherwise names should match
+                    ReportBadOverriding(ERRID.WRN_InvalidOverrideDueToTupleNames2, member, overriddenMember, diagnostics)
                 Else
                     For Each inaccessibleMember In overriddenMembersResult.InaccessibleMembers
                         If inaccessibleMember.DeclaredAccessibility = Accessibility.Friend AndAlso
@@ -887,10 +924,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Next
 
-                    Dim useSiteErrorInfo = overriddenMember.GetUseSiteErrorInfo()
-                    If useSiteErrorInfo IsNot Nothing Then
-                        diagnostics.Add(New VBDiagnostic(useSiteErrorInfo, member.Locations(0)))
-                    ElseIf member.Kind = SymbolKind.Property Then
+                    Dim useSiteInfo = overriddenMember.GetUseSiteInfo()
+                    If Not diagnostics.Add(useSiteInfo, member.Locations(0)) AndAlso
+                       member.Kind = SymbolKind.Property Then
+
                         ' No overriding errors found in member. If its a property, its accessors might have issues.
                         Dim overridingProperty As PropertySymbol = DirectCast(DirectCast(member, Symbol), PropertySymbol)
                         Dim overriddenProperty As PropertySymbol = DirectCast(DirectCast(overriddenMember, Symbol), PropertySymbol)
@@ -924,7 +961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         ' Two original definitions with identical signatures in same containing types are compared by accessibility, and
                         ' more accessible wins.
-                        If originalSym.ContainingType = originalOther.ContainingType AndAlso
+                        If TypeSymbol.Equals(originalSym.ContainingType, originalOther.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                            DetailedSignatureCompare(originalSym, originalOther, significantDifferences) = 0 AndAlso
                            LookupResult.CompareAccessibilityOfSymbolsConflictingInSameContainer(originalSym, originalOther) < 0 Then
                             ' sym is worse than otherSym
@@ -951,14 +988,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Check an accessor with respect to its overridden accessor and report any diagnostics
         Friend Shared Sub CheckOverridePropertyAccessor(overridingAccessor As MethodSymbol,
                                                         overriddenAccessor As MethodSymbol,
-                                                        diagnostics As DiagnosticBag)
+                                                        diagnostics As BindingDiagnosticBag)
             ' CONSIDER: it is possible for an accessor to have a use site error even when the property
             ' does not but, in general, we have not been handling cases where property and accessor
             ' signatures are mismatched (e.g. different modopts).
             If overridingAccessor IsNot Nothing AndAlso overriddenAccessor IsNot Nothing Then
                 ' Use original definition for accessibility check, because substitutions can cause
                 ' reductions in accessibility that aren't appropriate (see bug #12038 for example).
-                If Not AccessCheck.IsSymbolAccessible(overriddenAccessor.OriginalDefinition, overridingAccessor.ContainingType, Nothing, useSiteDiagnostics:=Nothing) Then
+                If Not AccessCheck.IsSymbolAccessible(overriddenAccessor.OriginalDefinition, overridingAccessor.ContainingType, Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                     ReportBadOverriding(ERRID.ERR_CannotOverrideInAccessibleMember, overridingAccessor, overriddenAccessor, diagnostics)
                 Else
                     Dim errorId As ERRID
@@ -967,6 +1004,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ReportBadOverriding(errorId, overridingAccessor, overriddenAccessor, diagnostics)
                     End If
                 End If
+
+                diagnostics.Add(overriddenAccessor.GetUseSiteInfo(), overridingAccessor.Locations(0))
             End If
         End Sub
 
@@ -974,7 +1013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Sub ReportBadOverriding(id As ERRID,
                                                overridingMember As Symbol,
                                                overriddenMember As Symbol,
-                                               diagnostics As DiagnosticBag)
+                                               diagnostics As BindingDiagnosticBag)
             diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(id, overridingMember, overriddenMember),
                                             overridingMember.Locations(0)))
         End Sub

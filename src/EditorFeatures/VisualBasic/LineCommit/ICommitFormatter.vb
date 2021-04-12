@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
@@ -12,13 +13,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         ''' by this function. Further, if the operation is cancelled, the buffer may be left in a
         ''' partially committed state that must be rolled back by the transaction.
         ''' </summary>
-        Function CommitRegionAsync(
+        Sub CommitRegion(
             spanToFormat As SnapshotSpan,
             isExplicitFormat As Boolean,
             useSemantics As Boolean,
             dirtyRegion As SnapshotSpan,
             baseSnapshot As ITextSnapshot,
             baseTree As SyntaxTree,
-            cancellationToken As CancellationToken) As Task
+            cancellationToken As CancellationToken)
     End Interface
 End Namespace

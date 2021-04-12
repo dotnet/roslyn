@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -19,12 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(underlyingNamedType)
         End Sub
 
-        Private ReadOnly Property ISpecializedNestedTypeReferenceUnspecializedVersion As Cci.INestedTypeReference Implements Cci.ISpecializedNestedTypeReference.UnspecializedVersion
-            Get
-                Debug.Assert(m_UnderlyingNamedType.OriginalDefinition Is m_UnderlyingNamedType.OriginalDefinition.OriginalDefinition)
-                Return m_UnderlyingNamedType.OriginalDefinition
-            End Get
-        End Property
+        Private Function ISpecializedNestedTypeReferenceGetUnspecializedVersion(context As EmitContext) As Cci.INestedTypeReference Implements Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion
+            Debug.Assert(m_UnderlyingNamedType.OriginalDefinition Is m_UnderlyingNamedType.OriginalDefinition.OriginalDefinition)
+            Dim result = (DirectCast(context.Module, PEModuleBuilder)).Translate(m_UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                                                 diagnostics:=context.Diagnostics, needDeclaration:=True).AsNestedTypeReference
+            Debug.Assert(result IsNot Nothing)
+            Return result
+        End Function
 
         Public Overrides Sub Dispatch(visitor As Cci.MetadataVisitor)
             visitor.Visit(DirectCast(Me, Cci.ISpecializedNestedTypeReference))

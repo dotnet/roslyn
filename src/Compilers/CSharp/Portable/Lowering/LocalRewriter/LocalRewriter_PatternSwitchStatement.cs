@@ -1,476 +1,174 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            _factory.Syntax = node.Syntax;
-            var pslr = new PatternSwitchLocalRewriter(this, node);
-            var expression = VisitExpression(node.Expression);
-            var result = ArrayBuilder<BoundStatement>.GetInstance();
-
-            // output the decision tree part
-            pslr.LowerDecisionTree(expression, node.DecisionTree, result);
-
-            // if the endpoint is reachable, we exit the switch
-            if (!node.DecisionTree.MatchIsComplete)
-            {
-                result.Add(_factory.Goto(node.BreakLabel));
-            }
-            // at this point the end of result is unreachable.
-
-            // output the sections of code
-            foreach (var section in node.SwitchSections)
-            {
-                // Start with the part of the decision tree that is in scope of the section variables.
-                // Its endpoint is not reachable (it jumps back into the decision tree code).
-                var sectionBuilder = pslr.SwitchSections[section];
-
-                // Add labels corresponding to the labels of the switch section.
-                foreach (var label in section.SwitchLabels)
-                {
-                    sectionBuilder.Add(_factory.Label(label.Label));
-                }
-
-                // Add the translated body of the switch section
-                sectionBuilder.AddRange(VisitList(section.Statements));
-                sectionBuilder.Add(_factory.Goto(node.BreakLabel));
-                result.Add(_factory.Block(section.Locals, sectionBuilder.ToImmutableAndFree()));
-                // at this point the end of result is unreachable.
-            }
-
-            result.Add(_factory.Label(node.BreakLabel));
-            var translatedSwitch = _factory.Block(pslr.DeclaredTemps.ToImmutableArray().Concat(node.InnerLocals), node.InnerLocalFunctions, result.ToImmutableAndFree());
-            return translatedSwitch;
+            return SwitchStatementLocalRewriter.Rewrite(this, node);
         }
 
-        private class PatternSwitchLocalRewriter
+        private sealed class SwitchStatementLocalRewriter : BaseSwitchLocalRewriter
         {
-            public readonly LocalRewriter LocalRewriter;
-            public readonly HashSet<LocalSymbol> DeclaredTempSet = new HashSet<LocalSymbol>();
-            public readonly ArrayBuilder<LocalSymbol> DeclaredTemps = ArrayBuilder<LocalSymbol>.GetInstance();
-            public readonly Dictionary<BoundPatternSwitchSection, ArrayBuilder<BoundStatement>> SwitchSections = new Dictionary<BoundPatternSwitchSection, ArrayBuilder<BoundStatement>>();
+            /// <summary>
+            /// A map from section syntax to the first label in that section.
+            /// </summary>
+            private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
-            private ArrayBuilder<BoundStatement> _loweredDecisionTree = ArrayBuilder<BoundStatement>.GetInstance();
-            private readonly SyntheticBoundNodeFactory _factory;
-
-            public PatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
+            public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
-                this.LocalRewriter = localRewriter;
-                this._factory = localRewriter._factory;
-                foreach (var section in node.SwitchSections)
-                {
-                    SwitchSections.Add(section, ArrayBuilder<BoundStatement>.GetInstance());
-                }
+                var rewriter = new SwitchStatementLocalRewriter(node, localRewriter);
+                BoundStatement result = rewriter.LowerSwitchStatement(node);
+                rewriter.Free();
+                return result;
             }
 
             /// <summary>
-            /// Lower the given decision tree into the given statement builder.
+            /// We revise the returned label for a leaf so that all leaves in the same switch section are given the same label.
+            /// This enables the switch emitter to produce better code.
             /// </summary>
-            public void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree, ArrayBuilder<BoundStatement> loweredDecisionTree)
+            protected override LabelSymbol GetDagNodeLabel(BoundDecisionDagNode dag)
             {
-                var oldLoweredDecisionTree = this._loweredDecisionTree;
-                this._loweredDecisionTree = loweredDecisionTree;
-                LowerDecisionTree(expression, decisionTree);
-                this._loweredDecisionTree = oldLoweredDecisionTree;
-            }
-
-            private void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree)
-            {
-                if (decisionTree == null)
+                var result = base.GetDagNodeLabel(dag);
+                if (dag is BoundLeafDecisionDagNode d)
                 {
-                    return;
+                    SyntaxNode? section = d.Syntax.Parent;
+
+                    // It is possible that the leaf represents a compiler-generated default for a switch statement in the EE.
+                    // In that case d.Syntax is the whole switch statement, and its parent is null. We are only interested
+                    // in leaves that result from explicit switch case labels in a switch section.
+                    if (section?.Kind() == SyntaxKind.SwitchSection)
+                    {
+                        if (_sectionLabels.TryGetValue(section, out LabelSymbol? replacementLabel))
+                        {
+                            return replacementLabel;
+                        }
+
+                        _sectionLabels.Add(section, result);
+                    }
                 }
 
-                // If the input expression was a constant or a simple read of a local, then that is the
-                // decision tree's expression. Otherwise it is a newly created temp, to which we must
-                // assign the switch expression.
-                if (decisionTree.Temp != null)
-                {
-                    // Store the input expression into a temp
-                    if (decisionTree.Expression != expression)
-                    {
-                        _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, expression));
-                    }
+                return result;
+            }
 
-                    if (DeclaredTempSet.Add(decisionTree.Temp))
+            private SwitchStatementLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
+                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax),
+                      // Only add instrumentation (such as sequence points) if the node is not compiler-generated.
+                      generateInstrumentation: localRewriter.Instrument && !node.WasCompilerGenerated)
+            {
+            }
+
+            private BoundStatement LowerSwitchStatement(BoundSwitchStatement node)
+            {
+                _factory.Syntax = node.Syntax;
+                var result = ArrayBuilder<BoundStatement>.GetInstance();
+                var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
+                var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
+                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
+                {
+                    // EnC: We need to insert a hidden sequence point to handle function remapping in case
+                    // the containing method is edited while methods invoked in the expression are being executed.
+                    var instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, loweredSwitchGoverningExpression, _factory);
+                    if (loweredSwitchGoverningExpression.ConstantValue == null)
                     {
-                        DeclaredTemps.Add(decisionTree.Temp);
+                        loweredSwitchGoverningExpression = instrumentedExpression;
                     }
                     else
                     {
-                        // we should only attempt to declare each temp once.
-                        throw ExceptionUtilities.Unreachable;
+                        // If the expression is a constant, we leave it alone (the decision dag lowering code needs
+                        // to see that constant). But we add an additional leading statement with the instrumented expression.
+                        result.Add(_factory.ExpressionStatement(instrumentedExpression));
                     }
                 }
 
-                switch (decisionTree.Kind)
-                {
-                    case DecisionTree.DecisionKind.ByType:
-                        {
-                            LowerDecisionTree((DecisionTree.ByType)decisionTree);
-                            return;
-                        }
-                    case DecisionTree.DecisionKind.ByValue:
-                        {
-                            LowerDecisionTree((DecisionTree.ByValue)decisionTree);
-                            return;
-                        }
-                    case DecisionTree.DecisionKind.Guarded:
-                        {
-                            LowerDecisionTree((DecisionTree.Guarded)decisionTree);
-                            return;
-                        }
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(decisionTree.Kind);
-                }
-            }
+                // The set of variables attached to the outer block
+                outerVariables.AddRange(node.InnerLocals);
 
-            private void LowerDecisionTree(DecisionTree.ByType byType)
-            {
-                var inputConstant = byType.Expression.ConstantValue;
-                if (inputConstant != null)
+                // Evaluate the input and set up sharing for dag temps with user variables
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result, out _);
+
+                // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
+                // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
+                // the decision dag do not appear to jump back up to the enclosing construct.
+                if (GenerateInstrumentation)
                 {
-                    if (inputConstant.IsNull)
+                    // Since there may have been no code to evaluate the input, add a no-op for any previous sequence point to bind to.
+                    if (result.Count == 0)
+                        result.Add(_factory.NoOp(NoOpStatementFlavor.Default));
+
+                    result.Add(_factory.HiddenSequencePoint());
+                }
+
+                // lower the decision dag.
+                (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
+                    LowerDecisionDag(decisionDag);
+
+                // then add the rest of the lowered dag that references that input
+                result.Add(_factory.Block(loweredDag));
+
+                // A branch to the default label when no switch case matches is included in the
+                // decision dag, so the code in `result` is unreachable at this point.
+
+                // Lower each switch section.
+                foreach (BoundSwitchSection section in node.SwitchSections)
+                {
+                    _factory.Syntax = section.Syntax;
+                    var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                    sectionBuilder.AddRange(switchSections[section.Syntax]);
+                    foreach (BoundSwitchLabel switchLabel in section.SwitchLabels)
                     {
-                        // input is the constant null
-                        LowerDecisionTree(byType.Expression, byType.WhenNull);
-                        if (byType.WhenNull?.MatchIsComplete != true)
-                        {
-                            LowerDecisionTree(byType.Expression, byType.Default);
-                        }
+                        sectionBuilder.Add(_factory.Label(switchLabel.Label));
+                    }
+
+                    // Add the translated body of the switch section
+                    sectionBuilder.AddRange(_localRewriter.VisitList(section.Statements));
+
+                    // By the semantics of the switch statement, the end of each section is required to be unreachable.
+                    // So we can just seal the block and there is no need to follow it by anything.
+                    ImmutableArray<BoundStatement> statements = sectionBuilder.ToImmutableAndFree();
+
+                    if (section.Locals.IsEmpty)
+                    {
+                        result.Add(_factory.StatementList(statements));
                     }
                     else
                     {
-                        // input is a non-null constant
-                        foreach (var kvp in byType.TypeAndDecision)
-                        {
-                            LowerDecisionTree(byType.Expression, kvp.Value);
-                            if (kvp.Value.MatchIsComplete)
-                            {
-                                return;
-                            }
-                        }
+                        // Lifetime of these locals is expanded to the entire switch body, as it is possible to capture
+                        // them in a different section by using a local function as an intermediary.
+                        outerVariables.AddRange(section.Locals);
 
-                        LowerDecisionTree(byType.Expression, byType.Default);
-                    }
-                }
-                else
-                {
-                    var defaultLabel = _factory.GenerateLabel("byTypeDefault");
-
-                    // input is not a constant
-                    if (byType.Type.CanBeAssignedNull())
-                    {
-                        // first test for null
-                        var notNullLabel = _factory.GenerateLabel("notNull");
-                        var inputExpression = byType.Expression;
-                        var nullValue = _factory.Null(byType.Type);
-                        BoundExpression notNull = byType.Type.IsNullableType()
-                            ? LocalRewriter.RewriteNullableNullEquality(_factory.Syntax, BinaryOperatorKind.NullableNullNotEqual, byType.Expression, nullValue, _factory.SpecialType(SpecialType.System_Boolean))
-                            : _factory.ObjectNotEqual(byType.Expression, nullValue);
-                        _loweredDecisionTree.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
-                        LowerDecisionTree(byType.Expression, byType.WhenNull);
-                        if (byType.WhenNull?.MatchIsComplete != true)
-                        {
-                            _loweredDecisionTree.Add(_factory.Goto(defaultLabel));
-                        }
-
-                        _loweredDecisionTree.Add(_factory.Label(notNullLabel));
-                    }
-                    else
-                    {
-                        Debug.Assert(byType.WhenNull == null);
-                    }
-
-                    foreach (var td in byType.TypeAndDecision)
-                    {
-                        // then test for each type, sequentially
-                        var type = td.Key;
-                        var decision = td.Value;
-                        var failLabel = _factory.GenerateLabel("failedDecision");
-                        var testAndCopy = TypeTestAndCopyToTemp(byType.Expression, decision.Expression);
-                        _loweredDecisionTree.Add(_factory.ConditionalGoto(testAndCopy, failLabel, false));
-                        LowerDecisionTree(decision.Expression, decision);
-                        _loweredDecisionTree.Add(_factory.Label(failLabel));
-                    }
-
-                    // finally, the default for when no type matches
-                    _loweredDecisionTree.Add(_factory.Label(defaultLabel));
-                    LowerDecisionTree(byType.Expression, byType.Default);
-                }
-            }
-
-            private BoundExpression TypeTestAndCopyToTemp(BoundExpression input, BoundExpression temp)
-            {
-                // invariant: the input has already been tested, to ensure it is not null
-                if (input == temp)
-                {
-                    return _factory.Literal(true);
-                }
-
-                Debug.Assert(temp.Kind == BoundKind.Local);
-                return LocalRewriter.MakeDeclarationPattern(_factory.Syntax, input, ((BoundLocal)temp).LocalSymbol, requiresNullTest: false);
-            }
-
-            private void LowerDecisionTree(DecisionTree.ByValue byValue)
-            {
-                if (byValue.Expression.ConstantValue != null)
-                {
-                    LowerConstantValueDecision(byValue);
-                    return;
-                }
-
-                if (byValue.ValueAndDecision.Count == 0)
-                {
-                    LowerDecisionTree(byValue.Expression, byValue.Default);
-                    return;
-                }
-
-                switch (byValue.Type.SpecialType)
-                {
-                    case SpecialType.System_Byte:
-                    case SpecialType.System_Char:
-                    case SpecialType.System_Int16:
-                    case SpecialType.System_Int32:
-                    case SpecialType.System_Int64:
-                    case SpecialType.System_SByte:
-                    case SpecialType.System_UInt16:
-                    case SpecialType.System_UInt32:
-                    case SpecialType.System_UInt64:
-                    case SpecialType.System_String: // switch on a string
-                                                    // switch on an integral or string type
-                        LowerBasicSwitch(byValue);
-                        return;
-
-                    case SpecialType.System_Boolean: // switch on a boolean
-                        LowerBooleanSwitch(byValue);
-                        return;
-
-                    // switch on a type requiring sequential comparisons. Note that we use constant.Equals(value), depending if
-                    // possible on the one from IEquatable<T>. If that does not exist, we use instance method object.Equals(object)
-                    // with the (now boxed) constant on the left.
-                    case SpecialType.System_Decimal:
-                    case SpecialType.System_Double:
-                    case SpecialType.System_Single:
-                        LowerOtherSwitch(byValue);
-                        return;
-
-                    default:
-                        if (byValue.Type.TypeKind == TypeKind.Enum)
-                        {
-                            LowerBasicSwitch(byValue);
-                            return;
-                        }
-
-                        // There are no other types of constants that could be used as patterns.
-                        throw ExceptionUtilities.UnexpectedValue(byValue.Type);
-                }
-            }
-
-            private void LowerConstantValueDecision(DecisionTree.ByValue byValue)
-            {
-                var value = byValue.Expression.ConstantValue.Value;
-                Debug.Assert(value != null);
-                DecisionTree onValue;
-                if (byValue.ValueAndDecision.TryGetValue(value, out onValue))
-                {
-                    LowerDecisionTree(byValue.Expression, onValue);
-                    if (onValue.MatchIsComplete)
-                    {
-                        return;
+                        // Note the language scope of the locals, even though they are included for the purposes of
+                        // lifetime analysis in the enclosing scope.
+                        result.Add(new BoundScope(section.Syntax, section.Locals, statements));
                     }
                 }
 
-                LowerDecisionTree(byValue.Expression, byValue.Default);
-            }
+                // Dispatch temps are in scope throughout the switch statement, as they are used
+                // both in the dispatch section to hold temporary values from the translation of
+                // the decision dag, and in the branches where the temp values are assigned to the
+                // pattern variables of matched patterns.
+                outerVariables.AddRange(_tempAllocator.AllTemps());
 
-            private void LowerDecisionTree(DecisionTree.Guarded guarded)
-            {
-                var sectionBuilder = this.SwitchSections[guarded.Section];
-                var targetLabel = guarded.Label.Label;
-                Debug.Assert(guarded.Guard?.ConstantValue != ConstantValue.False);
-                if (guarded.Guard == null || guarded.Guard.ConstantValue == ConstantValue.True)
-                {
-                    // unconditional
-                    if (guarded.Bindings.IsDefaultOrEmpty)
-                    {
-                        _loweredDecisionTree.Add(_factory.Goto(targetLabel));
-                    }
-                    else
-                    {
-                        // with bindings
-                        var matched = _factory.GenerateLabel("matched");
-                        _loweredDecisionTree.Add(_factory.Goto(matched));
-                        sectionBuilder.Add(_factory.Label(matched));
-                        AddBindings(sectionBuilder, guarded.Bindings);
-                        sectionBuilder.Add(_factory.Goto(targetLabel));
-                    }
-                }
-                else
-                {
-                    var checkGuard = _factory.GenerateLabel("checkGuard");
-                    _loweredDecisionTree.Add(_factory.Goto(checkGuard));
-                    sectionBuilder.Add(_factory.Label(checkGuard));
-                    AddBindings(sectionBuilder, guarded.Bindings);
-                    sectionBuilder.Add(_factory.ConditionalGoto(LocalRewriter.VisitExpression(guarded.Guard), targetLabel, true));
-                    var guardFailed = _factory.GenerateLabel("guardFailed");
-                    sectionBuilder.Add(_factory.Goto(guardFailed));
-                    _loweredDecisionTree.Add(_factory.Label(guardFailed));
-                }
-            }
+                _factory.Syntax = node.Syntax;
+                if (GenerateInstrumentation)
+                    result.Add(_factory.HiddenSequencePoint());
 
-            private void AddBindings(ArrayBuilder<BoundStatement> sectionBuilder, ImmutableArray<KeyValuePair<BoundExpression, LocalSymbol>> bindings)
-            {
-                if (bindings.IsDefaultOrEmpty)
-                {
-                    return;
-                }
+                result.Add(_factory.Label(node.BreakLabel));
+                BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());
 
-                foreach (var kv in bindings)
-                {
-                    var source = kv.Key;
-                    var dest = kv.Value;
-                    sectionBuilder.Add(_factory.Assignment(_factory.Local(dest), source));
-                }
-            }
+                if (GenerateInstrumentation)
+                    translatedSwitch = _localRewriter._instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
 
-            // For switch statements, we have an option of completely rewriting the switch header
-            // and switch sections into simpler constructs, i.e. we can rewrite the switch header
-            // using bound conditional goto statements and the rewrite the switch sections into
-            // bound labeled statements.
-            //
-            // However, all the logic for emitting the switch jump tables is language agnostic
-            // and includes IL optimizations. Hence we delay the switch jump table generation
-            // till the emit phase. This way we also get additional benefit of sharing this code
-            // between both VB and C# compilers.
-            //
-            // For string switch statements, we need to determine if we are generating a hash
-            // table based jump table or a non hash jump table, i.e. linear string comparisons
-            // with each case label. We use the Dev10 Heuristic to determine this
-            // (see SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch() for details).
-            // If we are generating a hash table based jump table, we use a simple
-            // hash function to hash the string constants corresponding to the case labels.
-            // See SwitchStringJumpTableEmitter.ComputeStringHash().
-            // We need to emit this same function to compute the hash value into the compiler generated
-            // <PrivateImplementationDetails> class.
-            // If we have at least one string switch statement in a module that needs a
-            // hash table based jump table, we generate a single public string hash synthesized method
-            // that is shared across the module.
-            private void LowerBasicSwitch(DecisionTree.ByValue byValue)
-            {
-                var switchSections = ArrayBuilder<BoundSwitchSection>.GetInstance();
-                var noValueMatches = _factory.GenerateLabel("noValueMatches");
-                var underlyingSwitchType = byValue.Type.IsEnumType() ? byValue.Type.GetEnumUnderlyingType() : byValue.Type;
-                foreach (var vd in byValue.ValueAndDecision)
-                {
-                    var value = vd.Key;
-                    var decision = vd.Value;
-                    var constantValue = ConstantValue.Create(value, underlyingSwitchType.SpecialType);
-                    var constantExpression = new BoundLiteral(_factory.Syntax, constantValue, underlyingSwitchType);
-                    var label = _factory.GenerateLabel("case+" + value);
-                    var switchLabel = new BoundSwitchLabel(_factory.Syntax, label, constantExpression, constantValue);
-                    var forValue = ArrayBuilder<BoundStatement>.GetInstance();
-                    LowerDecisionTree(byValue.Expression, decision, forValue);
-                    if (!decision.MatchIsComplete)
-                    {
-                        forValue.Add(_factory.Goto(noValueMatches));
-                    }
-
-                    var section = new BoundSwitchSection(_factory.Syntax, ImmutableArray.Create(switchLabel), forValue.ToImmutableAndFree());
-                    switchSections.Add(section);
-                }
-
-                var rewrittenSections = switchSections.ToImmutableAndFree();
-                MethodSymbol stringEquality = null;
-                if (byValue.Type.SpecialType == SpecialType.System_String)
-                {
-                    LocalRewriter.EnsureStringHashFunction(rewrittenSections, _factory.Syntax);
-                    stringEquality = LocalRewriter.GetSpecialTypeMethod(_factory.Syntax, SpecialMember.System_String__op_Equality);
-                }
-
-                // Emit requires a constant target when there are no sections, so we accomodate that here.
-                // CONSIDER: can we get better code generated by giving a constant target more often here,
-                // e.g. when the switch expression is a constant?
-                var constantTarget = rewrittenSections.IsEmpty ? noValueMatches : null;
-                var switchStatement = new BoundSwitchStatement(
-                    _factory.Syntax, null, _factory.Convert(underlyingSwitchType, byValue.Expression),
-                    constantTarget,
-                    ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty,
-                    rewrittenSections, noValueMatches, stringEquality);
-                _loweredDecisionTree.Add(switchStatement);
-                // The bound switch statement implicitly defines the label noValueMatches at the end, so we do not add it explicitly.
-                LowerDecisionTree(byValue.Expression, byValue.Default);
-            }
-
-            private void LowerBooleanSwitch(DecisionTree.ByValue byValue)
-            {
-                switch (byValue.ValueAndDecision.Count)
-                {
-                    case 0:
-                        {
-                            // this should have been handled in the caller.
-                            throw ExceptionUtilities.Unreachable;
-                        }
-                    case 1:
-                        {
-                            DecisionTree decision;
-                            bool onBoolean = byValue.ValueAndDecision.TryGetValue(true, out decision);
-                            if (!onBoolean)
-                            {
-                                byValue.ValueAndDecision.TryGetValue(false, out decision);
-                            }
-
-                            Debug.Assert(decision != null);
-                            var onOther = _factory.GenerateLabel("on" + !onBoolean);
-                            _loweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onOther, !onBoolean));
-                            LowerDecisionTree(byValue.Expression, decision);
-                            // if we fall through here, that means the match was not complete and we invoke the default part
-                            _loweredDecisionTree.Add(_factory.Label(onOther));
-                            LowerDecisionTree(byValue.Expression, byValue.Default);
-                            break;
-                        }
-                    case 2:
-                        {
-                            DecisionTree trueDecision, falseDecision;
-                            bool hasTrue = byValue.ValueAndDecision.TryGetValue(true, out trueDecision);
-                            bool hasFalse = byValue.ValueAndDecision.TryGetValue(false, out falseDecision);
-                            Debug.Assert(hasTrue && hasFalse);
-                            var tryAnother = _factory.GenerateLabel("tryAnother");
-                            var onFalse = _factory.GenerateLabel("onFalse");
-                            _loweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onFalse, false));
-                            LowerDecisionTree(byValue.Expression, trueDecision);
-                            _loweredDecisionTree.Add(_factory.Goto(tryAnother));
-                            _loweredDecisionTree.Add(_factory.Label(onFalse));
-                            LowerDecisionTree(byValue.Expression, falseDecision);
-                            _loweredDecisionTree.Add(_factory.Label(tryAnother));
-                            // if both true and false (i.e. all values) are fully handled, there should be no default.
-                            Debug.Assert(!trueDecision.MatchIsComplete || !falseDecision.MatchIsComplete || byValue.Default == null);
-                            LowerDecisionTree(byValue.Expression, byValue.Default);
-                            break;
-                        }
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(byValue.ValueAndDecision.Count);
-                }
-            }
-
-            /// <summary>
-            /// We handle "other" types, such as float, double, and decimal here. We compare the constant values using IEquatable.
-            /// For other value types, since there is no literal notation, there will be no constants to test.
-            /// </summary>
-            private void LowerOtherSwitch(DecisionTree.ByValue byValue)
-            {
-                this.LocalRewriter._diagnostics.Add(ErrorCode.ERR_FeatureIsUnimplemented, _factory.Syntax.GetLocation(), "switch on float, double, or decimal");
-                throw new NotImplementedException();
+                return translatedSwitch;
             }
         }
     }

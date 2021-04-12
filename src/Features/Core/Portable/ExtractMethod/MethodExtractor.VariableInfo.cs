@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -103,35 +108,29 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
             }
 
-            public string Name
-            {
-                get { return _variableSymbol.Name; }
-            }
+            public string Name => _variableSymbol.Name;
 
-            public bool OriginalTypeHadAnonymousTypeOrDelegate
-            {
-                get { return _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate; }
-            }
+            public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
+
+            public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
 
             public ITypeSymbol GetVariableType(SemanticDocument document)
-            {
-                return document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
-            }
+                => document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
-            {
-                return document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
-            }
+                => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
+                => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
+
+            public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
             {
-                return node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
+                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
+                variables.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
             }
 
-            public static int Compare(VariableInfo left, VariableInfo right)
-            {
-                return VariableSymbol.Compare(left._variableSymbol, right._variableSymbol);
-            }
+            private static int Compare(VariableInfo left, VariableInfo right, INamedTypeSymbol cancellationTokenType)
+                => VariableSymbol.Compare(left._variableSymbol, right._variableSymbol, cancellationTokenType);
         }
     }
 }

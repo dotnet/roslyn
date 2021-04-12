@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -207,15 +210,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.EmitLocalStore(slot)
         End Sub
 
-        Private Sub EmitSymbolToken(symbol As FieldSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitSymbolToken(symbol As FieldSymbol, syntaxNode As SyntaxNode)
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
         End Sub
 
-        Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As VisualBasicSyntaxNode)
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
+        Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As SyntaxNode, Optional encodeAsRawDefinitionToken As Boolean = False)
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration:=encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken)
         End Sub
 
-        Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As SyntaxNode)
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
         End Sub
 
@@ -308,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.DefineHiddenSequencePoint()
         End Sub
 
-        Private Sub EmitSequencePoint(syntax As VisualBasicSyntaxNode)
+        Private Sub EmitSequencePoint(syntax As SyntaxNode)
             EmitSequencePoint(syntax.SyntaxTree, syntax.Span)
         End Sub
 

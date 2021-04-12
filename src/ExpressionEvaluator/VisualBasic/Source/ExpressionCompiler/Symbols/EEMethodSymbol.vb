@@ -1,15 +1,22 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
-    Friend Delegate Function GenerateMethodBody(method As EEMethodSymbol, diagnostics As DiagnosticBag) As BoundStatement
+    Friend Delegate Function GenerateMethodBody(
+        method As EEMethodSymbol,
+        diagnostics As DiagnosticBag,
+        <Out> ByRef properties As ResultProperties) As BoundStatement
 
     Friend NotInheritable Class EEMethodSymbol
         Inherits MethodSymbol
@@ -37,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private ReadOnly _generateMethodBody As GenerateMethodBody
 
         Private _lazyReturnType As TypeSymbol
+        Private _lazyResultProperties As ResultProperties
 
         ' NOTE: This is only used for asserts, so it could be conditional on DEBUG.
         Private ReadOnly _allTypeParameters As ImmutableArray(Of TypeParameterSymbol)
@@ -54,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             generateMethodBody As GenerateMethodBody)
 
             Debug.Assert(sourceMethod.IsDefinition)
-            Debug.Assert(sourceMethod.ContainingSymbol = container.SubstitutedSourceType.OriginalDefinition)
+            Debug.Assert(TypeSymbol.Equals(sourceMethod.ContainingType, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything))
             Debug.Assert(sourceLocals.All(Function(l) l.ContainingSymbol = sourceMethod))
 
             _compilation = compilation
@@ -98,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim substitutedSourceHasMeParameter = substitutedSourceMeParameter IsNot Nothing
             If substitutedSourceHasMeParameter Then
                 _meParameter = MakeParameterSymbol(0, GeneratedNames.MakeStateMachineCapturedMeName(), substitutedSourceMeParameter) ' NOTE: Name doesn't actually matter.
-                Debug.Assert(_meParameter.Type = Me.SubstitutedSourceMethod.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(_meParameter.Type, Me.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything))
                 parameterBuilder.Add(_meParameter)
             End If
 
@@ -167,14 +175,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Function MakeParameterSymbol(ordinal As Integer, name As String, sourceParameter As ParameterSymbol) As ParameterSymbol
-            Return New SynthesizedParameterSymbolWithCustomModifiers(
+            Return SynthesizedParameterSymbol.Create(
                 Me,
                 sourceParameter.Type,
                 ordinal,
                 sourceParameter.IsByRef,
                 name,
                 sourceParameter.CustomModifiers,
-                sourceParameter.CountOfCustomModifiersPrecedingByRef)
+                sourceParameter.RefCustomModifiers)
         End Function
 
         Public Overrides ReadOnly Property MethodKind As MethodKind
@@ -301,6 +309,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Return Nothing
@@ -397,6 +411,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsOverloads As Boolean
             Get
                 Return False
@@ -415,22 +435,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Nothing
             End Get
         End Property
 
-#Disable Warning RS0010
+        Friend ReadOnly Property ResultProperties As ResultProperties
+            Get
+                Return _lazyResultProperties
+            End Get
+        End Property
+
+#Disable Warning CA1200 ' Avoid using cref tags with a prefix
         ''' <remarks>
         ''' The corresponding C# method, 
         ''' <see cref="M:Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.EEMethodSymbol.GenerateMethodBody(Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.DiagnosticBag)"/>, 
         ''' invokes the <see cref="LocalRewriter"/> and the <see cref="LambdaRewriter"/> explicitly.
         ''' In VB, the caller (of this method) does that.
         ''' </remarks>
-#Enable Warning RS0010
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim body = _generateMethodBody(Me, diagnostics)
+#Enable Warning CA1200 ' Avoid using cref tags with a prefix
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
+            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
+
+            Dim body = _generateMethodBody(Me, diagnostics.DiagnosticBag, _lazyResultProperties)
             Debug.Assert(body IsNot Nothing)
 
             _lazyReturnType = CalculateReturnType(body)
@@ -438,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' Can't do this until the return type has been computed.
             TypeParameterChecker.Check(Me, _allTypeParameters)
 
-            Dim syntax As VisualBasicSyntaxNode = body.Syntax
+            Dim syntax As SyntaxNode = body.Syntax
             Dim statementsBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
             statementsBuilder.Add(body)
             ' Insert an implicit return statement if necessary.
@@ -454,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 originalLocalsSet.Add(local)
             Next
             For Each local In Me.Locals
-                If Not originalLocalsSet.Contains(local) Then
+                If originalLocalsSet.Add(local) Then
                     originalLocalsBuilder.Add(local)
                 End If
             Next
@@ -466,14 +494,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return newBody
             End If
 
-            DiagnosticsPass.IssueDiagnostics(newBody, diagnostics, Me)
+            DiagnosticsPass.IssueDiagnostics(newBody, diagnostics.DiagnosticBag, Me)
             If diagnostics.HasAnyErrors() Then
                 Return newBody
             End If
 
             ' Check for use-site errors (e.g. missing types in the signature).
-            Dim useSiteInfo As DiagnosticInfo = Me.CalculateUseSiteErrorInfo()
-            If useSiteInfo IsNot Nothing Then
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Me.CalculateUseSiteInfo()
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
                 diagnostics.Add(useSiteInfo, _locations(0))
                 Return newBody
             End If
@@ -488,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 newBody = LocalDeclarationRewriter.Rewrite(_compilation, _container, newBody)
 
                 ' Rewrite pseudo-variable references to helper method calls.
-                newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody, diagnostics), BoundBlock)
+                newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody, diagnostics.DiagnosticBag), BoundBlock)
                 If diagnostics.HasAnyErrors() Then
                     Return newBody
                 End If
@@ -538,10 +566,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ' Rewrite references to "Me" to refer to this method's "Me" parameter.
                 ' Rewrite variables within body to reference existing display classes.
                 newBody = DirectCast(CapturedVariableRewriter.Rewrite(
-                If(Me.SubstitutedSourceMethod.IsShared, Nothing, Me.Parameters(0)),
-                displayClassVariables,
-                newBody,
-                diagnostics), BoundBlock)
+                    If(Me.SubstitutedSourceMethod.IsShared, Nothing, Me.Parameters(0)),
+                    displayClassVariables,
+                    newBody,
+                    diagnostics.DiagnosticBag), BoundBlock)
 
                 If diagnostics.HasAnyErrors() Then
                     Return newBody
@@ -577,6 +605,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Throw ExceptionUtilities.UnexpectedValue(body.Kind)
             End Select
         End Function
+
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            Dim returnType = Me.ReturnType
+            If returnType.ContainsTupleNames() AndAlso DeclaringCompilation.HasTupleNamesAttributes() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(returnType))
+            End If
+        End Sub
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Return localPosition

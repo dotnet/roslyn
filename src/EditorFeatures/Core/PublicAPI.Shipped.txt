@@ -1,2 +1,8 @@
 Microsoft.CodeAnalysis.Editor.Peek.IPeekableItemFactory
 Microsoft.CodeAnalysis.Editor.Peek.IPeekableItemFactory.GetPeekableItemsAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, Microsoft.VisualStudio.Language.Intellisense.IPeekResultFactory peekResultFactory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Language.Intellisense.IPeekableItem>>
+Microsoft.CodeAnalysis.Editor.Tags.ExportImageMonikerServiceAttribute
+Microsoft.CodeAnalysis.Editor.Tags.ExportImageMonikerServiceAttribute.ExportImageMonikerServiceAttribute() -> void
+Microsoft.CodeAnalysis.Editor.Tags.ExportImageMonikerServiceAttribute.Name.get -> string
+Microsoft.CodeAnalysis.Editor.Tags.ExportImageMonikerServiceAttribute.Name.set -> void
+Microsoft.CodeAnalysis.Editor.Tags.IImageMonikerService
+Microsoft.CodeAnalysis.Editor.Tags.IImageMonikerService.TryGetImageMoniker(System.Collections.Immutable.ImmutableArray<string> tags, out Microsoft.VisualStudio.Imaging.Interop.ImageMoniker imageMoniker) -> bool

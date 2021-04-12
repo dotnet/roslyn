@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -47,9 +50,9 @@ namespace Microsoft.CodeAnalysis
         /// (b) AllowMultiple: false
         /// (c) Inherited: true
         /// </summary>
-        static internal readonly AttributeUsageInfo Default = new AttributeUsageInfo(validTargets: AttributeTargets.All, allowMultiple: false, inherited: true);
+        internal static readonly AttributeUsageInfo Default = new AttributeUsageInfo(validTargets: AttributeTargets.All, allowMultiple: false, inherited: true);
 
-        static internal readonly AttributeUsageInfo Null = default(AttributeUsageInfo);
+        internal static readonly AttributeUsageInfo Null = default(AttributeUsageInfo);
 
         internal AttributeUsageInfo(AttributeTargets validTargets, bool allowMultiple, bool inherited)
         {
@@ -111,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             return left._flags != right._flags;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is AttributeUsageInfo)
             {
@@ -164,13 +167,13 @@ namespace Microsoft.CodeAnalysis
             return new ValidTargetsStringLocalizableErrorArgument(builder.ToArrayAndFree());
         }
 
-        private struct ValidTargetsStringLocalizableErrorArgument : IFormattable, IMessageSerializable
+        private struct ValidTargetsStringLocalizableErrorArgument : IFormattable
         {
-            private readonly string[] _targetResourceIds;
+            private readonly string[]? _targetResourceIds;
 
             internal ValidTargetsStringLocalizableErrorArgument(string[] targetResourceIds)
             {
-                Debug.Assert(targetResourceIds != null);
+                RoslynDebug.Assert(targetResourceIds != null);
                 _targetResourceIds = targetResourceIds;
             }
 
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis
                 return ToString(null, null);
             }
 
-            public string ToString(string format, IFormatProvider formatProvider)
+            public string ToString(string? format, IFormatProvider? formatProvider)
             {
                 var builder = PooledStringBuilder.GetInstance();
                 var culture = formatProvider as System.Globalization.CultureInfo;

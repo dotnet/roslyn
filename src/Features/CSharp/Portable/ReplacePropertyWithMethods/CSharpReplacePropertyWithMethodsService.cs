@@ -1,45 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
-    internal class CSharpReplacePropertyWithMethodsService : 
-        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, StatementSyntax>
+    internal partial class CSharpReplacePropertyWithMethodsService :
+        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax, PropertyDeclarationSyntax>
     {
-        public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpReplacePropertyWithMethodsService()
         {
-            var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
-            if (containingProperty == null)
-            {
-                return null;
-            }
-
-            var start = containingProperty.AttributeLists.Count > 0
-                ? containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
-                : containingProperty.SpanStart;
-
-            // Offer this refactoring anywhere in the signature of the property.
-            var position = token.SpanStart;
-            if (position < start || position > containingProperty.Identifier.Span.End)
-            {
-                return null;
-            }
-
-            return containingProperty;
         }
 
-        public override IList<SyntaxNode> GetReplacementMembers(
+        public override async Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
             Document document,
             IPropertySymbol property,
             SyntaxNode propertyDeclarationNode,
@@ -48,28 +42,33 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             string desiredSetMethodName,
             CancellationToken cancellationToken)
         {
-            var propertyDeclaration = propertyDeclarationNode as PropertyDeclarationSyntax;
-            if (propertyDeclaration == null)
-            {
-                return SpecializedCollections.EmptyList<SyntaxNode>();
-            }
+            if (!(propertyDeclarationNode is PropertyDeclarationSyntax propertyDeclaration))
+                return ImmutableArray<SyntaxNode>.Empty;
+
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var parseOptions = syntaxTree.Options;
 
             return ConvertPropertyToMembers(
+                documentOptions, parseOptions,
                 SyntaxGenerator.GetGenerator(document), property,
                 propertyDeclaration, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName,
                 cancellationToken);
         }
 
-        private List<SyntaxNode> ConvertPropertyToMembers(
-            SyntaxGenerator generator, 
-            IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol propertyBackingField,
+        private static ImmutableArray<SyntaxNode> ConvertPropertyToMembers(
+            DocumentOptionSet documentOptions,
+            ParseOptions parseOptions,
+            SyntaxGenerator generator,
+            IPropertySymbol property,
+            PropertyDeclarationSyntax propertyDeclaration,
+            IFieldSymbol? propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName,
             CancellationToken cancellationToken)
         {
-            var result = new List<SyntaxNode>();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
 
             if (propertyBackingField != null)
             {
@@ -81,77 +80,225 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (getMethod != null)
             {
                 result.Add(GetGetMethod(
+                    documentOptions, parseOptions,
                     generator, propertyDeclaration, propertyBackingField,
-                    getMethod, desiredGetMethodName, cancellationToken));
+                    getMethod, desiredGetMethodName,
+                    cancellationToken: cancellationToken));
             }
 
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
                 result.Add(GetSetMethod(
-                    generator, propertyDeclaration, propertyBackingField, 
-                    setMethod, desiredSetMethodName, cancellationToken));
+                    documentOptions, parseOptions,
+                    generator, propertyDeclaration, propertyBackingField,
+                    setMethod, desiredSetMethodName,
+                    cancellationToken: cancellationToken));
             }
 
-            return result;
+            return result.ToImmutable();
         }
 
         private static SyntaxNode GetSetMethod(
-            SyntaxGenerator generator, 
-            PropertyDeclarationSyntax propertyDeclaration, 
-            IFieldSymbol propertyBackingField,
+            DocumentOptionSet documentOptions,
+            ParseOptions parseOptions,
+            SyntaxGenerator generator,
+            PropertyDeclarationSyntax propertyDeclaration,
+            IFieldSymbol? propertyBackingField,
+            IMethodSymbol setMethod,
+            string desiredSetMethodName,
+            CancellationToken cancellationToken)
+        {
+            var methodDeclaration = GetSetMethodWorker(
+                generator, propertyDeclaration, propertyBackingField,
+                setMethod, desiredSetMethodName, cancellationToken);
+
+            // The analyzer doesn't report diagnostics when the trivia contains preprocessor directives, so it's safe
+            // to copy the complete leading trivia to both generated methods.
+            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
+
+            return UseExpressionOrBlockBodyIfDesired(
+                documentOptions, parseOptions, methodDeclaration,
+                createReturnStatementForExpression: false);
+        }
+
+        private static MethodDeclarationSyntax GetSetMethodWorker(
+            SyntaxGenerator generator,
+            PropertyDeclarationSyntax propertyDeclaration,
+            IFieldSymbol? propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName,
             CancellationToken cancellationToken)
         {
             var setAccessorDeclaration = (AccessorDeclarationSyntax)setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(setMethod, desiredSetMethodName);
 
-            var statements = new List<SyntaxNode>();
-            if (setAccessorDeclaration?.Body != null)
+            // property has unsafe, but generator didn't add it to the method, so we have to add it here
+            if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
+                && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                statements.AddRange(setAccessorDeclaration?.Body?.Statements);
+                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            }
+
+            if (setAccessorDeclaration.Body != null)
+            {
+                return methodDeclaration.WithBody(setAccessorDeclaration.Body)
+                                        .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+            else if (setAccessorDeclaration.ExpressionBody != null)
+            {
+                return methodDeclaration.WithBody(null)
+                                        .WithExpressionBody(setAccessorDeclaration.ExpressionBody)
+                                        .WithSemicolonToken(setAccessorDeclaration.SemicolonToken);
             }
             else if (propertyBackingField != null)
             {
-                statements.Add(generator.ExpressionStatement(
-                    generator.AssignmentStatement(
-                        GetFieldReference(generator, propertyBackingField),
-                        generator.IdentifierName("value"))));
+                return methodDeclaration.WithBody(SyntaxFactory.Block(
+                    (StatementSyntax)generator.ExpressionStatement(
+                        generator.AssignmentStatement(
+                            GetFieldReference(generator, propertyBackingField),
+                            generator.IdentifierName("value")))));
             }
 
-            return generator.MethodDeclaration(setMethod, desiredSetMethodName, statements);
+            return methodDeclaration;
         }
 
         private static SyntaxNode GetGetMethod(
+            DocumentOptionSet documentOptions,
+            ParseOptions parseOptions,
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol propertyBackingField,
+            IFieldSymbol? propertyBackingField,
             IMethodSymbol getMethod,
             string desiredGetMethodName,
             CancellationToken cancellationToken)
         {
-            var statements = new List<SyntaxNode>();
+            var methodDeclaration = GetGetMethodWorker(
+                generator, propertyDeclaration, propertyBackingField, getMethod,
+                desiredGetMethodName, cancellationToken);
+
+            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToReturnsRewriter.Instance);
+
+            return UseExpressionOrBlockBodyIfDesired(
+                documentOptions, parseOptions, methodDeclaration,
+                createReturnStatementForExpression: true);
+        }
+
+        private static MethodDeclarationSyntax CopyLeadingTrivia(
+            PropertyDeclarationSyntax propertyDeclaration,
+            MethodDeclarationSyntax methodDeclaration,
+            CSharpSyntaxRewriter documentationCommentRewriter)
+        {
+            var leadingTrivia = propertyDeclaration.GetLeadingTrivia();
+            return methodDeclaration.WithLeadingTrivia(leadingTrivia.Select(trivia => ConvertTrivia(trivia, documentationCommentRewriter)));
+        }
+
+        private static SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
+        {
+            if (trivia.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia ||
+                trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)
+            {
+                return ConvertDocumentationComment(trivia, rewriter);
+            }
+
+            return trivia;
+        }
+
+        private static SyntaxTrivia ConvertDocumentationComment(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
+        {
+            var structure = trivia.GetStructure();
+            var rewritten = rewriter.Visit(structure);
+            Contract.ThrowIfNull(rewritten);
+            return SyntaxFactory.Trivia((StructuredTriviaSyntax)rewritten);
+        }
+
+        private static SyntaxNode UseExpressionOrBlockBodyIfDesired(
+            DocumentOptionSet documentOptions, ParseOptions parseOptions,
+            MethodDeclarationSyntax methodDeclaration, bool createReturnStatementForExpression)
+        {
+            var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+            if (methodDeclaration.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
+            {
+                if (methodDeclaration.Body.TryConvertToArrowExpressionBody(
+                        methodDeclaration.Kind(), parseOptions, expressionBodyPreference,
+                        out var arrowExpression, out var semicolonToken))
+                {
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(arrowExpression)
+                                            .WithSemicolonToken(semicolonToken)
+                                            .WithAdditionalAnnotations(Formatter.Annotation);
+                }
+            }
+            else if (methodDeclaration.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
+            {
+                if (methodDeclaration.ExpressionBody.TryConvertToBlock(
+                        methodDeclaration.SemicolonToken, createReturnStatementForExpression, out var block))
+                {
+                    return methodDeclaration.WithExpressionBody(null)
+                                            .WithSemicolonToken(default)
+                                            .WithBody(block)
+                                            .WithAdditionalAnnotations(Formatter.Annotation);
+                }
+            }
+
+            return methodDeclaration;
+        }
+
+        private static MethodDeclarationSyntax GetGetMethodWorker(
+            SyntaxGenerator generator,
+            PropertyDeclarationSyntax propertyDeclaration,
+            IFieldSymbol? propertyBackingField,
+            IMethodSymbol getMethod,
+            string desiredGetMethodName,
+            CancellationToken cancellationToken)
+        {
+            var methodDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(getMethod, desiredGetMethodName);
+
+            // property has unsafe, but generator didn't add it to the method, so we have to add it here
+            if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
+                && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+            {
+                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            }
 
             if (propertyDeclaration.ExpressionBody != null)
             {
-                statements.Add(generator.ReturnStatement(propertyDeclaration.ExpressionBody.Expression));
+                return methodDeclaration.WithBody(null)
+                                        .WithExpressionBody(propertyDeclaration.ExpressionBody)
+                                        .WithSemicolonToken(propertyDeclaration.SemicolonToken);
             }
             else
             {
                 var getAccessorDeclaration = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                if (getAccessorDeclaration?.ExpressionBody != null)
+                {
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(getAccessorDeclaration.ExpressionBody)
+                                            .WithSemicolonToken(getAccessorDeclaration.SemicolonToken);
+                }
                 if (getAccessorDeclaration?.Body != null)
                 {
-                    statements.AddRange(getAccessorDeclaration.Body.Statements);
+                    return methodDeclaration.WithBody(getAccessorDeclaration.Body)
+                                            .WithAdditionalAnnotations(Formatter.Annotation);
                 }
                 else if (propertyBackingField != null)
                 {
                     var fieldReference = GetFieldReference(generator, propertyBackingField);
-                    statements.Add(generator.ReturnStatement(fieldReference));
+                    return methodDeclaration.WithBody(
+                        SyntaxFactory.Block(
+                            (StatementSyntax)generator.ReturnStatement(fieldReference)));
                 }
             }
 
-            return generator.MethodDeclaration(getMethod, desiredGetMethodName, statements);
+            return methodDeclaration;
         }
+
+        /// <summary>
+        /// Used by the documentation comment rewriters to identify top-level <c>&lt;value&gt;</c> nodes.
+        /// </summary>
+        private static bool IsValueName(XmlNameSyntax name)
+            => name.Prefix == null &&
+               name.LocalName.ValueText == "value";
 
         public override SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration)
         {
@@ -159,22 +306,44 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return propertyDeclaration;
         }
 
+        protected override NameMemberCrefSyntax? TryGetCrefSyntax(IdentifierNameSyntax identifierName)
+            => identifierName.Parent as NameMemberCrefSyntax;
+
+        protected override NameMemberCrefSyntax CreateCrefSyntax(NameMemberCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode? parameterType)
+        {
+            CrefParameterListSyntax parameterList;
+            if (parameterType is TypeSyntax typeSyntax)
+            {
+                var parameter = SyntaxFactory.CrefParameter(typeSyntax);
+                parameterList = SyntaxFactory.CrefParameterList(SyntaxFactory.SingletonSeparatedList(parameter));
+            }
+            else
+            {
+                parameterList = SyntaxFactory.CrefParameterList();
+            }
+
+            // XmlCrefAttribute replaces <T> with {T}, which is required for C# documentation comments
+            var crefAttribute = SyntaxFactory.XmlCrefAttribute(
+                SyntaxFactory.NameMemberCref(SyntaxFactory.IdentifierName(identifierToken), parameterList));
+            return (NameMemberCrefSyntax)crefAttribute.Cref;
+        }
+
         protected override ExpressionSyntax UnwrapCompoundAssignment(
             SyntaxNode compoundAssignment, ExpressionSyntax readExpression)
         {
-                var parent = (AssignmentExpressionSyntax)compoundAssignment;
+            var parent = (AssignmentExpressionSyntax)compoundAssignment;
 
-                var operatorKind =
-                    parent.IsKind(SyntaxKind.OrAssignmentExpression) ? SyntaxKind.BitwiseOrExpression :
-                    parent.IsKind(SyntaxKind.AndAssignmentExpression) ? SyntaxKind.BitwiseAndExpression :
-                    parent.IsKind(SyntaxKind.ExclusiveOrAssignmentExpression) ? SyntaxKind.ExclusiveOrExpression :
-                    parent.IsKind(SyntaxKind.LeftShiftAssignmentExpression) ? SyntaxKind.LeftShiftExpression :
-                    parent.IsKind(SyntaxKind.RightShiftAssignmentExpression) ? SyntaxKind.RightShiftExpression :
-                    parent.IsKind(SyntaxKind.AddAssignmentExpression) ? SyntaxKind.AddExpression :
-                    parent.IsKind(SyntaxKind.SubtractAssignmentExpression) ? SyntaxKind.SubtractExpression :
-                    parent.IsKind(SyntaxKind.MultiplyAssignmentExpression) ? SyntaxKind.MultiplyExpression :
-                    parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
-                    parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
+            var operatorKind =
+                parent.IsKind(SyntaxKind.OrAssignmentExpression) ? SyntaxKind.BitwiseOrExpression :
+                parent.IsKind(SyntaxKind.AndAssignmentExpression) ? SyntaxKind.BitwiseAndExpression :
+                parent.IsKind(SyntaxKind.ExclusiveOrAssignmentExpression) ? SyntaxKind.ExclusiveOrExpression :
+                parent.IsKind(SyntaxKind.LeftShiftAssignmentExpression) ? SyntaxKind.LeftShiftExpression :
+                parent.IsKind(SyntaxKind.RightShiftAssignmentExpression) ? SyntaxKind.RightShiftExpression :
+                parent.IsKind(SyntaxKind.AddAssignmentExpression) ? SyntaxKind.AddExpression :
+                parent.IsKind(SyntaxKind.SubtractAssignmentExpression) ? SyntaxKind.SubtractExpression :
+                parent.IsKind(SyntaxKind.MultiplyAssignmentExpression) ? SyntaxKind.MultiplyExpression :
+                parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
+                parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
 
             return SyntaxFactory.BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
         }

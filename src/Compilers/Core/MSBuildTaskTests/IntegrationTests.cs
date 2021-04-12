@@ -1,34 +1,29 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#if NET472
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Win32;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Xml;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class IntegrationTests : TestBase
     {
-        private static readonly string s_msbuildDirectory;
-        private static readonly string s_msbuildExecutable;
+        private static readonly string? s_msbuildDirectory;
 
         static IntegrationTests()
         {
-            s_msbuildDirectory = TestHelpers.GetMSBuildDirectory();
-            s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
+            s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
         }
 
+        private readonly string _msbuildExecutable;
         private readonly TempDirectory _tempDirectory;
         private readonly List<Process> _existingServerList = new List<Process>();
         private readonly string _buildTaskDll;
@@ -40,12 +35,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 throw new InvalidOperationException("Could not locate MSBuild");
             }
 
+            _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
             _tempDirectory = Temp.CreateDirectory();
             _existingServerList = Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")).ToList();
             _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
         }
 
-        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
+        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>>? vars)
         {
             vars = vars ?? new KeyValuePair<string, string>[] { };
             if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
@@ -63,7 +59,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             string compilerPath,
             string arguments,
             string currentDirectory,
-            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
         {
             return ProcessUtilities.Run(
                 compilerPath,
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             string arguments,
             TempDirectory currentDirectory,
             IEnumerable<KeyValuePair<string, string>> filesInDirectory,
-            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
         {
             foreach (var pair in filesInDirectory)
             {
@@ -125,7 +121,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 { "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+\u0023 Visual Studio 2010
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloProj"", ""HelloProj.csproj"", ""{7F4CCBA2-1184-468A-BF3D-30792E4E8003}""
 EndProject
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloLib"", ""HelloLib.csproj"", ""{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}""
@@ -409,7 +405,7 @@ End Class
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
+            var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
             using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
             {
@@ -431,7 +427,7 @@ End Class
 { "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+\u0023 Visual Studio 2010
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloLib"", ""HelloLib.csproj"", ""{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}""
 EndProject
 Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") = ""VBLib"", ""VBLib.vbproj"", ""{F21C894B-28E5-4212-8AF7-C8E0E5455737}""
@@ -604,11 +600,11 @@ End Class
 "}
             };
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
         public void ReportAnalyzerMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
+            var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
                 { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
 
@@ -619,14 +615,14 @@ End Class
         [Fact(Skip = "failing msbuild")]
         public void SolutionWithPunctuation()
         {
-            var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(foo)'^1");
-            var slnFile = testDir.CreateFile("Console;!@(foo)'^(Application1.sln").WriteAllText(
+            var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
+            var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
     @"
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2005
-Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Cons.ole;!@(foo)'^(Application1"", ""Console;!@(foo)'^(Application1\Cons.ole;!@(foo)'^(Application1.csproj"", ""{770F2381-8C39-49E9-8C96-0538FA4349A7}""
+\u0023 Visual Studio 2005
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Cons.ole;!@(goo)'^(Application1"", ""Console;!@(goo)'^(Application1\Cons.ole;!@(goo)'^(Application1.csproj"", ""{770F2381-8C39-49E9-8C96-0538FA4349A7}""
 EndProject
-Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Class;!@(foo)'^(Library1"", ""Class;!@(foo)'^(Library1\Class;!@(foo)'^(Library1.csproj"", ""{0B4B78CC-C752-43C2-BE9A-319D20216129}""
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Class;!@(goo)'^(Library1"", ""Class;!@(goo)'^(Library1\Class;!@(goo)'^(Library1.csproj"", ""{0B4B78CC-C752-43C2-BE9A-319D20216129}""
 EndProject
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -648,8 +644,8 @@ Global
     EndGlobalSection
 EndGlobal
 ");
-            var appDir = testDir.CreateDirectory(@"Console;!@(foo)'^(Application1");
-            var appProjFile = appDir.CreateFile(@"Cons.ole;!@(foo)'^(Application1.csproj").WriteAllText(
+            var appDir = testDir.CreateDirectory(@"Console;!@(goo)'^(Application1");
+            var appProjFile = appDir.CreateFile(@"Cons.ole;!@(goo)'^(Application1.csproj").WriteAllText(
     @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
@@ -661,8 +657,8 @@ EndGlobal
         <ProjectGuid>{770F2381-8C39-49E9-8C96-0538FA4349A7}</ProjectGuid>
         <OutputType>Exe</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Console____foo____Application1</RootNamespace>
-        <AssemblyName>Console%3b!%40%28foo%29%27^%28Application1</AssemblyName>
+        <RootNamespace>Console____goo____Application1</RootNamespace>
+        <AssemblyName>Console%3b!%40%28goo%29%27^%28Application1</AssemblyName>
     </PropertyGroup>
     <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
         <DebugSymbols>true</DebugSymbols>
@@ -690,9 +686,9 @@ EndGlobal
         <Compile Include=""Program.cs"" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include=""..\Class%3b!%40%28foo%29%27^%28Library1\Class%3b!%40%28foo%29%27^%28Library1.csproj"">
+        <ProjectReference Include=""..\Class%3b!%40%28goo%29%27^%28Library1\Class%3b!%40%28goo%29%27^%28Library1.csproj"">
             <Project>{0B4B78CC-C752-43C2-BE9A-319D20216129}</Project>
-            <Name>Class%3b!%40%28foo%29%27^%28Library1</Name>
+            <Name>Class%3b!%40%28goo%29%27^%28Library1</Name>
         </ProjectReference>
     </ItemGroup>
     <Import Project=""$(MSBuildBinPath)\Microsoft.CSharp.targets"" />
@@ -705,19 +701,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Console____foo____Application1
+namespace Console____goo____Application1
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Class____foo____Library1.Class1 foo = new Class____foo____Library1.Class1();
+            Class____goo____Library1.Class1 goo = new Class____goo____Library1.Class1();
         }
     }
 }");
 
-            var libraryDir = testDir.CreateDirectory(@"Class;!@(foo)'^(Library1");
-            var libraryProjFile = libraryDir.CreateFile("Class;!@(foo)'^(Library1.csproj").WriteAllText(
+            var libraryDir = testDir.CreateDirectory(@"Class;!@(goo)'^(Library1");
+            var libraryProjFile = libraryDir.CreateFile("Class;!@(goo)'^(Library1.csproj").WriteAllText(
     @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
@@ -729,8 +725,8 @@ namespace Console____foo____Application1
         <ProjectGuid>{0B4B78CC-C752-43C2-BE9A-319D20216129}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Class____foo____Library1</RootNamespace>
-        <AssemblyName>Class%3b!%40%28foo%29%27^%28Library1</AssemblyName>
+        <RootNamespace>Class____goo____Library1</RootNamespace>
+        <AssemblyName>Class%3b!%40%28goo%29%27^%28Library1</AssemblyName>
     </PropertyGroup>
     <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
         <DebugSymbols>true</DebugSymbols>
@@ -775,7 +771,7 @@ namespace Console____foo____Application1
 
             var libraryClassFile = libraryDir.CreateFile("Class1.cs").WriteAllText(
     @"
-namespace Class____foo____Library1
+namespace Class____goo____Library1
 {
     public class Class1
     {
@@ -783,9 +779,10 @@ namespace Class____foo____Library1
 }
 ");
 
-            var result = RunCommandLineCompiler(s_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
+            var result = RunCommandLineCompiler(_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("", result.Errors);
         }
     }
 }
+#endif

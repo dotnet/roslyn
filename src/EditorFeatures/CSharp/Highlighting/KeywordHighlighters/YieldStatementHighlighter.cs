@@ -1,23 +1,34 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
 {
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class YieldStatementHighlighter : AbstractKeywordHighlighter<YieldStatementSyntax>
     {
-        protected override IEnumerable<TextSpan> GetHighlights(
-            YieldStatementSyntax yieldStatement, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public YieldStatementHighlighter()
+        {
+        }
+
+        protected override void AddHighlights(
+            YieldStatementSyntax yieldStatement, List<TextSpan> spans, CancellationToken cancellationToken)
         {
             var parent = yieldStatement
                              .GetAncestorsOrThis<SyntaxNode>()
@@ -25,14 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
             if (parent == null)
             {
-                return SpecializedCollections.EmptyEnumerable<TextSpan>();
+                return;
             }
 
-            var spans = new List<TextSpan>();
-
             HighlightRelatedKeywords(parent, spans);
-
-            return spans;
         }
 
         /// <summary>
@@ -40,27 +47,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         /// </summary>
         private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
         {
-            node.TypeSwitch(
-                (YieldStatementSyntax statement) =>
-                {
+            switch (node)
+            {
+                case YieldStatementSyntax statement:
                     spans.Add(
                         TextSpan.FromBounds(
                             statement.YieldKeyword.SpanStart,
                             statement.ReturnOrBreakKeyword.Span.End));
 
                     spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
-                },
-                _ =>
-                {
-                    foreach (var child in node.ChildNodes())
+                    break;
+                default:
+                    foreach (var child in node.ChildNodesAndTokens())
                     {
+                        if (child.IsToken)
+                            continue;
+
                         // Only recurse if we have anything to do
-                        if (!child.IsReturnableConstruct())
+                        if (!child.AsNode().IsReturnableConstruct())
                         {
-                            HighlightRelatedKeywords(child, spans);
+                            HighlightRelatedKeywords(child.AsNode(), spans);
                         }
                     }
-                });
+                    break;
+            }
         }
     }
 }

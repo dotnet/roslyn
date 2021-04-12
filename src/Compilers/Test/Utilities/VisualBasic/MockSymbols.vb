@@ -1,9 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Friend Interface IMockSymbol
     Sub SetContainer(container As Symbol)
@@ -14,7 +17,7 @@ Friend Class MockNamespaceSymbol
     Implements IMockSymbol
 
     Private _container As NamespaceSymbol
-    Private _extent As NamespaceExtent
+    Private ReadOnly _extent As NamespaceExtent
     Private _children As ImmutableArray(Of Symbol)
     Private ReadOnly _name As String
 
@@ -139,7 +142,7 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property IsSerializable As Boolean
+    Public Overrides ReadOnly Property IsSerializable As Boolean
         Get
             Return False
         End Get
@@ -163,19 +166,19 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+    Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+    Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+    Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+    Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
         Throw New NotImplementedException()
     End Function
 
@@ -188,12 +191,6 @@ Friend Class MockNamedTypeSymbol
     Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
         Get
             Return Accessibility.Public
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property EnumUnderlyingType As NamedTypeSymbol
-        Get
-            Throw New InvalidOperationException()
         End Get
     End Property
 
@@ -301,7 +298,13 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+    Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
+    Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
         Get
             Throw New NotImplementedException()
         End Get
@@ -371,13 +374,17 @@ Friend Class MockNamedTypeSymbol
     Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
         Throw New InvalidOperationException()
     End Sub
+
+    Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+        Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+    End Function
 End Class
 
 Friend Class MockMethodSymbol
     Inherits MethodSymbol
 
-    Private _name As String
-    Private _container As Symbol
+    Private ReadOnly _name As String
+    Private ReadOnly _container As Symbol
 
     Public Sub New(name As String)
         _name = name
@@ -527,6 +534,12 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property IsInitOnly As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property IsVararg As Boolean
         Get
             Return False
@@ -587,7 +600,13 @@ Friend Class MockMethodSymbol
 
     Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
         Get
-            Return ImmutableArray.Create(Of CustomModifier)()
+            Return ImmutableArray(Of CustomModifier).Empty
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+        Get
+            Return ImmutableArray(Of CustomModifier).Empty
         End Get
     End Property
 
@@ -603,7 +622,7 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+    Friend Overrides ReadOnly Property Syntax As SyntaxNode
         Get
             Return Nothing
         End Get
@@ -817,6 +836,10 @@ Friend Class MockAssemblySymbol
 
     Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
         Return Nothing
+    End Function
+
+    Friend Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+        Throw New NotImplementedException()
     End Function
 
     Public Overrides Function GetMetadata() As AssemblyMetadata

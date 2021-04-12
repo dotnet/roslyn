@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+#nullable disable
+
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
             : base(@"using System;
 
 
-public abstract class Foo : IDisposable, ICloneable
+public abstract class Goo : IDisposable, ICloneable
 {
 
 
@@ -44,42 +45,42 @@ class Baz
         {
         }
 
-        private async Task<CodeClass> GetCodeClassAsync(params object[] path)
+        private CodeClass GetCodeClass(params object[] path)
         {
-            return (CodeClass)await GetCodeElementAsync(path);
+            return (CodeClass)GetCodeElement(path);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_BeforeNamespace()
+        public void GetEndPoint_Body_BeforeNamespace()
         {
-            CodeClass testObject = await GetCodeClassAsync("Foo");
+            var testObject = GetCodeClass("Goo");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
             Assert.Equal(20, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_BeforeOtherClass()
+        public void GetEndPoint_Body_BeforeOtherClass()
         {
-            CodeClass testObject = await GetCodeClassAsync("Foo", "Bar");
+            var testObject = GetCodeClass("Goo", "Bar");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
             Assert.Equal(20, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task GetEndPoint_Body_Eof()
+        public void GetEndPoint_Body_Eof()
         {
-            CodeClass testObject = await GetCodeClassAsync("Baz");
+            var testObject = GetCodeClass("Baz");
 
-            TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
+            var endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
             Assert.Equal(27, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);

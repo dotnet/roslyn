@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -30,28 +33,29 @@ namespace Microsoft.Cci
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> _memberRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
-        private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
+        private readonly TypeReferenceIndex _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
         private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
 
         public static MetadataWriter Create(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             bool hasPdbStream,
             CancellationToken cancellationToken)
         {
             var builder = new MetadataBuilder();
-            MetadataBuilder debugBuilderOpt;
-            switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
+            MetadataBuilder? debugBuilderOpt;
+            switch (context.Module.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
                     debugBuilderOpt = hasPdbStream ? new MetadataBuilder() : null;
                     break;
 
                 case DebugInformationFormat.Embedded:
-                    debugBuilderOpt = builder;
+                    debugBuilderOpt = metadataOnly ? null : new MetadataBuilder();
                     break;
 
                 default:
@@ -59,18 +63,26 @@ namespace Microsoft.Cci
                     break;
             }
 
-            return new FullMetadataWriter(context, builder, debugBuilderOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            var dynamicAnalysisDataWriterOpt = emitTestCoverageData ?
+                new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) :
+                null;
+
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, deterministic,
+                emitTestCoverageData, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
             MetadataBuilder builder,
-            MetadataBuilder debugBuilderOpt,
+            MetadataBuilder? debugBuilderOpt,
+            DynamicAnalysisDataWriter? dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             CancellationToken cancellationToken)
-            : base(builder, debugBuilderOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, deterministic,
+                  emitTestCoverageData, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -86,15 +98,15 @@ namespace Microsoft.Cci
             _parameterDefs = new DefinitionIndex<IParameterDefinition>(numMethods);
             _genericParameters = new DefinitionIndex<IGenericParameter>(0);
 
-            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
-            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
-            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods);
+            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
+            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
+            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods, ReferenceEqualityComparer.Instance);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this);
             _memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this));
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
-            _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
+            _typeRefIndex = new TypeReferenceIndex(this);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
             _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this);
         }
@@ -260,7 +272,9 @@ namespace Microsoft.Cci
             return _methodSpecIndex.Rows;
         }
 
-        protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
+        protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
+
+        protected override bool TryGetTypeReferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;
             bool result = _typeRefIndex.TryGetValue(reference, out index);
@@ -326,7 +340,7 @@ namespace Microsoft.Cci
 
         protected override void PopulateEventMapTableRows()
         {
-            ITypeDefinition lastParent = null;
+            ITypeDefinition? lastParent = null;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
                 if (eventDef.ContainingTypeDefinition == lastParent)
@@ -344,7 +358,7 @@ namespace Microsoft.Cci
 
         protected override void PopulatePropertyMapTableRows()
         {
-            ITypeDefinition lastParent = null;
+            ITypeDefinition? lastParent = null;
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
                 if (propertyDef.ContainingTypeDefinition == lastParent)
@@ -358,11 +372,6 @@ namespace Microsoft.Cci
                     declaringType: GetTypeDefinitionHandle(lastParent),
                     propertyList: GetPropertyDefIndex(propertyDef));
             }
-        }
-
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
-        {
-            return module.GetTopLevelTypes(this.Context);
         }
 
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
@@ -383,7 +392,7 @@ namespace Microsoft.Cci
                 this.methodImplList.Add(methodImplementation);
             }
 
-            foreach (IEventDefinition eventDef in typeDef.Events)
+            foreach (IEventDefinition eventDef in typeDef.GetEvents(Context))
             {
                 _eventDefs.Add(eventDef);
             }
@@ -425,7 +434,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct DefinitionIndex<T> where T : IReference
+        private struct DefinitionIndex<T> where T : class, IReference
         {
             // IReference to RowId
             private readonly Dictionary<T, int> _index;
@@ -433,7 +442,7 @@ namespace Microsoft.Cci
 
             public DefinitionIndex(int capacity)
             {
-                _index = new Dictionary<T, int>(capacity);
+                _index = new Dictionary<T, int>(capacity, ReferenceEqualityComparer.Instance);
                 _rows = new List<T>(capacity);
             }
 

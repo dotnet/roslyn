@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -25,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             isLValue As Boolean,
             diagnostics As DiagnosticBag) As BoundExpression
 
@@ -35,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overloads Shared Function RewriteLocal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             local As LocalSymbol,
             isLValue As Boolean) As BoundExpression
 
@@ -45,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Overloads Shared Function RewriteLocalInternal(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             local As LocalSymbol,
             isLValue As Boolean) As BoundExpression
 
@@ -96,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return InvokeGetMethod(method.Construct(local.Type), variable.Syntax, local.Name)
             End Function
 
-            Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As VisualBasicSyntaxNode, name As String) As BoundExpression
+            Private Shared Function InvokeGetMethod(method As MethodSymbol, syntax As SyntaxNode, name As String) As BoundExpression
                 Dim argument As New BoundLiteral(
                     syntax,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),

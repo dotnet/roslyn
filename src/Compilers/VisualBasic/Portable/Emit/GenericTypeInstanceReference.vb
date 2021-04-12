@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -7,6 +9,7 @@ Imports System.Linq
 Imports System.Text
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -44,11 +47,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return builder.ToImmutableAndFree
         End Function
 
-        Private ReadOnly Property IGenericTypeInstanceReferenceGenericType As Cci.INamedTypeReference Implements Cci.IGenericTypeInstanceReference.GenericType
-            Get
-                Debug.Assert(m_UnderlyingNamedType.OriginalDefinition Is m_UnderlyingNamedType.OriginalDefinition.OriginalDefinition)
-                Return m_UnderlyingNamedType.OriginalDefinition
-            End Get
-        End Property
+        Private Function IGenericTypeInstanceReferenceGetGenericType(context As EmitContext) As Cci.INamedTypeReference Implements Cci.IGenericTypeInstanceReference.GetGenericType
+            Debug.Assert(m_UnderlyingNamedType.OriginalDefinition Is m_UnderlyingNamedType.OriginalDefinition.OriginalDefinition)
+            Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
+            Return moduleBeingBuilt.Translate(m_UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                              diagnostics:=context.Diagnostics, needDeclaration:=True)
+        End Function
     End Class
 End Namespace

@@ -1,8 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
@@ -55,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
                 var solution = this.Workspace.CurrentSolution;
 
-                var overloadsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
+                var overloadsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
                 foreach (var method in symbol.ContainingType.GetMembers(symbol.Name))
                 {
                     if (method.Kind != SymbolKind.Method)
@@ -84,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     }
                 }
 
-                _overloads = overloadsBuilder.ToImmutable();
+                _overloads = overloadsBuilder.ToImmutableAndFree();
             }
 
             return _overloads;

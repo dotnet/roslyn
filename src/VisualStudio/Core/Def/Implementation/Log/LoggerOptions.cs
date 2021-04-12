@@ -1,17 +1,44 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal static class LoggerOptions
     {
-        public const string FeatureName = "Performance/Loggers";
+        private const string LocalRegistryPath = @"Roslyn\Internal\Performance\Logger\";
 
-        [ExportOption]
-        public static readonly Option<bool> EtwLoggerKey = new Option<bool>(FeatureName, "EtwLogger", defaultValue: true);
+        public static readonly Option<bool> EtwLoggerKey = new(nameof(LoggerOptions), nameof(EtwLoggerKey), defaultValue: true,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "EtwLogger"));
 
-        [ExportOption]
-        public static readonly Option<bool> TraceLoggerKey = new Option<bool>(FeatureName, "TraceLogger");
+        public static readonly Option<bool> TraceLoggerKey = new(nameof(LoggerOptions), nameof(TraceLoggerKey), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "TraceLogger"));
+
+        public static readonly Option<bool> OutputWindowLoggerKey = new(nameof(LoggerOptions), nameof(OutputWindowLoggerKey), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "OutputWindowLogger"));
+    }
+
+    [ExportOptionProvider, Shared]
+    internal class LoggerOptionsProvider : IOptionProvider
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LoggerOptionsProvider()
+        {
+        }
+
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            LoggerOptions.EtwLoggerKey,
+            LoggerOptions.TraceLoggerKey,
+            LoggerOptions.OutputWindowLoggerKey);
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -6,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
 
         ' VB has additional, stronger than CLR requirements on whether a reference to an item
         ' can be taken. 
@@ -99,8 +101,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' rewriter should take care of Parenthesized
                     '
                     ' we do not know how to emit address of a parenthesized without context.
-                    ' when it is an argument like  foo((arg)), it must be cloned, 
-                    ' in other cases like (receiver).foo() it might not need to be...
+                    ' when it is an argument like  goo((arg)), it must be cloned, 
+                    ' in other cases like (receiver).goo() it might not need to be...
                     '
                     Debug.Assert(False, "we should not see parenthesized in EmitAddress.")
 
@@ -112,6 +114,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.PseudoVariable
                     EmitPseudoVariableAddress(DirectCast(expression, BoundPseudoVariable))
+
+                Case BoundKind.Call
+                    Dim [call] = DirectCast(expression, BoundCall)
+                    Debug.Assert([call].Method.ReturnsByRef)
+                    EmitCallExpression([call], UseKind.UsedAsAddress)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(kind)
@@ -157,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' when a sequence Is happened to be a byref receiver
             ' we may need to extend the life time of the target until we are done accessing it
-            ' {.v ; v = Foo(); v}.Bar()     // v should be released after Bar() Is over.
+            ' {.v ; v = Goo(); v}.Bar()     // v should be released after Bar() Is over.
             Dim doNotRelease As LocalSymbol = Nothing
             If (tempOpt Is Nothing) Then
                 Dim referencedLocal As BoundLocal = DigForLocal(sequence.ValueOpt)
@@ -231,6 +238,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim local = DirectCast(expression, BoundLocal).LocalSymbol
                     Return Not IsStackLocal(local) OrElse local.IsByRef
 
+                Case BoundKind.Call
+                    Dim method = DirectCast(expression, BoundCall).Method
+                    Return method.ReturnsByRef
+
                 Case BoundKind.Dup
                     ' For a dupped local we assume that if the dup 
                     ' is created for byref local it does have home
@@ -260,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             ' while readonly fields have home it is not valid to refer to it when not constructing.
-            If field.ContainingType <> Me._method.ContainingType Then
+            If Not TypeSymbol.Equals(field.ContainingType, Me._method.ContainingType, TypeCompareKind.ConsiderEverything) Then
                 Return False
             End If
 
@@ -306,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         Return True
 
                     Case BoundKind.Dup
-                        ' If this is a Dub of ByRef local we can use the address directly 
+                        ' If this is a Dup of ByRef local we can use the address directly 
                         Return DirectCast(expression, BoundDup).IsReference
 
                     Case BoundKind.MeReference, BoundKind.MyClassReference
@@ -422,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Function
 
-        Private Sub EmitStaticFieldAddress(field As FieldSymbol, syntaxNode As VisualBasicSyntaxNode)
+        Private Sub EmitStaticFieldAddress(field As FieldSymbol, syntaxNode As SyntaxNode)
             _builder.EmitOpCode(ILOpCode.Ldsflda)
             EmitSymbolToken(field, syntaxNode)
         End Sub

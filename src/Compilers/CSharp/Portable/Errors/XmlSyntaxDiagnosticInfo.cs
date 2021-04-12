@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Globalization;
@@ -8,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class XmlSyntaxDiagnosticInfo : SyntaxDiagnosticInfo
     {
+        static XmlSyntaxDiagnosticInfo()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(XmlSyntaxDiagnosticInfo), r => new XmlSyntaxDiagnosticInfo(r));
+        }
+
         private readonly XmlParseErrorCode _xmlErrorCode;
 
         internal XmlSyntaxDiagnosticInfo(XmlParseErrorCode code, params object[] args)
@@ -26,18 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteCompressedUInt((uint)_xmlErrorCode);
-        }
-
-        protected override Func<ObjectReader, object> GetReader()
-        {
-            return r => new XmlSyntaxDiagnosticInfo(r);
+            writer.WriteUInt32((uint)_xmlErrorCode);
         }
 
         private XmlSyntaxDiagnosticInfo(ObjectReader reader)
             : base(reader)
         {
-            _xmlErrorCode = (XmlParseErrorCode)reader.ReadCompressedUInt();
+            _xmlErrorCode = (XmlParseErrorCode)reader.ReadUInt32();
         }
 
         #endregion

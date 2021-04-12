@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <PropertyGroup>
+    <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GenerateServiceHubConfigurationFiles</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="CalculateServiceHubConfigurationFiles">
+    <ItemGroup>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64S" HostSuffix="" HostIdSuffix="S" />
+
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
+        <Content>
+          <![CDATA[{
+  "host": "desktopClr%(_ServicesWithBitness.HostSuffix)",
+  "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
+  "hostGroupAllowed": true,
+  "serviceOverride": true, 
+  "entryPoint": {
+    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    "fullClassName": "%(_ServicesWithBitness.ClassName)",
+    "appBasePath": "%VSAPPIDDIR%",
+    "configPath": "%PkgDefApplicationConfigFile%"
+  }
+}
+]]>
+        </Content>
+      </ServiceHubServiceJsonFile>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateServiceHubConfigurationFiles"
+          DependsOnTargets="CalculateServiceHubConfigurationFiles"
+          BeforeTargets="CreateVsixContainer"
+          Inputs="$(MSBuildAllProjects)"
+          Outputs="@(ServiceHubServiceJsonFile)">
+
+    <WriteLinesToFile File="%(ServiceHubServiceJsonFile.Identity)" Lines="%(ServiceHubServiceJsonFile.Content)" Overwrite="true"/>
+
+    <ItemGroup>
+      <FileWrites Include="@(ServiceHubServiceJsonFile->'%(Identity)')"/>
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" />
+    </ItemGroup>
+  </Target>
+</Project>

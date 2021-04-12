@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -22,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             // flatten loggers
             foreach (var logger in loggers.WhereNotNull())
             {
-                var aggregateLogger = logger as AggregateLogger;
-                if (aggregateLogger != null)
+                if (logger is AggregateLogger aggregateLogger)
                 {
                     set.UnionWith(aggregateLogger._loggers);
                     continue;
@@ -62,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             var set = new HashSet<ILogger>();
-
             foreach (var logger in aggregateLogger._loggers)
             {
                 // replace this logger with new logger
@@ -81,15 +84,35 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return new AggregateLogger(set.ToImmutableArray());
         }
 
-        private AggregateLogger(ImmutableArray<ILogger> loggers)
+        public static ILogger Remove(ILogger logger, Func<ILogger, bool> predicate)
         {
-            _loggers = loggers;
+            var aggregateLogger = logger as AggregateLogger;
+            if (aggregateLogger == null)
+            {
+                // remove the logger
+                if (predicate(logger))
+                {
+                    return null;
+                }
+
+                return logger;
+            }
+
+            // filter out loggers
+            var set = aggregateLogger._loggers.Where(l => !predicate(l)).ToSet();
+            if (set.Count == 1)
+            {
+                return set.Single();
+            }
+
+            return new AggregateLogger(set.ToImmutableArray());
         }
 
+        private AggregateLogger(ImmutableArray<ILogger> loggers)
+            => _loggers = loggers;
+
         public bool IsEnabled(FunctionId functionId)
-        {
-            return true;
-        }
+            => true;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {

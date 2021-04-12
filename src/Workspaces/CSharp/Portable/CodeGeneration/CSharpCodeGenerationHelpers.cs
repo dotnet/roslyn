@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -6,10 +10,11 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -29,11 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
-            IList<SyntaxToken> tokens,
+            ArrayBuilder<SyntaxToken> tokens,
             CodeGenerationOptions options,
             Accessibility defaultAccessibility)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
             if (!options.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
             {
                 return;
@@ -51,6 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
                     break;
                 case Accessibility.ProtectedAndInternal:
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    break;
                 case Accessibility.Internal:
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     break;
@@ -133,34 +141,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.FirstOrDefault();
-        }
+            => members.FirstOrDefault();
 
         public static MemberDeclarationSyntax FirstMethod(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.FirstOrDefault(m => m is MethodDeclarationSyntax);
-        }
+            => members.FirstOrDefault(m => m is MethodDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is FieldDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is FieldDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastConstructor(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastMethod(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is MethodDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is MethodDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastOperator(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
 
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
@@ -171,7 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
             where TDeclaration : SyntaxNode
         {
-            var index = GetInsertionIndex(declarationList, declaration, options, availableIndices, after, before);
+            var index = GetInsertionIndex(
+                declarationList, declaration, options, availableIndices,
+                CSharpDeclarationComparer.WithoutNamesInstance,
+                CSharpDeclarationComparer.WithNamesInstance,
+                after, before);
+
             if (availableIndices != null)
             {
                 availableIndices.Insert(index, true);
@@ -186,117 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool AreBracesMissing<TDeclaration>(TDeclaration declaration) where TDeclaration : SyntaxNode
-        {
-            return declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
-        }
-
-        public static int GetInsertionIndex<TDeclaration>(
-            SyntaxList<TDeclaration> declarationList,
-            TDeclaration declaration,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices,
-            Func<SyntaxList<TDeclaration>, TDeclaration> after = null,
-            Func<SyntaxList<TDeclaration>, TDeclaration> before = null)
-            where TDeclaration : SyntaxNode
-        {
-            Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
-
-            if (options != null)
-            {
-                // Try to strictly obey the after option by inserting immediately after the member containing the location
-                if (options.AfterThisLocation != null)
-                {
-                    var afterMember = declarationList.LastOrDefault(m => m.SpanStart <= options.AfterThisLocation.SourceSpan.Start);
-                    if (afterMember != null)
-                    {
-                        var index = declarationList.IndexOf(afterMember);
-                        index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
-                    }
-                }
-
-                // Try to strictly obey the before option by inserting immediately before the member containing the location
-                if (options.BeforeThisLocation != null)
-                {
-                    var beforeMember = declarationList.FirstOrDefault(m => m.Span.End >= options.BeforeThisLocation.SourceSpan.End);
-                    if (beforeMember != null)
-                    {
-                        var index = declarationList.IndexOf(beforeMember);
-                        index = GetPreferredIndex(index, availableIndices, forward: false);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
-                    }
-                }
-
-                if (options.AutoInsertionLocation)
-                {
-                    if (declarationList.IsEmpty())
-                    {
-                        return 0;
-                    }
-                    else if (declarationList.IsSorted(CSharpDeclarationComparer.Instance))
-                    {
-                        var result = Array.BinarySearch(declarationList.ToArray(), declaration, CSharpDeclarationComparer.Instance);
-                        var index = GetPreferredIndex(result < 0 ? ~result : result, availableIndices, forward: true);
-                        if (index != -1)
-                        {
-                            return index;
-                        }
-                    }
-
-                    if (after != null)
-                    {
-                        var member = after(declarationList);
-                        if (member != null)
-                        {
-                            var index = declarationList.IndexOf(member);
-                            if (index >= 0)
-                            {
-                                index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
-                            }
-                        }
-                    }
-
-                    if (before != null)
-                    {
-                        var member = before(declarationList);
-                        if (member != null)
-                        {
-                            var index = declarationList.IndexOf(member);
-
-                            if (index >= 0)
-                            {
-                                index = GetPreferredIndex(index, availableIndices, forward: false);
-                                if (index != -1)
-                                {
-                                    return index;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Otherwise, add the declaration to the end.
-            {
-                var index = GetPreferredIndex(declarationList.Count, availableIndices, forward: false);
-                if (index != -1)
-                {
-                    return index;
-                }
-            }
-
-            return declarationList.Count;
-        }
+            => declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
 
         public static SyntaxNode GetContextNode(
             Location location, CancellationToken cancellationToken)
@@ -307,9 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? contextLocation.SourceTree
                 : null;
 
-            return contextTree == null
-                ? null
-                : contextTree.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
+            return contextTree?.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
         }
 
         public static ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier(
@@ -321,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return null;
             }
 
-            var name = implementation.ContainingType.GenerateTypeSyntax() as NameSyntax;
-            if (name == null)
+            if (!(implementation.ContainingType.GenerateTypeSyntax() is NameSyntax name))
             {
                 return null;
             }
@@ -334,23 +222,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (destination != null)
             {
-                switch (destination.Kind())
+                return destination.Kind() switch
                 {
-                    case SyntaxKind.ClassDeclaration:
-                        return CodeGenerationDestination.ClassType;
-                    case SyntaxKind.CompilationUnit:
-                        return CodeGenerationDestination.CompilationUnit;
-                    case SyntaxKind.EnumDeclaration:
-                        return CodeGenerationDestination.EnumType;
-                    case SyntaxKind.InterfaceDeclaration:
-                        return CodeGenerationDestination.InterfaceType;
-                    case SyntaxKind.NamespaceDeclaration:
-                        return CodeGenerationDestination.Namespace;
-                    case SyntaxKind.StructDeclaration:
-                        return CodeGenerationDestination.StructType;
-                    default:
-                        return CodeGenerationDestination.Unspecified;
-                }
+                    SyntaxKind.ClassDeclaration => CodeGenerationDestination.ClassType,
+                    SyntaxKind.CompilationUnit => CodeGenerationDestination.CompilationUnit,
+                    SyntaxKind.EnumDeclaration => CodeGenerationDestination.EnumType,
+                    SyntaxKind.InterfaceDeclaration => CodeGenerationDestination.InterfaceType,
+                    SyntaxKind.NamespaceDeclaration => CodeGenerationDestination.Namespace,
+                    SyntaxKind.StructDeclaration => CodeGenerationDestination.StructType,
+                    _ => CodeGenerationDestination.Unspecified,
+                };
             }
 
             return CodeGenerationDestination.Unspecified;
@@ -360,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TSyntaxNode node,
             ISymbol symbol,
             CodeGenerationOptions options,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             where TSyntaxNode : SyntaxNode
         {
             if (!options.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
@@ -368,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return node;
             }
 
-            string comment;
-            var result = TryGetDocumentationComment(symbol, "///", out comment, cancellationToken)
+            var result = TryGetDocumentationComment(symbol, "///", out var comment, cancellationToken)
                 ? node.WithPrependedLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(comment))
                       .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
                 : node;

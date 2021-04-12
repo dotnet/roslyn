@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -8,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -43,7 +48,7 @@ public class C : Interface1
                 },
                 new[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -108,7 +113,7 @@ public  class D : C
                 },
                 new MetadataReference[]
                 {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });
@@ -141,11 +146,11 @@ public  class D : C
             var interfaceV2Event4 = (EventSymbol)interfaceV2.GetMembers("Event4").Single();
 
             var classD = globalNamespace2.GetTypeMembers("D").Single();
-            var retargetedClassC = classD.BaseType;
+            var retargetedClassC = classD.BaseType();
 
             Assert.IsType<RetargetingNamedTypeSymbol>(retargetedClassC);
 
-            Assert.Equal(interfaceV2, retargetedClassC.Interfaces.Single());
+            Assert.Equal(interfaceV2, retargetedClassC.Interfaces().Single());
 
             var retargetedClassCMethod1 = (MethodSymbol)retargetedClassC.GetMembers("Interface1.Method1").Single();
             {
@@ -338,7 +343,7 @@ public class C3 : Interface2<Class1>
                 },
                 new[]
                     {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -373,7 +378,7 @@ public  class D3 : C3
                 },
                 new MetadataReference[]
                 {
-                        TestReferences.NetFx.v4_0_30319.mscorlib,
+                        Net451.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });
@@ -391,9 +396,9 @@ public  class D3 : C3
             var classD2 = globalNamespace2.GetTypeMembers("D2").Single();
             var classD3 = globalNamespace2.GetTypeMembers("D3").Single();
 
-            var retargetedClassC1 = classD1.BaseType;
-            var retargetedClassC2 = classD2.BaseType;
-            var retargetedClassC3 = classD3.BaseType;
+            var retargetedClassC1 = classD1.BaseType();
+            var retargetedClassC2 = classD2.BaseType();
+            var retargetedClassC3 = classD3.BaseType();
 
             var retargetedClassC1Method1 = (MethodSymbol)retargetedClassC1.GetMembers("Interface2<S>.Method1").Single();
             var retargetedClassC1Method1Impl = retargetedClassC1Method1.ExplicitInterfaceImplementations.Single();

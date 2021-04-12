@@ -1,23 +1,29 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(CommitBufferManagerFactory))>
     Friend Class CommitBufferManagerFactory
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
+        Private ReadOnly _threadingContext As IThreadingContext
 
         <ImportingConstructor()>
-        Public Sub New(commitFormatter As ICommitFormatter, inlineRenameService As IInlineRenameService)
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New(commitFormatter As ICommitFormatter, inlineRenameService As IInlineRenameService, threadingContext As IThreadingContext)
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
+            _threadingContext = threadingContext
         End Sub
 
         Public Function CreateForBuffer(buffer As ITextBuffer) As CommitBufferManager
-            Return buffer.Properties.GetOrCreateSingletonProperty(Function() New CommitBufferManager(buffer, _commitFormatter, _inlineRenameService))
+            Return buffer.Properties.GetOrCreateSingletonProperty(Function() New CommitBufferManager(buffer, _commitFormatter, _inlineRenameService, _threadingContext))
         End Function
     End Class
 End Namespace

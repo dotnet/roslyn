@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -16,10 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly List<CompletionItem> _items;
 
-        internal IReadOnlyList<CompletionItem> Items
-        {
-            get { return _items; }
-        }
+        internal IReadOnlyList<CompletionItem> Items => _items;
 
         internal CompletionProvider Provider { get; }
 
@@ -39,7 +39,20 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This is the most common value used for <see cref="CompletionItem.Span"/> and will
         /// be automatically assigned to any <see cref="CompletionItem"/> that has no <see cref="CompletionItem.Span"/> specified.
         /// </summary>
+        [Obsolete("Not used anymore. Use CompletionListSpan instead.", error: true)]
         public TextSpan DefaultItemSpan { get; }
+
+        /// <summary>
+        /// The span of the document the completion list corresponds to.  It will be set initially to
+        /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
+        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
+        /// of the span is to:
+        ///     1. Signify where the completions should be presented.
+        ///     2. Designate any existing text in the document that should be used for filtering.
+        ///     3. Specify, by default, what portion of the text should be replaced when a completion 
+        ///        item is committed.
+        /// </summary>
+        public TextSpan CompletionListSpan { get; set; }
 
         /// <summary>
         /// The triggering action that caused completion to be started.
@@ -62,6 +75,14 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool IsExclusive { get; set; }
 
         /// <summary>
+        /// Set to true if the corresponding provider can provide extended items with current context,
+        /// regardless of whether those items are actually added. i.e. it might be disabled by default,
+        /// but we still want to show the expander so user can explicitly request them to be added to 
+        /// completion list if we are in the appropriate context.
+        /// </summary>
+        internal bool ExpandItemsAvailable { get; set; }
+
+        /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
         /// </summary>
         public CompletionContext(
@@ -73,28 +94,13 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            if (provider == null)
-            {
-                throw new ArgumentNullException(nameof(provider));
-            }
-
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentException(nameof(options));
-            }
-
-            this.Provider = provider;
-            this.Document = document;
-            this.Position = position;
-            this.DefaultItemSpan = defaultSpan;
-            this.Trigger = trigger;
-            this.Options = options;
-            this.CancellationToken = cancellationToken;
+            Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            Document = document ?? throw new ArgumentNullException(nameof(document));
+            Position = position;
+            CompletionListSpan = defaultSpan;
+            Trigger = trigger;
+            Options = options ?? throw new ArgumentNullException(nameof(options));
+            CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
         }
 
@@ -127,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
         /// 
-        /// Suggestion mode disables autoselection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
+        /// Suggestion mode disables auto-selection of items in the list, giving preference to the text typed by the user unless a specific item is selected manually.
         /// 
         /// Specifying a <see cref="SuggestionModeItem"/> is a request that the completion host operate in suggestion mode.
         /// The item specified determines the text displayed and the description associated with it unless a different item is manually selected.
@@ -155,13 +161,9 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionItem FixItem(CompletionItem item)
         {
             // remember provider so we can find it again later
-            item = item.AddProperty("Provider", this.Provider.Name);
+            item.ProviderName = Provider.Name;
 
-            // assign the default span if not set by provider
-            if (item.Span == default(TextSpan) && this.DefaultItemSpan != default(TextSpan))
-            {
-                item = item.WithSpan(this.DefaultItemSpan);
-            }
+            item.Span = CompletionListSpan;
 
             return item;
         }

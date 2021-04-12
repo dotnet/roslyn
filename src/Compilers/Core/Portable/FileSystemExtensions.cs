@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,21 +32,21 @@ namespace Microsoft.CodeAnalysis
         public static EmitResult Emit(
             this Compilation compilation,
             string outputPath,
-            string pdbPath = null,
-            string xmlDocPath = null,
-            string win32ResourcesPath = null,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            string? pdbPath = null,
+            string? xmlDocPath = null,
+            string? win32ResourcesPath = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
+            CancellationToken cancellationToken = default)
         {
             if (compilation == null)
             {
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            using (var outputStream = FileUtilities.CreateFileStreamChecked(PortableShim.File.Create, outputPath, nameof(outputPath)))
-            using (var pdbStream = (pdbPath == null ? null : FileUtilities.CreateFileStreamChecked(PortableShim.File.Create, pdbPath, nameof(pdbPath))))
-            using (var xmlDocStream = (xmlDocPath == null ? null : FileUtilities.CreateFileStreamChecked(PortableShim.File.Create, xmlDocPath, nameof(xmlDocPath))))
-            using (var win32ResourcesStream = (win32ResourcesPath == null ? null : FileUtilities.CreateFileStreamChecked(PortableShim.File.OpenRead, win32ResourcesPath, nameof(win32ResourcesPath))))
+            using (var outputStream = FileUtilities.CreateFileStreamChecked(File.Create, outputPath, nameof(outputPath)))
+            using (var pdbStream = (pdbPath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbPath, nameof(pdbPath))))
+            using (var xmlDocStream = (xmlDocPath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, xmlDocPath, nameof(xmlDocPath))))
+            using (var win32ResourcesStream = (win32ResourcesPath == null ? null : FileUtilities.CreateFileStreamChecked(File.OpenRead, win32ResourcesPath, nameof(win32ResourcesPath))))
             {
                 return compilation.Emit(
                     outputStream,

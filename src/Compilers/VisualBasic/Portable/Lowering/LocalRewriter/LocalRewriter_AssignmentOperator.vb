@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -25,13 +28,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              (midResult.Original.Kind = BoundKind.Parenthesized AndAlso DirectCast(midResult.Original, BoundParenthesized).Expression Is node.LeftOnTheRightOpt))
 #End If
 
-                If node.Left.IsLValue Then
+                If nodeLeft.IsLValue Then
                     ' Trivial case - a simple call
                     Return RewriteTrivialMidAssignment(node)
                 End If
             End If
 
-            Dim setNode = If(nodeLeft.IsPropertyOrXmlPropertyAccess(), nodeLeft, Nothing)
+            Dim setNode = If(IsPropertyAssignment(node), nodeLeft, Nothing)
 
 #If DEBUG Then
             If setNode IsNot Nothing Then
@@ -45,9 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.VisitAssignmentOperatorSimple(node)
             End If
 
-            Debug.Assert(node.Left.Kind <> BoundKind.FieldAccess OrElse
-                         Not node.Left.IsConstant OrElse
-                         Not DirectCast(node.Left, BoundFieldAccess).FieldSymbol.IsConstButNotMetadataConstant)
+            Debug.Assert(nodeLeft.Kind <> BoundKind.FieldAccess OrElse
+                         Not nodeLeft.IsConstant OrElse
+                         Not DirectCast(nodeLeft, BoundFieldAccess).FieldSymbol.IsConstButNotMetadataConstant)
 
             Dim temps = ImmutableArray(Of SynthesizedLocal).Empty
             Dim assignmentTarget As BoundExpression
@@ -118,6 +121,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
+        Private Shared Function IsPropertyAssignment(node As BoundAssignmentOperator) As Boolean
+            Select Case node.Left.Kind
+                Case BoundKind.PropertyAccess
+                    Dim propertyAccess = DirectCast(node.Left, BoundPropertyAccess)
+                    Return Not propertyAccess.PropertySymbol.ReturnsByRef
+                Case BoundKind.XmlMemberAccess
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        End Function
+
         ''' <summary>
         ''' Make sure GetObjectValue calls are injected.
         ''' </summary>
@@ -180,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(
                 sourceProperty IsNot Nothing AndAlso
                 sourceProperty.IsAutoProperty AndAlso
-                sourceProperty.ContainingType = fromMember.ContainingType AndAlso
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                 propertyIsStatic = fromMember.IsShared AndAlso
                 (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
                 (fromMember.Kind = SymbolKind.Field OrElse (fromMember.Kind = SymbolKind.Method AndAlso
@@ -194,10 +209,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim [property] = setNode.PropertySymbol
             Dim setMethod = [property].GetMostDerivedSetMethod()
 
-            If (setMethod Is Nothing) Then
+            If setMethod Is Nothing Then
                 AssertIsWriteableFromMember(setNode, Me._currentMethodOrLambda)
 
-                Dim backingField = setNode.PropertySymbol.AssociatedField
+                Dim backingField = [property].AssociatedField
                 Debug.Assert(backingField IsNot Nothing, "autoproperty must have a backing field")
 
                 Dim rewrittenReceiver = VisitExpressionNode(setNode.ReceiverOpt)
@@ -222,8 +237,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                   setNode.ReceiverOpt,
                                   setNode.Arguments.Concat(ImmutableArray.Create(node.Right)),
                                   node.ConstantValueOpt,
-                                  False,
-                                  setMethod.ReturnType)
+                                  isLValue:=False,
+                                  suppressObjectClone:=False,
+                                  type:=setMethod.ReturnType)
             End If
 
         End Function
@@ -265,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundExpression
 
             If assignmentTarget.Kind = BoundKind.LateMemberAccess Then
-                ' objExpr.foo = bar
+                ' objExpr.goo = bar
                 result = LateSet(node.Syntax,
                                  DirectCast(MyBase.VisitLateMemberAccess(DirectCast(assignmentTarget, BoundLateMemberAccess)), BoundLateMemberAccess),
                                  value,
@@ -276,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim invocation = DirectCast(assignmentTarget, BoundLateInvocation)
 
                 If invocation.Member.Kind = BoundKind.LateMemberAccess Then
-                    ' objExpr.foo(args) = bar
+                    ' objExpr.goo(args) = bar
                     result = LateSet(node.Syntax,
                                      DirectCast(MyBase.VisitLateMemberAccess(DirectCast(invocation.Member, BoundLateMemberAccess)), BoundLateMemberAccess),
                                      value,

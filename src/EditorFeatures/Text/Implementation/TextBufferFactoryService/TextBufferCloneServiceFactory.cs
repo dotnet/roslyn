@@ -1,11 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -19,33 +18,56 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
         private readonly ITextBufferCloneService _singleton;
 
         [ImportingConstructor]
-        public TextBufferCloneServiceFactory(
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistry)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TextBufferCloneServiceFactory(ITextBufferCloneService textBufferCloneService)
         {
-            _singleton = new TextBufferCloneService((ITextBufferFactoryService2)textBufferFactoryService, contentTypeRegistry.UnknownContentType);
+            _singleton = textBufferCloneService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
 
+        [Export(typeof(ITextBufferCloneService)), Shared]
         private class TextBufferCloneService : ITextBufferCloneService
         {
-            private readonly ITextBufferFactoryService2 _textBufferFactoryService;
+            private readonly ITextBufferFactoryService3 _textBufferFactoryService;
+            private readonly IContentType _roslynContentType;
             private readonly IContentType _unknownContentType;
 
-            public TextBufferCloneService(ITextBufferFactoryService2 textBufferFactoryService, IContentType unknownContentType)
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TextBufferCloneService(ITextBufferFactoryService3 textBufferFactoryService, IContentTypeRegistryService contentTypeRegistryService)
             {
                 _textBufferFactoryService = textBufferFactoryService;
-                _unknownContentType = unknownContentType;
+
+                _roslynContentType = contentTypeRegistryService.GetContentType(ContentTypeNames.RoslynContentType);
+                _unknownContentType = contentTypeRegistryService.UnknownContentType;
             }
 
-            public ITextBuffer Clone(SnapshotSpan span)
+            public ITextBuffer CloneWithUnknownContentType(SnapshotSpan span)
+                => _textBufferFactoryService.CreateTextBuffer(span, _unknownContentType);
+
+            public ITextBuffer CloneWithUnknownContentType(ITextImage textImage)
+                => Clone(textImage, _unknownContentType);
+
+            public ITextBuffer CloneWithRoslynContentType(SourceText sourceText)
+                => Clone(sourceText, _roslynContentType);
+
+            public ITextBuffer Clone(SourceText sourceText, IContentType contentType)
             {
-                return _textBufferFactoryService.CreateTextBuffer(span, _unknownContentType);
+                // see whether we can do it cheaply
+                var textImage = sourceText.TryFindCorrespondingEditorTextImage();
+                if (textImage != null)
+                {
+                    return Clone(textImage, contentType);
+                }
+
+                // we can't, so do it more expensive way
+                return _textBufferFactoryService.CreateTextBuffer(sourceText.ToString(), contentType);
             }
+
+            private ITextBuffer Clone(ITextImage textImage, IContentType contentType)
+                => _textBufferFactoryService.CreateTextBuffer(textImage, contentType);
         }
     }
 }

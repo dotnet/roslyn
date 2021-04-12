@@ -1,14 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Public Partial Class VisualBasicCompilation
+    Partial Public Class VisualBasicCompilation
 
         Private ReadOnly _wellKnownMemberSignatureComparer As New WellKnownMembersSignatureComparer(Me)
 
@@ -29,7 +33,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _lazyExtensionAttributeConstructorErrorInfo As Object 'Actually, DiagnosticInfo
 
 #Region "Synthesized Attributes"
-        Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteError As DiagnosticInfo) As MethodSymbol
+        Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As MethodSymbol
+
+            Dim attributeCtor As MethodSymbol = Nothing
+            Dim ctorError As DiagnosticInfo = Nothing
+
             If _lazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType Then
 
                 Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create(MetadataHelpers.SystemString, "Runtime", "CompilerServices"))
@@ -43,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim ambiguity As Boolean = False
 
                     For Each candidate As NamedTypeSymbol In candidates
-                        If Not sourceModuleBinder.IsAccessible(candidate, useSiteDiagnostics:=Nothing) Then
+                        If Not sourceModuleBinder.IsAccessible(candidate, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                             Continue For
                         End If
 
@@ -76,17 +84,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Dim attributeCtor As MethodSymbol = Nothing
-
                 If attributeType IsNot Nothing AndAlso
                    Not attributeType.IsStructureType AndAlso
                    Not attributeType.IsMustInherit AndAlso
-                   GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(attributeType, Nothing) AndAlso
-                   sourceModuleBinder.IsAccessible(attributeType, useSiteDiagnostics:=Nothing) Then
+                   GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(attributeType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded) AndAlso
+                   sourceModuleBinder.IsAccessible(attributeType, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
 
                     For Each ctor In attributeType.InstanceConstructors
                         If ctor.ParameterCount = 0 Then
-                            If sourceModuleBinder.IsAccessible(ctor, useSiteDiagnostics:=Nothing) Then
+                            If sourceModuleBinder.IsAccessible(ctor, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                                 attributeCtor = ctor
                             End If
 
@@ -94,8 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Next
                 End If
-
-                Dim ctorError As DiagnosticInfo = Nothing
 
                 If attributeCtor Is Nothing Then
                     ' TODO (tomat): It is not clear under what circumstances is this error reported since the binder already reports errors when the conditions above are not satisfied.
@@ -108,8 +112,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Const requiredTargets As AttributeTargets = AttributeTargets.Assembly Or AttributeTargets.Class Or AttributeTargets.Method
                     If (attributeUsage.ValidTargets And requiredTargets) <> requiredTargets Then
                         ctorError = ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionAttributeInvalid)
-                    Else
-                        ctorError = If(attributeCtor.GetUseSiteErrorInfo(), attributeCtor.ContainingType.GetUseSiteErrorInfo())
                     End If
                 End If
 
@@ -120,13 +122,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
             End If
 
-            useSiteError = DirectCast(Volatile.Read(_lazyExtensionAttributeConstructorErrorInfo), DiagnosticInfo)
-            Return DirectCast(_lazyExtensionAttributeConstructor, MethodSymbol)
+            attributeCtor = DirectCast(_lazyExtensionAttributeConstructor, MethodSymbol)
+            ctorError = DirectCast(Volatile.Read(_lazyExtensionAttributeConstructorErrorInfo), DiagnosticInfo)
+
+            If ctorError IsNot Nothing Then
+                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ctorError)
+            Else
+                useSiteInfo = Binder.GetUseSiteInfoForMemberAndContainingType(attributeCtor)
+            End If
+
+            Return attributeCtor
         End Function
 
         ''' <summary>
         ''' Synthesizes a custom attribute. 
-        ''' Returns null if the <paramref name="constructor"/> symbol is missing,
+        ''' Returns Nothing if the <paramref name="constructor"/> symbol is missing,
         ''' or any of the members in <paramref name="namedArguments" /> are missing.
         ''' The attribute is synthesized only if present.
         ''' </summary>
@@ -136,15 +146,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the well-known member does Not exist in the compilation then no attribute
         ''' will be synthesized.
         ''' </param>
+        ''' <param name="isOptionalUse">
+        ''' Indicates if this particular attribute application should be considered optional.
+        ''' </param>
         Friend Function TrySynthesizeAttribute(
             constructor As WellKnownMember,
             Optional arguments As ImmutableArray(Of TypedConstant) = Nothing,
-            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing) As SynthesizedAttributeData
+            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing,
+            Optional isOptionalUse As Boolean = False
+        ) As SynthesizedAttributeData
 
             Dim constructorSymbol = TryCast(GetWellKnownTypeMember(constructor), MethodSymbol)
             If constructorSymbol Is Nothing OrElse
-               Binder.GetUseSiteErrorForWellKnownTypeMember(constructorSymbol, constructor, False) IsNot Nothing Then
-                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor)
+               Binder.GetUseSiteInfoForWellKnownTypeMember(constructorSymbol, constructor, False).DiagnosticInfo IsNot Nothing Then
+                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor, isOptionalUse)
             End If
 
             If arguments.IsDefault Then
@@ -160,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim wellKnownMember = GetWellKnownTypeMember(arg.Key)
                     If wellKnownMember Is Nothing OrElse
                        TypeOf wellKnownMember Is ErrorTypeSymbol OrElse
-                       Binder.GetUseSiteErrorForWellKnownTypeMember(wellKnownMember, arg.Key, False) IsNot Nothing Then
+                       Binder.GetUseSiteInfoForWellKnownTypeMember(wellKnownMember, arg.Key, False).DiagnosticInfo IsNot Nothing Then
                         Return ReturnNothingOrThrowIfAttributeNonOptional(constructor)
                     Else
                         builder.Add(New KeyValuePair(Of String, TypedConstant)(wellKnownMember.Name, arg.Value))
@@ -172,8 +187,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SynthesizedAttributeData(constructorSymbol, arguments, namedStringArguments)
         End Function
 
-        Private Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember) As SynthesizedAttributeData
-            If WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
+        Private Shared Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember, Optional isOptionalUse As Boolean = False) As SynthesizedAttributeData
+            If isOptionalUse OrElse WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
                 Return Nothing
             Else
                 Throw ExceptionUtilities.Unreachable
@@ -181,11 +196,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function SynthesizeExtensionAttribute() As SynthesizedAttributeData
-            Dim constructor As MethodSymbol = GetExtensionAttributeConstructor(useSiteError:=Nothing)
+            Dim constructor As MethodSymbol = GetExtensionAttributeConstructor(useSiteInfo:=Nothing)
 
             Debug.Assert(constructor IsNot Nothing AndAlso
-                         constructor.GetUseSiteErrorInfo() Is Nothing AndAlso
-                         constructor.ContainingType.GetUseSiteErrorInfo() Is Nothing)
+                         constructor.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso
+                         constructor.ContainingType.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Return SynthesizedAttributeData.Create(constructor, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor)
         End Function
@@ -219,10 +234,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             value.GetBits(isNegative, scale, low, mid, high)
 
             Dim specialTypeByte = GetSpecialType(SpecialType.System_Byte)
-            Debug.Assert(specialTypeByte.GetUseSiteErrorInfo() Is Nothing)
+            Debug.Assert(specialTypeByte.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Dim specialTypeUInt32 = GetSpecialType(SpecialType.System_UInt32)
-            Debug.Assert(specialTypeUInt32.GetUseSiteErrorInfo() Is Nothing)
+            Debug.Assert(specialTypeUInt32.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Return TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
@@ -324,12 +339,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _lazyWellKnownTypeMembers(member)
         End Function
 
-        Friend Overrides Function IsSystemTypeReference(type As ITypeSymbol) As Boolean
-            Return DirectCast(type, TypeSymbol) = GetWellKnownType(WellKnownType.System_Type)
+        Friend Overrides Function IsSystemTypeReference(type As ITypeSymbolInternal) As Boolean
+            Return TypeSymbol.Equals(DirectCast(type, TypeSymbol), GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything)
         End Function
 
-        Friend Overrides Function CommonGetWellKnownTypeMember(member As WellKnownMember) As ISymbol
+        Friend Overrides Function CommonGetWellKnownTypeMember(member As WellKnownMember) As ISymbolInternal
             Return GetWellKnownTypeMember(member)
+        End Function
+
+        Friend Overrides Function CommonGetWellKnownType(wellknownType As WellKnownType) As ITypeSymbolInternal
+            Return GetWellKnownType(wellknownType)
         End Function
 
         Friend Overrides Function IsAttributeType(type As ITypeSymbol) As Boolean
@@ -337,9 +356,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Return DirectCast(type, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, Me, useSiteDiagnostics:=Nothing)
+            Return DirectCast(type, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, Me, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
         End Function
 
+        ''' <summary>
+        ''' In case duplicate types are encountered, returns an error type.
+        ''' But if the IgnoreCorLibraryDuplicatedTypes compilation option is set, any duplicate type found in corlib is ignored and doesn't count as a duplicate.
+        ''' </summary>
         Friend Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
             Debug.Assert(type.IsWellKnownType())
             Dim index As Integer = type - WellKnownType.First
@@ -352,16 +375,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim mdName As String = WellKnownTypes.GetMetadataName(type)
                 Dim result As NamedTypeSymbol
+                Dim conflicts As (AssemblySymbol, AssemblySymbol) = Nothing
 
                 If IsTypeMissing(type) Then
                     result = Nothing
                 Else
-                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
+                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True, conflicts:=conflicts,
+                                                               ignoreCorLibraryDuplicatedTypes:=Me.Options.IgnoreCorLibraryDuplicatedTypes)
                 End If
 
                 If result Is Nothing Then
                     Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding:=True)
-                    result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
+
+                    If type.IsValueTupleType() Then
+
+                        Dim delayedErrorInfo As Func(Of MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo, DiagnosticInfo)
+                        If conflicts.Item1 Is Nothing Then
+                            Debug.Assert(conflicts.Item2 Is Nothing)
+
+                            delayedErrorInfo = Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError1, t)
+                        Else
+                            Dim capturedConflicts = conflicts
+                            delayedErrorInfo = Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleResolutionAmbiguous3, t, capturedConflicts.Item1, capturedConflicts.Item2)
+                        End If
+
+                        result = New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Assembly.Modules(0), emittedName, delayedErrorInfo)
+                    Else
+                        result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
+                    End If
                 End If
 
                 If (Interlocked.CompareExchange(_lazyWellKnownTypes(index), result, Nothing) IsNot Nothing) Then
@@ -596,6 +637,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return parameter.IsByRef
             End Function
 
+            Protected Overrides Function IsByRefMethod(ByVal method As MethodSymbol) As Boolean
+                Return method.ReturnsByRef
+            End Function
+
+            Protected Overrides Function IsByRefProperty(ByVal [property] As PropertySymbol) As Boolean
+                Return [property].ReturnsByRef
+            End Function
+
             Protected Overrides Function IsGenericMethodTypeParam(type As TypeSymbol, paramPosition As Integer) As Boolean
                 If type.Kind <> SymbolKind.TypeParameter Then
                     Return False
@@ -645,6 +694,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return MyBase.MatchTypeToTypeId(type, typeId)
+            End Function
+        End Class
+
+        Friend Function SynthesizeTupleNamesAttribute(type As TypeSymbol) As SynthesizedAttributeData
+            Debug.Assert(type IsNot Nothing)
+            Debug.Assert(type.ContainsTuple())
+
+            Dim stringType = GetSpecialType(SpecialType.System_String)
+            Debug.Assert(stringType IsNot Nothing)
+            Dim names As ImmutableArray(Of TypedConstant) = TupleNamesEncoder.Encode(type, stringType)
+
+            Debug.Assert(Not names.IsDefault, "should not need the attribute when no tuple names")
+
+            Dim stringArray = ArrayTypeSymbol.CreateSZArray(stringType, ImmutableArray(Of CustomModifier).Empty, stringType.ContainingAssembly)
+            Dim args = ImmutableArray.Create(New TypedConstant(stringArray, names))
+            Return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args)
+        End Function
+
+        Friend Class TupleNamesEncoder
+            Public Shared Function Encode(type As TypeSymbol) As ImmutableArray(Of String)
+                Dim namesBuilder = ArrayBuilder(Of String).GetInstance()
+
+                If Not TryGetNames(type, namesBuilder) Then
+                    namesBuilder.Free()
+                    Return Nothing
+                End If
+
+                Return namesBuilder.ToImmutableAndFree()
+            End Function
+
+            Public Shared Function Encode(type As TypeSymbol, stringType As TypeSymbol) As ImmutableArray(Of TypedConstant)
+                Dim namesBuilder = ArrayBuilder(Of String).GetInstance()
+
+                If Not TryGetNames(type, namesBuilder) Then
+                    namesBuilder.Free()
+                    Return Nothing
+                End If
+
+                Dim names = namesBuilder.SelectAsArray(Function(name, constantType)
+                                                           Return New TypedConstant(constantType, TypedConstantKind.Primitive, name)
+                                                       End Function,
+                                                       stringType)
+
+                namesBuilder.Free()
+                Return names
+            End Function
+
+            Friend Shared Function TryGetNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
+                type.VisitType(Function(t As TypeSymbol, builder As ArrayBuilder(Of String)) AddNames(t, builder), namesBuilder)
+                Return namesBuilder.Any(Function(name) name IsNot Nothing)
+            End Function
+
+            Private Shared Function AddNames(type As TypeSymbol, namesBuilder As ArrayBuilder(Of String)) As Boolean
+                If type.IsTupleType Then
+                    If type.TupleElementNames.IsDefaultOrEmpty Then
+                        ' If none of the tuple elements have names, put
+                        ' null placeholders in.
+                        namesBuilder.AddMany(Nothing, type.TupleElementTypes.Length)
+                    Else
+                        namesBuilder.AddRange(type.TupleElementNames)
+                    End If
+                End If
+                ' Always recur into nested types
+                Return False
             End Function
         End Class
     End Class

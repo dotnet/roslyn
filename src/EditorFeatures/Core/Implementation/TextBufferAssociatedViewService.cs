@@ -1,12 +1,16 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -14,33 +18,39 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    [Export(typeof(IWpfTextViewConnectionListener))]
+    [Export(typeof(ITextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [Export(typeof(ITextBufferAssociatedViewService))]
-    internal class TextBufferAssociatedViewService : IWpfTextViewConnectionListener, ITextBufferAssociatedViewService
+    internal class TextBufferAssociatedViewService : ITextViewConnectionListener, ITextBufferAssociatedViewService
     {
 #if DEBUG
-        private static readonly HashSet<IWpfTextView> s_registeredViews = new HashSet<IWpfTextView>();
+        private static readonly HashSet<ITextView> s_registeredViews = new();
 #endif
 
-        private static readonly object s_gate = new object();
-        private static readonly ConditionalWeakTable<ITextBuffer, HashSet<IWpfTextView>> s_map =
-            new ConditionalWeakTable<ITextBuffer, HashSet<IWpfTextView>>();
+        private static readonly object s_gate = new();
+        private static readonly ConditionalWeakTable<ITextBuffer, HashSet<ITextView>> s_map =
+            new();
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TextBufferAssociatedViewService()
+        {
+        }
 
         public event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersConnected;
 
-        void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             lock (s_gate)
             {
                 // only add roslyn type to tracking map
-                foreach (var buffer in subjectBuffers.Where(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType)))
+                foreach (var buffer in subjectBuffers.Where(b => IsSupportedContentType(b.ContentType)))
                 {
-                    HashSet<IWpfTextView> set;
-                    if (!s_map.TryGetValue(buffer, out set))
+                    if (!s_map.TryGetValue(buffer, out var set))
                     {
-                        set = new HashSet<IWpfTextView>();
+                        set = new HashSet<ITextView>();
                         s_map.Add(buffer, set);
                     }
 
@@ -48,10 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor
                     DebugRegisterView_NoLock(textView);
                 }
             }
+
             this.SubjectBuffersConnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
         }
 
-        void IWpfTextViewConnectionListener.SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        void ITextViewConnectionListener.SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             lock (s_gate)
             {
@@ -59,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 // for example, if content type of a buffer changed, we will be called after it is changed, rather than before it.
                 foreach (var buffer in subjectBuffers)
                 {
-                    HashSet<IWpfTextView> set;
-                    if (s_map.TryGetValue(buffer, out set))
+                    if (s_map.TryGetValue(buffer, out var set))
                     {
                         set.Remove(textView);
                         if (set.Count == 0)
@@ -72,29 +82,31 @@ namespace Microsoft.CodeAnalysis.Editor
             }
         }
 
-        private static IList<IWpfTextView> GetTextViews(ITextBuffer textBuffer)
+        private static bool IsSupportedContentType(IContentType contentType)
+        {
+            // This list should match the list of exported content types above
+            return contentType.IsOfType(ContentTypeNames.RoslynContentType) ||
+                   contentType.IsOfType(ContentTypeNames.XamlContentType);
+        }
+
+        private static IList<ITextView> GetTextViews(ITextBuffer textBuffer)
         {
             lock (s_gate)
             {
-                HashSet<IWpfTextView> set;
-                if (!s_map.TryGetValue(textBuffer, out set))
+                if (!s_map.TryGetValue(textBuffer, out var set))
                 {
-                    return SpecializedCollections.EmptyList<IWpfTextView>();
+                    return SpecializedCollections.EmptyList<ITextView>();
                 }
 
                 return set.ToList();
             }
         }
 
-        public IEnumerable<IWpfTextView> GetAssociatedTextViews(ITextBuffer textBuffer)
-        {
-            return GetTextViews(textBuffer);
-        }
+        public IEnumerable<ITextView> GetAssociatedTextViews(ITextBuffer textBuffer)
+            => GetTextViews(textBuffer);
 
-        private static bool HasFocus(IWpfTextView textView)
-        {
-            return textView.HasAggregateFocus;
-        }
+        private static bool HasFocus(ITextView textView)
+            => textView.HasAggregateFocus;
 
         public static bool AnyAssociatedViewHasFocus(ITextBuffer textBuffer)
         {
@@ -114,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         [Conditional("DEBUG")]
-        private void DebugRegisterView_NoLock(IWpfTextView textView)
+        private static void DebugRegisterView_NoLock(ITextView textView)
         {
 #if DEBUG
             if (s_registeredViews.Add(textView))
@@ -125,16 +137,15 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
 #if DEBUG
-        private void OnTextViewClose(object sender, EventArgs e)
+        private static void OnTextViewClose(object sender, EventArgs e)
         {
-            var view = sender as IWpfTextView;
+            var view = sender as ITextView;
 
             lock (s_gate)
             {
-                foreach (var buffer in view.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType)))
+                foreach (var buffer in view.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType)))
                 {
-                    HashSet<IWpfTextView> set;
-                    if (s_map.TryGetValue(buffer, out set))
+                    if (s_map.TryGetValue(buffer, out var set))
                     {
                         Contract.ThrowIfTrue(set.Contains(view));
                     }

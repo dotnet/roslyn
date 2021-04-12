@@ -1,15 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbolExtensions
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -18,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' associated symbol).
     ''' </summary>
     Public Structure Conversion
-        Implements IEquatable(Of Conversion)
+        Implements IEquatable(Of Conversion), IConvertibleConversion
 
         Private ReadOnly _convKind As ConversionKind
         Private ReadOnly _method As MethodSymbol
@@ -233,6 +231,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Operator
 
         ''' <summary>
+        ''' Creates a <seealso cref="CommonConversion"/> from this Visual Basic conversion.
+        ''' </summary>
+        ''' <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
+        ''' <remarks>
+        ''' This is a lossy conversion; it is not possible to recover the original <see cref="Conversion"/>
+        ''' from the <see cref="CommonConversion"/> struct.
+        ''' </remarks>
+        Public Function ToCommonConversion() As CommonConversion Implements IConvertibleConversion.ToCommonConversion
+            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, IsNullableValueType, MethodSymbol)
+        End Function
+
+        ''' <summary>
         ''' Determines whether the specified object is equal to the current object.
         ''' </summary>
         ''' <param name="obj">
@@ -301,6 +311,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WideningNumeric = [Widening] Or Numeric
         NarrowingNumeric = [Narrowing] Or Numeric
 
+        ''' <summary>
+        ''' Can be combined with <see cref="ConversionKind.Tuple"/> to indicate that the underlying value conversion is a predefined tuple conversion
+        ''' </summary>
         Nullable = 1 << 4
         WideningNullable = [Widening] Or Nullable
         NarrowingNullable = [Narrowing] Or Nullable
@@ -383,6 +396,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Interpolated string conversions
         InterpolatedString = [Widening] Or (1 << 25)
 
+        ' Tuple conversions
+        ''' <summary>
+        ''' Can be combined with <see cref="ConversionKind.Nullable"/> to indicate that the underlying value conversion is a predefined tuple conversion
+        ''' </summary>
+        Tuple = (1 << 26)
+        WideningTuple = [Widening] Or Tuple
+        NarrowingTuple = [Narrowing] Or Tuple
+        WideningNullableTuple = WideningNullable Or Tuple
+        NarrowingNullableTuple = NarrowingNullable Or Tuple
+
         ' Bits 28 - 31 are reserved for failure flags.
     End Enum
 
@@ -413,6 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Error_SubToFunction = &H2000
         Error_ReturnTypeMismatch = &H4000
         Error_OverloadResolution = &H8000
+        Error_StubNotSupported = &H10000
 
         AllErrorReasons = Error_ByRefByValMismatch Or
                           Error_Unspecified Or
@@ -420,7 +444,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           Error_RestrictedType Or
                           Error_SubToFunction Or
                           Error_ReturnTypeMismatch Or
-                          Error_OverloadResolution
+                          Error_OverloadResolution Or
+                          Error_StubNotSupported
     End Enum
 
     ''' <summary>
@@ -564,7 +589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If sourceIsEnum Then
                         If targetIsEnum Then
-                            If Not (Conversions.IsIdentityConversion(conv) AndAlso sourceEnum.IsSameTypeIgnoringCustomModifiers(targetEnum)) Then
+                            If Not (Conversions.IsIdentityConversion(conv) AndAlso sourceEnum.IsSameTypeIgnoringAll(targetEnum)) Then
                                 '•	From an enumerated type to another enumerated type. 
                                 conv = ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions
                             End If
@@ -625,7 +650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 '•	From a type T? to a type S?, where there is a widening conversion from the type T to the type S.
                                 conv = ConversionKind.WideningNullable
                             Else
-                                Debug.Assert(Conversions.IsIdentityConversion(conv) AndAlso sourceNullable.IsSameTypeIgnoringCustomModifiers(targetNullable))
+                                Debug.Assert(Conversions.IsIdentityConversion(conv) AndAlso sourceNullable.IsSameTypeIgnoringAll(targetNullable))
                             End If
 
                         Else
@@ -878,28 +903,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' This function classifies all intrinsic language conversions and user-defined conversions.
         ''' </summary>
-        Public Shared Function ClassifyConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As KeyValuePair(Of ConversionKind, MethodSymbol)
+        Public Shared Function ClassifyConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As KeyValuePair(Of ConversionKind, MethodSymbol)
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
             Debug.Assert(source.Kind <> SymbolKind.ErrorType)
             Debug.Assert(Not TypeOf source Is ArrayLiteralTypeSymbol)
             Debug.Assert(destination.Kind <> SymbolKind.ErrorType)
 
-            Dim predefinedConversion As ConversionKind = ClassifyPredefinedConversion(source, destination, useSiteDiagnostics)
+            Dim predefinedConversion As ConversionKind = ClassifyPredefinedConversion(source, destination, useSiteInfo)
 
             If ConversionExists(predefinedConversion) Then
                 Return New KeyValuePair(Of ConversionKind, MethodSymbol)(predefinedConversion, Nothing)
             End If
 
-            Return ClassifyUserDefinedConversion(source, destination, useSiteDiagnostics)
+            Return ClassifyUserDefinedConversion(source, destination, useSiteInfo)
         End Function
 
         ''' <summary>
         ''' This function classifies all intrinsic language conversions, such as inheritance,
         ''' implementation, array covariance, and conversions between intrinsic types.
         ''' </summary>
-        Public Shared Function ClassifyPredefinedConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
-            Return ClassifyPredefinedConversion(source, destination, binder, userDefinedConversionsMightStillBeApplicable:=Nothing, useSiteDiagnostics:=useSiteDiagnostics)
+        Public Shared Function ClassifyPredefinedConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
+            Return ClassifyPredefinedConversion(source, destination, binder, userDefinedConversionsMightStillBeApplicable:=Nothing, useSiteInfo:=useSiteInfo)
         End Function
 
         Private Shared Function ClassifyPredefinedConversion(
@@ -907,7 +932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             destination As TypeSymbol,
             binder As Binder,
             <Out()> ByRef userDefinedConversionsMightStillBeApplicable As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
@@ -955,18 +980,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
-            Dim sourceType As TypeSymbol = source.Type
+            Dim sourceType As TypeSymbol = If(source.Kind = BoundKind.TupleLiteral,
+                                                DirectCast(source, BoundTupleLiteral).InferredType,
+                                                source.Type)
 
             If sourceType Is Nothing Then
-
-                userDefinedConversionsMightStillBeApplicable = source.GetMostEnclosedParenthesizedExpression().Kind = BoundKind.ArrayLiteral
+                Dim mostEnclosing = source.GetMostEnclosedParenthesizedExpression().Kind
+                userDefinedConversionsMightStillBeApplicable = mostEnclosing = BoundKind.ArrayLiteral OrElse
+                                                               mostEnclosing = BoundKind.TupleLiteral
 
                 ' The node doesn't have a type yet and reclassification failed.
                 Return Nothing ' No conversion
             End If
 
             If sourceType.Kind <> SymbolKind.ErrorType Then
-                Dim predefinedConversion As ConversionKind = ClassifyPredefinedConversion(sourceType, destination, useSiteDiagnostics)
+                Dim predefinedConversion As ConversionKind = ClassifyPredefinedConversion(sourceType, destination, useSiteInfo)
 
                 If ConversionExists(predefinedConversion) Then
                     Return predefinedConversion
@@ -981,7 +1009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' This function classifies all intrinsic language conversions and user-defined conversions.
         ''' </summary>
-        Public Shared Function ClassifyConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As KeyValuePair(Of ConversionKind, MethodSymbol)
+        Public Shared Function ClassifyConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As KeyValuePair(Of ConversionKind, MethodSymbol)
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
             Debug.Assert(destination.Kind <> SymbolKind.ErrorType)
@@ -989,14 +1017,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conv As ConversionKind
 
             ' Reclassify lambdas, array literals, etc. 
-            conv = ClassifyExpressionReclassification(source, destination, binder, useSiteDiagnostics)
+            conv = ClassifyExpressionReclassification(source, destination, binder, useSiteInfo)
             If ConversionExists(conv) OrElse FailedDueToQueryLambdaBodyMismatch(conv) OrElse
                (conv And (ConversionKind.Lambda Or ConversionKind.FailedDueToArrayLiteralElementConversion)) <> 0 Then
                 Return New KeyValuePair(Of ConversionKind, MethodSymbol)(conv, Nothing)
             End If
 
             Dim userDefinedConversionsMightStillBeApplicable As Boolean = False
-            conv = ClassifyPredefinedConversion(source, destination, binder, userDefinedConversionsMightStillBeApplicable, useSiteDiagnostics)
+            conv = ClassifyPredefinedConversion(source, destination, binder, userDefinedConversionsMightStillBeApplicable, useSiteInfo)
 
             If ConversionExists(conv) OrElse Not userDefinedConversionsMightStillBeApplicable Then
                 Return New KeyValuePair(Of ConversionKind, MethodSymbol)(conv, Nothing)
@@ -1005,26 +1033,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' There could be some interesting conversions between the source expression 
             ' and the input type of the conversion operator. We might need to keep track 
             ' of them.
-            Return ClassifyUserDefinedConversion(source, destination, binder, useSiteDiagnostics)
+            Return ClassifyUserDefinedConversion(source, destination, binder, useSiteInfo)
         End Function
 
         ''' <summary>
         ''' Reclassify lambdas, array literals, etc. 
         ''' </summary>
-        Private Shared Function ClassifyExpressionReclassification(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Private Shared Function ClassifyExpressionReclassification(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
 
             Select Case source.Kind
                 Case BoundKind.Parenthesized
                     If source.Type Is Nothing Then
                         ' Try to reclassify enclosed expression.
-                        Return ClassifyExpressionReclassification(DirectCast(source, BoundParenthesized).Expression, destination, binder, useSiteDiagnostics)
+                        Return ClassifyExpressionReclassification(DirectCast(source, BoundParenthesized).Expression, destination, binder, useSiteInfo)
                     End If
 
                 Case BoundKind.UnboundLambda
                     Return ClassifyUnboundLambdaConversion(DirectCast(source, UnboundLambda), destination)
 
                 Case BoundKind.QueryLambda
-                    Return ClassifyQueryLambdaConversion(DirectCast(source, BoundQueryLambda), destination, binder, useSiteDiagnostics)
+                    Return ClassifyQueryLambdaConversion(DirectCast(source, BoundQueryLambda), destination, binder, useSiteInfo)
 
                 Case BoundKind.GroupTypeInferenceLambda
                     Return ClassifyGroupTypeInferenceLambdaConversion(DirectCast(source, GroupTypeInferenceLambda), destination)
@@ -1033,11 +1061,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return ClassifyAddressOfConversion(DirectCast(source, BoundAddressOfOperator), destination)
 
                 Case BoundKind.ArrayLiteral
-                    Return ClassifyArrayLiteralConversion(DirectCast(source, BoundArrayLiteral), destination, binder, useSiteDiagnostics)
+                    Return ClassifyArrayLiteralConversion(DirectCast(source, BoundArrayLiteral), destination, binder, useSiteInfo)
 
                 Case BoundKind.InterpolatedStringExpression
                     Return ClassifyInterpolatedStringConversion(DirectCast(source, BoundInterpolatedStringExpression), destination, binder)
 
+                Case BoundKind.TupleLiteral
+                    Return ClassifyTupleConversion(DirectCast(source, BoundTupleLiteral), destination, binder, useSiteInfo)
             End Select
 
             Return Nothing 'ConversionKind.NoConversion
@@ -1055,10 +1085,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 leastRelaxationLevel = ConversionKind.DelegateRelaxationLevelWideningToNonLambda
 
                 ' Infer Anonymous Delegate as the target for the lambda.
-                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableArray(Of Diagnostic)) = source.InferredAnonymousDelegate
+                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = source.InferredAnonymousDelegate
 
                 ' If we have errors for the inference, we know that there is no conversion.
-                If Not anonymousDelegateInfo.Value.IsDefault AndAlso anonymousDelegateInfo.Value.HasAnyErrors() Then
+                If Not anonymousDelegateInfo.Value.Diagnostics.IsDefault AndAlso anonymousDelegateInfo.Value.Diagnostics.HasAnyErrors() Then
                     Return ConversionKind.Lambda ' No conversion
                 End If
 
@@ -1073,15 +1103,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     conversionKindExpressionTree = ConversionKind.ConvertedToExpressionTree
                 End If
 
-                If delegateInvoke Is Nothing OrElse delegateInvoke.GetUseSiteErrorInfo() IsNot Nothing Then
+                If delegateInvoke Is Nothing OrElse delegateInvoke.GetUseSiteInfo().DiagnosticInfo IsNot Nothing Then
                     Return ConversionKind.Lambda Or conversionKindExpressionTree ' No conversion
                 End If
 
                 If source.IsInferredDelegateForThisLambda(delegateInvoke.ContainingType) Then
-                    Dim inferenceDiagnostics As ImmutableArray(Of Diagnostic) = source.InferredAnonymousDelegate.Value
+                    Dim inferenceDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol) = source.InferredAnonymousDelegate.Value
 
                     ' If we have errors for the inference, we know that there is no conversion.
-                    If Not inferenceDiagnostics.IsDefault AndAlso inferenceDiagnostics.HasAnyErrors() Then
+                    If Not inferenceDiagnostics.Diagnostics.IsDefault AndAlso inferenceDiagnostics.Diagnostics.HasAnyErrors() Then
                         Return ConversionKind.Lambda Or conversionKindExpressionTree ' No conversion
                     End If
                 End If
@@ -1091,7 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim bound As BoundLambda = source.Bind(New UnboundLambda.TargetSignature(delegateInvoke))
 
-            Debug.Assert(Not bound.Diagnostics.HasAnyErrors OrElse
+            Debug.Assert(Not bound.Diagnostics.Diagnostics.HasAnyErrors OrElse
                          bound.DelegateRelaxation = ConversionKind.DelegateRelaxationLevelInvalid)
 
             If bound.DelegateRelaxation = ConversionKind.DelegateRelaxationLevelInvalid Then
@@ -1103,7 +1133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    CType(Math.Max(bound.DelegateRelaxation, leastRelaxationLevel), ConversionKind)
         End Function
 
-        Public Shared Function ClassifyArrayLiteralConversion(source As BoundArrayLiteral, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Public Shared Function ClassifyArrayLiteralConversion(source As BoundArrayLiteral, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
 
             ' § 11.1.1
             ' 9. An array literal can be reclassified as a value. The type of the value is determined as follows:
@@ -1154,14 +1184,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  originalTargetType.SpecialType = SpecialType.System_Collections_Generic_IReadOnlyList_T OrElse
                  originalTargetType.SpecialType = SpecialType.System_Collections_Generic_IReadOnlyCollection_T) Then
 
-                targetElementType = targetType.TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)(0)
+                targetElementType = targetType.TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteInfo)(0)
 
             Else
                 Dim conv As ConversionKind = ClassifyStringConversion(sourceType, destination)
 
                 If Conversions.NoConversion(conv) Then
                     ' No char() to string conversion
-                    conv = ClassifyDirectCastConversion(sourceType, destination, useSiteDiagnostics)
+                    conv = ClassifyDirectCastConversion(sourceType, destination, useSiteInfo)
                 End If
 
                 If Conversions.NoConversion(conv) Then
@@ -1169,7 +1199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing
                 End If
 
-                Dim arrayLiteralElementConv = ClassifyArrayInitialization(source.Initializer, sourceType.ElementType, binder, useSiteDiagnostics)
+                Dim arrayLiteralElementConv = ClassifyArrayInitialization(source.Initializer, sourceType.ElementType, binder, useSiteInfo)
 
                 If Conversions.NoConversion(arrayLiteralElementConv) Then
                     ' No conversion for array elements. Preserve ConversionKind.FailedDueToArrayLiteralElementConversion
@@ -1186,7 +1216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ConversionKind.Narrowing
             End If
 
-            Return ClassifyArrayInitialization(source.Initializer, targetElementType, binder, useSiteDiagnostics)
+            Return ClassifyArrayInitialization(source.Initializer, targetElementType, binder, useSiteInfo)
         End Function
 
         Public Shared Function ClassifyInterpolatedStringConversion(source As BoundInterpolatedStringExpression, destination As TypeSymbol, binder As Binder) As ConversionKind
@@ -1202,7 +1232,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Private Shared Function ClassifyArrayInitialization(source As BoundArrayInitialization, targetElementType As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Public Shared Function ClassifyTupleConversion(source As BoundTupleLiteral, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
+            If TypeSymbol.Equals(source.Type, destination, TypeCompareKind.ConsiderEverything) Then
+                Return ConversionKind.Identity
+            End If
+
+            Dim arguments = source.Arguments
+
+            Dim wideningConversion = ConversionKind.WideningTuple
+            Dim narrowingConversion = ConversionKind.NarrowingTuple
+
+            If destination.IsNullableType Then
+                destination = destination.GetNullableUnderlyingType()
+
+                wideningConversion = ConversionKind.WideningNullableTuple
+                narrowingConversion = ConversionKind.NarrowingNullableTuple
+            End If
+
+            ' tuple literal converts to its inferred type 
+            If source.InferredType?.IsSameTypeIgnoringAll(destination) Then
+                Return wideningConversion
+            End If
+
+            ' Now we can try element-wise conversion
+
+            ' check if the type is actually compatible type for a tuple of given cardinality
+            If Not destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length) Then
+                Return Nothing 'ConversionKind.NoConversion
+            End If
+
+            Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
+            Debug.Assert(arguments.Length = targetElementTypes.Length)
+
+            ' check arguments against flattened list of target element types 
+            Dim result As ConversionKind = wideningConversion
+
+            ' Note, as an optimization this local may accumulate flags other than ConversionKind.InvolvesNarrowingFromNumericConstant,
+            ' but we are going to pay attention only to that bit at the end.
+            Dim involvesNarrowingFromNumericConstant As ConversionKind = Nothing
+            Dim allNarrowingIsFromNumericConstant = ConversionKind.InvolvesNarrowingFromNumericConstant
+
+            Dim maxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNone
+
+            For i As Integer = 0 To arguments.Length - 1
+                Dim argument = arguments(i)
+                Dim targetElementType = targetElementTypes(i)
+
+                If argument.HasErrors OrElse targetElementType.IsErrorType Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Dim elementConversion = ClassifyConversion(argument, targetElementType, binder, useSiteInfo).Key
+
+                If NoConversion(elementConversion) Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Dim elementDelegateRelaxationLevel = elementConversion And ConversionKind.DelegateRelaxationLevelMask
+                If elementDelegateRelaxationLevel > maxDelegateRelaxationLevel Then
+                    maxDelegateRelaxationLevel = elementDelegateRelaxationLevel
+                End If
+
+                involvesNarrowingFromNumericConstant = involvesNarrowingFromNumericConstant Or elementConversion
+
+                If IsNarrowingConversion(elementConversion) Then
+                    allNarrowingIsFromNumericConstant = allNarrowingIsFromNumericConstant And elementConversion
+                    result = narrowingConversion
+                End If
+            Next
+
+            Debug.Assert((allNarrowingIsFromNumericConstant And Not ConversionKind.InvolvesNarrowingFromNumericConstant) = 0)
+            Return result Or (involvesNarrowingFromNumericConstant And allNarrowingIsFromNumericConstant) Or maxDelegateRelaxationLevel
+        End Function
+
+        Private Shared Function ClassifyArrayInitialization(source As BoundArrayInitialization, targetElementType As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             ' Now we have to check that every element converts to TargetElementType.
             ' It's tempting to say "if the dominant type converts to TargetElementType, then it must be true that
             ' every element converts." But this isn't true for several reasons. First, the dominant type might
@@ -1221,9 +1324,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim elementConv As ConversionKind
 
                 If sourceElement.Kind = BoundKind.ArrayInitialization Then
-                    elementConv = ClassifyArrayInitialization(DirectCast(sourceElement, BoundArrayInitialization), targetElementType, binder, useSiteDiagnostics)
+                    elementConv = ClassifyArrayInitialization(DirectCast(sourceElement, BoundArrayInitialization), targetElementType, binder, useSiteInfo)
                 Else
-                    elementConv = ClassifyConversion(sourceElement, targetElementType, binder, useSiteDiagnostics).Key
+                    elementConv = ClassifyConversion(sourceElement, targetElementType, binder, useSiteInfo).Key
                 End If
 
                 If IsNarrowingConversion(elementConv) Then
@@ -1259,7 +1362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Binder.ClassifyAddressOfConversion(source, destination)
         End Function
 
-        Private Shared Function ClassifyQueryLambdaConversion(source As BoundQueryLambda, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Private Shared Function ClassifyQueryLambdaConversion(source As BoundQueryLambda, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             ' The delegate type we're converting to (could be type argument of Expression(Of T)).
             Dim wasExpressionTree As Boolean
             Dim delegateDestination As NamedTypeSymbol = destination.DelegateOrExpressionDelegate(binder, wasExpressionTree)
@@ -1271,7 +1374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conversionKindExpressionTree As ConversionKind = If(wasExpressionTree, ConversionKind.ConvertedToExpressionTree, Nothing)
             Dim invoke As MethodSymbol = delegateDestination.DelegateInvokeMethod
 
-            If invoke Is Nothing OrElse invoke.GetUseSiteErrorInfo() IsNot Nothing OrElse invoke.IsSub Then
+            If invoke Is Nothing OrElse invoke.GetUseSiteInfo().DiagnosticInfo IsNot Nothing OrElse invoke.IsSub Then
                 Return Nothing ' No conversion
             End If
 
@@ -1288,7 +1391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim invokeParam = invokeParams(i)
 
                 If lambdaParam.IsByRef <> invokeParam.IsByRef OrElse
-                   Not lambdaParam.Type.IsSameTypeIgnoringCustomModifiers(invokeParam.Type) Then
+                   Not lambdaParam.Type.IsSameTypeIgnoringAll(invokeParam.Type) Then
                     Return Nothing ' No conversion
                 End If
             Next
@@ -1300,24 +1403,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol)
 
                     If source.ExprIsOperandOfConditionalBranch AndAlso invoke.ReturnType.IsBooleanType() Then
-                        conv = ClassifyConversionOfOperandOfConditionalBranch(source.Expression, invoke.ReturnType, binder, Nothing, Nothing, useSiteDiagnostics)
+                        conv = ClassifyConversionOfOperandOfConditionalBranch(source.Expression, invoke.ReturnType, binder, Nothing, Nothing, useSiteInfo)
                     Else
-                        conv = ClassifyConversion(source.Expression, invoke.ReturnType, binder, useSiteDiagnostics)
+                        conv = ClassifyConversion(source.Expression, invoke.ReturnType, binder, useSiteInfo)
                     End If
 
                     If IsIdentityConversion(conv.Key) Then
                         Return conv.Key And (Not ConversionKind.Identity) Or (ConversionKind.Widening Or ConversionKind.Lambda) Or conversionKindExpressionTree
                     ElseIf NoConversion(conv.Key) Then
                         Return conv.Key Or (ConversionKind.Lambda Or ConversionKind.FailedDueToQueryLambdaBodyMismatch) Or conversionKindExpressionTree
-                    ElseIf conv.Value IsNot Nothing Then
-                        Debug.Assert((conv.Key And ConversionKind.UserDefined) <> 0)
-                        Return (conv.Key And (Not (ConversionKind.UserDefined Or ConversionKind.Nullable))) Or ConversionKind.Lambda Or conversionKindExpressionTree
                     Else
-                        Debug.Assert((conv.Key And ConversionKind.UserDefined) = 0)
-                        Return conv.Key Or ConversionKind.Lambda Or conversionKindExpressionTree
+                        Debug.Assert(((conv.Key And ConversionKind.UserDefined) <> 0) = (conv.Value IsNot Nothing))
+                        Return (conv.Key And (Not (ConversionKind.UserDefined Or ConversionKind.Nullable Or ConversionKind.Tuple))) Or ConversionKind.Lambda Or conversionKindExpressionTree
                     End If
                 End If
-            ElseIf invoke.ReturnType.IsSameTypeIgnoringCustomModifiers(source.LambdaSymbol.ReturnType) Then
+            ElseIf invoke.ReturnType.IsSameTypeIgnoringAll(source.LambdaSymbol.ReturnType) Then
                 Return ConversionKind.Widening Or ConversionKind.Lambda Or conversionKindExpressionTree
             End If
 
@@ -1330,7 +1430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             binder As Binder,
             <Out> ByRef applyNullableIsTrueOperator As Boolean,
             <Out> ByRef isTrueOperator As OverloadResolution.OverloadResolutionResult,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As KeyValuePair(Of ConversionKind, MethodSymbol)
             Debug.Assert(operand IsNot Nothing)
             Debug.Assert(booleanType IsNot Nothing)
@@ -1353,7 +1453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' otherwise it is false (but never calls the IsFalse operator).
             applyNullableIsTrueOperator = False
             isTrueOperator = Nothing
-            Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(operand, booleanType, binder, useSiteDiagnostics)
+            Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(operand, booleanType, binder, useSiteInfo)
 
             ' See if we need to use IsTrue operator.
             If Conversions.IsWideningConversion(conv.Key) Then
@@ -1377,10 +1477,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim nullableOfT As NamedTypeSymbol = booleanType.ContainingAssembly.GetSpecialType(SpecialType.System_Nullable_T)
 
                     If Not nullableOfT.IsErrorType() AndAlso
-                       (sourceType.IsNullableType() OrElse sourceType.CanContainUserDefinedOperators(useSiteDiagnostics)) Then
+                       (sourceType.IsNullableType() OrElse sourceType.CanContainUserDefinedOperators(useSiteInfo)) Then
                         nullableOfBoolean = nullableOfT.Construct(ImmutableArray.Create(Of TypeSymbol)(booleanType))
 
-                        convToNullableOfBoolean = Conversions.ClassifyConversion(operand, nullableOfBoolean, binder, useSiteDiagnostics)
+                        convToNullableOfBoolean = Conversions.ClassifyConversion(operand, nullableOfBoolean, binder, useSiteInfo)
                     End If
                 End If
 
@@ -1393,8 +1493,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Is there IsTrue operator that we can use.
                     Dim results As OverloadResolution.OverloadResolutionResult = Nothing
 
-                    If sourceType.CanContainUserDefinedOperators(useSiteDiagnostics) Then
-                        results = OverloadResolution.ResolveIsTrueOperator(operand, binder, useSiteDiagnostics)
+                    If sourceType.CanContainUserDefinedOperators(useSiteInfo) Then
+                        results = OverloadResolution.ResolveIsTrueOperator(operand, binder, useSiteInfo)
                     End If
 
                     If results.BestResult.HasValue Then
@@ -1439,7 +1539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Return type of the delegate must be an Anonymous Type corresponding to the following initializer:
             '   New With {key .$VB$ItAnonymous = <delegates's second parameter> }
 
-            If invoke Is Nothing OrElse invoke.GetUseSiteErrorInfo() IsNot Nothing OrElse invoke.IsSub Then
+            If invoke Is Nothing OrElse invoke.GetUseSiteInfo().DiagnosticInfo IsNot Nothing OrElse invoke.IsSub Then
                 Return Nothing ' No conversion
             End If
 
@@ -1457,7 +1557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim invokeParam = invokeParams(i)
 
                 If lambdaParam.IsByRef <> invokeParam.IsByRef OrElse
-                   (lambdaParam.Type IsNot Nothing AndAlso Not lambdaParam.Type.IsSameTypeIgnoringCustomModifiers(invokeParam.Type)) Then
+                   (lambdaParam.Type IsNot Nothing AndAlso Not lambdaParam.Type.IsSameTypeIgnoringAll(invokeParam.Type)) Then
                     Return Nothing ' No conversion
                 End If
             Next
@@ -1472,7 +1572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If anonymousType.Properties.Length <> 1 OrElse
                anonymousType.Properties(0).SetMethod IsNot Nothing OrElse
                Not anonymousType.Properties(0).Name.Equals(StringConstants.ItAnonymous) OrElse
-               Not invokeParams(1).Type.IsSameTypeIgnoringCustomModifiers(anonymousType.Properties(0).Type) Then
+               Not invokeParams(1).Type.IsSameTypeIgnoringAll(anonymousType.Properties(0).Type) Then
                 Return Nothing ' No conversion
             End If
 
@@ -1615,7 +1715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ClassifyDirectCastConversion(
             source As TypeSymbol,
             destination As TypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
@@ -1658,30 +1758,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             'Reference conversions
-            result = ClassifyReferenceConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteDiagnostics:=useSiteDiagnostics)
+            result = ClassifyReferenceConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteInfo:=useSiteInfo)
             If ConversionExists(result) Then
                 Return result
             End If
 
             'Array conversions
-            result = ClassifyArrayConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteDiagnostics:=useSiteDiagnostics)
+            result = ClassifyArrayConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteInfo:=useSiteInfo)
             If ConversionExists(result) Then
                 Return result
             End If
 
             'Value Type conversions
-            result = ClassifyValueTypeConversion(source, destination, useSiteDiagnostics)
+            result = ClassifyValueTypeConversion(source, destination, useSiteInfo)
             If ConversionExists(result) Then
                 Return result
             End If
 
             'Type Parameter conversions
-            result = ClassifyTypeParameterConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteDiagnostics:=useSiteDiagnostics)
+            result = ClassifyTypeParameterConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteInfo:=useSiteInfo)
 
             Return result
         End Function
 
-        Public Shared Function ClassifyDirectCastConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Public Shared Function ClassifyDirectCastConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
             Debug.Assert(destination.Kind <> SymbolKind.ErrorType)
@@ -1697,7 +1797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Reclassify lambdas, array literals, etc. 
-            conv = ClassifyExpressionReclassification(source, destination, binder, useSiteDiagnostics)
+            conv = ClassifyExpressionReclassification(source, destination, binder, useSiteInfo)
             If ConversionExists(conv) OrElse (conv And (ConversionKind.Lambda Or ConversionKind.FailedDueToArrayLiteralElementConversion)) <> 0 Then
                 Return conv
             End If
@@ -1714,13 +1814,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If sourceType.Kind <> SymbolKind.ErrorType Then
-                Return ClassifyDirectCastConversion(sourceType, destination, useSiteDiagnostics)
+                Return ClassifyDirectCastConversion(sourceType, destination, useSiteInfo)
             End If
 
             Return Nothing
         End Function
 
-        Public Shared Function ClassifyTryCastConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Public Shared Function ClassifyTryCastConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
             Debug.Assert(source.Kind <> SymbolKind.ErrorType)
@@ -1729,15 +1829,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As ConversionKind
 
-            result = ClassifyDirectCastConversion(source, destination, useSiteDiagnostics)
+            result = ClassifyDirectCastConversion(source, destination, useSiteInfo)
             If ConversionExists(result) Then
                 Return result
             End If
 
-            Return ClassifyTryCastConversionForTypeParameters(source, destination, useSiteDiagnostics)
+            Return ClassifyTryCastConversionForTypeParameters(source, destination, useSiteInfo)
         End Function
 
-        Public Shared Function ClassifyTryCastConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Public Shared Function ClassifyTryCastConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
             Debug.Assert(destination.Kind <> SymbolKind.ErrorType)
@@ -1753,7 +1853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Reclassify lambdas, array literals, etc. 
-            conv = ClassifyExpressionReclassification(source, destination, binder, useSiteDiagnostics)
+            conv = ClassifyExpressionReclassification(source, destination, binder, useSiteInfo)
             If ConversionExists(conv) OrElse (conv And (ConversionKind.Lambda Or ConversionKind.FailedDueToArrayLiteralElementConversion)) <> 0 Then
                 Return conv
             End If
@@ -1770,13 +1870,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If sourceType.Kind <> SymbolKind.ErrorType Then
-                Return ClassifyTryCastConversion(sourceType, destination, useSiteDiagnostics)
+                Return ClassifyTryCastConversion(sourceType, destination, useSiteInfo)
             End If
 
             Return Nothing
         End Function
 
-        Private Shared Function ClassifyTryCastConversionForTypeParameters(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Private Shared Function ClassifyTryCastConversionForTypeParameters(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
 
             Dim sourceKind = source.Kind
             Dim destinationKind = destination.Kind
@@ -1802,7 +1902,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Note that Dev10 compiler does not require arrays rank to match, which is probably
                 ' an oversight. Will match the same behavior for now.
 
-                Return ClassifyTryCastConversionForTypeParameters(sourceElement, destinationElement, useSiteDiagnostics)
+                Return ClassifyTryCastConversionForTypeParameters(sourceElement, destinationElement, useSiteInfo)
             End If
 
             If sourceKind <> SymbolKind.TypeParameter AndAlso destinationKind <> SymbolKind.TypeParameter Then
@@ -1860,8 +1960,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' System.ValueType and System.Enum and so value types can still be related to type params with such constraints.
             '
 
-            Dim src = GetNonInterfaceTypeConstraintOrSelf(source, useSiteDiagnostics)
-            Dim dst = GetNonInterfaceTypeConstraintOrSelf(destination, useSiteDiagnostics)
+            Dim src = GetNonInterfaceTypeConstraintOrSelf(source, useSiteInfo)
+            Dim dst = GetNonInterfaceTypeConstraintOrSelf(destination, useSiteInfo)
 
             ' If the class constraint is Nothing, then conversion is possible because the non-class constrained
             ' type parameter can be any type related to the other type or type parameter.
@@ -1877,7 +1977,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' partially handles cases: A.4, B.3, B.4, B.5 and B.6
             '
-            Dim conv As ConversionKind = ClassifyDirectCastConversion(src, dst, useSiteDiagnostics)
+            Dim conv As ConversionKind = ClassifyDirectCastConversion(src, dst, useSiteInfo)
 
             If IsWideningConversion(conv) Then
                 Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
@@ -1891,7 +1991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '
                 If destinationKind = SymbolKind.TypeParameter AndAlso
                    (src.TypeKind <> TypeKind.Class OrElse DirectCast(src, NamedTypeSymbol).IsNotInheritable) AndAlso
-                   Not ClassOrBasesSatisfyConstraints(src, DirectCast(destination, TypeParameterSymbol), useSiteDiagnostics) Then
+                   Not ClassOrBasesSatisfyConstraints(src, DirectCast(destination, TypeParameterSymbol), useSiteInfo) Then
                     Return Nothing 'ConversionKind.NoConversion
                 End If
 
@@ -1899,7 +1999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' partially handles cases: A.4, B.3 and B.4
-            conv = ClassifyDirectCastConversion(dst, src, useSiteDiagnostics)
+            conv = ClassifyDirectCastConversion(dst, src, useSiteInfo)
 
             If IsWideningConversion(conv) Then
                 Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
@@ -1913,7 +2013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '
                 If sourceKind = SymbolKind.TypeParameter AndAlso
                    (dst.TypeKind <> TypeKind.Class OrElse DirectCast(dst, NamedTypeSymbol).IsNotInheritable) AndAlso
-                   Not ClassOrBasesSatisfyConstraints(dst, DirectCast(source, TypeParameterSymbol), useSiteDiagnostics) Then
+                   Not ClassOrBasesSatisfyConstraints(dst, DirectCast(source, TypeParameterSymbol), useSiteInfo) Then
                     Return Nothing 'ConversionKind.NoConversion
                 End If
 
@@ -1924,7 +2024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing 'ConversionKind.NoConversion
         End Function
 
-        Private Shared Function ClassOrBasesSatisfyConstraints([class] As TypeSymbol, typeParam As TypeParameterSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Private Shared Function ClassOrBasesSatisfyConstraints([class] As TypeSymbol, typeParam As TypeParameterSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim candidate As TypeSymbol = [class]
 
             While candidate IsNot Nothing
@@ -1933,17 +2033,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       typeParameter:=typeParam,
                                                       typeArgument:=candidate,
                                                       diagnosticsBuilder:=Nothing,
-                                                      useSiteDiagnostics:=useSiteDiagnostics) Then
+                                                      useSiteInfo:=useSiteInfo) Then
                     Return True
                 End If
 
-                candidate = candidate.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                candidate = candidate.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteInfo)
             End While
 
             Return False
         End Function
 
-        Private Shared Function GetNonInterfaceTypeConstraintOrSelf(type As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
+        Private Shared Function GetNonInterfaceTypeConstraintOrSelf(type As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As TypeSymbol
             If type.Kind = SymbolKind.TypeParameter Then
                 Dim typeParameter = DirectCast(type, TypeParameterSymbol)
 
@@ -1964,7 +2064,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return If(valueType.Kind = SymbolKind.ErrorType, Nothing, valueType)
                 End If
 
-                Return typeParameter.GetNonInterfaceConstraint(useSiteDiagnostics)
+                Return typeParameter.GetNonInterfaceConstraint(useSiteInfo)
             End If
 
             Return type
@@ -1977,7 +2077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="destination"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Private Shared Function ClassifyUserDefinedConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As KeyValuePair(Of ConversionKind, MethodSymbol)
+        Private Shared Function ClassifyUserDefinedConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As KeyValuePair(Of ConversionKind, MethodSymbol)
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
             Debug.Assert(source.Kind <> SymbolKind.ErrorType)
@@ -1986,12 +2086,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If IsInterfaceType(source) OrElse
                IsInterfaceType(destination) OrElse
-               Not (source.CanContainUserDefinedOperators(useSiteDiagnostics) OrElse destination.CanContainUserDefinedOperators(useSiteDiagnostics)) Then
+               Not (source.CanContainUserDefinedOperators(useSiteInfo) OrElse destination.CanContainUserDefinedOperators(useSiteInfo)) Then
 
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
-            Return OverloadResolution.ResolveUserDefinedConversion(source, destination, useSiteDiagnostics)
+            Return OverloadResolution.ResolveUserDefinedConversion(source, destination, useSiteInfo)
         End Function
 
         ''' <summary>
@@ -2001,7 +2101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="destination"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Private Shared Function ClassifyUserDefinedConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As KeyValuePair(Of ConversionKind, MethodSymbol)
+        Private Shared Function ClassifyUserDefinedConversion(source As BoundExpression, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As KeyValuePair(Of ConversionKind, MethodSymbol)
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
             Debug.Assert(destination.Kind <> SymbolKind.ErrorType)
@@ -2010,13 +2110,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If sourceType Is Nothing Then
                 source = source.GetMostEnclosedParenthesizedExpression()
-                sourceType = If(source.Kind <> BoundKind.ArrayLiteral, source.Type, New ArrayLiteralTypeSymbol(DirectCast(source, BoundArrayLiteral)))
+                If source.Kind = BoundKind.ArrayLiteral Then
+                    sourceType = New ArrayLiteralTypeSymbol(DirectCast(source, BoundArrayLiteral))
+                ElseIf source.Kind = BoundKind.TupleLiteral Then
+                    sourceType = DirectCast(source, BoundTupleLiteral).InferredType
+                    If sourceType Is Nothing Then
+                        Return Nothing
+                    End If
+                Else
+                    sourceType = source.Type
+                End If
             End If
 
             Debug.Assert(sourceType IsNot Nothing)
             Debug.Assert(sourceType.Kind <> SymbolKind.ErrorType)
 
-            Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = ClassifyUserDefinedConversion(sourceType, destination, useSiteDiagnostics)
+            Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = ClassifyUserDefinedConversion(sourceType, destination, useSiteInfo)
 
             If NoConversion(conv.Key) Then
                 Return conv
@@ -2029,9 +2138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim inConversion As ConversionKind
 
                 If (source.Kind <> BoundKind.ArrayLiteral) Then
-                    inConversion = ClassifyPredefinedConversion(source, userDefinedInputType, binder, useSiteDiagnostics)
+                    inConversion = ClassifyPredefinedConversion(source, userDefinedInputType, binder, useSiteInfo)
                 Else
-                    inConversion = ClassifyArrayLiteralConversion(DirectCast(source, BoundArrayLiteral), userDefinedInputType, binder, useSiteDiagnostics)
+                    inConversion = ClassifyArrayLiteralConversion(DirectCast(source, BoundArrayLiteral), userDefinedInputType, binder, useSiteInfo)
                 End If
 
                 If NoConversion(inConversion) Then
@@ -2057,7 +2166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Need to keep track of the fact that narrowing is from numeric constant.
                 If (inConversion And ConversionKind.InvolvesNarrowingFromNumericConstant) <> 0 AndAlso
                    OverloadResolution.IsWidening(conv.Value) AndAlso
-                   IsWideningConversion(ClassifyPredefinedConversion(conv.Value.ReturnType, destination, useSiteDiagnostics)) Then
+                   IsWideningConversion(ClassifyPredefinedConversion(conv.Value.ReturnType, destination, useSiteInfo)) Then
 
                     Dim newConv As ConversionKind = conv.Key Or ConversionKind.InvolvesNarrowingFromNumericConstant
 
@@ -2077,7 +2186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This function classifies all intrinsic language conversions, such as inheritance,
         ''' implementation, array covariance, and conversions between intrinsic types.
         ''' </summary>
-        Public Shared Function ClassifyPredefinedConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Public Shared Function ClassifyPredefinedConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             Debug.Assert(source IsNot Nothing)
             Debug.Assert(destination IsNot Nothing)
             Debug.Assert(source.Kind <> SymbolKind.ErrorType)
@@ -2090,10 +2199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return fastConversion.Value
             End If
 
-            Return ClassifyPredefinedConversionSlow(source, destination, useSiteDiagnostics)
+            Return ClassifyPredefinedConversionSlow(source, destination, useSiteInfo)
         End Function
 
-        Private Shared Function ClassifyPredefinedConversionSlow(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Private Shared Function ClassifyPredefinedConversionSlow(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
 
             Dim result As ConversionKind
 
@@ -2104,31 +2213,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             'Reference conversions
-            result = ClassifyReferenceConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteDiagnostics:=useSiteDiagnostics)
+            result = ClassifyReferenceConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteInfo:=useSiteInfo)
             If ConversionExists(result) Then
                 Return AddDelegateRelaxationInformationForADelegate(source, destination, result)
             End If
 
             'Anonymous Delegate conversions
-            result = ClassifyAnonymousDelegateConversion(source, destination, useSiteDiagnostics)
+            result = ClassifyAnonymousDelegateConversion(source, destination, useSiteInfo)
             If ConversionExists(result) Then
                 Return result
             End If
 
             'Array conversions
-            result = ClassifyArrayConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteDiagnostics:=useSiteDiagnostics)
+            result = ClassifyArrayConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteInfo:=useSiteInfo)
+            If ConversionExists(result) Then
+                Return result
+            End If
+
+            'Tuple conversions
+            result = ClassifyTupleConversion(source, destination, useSiteInfo)
             If ConversionExists(result) Then
                 Return result
             End If
 
             'Value Type conversions
-            result = ClassifyValueTypeConversion(source, destination, useSiteDiagnostics)
+            result = ClassifyValueTypeConversion(source, destination, useSiteInfo)
             If ConversionExists(result) Then
                 Return result
             End If
 
             'Nullable Value Type conversions
-            result = ClassifyNullableConversion(source, destination, useSiteDiagnostics)
+            result = ClassifyNullableConversion(source, destination, useSiteInfo)
             If ConversionExists(result) Then
                 Return result
             End If
@@ -2140,7 +2255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             'Type Parameter conversions
-            result = ClassifyTypeParameterConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteDiagnostics:=useSiteDiagnostics)
+            result = ClassifyTypeParameterConversion(source, destination, varianceCompatibilityClassificationDepth:=0, useSiteInfo:=useSiteInfo)
 
             Return AddDelegateRelaxationInformationForADelegate(source, destination, result)
         End Function
@@ -2179,7 +2294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '•	From an anonymous delegate type generated for a lambda method reclassification to any delegate type with an identical signature.
 
             'From a type to itself
-            If source.IsSameTypeIgnoringCustomModifiers(destination) Then
+            If source.IsSameTypeIgnoringAll(destination) Then
                 Return ConversionKind.Identity
             End If
 
@@ -2191,7 +2306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As TypeSymbol,
             destination As TypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             '§8.8 Widening Conversions
             '•	From a reference type to a base type.
@@ -2239,7 +2354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return ConversionKind.NarrowingReference
                 ElseIf dstIsArrayType Then
                     ' !!! VB spec doesn't mention this explicitly, but
-                    Dim conv As ConversionKind = ClassifyReferenceConversionFromArrayToAnInterface(destination, source, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                    Dim conv As ConversionKind = ClassifyReferenceConversionFromArrayToAnInterface(destination, source, varianceCompatibilityClassificationDepth, useSiteInfo)
                     If NoConversion(conv) Then
                         Return Nothing 'ConversionKind.NoConversion
                     End If
@@ -2259,7 +2374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim conv As ConversionKind = ToInterfaceConversionClassifier.ClassifyConversionToVariantCompatibleInterface(DirectCast(source, NamedTypeSymbol),
                                                                                                                                    DirectCast(destination, NamedTypeSymbol),
                                                                                                                                    varianceCompatibilityClassificationDepth,
-                                                                                                                                   useSiteDiagnostics)
+                                                                                                                                   useSiteInfo)
 
                     If ConversionExists(conv) Then
                         'From an interface type to a variant compatible interface type.
@@ -2278,7 +2393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ElseIf srcIsArrayType Then
                     ' !!! Spec doesn't mention this conversion explicitly.
-                    Return ClassifyReferenceConversionFromArrayToAnInterface(source, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                    Return ClassifyReferenceConversionFromArrayToAnInterface(source, destination, varianceCompatibilityClassificationDepth, useSiteInfo)
                 End If
 
             Else
@@ -2286,11 +2401,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If (srcIsClassType OrElse srcIsArrayType) Then
 
-                    If dstIsClassType AndAlso IsDerivedFrom(source, destination, useSiteDiagnostics) Then
+                    If dstIsClassType AndAlso IsDerivedFrom(source, destination, useSiteInfo) Then
                         'From a reference type to a base type.
                         Return ConversionKind.WideningReference
 
-                    ElseIf srcIsClassType AndAlso IsDerivedFrom(destination, source, useSiteDiagnostics) Then
+                    ElseIf srcIsClassType AndAlso IsDerivedFrom(destination, source, useSiteInfo) Then
                         'From a reference type to a more derived type.
                         Return ConversionKind.NarrowingReference
 
@@ -2299,7 +2414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim conv As ConversionKind = ClassifyConversionToVariantCompatibleDelegateType(DirectCast(source, NamedTypeSymbol),
                                                                                                        DirectCast(destination, NamedTypeSymbol),
                                                                                                        varianceCompatibilityClassificationDepth,
-                                                                                                       useSiteDiagnostics)
+                                                                                                       useSiteInfo)
 
                         If ConversionExists(conv) Then
                             Debug.Assert((conv And Not (ConversionKind.Widening Or ConversionKind.Narrowing Or
@@ -2321,17 +2436,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As TypeSymbol,
             destination As TypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             Debug.Assert(source IsNot Nothing AndAlso Conversions.IsArrayType(source))
             Debug.Assert(destination IsNot Nothing AndAlso Conversions.IsInterfaceType(destination))
 
             'Check interfaces implemented by System.Array first.
-            Dim base = source.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+            Dim base = source.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteInfo)
 
             If base IsNot Nothing Then
                 If Not base.IsErrorType() AndAlso base.TypeKind = TypeKind.Class AndAlso
-                   IsWideningConversion(ClassifyDirectCastConversion(base, destination, useSiteDiagnostics)) Then
+                   IsWideningConversion(ClassifyDirectCastConversion(base, destination, useSiteInfo)) Then
                     'From a reference type to an interface type, provided that the type implements the interface or a variant compatible interface.
                     Return ConversionKind.WideningReference
                 End If
@@ -2362,7 +2477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
-            Dim dstUnderlyingElement = DirectCast(destination, NamedTypeSymbol).TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)(0)
+            Dim dstUnderlyingElement = DirectCast(destination, NamedTypeSymbol).TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteInfo)(0)
 
             If dstUnderlyingElement.Kind = SymbolKind.ErrorType Then
                 Return Nothing 'ConversionKind.NoConversion
@@ -2374,11 +2489,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
-            If arrayElement.IsSameTypeIgnoringCustomModifiers(dstUnderlyingElement) Then
+            If arrayElement.IsSameTypeIgnoringAll(dstUnderlyingElement) Then
                 Return ConversionKind.WideningReference
             End If
 
-            Dim conv As ConversionKind = ClassifyArrayConversionBasedOnElementTypes(arrayElement, dstUnderlyingElement, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+            Dim conv As ConversionKind = ClassifyArrayConversionBasedOnElementTypes(arrayElement, dstUnderlyingElement, varianceCompatibilityClassificationDepth, useSiteInfo)
             If IsWideningConversion(conv) Then
                 Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
                 Return ConversionKind.WideningReference Or (conv And ConversionKind.InvolvesEnumTypeConversions)
@@ -2393,12 +2508,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ConversionKind.NarrowingReference
         End Function
 
-        Public Shared Function HasWideningDirectCastConversionButNotEnumTypeConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Shared Function HasWideningDirectCastConversionButNotEnumTypeConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If source.IsErrorType() OrElse destination.IsErrorType Then
-                Return source.IsSameTypeIgnoringCustomModifiers(destination)
+                Return source.IsSameTypeIgnoringAll(destination)
             End If
 
-            Dim conv As ConversionKind = ClassifyDirectCastConversion(source, destination, useSiteDiagnostics)
+            Dim conv As ConversionKind = ClassifyDirectCastConversion(source, destination, useSiteInfo)
 
             If Conversions.IsWideningConversion(conv) AndAlso
                 (conv And ConversionKind.InvolvesEnumTypeConversions) = 0 Then
@@ -2412,7 +2527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As NamedTypeSymbol,
             destination As NamedTypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             Debug.Assert(source IsNot Nothing AndAlso Conversions.IsDelegateType(source))
             Debug.Assert(destination IsNot Nothing AndAlso Conversions.IsDelegateType(destination))
@@ -2423,14 +2538,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  ConversionKind.MightSucceedAtRuntime Or
                                                  ConversionKind.NarrowingDueToContraVarianceInDelegate)
 
-            Dim forwardConv As ConversionKind = ClassifyImmediateVarianceCompatibility(source, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+            Dim forwardConv As ConversionKind = ClassifyImmediateVarianceCompatibility(source, destination, varianceCompatibilityClassificationDepth, useSiteInfo)
             Debug.Assert((forwardConv And Not validBits) = 0)
 
             If ConversionExists(forwardConv) Then
                 Return forwardConv
             End If
 
-            Dim backwardConv As ConversionKind = ClassifyImmediateVarianceCompatibility(destination, source, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+            Dim backwardConv As ConversionKind = ClassifyImmediateVarianceCompatibility(destination, source, varianceCompatibilityClassificationDepth, useSiteInfo)
             Debug.Assert((backwardConv And Not validBits) = 0)
 
             If ConversionExists(backwardConv) Then
@@ -2476,10 +2591,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 source As NamedTypeSymbol,
                 destination As NamedTypeSymbol,
                 varianceCompatibilityClassificationDepth As Integer,
-                <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
             ) As ConversionKind
                 Dim helper As ToInterfaceConversionClassifier = Nothing
-                helper.AccumulateConversionClassificationToVariantCompatibleInterface(source, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                helper.AccumulateConversionClassificationToVariantCompatibleInterface(source, destination, varianceCompatibilityClassificationDepth, useSiteInfo)
                 Return helper.Result
             End Function
 
@@ -2492,7 +2607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 source As NamedTypeSymbol,
                 destination As NamedTypeSymbol,
                 varianceCompatibilityClassificationDepth As Integer,
-                <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
             ) As Boolean
                 Debug.Assert(source IsNot Nothing AndAlso
                              (Conversions.IsInterfaceType(source) OrElse Conversions.IsClassType(source) OrElse Conversions.IsValueType(source)))
@@ -2504,16 +2619,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Conversions.IsInterfaceType(source) Then
-                    ClassifyInterfaceImmediateVarianceCompatibility(source, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                    ClassifyInterfaceImmediateVarianceCompatibility(source, destination, varianceCompatibilityClassificationDepth, useSiteInfo)
                     Debug.Assert(Not IsIdentityConversion(_conv))
                 End If
 
-                For Each [interface] In source.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                For Each [interface] In source.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                     If [interface].IsErrorType() Then
                         Continue For
                     End If
 
-                    If ClassifyInterfaceImmediateVarianceCompatibility([interface], destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics) Then
+                    If ClassifyInterfaceImmediateVarianceCompatibility([interface], destination, varianceCompatibilityClassificationDepth, useSiteInfo) Then
                         Return True
                     End If
                 Next
@@ -2528,12 +2643,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 source As NamedTypeSymbol,
                 destination As NamedTypeSymbol,
                 varianceCompatibilityClassificationDepth As Integer,
-                <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
             ) As Boolean
                 Debug.Assert(Conversions.IsInterfaceType(source) AndAlso Conversions.IsInterfaceType(destination))
                 Debug.Assert(Not IsIdentityConversion(_conv))
 
-                Dim addConv As ConversionKind = ClassifyImmediateVarianceCompatibility(source, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                Dim addConv As ConversionKind = ClassifyImmediateVarianceCompatibility(source, destination, varianceCompatibilityClassificationDepth, useSiteInfo)
 
                 Debug.Assert((addConv And ConversionKind.NarrowingDueToContraVarianceInDelegate) = 0)
 
@@ -2560,7 +2675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If (_conv And ConversionKind.VarianceConversionAmbiguity) <> 0 Then
                             Debug.Assert(IsNarrowingConversion(_conv))
 
-                        ElseIf Not _match.IsSameTypeIgnoringCustomModifiers(source) Then
+                        ElseIf Not _match.IsSameTypeIgnoringAll(source) Then
                             ' ambiguity
                             _conv = ConversionKind.Narrowing Or ConversionKind.VarianceConversionAmbiguity
                         Else
@@ -2582,13 +2697,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As NamedTypeSymbol,
             destination As NamedTypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             Debug.Assert(Conversions.IsInterfaceType(source) OrElse Conversions.IsDelegateType(source))
             Debug.Assert(Conversions.IsInterfaceType(destination) OrElse Conversions.IsDelegateType(destination))
             Debug.Assert(Conversions.IsInterfaceType(source) = Conversions.IsInterfaceType(destination))
 
-            If Not source.OriginalDefinition.IsSameTypeIgnoringCustomModifiers(destination.OriginalDefinition) Then
+            If Not source.OriginalDefinition.IsSameTypeIgnoringAll(destination.OriginalDefinition) Then
                 Return Nothing ' Incompatible.
             End If
 
@@ -2645,15 +2760,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Do
                 Dim typeParameters As ImmutableArray(Of TypeParameterSymbol) = source.TypeParameters
-                Dim sourceArguments As ImmutableArray(Of TypeSymbol) = source.TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                Dim destinationArguments As ImmutableArray(Of TypeSymbol) = destination.TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                Dim sourceArguments As ImmutableArray(Of TypeSymbol) = source.TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteInfo)
+                Dim destinationArguments As ImmutableArray(Of TypeSymbol) = destination.TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteInfo)
 
                 For i As Integer = 0 To typeParameters.Length - 1
 
                     Dim sourceArg As TypeSymbol = sourceArguments(i)
                     Dim destinationArg As TypeSymbol = destinationArguments(i)
 
-                    If sourceArg.IsSameTypeIgnoringCustomModifiers(destinationArg) Then
+                    If sourceArg.IsSameTypeIgnoringAll(destinationArg) Then
                         Continue For
                     End If
 
@@ -2670,7 +2785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Select Case typeParameters(i).Variance
                         Case VarianceKind.Out
-                            conv = Classify_Reference_Array_TypeParameterConversion(sourceArg, destinationArg, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                            conv = Classify_Reference_Array_TypeParameterConversion(sourceArg, destinationArg, varianceCompatibilityClassificationDepth, useSiteInfo)
 
                             If Not classifyingInterfaceConversions AndAlso IsNarrowingConversion(conv) AndAlso
                                (conv And ConversionKind.NarrowingDueToContraVarianceInDelegate) <> 0 Then
@@ -2681,7 +2796,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                         Case VarianceKind.In
-                            conv = Classify_Reference_Array_TypeParameterConversion(destinationArg, sourceArg, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                            conv = Classify_Reference_Array_TypeParameterConversion(destinationArg, sourceArg, varianceCompatibilityClassificationDepth, useSiteInfo)
 
                             If Not classifyingInterfaceConversions AndAlso Not IsWideningConversion(conv) AndAlso
                                destinationArg.IsReferenceType AndAlso sourceArg.IsReferenceType Then
@@ -2815,32 +2930,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns></returns>
         ''' <remarks>
         ''' </remarks>
-        Public Shared Function IsDerivedFrom(derivedType As TypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Shared Function IsDerivedFrom(derivedType As TypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert(derivedType IsNot Nothing AndAlso
                          (Conversions.IsClassType(derivedType) OrElse Conversions.IsArrayType(derivedType) OrElse Conversions.IsValueType(derivedType)))
             Debug.Assert(baseType IsNot Nothing AndAlso Conversions.IsClassType(baseType))
 
-            Return baseType.IsBaseTypeOf(derivedType, useSiteDiagnostics)
+            Return baseType.IsBaseTypeOf(derivedType, useSiteInfo)
         End Function
 
-        Private Shared Function ClassifyAnonymousDelegateConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Private Shared Function ClassifyAnonymousDelegateConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             '§8.8 Widening Conversions
             '•	From an anonymous delegate type generated for a lambda method reclassification to any wider delegate type.
             '§8.9 Narrowing Conversions
             '•	From an anonymous delegate type generated for a lambda method reclassification to any narrower delegate type.
 
-            Debug.Assert(Not source.IsSameTypeIgnoringCustomModifiers(destination))
+            Debug.Assert(Not source.IsSameTypeIgnoringAll(destination))
 
             If source.IsAnonymousType AndAlso source.IsDelegateType() AndAlso destination.IsDelegateType() Then
                 Dim delegateInvoke As MethodSymbol = DirectCast(destination, NamedTypeSymbol).DelegateInvokeMethod
 
-                If delegateInvoke Is Nothing OrElse delegateInvoke.GetUseSiteErrorInfo() IsNot Nothing Then
+                If delegateInvoke Is Nothing OrElse delegateInvoke.GetUseSiteInfo().DiagnosticInfo IsNot Nothing Then
                     Return Nothing ' No conversion
                 End If
 
                 Dim methodConversion As MethodConversionKind = ClassifyMethodConversionForLambdaOrAnonymousDelegate(delegateInvoke,
                                                                                                                     DirectCast(source, NamedTypeSymbol).DelegateInvokeMethod,
-                                                                                                                    useSiteDiagnostics)
+                                                                                                                    useSiteInfo)
 
                 If Not IsDelegateRelaxationSupportedFor(methodConversion) Then
                     Return Nothing 'ConversionKind.NoConversion
@@ -2873,7 +2988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As TypeSymbol,
             destination As TypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
 
             '§8.8 Widening Conversions
@@ -2914,10 +3029,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
-            Return ClassifyArrayConversionBasedOnElementTypes(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+            Return ClassifyArrayConversionBasedOnElementTypes(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteInfo)
         End Function
 
-        Public Shared Function ClassifyArrayElementConversion(srcElem As TypeSymbol, dstElem As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Public Shared Function ClassifyArrayElementConversion(srcElem As TypeSymbol, dstElem As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
 
             Dim result As ConversionKind
 
@@ -2927,28 +3042,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return result
             End If
 
-            Return ClassifyArrayConversionBasedOnElementTypes(srcElem, dstElem, varianceCompatibilityClassificationDepth:=0, useSiteDiagnostics:=useSiteDiagnostics)
+            Return ClassifyArrayConversionBasedOnElementTypes(srcElem, dstElem, varianceCompatibilityClassificationDepth:=0, useSiteInfo:=useSiteInfo)
         End Function
 
         Friend Shared Function Classify_Reference_Array_TypeParameterConversion(
             srcElem As TypeSymbol,
             dstElem As TypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
-            Dim conv = ClassifyReferenceConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+            Dim conv = ClassifyReferenceConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteInfo)
 
             If NoConversion(conv) AndAlso (conv And ConversionKind.MightSucceedAtRuntime) = 0 Then
-                conv = ClassifyArrayConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                conv = ClassifyArrayConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteInfo)
 
                 If NoConversion(conv) AndAlso (conv And ConversionKind.MightSucceedAtRuntime) = 0 Then
-                    conv = ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                    conv = ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteInfo)
                 Else
-                    Debug.Assert(NoConversion(ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, Nothing)))
+                    Debug.Assert(NoConversion(ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)))
                 End If
             Else
-                Debug.Assert(NoConversion(ClassifyArrayConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, Nothing)))
-                Debug.Assert(NoConversion(ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, Nothing)))
+                Debug.Assert(NoConversion(ClassifyArrayConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)))
+                Debug.Assert(NoConversion(ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)))
             End If
 
             Return conv
@@ -2959,7 +3074,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             srcElem As TypeSymbol,
             dstElem As TypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             '§8.8 Widening Conversions
             '•	From an array type S with an element type SE to an array type T with an element type TE, provided all of the following are true:
@@ -2982,14 +3097,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '   •	SE is the underlying type of TE.
 
             'Shouldn't get here for identity conversion
-            Debug.Assert(Not srcElem.IsSameTypeIgnoringCustomModifiers(dstElem))
+            Debug.Assert(Not srcElem.IsSameTypeIgnoringAll(dstElem))
 
             Dim srcElemIsValueType As Boolean = srcElem.IsValueType
             Dim dstElemIsValueType As Boolean = dstElem.IsValueType
 
             If Not srcElemIsValueType AndAlso Not dstElemIsValueType Then
 
-                Dim conv = Classify_Reference_Array_TypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                Dim conv = Classify_Reference_Array_TypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteInfo)
 
                 If IsWideningConversion(conv) Then
                     Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
@@ -3072,7 +3187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If srcElem.Kind = SymbolKind.TypeParameter OrElse
                            dstElem.Kind = SymbolKind.TypeParameter Then
                             ' Must be the same type if there is a conversion. 
-                            Dim conv = ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                            Dim conv = ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteInfo)
                             Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
 
                             If IsWideningConversion(conv) Then
@@ -3094,7 +3209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim dstValueType As TypeSymbol = dstElem
 
                         If srcElem.Kind = SymbolKind.TypeParameter Then
-                            Dim valueType = GetValueTypeConstraint(srcElem, useSiteDiagnostics)
+                            Dim valueType = GetValueTypeConstraint(srcElem, useSiteInfo)
 
                             If valueType IsNot Nothing Then
                                 srcValueType = valueType
@@ -3102,7 +3217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If dstElem.Kind = SymbolKind.TypeParameter Then
-                            Dim valueType = GetValueTypeConstraint(dstElem, useSiteDiagnostics)
+                            Dim valueType = GetValueTypeConstraint(dstElem, useSiteInfo)
 
                             If valueType IsNot Nothing Then
                                 dstValueType = valueType
@@ -3166,7 +3281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            Not dstElem.IsReferenceType Then
 
                         If srcElem.Kind = SymbolKind.TypeParameter Then
-                            Dim conv = ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                            Dim conv = ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteInfo)
 
                             If IsWideningConversion(conv) Then
                                 ' !!! Spec doesn't mention this explicitly, but Dev10 compiler treats this
@@ -3193,7 +3308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If dstElem.Kind = SymbolKind.TypeParameter Then
 
-                        Dim conv = ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                        Dim conv = ClassifyTypeParameterConversion(srcElem, dstElem, varianceCompatibilityClassificationDepth, useSiteInfo)
 
                         If IsNarrowingConversion(conv) Then
                             ' !!! Spec doesn't mention this explicitly, but Dev10 compiler treats this
@@ -3234,9 +3349,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Shared Function GetValueTypeConstraint(typeParam As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
+        Private Shared Function GetValueTypeConstraint(typeParam As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As TypeSymbol
 
-            Dim constraint = DirectCast(typeParam, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteDiagnostics)
+            Dim constraint = DirectCast(typeParam, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteInfo)
 
             If constraint IsNot Nothing AndAlso constraint.IsValueType Then
                 Return constraint
@@ -3257,7 +3372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Shared Function ClassifyValueTypeConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Private Shared Function ClassifyValueTypeConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             '§8.8 Widening Conversions
             '•	From a value type to a base type.
             '•	From a value type to an interface type that the type implements.
@@ -3282,7 +3397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If IsClassType(destination) Then
-                        If IsDerivedFrom(source, destination, useSiteDiagnostics) Then
+                        If IsDerivedFrom(source, destination, useSiteInfo) Then
                             'From a value type to a base type.
                             Return ConversionKind.WideningValue
                         End If
@@ -3293,7 +3408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             DirectCast(source, NamedTypeSymbol),
                                                             DirectCast(destination, NamedTypeSymbol),
                                                             varianceCompatibilityClassificationDepth:=0,
-                                                            useSiteDiagnostics:=useSiteDiagnostics)
+                                                            useSiteInfo:=useSiteInfo)
 
                         If ConversionExists(conv) Then
                             'From a value type to an interface type that the type implements.
@@ -3315,17 +3430,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If IsClassType(source) Then
-                    If IsDerivedFrom(destination, source, useSiteDiagnostics) Then
+                    If IsDerivedFrom(destination, source, useSiteInfo) Then
                         'From a reference type to a more derived value type.
                         Return ConversionKind.NarrowingValue
                     End If
 
                 ElseIf IsInterfaceType(source) Then
 
-                    For Each [interface] In destination.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    For Each [interface] In destination.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                         If [interface].IsErrorType() Then
                             Continue For
-                        ElseIf [interface].IsSameTypeIgnoringCustomModifiers(source) Then
+                        ElseIf [interface].IsSameTypeIgnoringAll(source) Then
                             ' From an interface type to a value type, provided the value type implements the interface type.
                             ' Note, variance is not taken into consideration here.
                             Return ConversionKind.NarrowingValue
@@ -3338,7 +3453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing 'ConversionKind.NoConversion
         End Function
 
-        Private Shared Function ClassifyNullableConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
+        Private Shared Function ClassifyNullableConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
             '§8.8 Widening Conversions
             '•	From a type T to the type T?.
             '•	From a type T? to a type S?, where there is a widening conversion from the type T to the type S.
@@ -3376,27 +3491,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            Const preserveConversionKindFromUnderlyingPredefinedConversion As ConversionKind = ConversionKind.Tuple Or ConversionKind.DelegateRelaxationLevelMask
+
             If srcIsNullable Then
 
                 Dim conv As ConversionKind
 
                 If dstIsNullable Then
                     'From a type T? to a type S?
-                    conv = ClassifyPredefinedConversion(srcUnderlying, dstUnderlying, useSiteDiagnostics)
+                    conv = ClassifyPredefinedConversion(srcUnderlying, dstUnderlying, useSiteInfo)
                     Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
+                    Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                     If IsWideningConversion(conv) Then
                         'From a type T? to a type S?, where there is a widening conversion from the type T to the type S.
-                        Return ConversionKind.WideningNullable
+                        Return ConversionKind.WideningNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                     ElseIf IsNarrowingConversion(conv) Then
                         'From a type T? to a type S?, where there is a narrowing conversion from the type T to the type S.
-                        Return ConversionKind.NarrowingNullable
+                        Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                     End If
 
                 ElseIf IsInterfaceType(destination) Then
                     ' !!! Note that the spec doesn't mention anything about variance, but 
                     ' !!! it appears to be taken into account by Dev10 compiler.
-                    conv = ClassifyDirectCastConversion(srcUnderlying, destination, useSiteDiagnostics)
+                    conv = ClassifyDirectCastConversion(srcUnderlying, destination, useSiteInfo)
+                    Debug.Assert((conv And ConversionKind.Tuple) = 0)
 
                     If IsWideningConversion(conv) Then
                         'From a type T? to an interface type that the type T implements.
@@ -3406,37 +3525,91 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return ConversionKind.NarrowingNullable
                     End If
 
-                ElseIf srcUnderlying.IsSameTypeIgnoringCustomModifiers(destination) Then
+                ElseIf srcUnderlying.IsSameTypeIgnoringAll(destination) Then
                     'From a type T? to a type T.
                     Return ConversionKind.NarrowingNullable
-                ElseIf ConversionExists(ClassifyPredefinedConversion(srcUnderlying, destination, useSiteDiagnostics)) Then
-                    'From a type S? to a type T, where there is a conversion from the type S to the type T.
-                    Return ConversionKind.NarrowingNullable
+                Else
+                    conv = ClassifyPredefinedConversion(srcUnderlying, destination, useSiteInfo)
+                    Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
+
+                    If ConversionExists(conv) Then
+                        'From a type S? to a type T, where there is a conversion from the type S to the type T.
+                        Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
+                    End If
                 End If
 
             Else
                 Debug.Assert(dstIsNullable)
                 'From a type T to a type S?
 
-                If source.IsSameTypeIgnoringCustomModifiers(dstUnderlying) Then
+                If source.IsSameTypeIgnoringAll(dstUnderlying) Then
                     'From a type T to the type T?.
                     Return ConversionKind.WideningNullable
                 End If
 
-                Dim conv = ClassifyPredefinedConversion(source, dstUnderlying, useSiteDiagnostics)
+                Dim conv = ClassifyPredefinedConversion(source, dstUnderlying, useSiteInfo)
                 Debug.Assert((conv And ConversionKind.VarianceConversionAmbiguity) = 0)
+                Debug.Assert((conv And ConversionKind.DelegateRelaxationLevelMask) = 0 OrElse (conv And ConversionKind.Tuple) <> 0)
 
                 If IsWideningConversion(conv) Then
                     'From a type T to a type S?, where there is a widening conversion from the type T to the type S.
-                    Return ConversionKind.WideningNullable
+                    Return ConversionKind.WideningNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                 ElseIf IsNarrowingConversion(conv) Then
                     'From a type T to a type S?, where there is a narrowing conversion from the type T to the type S.
-                    Return ConversionKind.NarrowingNullable
+                    Return ConversionKind.NarrowingNullable Or (conv And preserveConversionKindFromUnderlyingPredefinedConversion)
                 End If
 
             End If
 
             Return Nothing 'ConversionKind.NoConversion
+        End Function
+
+        Private Shared Function ClassifyTupleConversion(source As TypeSymbol, destination As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ConversionKind
+
+            If Not source.IsTupleType Then
+                Return Nothing  'ConversionKind.NoConversion
+            End If
+
+            Dim sourceElementTypes = DirectCast(source, TupleTypeSymbol).TupleElementTypes
+
+            ' check if the type is actually compatible type for a tuple of given cardinality
+            If Not destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceElementTypes.Length) Then
+                Return Nothing 'ConversionKind.NoConversion
+            End If
+
+            Dim targetElementTypes As ImmutableArray(Of TypeSymbol) = destination.GetElementTypesOfTupleOrCompatible()
+            Debug.Assert(sourceElementTypes.Length = targetElementTypes.Length)
+
+            ' check arguments against flattened list of target element types 
+            Dim result As ConversionKind = ConversionKind.WideningTuple
+            Dim maxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNone
+
+            For i As Integer = 0 To sourceElementTypes.Length - 1
+                Dim argumentType = sourceElementTypes(i)
+                Dim targetType = targetElementTypes(i)
+
+                If argumentType.IsErrorType OrElse targetType.IsErrorType Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Dim elementConversion = ClassifyConversion(argumentType, targetType, useSiteInfo).Key
+
+                If NoConversion(elementConversion) Then
+                    Return Nothing 'ConversionKind.NoConversion
+                End If
+
+                Debug.Assert((elementConversion And ConversionKind.InvolvesNarrowingFromNumericConstant) = 0)
+                Dim elementDelegateRelaxationLevel = elementConversion And ConversionKind.DelegateRelaxationLevelMask
+                If elementDelegateRelaxationLevel > maxDelegateRelaxationLevel Then
+                    maxDelegateRelaxationLevel = elementDelegateRelaxationLevel
+                End If
+
+                If IsNarrowingConversion(elementConversion) Then
+                    result = ConversionKind.NarrowingTuple
+                End If
+            Next
+
+            Return result Or maxDelegateRelaxationLevel
         End Function
 
         Public Shared Function ClassifyStringConversion(source As TypeSymbol, destination As TypeSymbol) As ConversionKind
@@ -3474,7 +3647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As TypeSymbol,
             destination As TypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             '§8.8 Widening Conversions
             '•	From a type parameter to Object.
@@ -3502,7 +3675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conv As ConversionKind
 
             If source.Kind = SymbolKind.TypeParameter Then
-                conv = ClassifyConversionFromTypeParameter(DirectCast(source, TypeParameterSymbol), destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                conv = ClassifyConversionFromTypeParameter(DirectCast(source, TypeParameterSymbol), destination, varianceCompatibilityClassificationDepth, useSiteInfo)
 
                 If ConversionExists(conv) Then
                     Return conv
@@ -3510,7 +3683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If destination.Kind = SymbolKind.TypeParameter Then
-                conv = ClassifyConversionToTypeParameter(source, DirectCast(destination, TypeParameterSymbol), varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                conv = ClassifyConversionToTypeParameter(source, DirectCast(destination, TypeParameterSymbol), varianceCompatibilityClassificationDepth, useSiteInfo)
 
                 If ConversionExists(conv) Then
                     Debug.Assert(IsNarrowingConversion(conv)) ' We are relying on this while classifying conversions from type parameter to avoid need for recursion.
@@ -3529,7 +3702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             typeParameter As TypeParameterSymbol,
             destination As TypeSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
 
             If destination.SpecialType = SpecialType.System_Object Then
@@ -3538,7 +3711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim queue As ArrayBuilder(Of TypeParameterSymbol) = Nothing
-            Dim result As ConversionKind = ClassifyConversionFromTypeParameter(typeParameter, destination, queue, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+            Dim result As ConversionKind = ClassifyConversionFromTypeParameter(typeParameter, destination, queue, varianceCompatibilityClassificationDepth, useSiteInfo)
 
             If queue IsNot Nothing Then
                 queue.Free()
@@ -3553,7 +3726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             destination As TypeSymbol,
             <[In], Out> ByRef queue As ArrayBuilder(Of TypeParameterSymbol),
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
 
             Dim queueIndex As Integer = 0
@@ -3587,7 +3760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' !!! Not mentioned explicitly in the spec.
                             If convToInterface.AccumulateConversionClassificationToVariantCompatibleInterface(valueType, destinationInterface,
                                                                                                               varianceCompatibilityClassificationDepth,
-                                                                                                              useSiteDiagnostics) Then
+                                                                                                              useSiteInfo) Then
                                 convToInterface.AssertFoundIdentity()
                                 Return ConversionKind.WideningTypeParameter
                             End If
@@ -3598,18 +3771,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Iterate over the constraints
-                For Each constraint As TypeSymbol In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                For Each constraint As TypeSymbol In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                     If constraint.Kind = SymbolKind.ErrorType Then
                         Continue For
                     End If
 
-                    If constraint.IsSameTypeIgnoringCustomModifiers(destination) Then
+                    If constraint.IsSameTypeIgnoringAll(destination) Then
                         'From a type parameter to an interface type constraint
                         'From a type parameter to a class constraint
                         'From a type parameter T to a type parameter constraint TX
                         Return ConversionKind.WideningTypeParameter
                     ElseIf constraint.TypeKind = TypeKind.Enum AndAlso
-                       DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringCustomModifiers(destination) Then
+                       DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringAll(destination) Then
                         ' !!! Spec doesn't mention this, but Dev10 allows conversion 
                         ' !!! to the underlying type of the enum
                         Return ConversionKind.WideningTypeParameter Or ConversionKind.InvolvesEnumTypeConversions
@@ -3632,7 +3805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If convToInterface.AccumulateConversionClassificationToVariantCompatibleInterface(DirectCast(constraint, NamedTypeSymbol),
                                                                                                               destinationInterface,
                                                                                                               varianceCompatibilityClassificationDepth,
-                                                                                                              useSiteDiagnostics) Then
+                                                                                                              useSiteInfo) Then
                                 convToInterface.AssertFoundIdentity()
                                 'From a type parameter to any interface variant compatible with an interface type constraint.
                                 'From a type parameter to an interface implemented by a class constraint.
@@ -3644,7 +3817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ElseIf constraintIsArrayType Then
 
-                            Dim conv As ConversionKind = ClassifyReferenceConversionFromArrayToAnInterface(constraint, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                            Dim conv As ConversionKind = ClassifyReferenceConversionFromArrayToAnInterface(constraint, destination, varianceCompatibilityClassificationDepth, useSiteInfo)
                             If IsWideningConversion(conv) Then
                                 'From a type parameter to an interface implemented by a class constraint.
                                 'From a type parameter to an interface variant compatible with an interface implemented by a class constraint.
@@ -3655,14 +3828,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ElseIf dstIsClassType Then
                         If (constraintIsClassType OrElse constraintIsValueType OrElse constraintIsArrayType) AndAlso
-                           IsDerivedFrom(constraint, destination, useSiteDiagnostics) Then
+                           IsDerivedFrom(constraint, destination, useSiteInfo) Then
                             'From a type parameter to a base type of the class constraint.
                             Return ConversionKind.WideningTypeParameter
                         End If
 
                     ElseIf dstIsArrayType Then
                         If constraintIsArrayType Then
-                            Dim conv As ConversionKind = ClassifyArrayConversion(constraint, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                            Dim conv As ConversionKind = ClassifyArrayConversion(constraint, destination, varianceCompatibilityClassificationDepth, useSiteInfo)
                             If IsWideningConversion(conv) Then
                                 ' !!! Spec doesn't explicitly mention array covariance, but Dev10 compiler takes them
                                 ' !!! into consideration.
@@ -3727,7 +3900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As TypeSymbol,
             typeParameter As TypeParameterSymbol,
             varianceCompatibilityClassificationDepth As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
             If source.SpecialType = SpecialType.System_Object Then
                 'From Object to a type parameter.
@@ -3743,7 +3916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsClassType(source) Then
                     Dim valueType = typeParameter.ContainingAssembly.GetSpecialType(SpecialType.System_ValueType)
 
-                    If valueType.Kind <> SymbolKind.ErrorType AndAlso IsDerivedFrom(valueType, source, useSiteDiagnostics) Then
+                    If valueType.Kind <> SymbolKind.ErrorType AndAlso IsDerivedFrom(valueType, source, useSiteInfo) Then
                         ' !!! Not mentioned explicitly in the spec.
                         Return ConversionKind.NarrowingTypeParameter
                     End If
@@ -3763,17 +3936,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
 
                 ' Iterate over constraints
-                For Each constraint As TypeSymbol In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                For Each constraint As TypeSymbol In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                     If constraint.Kind = SymbolKind.ErrorType Then
                         Continue For
                     End If
 
-                    If constraint.IsSameTypeIgnoringCustomModifiers(source) Then
+                    If constraint.IsSameTypeIgnoringAll(source) Then
                         'From a class constraint to a type parameter.
                         'From a type parameter constraint TX to a type parameter T
                         Return ConversionKind.NarrowingTypeParameter
                     ElseIf constraint.TypeKind = TypeKind.Enum AndAlso
-                       DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringCustomModifiers(source) Then
+                       DirectCast(constraint, NamedTypeSymbol).EnumUnderlyingType.IsSameTypeIgnoringAll(source) Then
                         ' !!! Spec doesn't mention this, but Dev10 allows conversion 
                         ' !!! from the underlying type of the enum
                         Return ConversionKind.NarrowingTypeParameter Or ConversionKind.InvolvesEnumTypeConversions
@@ -3791,14 +3964,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If (constraintIsClassType OrElse constraintIsValueType OrElse constraintIsArrayType) Then
                         If srcIsClassType Then
-                            If IsDerivedFrom(constraint, source, useSiteDiagnostics) Then
+                            If IsDerivedFrom(constraint, source, useSiteInfo) Then
                                 'From a base type of the class constraint to a type parameter.
                                 Return ConversionKind.NarrowingTypeParameter
                             End If
 
                         ElseIf srcIsArrayType Then
                             If constraintIsArrayType Then
-                                Dim conv = ClassifyArrayConversion(constraint, source, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                                Dim conv = ClassifyArrayConversion(constraint, source, varianceCompatibilityClassificationDepth, useSiteInfo)
                                 If IsWideningConversion(conv) Then
                                     ' !!! Spec doesn't explicitly mention array covariance, but Dev10 compiler takes them
                                     ' !!! into consideration.
@@ -3815,7 +3988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                     ElseIf constraint.Kind = SymbolKind.TypeParameter Then
-                        Dim conv As ConversionKind = ClassifyTypeParameterConversion(source, constraint, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
+                        Dim conv As ConversionKind = ClassifyTypeParameterConversion(source, constraint, varianceCompatibilityClassificationDepth, useSiteInfo)
                         If IsNarrowingConversion(conv) Then
                             'From anything that has narrowing conversion to a type parameter constraint TX.
 
@@ -3852,10 +4025,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     Return ConvertFrom(...)
         ''' End ... 
         ''' </summary>
+        Public Shared Function ClassifyMethodConversionBasedOnReturn(
+            returnTypeOfConvertFromMethod As TypeSymbol,
+            convertFromMethodIsByRef As Boolean,
+            returnTypeOfConvertToMethod As TypeSymbol,
+            convertToMethodIsByRef As Boolean,
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
+        ) As MethodConversionKind
+            If convertToMethodIsByRef <> convertFromMethodIsByRef Then
+                Return MethodConversionKind.Error_ByRefByValMismatch
+            End If
+
+            Return ClassifyMethodConversionBasedOnReturnType(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, convertFromMethodIsByRef, useSiteInfo)
+        End Function
+
         Public Shared Function ClassifyMethodConversionBasedOnReturnType(
             returnTypeOfConvertFromMethod As TypeSymbol,
             returnTypeOfConvertToMethod As TypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            isRefReturning As Boolean,
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As MethodConversionKind
             Debug.Assert(returnTypeOfConvertFromMethod IsNot Nothing)
             Debug.Assert(returnTypeOfConvertToMethod IsNot Nothing)
@@ -3883,10 +4071,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MethodConversionKind.Error_Unspecified
             End If
 
-            Dim typeConversion As ConversionKind = ClassifyConversion(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, useSiteDiagnostics).Key
+            Dim typeConversion As ConversionKind = ClassifyConversion(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, useSiteInfo).Key
+
+            If isRefReturning AndAlso Not IsIdentityConversion(typeConversion) Then
+                Return MethodConversionKind.Error_ReturnTypeMismatch
+            End If
 
             Dim result As MethodConversionKind
-
             If IsNarrowingConversion(typeConversion) Then
                 result = MethodConversionKind.ReturnIsWidening
 
@@ -3901,7 +4092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        (typeConversion And ConversionKind.UserDefined) <> 0 Then
                         result = MethodConversionKind.ReturnIsIsVbOrBoxNarrowing
                     Else
-                        Dim clrTypeConversion = ClassifyDirectCastConversion(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, useSiteDiagnostics)
+                        Dim clrTypeConversion = ClassifyDirectCastConversion(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, useSiteInfo)
 
                         If IsWideningConversion(clrTypeConversion) Then
                             result = MethodConversionKind.ReturnIsClrNarrowing
@@ -3955,41 +4146,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ClassifyMethodConversionForLambdaOrAnonymousDelegate(
             toMethod As MethodSymbol,
             lambdaOrDelegateInvokeSymbol As MethodSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As MethodConversionKind
-            Return ClassifyMethodConversionForLambdaOrAnonymousDelegate(New UnboundLambda.TargetSignature(toMethod), lambdaOrDelegateInvokeSymbol, useSiteDiagnostics)
+            Return ClassifyMethodConversionForLambdaOrAnonymousDelegate(New UnboundLambda.TargetSignature(toMethod), lambdaOrDelegateInvokeSymbol, useSiteInfo)
         End Function
 
         Public Shared Function ClassifyMethodConversionForLambdaOrAnonymousDelegate(
             toMethodSignature As UnboundLambda.TargetSignature,
             lambdaOrDelegateInvokeSymbol As MethodSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As MethodConversionKind
 
             ' determine conversions based on return type
-            Dim methodConversions = Conversions.ClassifyMethodConversionBasedOnReturnType(lambdaOrDelegateInvokeSymbol.ReturnType, toMethodSignature.ReturnType, useSiteDiagnostics)
+            Dim methodConversions = Conversions.ClassifyMethodConversionBasedOnReturn(lambdaOrDelegateInvokeSymbol.ReturnType, lambdaOrDelegateInvokeSymbol.ReturnsByRef,
+                                                                                      toMethodSignature.ReturnType, toMethodSignature.ReturnsByRef, useSiteInfo)
 
             ' determine conversions based on arguments
-            methodConversions = methodConversions Or ClassifyMethodConversionForLambdaOrAnonymousDelegateBasedOnParameters(toMethodSignature, lambdaOrDelegateInvokeSymbol.Parameters, useSiteDiagnostics)
+            methodConversions = methodConversions Or ClassifyMethodConversionForLambdaOrAnonymousDelegateBasedOnParameters(toMethodSignature, lambdaOrDelegateInvokeSymbol.Parameters, useSiteInfo)
 
+            Debug.Assert(Not lambdaOrDelegateInvokeSymbol.ReturnsByRef) ' No interaction of ByRef return with other relaxations
             Return methodConversions
         End Function
 
         Public Shared Function ClassifyMethodConversionForEventRaise(
             toDelegateInvokeMethod As MethodSymbol,
             parameters As ImmutableArray(Of ParameterSymbol),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As MethodConversionKind
 
             Debug.Assert(toDelegateInvokeMethod.MethodKind = MethodKind.DelegateInvoke)
 
-            Return ClassifyMethodConversionForLambdaOrAnonymousDelegateBasedOnParameters(New UnboundLambda.TargetSignature(toDelegateInvokeMethod), parameters, useSiteDiagnostics)
+            Return ClassifyMethodConversionForLambdaOrAnonymousDelegateBasedOnParameters(New UnboundLambda.TargetSignature(toDelegateInvokeMethod), parameters, useSiteInfo)
         End Function
 
         Private Shared Function ClassifyMethodConversionForLambdaOrAnonymousDelegateBasedOnParameters(
             toMethodSignature As UnboundLambda.TargetSignature,
             parameters As ImmutableArray(Of ParameterSymbol),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As MethodConversionKind
 
             ' TODO: Take custom modifiers into account, if needed.
@@ -4004,7 +4197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 For parameterIndex As Integer = 0 To parameters.Length - 1
                     ' Check ByRef
-                    If toMethodSignature.IsByRef(parameterIndex) <> parameters(parameterIndex).IsByRef Then
+                    If toMethodSignature.ParameterIsByRef(parameterIndex) <> parameters(parameterIndex).IsByRef Then
                         methodConversions = methodConversions Or MethodConversionKind.Error_ByRefByValMismatch
                     End If
 
@@ -4015,14 +4208,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Not toParameterType.IsErrorType() AndAlso Not lambdaParameterType.IsErrorType() Then
                         methodConversions = methodConversions Or
                                             Conversions.ClassifyMethodConversionBasedOnArgumentConversion(
-                                                                     Conversions.ClassifyConversion(toParameterType, lambdaParameterType, useSiteDiagnostics).Key,
+                                                                     Conversions.ClassifyConversion(toParameterType, lambdaParameterType, useSiteInfo).Key,
                                                                      toParameterType)
 
                         ' Check copy back conversion.
-                        If toMethodSignature.IsByRef(parameterIndex) Then
+                        If toMethodSignature.ParameterIsByRef(parameterIndex) Then
                             methodConversions = methodConversions Or
                                                 Conversions.ClassifyMethodConversionBasedOnArgumentConversion(
-                                                                         Conversions.ClassifyConversion(lambdaParameterType, toParameterType, useSiteDiagnostics).Key,
+                                                                         Conversions.ClassifyConversion(lambdaParameterType, toParameterType, useSiteInfo).Key,
                                                                          lambdaParameterType)
                         End If
                     End If
@@ -4037,7 +4230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function DetermineDelegateRelaxationLevelForLambdaReturn(
             expressionOpt As BoundExpression,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ConversionKind
 
             If expressionOpt Is Nothing OrElse expressionOpt.Kind <> BoundKind.Conversion OrElse expressionOpt.HasErrors Then
@@ -4061,7 +4254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(conversion.Operand.IsNothingLiteral() OrElse conversion.Operand.Kind = BoundKind.Lambda)
                 methodConversion = MethodConversionKind.Identity
             Else
-                methodConversion = ClassifyMethodConversionBasedOnReturnType(operandType, conversion.Type, useSiteDiagnostics)
+                methodConversion = ClassifyMethodConversionBasedOnReturnType(operandType, conversion.Type, isRefReturning:=False, useSiteInfo:=useSiteInfo)
             End If
 
             Return DetermineDelegateRelaxationLevel(methodConversion)
@@ -4372,6 +4565,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Friend Overrides Function WithElementType(elementType As TypeSymbol) As ArrayTypeSymbol
             Throw ExceptionUtilities.Unreachable
         End Function
     End Class

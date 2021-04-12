@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -79,27 +83,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal static void VerifyParamArrayAttribute(ParameterSymbol parameter, SourceModuleSymbol module, bool expected = true, OutputKind outputKind = OutputKind.ConsoleApplication)
+        internal static void VerifyParamArrayAttribute(ParameterSymbol parameter, bool expected = true)
         {
             Assert.Equal(expected, parameter.IsParams);
 
-            var emitModule = new PEAssemblyBuilder(module.ContainingSourceAssembly, EmitOptions.Default, outputKind, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var paramArrayAttributeCtor = (MethodSymbol)emitModule.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ParamArrayAttribute__ctor);
-            bool found = false;
+            var peParameter = (PEParameterSymbol)parameter;
+            var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
+            var paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
 
-            var context = new EmitContext(emitModule, null, new DiagnosticBag());
-
-            foreach (Microsoft.Cci.ICustomAttribute attr in parameter.GetSynthesizedAttributes())
+            if (expected)
             {
-                if (paramArrayAttributeCtor == (MethodSymbol)attr.Constructor(context))
-                {
-                    Assert.False(found, "Multiple ParamArrayAttribute");
-                    found = true;
-                }
+                Assert.Equal(1, paramArrayAttributes.Count());
             }
-
-            Assert.Equal(expected, found);
-            context.Diagnostics.Verify();
+            else
+            {
+                Assert.Empty(paramArrayAttributes);
+            }
         }
     }
 }

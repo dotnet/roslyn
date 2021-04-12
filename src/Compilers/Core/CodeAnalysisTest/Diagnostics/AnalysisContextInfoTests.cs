@@ -1,10 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,24 +23,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void InitializeTest()
         {
             var code = @"class C { void M() { return; } }";
-            var compilation = CreateCompilation(code);
+            var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None)
+                .WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "true") });
+            var compilation = CreateCompilation(code, parseOptions: parseOptions);
+            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
 
-            Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterCodeBlockStartAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterCompilationAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterCompilationStartAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterOperationAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterOperationBlockAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterSemanticModelAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterSymbolAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterSyntaxNodeAction));
-            Verify(compilation, nameof(AnalysisContext.RegisterSyntaxTreeAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterCodeBlockAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterCodeBlockStartAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterCompilationAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterCompilationStartAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterOperationAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterOperationBlockAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterSemanticModelAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterSymbolAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterSyntaxNodeAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterSyntaxTreeAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterAdditionalFileAction));
         }
 
-        private static void Verify(Compilation compilation, string context)
+        private static void Verify(Compilation compilation, AnalyzerOptions options, string context)
         {
             var analyzer = new Analyzer(s => context == s);
-            var diagnostics = compilation.GetAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer });
+            var diagnostics = compilation.GetAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer }, options);
 
             Assert.Equal(1, diagnostics.Length);
             Assert.True(diagnostics[0].Descriptor.Description.ToString().IndexOf(analyzer.Info.GetContext()) >= 0);
@@ -41,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private class Analyzer : DiagnosticAnalyzer
         {
-            public const string Id = "expection";
+            public const string Id = "exception";
             private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
             private readonly Func<string, bool> _throwPredicate;
@@ -62,12 +73,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 c.RegisterCodeBlockStartAction<SyntaxKind>(b => ThrowIfMatch(nameof(c.RegisterCodeBlockStartAction), new AnalysisContextInfo(b.SemanticModel.Compilation, b.OwningSymbol, b.CodeBlock)));
                 c.RegisterCompilationAction(b => ThrowIfMatch(nameof(c.RegisterCompilationAction), new AnalysisContextInfo(b.Compilation)));
                 c.RegisterCompilationStartAction(b => ThrowIfMatch(nameof(c.RegisterCompilationStartAction), new AnalysisContextInfo(b.Compilation)));
-                c.RegisterOperationAction(b => ThrowIfMatch(nameof(c.RegisterOperationAction), new AnalysisContextInfo(b.Compilation, b.Operation)), OperationKind.ReturnStatement);
+                c.RegisterOperationAction(b => ThrowIfMatch(nameof(c.RegisterOperationAction), new AnalysisContextInfo(b.Compilation, b.Operation)), OperationKind.Return);
                 c.RegisterOperationBlockAction(b => ThrowIfMatch(nameof(c.RegisterOperationBlockAction), new AnalysisContextInfo(b.Compilation, b.OwningSymbol)));
                 c.RegisterSemanticModelAction(b => ThrowIfMatch(nameof(c.RegisterSemanticModelAction), new AnalysisContextInfo(b.SemanticModel)));
                 c.RegisterSymbolAction(b => ThrowIfMatch(nameof(c.RegisterSymbolAction), new AnalysisContextInfo(b.Compilation, b.Symbol)), SymbolKind.NamedType);
                 c.RegisterSyntaxNodeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxNodeAction), new AnalysisContextInfo(b.SemanticModel.Compilation, b.Node)), SyntaxKind.ReturnStatement);
-                c.RegisterSyntaxTreeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxTreeAction), new AnalysisContextInfo(b.Compilation, b.Tree)));
+                c.RegisterSyntaxTreeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxTreeAction), new AnalysisContextInfo(b.Compilation, new SourceOrAdditionalFile(b.Tree))));
+                c.RegisterAdditionalFileAction(b => ThrowIfMatch(nameof(c.RegisterAdditionalFileAction), new AnalysisContextInfo(b.Compilation, new SourceOrAdditionalFile(b.AdditionalFile))));
             }
 
             private void ThrowIfMatch(string context, AnalysisContextInfo info)
@@ -93,12 +105,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 isEnabledByDefault: true);
         }
 
-        private static Compilation CreateCompilation(string source)
+        private static Compilation CreateCompilation(string source, CSharpParseOptions parseOptions = null)
         {
             string fileName = "Test.cs";
             string projectName = "TestProject";
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName);
+            var syntaxTree = CSharpSyntaxTree.ParseText(source, path: fileName, options: parseOptions);
 
             return CSharpCompilation.Create(
                 projectName,

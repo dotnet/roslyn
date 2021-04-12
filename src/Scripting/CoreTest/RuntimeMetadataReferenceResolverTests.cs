@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 extern alias Scripting;
 
@@ -24,9 +28,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
                 // With NuGetPackageResolver.
                 var resolver = new RuntimeMetadataReferenceResolver(
-                    new RelativePathResolver(ImmutableArray.Create(directory.Path), baseDirectory: directory.Path),
-                    new PackageResolver(ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("nuget:N/1.0", ImmutableArray.Create(assembly1.Path, assembly2.Path))),
-                    gacFileResolver: null);
+                    new RelativePathResolver(ImmutableArray.Create(directory.Path), directory.Path),
+                    packageResolver: new PackageResolver(ImmutableDictionary<string, ImmutableArray<string>>.Empty.Add("nuget:N/1.0", ImmutableArray.Create(assembly1.Path, assembly2.Path))),
+                    gacFileResolver: null,
+                    trustedPlatformAssemblies: ImmutableDictionary<string, string>.Empty);
+
                 // Recognized NuGet reference.
                 var actualReferences = resolver.ResolveReference("nuget:N/1.0", baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
                 AssertEx.SetEqual(actualReferences.SelectAsArray(r => r.FilePath), assembly1.Path, assembly2.Path);
@@ -42,9 +48,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
                 // Without NuGetPackageResolver.
                 resolver = new RuntimeMetadataReferenceResolver(
-                    new RelativePathResolver(ImmutableArray.Create(directory.Path), baseDirectory: directory.Path),
-                    packageResolver: null,
-                    gacFileResolver: null);
+                    searchPaths: ImmutableArray.Create(directory.Path),
+                    baseDirectory: directory.Path);
+
                 // Unrecognized NuGet reference.
                 actualReferences = resolver.ResolveReference("nuget:N/1.0", baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
                 Assert.True(actualReferences.IsEmpty);

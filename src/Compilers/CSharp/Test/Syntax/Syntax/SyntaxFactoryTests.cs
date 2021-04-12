@@ -1,19 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class SyntaxFactoryTests
+    public class SyntaxFactoryTests : CSharpTestBase
     {
+        [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
+        public void AlternateVerbatimString()
+        {
+            var token = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken);
+            Assert.Equal("$@\"", token.Text);
+            Assert.Equal("$@\"", token.ValueText);
+        }
+
         [Fact]
         public void SyntaxTree()
         {
@@ -33,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructNamespaceWithNameOnly()
         {
-            var n = SyntaxFactory.NamespaceDeclaration(name: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("foo")));
+            var n = SyntaxFactory.NamespaceDeclaration(name: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("goo")));
             Assert.NotNull(n);
             Assert.Equal(0, n.Errors().Length);
             Assert.Equal(0, n.Externs.Count);
@@ -53,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructClassWithKindAndNameOnly()
         {
-            var c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("foo"));
+            var c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("goo"));
             Assert.NotNull(c);
             Assert.Equal(0, c.AttributeLists.Count);
             Assert.Equal(0, c.Modifiers.Count);
@@ -128,7 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
 
@@ -140,7 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
 
@@ -152,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
             }
@@ -265,8 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("x,y,z", list2.ToString());
         }
 
-        [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
         [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
         public void TestLiteralDefaultStringValues()
         {
             // string
@@ -323,7 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // float
             CheckLiteralToString(0F, @"0F");
             CheckLiteralToString(0.012345F, @"0.012345F");
+#if NET472
             CheckLiteralToString(float.MaxValue, @"3.40282347E+38F");
+#else
+            CheckLiteralToString(float.MaxValue, @"3.4028235E+38F");
+#endif
 
             // double
             CheckLiteralToString(0D, @"0");
@@ -336,12 +351,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckLiteralToString(decimal.MaxValue, @"79228162514264337593543950335M");
         }
 
-        [WorkItem(849836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
         [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(849836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
         public void TestLiteralToStringDifferentCulture()
         {
             var culture = CultureInfo.CurrentCulture;
-            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE", useUserOverride: false);
 
             // If we are using the current culture to format the string then
             // decimal values should render as , instead of .
@@ -360,6 +376,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("\"\\u2028\"", literal.Text);
         }
 
+        [WorkItem(20693, "https://github.com/dotnet/roslyn/issues/20693")]
+        [Fact]
+        public void TestEscapeSurrogate()
+        {
+            var literal = SyntaxFactory.Literal('\uDBFF');
+            Assert.Equal("'\\udbff'", literal.Text);
+        }
+
         private static void CheckLiteralToString(dynamic value, string expected)
         {
             var literal = SyntaxFactory.Literal(value);
@@ -376,6 +400,211 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             return builder.ToString();
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnosticsWithoutSyntaxTree_WithDiagnostics()
+        {
+            var tokens = SyntaxFactory.ParseTokens("1l").ToList();
+            Assert.Equal(2, tokens.Count); // { "1l", "EOF" }
+
+            var literal = tokens.First();
+            Assert.Equal("1l", literal.Text);
+            Assert.Equal(Location.None, literal.GetLocation());
+
+            literal.GetDiagnostics().Verify(
+                // warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix));
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnosticsWithoutSyntaxTree_WithoutDiagnostics()
+        {
+            var tokens = SyntaxFactory.ParseTokens("1L").ToList();
+            Assert.Equal(2, tokens.Count); // { "1L", "EOF" }
+
+            var literal = tokens.First();
+            Assert.Equal("1L", literal.Text);
+            Assert.Equal(Location.None, literal.GetLocation());
+
+            literal.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnosticsWithSyntaxTree_WithDiagnostics()
+        {
+            var expression = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression("1l");
+            Assert.Equal("1l", expression.Token.Text);
+            Assert.NotNull(expression.Token.SyntaxTree);
+
+            var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
+            Assert.Equal(expectedLocation, expression.Token.GetLocation());
+
+            expression.Token.GetDiagnostics().Verify(
+                // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // 1l
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 2));
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetTokenDiagnosticsWithSyntaxTree_WithoutDiagnostics()
+        {
+            var expression = (LiteralExpressionSyntax)SyntaxFactory.ParseExpression("1L");
+            Assert.Equal("1L", expression.Token.Text);
+            Assert.NotNull(expression.Token.SyntaxTree);
+
+            var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
+            Assert.Equal(expectedLocation, expression.Token.GetLocation());
+
+            expression.Token.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        [WorkItem(17067, "https://github.com/dotnet/roslyn/issues/17067")]
+        public void GetDiagnosticsFromNullToken()
+        {
+            var token = new SyntaxToken(null);
+            Assert.Equal(Location.None, token.GetLocation());
+            token.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnNullableIntType()
+        {
+            var syntaxNode =
+                SyntaxFactory.CompilationUnit()
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration("C")
+                        .WithMembers(
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                                SyntaxFactory.PropertyDeclaration(
+                                    SyntaxFactory.NullableType(
+                                        SyntaxFactory.PredefinedType(
+                                            SyntaxFactory.Token(SyntaxKind.IntKeyword))),
+                                    SyntaxFactory.Identifier("P"))
+                                    .WithAccessorList(
+                                        SyntaxFactory.AccessorList())))))
+                .NormalizeWhitespace();
+
+            // no space between int and ?
+            Assert.Equal("class C\r\n{\r\n    int? P { }\r\n}", syntaxNode.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnNullableDatetimeType()
+        {
+            var syntaxNode =
+                SyntaxFactory.CompilationUnit()
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration("C")
+                        .WithMembers(
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                                SyntaxFactory.PropertyDeclaration(
+                                    SyntaxFactory.NullableType(
+                                        SyntaxFactory.ParseTypeName("DateTime")),
+                                    SyntaxFactory.Identifier("P"))
+                                    .WithAccessorList(
+                                        SyntaxFactory.AccessorList())))))
+                .NormalizeWhitespace();
+
+            // no space between DateTime and ?
+            Assert.Equal("class C\r\n{\r\n    DateTime? P { }\r\n}", syntaxNode.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnTernary()
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression("x is int? y: z").NormalizeWhitespace();
+
+            // space between int and ?
+            Assert.Equal("x is int ? y : z", syntaxNode.ToFullString());
+
+            var syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime? y: z").NormalizeWhitespace();
+
+            // space between DateTime and ?
+            Assert.Equal("x is DateTime ? y : z", syntaxNode2.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnCoalescing()
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression("x is int??y").NormalizeWhitespace();
+            Assert.Equal("x is int ?? y", syntaxNode.ToFullString());
+
+            var syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime??y").NormalizeWhitespace();
+            Assert.Equal("x is DateTime ?? y", syntaxNode2.ToFullString());
+
+            var syntaxNode3 = SyntaxFactory.ParseExpression("x is object??y").NormalizeWhitespace();
+            Assert.Equal("x is object ?? y", syntaxNode3.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(37467, "https://github.com/dotnet/roslyn/issues/37467")]
+        public void TestUnnecessarySemicolon()
+        {
+            var syntaxNode = SyntaxFactory.MethodDeclaration(
+                attributeLists: default,
+                modifiers: default,
+                returnType: SyntaxFactory.ParseTypeName("int[]"),
+                explicitInterfaceSpecifier: null,
+                identifier: SyntaxFactory.Identifier("M"),
+                typeParameterList: null,
+                parameterList: SyntaxFactory.ParseParameterList("()"),
+                constraintClauses: default,
+                body: (BlockSyntax)SyntaxFactory.ParseStatement("{}"),
+                semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                );
+            Assert.Equal("int[]M(){};", syntaxNode.ToFullString());
+        }
+
+        [Fact, WorkItem(40342, "https://github.com/dotnet/roslyn/issues/40342")]
+        public void TestParenthesizedLambdaNoParameterList()
+        {
+            var lambda = SyntaxFactory.ParenthesizedLambdaExpression(body: SyntaxFactory.Block());
+            Assert.NotNull(lambda);
+            Assert.Equal("()=>{}", lambda.ToFullString());
+
+            var fullySpecified = SyntaxFactory.ParenthesizedLambdaExpression(parameterList: SyntaxFactory.ParameterList(), body: SyntaxFactory.Block());
+            Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
+
+        [Fact, WorkItem(40342, "https://github.com/dotnet/roslyn/issues/40342")]
+        public void TestParenthesizedLambdaNoParameterList_ExpressionBody()
+        {
+            var lambda = SyntaxFactory.ParenthesizedLambdaExpression(body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+            Assert.NotNull(lambda);
+            Assert.Equal("()=>1", lambda.ToFullString());
+
+            var fullySpecified = SyntaxFactory.ParenthesizedLambdaExpression(
+                parameterList: SyntaxFactory.ParameterList(),
+                body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+            Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
+
+        [Fact]
+        public void TestParseNameWithOptions()
+        {
+            var type = "delegate*<void>";
+
+            var parsedWith8 = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular8);
+            parsedWith8.GetDiagnostics().Verify(
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1)
+            );
+
+            var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular9);
+            parsedWithPreview.GetDiagnostics().Verify();
         }
     }
 }

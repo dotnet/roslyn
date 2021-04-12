@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -13,23 +15,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class ViewSpanChangedEventSource : ITaggerEventSource
         {
-            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+            private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
             private readonly ITextView _textView;
             private readonly TaggerDelay _textChangeDelay;
             private readonly TaggerDelay _scrollChangeDelay;
 
             private Span? _span;
-            private ITextSnapshot _viewTextSnapshot;
-            private ITextSnapshot _viewVisualSnapshot;
+            private ITextSnapshot? _viewTextSnapshot;
+            private ITextSnapshot? _viewVisualSnapshot;
 
-            public event EventHandler<TaggerEventArgs> Changed;
+            public event EventHandler<TaggerEventArgs>? Changed;
             public event EventHandler UIUpdatesPaused { add { } remove { } }
             public event EventHandler UIUpdatesResumed { add { } remove { } }
 
-            public ViewSpanChangedEventSource(ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
+            public ViewSpanChangedEventSource(IThreadingContext threadingContext, ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
             {
                 Debug.Assert(textView != null);
+                _foregroundObject = new ForegroundThreadAffinitizedObject(threadingContext);
                 _textView = textView;
                 _textChangeDelay = textChangeDelay;
                 _scrollChangeDelay = scrollChangeDelay;
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _textView.LayoutChanged -= OnLayoutChanged;
             }
 
-            private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+            private void OnLayoutChanged(object? sender, TextViewLayoutChangedEventArgs e)
             {
                 _foregroundObject.AssertIsForeground();
                 // The formatted span refers to the span of the textview's buffer that is visible.
@@ -87,9 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             private void RaiseChanged(TaggerDelay delay)
-            {
-                this.Changed?.Invoke(this, new TaggerEventArgs(delay));
-            }
+                => this.Changed?.Invoke(this, new TaggerEventArgs(delay));
         }
     }
 }

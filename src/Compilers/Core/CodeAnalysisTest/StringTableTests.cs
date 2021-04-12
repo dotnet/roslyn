@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -13,8 +18,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAddSameWithStringBuilderProducesSameStringInstance()
         {
             var st = new StringTable();
-            var sb1 = new StringBuilder("foo");
-            var sb2 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
+            var sb2 = new StringBuilder("goo");
             var s1 = st.Add(sb1);
             var s2 = st.Add(sb2);
             Assert.Same(s1, s2);
@@ -24,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAddDifferentWithStringBuilderProducesDifferentStringInstance()
         {
             var st = new StringTable();
-            var sb1 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
             var sb2 = new StringBuilder("bar");
             var s1 = st.Add(sb1);
             var s2 = st.Add(sb2);
@@ -62,8 +67,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestSharedAddSameWithStringBuilderProducesSameStringInstance()
         {
-            var sb1 = new StringBuilder("foo");
-            var sb2 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
+            var sb2 = new StringBuilder("goo");
             var s1 = new StringTable().Add(sb1);
             var s2 = new StringTable().Add(sb2);
             Assert.Same(s1, s2);
@@ -79,11 +84,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(s1, s2);
         }
 
-        private unsafe static bool TestTextEqualsASCII(string str, string ascii)
+        private static unsafe bool TestTextEqualsASCII(string str, string ascii)
         {
             fixed (byte* ptr = Encoding.ASCII.GetBytes(ascii))
             {
-                var ptrResult = StringTable.TextEqualsASCII(str, ptr, ascii.Length);
+                var ptrResult = StringTable.TextEqualsASCII(str, new ReadOnlySpan<byte>(ptr, ascii.Length));
                 var sbResult = StringTable.TextEquals(str, new StringBuilder(ascii));
                 var substrResult = StringTable.TextEquals(str, "xxx" + ascii + "yyy", 3, ascii.Length);
                 Assert.Equal(substrResult, sbResult);
@@ -117,6 +122,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(TestTextEqualsASCII("\u1234", "a"));
             Assert.False(TestTextEqualsASCII("\ud800", "xx"));
             Assert.False(TestTextEqualsASCII("\uffff", ""));
+        }
+
+        [Fact]
+        public void TestAddEqualSubstringsFromDifferentStringsWorks()
+        {
+            // Make neither of the strings equal to the result of the substring call
+            // to test an issue that was surfaced by pooling the wrong string.
+            var str1 = "abcd1";
+            var str2 = "abcd2";
+            var st = new StringTable();
+
+            var s1 = st.Add(str1, 0, 4);
+            var s2 = st.Add(str2, 0, 4);
+
+            Assert.Same(s1, s2);
+            Assert.Equal("abcd", s1);
         }
     }
 }

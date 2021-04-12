@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -18,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private readonly ObjectListItem _listItem;
         private readonly Project _project;
 
-        private static readonly SymbolDisplayFormat s_typeDisplay = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_typeDisplay = new(
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         protected AbstractDescriptionBuilder(
@@ -49,29 +53,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         protected void AddComma()
-        {
-            _description.AddDescriptionText3(", ", VSOBDESCRIPTIONSECTION.OBDS_COMMA, null);
-        }
+            => _description.AddDescriptionText3(", ", VSOBDESCRIPTIONSECTION.OBDS_COMMA, null);
 
         protected void AddEndDeclaration()
-        {
-            _description.AddDescriptionText3("\n", VSOBDESCRIPTIONSECTION.OBDS_ENDDECL, null);
-        }
+            => _description.AddDescriptionText3("\n", VSOBDESCRIPTIONSECTION.OBDS_ENDDECL, null);
 
         protected void AddIndent()
-        {
-            _description.AddDescriptionText3("    ", VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
-        }
+            => _description.AddDescriptionText3("    ", VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
 
         protected void AddLineBreak()
-        {
-            _description.AddDescriptionText3("\n", VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
-        }
+            => _description.AddDescriptionText3("\n", VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
 
         protected void AddName(string text)
-        {
-            _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_NAME, null);
-        }
+            => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_NAME, null);
 
         protected void AddNamespaceLink(INamespaceSymbol namespaceSymbol)
         {
@@ -87,14 +81,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         protected void AddParam(string text)
-        {
-            _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_PARAM, null);
-        }
+            => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_PARAM, null);
 
         protected void AddText(string text)
-        {
-            _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
-        }
+            => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
 
         protected void AddTypeLink(ITypeSymbol typeSymbol, LinkFlags flags)
         {
@@ -137,19 +127,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private void BuildProject(ProjectListItem projectListItem)
         {
-            AddText(ServicesVSResources.Library_Project);
+            AddText(ServicesVSResources.Project);
             AddName(projectListItem.DisplayText);
         }
 
         private void BuildReference(ReferenceListItem referenceListItem)
         {
-            AddText(ServicesVSResources.Library_Assembly);
+            AddText(ServicesVSResources.Assembly);
             AddName(referenceListItem.DisplayText);
             AddEndDeclaration();
             AddIndent();
 
-            var portableExecutableReference = referenceListItem.MetadataReference as PortableExecutableReference;
-            if (portableExecutableReference != null)
+            if (referenceListItem.MetadataReference is PortableExecutableReference portableExecutableReference)
             {
                 AddText(portableExecutableReference.FilePath);
             }
@@ -172,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             BuildNamespaceDeclaration(namespaceSymbol, options);
 
             AddEndDeclaration();
-            BuildMemberOf(namespaceSymbol.ContainingAssembly, options);
+            BuildMemberOf(namespaceSymbol.ContainingAssembly);
         }
 
         private void BuildType(TypeListItem typeListItem, _VSOBJDESCOPTIONS options)
@@ -199,9 +188,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
 
             AddEndDeclaration();
-            BuildMemberOf(symbol.ContainingNamespace, options);
+            BuildMemberOf(symbol.ContainingNamespace);
 
-            BuildXmlDocumentation(symbol, compilation, options);
+            BuildXmlDocumentation(symbol, compilation);
         }
 
         private void BuildMember(MemberListItem memberListItem, _VSOBJDESCOPTIONS options)
@@ -242,9 +231,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
 
             AddEndDeclaration();
-            BuildMemberOf(symbol.ContainingType, options);
+            BuildMemberOf(symbol.ContainingType);
 
-            BuildXmlDocumentation(symbol, compilation, options);
+            BuildXmlDocumentation(symbol, compilation);
         }
 
         protected abstract void BuildNamespaceDeclaration(INamespaceSymbol namespaceSymbol, _VSOBJDESCOPTIONS options);
@@ -255,7 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         protected abstract void BuildPropertyDeclaration(IPropertySymbol propertySymbol, _VSOBJDESCOPTIONS options);
         protected abstract void BuildEventDeclaration(IEventSymbol eventSymbol, _VSOBJDESCOPTIONS options);
 
-        private void BuildMemberOf(ISymbol containingSymbol, _VSOBJDESCOPTIONS options)
+        private void BuildMemberOf(ISymbol containingSymbol)
         {
             if (containingSymbol is INamespaceSymbol &&
                 ((INamespaceSymbol)containingSymbol).IsGlobalNamespace)
@@ -263,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 containingSymbol = containingSymbol.ContainingAssembly;
             }
 
-            var memberOfText = ServicesVSResources.Library_MemberOf;
+            var memberOfText = ServicesVSResources.Member_of_0;
             const string specifier = "{0}";
 
             var index = memberOfText.IndexOf(specifier, StringComparison.Ordinal);
@@ -279,26 +268,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             AddIndent();
             AddText(left);
 
-            if (containingSymbol is IAssemblySymbol)
+            if (containingSymbol is IAssemblySymbol assemblySymbol)
             {
-                AddAssemblyLink((IAssemblySymbol)containingSymbol);
+                AddAssemblyLink(assemblySymbol);
             }
-            else if (containingSymbol is ITypeSymbol)
+            else if (containingSymbol is ITypeSymbol typeSymbol)
             {
-                AddTypeLink((ITypeSymbol)containingSymbol, LinkFlags.SplitNamespaceAndType | LinkFlags.ExpandPredefinedTypes);
+                AddTypeLink(typeSymbol, LinkFlags.SplitNamespaceAndType | LinkFlags.ExpandPredefinedTypes);
             }
-            else if (containingSymbol is INamespaceSymbol)
+            else if (containingSymbol is INamespaceSymbol namespaceSymbol)
             {
-                AddNamespaceLink((INamespaceSymbol)containingSymbol);
+                AddNamespaceLink(namespaceSymbol);
             }
 
             AddText(right);
             AddEndDeclaration();
         }
 
-        private void BuildXmlDocumentation(ISymbol symbol, Compilation compilation, _VSOBJDESCOPTIONS options)
+        private void BuildXmlDocumentation(ISymbol symbol, Compilation compilation)
         {
-            var documentationComment = symbol.GetDocumentationComment(expandIncludes: true, cancellationToken: CancellationToken.None);
+            var documentationComment = symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken.None);
             if (documentationComment == null)
             {
                 return;
@@ -315,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             if (documentationComment.SummaryText != null)
             {
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Summary);
+                AddName(ServicesVSResources.Summary_colon);
                 AddLineBreak();
 
                 AddText(formattingService.Format(documentationComment.SummaryText, compilation));
@@ -330,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_TypeParameters);
+                AddName(ServicesVSResources.Type_Parameters_colon);
 
                 foreach (var typeParameterName in documentationComment.TypeParameterNames)
                 {
@@ -356,7 +345,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Parameters);
+                AddName(ServicesVSResources.Parameters_colon1);
 
                 foreach (var parameterName in documentationComment.ParameterNames)
                 {
@@ -382,10 +371,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Returns);
+                AddName(ServicesVSResources.Returns_colon);
                 AddLineBreak();
 
                 AddText(formattingService.Format(documentationComment.ReturnsText, compilation));
+                emittedDocs = true;
+            }
+
+            if (ShowValueDocumentation(symbol) && documentationComment.ValueText != null)
+            {
+                if (emittedDocs)
+                {
+                    AddLineBreak();
+                }
+
+                AddLineBreak();
+                AddName(ServicesVSResources.Value_colon);
+                AddLineBreak();
+
+                AddText(formattingService.Format(documentationComment.ValueText, compilation));
                 emittedDocs = true;
             }
 
@@ -397,7 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Remarks);
+                AddName(ServicesVSResources.Remarks_colon);
                 AddLineBreak();
 
                 AddText(formattingService.Format(documentationComment.RemarksText, compilation));
@@ -412,12 +416,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 AddLineBreak();
-                AddName(ServicesVSResources.Library_Exceptions);
+                AddName(ServicesVSResources.Exceptions_colon);
 
                 foreach (var exceptionType in documentationComment.ExceptionTypes)
                 {
-                    var exceptionTypeSymbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(exceptionType, compilation) as INamedTypeSymbol;
-                    if (exceptionTypeSymbol != null)
+                    if (DocumentationCommentId.GetFirstSymbolForDeclarationId(exceptionType, compilation) is INamedTypeSymbol exceptionTypeSymbol)
                     {
                         AddLineBreak();
 
@@ -435,8 +438,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 AddText(formattingService.Format(exceptionText, compilation));
                             }
                         }
-
-                        emittedDocs = true;
                     }
                 }
             }
@@ -449,41 +450,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 || symbol.Kind == SymbolKind.Property;
         }
 
+        private bool ShowValueDocumentation(ISymbol symbol)
+        {
+            // <returns> is often used in places where <value> was originally intended. Allow either to be used in
+            // documentation comments since they are not likely to be used together and it's not clear which one a
+            // particular code base will be using more often.
+            return ShowReturnsDocumentation(symbol);
+        }
+
         internal bool TryBuild(_VSOBJDESCOPTIONS options)
         {
-            var projectListItem = _listItem as ProjectListItem;
-            if (projectListItem != null)
+            switch (_listItem)
             {
-                BuildProject(projectListItem);
-                return true;
-            }
-
-            var referenceListItem = _listItem as ReferenceListItem;
-            if (referenceListItem != null)
-            {
-                BuildReference(referenceListItem);
-                return true;
-            }
-
-            var namespaceListItem = _listItem as NamespaceListItem;
-            if (namespaceListItem != null)
-            {
-                BuildNamespace(namespaceListItem, options);
-                return true;
-            }
-
-            var typeListItem = _listItem as TypeListItem;
-            if (typeListItem != null)
-            {
-                BuildType(typeListItem, options);
-                return true;
-            }
-
-            var memberListItem = _listItem as MemberListItem;
-            if (memberListItem != null)
-            {
-                BuildMember(memberListItem, options);
-                return true;
+                case ProjectListItem projectListItem:
+                    BuildProject(projectListItem);
+                    return true;
+                case ReferenceListItem referenceListItem:
+                    BuildReference(referenceListItem);
+                    return true;
+                case NamespaceListItem namespaceListItem:
+                    BuildNamespace(namespaceListItem, options);
+                    return true;
+                case TypeListItem typeListItem:
+                    BuildType(typeListItem, options);
+                    return true;
+                case MemberListItem memberListItem:
+                    BuildMember(memberListItem, options);
+                    return true;
             }
 
             return false;

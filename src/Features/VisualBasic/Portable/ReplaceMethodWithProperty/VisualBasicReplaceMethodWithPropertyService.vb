@@ -1,53 +1,27 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-Imports System
-Imports System.Collections.Generic
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 Imports System.Composition
-Imports System.Linq
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicReplaceMethodWithPropertyService
+        Inherits AbstractReplaceMethodWithPropertyService(Of MethodStatementSyntax)
         Implements IReplaceMethodWithPropertyService
 
-        Public Function GetMethodName(methodNode As SyntaxNode) As String Implements IReplaceMethodWithPropertyService.GetMethodName
-            Return DirectCast(methodNode, MethodStatementSyntax).Identifier.ValueText
-        End Function
-
-        Public Function GetMethodDeclaration(token As SyntaxToken) As SyntaxNode Implements IReplaceMethodWithPropertyService.GetMethodDeclaration
-            Dim containingMethod = token.Parent.FirstAncestorOrSelf(Of MethodStatementSyntax)
-            If containingMethod Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim start = If(containingMethod.AttributeLists.Count > 0,
-                containingMethod.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
-                 containingMethod.SpanStart)
-
-            ' Offer this refactoring anywhere in the signature of the method.
-            Dim position = token.SpanStart
-            If position < start Then
-                Return Nothing
-            End If
-
-            If containingMethod.HasReturnType() AndAlso
-                position > containingMethod.GetReturnType().Span.End Then
-                Return Nothing
-            End If
-
-            If position > containingMethod.ParameterList.Span.End Then
-                Return Nothing
-            End If
-
-            Return containingMethod
-        End Function
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Public Sub RemoveSetMethod(editor As SyntaxEditor, setMethodDeclaration As SyntaxNode) Implements IReplaceMethodWithPropertyService.RemoveSetMethod
             Dim setMethodStatement = TryCast(setMethodDeclaration, MethodStatementSyntax)
@@ -60,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceGetMethodWithProperty(
+            documentOptions As DocumentOptionSet,
+            parseOptions As ParseOptions,
             editor As SyntaxEditor,
             semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,
@@ -72,10 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             Dim methodBlockOrStatement = GetParentIfBlock(getMethodDeclaration)
             editor.ReplaceNode(methodBlockOrStatement,
-                               ConvertMethodsToProperty(editor, semanticModel, getAndSetMethods, propertyName, nameChanged))
+                               ConvertMethodsToProperty(editor, getAndSetMethods, propertyName, nameChanged))
         End Sub
 
-        Private Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
+        Private Shared Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
             If declaration.IsParentKind(SyntaxKind.FunctionBlock) OrElse declaration.IsParentKind(SyntaxKind.SubBlock) Then
                 Return DirectCast(declaration.Parent, DeclarationStatementSyntax)
             End If
@@ -83,9 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return declaration
         End Function
 
-        Private Function ConvertMethodsToProperty(
+        Private Shared Function ConvertMethodsToProperty(
             editor As SyntaxEditor,
-            semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,
             propertyName As String, nameChanged As Boolean) As DeclarationStatementSyntax
 
@@ -95,6 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Dim setMethodStatement = TryCast(getAndSetMethods.SetMethodDeclaration, MethodStatementSyntax)
 
             Dim propertyNameToken = GetPropertyName(getMethodStatement.Identifier, propertyName, nameChanged)
+            Dim warning = GetWarning(getAndSetMethods)
+            If warning IsNot Nothing Then
+                propertyNameToken = propertyNameToken.WithAdditionalAnnotations(WarningAnnotation.Create(warning))
+            End If
 
             Dim newPropertyDeclaration As DeclarationStatementSyntax
             If getAndSetMethods.SetMethod Is Nothing Then
@@ -142,17 +121,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 End If
             End If
 
-            Dim trivia As IEnumerable(Of SyntaxTrivia) = getMethodStatement.GetLeadingTrivia()
-            If setMethodStatement IsNot Nothing Then
-                trivia = trivia.Concat(setMethodStatement.GetLeadingTrivia())
-            End If
-
-            newPropertyDeclaration = newPropertyDeclaration.WithLeadingTrivia(trivia)
+            newPropertyDeclaration = SetLeadingTrivia(
+                VisualBasicSyntaxFacts.Instance, getAndSetMethods, newPropertyDeclaration)
 
             Return newPropertyDeclaration.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Private Function GetPropertyName(identifier As SyntaxToken, propertyName As String, nameChanged As Boolean) As SyntaxToken
+        Private Shared Function GetPropertyName(identifier As SyntaxToken, propertyName As String, nameChanged As Boolean) As SyntaxToken
             Return If(nameChanged, SyntaxFactory.Identifier(propertyName), identifier)
         End Function
 
@@ -173,7 +148,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Dim parentExpression = If(nameNode.IsRightSideOfDot(), DirectCast(nameNode.Parent, ExpressionSyntax), nameNode)
             Dim root = If(parentExpression.IsParentKind(SyntaxKind.InvocationExpression), parentExpression.Parent, parentExpression)
 
-            editor.ReplaceNode(root, parentExpression.ReplaceNode(nameNode, newName))
+            editor.ReplaceNode(
+                root,
+                Function(c As SyntaxNode, g As SyntaxGenerator)
+                    Dim currentRoot = DirectCast(c, ExpressionSyntax)
+                    Dim expression = If(currentRoot.IsKind(SyntaxKind.InvocationExpression),
+                                        DirectCast(currentRoot, InvocationExpressionSyntax).Expression,
+                                        currentRoot)
+                    Dim rightName = expression.GetRightmostName()
+                    Return expression.ReplaceNode(rightName, newName.WithTrailingTrivia(currentRoot.GetTrailingTrivia()))
+                End Function)
         End Sub
 
         Public Sub ReplaceSetReference(editor As SyntaxEditor, nameToken As SyntaxToken, propertyName As String, nameChanged As Boolean) Implements IReplaceMethodWithPropertyService.ReplaceSetReference
@@ -195,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                Not parentExpression.Parent.IsParentKind(SyntaxKind.ExpressionStatement) Then
 
                 ' Wasn't invoked.  Change the name, but report a conflict.
-                Dim annotation = ConflictAnnotation.Create(FeaturesResources.NonInvokedMethodCannotBeReplacedWithProperty)
+                Dim annotation = ConflictAnnotation.Create(FeaturesResources.Non_invoked_method_cannot_be_replaced_with_property)
                 editor.ReplaceNode(nameNode, Function(n, g) newName.WithIdentifier(newName.Identifier.WithAdditionalAnnotations(annotation)))
                 Return
             End If
@@ -226,16 +210,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 End Function)
         End Sub
 
-        Private Shared Function IsInvocationName(nameNode As IdentifierNameSyntax, invocationExpression As ExpressionSyntax) As Boolean
-            If invocationExpression Is nameNode Then
-                Return True
-            End If
-
-            If nameNode.IsAnyMemberAccessExpressionName() AndAlso nameNode.Parent Is invocationExpression Then
-                Return True
-            End If
-
-            Return False
+        Private Function IReplaceMethodWithPropertyService_GetMethodDeclarationAsync(context As CodeRefactoringContext) As Task(Of SyntaxNode) Implements IReplaceMethodWithPropertyService.GetMethodDeclarationAsync
+            Return GetMethodDeclarationAsync(context)
         End Function
     End Class
 End Namespace

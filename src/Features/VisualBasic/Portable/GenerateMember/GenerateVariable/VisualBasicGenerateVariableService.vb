@@ -1,10 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -14,6 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
     <ExportLanguageService(GetType(IGenerateVariableService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateVariableService
         Inherits AbstractGenerateVariableService(Of VisualBasicGenerateVariableService, SimpleNameSyntax, ExpressionSyntax)
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function IsExplicitInterfaceGeneration(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean
             Return TypeOf node Is QualifiedNameSyntax
@@ -84,7 +90,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
                 simpleNameOrMemberAccessExpression = identifierName
             End If
 
-
             Dim semanticModel = DirectCast(document.SemanticModel, SemanticModel)
             If Not IsLegal(semanticModel, simpleNameOrMemberAccessExpression, cancellationToken) AndAlso
                Not simpleNameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.NameOfExpression, SyntaxKind.NamedFieldInitializer) Then
@@ -100,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
             Return True
         End Function
 
-        Private Function IsLegal(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function IsLegal(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Boolean
             Dim tree = semanticModel.SyntaxTree
             Dim position = expression.SpanStart
 

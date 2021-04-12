@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableArray<string> _aliases;
         private readonly bool _embedInteropTypes;
 
-        public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
+        public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default, bool embedInteropTypes = false)
         {
             Contract.ThrowIfNull(projectId);
 
@@ -25,22 +29,20 @@ namespace Microsoft.CodeAnalysis
             _embedInteropTypes = embedInteropTypes;
         }
 
-        public ProjectId ProjectId { get { return _projectId; } }
+        public ProjectId ProjectId => _projectId;
 
         /// <summary>
         /// Aliases for the reference. Empty if the reference has no aliases.
         /// </summary>
-        public ImmutableArray<string> Aliases { get { return _aliases; } }
+        public ImmutableArray<string> Aliases => _aliases;
 
         /// <summary>
         /// True if interop types defined in the referenced project should be embedded into the referencing project.
         /// </summary>
-        public bool EmbedInteropTypes { get { return _embedInteropTypes; } }
+        public bool EmbedInteropTypes => _embedInteropTypes;
 
         public override bool Equals(object obj)
-        {
-            return this.Equals(obj as ProjectReference);
-        }
+            => this.Equals(obj as ProjectReference);
 
         public bool Equals(ProjectReference reference)
         {
@@ -49,30 +51,22 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return !ReferenceEquals(reference, null) &&
+            return reference is object &&
                    _projectId == reference._projectId &&
                    _aliases.SequenceEqual(reference._aliases) &&
                    _embedInteropTypes == reference._embedInteropTypes;
         }
 
         public static bool operator ==(ProjectReference left, ProjectReference right)
-        {
-            return EqualityComparer<ProjectReference>.Default.Equals(left, right);
-        }
+            => EqualityComparer<ProjectReference>.Default.Equals(left, right);
 
         public static bool operator !=(ProjectReference left, ProjectReference right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public override int GetHashCode()
-        {
-            return Hash.CombineValues(_aliases, Hash.Combine(_projectId, _embedInteropTypes.GetHashCode()));
-        }
+            => Hash.CombineValues(_aliases, Hash.Combine(_projectId, _embedInteropTypes.GetHashCode()));
 
         private string GetDebuggerDisplay()
-        {
-            return _projectId.ToString();
-        }
+            => _projectId.ToString();
     }
 }

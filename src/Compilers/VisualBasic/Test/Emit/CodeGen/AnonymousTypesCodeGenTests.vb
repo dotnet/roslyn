@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading.Tasks
@@ -157,7 +159,7 @@ End Module
                          </compilation>
 
             For i = 0 To 100
-                Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+                Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
 
                 Dim tasks(10) As Task
                 For jj = 0 To tasks.Length - 1
@@ -368,7 +370,7 @@ expectedOutput:="VB$AnonymousType_0`1[T0]")
         Public Sub TestAnonymousType_ToString()
             ' test AnonymousType_ToString() itself
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
 
                 CompileAndVerify(
@@ -460,58 +462,63 @@ False
             VerifyIL("VB$AnonymousType_0(Of T0, T1, T2).Equals(VB$AnonymousType_0(Of T0, T1, T2))",
             <![CDATA[
 {
-  // Code size      105 (0x69)
+  // Code size      111 (0x6f)
   .maxstack  2
   .locals init (Object V_0,
                 Object V_1)
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0067
-  IL_0003:  ldarg.0
-  IL_0004:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
-  IL_0009:  box        "T0"
-  IL_000e:  stloc.0
-  IL_000f:  ldarg.1
-  IL_0010:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
-  IL_0015:  box        "T0"
-  IL_001a:  stloc.1
-  IL_001b:  ldloc.0
-  IL_001c:  brfalse.s  IL_0021
-  IL_001e:  ldloc.1
-  IL_001f:  brtrue.s   IL_0027
-  IL_0021:  ldloc.0
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_006d
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_006b
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
+  IL_000d:  box        "T0"
+  IL_0012:  stloc.0
+  IL_0013:  ldarg.1
+  IL_0014:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
+  IL_0019:  box        "T0"
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.0
+  IL_0020:  brfalse.s  IL_0025
   IL_0022:  ldloc.1
-  IL_0023:  ceq
-  IL_0025:  br.s       IL_0033
-  IL_0027:  ldloc.0
-  IL_0028:  ldloc.1
-  IL_0029:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_002e:  callvirt   "Function Object.Equals(Object) As Boolean"
-  IL_0033:  brfalse.s  IL_0065
-  IL_0035:  ldarg.0
-  IL_0036:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
-  IL_003b:  box        "T2"
-  IL_0040:  stloc.0
-  IL_0041:  ldarg.1
-  IL_0042:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
-  IL_0047:  box        "T2"
-  IL_004c:  stloc.1
-  IL_004d:  ldloc.0
-  IL_004e:  brfalse.s  IL_0053
-  IL_0050:  ldloc.1
-  IL_0051:  brtrue.s   IL_0058
-  IL_0053:  ldloc.0
+  IL_0023:  brtrue.s   IL_002b
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ceq
+  IL_0029:  br.s       IL_0037
+  IL_002b:  ldloc.0
+  IL_002c:  ldloc.1
+  IL_002d:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0032:  callvirt   "Function Object.Equals(Object) As Boolean"
+  IL_0037:  brfalse.s  IL_0069
+  IL_0039:  ldarg.0
+  IL_003a:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
+  IL_003f:  box        "T2"
+  IL_0044:  stloc.0
+  IL_0045:  ldarg.1
+  IL_0046:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
+  IL_004b:  box        "T2"
+  IL_0050:  stloc.1
+  IL_0051:  ldloc.0
+  IL_0052:  brfalse.s  IL_0057
   IL_0054:  ldloc.1
-  IL_0055:  ceq
-  IL_0057:  ret
-  IL_0058:  ldloc.0
-  IL_0059:  ldloc.1
-  IL_005a:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_005f:  callvirt   "Function Object.Equals(Object) As Boolean"
-  IL_0064:  ret
-  IL_0065:  ldc.i4.0
-  IL_0066:  ret
-  IL_0067:  ldc.i4.0
+  IL_0055:  brtrue.s   IL_005c
+  IL_0057:  ldloc.0
+  IL_0058:  ldloc.1
+  IL_0059:  ceq
+  IL_005b:  ret
+  IL_005c:  ldloc.0
+  IL_005d:  ldloc.1
+  IL_005e:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0063:  callvirt   "Function Object.Equals(Object) As Boolean"
   IL_0068:  ret
+  IL_0069:  ldc.i4.0
+  IL_006a:  ret
+  IL_006b:  ldc.i4.0
+  IL_006c:  ret
+  IL_006d:  ldc.i4.1
+  IL_006e:  ret
 }
 ]]>)
         End Sub
@@ -700,6 +707,35 @@ False
         End Sub
 
         <Fact()>
+        Public Sub TestAnonymousType_GetHashCode03()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module Program
+
+    Sub Main()
+        Dim at1 As Object = New With {.Ǉ1 = 123, Key .Ǉ2 = 456, Key .Ǉ3 = "XXX", .Ǉ4 = 123.456!}
+        ' Value changes in non-key fields, casing changes in all fields that require a recent unicode version
+        Dim at2 As Object = New With {.ǈ1 = "YYY", Key .ǈ2 = 456, Key .ǈ3 = "XXX", .ǈ4 = Nothing }
+        ' Value changes in Key fields
+        Dim at3 As Object = New With {.Ǉ1 = 123, Key .Ǉ2 = 455, Key .Ǉ3 = "XXX", .Ǉ4 = 123.456!}
+
+        Dim hc1 = at1.GetHashCode()      
+        Console.WriteLine(hc1 = at2.GetHashCode )
+        Console.WriteLine(hc1 = at3.GetHashCode)
+    
+    End Sub
+End Module
+    </file>
+</compilation>,
+expectedOutput:=<![CDATA[
+True
+False
+]]>)
+        End Sub
+
+        <Fact()>
         Public Sub TestAnonymousType_SequenceOfInitializers()
             CompileAndVerify(
 <compilation>
@@ -734,7 +770,7 @@ expectedOutput:=<![CDATA[
         Public Sub TestAnonymousType_LocalAsNewWith()
             ' AnonymousType ToString
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
 
                 CompileAndVerify(
@@ -778,7 +814,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly))>
         Public Sub TestAnonymousTypeWithOptionInferOn()
             CompileAndVerify(
 <compilation>
@@ -791,14 +827,14 @@ Friend Module AnonTProp001mod
         Dim obj = New C
         Try
 
-            Dim scen1 = New With {.With = "aclass", ._p_ = "C"c, Foo, Key New C().extMethod}
-            Console.WriteLine("{0},{1},{2},{3}", scen1.With, scen1._p_, scen1.foo, scen1.Extmethod)
+            Dim scen1 = New With {.With = "aclass", ._p_ = "C"c, Goo, Key New C().extMethod}
+            Console.WriteLine("{0},{1},{2},{3}", scen1.With, scen1._p_, scen1.goo, scen1.Extmethod)
 
             Dim scen2 = New With {obj.Extmethod02, obj!_123, C.APROP}
             Console.WriteLine("{0},{1},{2}", scen2.ExtMethod02, scen2._123, scen2.aprop)
 
             Try
-                Dim scen4 = New With {.prop1 = FooEx("testing")}
+                Dim scen4 = New With {.prop1 = GooEx("testing")}
                 Console.WriteLine("NO EX")
             Catch ex As Exception
                 Console.WriteLine("Exp EX")
@@ -808,11 +844,11 @@ Friend Module AnonTProp001mod
         End Try
     End Sub
 
-    Function Foo() As String
+    Function Goo() As String
         Return "Abc"
     End Function
 
-    Function FooEx(ByVal p1 As String) As String
+    Function GooEx(ByVal p1 As String) As String
         Throw New Exception("This exception is expected")
     End Function
 

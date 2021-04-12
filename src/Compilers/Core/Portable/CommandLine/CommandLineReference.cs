@@ -1,10 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -12,12 +11,13 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Describes a command line metadata reference (assembly or netmodule) specification.
     /// </summary>
+    [DebuggerDisplay("{Reference,nq}")]
     public struct CommandLineReference : IEquatable<CommandLineReference>
     {
         private readonly string _reference;
         private readonly MetadataReferenceProperties _properties;
 
-        internal CommandLineReference(string reference, MetadataReferenceProperties properties)
+        public CommandLineReference(string reference, MetadataReferenceProperties properties)
         {
             Debug.Assert(!string.IsNullOrEmpty(reference));
             _reference = reference;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             get { return _properties; }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is CommandLineReference && base.Equals((CommandLineReference)obj);
         }

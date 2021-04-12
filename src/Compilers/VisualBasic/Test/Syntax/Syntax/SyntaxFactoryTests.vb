@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -22,6 +24,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
+        Public Sub TestSpacingOnNullableDatetimeType()
+            Dim node =
+                SyntaxFactory.CompilationUnit().WithMembers(
+                    SyntaxFactory.List(Of Syntax.StatementSyntax)(
+                    {
+                        SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("C")).WithMembers(
+                            SyntaxFactory.List(Of Syntax.StatementSyntax)(
+                            {
+                                SyntaxFactory.PropertyStatement("P").WithAsClause(
+                                    SyntaxFactory.SimpleAsClause(
+                                        SyntaxFactory.NullableType(
+                                            SyntaxFactory.PredefinedType(
+                                                SyntaxFactory.Token(SyntaxKind.IntegerKeyword)))))
+                            }))
+                    })).NormalizeWhitespace()
+
+            Dim expected = "Class C" & vbCrLf & vbCrLf & "    Property P As Integer?" & vbCrLf & "End Class" & vbCrLf
+            Assert.Equal(expected, node.ToFullString())
+        End Sub
+
+        <Fact>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")>
         Public Sub TestLiteralDefaultStringValues()
 
@@ -60,7 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' float
             CheckLiteralToString(0.0F, "0F")
             CheckLiteralToString(0.012345F, "0.012345F")
+#If NET472 Then
             CheckLiteralToString(Single.MaxValue, "3.40282347E+38F")
+#Else
+            CheckLiteralToString(Single.MaxValue, "3.4028235E+38F")
+#End If
+
 
             ' double
             CheckLiteralToString(0.0, "0")
@@ -79,6 +108,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim literalMethod = literalMethods.Single(Function(m) m.GetParameters().Single().ParameterType = value.GetType())
 
             Assert.Equal(expected, literalMethod.Invoke(Nothing, {value}).ToString())
+        End Sub
+
+        <Fact>
+        Public Shared Sub TestParseTypeNameOptions()
+            Dim options As VisualBasicParseOptions = TestOptions.Regular
+            Dim code = "
+#If Variable
+String
+#Else
+Integer
+#End If"
+
+            Dim type1 = SyntaxFactory.ParseTypeName(code, options:=options.WithPreprocessorSymbols(New KeyValuePair(Of String, Object)("Variable", "True")))
+            Assert.Equal("String", type1.ToString())
+
+            Dim type2 = SyntaxFactory.ParseTypeName(code, options:=options)
+            Assert.Equal("Integer", type2.ToString())
         End Sub
     End Class
 End Namespace

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -10,6 +14,8 @@ using System.Runtime.Versioning;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.CodeAnalysis.Editor;
+using System.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 {
@@ -24,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         private readonly IComponentModel _componentModel;
         private readonly string _contentType;
 
-        private Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
+        private readonly Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
 
         private Lazy<IResetInteractiveCommand> ResetInteractiveCommand => _resetInteractiveCommand;
 
@@ -44,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 .SingleOrDefault();
         }
 
-        internal void InitializeResetInteractiveFromProjectCommand()
+        internal async Task InitializeResetInteractiveFromProjectCommandAsync()
         {
             var resetInteractiveFromProjectCommand = new OleMenuCommand(
                 (sender, args) =>
@@ -57,9 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 
             resetInteractiveFromProjectCommand.BeforeQueryStatus += (_, __) =>
             {
-                EnvDTE.Project project;
-                FrameworkName frameworkName;
-                GetActiveProject(out project, out frameworkName);
+                GetActiveProject(out var project, out var frameworkName);
                 var available = ResetInteractiveCommand != null
                     && project != null && project.Kind == ProjectKind
                     && frameworkName != null && frameworkName.Identifier == ".NETFramework";
@@ -69,27 +73,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 resetInteractiveFromProjectCommand.Visible = available;
             };
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             _menuCommandService.AddCommand(resetInteractiveFromProjectCommand);
         }
 
         private bool GetActiveProject(out EnvDTE.Project project, out FrameworkName frameworkName)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             project = null;
             frameworkName = null;
 
-            IntPtr hierarchyPointer = IntPtr.Zero;
-            IntPtr selectionContainerPointer = IntPtr.Zero;
+            var hierarchyPointer = IntPtr.Zero;
+            var selectionContainerPointer = IntPtr.Zero;
 
             try
             {
-                uint itemid;
-                IVsMultiItemSelect multiItemSelect;
-
                 Marshal.ThrowExceptionForHR(
                     _monitorSelection.GetCurrentSelection(
                         out hierarchyPointer,
-                        out itemid,
-                        out multiItemSelect,
+                        out var itemid,
+                        out var multiItemSelect,
                         out selectionContainerPointer));
 
                 if (itemid != (uint)VSConstants.VSITEMID.Root)
@@ -97,23 +101,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                     return false;
                 }
 
-                var hierarchy = Marshal.GetObjectForIUnknown(hierarchyPointer) as IVsHierarchy;
-                if (hierarchy == null)
+                if (!(Marshal.GetObjectForIUnknown(hierarchyPointer) is IVsHierarchy hierarchy))
                 {
                     return false;
                 }
 
-                object extensibilityObject;
-                object targetFrameworkVersion;
-                object targetFrameworkMonikerObject;
                 Marshal.ThrowExceptionForHR(
-                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out extensibilityObject));
+                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out var extensibilityObject));
                 Marshal.ThrowExceptionForHR(
-                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID3.VSHPROPID_TargetFrameworkVersion, out targetFrameworkVersion));
+                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID3.VSHPROPID_TargetFrameworkVersion, out var targetFrameworkVersion));
                 Marshal.ThrowExceptionForHR(
-                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetFrameworkMonikerObject));
+                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out var targetFrameworkMonikerObject));
 
-                string targetFrameworkMoniker = targetFrameworkMonikerObject as string;
+                var targetFrameworkMoniker = targetFrameworkMonikerObject as string;
                 frameworkName = new System.Runtime.Versioning.FrameworkName(targetFrameworkMoniker);
 
                 project = extensibilityObject as EnvDTE.Project;

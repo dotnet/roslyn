@@ -1,13 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class PreviewUpdater
     {
         // internal for testing
@@ -17,42 +24,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
             }
 
-            public void UnregisterTextContainer(SourceTextContainer container)
-            {
-            }
-
             public void CloseDocument(TextDocument document, SourceText text)
             {
-                if (document is Document)
+                switch (document.Kind)
                 {
-                    OnDocumentClosed(document.Id, new PreviewTextLoader(text));
-                }
-                else
-                {
-                    OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
-                }
-            }
+                    case TextDocumentKind.Document:
+                        OnDocumentClosed(document.Id, new PreviewTextLoader(text));
+                        break;
 
-            public void OpenDocument(TextDocument document)
-            {
-                if (document is Document)
-                {
-                    OpenDocument(document.Id);
-                }
-                else
-                {
-                    OpenAdditionalDocument(document.Id);
-                }
-            }
+                    case TextDocumentKind.AnalyzerConfigDocument:
+                        OnAnalyzerConfigDocumentClosed(document.Id, new PreviewTextLoader(text));
+                        break;
 
-            protected override void ApplyDocumentTextChanged(DocumentId id, SourceText text)
-            {
-                OnDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
-            }
+                    case TextDocumentKind.AdditionalDocument:
+                        OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
+                        break;
 
-            protected override void ApplyAdditionalDocumentTextChanged(DocumentId id, SourceText text)
-            {
-                OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(document.Kind);
+                }
             }
 
             private class PreviewTextLoader : TextLoader
@@ -60,14 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 private readonly SourceText _text;
 
                 internal PreviewTextLoader(SourceText documentText)
-                {
-                    _text = documentText;
-                }
+                    => _text = documentText;
 
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(TextAndVersion.Create(_text, VersionStamp.Create()));
-                }
+                    => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
+
+                internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                    => TextAndVersion.Create(_text, VersionStamp.Create());
             }
         }
     }

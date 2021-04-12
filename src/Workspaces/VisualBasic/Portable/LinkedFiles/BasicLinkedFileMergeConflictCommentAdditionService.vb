@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Text
@@ -9,6 +11,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ILinkedFileMergeConflictCommentAdditionService), LanguageNames.VisualBasic), [Shared]>
     Friend Class BasicLinkedFileMergeConflictCommentAdditionService
         Inherits AbstractLinkedFileMergeConflictCommentAdditionService
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Friend Overrides Function GetConflictCommentText(header As String, beforeString As String, afterString As String) As String
             If beforeString Is Nothing AndAlso afterString Is Nothing Then
@@ -21,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {2}
 ",
                     header,
-                    WorkspacesResources.AddedHeader,
+                    WorkspacesResources.Added_colon,
                     GetCommentedText(afterString))
             ElseIf afterString Is Nothing Then
                 ' Removed code
@@ -31,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {2}
 ",
                     header,
-                    WorkspacesResources.RemovedHeader,
+                    WorkspacesResources.Removed_colon,
                     GetCommentedText(beforeString))
             Else
                 Return String.Format("
@@ -42,22 +49,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {4}
 ",
                     header,
-                    WorkspacesResources.BeforeHeader,
+                    WorkspacesResources.Before_colon,
                     GetCommentedText(beforeString),
-                    WorkspacesResources.AfterHeader,
+                    WorkspacesResources.After_colon,
                     GetCommentedText(afterString))
 
             End If
         End Function
 
-        Private Function GetCommentedText(text As String) As String
+        Private Shared Function GetCommentedText(text As String) As String
             Dim lines = Regex.Split(text, "\r\n|\r|\n")
             If Not lines.Any() Then
                 Return text
             End If
 
             Dim newlines = Regex.Matches(text, "\r\n|\r|\n")
-            Contract.Assert(newlines.Count = lines.Length - 1)
+            Debug.Assert(newlines.Count = lines.Length - 1)
 
             Dim builder = New StringBuilder()
 

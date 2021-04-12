@@ -1,16 +1,23 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -19,12 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 {
     internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
     {
-        private Document _document;
-        private INotificationService _notificationService;
-        private IProjectManagementService _projectManagementService;
-        private ISyntaxFactsService _syntaxFactsService;
-        private IGeneratedCodeRecognitionService _generatedCodeService;
-        private GenerateTypeDialogOptions _generateTypeDialogOptions;
+        private readonly Document _document;
+        private readonly INotificationService _notificationService;
+        private readonly IProjectManagementService _projectManagementService;
+        private readonly ISyntaxFactsService _syntaxFactsService;
+        private readonly GenerateTypeDialogOptions _generateTypeDialogOptions;
         private string _typeName;
         private bool _isNewFile;
 
@@ -35,11 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private List<string> _csharpTypeKindList;
         private List<string> _visualBasicTypeKindList;
 
-        private string _csharpExtension = ".cs";
-        private string _visualBasicExtension = ".vb";
+        private readonly string _csharpExtension = ".cs";
+        private readonly string _visualBasicExtension = ".vb";
 
         // reserved names that cannot be a folder name or filename
-        private string[] _reservedKeywords = new string[]
+        private readonly string[] _reservedKeywords = new string[]
                                                 {
                                                     "con", "prn", "aux", "nul",
                                                     "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
@@ -80,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             get
             {
-                Contract.Assert(_accessListMap.ContainsKey(SelectedAccessibilityString), "The Accessibility Key String not present");
+                Debug.Assert(_accessListMap.ContainsKey(SelectedAccessibilityString), "The Accessibility Key String not present");
                 return _accessListMap[SelectedAccessibilityString];
             }
         }
@@ -131,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             get
             {
-                Contract.Assert(_typeKindMap.ContainsKey(SelectedTypeKindString), "The TypeKind Key String not present");
+                Debug.Assert(_typeKindMap.ContainsKey(SelectedTypeKindString), "The TypeKind Key String not present");
                 return _typeKindMap[SelectedTypeKindString];
             }
         }
@@ -164,14 +170,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             }
             else
             {
-                Contract.Assert(languageName == LanguageNames.VisualBasic, "Currently only C# and VB are supported");
+                Debug.Assert(languageName == LanguageNames.VisualBasic, "Currently only C# and VB are supported");
                 _visualBasicAccessList.Add(key);
             }
 
             _accessListMap.Add(key, accessibility);
         }
 
-        private void InitialSetup(string languageName)
+        private void InitialSetup()
         {
             _accessListMap = new Dictionary<string, Accessibility>();
             _typeKindMap = new Dictionary<string, TypeKind>();
@@ -197,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         private void PopulateTypeKind()
         {
-            Contract.Assert(_generateTypeDialogOptions.TypeKindOptions != TypeKindOptions.None);
+            Debug.Assert(_generateTypeDialogOptions.TypeKindOptions != TypeKindOptions.None);
 
             if (TypeKindOptionsHelper.IsClass(_generateTypeDialogOptions.TypeKindOptions))
             {
@@ -240,20 +246,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 // Case : \\Something
                 if (trimmedFileName.StartsWith(@"\\", StringComparison.Ordinal))
                 {
-                    SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                    SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                     return false;
                 }
 
                 // Case : something\
                 if (string.IsNullOrWhiteSpace(trimmedFileName) || trimmedFileName.EndsWith(@"\", StringComparison.Ordinal))
                 {
-                    SendFailureNotification(ServicesVSResources.PathCannotHaveEmptyFileName);
+                    SendFailureNotification(ServicesVSResources.Path_cannot_have_empty_filename);
                     return false;
                 }
 
                 if (trimmedFileName.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
                 {
-                    SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                    SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                     return false;
                 }
 
@@ -263,14 +269,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 // Construct the implicit file path
                 if (isRootOfTheProject || this.SelectedProject != _document.Project)
                 {
-                    if (!TryGetImplicitFilePath(this.SelectedProject.FilePath ?? string.Empty, ServicesVSResources.IllegalPathForProject, out implicitFilePath))
+                    if (!TryGetImplicitFilePath(this.SelectedProject.FilePath ?? string.Empty, ServicesVSResources.Project_Path_is_illegal, out implicitFilePath))
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    if (!TryGetImplicitFilePath(_document.FilePath, ServicesVSResources.IllegalPathForDocument, out implicitFilePath))
+                    if (!TryGetImplicitFilePath(_document.FilePath, ServicesVSResources.DocumentPath_is_illegal, out implicitFilePath))
                     {
                         return false;
                     }
@@ -286,27 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 {
                     this.FullFilePath = Path.GetFullPath(this.FullFilePath);
                 }
-                catch (ArgumentNullException e)
-                {
-                    SendFailureNotification(e.Message);
-                    return false;
-                }
-                catch (ArgumentException e)
-                {
-                    SendFailureNotification(e.Message);
-                    return false;
-                }
-                catch (SecurityException e)
-                {
-                    SendFailureNotification(e.Message);
-                    return false;
-                }
-                catch (NotSupportedException e)
-                {
-                    SendFailureNotification(e.Message);
-                    return false;
-                }
-                catch (PathTooLongException e)
+                catch (Exception e)
                 {
                     SendFailureNotification(e.Message);
                     return false;
@@ -317,7 +303,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 if (lastIndexOfSeparatorInFullPath != -1)
                 {
                     var fileNameInFullPathInContainers = this.FullFilePath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
-                    this.FullFilePath = string.Join("\\", fileNameInFullPathInContainers.Select(str => str.TrimStart()));
+
+                    // Trim spaces of each component of the file name.
+                    // Note that path normalization changed between 4.6.1 and 4.6.2 and GetFullPath no longer trims trailing spaces.
+                    // See https://blogs.msdn.microsoft.com/jeremykuhne/2016/06/21/more-on-new-net-path-handling/
+                    this.FullFilePath = string.Join("\\", fileNameInFullPathInContainers.Select(str => str.Trim()));
                 }
 
                 string projectRootPath = null;
@@ -325,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 {
                     projectRootPath = string.Empty;
                 }
-                else if (!TryGetImplicitFilePath(this.SelectedProject.FilePath, ServicesVSResources.IllegalPathForProject, out projectRootPath))
+                else if (!TryGetImplicitFilePath(this.SelectedProject.FilePath, ServicesVSResources.Project_Path_is_illegal, out projectRootPath))
                 {
                     return false;
                 }
@@ -356,7 +346,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                     }
                     else
                     {
-                        SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                        SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                         return false;
                     }
                 }
@@ -368,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                     var lastIndexOfSeparator = this.FullFilePath.LastIndexOf('\\');
                     if (lastIndexOfSeparator == -1)
                     {
-                        SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                        SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                         return false;
                     }
 
@@ -378,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 // Check for reserved words in the folder or filename
                 if (this.FullFilePath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Any(s => _reservedKeywords.Contains(s, StringComparer.OrdinalIgnoreCase)))
                 {
-                    SendFailureNotification(ServicesVSResources.FilePathCannotUseReservedKeywords);
+                    SendFailureNotification(ServicesVSResources.File_path_cannot_use_reserved_keywords);
                     return false;
                 }
 
@@ -389,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                      this.SelectedProject.Documents.Where(n => n.Name != null && n.Folders.Count > 0 && n.Name == this.FileName && this.Folders.SequenceEqual(n.Folders)).Any()) ||
                      File.Exists(FullFilePath))
                 {
-                    SendFailureNotification(ServicesVSResources.FileAlreadyExists);
+                    SendFailureNotification(ServicesVSResources.File_already_exists);
                     return false;
                 }
             }
@@ -412,9 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         }
 
         private void SendFailureNotification(string message)
-        {
-            _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
-        }
+            => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
 
         private Project _selectedProject;
         public Project SelectedProject
@@ -429,7 +417,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 var previousProject = _selectedProject;
                 if (SetProperty(ref _selectedProject, value))
                 {
-                    NotifyPropertyChanged("DocumentList");
+                    NotifyPropertyChanged(nameof(DocumentList));
                     this.DocumentSelectIndex = 0;
                     this.ProjectSelectIndex = this.ProjectList.FindIndex(p => p.Project == _selectedProject);
                     if (_selectedProject != _document.Project)
@@ -438,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                         // 3 in the list represent the Public. 1-based array.
                         this.AccessSelectIndex = this.AccessList.IndexOf("public") == -1 ?
                             this.AccessList.IndexOf("Public") : this.AccessList.IndexOf("public");
-                        Contract.Assert(this.AccessSelectIndex != -1);
+                        Debug.Assert(this.AccessSelectIndex != -1);
                         this.IsAccessListEnabled = false;
                     }
                     else
@@ -507,6 +495,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         private Project _previouslyPopulatedProject = null;
         private List<DocumentSelectItem> _previouslyPopulatedDocumentList = null;
+
         public IEnumerable<DocumentSelectItem> DocumentList
         {
             get
@@ -530,13 +519,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
                     // Populate the rest of the documents for the project
                     _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
-                        .Where(d => d != _document && !_generatedCodeService.IsGeneratedCode(d))
+                        .Where(d => d != _document && !d.IsGeneratedCode(CancellationToken.None))
                         .Select(d => new DocumentSelectItem(d)));
                 }
                 else
                 {
                     _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
-                        .Where(d => !_generatedCodeService.IsGeneratedCode(d))
+                        .Where(d => !d.IsGeneratedCode(CancellationToken.None))
                         .Select(d => new DocumentSelectItem(d)));
 
                     this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
@@ -668,9 +657,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             {
                 if (_areFoldersValidIdentifiers)
                 {
+                    /*
                     var workspace = this.SelectedProject.Solution.Workspace as VisualStudioWorkspaceImpl;
                     var project = workspace?.GetHostProject(this.SelectedProject.Id) as AbstractProject;
                     return !(project?.IsWebSite == true);
+                    */
+                    return false;
                 }
 
                 return false;
@@ -723,7 +715,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             INotificationService notificationService,
             IProjectManagementService projectManagementService,
             ISyntaxFactsService syntaxFactsService,
-            IGeneratedCodeRecognitionService generatedCodeService,
             GenerateTypeDialogOptions generateTypeDialogOptions,
             string typeName,
             string fileExtension,
@@ -733,7 +724,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             _generateTypeDialogOptions = generateTypeDialogOptions;
 
-            InitialSetup(document.Project.Language);
+            InitialSetup();
             var dependencyGraph = document.Project.Solution.GetProjectDependencyGraph();
 
             // Initialize the dependencies
@@ -759,20 +750,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             this.SelectedProject = document.Project;
             this.SelectedDocument = document;
             _notificationService = notificationService;
-            _generatedCodeService = generatedCodeService;
 
-            this.AccessList = document.Project.Language == LanguageNames.CSharp ?
-                                _csharpAccessList :
-                                _visualBasicAccessList;
-            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) ?
-                                        this.AccessList.IndexOf(accessSelectString) : 0;
+            this.AccessList = document.Project.Language == LanguageNames.CSharp
+                ? _csharpAccessList
+                : _visualBasicAccessList;
+            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString)
+                ? this.AccessList.IndexOf(accessSelectString) : 0;
             this.IsAccessListEnabled = true;
 
-            this.KindList = document.Project.Language == LanguageNames.CSharp ?
-                                _csharpTypeKindList :
-                                _visualBasicTypeKindList;
-            this.KindSelectIndex = this.KindList.Contains(typeKindSelectString) ?
-                                    this.KindList.IndexOf(typeKindSelectString) : 0;
+            this.KindList = document.Project.Language == LanguageNames.CSharp
+                ? _csharpTypeKindList
+                : _visualBasicTypeKindList;
+            this.KindSelectIndex = this.KindList.Contains(typeKindSelectString)
+                ? this.KindList.IndexOf(typeKindSelectString) : 0;
 
             this.ProjectSelectIndex = 0;
             this.DocumentSelectIndex = 0;
@@ -794,7 +784,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         public class ProjectSelectItem
         {
-            private Project _project;
+            private readonly Project _project;
 
             public string Name
             {
@@ -813,14 +803,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             }
 
             public ProjectSelectItem(Project project)
-            {
-                _project = project;
-            }
+                => _project = project;
         }
 
         public class DocumentSelectItem
         {
-            private Document _document;
+            private readonly Document _document;
             public Document Document
             {
                 get
@@ -829,7 +817,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 }
             }
 
-            private string _name;
+            private readonly string _name;
             public string Name
             {
                 get

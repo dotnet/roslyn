@@ -1,17 +1,36 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class SimpleLambdaExpressionSyntax
     {
+        public new SimpleLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? WithBlock(block).WithExpressionBody(null)
+                : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
+
         public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
-        {
-            return Update(asyncKeyword, parameter, arrowToken, this.RefKeyword, body);
-        }
+            => body is BlockSyntax block
+                ? Update(asyncKeyword, parameter, arrowToken, block, null)
+                : Update(asyncKeyword, parameter, arrowToken, null, (ExpressionSyntax)body);
+
+        public override SyntaxToken AsyncKeyword
+            => this.Modifiers.FirstOrDefault(SyntaxKind.AsyncKeyword);
+
+        internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword)
+            => WithAsyncKeyword(asyncKeyword);
+
+        public new SimpleLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
+            => this.Update(asyncKeyword, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
+
+        public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+            => Update(SyntaxFactory.TokenList(asyncKeyword), parameter, arrowToken, block, expressionBody);
     }
 }
 
@@ -19,10 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class SyntaxFactory
     {
-        /// <summary>Creates a new SimpleLambdaExpressionSyntax instance.</summary>
-        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, CSharpSyntaxNode body)
-        {
-            return SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, default(SyntaxToken), body);
-        }
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+            => SimpleLambdaExpression(TokenList(asyncKeyword), parameter, arrowToken, block, expressionBody);
+
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, BlockSyntax block, ExpressionSyntax expressionBody)
+            => SimpleLambdaExpression(default(SyntaxTokenList), parameter, block, expressionBody);
     }
 }

@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.VisualStudio.Text;
@@ -28,15 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 set { _parent = value; }
             }
 
-            public bool CanRedo
-            {
-                get { return true; }
-            }
+            public bool CanRedo => true;
 
-            public bool CanUndo
-            {
-                get { return true; }
-            }
+            public bool CanUndo => true;
 
             public UndoPrimitive(ITextBuffer textBuffer, int trackingSessionId, bool shouldRestoreStateOnUndo)
             {
@@ -47,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Do()
             {
-                StateMachine stateMachine;
-                if (TryGetStateMachine(out stateMachine))
+                if (TryGetStateMachine(out var stateMachine))
                 {
                     stateMachine.ClearTrackingSession();
                 }
@@ -56,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Undo()
             {
-                StateMachine stateMachine;
-                if (TryGetStateMachine(out stateMachine))
+                if (TryGetStateMachine(out var stateMachine))
                 {
                     if (_shouldRestoreStateOnUndo)
                     {
@@ -73,20 +69,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private bool TryGetStateMachine(out StateMachine stateMachine)
             {
                 stateMachine = null;
-                ITextBuffer textBuffer;
-                return _weakTextBuffer.TryGetTarget(out textBuffer) &&
+                return _weakTextBuffer.TryGetTarget(out var textBuffer) &&
                     textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine);
             }
 
             public bool CanMerge(ITextUndoPrimitive older)
-            {
-                return false;
-            }
+                => false;
 
             public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

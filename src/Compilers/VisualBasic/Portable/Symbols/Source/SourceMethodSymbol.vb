@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -6,6 +8,7 @@ Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -44,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyLocations As ImmutableArray(Of Location)
 
         Private _lazyDocComment As String
+        Private _lazyExpandedDocComment As String
 
         'Nothing if diags have never been computed. Initial binding diagnostics
         'are stashed here to optimize API usage patterns
@@ -89,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim handledEvents As ImmutableArray(Of HandledEvent)
 
             If syntax.HandlesClause IsNot Nothing Then
-                If container.TypeKind = TypeKind.Structure Then
+                If container.TypeKind = TYPEKIND.Structure Then
                     ' Structures cannot handle events
                     binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_StructsCannotHandleEvents)
 
@@ -223,7 +227,7 @@ lReportErrorOnTwoTokens:
                 diagBag)
 
             ' modifiers: Protected and Overloads in Modules and Structures:
-            If container.TypeKind = TypeKind.Module Then
+            If container.TypeKind = TYPEKIND.Module Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Overloads) <> 0 Then
                     Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.OverloadsKeyword)
                     diagBag.Add(ERRID.ERR_OverloadsModifierInModule, keyword.GetLocation(), keyword.ValueText)
@@ -231,7 +235,7 @@ lReportErrorOnTwoTokens:
                     Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.ProtectedKeyword)
                     diagBag.Add(ERRID.ERR_ModuleCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
                 End If
-            ElseIf container.TypeKind = TypeKind.Structure Then
+            ElseIf container.TypeKind = TYPEKIND.Structure Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
                     Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.ProtectedKeyword)
                     diagBag.Add(ERRID.ERR_StructCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
@@ -399,9 +403,9 @@ lReportErrorOnTwoTokens:
             Dim methodSym As New SourceMemberMethodSymbol(container, name, flags, binder, syntax, arity:=0)
 
             If (flags And SourceMemberFlags.Shared) = 0 Then
-                If container.TypeKind = TypeKind.Structure AndAlso methodSym.ParameterCount = 0 Then
+                If container.TypeKind = TYPEKIND.Structure AndAlso methodSym.ParameterCount = 0 Then
                     ' Instance constructor must have parameters.
-                    Binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
+                    binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
                 End If
             End If
 
@@ -753,7 +757,7 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 If m_syntaxReferenceOpt Is Nothing Then
                     Return Nothing
@@ -805,13 +809,11 @@ lReportErrorOnTwoTokens:
         End Function
 
         Public NotOverridable Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            If _lazyDocComment Is Nothing Then
-                ' NOTE: replace Nothing with empty comment
-                Interlocked.CompareExchange(
-                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+            If expandIncludes Then
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyExpandedDocComment, cancellationToken)
+            Else
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyDocComment, cancellationToken)
             End If
-
-            Return _lazyDocComment
         End Function
 
         ''' <summary>
@@ -891,14 +893,14 @@ lReportErrorOnTwoTokens:
         ''' The caller is expected to handle constraint checking and any caching of results.
         ''' </remarks>
         Friend Function BindTypeParameterConstraints(syntax As TypeParameterSyntax,
-                                                     diagnostics As DiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
+                                                     diagnostics As BindingDiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
 
             Dim binder As Binder = BinderBuilder.CreateBinderForType(Me.ContainingSourceModule, Me.SyntaxTree, m_containingType)
             binder = BinderBuilder.CreateBinderForGenericMethodDeclaration(Me, binder)
 
             ' Handle type parameter variance.
             If syntax.VarianceKeyword.Kind <> SyntaxKind.None Then
-                Binder.ReportDiagnostic(diagnostics, syntax.VarianceKeyword, ERRID.ERR_VarianceDisallowedHere)
+                binder.ReportDiagnostic(diagnostics, syntax.VarianceKeyword, ERRID.ERR_VarianceDisallowedHere)
             End If
 
             ' Wrap constraints binder in a location-specific binder to
@@ -1175,7 +1177,7 @@ lReportErrorOnTwoTokens:
             Return If(Locations.FirstOrDefault(), NoLocation.Singleton)
         End Function
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
 
             Dim syntaxTree As SyntaxTree = Me.SyntaxTree
 
@@ -1265,6 +1267,12 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
                 Debug.Assert(Me.MethodKind <> MethodKind.EventAdd,
@@ -1282,6 +1290,12 @@ lReportErrorOnTwoTokens:
         Public NotOverridable Overrides ReadOnly Property IsIterator As Boolean
             Get
                 Return (m_flags And SourceMemberFlags.Iterator) <> 0
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return False
             End Get
         End Property
 
@@ -1305,7 +1319,7 @@ lReportErrorOnTwoTokens:
                 If overridden Is Nothing Then
                     Return ImmutableArray(Of CustomModifier).Empty
                 Else
-                    Return overridden.ReturnTypeCustomModifiers
+                    Return overridden.ConstructIfGeneric(TypeArguments).ReturnTypeCustomModifiers
                 End If
             End Get
         End Property
@@ -1424,7 +1438,7 @@ lReportErrorOnTwoTokens:
             Return Me.GetAttributesBag().Attributes
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Emit synthesized STAThreadAttribute for this method if both the following requirements are met:
@@ -1441,6 +1455,14 @@ lReportErrorOnTwoTokens:
                     AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_STAThreadAttribute__ctor))
                 End If
+            End If
+        End Sub
+
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            If Me.ReturnType.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
             End If
         End Sub
 
@@ -1515,7 +1537,7 @@ lReportErrorOnTwoTokens:
                     Dim BoundAttribute As VisualBasicAttributeData = Nothing
                     Dim obsoleteData As ObsoleteAttributeData = Nothing
 
-                    If EarlyDecodeDeprecatedOrObsoleteAttribute(arguments, BoundAttribute, obsoleteData) Then
+                    If EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(arguments, BoundAttribute, obsoleteData) Then
                         If obsoleteData IsNot Nothing Then
                             arguments.GetOrCreateData(Of MethodEarlyWellKnownAttributeData)().ObsoleteAttributeData = obsoleteData
                         End If
@@ -1552,6 +1574,13 @@ lReportErrorOnTwoTokens:
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
 
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.UnmanagedCallersOnlyAttribute) Then
+                ' VB does not support UnmanagedCallersOnly attributes on methods at all
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_UnmanagedCallersOnlyNotSupported, arguments.AttributeSyntaxOpt.Location)
+            End If
+
             If arguments.SymbolPart = AttributeLocation.Return Then
                 ' Decode well-known attributes applied to return value
 
@@ -1567,6 +1596,7 @@ lReportErrorOnTwoTokens:
 
         Private Sub DecodeWellKnownAttributeAppliedToMethod(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             ' Decode well-known attributes applied to method
             Dim attrData = arguments.Attribute
@@ -1575,13 +1605,13 @@ lReportErrorOnTwoTokens:
                 ' Just report errors here. The extension attribute is decoded early.
 
                 If Me.MethodKind <> MethodKind.Ordinary AndAlso Me.MethodKind <> MethodKind.DeclareMethod Then
-                    arguments.Diagnostics.Add(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction, arguments.AttributeSyntaxOpt.GetLocation())
 
                 ElseIf Not m_containingType.AllowsExtensionMethods() Then
-                    arguments.Diagnostics.Add(ERRID.ERR_ExtensionMethodNotInModule, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.ERR_ExtensionMethodNotInModule, arguments.AttributeSyntaxOpt.GetLocation())
 
                 ElseIf Me.ParameterCount = 0 Then
-                    arguments.Diagnostics.Add(ERRID.ERR_ExtensionMethodNoParams, Me.Locations(0))
+                    diagnostics.Add(ERRID.ERR_ExtensionMethodNoParams, Me.Locations(0))
 
                 Else
                     Debug.Assert(Me.IsShared)
@@ -1589,13 +1619,13 @@ lReportErrorOnTwoTokens:
                     Dim firstParam As ParameterSymbol = Me.Parameters(0)
 
                     If firstParam.IsOptional Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOptionalFirstArg), firstParam.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOptionalFirstArg), firstParam.Locations(0))
 
                     ElseIf firstParam.IsParamArray Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodParamArrayFirstArg), firstParam.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodParamArrayFirstArg), firstParam.Locations(0))
 
                     ElseIf Not Me.ValidateGenericConstraintsOnExtensionMethodDefinition() Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodUncallable1, Me.Name), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodUncallable1, Me.Name), Me.Locations(0))
 
                     End If
                 End If
@@ -1605,7 +1635,7 @@ lReportErrorOnTwoTokens:
                 ' Check for optional parameters
                 For Each parameter In Me.Parameters
                     If parameter.IsOptional Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidOptionalParameterUsage1, "WebMethod"), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidOptionalParameterUsage1, "WebMethod"), Me.Locations(0))
                     End If
                 Next
 
@@ -1615,13 +1645,13 @@ lReportErrorOnTwoTokens:
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MethodImplAttribute) Then
                 AttributeData.DecodeMethodImplAttribute(Of MethodWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(arguments, MessageProvider.Instance)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DllImportAttribute) Then
-                If Not IsDllImportAttributeAllowed(arguments.AttributeSyntaxOpt, arguments.Diagnostics) Then
+                If Not IsDllImportAttributeAllowed(arguments.AttributeSyntaxOpt, diagnostics) Then
                     Return
                 End If
 
-                Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).Value, String)
+                Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not MetadataHelpers.IsValidMetadataIdentifier(moduleName) Then
-                    arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
                 End If
 
                 ' Default value of charset is inherited from the module (only if specified).
@@ -1642,9 +1672,9 @@ lReportErrorOnTwoTokens:
                 For Each namedArg In attrData.CommonNamedArguments
                     Select Case namedArg.Key
                         Case "EntryPoint"
-                            importName = TryCast(namedArg.Value.Value, String)
+                            importName = TryCast(namedArg.Value.ValueInternal, String)
                             If Not MetadataHelpers.IsValidMetadataIdentifier(importName) Then
-                                arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(position).GetLocation(), attrData.AttributeClass)
+                                diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(position).GetLocation(), attrData.AttributeClass)
                                 Return
                             End If
 
@@ -1684,6 +1714,8 @@ lReportErrorOnTwoTokens:
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSpecialNameAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasExcludeFromCodeCoverageAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
             ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
@@ -1695,24 +1727,24 @@ lReportErrorOnTwoTokens:
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ConditionalAttribute) Then
                 If Not Me.IsSub Then
                     ' BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
-                    arguments.Diagnostics.Add(ERRID.WRN_ConditionalNotValidOnFunction, Me.Locations(0))
+                    diagnostics.Add(ERRID.WRN_ConditionalNotValidOnFunction, Me.Locations(0))
                 End If
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.ObsoleteAttribute) Then
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.DeprecatedAttribute) Then
+            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ModuleInitializerAttribute) Then
+                diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
             Else
                 Dim methodImpl As MethodSymbol = If(Me.IsPartial, PartialImplementationPart, Me)
 
                 If methodImpl IsNot Nothing AndAlso (methodImpl.IsAsync OrElse methodImpl.IsIterator) AndAlso Not methodImpl.ContainingType.IsInterfaceType() Then
                     If attrData.IsTargetAttribute(Me, AttributeDescription.SecurityCriticalAttribute) Then
-                        Binder.ReportDiagnostic(arguments.Diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecurityCritical")
+                        Binder.ReportDiagnostic(diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecurityCritical")
                         Return
                     ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SecuritySafeCriticalAttribute) Then
-                        Binder.ReportDiagnostic(arguments.Diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecuritySafeCritical")
+                        Binder.ReportDiagnostic(diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecuritySafeCritical")
                         Return
                     End If
                 End If
-
-                MyBase.DecodeWellKnownAttribute(arguments)
             End If
         End Sub
 
@@ -1723,7 +1755,7 @@ lReportErrorOnTwoTokens:
             If arguments.Attribute.IsTargetAttribute(Me, description) Then
                 ' Obsolete Attribute is not allowed on event accessors.
                 If Me.IsAccessor() AndAlso Me.AssociatedSymbol.Kind = SymbolKind.Event Then
-                    arguments.Diagnostics.Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.Locations(0), description.FullName)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.Locations(0), description.FullName)
                 End If
 
                 Return True
@@ -1739,12 +1771,10 @@ lReportErrorOnTwoTokens:
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.ReturnValue, MessageProvider.Instance)
-            Else
-                MyBase.DecodeWellKnownAttribute(arguments)
             End If
         End Sub
 
-        Private Function IsDllImportAttributeAllowed(syntax As AttributeSyntax, diagnostics As DiagnosticBag) As Boolean
+        Private Function IsDllImportAttributeAllowed(syntax As AttributeSyntax, diagnostics As BindingDiagnosticBag) As Boolean
             Select Case Me.MethodKind
                 Case MethodKind.DeclareMethod
                     diagnostics.Add(ERRID.ERR_DllImportNotLegalOnDeclare, syntax.Name.GetLocation())
@@ -1780,7 +1810,7 @@ lReportErrorOnTwoTokens:
                (methodImpl.IsAsync OrElse methodImpl.IsIterator) AndAlso
                Not methodImpl.ContainingType.IsInterfaceType() Then
 
-                Dim location As location = methodImpl.NonMergedLocation
+                Dim location As Location = methodImpl.NonMergedLocation
 
                 If location IsNot Nothing Then
                     Binder.ReportDiagnostic(diagnostics, location, ERRID.ERR_DllImportOnResumableMethod)
@@ -1799,7 +1829,7 @@ lReportErrorOnTwoTokens:
         Friend Overrides Sub PostDecodeWellKnownAttributes(
             boundAttributes As ImmutableArray(Of VisualBasicAttributeData),
             allAttributeSyntaxNodes As ImmutableArray(Of AttributeSyntax),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             symbolPart As AttributeLocation,
             decodedData As WellKnownAttributeData)
 
@@ -1907,6 +1937,13 @@ lReportErrorOnTwoTokens:
 
             Return SpecializedCollections.EmptyEnumerable(Of SecurityAttribute)()
         End Function
+
+        Friend NotOverridable Overrides ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExcludeFromCodeCoverageAttribute
+            End Get
+        End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
@@ -2042,7 +2079,7 @@ lReportErrorOnTwoTokens:
         Private Sub EnsureSignature()
             If _lazyParameters.IsDefault Then
 
-                Dim diagBag = DiagnosticBag.GetInstance()
+                Dim diagBag = BindingDiagnosticBag.GetInstance()
                 Dim sourceModule = ContainingSourceModule
 
                 Dim params As ImmutableArray(Of ParameterSymbol) = GetParameters(sourceModule, diagBag)
@@ -2076,6 +2113,7 @@ lReportErrorOnTwoTokens:
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                                 param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                 ImmutableArray(Of CustomModifier).Empty,
+                                                ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
                                                 isByRef:=param.IsByRef,
@@ -2091,6 +2129,7 @@ lReportErrorOnTwoTokens:
                                                                             returnsByRef:=False,
                                                                             returnType:=retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                                             returnTypeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            refCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
                                                                             explicitInterfaceImplementations:=ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))
                 End If
@@ -2099,33 +2138,7 @@ lReportErrorOnTwoTokens:
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then
-                    ' Copy custom modifiers
-
-                    ' For the most part, we will copy custom modifiers by copying types.
-                    ' The only time when this fails Is when the type refers to a type parameter
-                    ' owned by the overridden method.  We need to replace all such references
-                    ' with (equivalent) type parameters owned by this method.  We know that
-                    ' we can perform this mapping positionally, because the method signatures
-                    ' have already been compared.
-                    Dim constructedMethodWithCustomModifiers As MethodSymbol
-
-                    If Me.Arity > 0 Then
-                        constructedMethodWithCustomModifiers = overridden.Construct(Me.TypeParameters.As(Of TypeSymbol))
-                    Else
-                        constructedMethodWithCustomModifiers = overridden
-                    End If
-
-                    Dim returnTypeWithCustomModifiers As TypeSymbol = constructedMethodWithCustomModifiers.ReturnType
-
-                    ' We do an extra check before copying the return type to handle the case where the overriding
-                    ' method (incorrectly) has a different return type than the overridden method.  In such cases,
-                    ' we want to retain the original (incorrect) return type to avoid hiding the return type
-                    ' given in source.
-                    If retType.IsSameTypeIgnoringCustomModifiers(returnTypeWithCustomModifiers) Then
-                        retType = returnTypeWithCustomModifiers
-                    End If
-
-                    params = CustomModifierUtils.CopyParameterCustomModifiers(constructedMethodWithCustomModifiers.Parameters, params)
+                    CustomModifierUtils.CopyMethodCustomModifiers(overridden, Me.TypeArguments, retType, params)
                 End If
 
                 ' Unlike MethodSymbol, in SourceMethodSymbol we cache the result of MakeOverriddenOfHiddenMembers, because we use
@@ -2141,7 +2154,7 @@ lReportErrorOnTwoTokens:
                     If param.Locations.Length > 0 Then
                         ' Note: Errors are reported on the parameter name. Ideally, we should
                         ' match Dev10 and report errors on the parameter type syntax instead.
-                        param.Type.CheckAllConstraints(param.Locations(0), diagBag)
+                        param.Type.CheckAllConstraints(param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
                     End If
                 Next
 
@@ -2149,14 +2162,14 @@ lReportErrorOnTwoTokens:
                     Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
 
-                    retType.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
+                    retType.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
 
                     If useSiteDiagnosticsBuilder IsNot Nothing Then
                         diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
                     End If
 
                     For Each diag In diagnosticsBuilder
-                        diagBag.Add(diag.DiagnosticInfo, errorLocation.GetLocation())
+                        diagBag.Add(diag.UseSiteInfo, errorLocation.GetLocation())
                     Next
                     diagnosticsBuilder.Free()
                 End If
@@ -2164,8 +2177,7 @@ lReportErrorOnTwoTokens:
                 sourceModule.AtomicStoreArrayAndDiagnostics(
                         _lazyParameters,
                         params,
-                        diagBag,
-                        CompilationStage.Declare)
+                        diagBag)
 
                 diagBag.Free()
 
@@ -2173,7 +2185,7 @@ lReportErrorOnTwoTokens:
         End Sub
 
         Private Function CreateBinderForMethodDeclaration(sourceModule As SourceModuleSymbol) As Binder
-            Dim binder As binder = BinderBuilder.CreateBinderForMethodDeclaration(sourceModule, Me.SyntaxTree, Me)
+            Dim binder As Binder = BinderBuilder.CreateBinderForMethodDeclaration(sourceModule, Me.SyntaxTree, Me)
 
             ' Constraint checking for parameter and return types must be delayed
             ' until the parameter and return type fields have been set since
@@ -2183,10 +2195,10 @@ lReportErrorOnTwoTokens:
         End Function
 
         Protected Overridable Function GetParameters(sourceModule As SourceModuleSymbol,
-                                             diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+                                             diagBag As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
 
             Dim decl = Me.DeclarationSyntax
-            Dim binder As binder = CreateBinderForMethodDeclaration(sourceModule)
+            Dim binder As Binder = CreateBinderForMethodDeclaration(sourceModule)
 
             Dim paramList As ParameterListSyntax
 
@@ -2228,8 +2240,8 @@ lReportErrorOnTwoTokens:
 
         Private Function GetReturnType(sourceModule As SourceModuleSymbol,
                                        ByRef errorLocation As SyntaxNodeOrToken,
-                                       diagBag As DiagnosticBag) As TypeSymbol
-            Dim binder As binder = CreateBinderForMethodDeclaration(sourceModule)
+                                       diagBag As BindingDiagnosticBag) As TypeSymbol
+            Dim binder As Binder = CreateBinderForMethodDeclaration(sourceModule)
 
             Select Case MethodKind
                 Case MethodKind.Constructor,
@@ -2258,7 +2270,7 @@ lReportErrorOnTwoTokens:
                             SyntaxKind.DeclareSubStatement
 
                             Debug.Assert(Me.IsSub)
-                            Binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
+                            binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
                             retType = binder.GetSpecialType(SpecialType.System_Void, Syntax, diagBag)
                             errorLocation = methodStatement.DeclarationKeyword
 

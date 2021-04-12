@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -9,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
@@ -18,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         <Fact, WorkItem(547015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547015")>
         Public Sub IncorrectCustomAssemblyTableSize_TooManyMethodSpecs()
             Dim source = TestResources.MetadataTests.Invalid.ManyMethodSpecs
-            CompileAndVerify(VisualBasicCompilation.Create("Foo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
+            CompileAndVerify(VisualBasicCompilation.Create("Goo", syntaxTrees:={Parse(source)}, references:={MscorlibRef, SystemCoreRef, MsvbRef}))
         End Sub
 
         <Fact>
         Public Sub InstantiatedGenerics()
-            Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim mscorlibRef = Net40.mscorlib
             Dim source As String = <text> 
 Class A(Of T)
 
@@ -93,10 +96,38 @@ End Class
 
             CompileAndVerify(c1, symbolValidator:=
                 Sub([Module])
-                    Dim baseLine = Xml.Linq.XElement.Load(New StringReader(My.Resources.Resource.EmitSimpleBaseLine1))
-                    Dim dumpXML As Xml.Linq.XElement = DumpTypeInfo([Module])
+                    Dim dump = DumpTypeInfo([Module]).ToString()
 
-                    Assert.Equal(baseLine.ToString(), dumpXML.ToString())
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("
+<Global>
+<type name=""&lt;Module&gt;"" />
+<type name=""A"" Of=""T"" base=""System.Object"">
+  <field name=""x1"" type=""A(Of T)"" />
+  <field name=""x2"" type=""A(Of D)"" />
+  <type name=""B"" base=""A(Of T)"">
+  <field name=""y1"" type=""A(Of T).B"" />
+  <field name=""y2"" type=""A(Of D).B"" />
+  <type name=""C"" base=""A(Of T).B"" />
+  </type>
+  <type name=""H"" Of=""S"" base=""System.Object"">
+  <type name=""I"" base=""A(Of T).H(Of S)"" />
+  </type>
+</type>
+<type name=""D"" base=""System.Object"">
+  <type name=""K"" Of=""T"" base=""System.Object"">
+  <type name=""L"" base=""D.K(Of T)"" />
+  </type>
+</type>
+<type name=""F"" base=""A(Of D)"" />
+<type name=""G"" base=""A(Of NS1.E).B"" />
+<type name=""J"" base=""A(Of D).H(Of D)"" />
+<type name=""M"" base=""System.Object"" />
+<type name=""N"" base=""D.K(Of M)"" />
+<NS1>
+  <type name=""E"" base=""D"" />
+</NS1>
+</Global>
+", dump)
                 End Sub)
         End Sub
 
@@ -165,7 +196,7 @@ End Class
 
         <Fact>
         Public Sub FakeILGen()
-            Dim comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb"> 
 Public Class D
@@ -187,18 +218,18 @@ Public Class D
     Shared arrayField As String()
 End Class 
 </file>
-</compilation>, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseExe)
+</compilation>, {Net40.mscorlib}, TestOptions.ReleaseExe)
 
             CompileAndVerify(comp,
                              expectedOutput:=
-                                "65536" & vbCrLf &
-                                "string2" & vbCrLf &
-                                "string1" & vbCrLf)
+                                "65536" & Environment.NewLine &
+                                "string2" & Environment.NewLine &
+                                "string1" & Environment.NewLine)
         End Sub
 
         <Fact>
         Public Sub AssemblyRefs()
-            Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim mscorlibRef = Net40.mscorlib
             Dim metadataTestLib1 = TestReferences.SymbolsTests.MDTestLib1
             Dim metadataTestLib2 = TestReferences.SymbolsTests.MDTestLib2
 
@@ -257,7 +288,7 @@ End Class
 
         <Fact>
         Public Sub AddModule()
-            Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim mscorlibRef = Net40.mscorlib
             Dim netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1)
             Dim netModule2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule2)
 
@@ -314,7 +345,7 @@ End Class
 
         <Fact>
         Public Sub ImplementingAnInterface()
-            Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim mscorlibRef = Net40.mscorlib
 
             Dim source As String = <text>
 Public Interface I1
@@ -371,7 +402,7 @@ End Class
 
         <Fact>
         Public Sub Types()
-            Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim mscorlibRef = Net40.mscorlib
             Dim source As String = <text>
 Public MustInherit Class A
 
@@ -519,7 +550,7 @@ End Class
 
         <Fact>
         Public Sub Fields()
-            Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim mscorlibRef = Net40.mscorlib
             Dim source As String = <text> 
 Public Class A
     public F1 As Integer
@@ -649,7 +680,7 @@ End Class
 
         <Fact()>
         Public Sub GenericMethods2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 
@@ -920,7 +951,7 @@ End Class
          WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190"),
          WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")>
         Public Sub EmitWithNoResourcesAllPlatforms()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 <compilation>
                     <file>
 Class Test

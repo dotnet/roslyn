@@ -1,15 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -18,27 +24,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Export(typeof(InlineRenameService))]
     internal class InlineRenameService : IInlineRenameService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
-        private readonly AggregateAsynchronousOperationListener _aggregateListener;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
-
-        private InlineRenameSession _activeRenameSession;
+        private readonly IFeatureServiceFactory _featureServiceFactory;
+        private InlineRenameSession? _activeRenameSession;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineRenameService(
+            IThreadingContext threadingContext,
             IWaitIndicator waitIndicator,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
+            IFeatureServiceFactory featureServiceFactory,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _waitIndicator = waitIndicator;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferFactoryService = textBufferFactoryService;
+            _featureServiceFactory = featureServiceFactory;
             _refactorNotifyServices = refactorNotifyServices;
-            _aggregateListener = new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.Rename);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
         }
 
         public InlineRenameSessionInfo StartInlineSession(
@@ -48,18 +60,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_activeRenameSession != null)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.AnActiveInlineRenameSessionIsActive);
+                throw new InvalidOperationException(EditorFeaturesResources.An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one);
             }
 
-            var editorRenameService = document.GetLanguageService<IEditorInlineRenameService>();
+            var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
             var renameInfo = editorRenameService.GetRenameInfoAsync(document, textSpan.Start, cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var readOnlyOrCannotNavigateToSpanSessionInfo = IsReadOnlyOrCannotNavigateToSpan(renameInfo, document, cancellationToken);
+            if (readOnlyOrCannotNavigateToSpanSessionInfo != null)
+            {
+                return readOnlyOrCannotNavigateToSpanSessionInfo;
+            }
+
             if (!renameInfo.CanRename)
             {
                 return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
             }
 
-            var snapshot = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).FindCorrespondingEditorTextSnapshot();
+            var snapshot = document.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
+            Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
+
             ActiveSession = new InlineRenameSession(
+                _threadingContext,
                 this,
                 document.Project.Solution.Workspace,
                 renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),
@@ -67,21 +89,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _waitIndicator,
                 _textBufferAssociatedViewService,
                 _textBufferFactoryService,
+                _featureServiceFactory,
                 _refactorNotifyServices,
-                _aggregateListener);
+                _asyncListener);
 
             return new InlineRenameSessionInfo(ActiveSession);
-        }
 
-        IInlineRenameSession IInlineRenameService.ActiveSession
-        {
-            get
+            static InlineRenameSessionInfo? IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
-                return _activeRenameSession;
+                if (renameInfo is IInlineRenameInfo inlineRenameInfo && inlineRenameInfo.DefinitionLocations != default)
+                {
+                    var workspace = document.Project.Solution.Workspace;
+                    var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+                    foreach (var documentSpan in inlineRenameInfo.DefinitionLocations)
+                    {
+                        var sourceText = documentSpan.Document.GetTextSynchronously(cancellationToken);
+                        var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+
+                        if (textSnapshot != null)
+                        {
+                            var buffer = textSnapshot.TextBuffer;
+                            var originalSpan = documentSpan.SourceSpan.ToSnapshotSpan(textSnapshot).TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+                            if (buffer.IsReadOnly(originalSpan))
+                            {
+                                return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file);
+                            }
+                        }
+
+                        if (!navigationService.CanNavigateToSpan(workspace, document.Id, documentSpan.SourceSpan, cancellationToken))
+                        {
+                            return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to);
+                        }
+                    }
+                }
+
+                return null;
             }
         }
 
-        internal InlineRenameSession ActiveSession
+        IInlineRenameSession? IInlineRenameService.ActiveSession => _activeRenameSession;
+
+        internal InlineRenameSession? ActiveSession
         {
             get
             {
@@ -92,21 +142,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var previousSession = _activeRenameSession;
                 _activeRenameSession = value;
-                ActiveSessionChanged?.Invoke(this, new ActiveSessionChangedEventArgs(previousSession));
+                ActiveSessionChanged?.Invoke(this, new ActiveSessionChangedEventArgs(previousSession!));
             }
         }
 
         /// <summary>
         /// Raised when the ActiveSession property has changed.
         /// </summary>
-        internal event EventHandler<ActiveSessionChangedEventArgs> ActiveSessionChanged;
+        internal event EventHandler<ActiveSessionChangedEventArgs>? ActiveSessionChanged;
 
         internal class ActiveSessionChangedEventArgs : EventArgs
         {
             public ActiveSessionChangedEventArgs(InlineRenameSession previousSession)
-            {
-                this.PreviousSession = previousSession;
-            }
+                => this.PreviousSession = previousSession;
 
             public InlineRenameSession PreviousSession { get; }
         }

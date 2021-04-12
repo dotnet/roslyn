@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -102,24 +106,21 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return _caller; }
             }
 
-            IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.Accessors
+            IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
             {
-                get
+                if (_adder != null)
                 {
-                    if (_adder != null)
-                    {
-                        yield return _adder;
-                    }
+                    yield return _adder;
+                }
 
-                    if (_remover != null)
-                    {
-                        yield return _remover;
-                    }
+                if (_remover != null)
+                {
+                    yield return _remover;
+                }
 
-                    if (_caller != null)
-                    {
-                        yield return _caller;
-                    }
+                if (_caller != null)
+                {
+                    yield return _caller;
                 }
             }
 

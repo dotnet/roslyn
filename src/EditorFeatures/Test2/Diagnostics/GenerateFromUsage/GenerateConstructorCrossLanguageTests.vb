@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -7,15 +9,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructo
     Partial Public Class GenerateConstructorCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    Nothing,
-                    New Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor.GenerateConstructorCodeFixProvider())
+                Return (Nothing, New CodeAnalysis.CSharp.GenerateConstructor.GenerateConstructorCodeFixProvider())
             Else
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    Nothing,
-                    New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor.GenerateConstructorCodeFixProvider())
+                Return (Nothing, New CodeAnalysis.VisualBasic.GenerateConstructor.GenerateConstructorCodeFixProvider())
             End If
         End Function
 
@@ -29,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructo
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             new $$VBClass("hello");
                         }

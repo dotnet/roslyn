@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -58,6 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Public MustOverride ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+
+        ''' <summary>
         ''' Gets the parameters of this property. If this property has no parameters, returns
         ''' an empty list.
         ''' </summary>
@@ -73,6 +81,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overridable ReadOnly Property ParameterCount As Integer
             Get
                 Return Me.Parameters.Length
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' True if the property itself Is excluded from code coverage instrumentation.
+        ''' True for source properties marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        ''' </summary>
+        Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Return False
             End Get
         End Property
 
@@ -126,22 +144,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Indicates if the property can be written into, which means this 
         ''' property has a setter or it is a getter only autoproperty accessed 
-        ''' in a corresponding constructor or initializer
+        ''' in a corresponding constructor or initializer.
+        ''' If the setter is init-only, we also check that it is accessed in a constructor
+        ''' on Me/MyBase/MyClass or is a target of a member initializer in an object member
+        ''' initializer.
         ''' </summary>
-        Friend Function IsWritable(receiver As BoundExpression, containingBinder As Binder) As Boolean
-            If Me.HasSet Then
-                Return True
+        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder, isKnownTargetOfObjectMemberInitializer As Boolean) As Boolean
+            Debug.Assert(containingBinder IsNot Nothing)
+
+            Dim mostDerivedSet As MethodSymbol = Me.GetMostDerivedSetMethod()
+
+            If mostDerivedSet IsNot Nothing Then
+                If Not mostDerivedSet.IsInitOnly Then
+                    Return True
+                End If
+
+                If receiverOpt Is Nothing Then
+                    Return False
+                End If
+
+                ' ok: New C() With { .InitOnlyProperty = ... }
+                If isKnownTargetOfObjectMemberInitializer Then
+                    Debug.Assert(receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder)
+                    Return True
+                End If
+
+                ' ok: setting on `Me`/`MyBase`/`MyClass` from an instance constructor
+                Dim containingMember As Symbol = containingBinder.ContainingMember
+                If If(TryCast(containingMember, MethodSymbol)?.MethodKind <> MethodKind.Constructor, True) Then
+                    Return False
+                End If
+
+                If receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse receiverOpt.Kind = BoundKind.WithRValueExpressionPlaceholder Then
+                    ' This can be a reference used as a target for a `With` statement
+                    Dim currentBinder As Binder = containingBinder
+
+                    While currentBinder IsNot Nothing AndAlso currentBinder.ContainingMember Is containingMember
+                        Dim withBlockBinder = TryCast(currentBinder, WithBlockBinder)
+                        If withBlockBinder IsNot Nothing Then
+                            If withBlockBinder.Info?.ExpressionPlaceholder Is receiverOpt Then
+                                receiverOpt = withBlockBinder.Info.OriginalExpression
+                            End If
+
+                            Exit While
+                        End If
+
+                        currentBinder = currentBinder.ContainingBinder
+                    End While
+                End If
+
+                Do
+                    Select Case receiverOpt.Kind
+                        Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
+                            Return True
+                        Case BoundKind.Parenthesized
+                            receiverOpt = DirectCast(receiverOpt, BoundParenthesized).Expression
+                        Case Else
+                            Return False
+                    End Select
+                Loop
             End If
 
             Dim sourceProperty As SourcePropertySymbol = TryCast(Me, SourcePropertySymbol)
             Dim propertyIsStatic As Boolean = Me.IsShared
             Dim fromMember = containingBinder.ContainingMember
 
-            Return sourceProperty IsNot Nothing AndAlso
+            Return sourceProperty IsNot Nothing AndAlso fromMember IsNot Nothing AndAlso
                 sourceProperty.IsAutoProperty AndAlso
-                sourceProperty.ContainingType = fromMember.ContainingType AndAlso
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                 propertyIsStatic = fromMember.IsShared AndAlso
-                (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
+                (propertyIsStatic OrElse (receiverOpt IsNot Nothing AndAlso receiverOpt.Kind = BoundKind.MeReference)) AndAlso
                 ((fromMember.Kind = SymbolKind.Method AndAlso DirectCast(fromMember, MethodSymbol).IsAnyConstructor) OrElse
                         TypeOf containingBinder Is DeclarationInitializerBinder)
 
@@ -159,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' overridden property if such property exists.
         ''' 
         ''' NOTE: It is not possible in VB, but possible in other languages (for example in C#) to
-        '''       override read-write property an provide override only for setter, thus inheriting 
+        '''       override read-write property and provide override only for setter, thus inheriting 
         '''       getter's implementation. This method will find the Get method from the most-derived
         '''       overridden property in this case
         ''' </summary>
@@ -186,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' overridden property if such property exists.
         ''' 
         ''' NOTE: It is not possible in VB, but possible in other languages (for example in C#) to
-        '''       override read-write property an provide override only for getter, thus inheriting 
+        '''       override read-write property and provide override only for getter, thus inheriting 
         '''       setter's implementation. This method will find the Set method from the most-derived
         '''       overridden property in this case
         ''' </summary>
@@ -319,56 +391,74 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return MyBase.GetUseSiteErrorInfo()
+                Return New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return Me.OriginalDefinition.GetUseSiteInfo()
         End Function
 
-        Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
 
             Debug.Assert(IsDefinition)
 
-            ' Check returns by ref.
-            If Me.ReturnsByRef Then
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-            End If
-
             ' Check return type.
-            Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
 
-            If errorInfo IsNot Nothing AndAlso errorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
-                Return errorInfo
+            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return useSiteInfo
             End If
 
             ' Check return type custom modifiers.
-            Dim paramsErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.TypeCustomModifiers)
+            Dim refModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If paramsErrorInfo IsNot Nothing Then
-                If paramsErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
-                    Return paramsErrorInfo
-                End If
+            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return refModifiersUseSiteInfo
+            End If
 
-                If errorInfo Is Nothing Then
-                    errorInfo = paramsErrorInfo
-                End If
+            Dim typeModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.TypeCustomModifiers)
+
+            If typeModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return typeModifiersUseSiteInfo
             End If
 
             ' Check parameters.
-            Dim result = MergeUseSiteErrorInfo(errorInfo, DeriveUseSiteErrorInfoFromParameters(Me.Parameters))
+            Dim parametersUseSiteInfo = DeriveUseSiteInfoFromParameters(Me.Parameters)
+
+            If parametersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return parametersUseSiteInfo
+            End If
+
+            Dim errorInfo As DiagnosticInfo = If(useSiteInfo.DiagnosticInfo,
+                                              If(refModifiersUseSiteInfo.DiagnosticInfo,
+                                              If(typeModifiersUseSiteInfo.DiagnosticInfo,
+                                                 parametersUseSiteInfo.DiagnosticInfo)))
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
-            If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
+            If errorInfo Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
-                result = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
-                         If(GetUnificationUseSiteDiagnosticRecursive(Me.TypeCustomModifiers, Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes)))
+                errorInfo = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                            If(GetUnificationUseSiteDiagnosticRecursive(Me.RefCustomModifiers, Me, unificationCheckedTypes),
+                            If(GetUnificationUseSiteDiagnosticRecursive(Me.TypeCustomModifiers, Me, unificationCheckedTypes),
+                               GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes))))
+
+                Debug.Assert(errorInfo Is Nothing OrElse errorInfo.Severity = DiagnosticSeverity.Error)
             End If
 
-            Return result
+            If errorInfo IsNot Nothing Then
+                Return New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+            End If
+
+            Dim primaryDependency = useSiteInfo.PrimaryDependency
+            Dim secondaryDependency = useSiteInfo.SecondaryDependencies
+
+            refModifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+            typeModifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+            parametersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+
+            Return New UseSiteInfo(Of AssemblySymbol)(diagnosticInfo:=Nothing, primaryDependency, secondaryDependency)
         End Function
 
         ''' <summary>
@@ -382,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
                 Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedProperty1
             End Get
         End Property
@@ -405,6 +495,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
                 Return Me.ContainingSymbol.EmbeddedSymbolKind
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Is this a property of a tuple type?
+        ''' </summary>
+        Public Overridable ReadOnly Property IsTupleProperty() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' If this is a property of a tuple type, return corresponding underlying property from the
+        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' </summary>
+        Public Overridable ReadOnly Property TupleUnderlyingProperty() As PropertySymbol
+            Get
+                Return Nothing
             End Get
         End Property
 
@@ -474,9 +583,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_ByRefReturnIsReadonly As Boolean Implements IPropertySymbol.ReturnsByRefReadonly
+            Get
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_RefKind As RefKind Implements IPropertySymbol.RefKind
+            Get
+                Return If(Me.ReturnsByRef, RefKind.Ref, RefKind.None)
+            End Get
+        End Property
+
         Private ReadOnly Property IPropertySymbol_Type As ITypeSymbol Implements IPropertySymbol.Type
             Get
                 Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_NullableAnnotation As NullableAnnotation Implements IPropertySymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IPropertySymbol.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers
             End Get
         End Property
 

@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="de" original="../VBEditorResources.resx">
+    <body>
+      <trans-unit id="Add_Missing_Imports_on_Paste">
+        <source>Add Missing Imports on Paste</source>
+        <target state="translated">Beim Einfügen fehlende import-Anweisungen hinzufügen</target>
+        <note>"imports" is a language specific term and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Adding_missing_imports">
+        <source>Adding missing imports...</source>
+        <target state="translated">Fehlende import-Anweisungen werden hinzugefügt...</target>
+        <note>Thread awaited dialog text. "imports" is a language specific term and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Case_Correction">
+        <source>Case Correction</source>
+        <target state="translated">Fallkorrektur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Correcting_word_casing">
+        <source>Correcting word casing...</source>
+        <target state="translated">Wortschreibweise wird korrigiert...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_call_is_required_by_the_designer">
+        <source>This call is required by the designer.</source>
+        <target state="translated">Dieser Aufruf ist für den Designer erforderlich.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_any_initialization_after_the_InitializeComponent_call">
+        <source>Add any initialization after the InitializeComponent() call.</source>
+        <target state="translated">Fügen Sie Initialisierungen nach dem InitializeComponent()-Aufruf hinzu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_Construct">
+        <source>End Construct</source>
+        <target state="translated">Endkonstrukt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Indenting">
+        <source>Smart Indenting</source>
+        <target state="translated">Intelligenter Einzug</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_Document">
+        <source>Formatting Document...</source>
+        <target state="translated">Dokument wird formatiert...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_new_line">
+        <source>Insert new line</source>
+        <target state="translated">Neue Zeile einfügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Paste">
+        <source>Format Paste</source>
+        <target state="translated">Format einfügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_pasted_text">
+        <source>Formatting pasted text...</source>
+        <target state="translated">Eingefügter Text wird formatiert...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">Einfügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_on_Save">
+        <source>Format on Save</source>
+        <target state="translated">Format wird gespeichert</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Committing_line">
+        <source>Committing line</source>
+        <target state="translated">Zeile wird committet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Pretty_List">
+        <source>Visual Basic Pretty List</source>
+        <target state="translated">Visual Basic - Automatische Strukturierung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="not_supported">
+        <source>not supported</source>
+        <target state="translated">nicht unterstützt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Member">
+        <source>Generate Member</source>
+        <target state="translated">Mitglied generieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Line_commit">
+        <source>Line commit</source>
+        <target state="translated">Zeilencommit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">Abstrakte Klasse oder Schnittstelle implementieren</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

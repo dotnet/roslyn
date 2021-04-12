@@ -1,16 +1,19 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractFileCodeModelTests
         Inherits AbstractCodeModelObjectTests(Of EnvDTE80.FileCodeModel2)
 
         Protected Async Function TestOperation(code As XElement, expectedCode As XElement, operation As Action(Of EnvDTE80.FileCodeModel2)) As Task
-            Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"Test calls TestOperation which means we're creating new CodeModel elements.")
+            WpfTestRunner.RequireWpfFact($"Test calls {NameOf(Me.TestOperation)} which means we're creating new {NameOf(EnvDTE.CodeModel)} elements.")
 
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
@@ -21,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
             End Using
 
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
@@ -35,15 +38,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Function
 
-        Protected Async Function TestOperation(code As XElement, operation As Action(Of EnvDTE80.FileCodeModel2)) As Task
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+        Protected Sub TestOperation(code As XElement, operation As Action(Of EnvDTE80.FileCodeModel2))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
                 operation(fileCodeModel)
             End Using
 
-            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
@@ -51,10 +54,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 operation(fileCodeModel)
                 fileCodeModel.EndBatch()
             End Using
-        End Function
+        End Sub
 
-        Protected Overrides Async Function TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object)) As Task
-            Await TestOperation(code,
+        Protected Overrides Sub TestChildren(code As XElement, ParamArray expectedChildren() As Action(Of Object))
+            TestOperation(code,
                 Sub(fileCodeModel)
                     Dim children = fileCodeModel.CodeElements
                     Assert.Equal(expectedChildren.Length, children.Count)
@@ -63,7 +66,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         expectedChildren(i - 1)(children.Item(i))
                     Next
                 End Sub)
-        End Function
+        End Sub
 
         Protected Overrides Async Function TestAddAttribute(code As XElement, expectedCode As XElement, data As AttributeData) As Task
             Await TestOperation(code, expectedCode,

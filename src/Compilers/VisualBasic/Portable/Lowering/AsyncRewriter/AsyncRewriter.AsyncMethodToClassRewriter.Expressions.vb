@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -7,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -34,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim spillSeq = DirectCast(valueOpt, BoundSpillSequence)
-                Debug.Assert(rewrittenType = spillSeq.Type)
+                Debug.Assert(TypeSymbol.Equals(rewrittenType, spillSeq.Type, TypeCompareKind.ConsiderEverything))
 
                 Return node.Update(
                     node.Locals.Concat(spillSeq.Locals),
@@ -105,9 +108,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      rewritten.MethodGroupOpt,
                                                                      result.ReceiverOpt,
                                                                      result.Arguments,
+                                                                     rewritten.DefaultArguments,
                                                                      rewritten.ConstantValueOpt,
-                                                                     rewritten.SuppressObjectClone,
-                                                                     rewritten.Type))
+                                                                     isLValue:=rewritten.IsLValue,
+                                                                     suppressObjectClone:=rewritten.SuppressObjectClone,
+                                                                     type:=rewritten.Type))
             End Function
 
             Public Overrides Function VisitObjectCreationExpression(node As BoundObjectCreationExpression) As BoundNode
@@ -125,6 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return builder.BuildSequenceAndFree(Me.F,
                                                     rewritten.Update(rewritten.ConstructorOpt,
                                                                      arguments,
+                                                                     rewritten.DefaultArguments,
                                                                      rewritten.InitializerOpt,
                                                                      rewritten.Type))
             End Function
@@ -160,7 +166,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim builder As New SpillBuilder()
-                If rewritten.OperatorKind = BinaryOperatorKind.AndAlso OrElse rewritten.OperatorKind = BinaryOperatorKind.OrElse Then
+                Dim operatorKind As BinaryOperatorKind = rewritten.OperatorKind And BinaryOperatorKind.OpMask
+                Debug.Assert(operatorKind = (rewritten.OperatorKind And Not (BinaryOperatorKind.IsOperandOfConditionalBranch Or BinaryOperatorKind.OptimizableForConditionalBranch)))
+                If operatorKind = BinaryOperatorKind.AndAlso OrElse operatorKind = BinaryOperatorKind.OrElse Then
                     ' NOTE: Short circuit operators need to evaluate the right optionally
                     Dim spilledLeft = SpillValue(left, builder)
 
@@ -168,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.AddLocal(tempLocal)
 
                     builder.AddStatement(
-                        If(rewritten.OperatorKind = BinaryOperatorKind.AndAlso,
+                        If(operatorKind = BinaryOperatorKind.AndAlso,
                            Me.F.If(condition:=spilledLeft,
                                    thenClause:=MakeAssignmentStatement(right, tempLocal, builder),
                                    elseClause:=MakeAssignmentStatement(Me.F.Literal(False), tempLocal)),
@@ -227,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim builder As New SpillBuilder()
 
                 Debug.Assert(left.IsLValue)
-                Dim spilledLeft As BoundExpression = SpillLValue(left, isReceiver:=False, builder:=builder)
+                Dim spilledLeft As BoundExpression = SpillLValue(left, isReceiver:=False, evaluateSideEffects:=True, builder:=builder, isAssignmentTarget:=True)
 
                 Dim rightAsSpillSequence = DirectCast(right, BoundSpillSequence)
                 builder.AddSpill(rightAsSpillSequence)
@@ -314,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   rewritten.FieldSymbol,
                                                                   rewritten.IsLValue,
                                                                   rewritten.SuppressVirtualCalls,
-                                                                  rewritten.ConstantsInProgressOpt,
+                                                                  constantsInProgressOpt:=Nothing,
                                                                   rewritten.Type))
             End Function
 
@@ -362,8 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitConversion(node As BoundConversion) As BoundNode
                 Dim rewritten = DirectCast(MyBase.VisitConversion(node), BoundConversion)
                 Dim operand As BoundExpression = rewritten.Operand
-                Debug.Assert(rewritten.RelaxationReceiverPlaceholderOpt Is Nothing)
-                Debug.Assert(rewritten.RelaxationLambdaOpt Is Nothing)
+                Debug.Assert(rewritten.ExtendedInfoOpt Is Nothing)
 
                 If Not NeedsSpill(operand) Then
                     Return rewritten
@@ -378,9 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   rewritten.Checked,
                                                                   rewritten.ExplicitCastInCode,
                                                                   rewritten.ConstantValueOpt,
-                                                                  rewritten.ConstructorOpt,
-                                                                  rewritten.RelaxationLambdaOpt,
-                                                                  rewritten.RelaxationReceiverPlaceholderOpt,
+                                                                  rewritten.ExtendedInfoOpt,
                                                                   rewritten.Type))
             End Function
 
@@ -560,7 +565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' to enforce order of evaluation and to decrease the size of the code that we will duplicate (1 - receiver evaluation during capture,
                             ' 2 - value type receiver evaluation). 
                             If Not receiver.Type.IsReferenceType Then
-                                receiver = SpillValue(receiver, isReceiver:=True, builder:=builder)
+                                receiver = SpillValue(receiver, isReceiver:=True, evaluateSideEffects:=True, builder:=builder)
                             End If
 
                             ' If receiver is not spilled, we can use a local to capture receiver's value. If receiver is spilled, use SpillRValue to accomplish this
@@ -595,7 +600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         Else
                             Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled)
-                            placeholderReplacement = SpillValue(receiver, isReceiver:=True, builder:=builder)
+                            placeholderReplacement = SpillValue(receiver, isReceiver:=True, evaluateSideEffects:=True, builder:=builder)
                             nullCheckTarget = placeholderReplacement.MakeRValue()
                         End If
                     Else

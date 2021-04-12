@@ -1,7 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +48,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -188,28 +192,28 @@ class C {
         public async Task TestInterfaceTypeVarianceAfterAngle()
         {
             await VerifyKeywordAsync(
-@"interface IFoo<$$");
+@"interface IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceNotAfterIn()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo<in $$");
+@"interface IGoo<in $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceAfterComma()
         {
             await VerifyKeywordAsync(
-@"interface IFoo<Foo, $$");
+@"interface IGoo<Goo, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceAfterAttribute()
         {
             await VerifyKeywordAsync(
-@"interface IFoo<[Foo]$$");
+@"interface IGoo<[Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -223,43 +227,43 @@ class C {
         public async Task TestDelegateTypeVarianceAfterComma()
         {
             await VerifyKeywordAsync(
-@"delegate void D<Foo, $$");
+@"delegate void D<Goo, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestDelegateTypeVarianceAfterAttribute()
         {
             await VerifyKeywordAsync(
-@"delegate void D<[Foo]$$");
+@"delegate void D<[Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInClassTypeVarianceAfterAngle()
         {
             await VerifyAbsenceAsync(
-@"class IFoo<$$");
+@"class IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInStructTypeVarianceAfterAngle()
         {
             await VerifyAbsenceAsync(
-@"struct IFoo<$$");
+@"struct IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInBaseListAfterAngle()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo : Bar<$$");
+@"interface IGoo : Bar<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInGenericMethod()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo {
-    void Foo<$$");
+@"interface IGoo {
+    void Goo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -300,6 +304,422 @@ class C {
     void M()
     {
         var q = from Int32 $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsParameterModifierInMethods()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test($$ p) { }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsParameterModifierInSecondParameter()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test(int p1, $$ p2) { }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsParameterModifierInDelegates()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate($$ int p);");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsParameterModifierInLocalFunctions()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static void Test()
+    {
+        void localFunc($$ int p) { }
+    }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsParameterModifierInLambdaExpressions()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate(in int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate lambda = ($$ int p) => p;
+    }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsParameterModifierInAnonymousMethods()
+        {
+            await VerifyKeywordAsync(@"
+public delegate int Delegate(in int p);
+
+class Program
+{
+    public static void Test()
+    {
+        Delegate anonymousDelegate = delegate ($$ int p) { return p; };
+    }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsModifierInMethodReturnTypes()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    public $$ int Test()
+    {
+        return ref x;
+    }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsModifierInGlobalMemberDeclaration()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script, @"
+public $$ ");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsModifierInDelegateReturnType()
+        {
+            await VerifyAbsenceAsync(@"
+public delegate $$ int Delegate();
+
+class Program
+{
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInAsModifierInMemberDeclaration()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    public $$ int Test { get; set; }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMethodFirstArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M() {
+        Call($$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMethodSecondArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M(object arg1) {
+        Call(arg1, $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBaseCallFirstArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C() : base($$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBaseCallSecondArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C(object arg1) : base(arg1, $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInThisCallFirstArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C() : this($$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInThisCallSecondArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C(object arg1) : this(arg1, $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        public async Task TestInAsParameterModifierInConversionOperators()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static explicit operator double($$) { }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        public async Task TestInAsParameterModifierInBinaryOperators()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static Program operator +($$) { }
+}");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConstructorCallFirstArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M() {
+        new MyType($$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConstructorSecondArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M(object arg1) {
+        new MyType(arg1, $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMethodFirstNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M() {
+        Call(a: $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMethodSecondNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M(object arg1) {
+        Call(a: arg1, b: $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBaseCallFirstNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C() : base(a: $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBaseCallSecondNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C(object arg1) : base(a: arg1, b: $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInThisCallFirstNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C() : this(a: $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInThisCallSecondNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C(object arg1) : this(a: arg1, b: $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConstructorCallFirstNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M() {
+        new MyType(a: $$");
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConstructorSecondNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M(object arg1) {
+        new MyType(a: arg1, b: $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    static void Extension($$");
+        }
+
+        [WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    static void Extension(this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    static void Extension(this int i, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword()
+        {
+            await VerifyAbsenceAsync(
+@"static class Extensions {
+    static void Extension(this int i, this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_NonStaticClass()
+        {
+            await VerifyKeywordAsync(
+@"class Extensions {
+    static void Extension($$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(
+@"class Extensions {
+    static void Extension(this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_NonStaticClass()
+        {
+            await VerifyKeywordAsync(
+@"class Extensions {
+    static void Extension(this int i, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(
+@"class Extensions {
+    static void Extension(this int i, this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_NonStaticMethod()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    void Extension($$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"static class Extensions {
+    void Extension(this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_NonStaticMethod()
+        {
+            await VerifyKeywordAsync(
+@"static class Extensions {
+    void Extension(this int i, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(
+@"static class Extensions {
+    void Extension(this int i, this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeNoExistingModifiers()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<$$");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("in")]
+        [InlineData("out")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        public async Task TestNotInFunctionPointerTypeExistingModifiers(string modifier)
+        {
+            await VerifyAbsenceAsync($@"
+class C
+{{
+    delegate*<{modifier} $$");
         }
     }
 }

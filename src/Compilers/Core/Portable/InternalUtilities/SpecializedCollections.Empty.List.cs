@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
@@ -9,9 +12,15 @@ namespace Roslyn.Utilities
     {
         private partial class Empty
         {
+            internal static class BoxedImmutableArray<T>
+            {
+                // empty boxed immutable array
+                public static readonly IReadOnlyList<T> Instance = ImmutableArray<T>.Empty;
+            }
+
             internal class List<T> : Collection<T>, IList<T>, IReadOnlyList<T>
             {
-                public static readonly new List<T> Instance = new List<T>();
+                public static new readonly List<T> Instance = new();
 
                 protected List()
                 {

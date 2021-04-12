@@ -1,82 +1,70 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
-        private readonly TypeKind _typeKind;
-        private readonly IList<ITypeParameterSymbol> _typeParameters;
-        private readonly INamedTypeSymbol _baseType;
-        private readonly IList<INamedTypeSymbol> _interfaces;
-        private readonly IList<ISymbol> _members;
-        private readonly INamedTypeSymbol _enumUnderlyingType;
+        private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<INamedTypeSymbol> _interfaces;
+        private readonly ImmutableArray<ISymbol> _members;
 
         public CodeGenerationNamedTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
+            bool isRecord,
             TypeKind typeKind,
             string name,
-            IList<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             INamedTypeSymbol baseType,
-            IList<INamedTypeSymbol> interfaces,
+            ImmutableArray<INamedTypeSymbol> interfaces,
             SpecialType specialType,
-            IList<ISymbol> members,
-            IList<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
+            NullableAnnotation nullableAnnotation,
+            ImmutableArray<ISymbol> members,
+            ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
             INamedTypeSymbol enumUnderlyingType)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, typeMembers)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, typeMembers)
         {
-            _typeKind = typeKind;
-            _typeParameters = typeParameters ?? SpecializedCollections.EmptyList<ITypeParameterSymbol>();
-            _baseType = baseType;
-            _interfaces = interfaces ?? SpecializedCollections.EmptyList<INamedTypeSymbol>();
-            _members = members ?? SpecializedCollections.EmptyList<ISymbol>();
-            _enumUnderlyingType = enumUnderlyingType;
+            IsRecord = isRecord;
+            TypeKind = typeKind;
+            _typeParameters = typeParameters.NullToEmpty();
+            BaseType = baseType;
+            _interfaces = interfaces.NullToEmpty();
+            _members = members.NullToEmpty();
+            EnumUnderlyingType = enumUnderlyingType;
 
             this.OriginalDefinition = this;
         }
 
-        protected override CodeGenerationSymbol Clone()
+        protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
             return new CodeGenerationNamedTypeSymbol(
-                this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.TypeKind, this.Name, _typeParameters, _baseType,
-                _interfaces, this.SpecialType, _members, this.TypeMembers,
+                this.ContainingAssembly, this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
+                this.Modifiers, this.IsRecord, this.TypeKind, this.Name, _typeParameters, this.BaseType,
+                _interfaces, this.SpecialType, nullableAnnotation, _members, this.TypeMembers,
                 this.EnumUnderlyingType);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return _typeKind;
-            }
-        }
+        public override bool IsRecord { get; }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.NamedType;
-            }
-        }
+        public override TypeKind TypeKind { get; }
 
-        public override int Arity
-        {
-            get
-            {
-                return this.TypeParameters.Length;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.NamedType;
+
+        public override int Arity => this.TypeParameters.Length;
 
         public override bool IsGenericType
         {
@@ -86,29 +74,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override bool IsUnboundGenericType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsUnboundGenericType => false;
 
-        public override bool IsScriptClass
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsScriptClass => false;
 
-        public override bool IsImplicitClass
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsImplicitClass => false;
 
         public override IEnumerable<string> MemberNames
         {
@@ -128,15 +98,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol EnumUnderlyingType
-        {
-            get
-            {
-                return _enumUnderlyingType;
-            }
-        }
+        public override INamedTypeSymbol EnumUnderlyingType { get; }
 
-        public override INamedTypeSymbol ConstructedFrom
+        protected override CodeGenerationNamedTypeSymbol ConstructedFrom
         {
             get
             {
@@ -145,11 +109,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
-        {
-            return null;
-        }
+            => null;
 
-        public ImmutableArray<ISymbol> CandidateSymbols
+        public static ImmutableArray<ISymbol> CandidateSymbols
         {
             get
             {
@@ -165,6 +127,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations
+        {
+            get
+            {
+                // TODO: what should this be?
+                return this.TypeParameters.SelectAsArray(t => NullableAnnotation.NotAnnotated);
+            }
+        }
+
         public override ImmutableArray<ITypeParameterSymbol> TypeParameters
         {
             get
@@ -173,13 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol BaseType
-        {
-            get
-            {
-                return _baseType;
-            }
-        }
+        public override INamedTypeSymbol BaseType { get; }
 
         public override ImmutableArray<INamedTypeSymbol> Interfaces
         {
@@ -190,14 +155,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override ImmutableArray<ISymbol> GetMembers()
-        {
-            return ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
-        }
+            => ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
 
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-        {
-            return ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
-        }
+            => ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
 
         public override ImmutableArray<IMethodSymbol> InstanceConstructors
         {

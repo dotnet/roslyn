@@ -1,16 +1,19 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ' //
     ' //============ Methods to encapsulate scanning ========================
     ' //
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Scanner.h
         ' Lines: 301 - 301
@@ -61,11 +64,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' // enabled), and it isn't possible to look back past the first token of a
             ' // line, so test if this is the first token of the last read line.
 
-            ' // (bug 32704) "else" is a special case in the construct "if foo then resume else statement"
-
             ' REM and XmlDocComment are now trivia so they have been removed from the test
-            Return SyntaxFacts.IsTerminator(t.Kind) OrElse
-                (Context.IsLineIf AndAlso t.Kind = SyntaxKind.ElseKeyword)
+            Return SyntaxFacts.IsTerminator(t.Kind)
         End Function
 
         ' // Parser::CanFollowStatement -- Can this token follow a complete statement?
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Dev10#708061: Treat Select in "From x in Sub() End Select" as part of End statement.
             Return If(Context.IsWithinSingleLineLambda,
                       CanFollowExpression(nextToken) AndAlso Not nextToken.Kind = SyntaxKind.SelectKeyword,
-                      IsValidStatementTerminator(nextToken))
+                      IsValidStatementTerminator(nextToken)) OrElse (Context.IsLineIf AndAlso nextToken.Kind = SyntaxKind.ElseKeyword)
         End Function
 
         ' Is this token a valid end of executable statement?
@@ -141,8 +141,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return True
                 ElseIf allowGenericsWithoutOf Then
                     ' // To enable a better user experience in some common generics'
-                    ' // error scenarios, we special case foo(Integer) and
-                    ' // foo(Integer, garbage).
+                    ' // error scenarios, we special case goo(Integer) and
+                    ' // goo(Integer, garbage).
                     ' //
                     ' // "(Integer" indicates possibly type parameters with missing "of",
                     ' // but not "(Integer." and "Integer!" because they could possibly
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End While
         End Sub
 
-        Private Function ResyncAt(state As ScannerState, resyncTokens As SyntaxKind()) As SyntaxList(Of SyntaxToken)
+        Private Function ResyncAt(state As ScannerState, resyncTokens As SyntaxKind()) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
             Dim skippedTokens = Me._pool.Allocate(Of SyntaxToken)()
 
             ResyncAt(skippedTokens, state, resyncTokens)
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' Resyncs to next statement terminator. Used in Preprocessor
         ''' </summary>
-        Private Function ResyncAndConsumeStatementTerminator() As SyntaxList(Of SyntaxToken)
+        Private Function ResyncAndConsumeStatementTerminator() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
             Dim skippedTokens = Me._pool.Allocate(Of SyntaxToken)()
 
             While CurrentToken.Kind <> SyntaxKind.EndOfFileToken AndAlso
@@ -306,11 +306,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        Friend Function ResyncAt() As SyntaxList(Of SyntaxToken)
-            Return ResyncAt(ScannerState.VB, SpecializedCollections.EmptyArray(Of SyntaxKind))
+        Friend Function ResyncAt() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
+            Return ResyncAt(ScannerState.VB, Array.Empty(Of SyntaxKind))
         End Function
 
-        Friend Function ResyncAt(resyncTokens As SyntaxKind()) As SyntaxList(Of SyntaxToken)
+        Friend Function ResyncAt(resyncTokens As SyntaxKind()) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)
             Debug.Assert(resyncTokens IsNot Nothing)
             Return ResyncAt(ScannerState.VB, resyncTokens)
         End Function
@@ -325,10 +325,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return syntax.AddTrailingSyntax(ResyncAt())
         End Function
 
-        Private Function ResyncAt(Of T As VisualBasicSyntaxNode)(syntax As T, ParamArray resyncTokens As SyntaxKind()) As T
+        Private Function ResyncAt(Of T As GreenNode)(syntax As T, ParamArray resyncTokens As SyntaxKind()) As T
             Debug.Assert(resyncTokens IsNot Nothing)
 
-            Return syntax.AddTrailingSyntax(ResyncAt(resyncTokens))
+            Return syntax.AddTrailingSyntax(ResyncAt(resyncTokens).Node)
         End Function
 
         ''' <summary>

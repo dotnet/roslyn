@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -22,20 +26,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
             var nodesToProcess = context.InputNodes;
 
-            for (int depth = 0; depth < context.LinkDepth; depth++)
+            for (var depth = 0; depth < context.LinkDepth; depth++)
             {
                 // This is the list of nodes we created and will process
                 var newNodes = new HashSet<GraphNode>();
 
                 foreach (var node in nodesToProcess)
                 {
-                    var namedType = graphBuilder.GetSymbol(node) as INamedTypeSymbol;
-
-                    if (namedType != null)
+                    var symbol = graphBuilder.GetSymbol(node);
+                    if (symbol is INamedTypeSymbol namedType)
                     {
                         if (namedType.BaseType != null)
                         {
-                            var baseTypeNode = await graphBuilder.AddNodeForSymbolAsync(namedType.BaseType, relatedNode: node).ConfigureAwait(false);
+                            var baseTypeNode = await graphBuilder.AddNodeAsync(
+                                namedType.BaseType, relatedNode: node).ConfigureAwait(false);
                             newNodes.Add(baseTypeNode);
                             graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode);
                         }
@@ -43,7 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         {
                             foreach (var baseNode in namedType.OriginalDefinition.AllInterfaces.Distinct())
                             {
-                                var baseTypeNode = await graphBuilder.AddNodeForSymbolAsync(baseNode, relatedNode: node).ConfigureAwait(false);
+                                var baseTypeNode = await graphBuilder.AddNodeAsync(
+                                    baseNode, relatedNode: node).ConfigureAwait(false);
                                 newNodes.Add(baseTypeNode);
                                 graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode);
                             }

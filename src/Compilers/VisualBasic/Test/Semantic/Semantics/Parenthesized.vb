@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -22,7 +25,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="[]")
         End Sub
@@ -47,7 +50,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 System.DayOfWeek
@@ -77,7 +80,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 True
@@ -111,7 +114,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -136,21 +139,15 @@ BC30203: Identifier expected.
 BC30451: 'C2' is not declared. It may be inaccessible due to its protection level.
     System.Console.WriteLine(C1.(C2).Equals("", ""))
                                  ~~
-BC30182: Type expected.
+BC37259: Tuple must contain at least two elements.
     System.Console.WriteLine(GetType((System.String)))
-                                     ~
-BC30638: Array bounds cannot appear in type specifiers.
-    System.Console.WriteLine(GetType((System.String)))
-                                      ~~~~~~~~~~~~~
+                                                   ~
 BC30456: 'C2' is not a member of 'Type'.
     System.Console.WriteLine(GetType((C1).C2)))
                              ~~~~~~~~~~~~~~~
-BC30182: Type expected.
+BC37259: Tuple must contain at least two elements.
     System.Console.WriteLine(GetType((C1).C2)))
-                                     ~
-BC30638: Array bounds cannot appear in type specifiers.
-    System.Console.WriteLine(GetType((C1).C2)))
-                                      ~~
+                                        ~
 BC30198: ')' expected.
     System.Console.WriteLine(GetType((C1).C2)))
                                          ~
@@ -238,7 +235,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -268,7 +265,7 @@ L4
 L5
 L7
 F1
-1]]>.Value.Replace(vbLf, vbCrLf))
+1]]>.Value.Replace(vbLf, Environment.NewLine))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -405,7 +402,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -480,7 +477,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[F1
@@ -489,7 +486,7 @@ F1
 L2
 F1
 L4
-L5]]>.Value.Replace(vbLf, vbCrLf))
+L5]]>.Value.Replace(vbLf, Environment.NewLine))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -630,7 +627,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="L1")
 
@@ -676,7 +673,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -714,12 +711,12 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
-                                            "System.Func`2[System.Int32,System.Double]" & vbCrLf &
+                                            "System.Func`2[System.Int32,System.Double]" & Environment.NewLine &
                                             "System.Func`2[System.Guid,System.Decimal]")
         End Sub
 

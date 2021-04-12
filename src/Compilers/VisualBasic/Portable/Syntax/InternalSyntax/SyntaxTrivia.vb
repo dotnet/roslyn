@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
 Imports System.Text
@@ -45,9 +47,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
-            Return Function(r) New SyntaxTrivia(r)
-        End Function
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(SyntaxTrivia), Function(r) New SyntaxTrivia(r))
+        End Sub
+
+        Friend Overrides ReadOnly Property ShouldReuseInSerialization As Boolean
+            Get
+                Select Case Me.Kind
+                    Case SyntaxKind.WhitespaceTrivia,
+                        SyntaxKind.EndOfLineTrivia,
+                        SyntaxKind.LineContinuationTrivia,
+                        SyntaxKind.DocumentationCommentExteriorTrivia,
+                        SyntaxKind.ColonTrivia
+
+                        Return True
+                    Case Else
+                        Return False
+                End Select
+            End Get
+        End Property
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
@@ -60,11 +78,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsTrivia As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
         Friend NotOverridable Overrides Function GetSlot(index As Integer) As GreenNode
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend NotOverridable Overrides Function GetTrailingTrivia() As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides Function GetTrailingTrivia() As GreenNode
             Return Nothing
         End Function
 
@@ -72,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return 0
         End Function
 
-        Friend NotOverridable Overrides Function GetLeadingTrivia() As VisualBasicSyntaxNode
+        Friend NotOverridable Overrides Function GetLeadingTrivia() As GreenNode
             Return Nothing
         End Function
 
@@ -80,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return 0
         End Function
 
-        Friend Overrides Sub WriteToOrFlatten(writer As IO.TextWriter, stack As ArrayBuilder(Of GreenNode))
-            writer.Write(Text) 'write text of token itself
+        Protected Overrides Sub WriteTriviaTo(writer As System.IO.TextWriter)
+            writer.Write(Text) 'write text of trivia itself
         End Sub
 
         Public NotOverridable Overrides Function ToFullString() As String

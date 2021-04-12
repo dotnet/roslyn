@@ -1,117 +1,249 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class SymbolCompletionProvider : AbstractSymbolCompletionProvider
+    [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
+    [Shared]
+    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
-        protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken);
-        }
+        private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
 
-        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
+        static SymbolCompletionProvider()
         {
-            return GetInsertionText(symbol, context);
-        }
-
-        public static string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context)
-        {
-            string name;
-
-            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService<ISyntaxFactsService>(), out name))
+            for (var importDirective = 0; importDirective < 2; importDirective++)
             {
-                // Cannot escape Attribute name with the suffix removed. Only use the name with
-                // the suffix removed if it does not need to be escaped.
-                if (name.Equals(name.EscapeIdentifier()))
+                for (var preselect = 0; preselect < 2; preselect++)
                 {
-                    return name;
+                    for (var tupleLiteral = 0; tupleLiteral < 2; tupleLiteral++)
+                    {
+                        var context = (importDirective: importDirective == 1, preselect: preselect == 1, tupleLiteral: tupleLiteral == 1);
+                        s_cachedRules[context] = MakeRule(context);
+                    }
                 }
             }
 
-            return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
-        }
+            return;
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
-
-        protected override async Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
-        {
-            bool? result = await IsTriggerOnDotAsync(document, characterPosition, cancellationToken).ConfigureAwait(false);
-            if (result.HasValue)
+            static CompletionItemRules MakeRule((bool importDirective, bool preselect, bool tupleLiteral) context)
             {
-                return result.Value;
+                // '<' should not filter the completion list, even though it's in generic items like IList<>
+                var generalBaseline = CompletionItemRules.Default.
+                    WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
+                    WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
+
+                var importDirectiveBaseline = CompletionItemRules.Create(commitCharacterRules:
+                    ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+
+                var rule = context.importDirective ? importDirectiveBaseline : generalBaseline;
+
+                if (context.preselect)
+                    rule = rule.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
+
+                if (context.tupleLiteral)
+                    rule = rule.WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
+                return rule;
+            }
+        }
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SymbolCompletionProvider()
+        {
+        }
+
+        protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
+
+        protected override async Task<bool> ShouldPreselectInferredTypesAsync(
+            CompletionContext? context,
+            int position,
+            OptionSet options,
+            CancellationToken cancellationToken)
+        {
+            if (context != null && ShouldTriggerInArgumentLists(options))
+            {
+                // Avoid preselection & hard selection when triggered via insertion in an argument list.
+                // If an item is hard selected, then a user trying to type MethodCall() will get
+                // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
+                if (context.Trigger.Kind == CompletionTriggerKind.Insertion &&
+                    position > 0 &&
+                    await IsTriggerInArgumentListAsync(context.Document, position - 1, cancellationToken).ConfigureAwait(false) == true)
+                {
+                    return false;
+                }
             }
 
             return true;
         }
 
-        private async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        protected override bool IsInstrinsic(ISymbol s)
+            => s is ITypeSymbol ts && ts.IsIntrinsicType();
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        {
+            return ShouldTriggerInArgumentLists(options)
+                ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
+                : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+        }
+
+        internal override async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+        {
+            if (trigger.Kind == CompletionTriggerKind.Insertion && caretPosition > 0)
+            {
+                var result = await IsTriggerOnDotAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
+                if (result.HasValue)
+                    return result.Value;
+
+                if (ShouldTriggerInArgumentLists(await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    result = await IsTriggerInArgumentListAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
+                    if (result.HasValue)
+                        return result.Value;
+                }
+            }
+
+            // By default we want to proceed with triggering completion if we have items.
+            return true;
+        }
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
+
+        private static bool ShouldTriggerInArgumentLists(OptionSet options)
+            => options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
+
+        protected override bool IsTriggerOnDot(SyntaxToken token, int characterPosition)
+        {
+            if (!CompletionUtilities.TreatAsDot(token, characterPosition))
+                return false;
+
+            // don't want to trigger after a number.  All other cases after dot are ok.
+            return token.GetPreviousToken().Kind() != SyntaxKind.NumericLiteralToken;
+        }
+
+        /// <returns><see langword="null"/> if not an argument list character, otherwise whether the trigger is in an argument list.</returns>
+        private static async Task<bool?> IsTriggerInArgumentListAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (text[characterPosition] != '.')
+            if (!CompletionUtilities.IsArgumentListCharacter(text[characterPosition]))
             {
                 return null;
             }
 
-            // don't want to trigger after a number.  All other cases after dot are ok.
-            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindToken(characterPosition);
-            if (token.Kind() == SyntaxKind.DotToken)
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(characterPosition);
+
+            if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
             {
-                token = token.GetPreviousToken();
+                return false;
             }
 
-            return token.Kind() != SyntaxKind.NumericLiteralToken;
-        }
-
-        protected override async Task<AbstractSyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
-        }
-
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
-        {
-            var insertionText = GetInsertionText(symbol, context);
-            var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
-
-            return ValueTuple.Create(displayText, insertionText);
-        }
-
-        private static CompletionItemRules s_importDirectiveRules =
-            CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
-
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
-        {
-            if (context.IsInImportsDirective)
+            // Be careful, e.g. if we're in a comment before the token
+            if (token.Span.End > characterPosition + 1)
             {
-                return s_importDirectiveRules;
+                return false;
             }
-            else
+
+            // Only allow spaces between the end of the token and the trigger character
+            for (var i = token.Span.End; i < characterPosition; i++)
             {
-                return CompletionItemRules.Default;
+                if (text[i] != ' ')
+                {
+                    return false;
+                }
             }
+
+            return true;
+        }
+
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
+            => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
+
+        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, CSharpSyntaxContext context)
+        {
+            var preselect = symbols.Any(t => t.preselect);
+            s_cachedRules.TryGetValue(ValueTuple.Create(context.IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
+
+            return rule ?? CompletionItemRules.Default;
+        }
+
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
+            CSharpSyntaxContext context,
+            SupportedPlatformData? supportedPlatformData)
+        {
+            var item = base.CreateItem(
+                completionContext,
+                displayText,
+                displayTextSuffix,
+                insertionText,
+                symbols,
+                context,
+                supportedPlatformData);
+
+            var symbol = symbols[0].symbol;
+            // If it is a method symbol, also consider appending parenthesis when later, it is committed by using special characters.
+            // 2 cases are excluded.
+            // 1. If it is invoked under Nameof Context.
+            // For example: var a = nameof(Bar$$)
+            // In this case, if later committed by semicolon, we should have
+            // var a = nameof(Bar);
+            // 2. If the inferred type is delegate or function pointer.
+            // e.g. Action c = Bar$$
+            // In this case, if later committed by semicolon, we should have
+            // e.g. Action c = = Bar;
+            if (symbol.IsKind(SymbolKind.Method) && !context.IsNameOfContext)
+            {
+                var isInferredTypeDelegateOrFunctionPointer = context.InferredTypes.Any(type => type.IsDelegateType() || type.IsFunctionPointerType());
+                if (!isInferredTypeDelegateOrFunctionPointer)
+                {
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
+                }
+            }
+            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+            {
+                // If this is a type symbol/alias symbol, also consider appending parenthesis when later, it is committed by using special characters,
+                // and the type is used as constructor
+                if (context.IsObjectCreationTypeContext)
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
+            }
+
+            return item;
+        }
+
+        protected override string GetInsertionText(CompletionItem item, char ch)
+        {
+            if (ch is ';' or '.' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            {
+                CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
+            }
+
+            return base.GetInsertionText(item, ch);
         }
     }
 }

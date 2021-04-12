@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
@@ -9,30 +10,55 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MoveTo
     Public Class MoveToTopOfFileTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New MoveToTopOfFileCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New MoveToTopOfFileCodeFixProvider())
         End Function
 
 #Region "Imports Tests"
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestTestImportsMissing() As Task
-            Await TestMissingAsync(
-NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n [|Imports Microsoft|] \n Module Program \n Sub Main(args As String()) \n  \n End Sub \n End Module"))
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+[|Imports Microsoft|]
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsInsideDeclaration() As Task
-            Await TestAsync(
-NewLines("Module Program \n [|Imports System|] \n Sub Main(args As String()) \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    [|Imports System|]
+    Sub Main(args As String())
+    End Sub
+End Module",
+"Imports System
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestImportsAfterDeclarations() As Task
-            Await TestAsync(
-NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n [|Imports System|]"),
-NewLines("Imports System Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+[|Imports System|]",
+"Imports System
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -55,9 +81,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -80,9 +107,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -105,9 +133,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -130,9 +159,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(601222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601222")>
@@ -143,29 +173,51 @@ Imports Sys = System
 Option Infer Off
 [|Imports System.IO|]</File>
 
-            Await TestMissingAsync(text.ConvertTestSourceTag())
+            Await TestMissingInRegularAndScriptAsync(text.ConvertTestSourceTag())
         End Function
 #End Region
 
 #Region "Option Tests"
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestTestOptionsMissing() As Task
-            Await TestMissingAsync(
-NewLines("[|Option Explicit Off|] \n Module Program \n Sub Main(args As String()) \n  \n End Sub \n End Module"))
+            Await TestMissingInRegularAndScriptAsync(
+"[|Option Explicit Off|]
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsInsideDeclaration() As Task
-            Await TestAsync(
-NewLines("Module Program \n [|Option Explicit Off|] \n Sub Main(args As String()) \n End Sub \n End Module"),
-NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    [|Option Explicit Off|]
+    Sub Main(args As String())
+    End Sub
+End Module",
+"Option Explicit Off
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Async Function TestOptionsAfterDeclarations() As Task
-            Await TestAsync(
-NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n [|Option Explicit Off|]"),
-NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+[|Option Explicit Off|]",
+"Option Explicit Off
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -188,9 +240,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -213,9 +266,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -238,9 +292,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -264,9 +319,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -292,9 +348,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -320,9 +377,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -338,17 +396,18 @@ Module Program
 End Module
 [|Option Compare Binary|]</File>
 
-            Dim expected = <File>
-Option Compare Binary
+            Dim expected = <File>Option Compare Binary
+
 #Const A = 5
 
 Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -378,9 +437,10 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
 #End Region
@@ -398,7 +458,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestMissingAsync(text.ConvertTestSourceTag())
+            Await TestMissingInRegularAndScriptAsync(text.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -412,7 +472,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestMissingAsync(text.ConvertTestSourceTag())
+            Await TestMissingInRegularAndScriptAsync(text.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -426,15 +486,15 @@ End Module
 &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt;
 </File>
 
-            Dim expected = <File>
-&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;                               
+            Dim expected = <File>&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+
 Module Program
     Sub Main(args As String())
 
     End Sub
 End Module
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -448,14 +508,15 @@ Module Program
 End Module 
 </File>
 
-            Dim expected = <File>
-&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+            Dim expected = <File>&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+
 Module Program
     Sub Main(args As String())
+
     End Sub
-End Module
+End Module 
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -475,10 +536,11 @@ End Module
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Another Comment
 Module Program
     Sub Main(args As String())
+
     End Sub
-End Module
+End Module 
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
@@ -496,10 +558,10 @@ End Module
 &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt;
 </File>
 
-            Dim expected = <File>
+            Dim expected = <File>&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+
 ' Copyright
 ' License information.
-&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
 
 Module Program
     Sub Main(args As String())
@@ -507,7 +569,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(600949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/600949")>
@@ -523,7 +585,7 @@ End Class
 Class C
 End Class
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=1)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=1)
         End Function
 
         <WorkItem(606857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606857")>
@@ -533,10 +595,11 @@ End Class
 &lt;Assembly:CLSCompliant(True)&gt;
 [|Imports System|]</File>
 
-            Dim expected = <File>
-[|Imports System|]
-&lt;Assembly:CLSCompliant(True)&gt;</File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Dim expected = <File>[|Imports System|]
+
+&lt;Assembly:CLSCompliant(True)&gt;
+</File>
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(606877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606877")>
@@ -550,7 +613,7 @@ End Class
 Imports System
 &lt;Assembly:CLSCompliant(True)&gt;
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(606851, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606851")>
@@ -565,7 +628,7 @@ Imports System
 Imports System
  
 </File>
-            Await TestAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), index:=0)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 #End Region
 
@@ -574,7 +637,7 @@ Imports System
         Public Async Function TestTestHiddenRegion() As Task
             Dim code =
 <File>
-#ExternalSource ("Foo", 1)
+#ExternalSource ("Goo", 1)
     Imports System
 #End ExternalSource
 
@@ -585,6 +648,5 @@ End Class
 
             Await TestMissingAsync(code)
         End Function
-
     End Class
 End Namespace

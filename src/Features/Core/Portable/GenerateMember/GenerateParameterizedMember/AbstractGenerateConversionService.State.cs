@@ -1,14 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -53,59 +51,53 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     }
                 }
 
-                return TryFinishInitializingState(service, document, cancellationToken);
+                return TryFinishInitializingStateAsync(service, document, cancellationToken);
             }
 
             private bool TryInitializeExplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 MethodKind = MethodKind.Conversion;
-                SyntaxToken identifierToken;
-                IMethodSymbol methodSymbol;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeExplicitConversionState(
                     document, node, ClassInterfaceModuleStructTypes, cancellationToken,
-                    out identifierToken, out methodSymbol, out typeToGenerateIn))
+                    out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }
 
-                this.ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+                ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 if (ContainingType == null)
                 {
                     return false;
                 }
 
-                this.IdentifierToken = identifierToken;
-                this.TypeToGenerateIn = typeToGenerateIn;
-                this.SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
-                this.location = node.GetLocation();
-                this.MethodGenerationKind = MethodGenerationKind.ExplicitConversion;
+                IdentifierToken = identifierToken;
+                TypeToGenerateIn = typeToGenerateIn;
+                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+                location = node.GetLocation();
+                MethodGenerationKind = MethodGenerationKind.ExplicitConversion;
                 return true;
             }
 
             private bool TryInitializeImplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             {
                 MethodKind = MethodKind.Conversion;
-                SyntaxToken identifierToken;
-                IMethodSymbol methodSymbol;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeImplicitConversionState(
                     document, node, ClassInterfaceModuleStructTypes, cancellationToken,
-                    out identifierToken, out methodSymbol, out typeToGenerateIn))
+                    out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }
 
-                this.ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+                ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 if (ContainingType == null)
                 {
                     return false;
                 }
 
-                this.IdentifierToken = identifierToken;
-                this.TypeToGenerateIn = typeToGenerateIn;
-                this.SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
-                this.MethodGenerationKind = MethodGenerationKind.ImplicitConversion;
+                IdentifierToken = identifierToken;
+                TypeToGenerateIn = typeToGenerateIn;
+                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+                MethodGenerationKind = MethodGenerationKind.ImplicitConversion;
                 return true;
             }
         }

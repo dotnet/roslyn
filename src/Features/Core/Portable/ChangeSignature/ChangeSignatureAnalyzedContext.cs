@@ -1,28 +1,39 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal sealed class ChangeSignatureAnalyzedContext
+    internal abstract class ChangeSignatureAnalyzedContext
     {
-        public readonly bool CanChangeSignature;
-        public readonly Solution Solution;
+    }
+
+    internal sealed class ChangeSignatureAnalysisSucceededContext : ChangeSignatureAnalyzedContext
+    {
+        public readonly Document Document;
         public readonly ISymbol Symbol;
-        public readonly CannotChangeSignatureReason CannotChangeSignatureReason;
         public readonly ParameterConfiguration ParameterConfiguration;
+        public readonly int PositionForTypeBinding;
 
-        public ChangeSignatureAnalyzedContext(Solution solution, ISymbol symbol, ParameterConfiguration parameterConfiguration)
+        public Solution Solution => Document.Project.Solution;
+
+        public ChangeSignatureAnalysisSucceededContext(
+            Document document, int positionForTypeBinding, ISymbol symbol, ParameterConfiguration parameterConfiguration)
         {
-            this.CanChangeSignature = true;
-            this.Solution = solution;
-            this.Symbol = symbol;
-            this.ParameterConfiguration = parameterConfiguration;
-            this.CannotChangeSignatureReason = CannotChangeSignatureReason.None;
+            Document = document;
+            Symbol = symbol;
+            ParameterConfiguration = parameterConfiguration;
+            PositionForTypeBinding = positionForTypeBinding;
         }
+    }
 
-        public ChangeSignatureAnalyzedContext(CannotChangeSignatureReason reason)
+    internal sealed class CannotChangeSignatureAnalyzedContext : ChangeSignatureAnalyzedContext
+    {
+        public readonly ChangeSignatureFailureKind CannotChangeSignatureReason;
+
+        public CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind reason)
         {
-            this.CanChangeSignature = false;
-            this.CannotChangeSignatureReason = reason;
+            CannotChangeSignatureReason = reason;
         }
     }
 }

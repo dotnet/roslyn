@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -15,8 +16,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
     Public Class AdditionalFileDiagnosticsTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New AdditionalFileAnalyzer(), New AdditionalFileFixer())
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New AdditionalFileAnalyzer(), New AdditionalFileFixer())
         End Function
 
         <WpfFact>
@@ -37,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
                     </Project>
                 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(input)
+            Using workspace = TestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim project = workspace.Projects.First()
                 Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(project.Id), "App.Config", SourceText.From("false"))
                 workspace.TryApplyChanges(newSln)
@@ -74,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
         End Sub
 
-        Private Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
+        Private Shared Function IsSerializationAllowed(options As AnalyzerOptions) As Boolean
             Dim serializationAllowed = False
             For Each item In options.AdditionalFiles
                 If item.Path.EndsWith("app.config", StringComparison.OrdinalIgnoreCase) Then
@@ -86,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             Return serializationAllowed
         End Function
 
-        Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+        Public Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
             Dim namedType = DirectCast(context.Symbol, INamedTypeSymbol)
 
             If namedType.AllInterfaces.Contains(context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable")) Then

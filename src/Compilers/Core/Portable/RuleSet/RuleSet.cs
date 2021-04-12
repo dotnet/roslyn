@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -59,13 +61,13 @@ namespace Microsoft.CodeAnalysis
             _filePath = filePath;
             _generalDiagnosticOption = generalOption;
             _specificDiagnosticOptions = specificOptions == null ? ImmutableDictionary<string, ReportDiagnostic>.Empty : specificOptions;
-            _includes = includes.IsDefault ? ImmutableArray<RuleSetInclude>.Empty : includes;
+            _includes = includes.NullToEmpty();
         }
 
         /// <summary>
         /// Create a RuleSet with a global effective action applied on it.
         /// </summary>
-        public RuleSet WithEffectiveAction(ReportDiagnostic action)
+        public RuleSet? WithEffectiveAction(ReportDiagnostic action)
         {
             if (!_includes.IsEmpty)
             {
@@ -137,10 +139,11 @@ namespace Microsoft.CodeAnalysis
 
                 // Recursively get the effective ruleset of the included file, in case they in turn
                 // contain includes.
-                var effectiveRuleset = ruleSet.GetEffectiveRuleSet(includedRulesetPaths);
+                RuleSet? effectiveRuleset = ruleSet.GetEffectiveRuleSet(includedRulesetPaths);
 
                 // Apply the includeAction on this ruleset.
                 effectiveRuleset = effectiveRuleset.WithEffectiveAction(ruleSetInclude.Action);
+                Debug.Assert(effectiveRuleset is object);
 
                 // If the included ruleset's global option is stricter, then make that the effective option.
                 if (IsStricterThan(effectiveRuleset.GeneralDiagnosticOption, effectiveGeneralOption))
@@ -151,9 +154,9 @@ namespace Microsoft.CodeAnalysis
                 // Copy every rule in the ruleset and change the action if there's a stricter one.
                 foreach (var item in effectiveRuleset.SpecificDiagnosticOptions)
                 {
-                    if (effectiveSpecificOptions.ContainsKey(item.Key))
+                    if (effectiveSpecificOptions.TryGetValue(item.Key, out var value))
                     {
-                        if (IsStricterThan(item.Value, effectiveSpecificOptions[item.Key]))
+                        if (IsStricterThan(item.Value, value))
                         {
                             effectiveSpecificOptions[item.Key] = item.Value;
                         }
@@ -251,12 +254,7 @@ namespace Microsoft.CodeAnalysis
         public static RuleSet LoadEffectiveRuleSetFromFile(string filePath)
         {
             var ruleSet = RuleSetProcessor.LoadFromFile(filePath);
-            if (ruleSet != null)
-            {
-                return ruleSet.GetEffectiveRuleSet(new HashSet<string>());
-            }
-
-            return null;
+            return ruleSet.GetEffectiveRuleSet(new HashSet<string>());
         }
 
         /// <summary>
@@ -277,39 +275,29 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray<string>.Empty;
         }
 
+#nullable enable
         /// <summary>
         /// Parses the ruleset file at the given <paramref name="rulesetFileFullPath"/> and returns the following diagnostic options from the parsed file:
         /// 1) A map of <paramref name="specificDiagnosticOptions"/> from rule ID to <see cref="ReportDiagnostic"/> option.
         /// 2) A global <see cref="ReportDiagnostic"/> option for all rules in the ruleset file.
         /// </summary>
-        public static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        public static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string? rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
-            specificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
+            return GetDiagnosticOptionsFromRulesetFile(rulesetFileFullPath, out specificDiagnosticOptions, null, null);
+        }
+
+        internal static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string? rulesetFileFullPath, out Dictionary<string, ReportDiagnostic> diagnosticOptions, IList<Diagnostic>? diagnosticsOpt, CommonMessageProvider? messageProviderOpt)
+        {
+            diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             if (rulesetFileFullPath == null)
             {
                 return ReportDiagnostic.Default;
             }
 
-            return GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptions, rulesetFileFullPath, null, null);
+            return GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, rulesetFileFullPath, diagnosticsOpt, messageProviderOpt);
         }
 
-        internal static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, string path, string baseDirectory, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
-        {
-            var resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
-            if (resolvedPath == null)
-            {
-                if (diagnosticsOpt != null && messageProviderOpt != null)
-                {
-                    diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.FTL_InputFileNameTooLong, path));
-                }
-
-                return ReportDiagnostic.Default;
-            }
-
-            return GetDiagnosticOptionsFromRulesetFile(diagnosticOptions, resolvedPath, diagnosticsOpt, messageProviderOpt);
-        }
-
-        private static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, string resolvedPath, IList<Diagnostic> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
+        private static ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(Dictionary<string, ReportDiagnostic> diagnosticOptions, string resolvedPath, IList<Diagnostic>? diagnosticsOpt, CommonMessageProvider? messageProviderOpt)
         {
             Debug.Assert(resolvedPath != null);
 

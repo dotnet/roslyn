@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System;
@@ -19,12 +21,11 @@ namespace Microsoft.Cci
         private readonly string _location;
         private readonly Guid _language;
         private readonly bool _isComputedChecksum;
-
-        private readonly Task<ValueTuple<ImmutableArray<byte>, Guid>> _checksumAndAlgorithm;
+        private readonly Task<DebugSourceInfo>? _sourceInfo;
 
         public DebugSourceDocument(string location, Guid language)
         {
-            Debug.Assert(location != null);
+            RoslynDebug.Assert(location != null);
 
             _location = location; // If it's a path, it should be normalized.
             _language = language;
@@ -33,10 +34,10 @@ namespace Microsoft.Cci
         /// <summary>
         /// Use to create a document when checksum is computed based on actual source stream.
         /// </summary>
-        public DebugSourceDocument(string location, Guid language, Func<ValueTuple<ImmutableArray<byte>, Guid>> checksumAndAlgorithm)
+        public DebugSourceDocument(string location, Guid language, Func<DebugSourceInfo> sourceInfo)
             : this(location, language)
         {
-            _checksumAndAlgorithm = Task.Run(checksumAndAlgorithm);
+            _sourceInfo = Task.Run(sourceInfo);
             _isComputedChecksum = true;
         }
 
@@ -46,38 +47,7 @@ namespace Microsoft.Cci
         public DebugSourceDocument(string location, Guid language, ImmutableArray<byte> checksum, Guid algorithm)
             : this(location, language)
         {
-            _checksumAndAlgorithm = Task.FromResult(ValueTuple.Create(checksum, algorithm));
-        }
-
-        internal static bool IsSupportedAlgorithm(SourceHashAlgorithm algorithm)
-        {
-            Guid guid;
-            return TryGetAlgorithmGuid(algorithm, out guid);
-        }
-
-        internal static bool TryGetAlgorithmGuid(SourceHashAlgorithm algorithm, out Guid guid)
-        {
-            // Dev12 debugger supports MD5, SHA1.
-            // Dev14 debugger supports MD5, SHA1, SHA256.
-            // MD5 is obsolete.
-
-            unchecked
-            {
-                switch (algorithm)
-                {
-                    case SourceHashAlgorithm.Sha1:
-                        guid = new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60);
-                        return true;
-
-                    case SourceHashAlgorithm.Sha256:
-                        guid = new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16);
-                        return true;
-
-                    default:
-                        guid = default(Guid);
-                        return false;
-                }
-            }
+            _sourceInfo = Task.FromResult(new DebugSourceInfo(checksum, algorithm));
         }
 
         public Guid DocumentType
@@ -100,12 +70,9 @@ namespace Microsoft.Cci
             get { return _location; }
         }
 
-        public ValueTuple<ImmutableArray<byte>, Guid> ChecksumAndAlgorithm
+        public DebugSourceInfo GetSourceInfo()
         {
-            get
-            {
-                return _checksumAndAlgorithm?.Result ?? default(ValueTuple<ImmutableArray<byte>, Guid>);
-            }
+            return _sourceInfo?.Result ?? default(DebugSourceInfo);
         }
 
         /// <summary>

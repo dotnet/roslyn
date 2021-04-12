@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editing
             this SymbolEditor editor,
             ISymbol symbol,
             ITypeSymbol baseOrInterfaceType,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (baseOrInterfaceType == null)
             {
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editing
             this SymbolEditor editor,
             INamedTypeSymbol symbol,
             Func<SyntaxGenerator, SyntaxNode> getNewBaseType,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var baseType = symbol.BaseType;
 
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editing
             this SymbolEditor editor,
             INamedTypeSymbol symbol,
             ITypeSymbol newBaseType,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return editor.SetBaseTypeAsync(symbol, g => newBaseType != null ? g.TypeExpression(newBaseType) : null, cancellationToken);
         }

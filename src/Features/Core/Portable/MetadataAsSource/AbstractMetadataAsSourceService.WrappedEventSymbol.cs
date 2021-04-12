@@ -1,4 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -17,71 +19,25 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 _symbol = eventSymbol;
             }
 
-            public IMethodSymbol AddMethod
-            {
-                get
-                {
-                    return _symbol.AddMethod;
-                }
-            }
-
             public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations
             {
                 get
                 {
-                    return this.CanImplementImplicitly
+                    return CanImplementImplicitly
                         ? ImmutableArray.Create<IEventSymbol>()
                         : _symbol.ExplicitInterfaceImplementations;
                 }
             }
 
-            public bool IsWindowsRuntimeEvent
-            {
-                get
-                {
-                    return _symbol.IsWindowsRuntimeEvent;
-                }
-            }
+            public new IEventSymbol OriginalDefinition => this;
 
-            public new IEventSymbol OriginalDefinition
-            {
-                get
-                {
-                    return this;
-                }
-            }
-
-            public IEventSymbol OverriddenEvent
-            {
-                get
-                {
-                    return _symbol.OverriddenEvent;
-                }
-            }
-
-            public IMethodSymbol RaiseMethod
-            {
-                get
-                {
-                    return _symbol.RaiseMethod;
-                }
-            }
-
-            public IMethodSymbol RemoveMethod
-            {
-                get
-                {
-                    return _symbol.RemoveMethod;
-                }
-            }
-
-            public ITypeSymbol Type
-            {
-                get
-                {
-                    return _symbol.Type;
-                }
-            }
+            public IMethodSymbol? AddMethod => _symbol.AddMethod;
+            public bool IsWindowsRuntimeEvent => _symbol.IsWindowsRuntimeEvent;
+            public IEventSymbol? OverriddenEvent => _symbol.OverriddenEvent;
+            public IMethodSymbol? RaiseMethod => _symbol.RaiseMethod;
+            public IMethodSymbol? RemoveMethod => _symbol.RemoveMethod;
+            public ITypeSymbol Type => _symbol.Type;
+            public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
         }
     }
 }

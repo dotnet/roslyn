@@ -1,13 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSEvents_AddDelegate() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestCSEvents_AddDelegate()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -16,12 +18,12 @@ public class C
 {
     $$void M()
     {
-        this.Foo += Bar;
+        this.Goo += Bar;
     }
 
     private void Bar(object sender, System.EventArgs e) { }
 
-    public event System.EventHandler Foo;
+    public event System.EventHandler Goo;
 }
         </Document>
     </Project>
@@ -37,7 +39,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Expression>
@@ -53,11 +55,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSEvents_AddDelegateForNonExistentEventHandler1() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler1()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -66,10 +68,10 @@ public class C
 {
     $$void M()
     {
-        this.Foo += Bar;
+        this.Goo += Bar;
     }
 
-    public event System.EventHandler Foo;
+    public event System.EventHandler Goo;
 }
         </Document>
     </Project>
@@ -87,7 +89,7 @@ public class C
                     <Expression>
                         <ThisReference/>
                     </Expression>
-                    <Name>Foo</Name>
+                    <Name>Goo</Name>
                 </NameRef>
             </Expression>
             <Expression>
@@ -100,11 +102,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSEvents_AddDelegateForNonExistentEventHandler2() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler2()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -113,10 +115,10 @@ public class C
 {
     $$void M()
     {
-        this.Foo += this.Bar;
+        this.Goo += this.Bar;
     }
 
-    public event System.EventHandler Foo;
+    public event System.EventHandler Goo;
 }
         </Document>
     </Project>
@@ -135,7 +137,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Expression>
@@ -151,11 +153,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Async Function TestCSEvents_AddDelegateForNonExistentEventHandler3() As Task
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub TestCSEvents_AddDelegateForNonExistentEventHandler3()
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -164,10 +166,10 @@ public class C
 {
     $$void M()
     {
-        this.Foo += new System.EventHandler(this.Bar);
+        this.Goo += new System.EventHandler(this.Bar);
     }
 
-    public event System.EventHandler Foo;
+    public event System.EventHandler Goo;
 }
         </Document>
     </Project>
@@ -183,7 +185,7 @@ public class C
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Expression>
@@ -206,8 +208,8 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Await TestAsync(definition, expected)
-        End Function
+            Test(definition, expected)
+        End Sub
 
     End Class
 End Namespace

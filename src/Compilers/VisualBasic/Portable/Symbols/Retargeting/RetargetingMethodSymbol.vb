@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -6,6 +8,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -34,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
 
-        Private _lazyCustomModifiers As ImmutableArray(Of CustomModifier)
+        Private _lazyCustomModifiers As CustomModifiersTuple
 
         ''' <summary>
         ''' Retargeted custom attributes
@@ -50,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Private _lazyExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
 
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         Public Sub New(retargetingModule As RetargetingModuleSymbol, underlyingMethod As MethodSymbol)
             Debug.Assert(retargetingModule IsNot Nothing)
@@ -143,6 +146,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return _underlyingMethod.IsInitOnly
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ReturnsByRef As Boolean
             Get
                 Return _underlyingMethod.ReturnsByRef
@@ -157,7 +166,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return RetargetingTranslator.RetargetModifiers(_underlyingMethod.ReturnTypeCustomModifiers, _lazyCustomModifiers)
+                Return CustomModifiersTuple.TypeCustomModifiers
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return CustomModifiersTuple.RefCustomModifiers
+            End Get
+        End Property
+
+        Private ReadOnly Property CustomModifiersTuple As CustomModifiersTuple
+            Get
+                Return RetargetingTranslator.RetargetModifiers(_underlyingMethod.ReturnTypeCustomModifiers, _underlyingMethod.RefCustomModifiers, _lazyCustomModifiers)
             End Get
         End Property
 
@@ -457,18 +478,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return builder.ToImmutableAndFree()
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Nothing
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfo())
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
         ''' <remarks>

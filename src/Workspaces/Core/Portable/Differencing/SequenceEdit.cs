@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -49,24 +53,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Index in the old sequence, or -1 if the edit is insert.
         /// </summary>
-        public int OldIndex
-        {
-            get
-            {
-                return _oldIndex;
-            }
-        }
+        public int OldIndex => _oldIndex;
 
         /// <summary>
         /// Index in the new sequence, or -1 if the edit is delete.
         /// </summary>
-        public int NewIndex
-        {
-            get
-            {
-                return _newIndex;
-            }
-        }
+        public int NewIndex => _newIndex;
 
         public bool Equals(SequenceEdit other)
         {
@@ -75,19 +67,14 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         public override bool Equals(object obj)
-        {
-            return obj is SequenceEdit && Equals((SequenceEdit)obj);
-        }
+            => obj is SequenceEdit && Equals((SequenceEdit)obj);
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(_oldIndex, _newIndex);
-        }
+            => Hash.Combine(_oldIndex, _newIndex);
 
-        // internal for testing
-        internal string GetDebuggerDisplay()
+        private string GetDebuggerDisplay()
         {
-            string result = Kind.ToString();
+            var result = Kind.ToString();
             switch (Kind)
             {
                 case EditKind.Delete:
@@ -101,6 +88,20 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             return result;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SequenceEdit _sequenceEdit;
+
+            public TestAccessor(SequenceEdit sequenceEdit)
+                => _sequenceEdit = sequenceEdit;
+
+            internal string GetDebuggerDisplay()
+                => _sequenceEdit.GetDebuggerDisplay();
         }
     }
 }

@@ -1,13 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,11 +19,11 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxTrivia"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
-    public partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
+    public readonly partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
     {
         public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
 
-        internal SyntaxTriviaList(SyntaxToken token, GreenNode node, int position, int index = 0)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode? node, int position, int index = 0)
         {
             Token = token;
             Node = node;
@@ -27,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             Index = index;
         }
 
-        internal SyntaxTriviaList(SyntaxToken token, GreenNode node)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode? node)
         {
             Token = token;
             Node = node;
@@ -35,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             Index = 0;
         }
 
-        internal SyntaxTriviaList(SyntaxTrivia trivia)
+        public SyntaxTriviaList(SyntaxTrivia trivia)
         {
             Token = default(SyntaxToken);
             Node = trivia.UnderlyingNode;
@@ -43,9 +47,39 @@ namespace Microsoft.CodeAnalysis
             Index = 0;
         }
 
+        /// <summary>
+        /// Creates a list of trivia.
+        /// </summary>
+        /// <param name="trivias">An array of trivia.</param>
+        public SyntaxTriviaList(params SyntaxTrivia[] trivias)
+            : this(default, CreateNode(trivias), 0, 0)
+        {
+        }
+
+        /// <summary>
+        /// Creates a list of trivia.
+        /// </summary>
+        /// <param name="trivias">A sequence of trivia.</param>
+        public SyntaxTriviaList(IEnumerable<SyntaxTrivia>? trivias)
+            : this(default, SyntaxTriviaListBuilder.Create(trivias).Node, 0, 0)
+        {
+        }
+
+        private static GreenNode? CreateNode(SyntaxTrivia[]? trivias)
+        {
+            if (trivias == null)
+            {
+                return null;
+            }
+
+            var builder = new SyntaxTriviaListBuilder(trivias.Length);
+            builder.Add(trivias);
+            return builder.ToList().Node;
+        }
+
         internal SyntaxToken Token { get; }
 
-        internal GreenNode Node { get; }
+        internal GreenNode? Node { get; }
 
         internal int Position { get; }
 
@@ -173,7 +207,7 @@ namespace Microsoft.CodeAnalysis
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(ref this);
+            return new Enumerator(in this);
         }
 
         public int IndexOf(SyntaxTrivia triviaInList)
@@ -236,6 +270,26 @@ namespace Microsoft.CodeAnalysis
             return InsertRange(index, new[] { trivia });
         }
 
+        private static readonly ObjectPool<SyntaxTriviaListBuilder> s_builderPool =
+            new ObjectPool<SyntaxTriviaListBuilder>(() => SyntaxTriviaListBuilder.Create());
+
+        private static SyntaxTriviaListBuilder GetBuilder()
+            => s_builderPool.Allocate();
+
+        private static void ClearAndFreeBuilder(SyntaxTriviaListBuilder builder)
+        {
+            // It's possible someone might create a list with a huge amount of trivia
+            // in it.  We don't want to hold onto such items forever.  So only cache
+            // reasonably sized lists.  In IDE testing, around 99% of all trivia lists
+            // were 16 or less elements.
+            const int MaxBuilderCount = 16;
+            if (builder.Count <= MaxBuilderCount)
+            {
+                builder.Clear();
+                s_builderPool.Free(builder);
+            }
+        }
+
         /// <summary>
         /// Creates a new <see cref="SyntaxTriviaList"/> with the specified trivia inserted at the index.
         /// </summary>
@@ -243,26 +297,45 @@ namespace Microsoft.CodeAnalysis
         /// <param name="trivia">The trivia to insert.</param>
         public SyntaxTriviaList InsertRange(int index, IEnumerable<SyntaxTrivia> trivia)
         {
-            if (index < 0 || index > this.Count)
+            var thisCount = this.Count;
+            if (index < 0 || index > thisCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var items = trivia.ToList();
-            if (items.Count == 0)
+            if (trivia == null)
+            {
+                throw new ArgumentNullException(nameof(trivia));
+            }
+
+            // Just return ourselves if we're not being asked to add anything.
+            var triviaCollection = trivia as ICollection<SyntaxTrivia>;
+            if (triviaCollection != null && triviaCollection.Count == 0)
             {
                 return this;
             }
 
-            var list = this.ToList();
-            list.InsertRange(index, items);
-
-            if (list.Count == 0)
+            var builder = GetBuilder();
+            try
             {
-                return this;
-            }
+                for (int i = 0; i < index; i++)
+                {
+                    builder.Add(this[i]);
+                }
 
-            return new SyntaxTriviaList(default(SyntaxToken), list[0].UnderlyingNode.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+                builder.AddRange(trivia);
+
+                for (int i = index; i < thisCount; i++)
+                {
+                    builder.Add(this[i]);
+                }
+
+                return builder.Count == thisCount ? this : builder.ToList();
+            }
+            finally
+            {
+                ClearAndFreeBuilder(builder);
+            }
         }
 
         /// <summary>
@@ -278,7 +351,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list, static n => n.RequiredUnderlyingNode), 0, 0);
         }
 
         /// <summary>
@@ -324,7 +397,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list, static n => n.RequiredUnderlyingNode), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(triviaInList));
@@ -340,7 +413,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -350,18 +423,19 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         /// <summary>
         /// get the green node at the specific slot
         /// </summary>
-        private GreenNode GetGreenNodeAt(int i)
+        private GreenNode? GetGreenNodeAt(int i)
         {
+            Debug.Assert(Node is object);
             return GetGreenNodeAt(Node, i);
         }
 
-        private static GreenNode GetGreenNodeAt(GreenNode node, int i)
+        private static GreenNode? GetGreenNodeAt(GreenNode node, int i)
         {
             Debug.Assert(node.IsList || (i == 0 && !node.IsList));
             return node.IsList ? node.GetSlot(i) : node;
@@ -382,9 +456,9 @@ namespace Microsoft.CodeAnalysis
             return !left.Equals(right);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return (obj is SyntaxTriviaList) && Equals((SyntaxTriviaList)obj);
+            return (obj is SyntaxTriviaList list) && Equals(list);
         }
 
         public override int GetHashCode()

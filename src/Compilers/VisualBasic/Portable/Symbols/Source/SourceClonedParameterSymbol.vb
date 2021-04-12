@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -81,9 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return _originalParam.CountOfCustomModifiersPrecedingByRef
+                Return _originalParam.RefCustomModifiers
             End Get
         End Property
 
@@ -178,8 +180,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 #End Region
 
-        Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
-            Return New SourceClonedParameterSymbolWithCustomModifiers(_originalParam, DirectCast(Me.ContainingSymbol, MethodSymbol), Me.Ordinal, type, customModifiers, countOfCustomModifiersPrecedingByRef)
+        Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), refCustomModifiers As ImmutableArray(Of CustomModifier)) As ParameterSymbol
+            Return New SourceClonedParameterSymbolWithCustomModifiers(_originalParam, DirectCast(Me.ContainingSymbol, MethodSymbol), Me.Ordinal, type, customModifiers, refCustomModifiers)
         End Function
 
         Friend NotInheritable Class SourceClonedParameterSymbolWithCustomModifiers
@@ -187,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly _type As TypeSymbol
             Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
-            Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
+            Private ReadOnly _refCustomModifiers As ImmutableArray(Of CustomModifier)
 
             Friend Sub New(
                 originalParam As SourceParameterSymbol,
@@ -195,15 +197,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 newOrdinal As Integer,
                 type As TypeSymbol,
                 customModifiers As ImmutableArray(Of CustomModifier),
-                countOfCustomModifiersPrecedingByRef As UShort
+                refCustomModifiers As ImmutableArray(Of CustomModifier)
             )
                 MyBase.New(originalParam, newOwner, newOrdinal)
                 _type = type
-                _customModifiers = If(customModifiers.IsDefault, ImmutableArray(Of CustomModifier).Empty, customModifiers)
-                _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+                _customModifiers = customModifiers.NullToEmpty()
+                _refCustomModifiers = refCustomModifiers.NullToEmpty()
 
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef = 0 OrElse IsByRef)
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length)
+                Debug.Assert(_refCustomModifiers.IsEmpty OrElse IsByRef)
             End Sub
 
             Public Overrides ReadOnly Property Type As TypeSymbol
@@ -218,13 +219,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
                 Get
-                    Return _countOfCustomModifiersPrecedingByRef
+                    Return _refCustomModifiers
                 End Get
             End Property
 
-            Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
+            Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), refCustomModifiers As ImmutableArray(Of CustomModifier)) As ParameterSymbol
                 Throw ExceptionUtilities.Unreachable
             End Function
         End Class

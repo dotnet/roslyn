@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class RelativePathResolverTests : TestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResolveMetadataFile1()
         {
             string fileName = "f.dll";
@@ -39,17 +43,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(subFilePath, path);
 
             // prefer the base file over base directory:
-            path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "foo.csx"));
+            path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "goo.csx"));
             Assert.Equal(filePath, path);
 
             path = resolver.ResolvePath(@"\" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"/" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@".", baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@".\" + fileName, baseFilePath: null);
             Assert.Equal(subFilePath, path);
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(dotted, path);
 
             path = resolver.ResolvePath(@"..", baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"..\" + fileName, baseFilePath: null);
             Assert.Equal(filePath, path);
@@ -70,17 +74,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path);
 
             path = resolver.ResolvePath(@"C:\" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(@"C:/" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             path = resolver.ResolvePath(filePath, baseFilePath: null);
             Assert.Equal(filePath, path);
 
             // drive-relative paths not supported:
             path = resolver.ResolvePath(drive + ":" + fileName, baseFilePath: null);
-            Assert.Equal(null, path);
+            Assert.Null(path);
 
             // \abc\def
             string rooted = filePath.Substring(2);
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResolveMetadataFile2()
         {
             string fileName = "f.dll";
@@ -109,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 baseDirectory: subdir);
 
             // using base path
-            var path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "foo.csx"));
+            var path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "goo.csx"));
             Assert.Equal(filePath, path);
 
             // using base dir
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var resolverSP = new VirtualizedRelativePathResolver(
                 existingFullPaths: fs,
                 searchPaths: new[] { dir, subdir }.AsImmutableOrNull(),
-                baseDirectory: @"C:\foo");
+                baseDirectory: @"C:\goo");
 
             path = resolverSP.ResolvePath(fileName, baseFilePath: null);
             Assert.Equal(filePath, path);

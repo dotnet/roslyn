@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -17,14 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class DescendantBinderFactory
 
         Private ReadOnly _rootBinder As ExecutableCodeBinder
-        Private ReadOnly _root As VisualBasicSyntaxNode
+        Private ReadOnly _root As SyntaxNode
 
-        Public Sub New(binder As ExecutableCodeBinder, root As VisualBasicSyntaxNode)
+        Public Sub New(binder As ExecutableCodeBinder, root As SyntaxNode)
             _rootBinder = binder
             _root = root
         End Sub
 
-        Friend ReadOnly Property Root As VisualBasicSyntaxNode
+        Friend ReadOnly Property Root As SyntaxNode
             Get
                 Return _root
             End Get
@@ -36,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Function GetBinder(node As VisualBasicSyntaxNode) As Binder
+        Friend Function GetBinder(node As SyntaxNode) As Binder
             Dim binder As BlockBaseBinder = Nothing
             If NodeToBinderMap.TryGetValue(node, binder) Then
                 Return binder
@@ -54,10 +56,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private _lazyNodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
+        Private _lazyNodeToBinderMap As ImmutableDictionary(Of SyntaxNode, BlockBaseBinder)
 
         ' Get the map that maps from syntax nodes to binders.
-        Friend ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)
+        Friend ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of SyntaxNode, BlockBaseBinder)
             Get
                 If _lazyNodeToBinderMap Is Nothing Then
                     BuildBinderMaps()

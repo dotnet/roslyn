@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -30,17 +35,21 @@ namespace Microsoft.CodeAnalysis.Rename
             return token;
         }
 
-        internal static IEnumerable<ISymbol> GetSymbolsTouchingPosition(int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
+        internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
+            int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-            var symbols = semanticModel.GetSymbols(bindableToken, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken).ToArray();
+            var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, workspace, cancellationToken);
+            var symbols = semanticInfo.DeclaredSymbol != null
+                ? ImmutableArray.Create<ISymbol>(semanticInfo.DeclaredSymbol)
+                : semanticInfo.GetSymbols(includeType: false);
 
             // if there are more than one symbol, then remove the alias symbols.
             // When using (not declaring) an alias, the alias symbol and the target symbol are returned
             // by GetSymbols
             if (symbols.Length > 1)
             {
-                symbols = symbols.Where(s => s.Kind != SymbolKind.Alias).ToArray();
+                symbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
             }
 
             if (symbols.Length == 0)
@@ -79,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     .Concat(documentsOfRenameSymbolDeclaration.First().Id)
                     .Select(d => d.ProjectId).Distinct();
 
+                // perf optimization: only look in declaring project when possible
                 if (ShouldRenameOnlyAffectDeclaringProject(symbol))
                 {
                     var isSubset = renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Except(projectIdsOfRenameSymbolDeclaration).IsEmpty();
@@ -87,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
                 else
                 {
-                    // We are trying to figure out the projects that directly depend on the project that contains the declaration for 
+                    // We are trying to figure out the projects that directly depend on the project that contains the declaration for
                     // the rename symbol.  Other projects should not be affected by the rename.
                     var relevantProjects = projectIdsOfRenameSymbolDeclaration.Concat(projectIdsOfRenameSymbolDeclaration.SelectMany(p =>
                        solution.GetProjectDependencyGraph().GetProjectsThatDirectlyDependOnThisProject(p))).Distinct();
@@ -103,8 +113,27 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         private static bool ShouldRenameOnlyAffectDeclaringProject(ISymbol symbol)
         {
-            // Explicit interface implementations can cascade to other projects
-            return symbol.DeclaredAccessibility == Accessibility.Private && !symbol.ExplicitInterfaceImplementations().Any();
+            if (symbol.DeclaredAccessibility != Accessibility.Private)
+            {
+                // non-private members can influence other projects.
+                return false;
+            }
+
+            if (symbol.ExplicitInterfaceImplementations().Any())
+            {
+                // Explicit interface implementations can cascade to other projects
+                return false;
+            }
+
+            if (symbol.IsOverride)
+            {
+                // private-overrides aren't actually legal.  But if we see one, we tolerate it and search other projects in case
+                // they override it.
+                // https://github.com/dotnet/roslyn/issues/25682
+                return false;
+            }
+
+            return true;
         }
 
         internal static TokenRenameInfo GetTokenRenameInfo(
@@ -122,6 +151,11 @@ namespace Microsoft.CodeAnalysis.Rename
             var symbolInfo = semanticModel.GetSymbolInfo(token, cancellationToken);
             if (symbolInfo.Symbol != null)
             {
+                if (symbolInfo.Symbol.IsTupleType())
+                {
+                    return TokenRenameInfo.NoSymbolsTokenInfo;
+                }
+
                 return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.Symbol);
             }
 
@@ -129,6 +163,15 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
                 return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
+            }
+
+            if (RenameLocation.ShouldRename(symbolInfo.CandidateReason) &&
+                symbolInfo.CandidateSymbols.Length == 1)
+            {
+                // TODO(cyrusn): We're allowing rename here, but we likely should let the user
+                // know that there is an error in the code and that rename results might be
+                // inaccurate.
+                return TokenRenameInfo.CreateSingleSymbolTokenInfo(symbolInfo.CandidateSymbols[0]);
             }
 
             return TokenRenameInfo.NoSymbolsTokenInfo;

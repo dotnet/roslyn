@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +18,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarder.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderLib.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderBase.dll,
-                                        TestReferences.NetFx.v4_0_21006.mscorlib
+                                        Net40.mscorlib
                                     });
 
             TestTypeForwarderHelper(assemblies);
@@ -42,15 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assembly3 = (MetadataOrSourceAssemblySymbol)assemblies[2];
 
             var derived1 = module1.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var base1 = derived1.BaseType;
+            var base1 = derived1.BaseType();
             BaseTypeResolution.AssertBaseType(base1, "Base");
 
             var derived4 = module1.GlobalNamespace.GetTypeMembers("GenericDerived").Single();
-            var base4 = derived4.BaseType;
+            var base4 = derived4.BaseType();
             BaseTypeResolution.AssertBaseType(base4, "GenericBase<K>");
 
             var derived6 = module1.GlobalNamespace.GetTypeMembers("GenericDerived1").Single();
-            var base6 = derived6.BaseType;
+            var base6 = derived6.BaseType();
             BaseTypeResolution.AssertBaseType(base6, "GenericBase<K>.NestedGenericBase<L>");
 
             Assert.Equal(assembly3, base1.ContainingAssembly);
@@ -70,33 +75,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(2, assembly3.EmittedNameToTypeMapCount);
 
             var derived2 = module2.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var base2 = derived2.BaseType;
+            var base2 = derived2.BaseType();
             BaseTypeResolution.AssertBaseType(base2, "Base");
             Assert.Same(base2, base1);
 
             var derived3 = module2.GlobalNamespace.GetTypeMembers("GenericDerived").Single();
-            var base3 = derived3.BaseType;
+            var base3 = derived3.BaseType();
             BaseTypeResolution.AssertBaseType(base3, "GenericBase<S>");
 
             var derived5 = module2.GlobalNamespace.GetTypeMembers("GenericDerived1").Single();
-            var base5 = derived5.BaseType;
+            var base5 = derived5.BaseType();
             BaseTypeResolution.AssertBaseType(base5, "GenericBase<S1>.NestedGenericBase<S2>");
         }
 
         [Fact]
         public void TypeInNamespace()
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(new SyntaxTree[0]);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(new SyntaxTree[0]);
 
-            var corlibAssembly = compilation.GetReferencedAssemblySymbol(MscorlibRef);
+            var corlibAssembly = compilation.GetReferencedAssemblySymbol(Net40.mscorlib);
             Assert.NotNull(corlibAssembly);
-            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(SystemCoreRef);
+            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(Net40.SystemCore);
             Assert.NotNull(systemCoreAssembly);
 
             const string funcTypeMetadataName = "System.Func`1";
 
             // mscorlib contains this type, so we should be able to find it without looking in referenced assemblies.
-            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false);
+            var funcType = corlibAssembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out var _);
             Assert.NotNull(funcType);
             Assert.NotEqual(TypeKind.Error, funcType.TypeKind);
             Assert.Equal(corlibAssembly, funcType.ContainingAssembly);
@@ -106,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             // The compilation assembly references both mscorlib and System.Core, but finding
             // System.Func`1 in both isn't ambiguous because one forwards to the other.
-            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false));
+            Assert.Equal(funcType, compilation.Assembly.GetTypeByMetadataName(funcTypeMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _));
         }
 
         /// <summary>
@@ -158,11 +163,11 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
-            var ref3 = CompileIL(il3, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            var ref3 = CompileIL(il3, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2, ref3 });
+            var compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
 
             var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
@@ -184,7 +189,7 @@ class Derived : Base
             Assert.Equal(baseType, ilAssembly2.ResolveForwardedType("Base"));
 
             var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            Assert.Equal(baseType, derivedType.BaseType);
+            Assert.Equal(baseType, derivedType.BaseType());
 
             // All forwards resolve to the same type, so there's no issue.
             compilation.VerifyDiagnostics();
@@ -222,10 +227,10 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 });
+            var compilation = CreateCompilation(csharp, new[] { ref1, ref2 });
 
             var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
@@ -295,11 +300,11 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
-            var ref3 = CompileIL(il3, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            var ref3 = CompileIL(il3, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2, ref3 });
+            var compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
 
             var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
@@ -393,12 +398,12 @@ class Derived : Base
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
-            var ref3 = CompileIL(il3, appendDefaultHeader: false);
-            var ref4 = CompileIL(il4, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            var ref3 = CompileIL(il3, prependDefaultHeader: false);
+            var ref4 = CompileIL(il4, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2, ref3, ref4 });
+            var compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3, ref4 });
 
             var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
@@ -429,7 +434,7 @@ class Derived : Base
             Assert.Equal(baseType, ilAssembly3.ResolveForwardedType("Base"));
 
             var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            Assert.Equal(baseType, derivedType.BaseType);
+            Assert.Equal(baseType, derivedType.BaseType());
 
             // Find the type even though there's a cycle.
             compilation.VerifyDiagnostics();
@@ -474,7 +479,7 @@ class Derived : Base
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance class [pe1]Cycle 
-          Foo() cil managed
+          Goo() cil managed
   {
     ldnull
     ret
@@ -497,16 +502,16 @@ class Test
     static void Main()
     {
         UseSite us = new UseSite();
-        us.Foo();
+        us.Goo();
     }
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
-            var ref3 = CompileIL(il3, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
+            var ref3 = CompileIL(il3, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2, ref3 });
+            var compilation = CreateCompilation(csharp, new[] { ref1, ref2, ref3 });
 
             var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
@@ -522,8 +527,8 @@ class Test
 
             compilation.VerifyDiagnostics(
                 // (7,9): error CS0731: The type forwarder for type 'Cycle' in assembly 'pe2' causes a cycle
-                //         us.Foo();
-                Diagnostic(ErrorCode.ERR_CycleInTypeForwarder, "us.Foo").WithArguments("Cycle", "pe2"));
+                //         us.Goo();
+                Diagnostic(ErrorCode.ERR_CycleInTypeForwarder, "us.Goo").WithArguments("Cycle", "pe2"));
         }
 
         /// <summary>
@@ -559,10 +564,10 @@ class Derived
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 });
+            var compilation = CreateCompilation(csharp, new[] { ref1, ref2 });
 
             var ilAssembly1 = compilation.GetReferencedAssemblySymbol(ref1);
             Assert.NotNull(ilAssembly1);
@@ -623,10 +628,10 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
-            CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 }).VerifyDiagnostics();
+            CreateCompilation(csharp, new[] { ref1, ref2 }).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -692,10 +697,10 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
-            CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 }).VerifyDiagnostics();
+            CreateCompilation(csharp, new[] { ref1, ref2 }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -742,15 +747,17 @@ class Test : Derived
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
-            var ref2 = CompileIL(il2, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+            var ref2 = CompileIL(il2, prependDefaultHeader: false);
 
             // NOTE: not referring to pe3, even though pe2 forwards there.
-            var comp3 = CreateCompilationWithMscorlib(csharp, new[] { ref1, ref2 });
+            var comp3 = CreateCompilation(csharp, new[] { ref1, ref2 });
             comp3.VerifyDiagnostics(
                 // (2,7): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'pe3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // class Test : Derived
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Derived").WithArguments("Base", "pe3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            Assert.Empty(comp3.GetReferencedAssemblySymbol(ref2).Modules[0].ReferencedAssemblySymbols.OfType<MissingAssemblySymbol>().First().GetPublicSymbol().GetForwardedTypes());
         }
 
         [Fact]
@@ -790,9 +797,9 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
-            CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
+            CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (5,5): error CS1070: The type name 'Outer' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
                 //     Outer.Inner M() { return null; }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "Outer").WithArguments("Outer", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 5),
@@ -845,10 +852,10 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
             // NOTE: nothing about forwarded types.
-            CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
+            CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (4,5): error CS0246: The type or namespace name 'upper' could not be found (are you missing a using directive or an assembly reference?)
                 //     upper P1 { get; set; }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "upper").WithArguments("upper"),
@@ -886,9 +893,9 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
-            CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
+            CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
                 // (6,29): error CS1068: The type name 'Forwarded' could not be found in the global namespace. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
                 //         var f = new global::Forwarded();
                 Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFoundFwd, "Forwarded").WithArguments("Forwarded", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
@@ -901,7 +908,7 @@ class Test
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(null)]
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (2,12): error CS0735: Invalid type specified as an argument for TypeForwardedTo attribute
                 // [assembly: System.Runtime.CompilerServices.TypeForwardedTo(null)]
                 Diagnostic(ErrorCode.ERR_InvalidFwdType, "System.Runtime.CompilerServices.TypeForwardedTo(null)"));
@@ -933,18 +940,51 @@ class Test
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
-            CreateCompilationWithMscorlib(csharp, new[] { ref1 }).VerifyDiagnostics(
-                // (8,21): error CS0246: The type or namespace name 'Forwarded' could not be found (are you missing a using directive or an assembly reference?)
+            CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
+                // (8,21): error CS1069: The type name 'Forwarded' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
                 //         var f = new Forwarded();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Forwarded").WithArguments("Forwarded"),
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "Forwarded").WithArguments("Forwarded", "Namespace", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using Namespace;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Namespace;"));
+        }
 
-            // We'd like to report this diagnostic, but the dev cost is too high.
-            // (8,21): error CS1069: The type name 'Forwarded' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+        [Fact]
+        public void LookupMissingForwardedGenericTypeImplicitNamespace()
+        {
+            var il1 = @"
+.assembly extern pe2 { }
+.assembly pe1 { }
+
+.class extern forwarder Namespace.Forwarded`1
+{
+  .assembly extern pe2
+}
+";
+
+            var csharp = @"
+using Namespace;
+
+class Test
+{
+    static void Main()
+    {
+        var f = new Forwarded<int>();
+    }
+}
+";
+
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+
+            CreateCompilation(csharp, new[] { ref1 }).VerifyDiagnostics(
+                // (8,21): error CS1069: The type name 'Forwarded<>' could not be found in the namespace 'Namespace'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         var f = new Forwarded<int>();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "Forwarded<int>").WithArguments("Forwarded<>", "Namespace", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using Namespace;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Namespace;"));
         }
 
         [Fact]
@@ -969,6 +1009,21 @@ class Test
 {
   .assembly extern pe2
 }
+
+.class extern forwarder T4`1
+{
+  .assembly extern pe2
+}
+
+.class extern forwarder Ns.T5`1
+{
+  .assembly extern pe2
+}
+
+.class extern forwarder Ns.Ms.T6`1
+{
+  .assembly extern pe2
+}
 ";
 
             var csharp = @"
@@ -979,16 +1034,21 @@ class Test
     Ns.Ms.T2 P2 { get; set; }
     Ns.Ms.Ls.T3 P3 { get; set; }
 
-    Nope P4 { get; set; }
-    Ns.Nope P5 { get; set; }
-    Ns.Ms.Nope P6 { get; set; }
-    Ns.Ms.Ls.Nope P7 { get; set; }
+    T4<int> P4 { get; set; }
+    Ns.T5<int> P5 { get; set; }
+    Ns.Ms.T6<int> P6 { get; set; }
+    Ns.Ms.Ls.T7<int> P7 { get; set; }
+
+    Nope P8 { get; set; }
+    Ns.Nope P9 { get; set; }
+    Ns.Ms.Nope P10 { get; set; }
+    Ns.Ms.Ls.Nope P11 { get; set; }
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1 });
+            var compilation = CreateCompilation(csharp, new[] { ref1 });
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS1070: The type name 'T0' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
@@ -1003,20 +1063,36 @@ class Test
                 // (7,11): error CS0234: The type or namespace name 'Ls' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
                 //     Ns.Ms.Ls.T3 P3 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"),
-                // (9,5): error CS0246: The type or namespace name 'Nope' could not be found (are you missing a using directive or an assembly reference?)
-                //     Nope P4 { get; set; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nope").WithArguments("Nope"),
-                // (10,8): error CS0234: The type or namespace name 'Nope' does not exist in the namespace 'Ns' (are you missing an assembly reference?)
-                //     Ns.Nope P5 { get; set; }
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Nope").WithArguments("Nope", "Ns"),
-                // (11,11): error CS0234: The type or namespace name 'Nope' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
-                //     Ns.Ms.Nope P6 { get; set; }
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Nope").WithArguments("Nope", "Ns.Ms"),
+                // (9,5): error CS1070: The type name 'T4<>' could not be found. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Consider adding a reference to that assembly.
+                //     T4<int> P4 { get; set; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFoundFwd, "T4<int>").WithArguments("T4<>", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (10,8): error CS1069: The type name 'T5<>' could not be found in the namespace 'Ns'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //     Ns.T5<int> P5 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T5<int>").WithArguments("T5<>", "Ns", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (11,11): error CS1069: The type name 'T6<>' could not be found in the namespace 'Ns.Ms'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //     Ns.Ms.T6<int> P6 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T6<int>").WithArguments("T6<>", "Ns.Ms", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (12,11): error CS0234: The type or namespace name 'Ls' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
-                //     Ns.Ms.Ls.Nope P7 { get; set; }
+                //     Ns.Ms.Ls.T7<int> P7 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"),
+                // (14,5): error CS0246: The type or namespace name 'Nope' could not be found (are you missing a using directive or an assembly reference?)
+                //     Nope P8 { get; set; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nope").WithArguments("Nope"),
+                // (15,8): error CS0234: The type or namespace name 'Nope' does not exist in the namespace 'Ns' (are you missing an assembly reference?)
+                //     Ns.Nope P9 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Nope").WithArguments("Nope", "Ns"),
+                // (16,11): error CS0234: The type or namespace name 'Nope' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
+                //     Ns.Ms.Nope P10 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Nope").WithArguments("Nope", "Ns.Ms"),
+                // (17,11): error CS0234: The type or namespace name 'Ls' does not exist in the namespace 'Ns.Ms' (are you missing an assembly reference?)
+                //     Ns.Ms.Ls.Nope P11 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => !ns.StartsWith("System", StringComparison.Ordinal) && !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns =>
+                !ns.StartsWith("System", StringComparison.Ordinal) &&
+                !ns.StartsWith("Windows", StringComparison.Ordinal) &&
+                !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "Ns", "Ns.Ms" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1062,9 +1138,9 @@ namespace N1
 }
 ";
 
-            var ref1 = CompileIL(il1, appendDefaultHeader: false);
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib(csharp, new[] { ref1 });
+            var compilation = CreateCompilation(csharp, new[] { ref1 });
 
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1069: The type name 'T' could not be found in the namespace 'N1.N2.N3'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
@@ -1074,7 +1150,73 @@ namespace N1
                 //         N1.N2.N3.T t4 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T").WithArguments("T", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => !ns.StartsWith("System", StringComparison.Ordinal) && !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns =>
+                !ns.StartsWith("System", StringComparison.Ordinal) &&
+                !ns.StartsWith("Windows", StringComparison.Ordinal) &&
+                !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+            var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
+            Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
+        }
+
+        [Fact]
+        public void NamespacesMentionedInForwardersGeneric()
+        {
+            var il1 = @"
+.assembly extern pe2 { }
+.assembly extern mscorlib { }
+.assembly pe1 { }
+
+.class extern forwarder N1.N2.N3.T`1
+{
+  .assembly extern pe2
+}
+
+.class public auto ansi beforefieldinit N1.N2.T`1<U>
+       extends [mscorlib]System.Object
+{
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+      ldarg.0
+      call       instance void [mscorlib]System.Object::.ctor()
+      ret
+    }
+
+} // end of class N1.N2.T`1
+";
+
+            var csharp = @"
+namespace N1
+{
+    class Test
+    {
+        N2.T<int> t1 { get; set; }
+        N2.N3.T<int> t2 { get; set; }
+        N1.N2.T<int> t3 { get; set; }
+        N1.N2.N3.T<int> t4 { get; set; }
+    }
+}
+";
+
+            var ref1 = CompileIL(il1, prependDefaultHeader: false);
+
+            var compilation = CreateCompilation(csharp, new[] { ref1 });
+
+            compilation.VerifyDiagnostics(
+                // (7,15): error CS1069: The type name 'T<>' could not be found in the namespace 'N1.N2.N3'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         N2.N3.T<int> t2 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T<int>").WithArguments("T<>", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (9,18): error CS1069: The type name 'T<>' could not be found in the namespace 'N1.N2.N3'. This type has been forwarded to assembly 'pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         N1.N2.N3.T<int> t4 { get; set; }
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T<int>").WithArguments("T<>", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns =>
+                !ns.StartsWith("System", StringComparison.Ordinal) &&
+                !ns.StartsWith("Windows", StringComparison.Ordinal) &&
+                !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1311,18 +1453,21 @@ namespace NS
         /// <param name="forwardedTypeFullNames">Forwarded type names should be in metadata format (Namespace.Outer`Arity+Inner`Arity).</param>
         private void CheckForwarderEmit(string source1, string source2, params string[] forwardedTypeFullNames)
         {
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: "Asm1");
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: "Asm1");
             var verifier1 = CompileAndVerify(comp1);
             var ref1 = MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData);
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
 
             Action<ModuleSymbol> metadataValidator = module =>
             {
                 var assembly = module.ContainingAssembly;
 
                 // Attributes should not actually be emitted.
-                Assert.Equal(0, assembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(0, assembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count());
+                }
 
                 var topLevelTypes = new HashSet<string>();
 
@@ -1347,9 +1492,11 @@ namespace NS
                     Assert.NotEqual(TypeKind.Error, type.TypeKind);
                     Assert.Equal("Asm1", type.ContainingAssembly.Name);
                 }
+
+                Assert.Equal(topLevelTypes.OrderBy(s => s), GetNamesOfForwardedTypes(assembly));
             };
 
-            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
+            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
             {
@@ -1366,27 +1513,37 @@ namespace NS
             }
         }
 
+        private static IEnumerable<string> GetNamesOfForwardedTypes(AssemblySymbol assembly)
+        {
+            return GetNamesOfForwardedTypes(assembly.GetPublicSymbol());
+        }
+
+        private static IEnumerable<string> GetNamesOfForwardedTypes(IAssemblySymbol assembly)
+        {
+            return assembly.GetForwardedTypes().Select(t => t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+        }
+
         [WorkItem(545911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545911")]
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
-            string moduleA = @"public class Foo{ public static string A = ""Original""; }";
-            var bitsA = CreateCompilationWithMscorlib(moduleA, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
+            string moduleA = @"public class Goo{ public static string A = ""Original""; }";
+            var bitsA = CreateCompilation(moduleA, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
             var refA = MetadataReference.CreateFromImage(bitsA);
 
-            string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Foo.A); } }";
-            var bitsB = CreateCompilationWithMscorlib(moduleB, new[] { refA }, TestOptions.ReleaseExe, assemblyName: "test").EmitToArray();
+            string moduleB = @"using System; class Program2222 { static void Main(string[] args) { Console.WriteLine(Goo.A); } }";
+            var bitsB = CreateCompilation(moduleB, new[] { refA }, TestOptions.ReleaseExe, assemblyName: "test").EmitToArray();
 
-            string module0 = @"public class Foo{ public static string A = ""Substituted""; }";
-            var bits0 = CreateCompilationWithMscorlib(module0, options: TestOptions.ReleaseModule, assemblyName: "asm0").EmitToArray();
+            string module0 = @"public class Goo{ public static string A = ""Substituted""; }";
+            var bits0 = CreateCompilation(module0, options: TestOptions.ReleaseModule, assemblyName: "asm0").EmitToArray();
             var ref0 = ModuleMetadata.CreateFromImage(bits0).GetReference();
 
             string module1 = "using System;";
-            var bits1 = CreateCompilationWithMscorlib(module1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1").EmitToArray();
+            var bits1 = CreateCompilation(module1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1").EmitToArray();
             var ref1 = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(bits1), ModuleMetadata.CreateFromImage(bits0)).GetReference();
 
-            string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Foo))]";
-            var bits2 = CreateCompilationWithMscorlib(module2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
+            string module2 = @"using System; [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Goo))]";
+            var bits2 = CreateCompilation(module2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2").EmitToArray();
 
             // runtime check:
 
@@ -1415,7 +1572,7 @@ namespace NS
             var source0 = @"
 namespace X 
 {
-    public class Foo
+    public class Goo
     {
 	    public int getValue()
 	    {
@@ -1430,13 +1587,14 @@ using System;
 
             var source2 = @"
 using System;
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(X.Foo))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(X.Goo))]
 ";
 
-            CheckForwarderEmit2(source0, source1, source2, "X.Foo");
+            CheckForwarderEmit2(source0, source1, source2, "X.Goo");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [WorkItem(18437, "https://github.com/dotnet/roslyn/issues/18437")]
         public void TypeForwarderInAModule()
         {
             string forwardedTypes =
@@ -1444,22 +1602,26 @@ using System;
 public class CF1
 {}";
 
-            var forwardedTypesCompilation = CreateCompilationWithMscorlib(forwardedTypes, options: TestOptions.ReleaseDll, assemblyName: "ForwarderTargetAssembly");
+            var forwardedTypesCompilation = CreateCompilation(forwardedTypes, options: TestOptions.ReleaseDll, assemblyName: "ForwarderTargetAssembly");
 
             string mod =
                 @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF1))]
                 ";
 
-            var modCompilation = CreateCompilationWithMscorlib(mod, references: new[] { new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
+            var modCompilation = CreateCompilation(mod, references: new[] { new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
             var modRef1 = modCompilation.EmitToImageReference();
+
+            Assert.Equal(new[] { "CF1" }, GetNamesOfForwardedTypes(modCompilation.Assembly));
 
             string app =
                 @"
                 public class Test { }
                 ";
 
-            var appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
+            var appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
+
+            Assert.Equal(new[] { "CF1" }, GetNamesOfForwardedTypes(appCompilation.Assembly));
 
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             var metadata = module.Module;
@@ -1471,8 +1633,8 @@ public class CF1
             EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            // Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, verify: false,
+            // Exported types in .NET module cause PEVerify to fail.
+            CompileAndVerify(appCompilation, verify: Verification.Fails,
                 symbolValidator: m =>
                 {
                     var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
@@ -1511,15 +1673,9 @@ public class CF1
          = {type(class 'CF1, ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null')}
 ";
 
-            var ilBytes = default(ImmutableArray<Byte>);
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader: false))
-            {
-                ilBytes = ReadFromFile(reference.Path);
-            }
+            var modRef2 = GetILModuleReference(ilSource, prependDefaultHeader: false);
 
-            var modRef2 = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
-
-            appCompilation = CreateCompilationWithMscorlib(app, references: new MetadataReference[] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
+            appCompilation = CreateCompilation(app, references: new MetadataReference[] { modRef2, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseDll);
 
             module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             metadata = module.Module;
@@ -1542,7 +1698,7 @@ public class CF1
                 }).VerifyDiagnostics();
 
 
-            appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
+            appCompilation = CreateCompilation(app, references: new[] { modRef1, new CSharpCompilationReference(forwardedTypesCompilation) }, options: TestOptions.ReleaseModule);
             var appModule = ModuleMetadata.CreateFromImage(appCompilation.EmitToArray()).Module;
 
             peReader = appModule.GetMetadataReader();
@@ -1551,7 +1707,7 @@ public class CF1
             token = appModule.GetTypeRef(appModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            appCompilation = CreateCompilationWithMscorlib(app, references: new[] { modRef1 }, options: TestOptions.ReleaseDll);
+            appCompilation = CreateCompilation(app, references: new[] { modRef1 }, options: TestOptions.ReleaseDll);
 
             appCompilation.GetDeclarationDiagnostics().Verify(
                 // error CS0012: The type 'CF1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1563,18 +1719,18 @@ public class CF1
         private void CheckForwarderEmit2(string source0, string source1, string source2, params string[] forwardedTypeFullNames)
         {
             var folder = Temp.CreateDirectory();
-            var comp0 = CreateCompilationWithMscorlib(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
-            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: false).EmittedAssemblyData);
+            var comp0 = CreateCompilation(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
+            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: Verification.Skipped).EmittedAssemblyData);
             var ref0 = asm0.GetReference();
 
-            var comp1 = CreateCompilationWithMscorlib(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");
+            var comp1 = CreateCompilation(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");
             var asm1 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp1).EmittedAssemblyData);
 
             var assembly1 = AssemblyMetadata.Create(asm1, asm0);
 
             var ref1 = assembly1.GetReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2");
+            var comp2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "asm2");
 
             Action<ModuleSymbol> metadataValidator = module =>
             {
@@ -1659,13 +1815,13 @@ public class CF1
         [Fact]
         public void MetadataTypeReferenceResolutionThroughATypeForwardedByCompilation()
         {
-            var cA_v1 = CreateCompilationWithMscorlib(@"
+            var cA_v1 = CreateCompilation(@"
 public class Forwarded<T>
 {
 }
 ", options: TestOptions.ReleaseDll, assemblyName: "A");
 
-            var cB = CreateCompilationWithMscorlib(@"
+            var cB = CreateCompilation(@"
 public class B : Forwarded<int>
 {
 }
@@ -1673,7 +1829,7 @@ public class B : Forwarded<int>
 
             var cB_ImageRef = cB.EmitToImageReference();
 
-            var cC_v1 = CreateCompilationWithMscorlib(@"
+            var cC_v1 = CreateCompilation(@"
 public class Forwarded<T>
 {
 }
@@ -1681,21 +1837,21 @@ public class Forwarded<T>
 
             var cC_v1_ImageRef = cC_v1.EmitToImageReference();
 
-            var cA_v2 = CreateCompilationWithMscorlib(@"
+            var cA_v2 = CreateCompilation(@"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Forwarded<byte>))]
 ", new[] { new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseDll, assemblyName: "A");
 
             var cA_v2_ImageRef = cA_v2.EmitToImageReference();
 
-            var cD = CreateCompilationWithMscorlib(@"
+            var cD = CreateCompilation(@"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Forwarded<byte>))]
 ", new[] { new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseModule, assemblyName: "D");
 
             var cD_ImageRef = cD.EmitToImageReference();
 
-            var cA_v3 = CreateCompilationWithMscorlib(@"", new[] { cD_ImageRef, new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseDll, assemblyName: "A");
+            var cA_v3 = CreateCompilation(@"", new[] { cD_ImageRef, new CSharpCompilationReference(cC_v1) }, options: TestOptions.ReleaseDll, assemblyName: "A");
 
-            var cC_v2 = CreateCompilationWithMscorlib(@"
+            var cC_v2 = CreateCompilation(@"
 public class Forwarded<T>
 {
 }
@@ -1727,10 +1883,10 @@ public class Forwarded<T>
                 {
                     foreach (var r3 in ref3)
                     {
-                        var context = CreateCompilationWithMscorlib("", new[] { r1, r2, r3 }, options: TestOptions.ReleaseDll);
+                        var context = CreateCompilation("", new[] { r1, r2, r3 }, options: TestOptions.ReleaseDll);
 
                         var forwarded = context.GetTypeByMetadataName("Forwarded`1");
-                        var resolved = context.GetTypeByMetadataName("B").BaseType.OriginalDefinition;
+                        var resolved = context.GetTypeByMetadataName("B").BaseType().OriginalDefinition;
 
                         Assert.NotNull(forwarded);
                         Assert.False(resolved.IsErrorType());
@@ -1738,6 +1894,134 @@ public class Forwarded<T>
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Aliases to forwarded types are not supported currently.
+        /// </summary>
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
+        [Fact]
+        public void AliasToTypeForwarder()
+        {
+            // Library v1: no forwarding.
+            const string sourceA1 =
+@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+namespace MyNamespace
+{
+    public class MyClass { }
+}";
+            var compA1 = CreateCompilation(sourceA1, assemblyName: "A");
+            var refA1 = compA1.EmitToImageReference(aliases: ImmutableArray.Create("A"));
+
+            const string sourceB1 = sourceA1;
+            var compB1 = CreateCompilation(sourceB1, assemblyName: "B");
+            var refB1 = compB1.EmitToImageReference(aliases: ImmutableArray.Create("B"));
+
+            const string sourceProgram =
+@"extern alias A;
+extern alias B;
+class Program
+{
+    static void Main()
+    {
+        var a = new A::MyNamespace.MyClass();
+        var b = new B::MyNamespace.MyClass();
+    }
+}";
+            var comp = CreateCompilation(sourceProgram, references: new[] { refA1, refB1 });
+            comp.VerifyDiagnostics();
+
+            // Library v2: forwarding to implementation assembly.
+            const string sourceBImpl =
+@"namespace MyNamespace
+{
+    public class MyClass { }
+}";
+            var compBImpl = CreateCompilation(sourceBImpl, assemblyName: "BImpl");
+            var refBImpl = compBImpl.EmitToImageReference();
+
+            const string sourceB2 =
+@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(MyNamespace.MyClass))]";
+            var compB2 = CreateCompilation(sourceB2, references: new[] { refBImpl }, assemblyName: "B");
+
+            // Alias to PE assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, compB2.EmitToImageReference(aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,36): error CS1069: The type name 'MyClass' could not be found in the namespace 'MyNamespace'. This type has been forwarded to assembly 'BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         var b = new B::MyNamespace.MyClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "MyClass").WithArguments("MyClass", "MyNamespace", "BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 36));
+
+            // Alias to source assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, new CSharpCompilationReference(compB2, aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0234: The type or namespace name 'MyNamespace' does not exist in the namespace 'B' (are you missing an assembly reference?)
+                //         var b = new B::MyNamespace.MyClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "MyNamespace").WithArguments("MyNamespace", "B").WithLocation(8, 24));
+        }
+
+        /// <summary>
+        /// Aliases to forwarded types are not supported currently.
+        /// </summary>
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
+        [Fact]
+        public void AliasToGenericTypeForwarder()
+        {
+            // Library v1: no forwarding.
+            const string sourceA1 =
+@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+namespace MyNamespace
+{
+    public class MyClass<T> { }
+}";
+            var compA1 = CreateCompilation(sourceA1, assemblyName: "A");
+            var refA1 = compA1.EmitToImageReference(aliases: ImmutableArray.Create("A"));
+
+            const string sourceB1 = sourceA1;
+            var compB1 = CreateCompilation(sourceB1, assemblyName: "B");
+            var refB1 = compB1.EmitToImageReference(aliases: ImmutableArray.Create("B"));
+
+            const string sourceProgram =
+@"extern alias A;
+extern alias B;
+class Program
+{
+    static void Main()
+    {
+        var a = new A::MyNamespace.MyClass<int>();
+        var b = new B::MyNamespace.MyClass<int>();
+    }
+}";
+            var comp = CreateCompilation(sourceProgram, references: new[] { refA1, refB1 });
+            comp.VerifyDiagnostics();
+
+            // Library v2: forwarding to implementation assembly.
+            const string sourceBImpl =
+@"namespace MyNamespace
+{
+    public class MyClass<T> { }
+}";
+            var compBImpl = CreateCompilation(sourceBImpl, assemblyName: "BImpl");
+            var refBImpl = compBImpl.EmitToImageReference();
+
+            const string sourceB2 =
+@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(MyNamespace.MyClass<>))]";
+            var compB2 = CreateCompilation(sourceB2, references: new[] { refBImpl }, assemblyName: "B");
+
+            // Alias to PE assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, compB2.EmitToImageReference(aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,36): error CS1069: The type name 'MyClass<>' could not be found in the namespace 'MyNamespace'. This type has been forwarded to assembly 'BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' Consider adding a reference to that assembly.
+                //         var b = new B::MyNamespace.MyClass<int>();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "MyClass<int>").WithArguments("MyClass<>", "MyNamespace", "BImpl, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 36));
+
+            // Alias to source assembly.
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, new CSharpCompilationReference(compB2, aliases: ImmutableArray.Create("B")), refBImpl });
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0234: The type or namespace name 'MyNamespace' does not exist in the namespace 'B' (are you missing an assembly reference?)
+                //         var b = new B::MyNamespace.MyClass<int>();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "MyNamespace").WithArguments("MyNamespace", "B").WithLocation(8, 24));
         }
     }
 }

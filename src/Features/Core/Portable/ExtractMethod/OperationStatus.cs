@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +16,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             Contract.ThrowIfTrue(flag.Succeeded() && flag.HasBestEffort());
 
-            this.Flag = flag;
-            this.Reasons = reason == null ? SpecializedCollections.EmptyEnumerable<string>() : SpecializedCollections.SingletonEnumerable(reason);
+            Flag = flag;
+            Reasons = reason == null ? SpecializedCollections.EmptyEnumerable<string>() : SpecializedCollections.SingletonEnumerable(reason);
         }
 
         private OperationStatus(OperationStatusFlag flag, IEnumerable<string> reasons)
@@ -21,46 +25,40 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             Contract.ThrowIfNull(reasons);
             Contract.ThrowIfTrue(flag.Succeeded() && flag.HasBestEffort());
 
-            this.Flag = flag;
-            this.Reasons = reasons;
+            Flag = flag;
+            Reasons = reasons;
         }
 
         public OperationStatus With(OperationStatusFlag flag, string reason)
         {
-            var newFlag = this.Flag | flag;
+            var newFlag = Flag | flag;
 
             newFlag = (this.Failed() || flag.Failed()) ? newFlag.RemoveFlag(OperationStatusFlag.Succeeded) : newFlag;
             newFlag = newFlag.Succeeded() ? newFlag.RemoveFlag(OperationStatusFlag.BestEffort) : newFlag;
 
-            var reasons = reason == null ? this.Reasons : this.Reasons.Concat(reason);
+            var reasons = reason == null ? Reasons : Reasons.Concat(reason);
             return new OperationStatus(newFlag, reasons);
         }
 
         public OperationStatus With(OperationStatus operationStatus)
         {
-            var newFlag = this.Flag | operationStatus.Flag;
+            var newFlag = Flag | operationStatus.Flag;
 
             newFlag = (this.Failed() || operationStatus.Failed()) ? newFlag.RemoveFlag(OperationStatusFlag.Succeeded) : newFlag;
             newFlag = newFlag.Succeeded() ? newFlag.RemoveFlag(OperationStatusFlag.BestEffort) : newFlag;
 
-            var reasons = this.Reasons.Concat(operationStatus.Reasons);
+            var reasons = Reasons.Concat(operationStatus.Reasons);
             return new OperationStatus(newFlag, reasons);
         }
 
         public OperationStatus MakeFail()
-        {
-            return new OperationStatus(OperationStatusFlag.None, this.Reasons);
-        }
+            => new(OperationStatusFlag.None, Reasons);
 
         public OperationStatus MarkSuggestion()
-        {
-            return new OperationStatus(this.Flag | OperationStatusFlag.Suggestion, this.Reasons);
-        }
+            => new(Flag | OperationStatusFlag.Suggestion, Reasons);
 
         public OperationStatus<T> With<T>(T data)
-        {
-            return Create(this, data);
-        }
+            => Create(this, data);
 
         public OperationStatusFlag Flag { get; }
         public IEnumerable<string> Reasons { get; }

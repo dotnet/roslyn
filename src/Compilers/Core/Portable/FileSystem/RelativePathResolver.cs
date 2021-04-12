@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
@@ -7,6 +11,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -45,14 +50,14 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(fullPath != null);
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return PortableShim.File.Exists(fullPath);
+            return File.Exists(fullPath);
         }
 
         public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) =>
-            new RelativePathResolver(searchPaths, BaseDirectory);
+            new(searchPaths, BaseDirectory);
 
         public RelativePathResolver WithBaseDirectory(string baseDirectory) =>
-            new RelativePathResolver(SearchPaths, baseDirectory);
+            new(SearchPaths, baseDirectory);
 
         public bool Equals(RelativePathResolver other) =>
             BaseDirectory == other.BaseDirectory && SearchPaths.SequenceEqual(other.SearchPaths);

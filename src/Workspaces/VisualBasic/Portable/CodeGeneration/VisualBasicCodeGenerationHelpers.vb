@@ -1,19 +1,23 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Module VisualBasicCodeGenerationHelpers
 
-        Friend Sub AddAccessibilityModifiers(accessibility As Accessibility,
-                                                       tokens As IList(Of SyntaxToken),
-                                                       destination As CodeGenerationDestination,
-                                                       options As CodeGenerationOptions,
-                                                       nonStructureAccessibility As Accessibility)
+        Friend Sub AddAccessibilityModifiers(
+                accessibility As Accessibility,
+                tokens As ArrayBuilder(Of SyntaxToken),
+                destination As CodeGenerationDestination,
+                options As CodeGenerationOptions,
+                nonStructureAccessibility As Accessibility)
             options = If(options, CodeGenerationOptions.Default)
             If Not options.GenerateDefaultAccessibility Then
                 If destination = CodeGenerationDestination.StructType AndAlso accessibility = Accessibility.Public Then
@@ -35,8 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case Accessibility.Private
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
 
-                Case Accessibility.ProtectedAndInternal, Accessibility.Internal
+                Case Accessibility.Internal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
+
+                Case Accessibility.ProtectedAndInternal
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
 
                 Case Accessibility.ProtectedOrInternal
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
@@ -106,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AfterDeclaration(Of TDeclaration As SyntaxNode)(
-            declarationList As SyntaxList(Of TDeclaration),
             options As CodeGenerationOptions,
             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
 
@@ -122,9 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function BeforeDeclaration(Of TDeclaration As SyntaxNode)(
-            declarationList As SyntaxList(Of TDeclaration),
             options As CodeGenerationOptions,
-             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
+            [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
 
             options = If(options, CodeGenerationOptions.Default)
 
@@ -145,95 +151,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional after As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing,
             Optional before As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing) As SyntaxList(Of TDeclaration)
 
-            after = AfterDeclaration(declarationList, options, after)
-            before = BeforeDeclaration(declarationList, options, before)
+            after = AfterDeclaration(options, after)
+            before = BeforeDeclaration(options, before)
 
             Dim index = GetInsertionIndex(
-                declarationList, declaration, options, availableIndices, after, before)
+                declarationList, declaration, options, availableIndices,
+                VisualBasicDeclarationComparer.WithoutNamesInstance,
+                VisualBasicDeclarationComparer.WithNamesInstance,
+                after, before)
 
             If availableIndices IsNot Nothing Then
                 availableIndices.Insert(index, True)
             End If
 
             Return declarationList.Insert(index, declaration)
-        End Function
-
-        Private Function GetInsertionIndex(Of TDeclaration As SyntaxNode)(
-            declarationList As SyntaxList(Of TDeclaration),
-            declaration As TDeclaration,
-            options As CodeGenerationOptions,
-            availableIndices As IList(Of Boolean),
-            after As Func(Of SyntaxList(Of TDeclaration), TDeclaration),
-            before As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Integer
-
-            If options IsNot Nothing Then
-                ' Try to use AfterThisLocation 
-                If options.AfterThisLocation IsNot Nothing Then
-                    Dim afterMember = declarationList.LastOrDefault(Function(m) m.SpanStart <= options.AfterThisLocation.SourceSpan.Start)
-                    If afterMember IsNot Nothing Then
-                        Dim index = declarationList.IndexOf(afterMember)
-                        index = GetPreferredIndex(index + 1, availableIndices, forward:=True)
-                        If index <> -1 Then
-                            Return index
-                        End If
-                    End If
-                End If
-
-                ' Try to use BeforeThisLocation
-                If options.BeforeThisLocation IsNot Nothing Then
-                    Dim beforeMember = declarationList.FirstOrDefault(Function(m) m.Span.End >= options.BeforeThisLocation.SourceSpan.End)
-                    If beforeMember IsNot Nothing Then
-                        Dim index = declarationList.IndexOf(beforeMember)
-                        index = GetPreferredIndex(index, availableIndices, forward:=False)
-                        If index <> -1 Then
-                            Return index
-                        End If
-                    End If
-                End If
-
-                If options.AutoInsertionLocation Then
-                    Dim declarations = declarationList.ToArray()
-                    If (declarations.Length = 0) Then
-                        Return 0
-                    ElseIf declarations.IsSorted(VisualBasicDeclarationComparer.Instance) Then
-                        Dim result = Array.BinarySearch(Of TDeclaration)(declarations, declaration, VisualBasicDeclarationComparer.Instance)
-                        Dim index = GetPreferredIndex(If(result < 0, Not result, result), availableIndices, forward:=True)
-                        If index <> -1 Then
-                            Return index
-                        End If
-                    End If
-
-                    If after IsNot Nothing Then
-                        Dim member = after(declarationList)
-                        If member IsNot Nothing Then
-                            Dim index = declarationList.IndexOf(member)
-                            index = GetPreferredIndex(index + 1, availableIndices, forward:=True)
-                            If index <> -1 Then
-                                Return index
-                            End If
-                        End If
-                    End If
-
-                    If before IsNot Nothing Then
-                        Dim member = before(declarationList)
-                        If member IsNot Nothing Then
-                            Dim index = declarationList.IndexOf(member)
-                            index = GetPreferredIndex(index, availableIndices, forward:=False)
-                            If index <> -1 Then
-                                Return index
-                            End If
-                        End If
-                    End If
-                End If
-            End If
-
-            ' Otherwise, add the method to the end.
-            Dim index1 = GetPreferredIndex(declarationList.Count, availableIndices, forward:=False)
-            If index1 <> -1 Then
-                Return index1
-            End If
-
-            Return declarationList.Count
         End Function
 
         Public Function GetDestination(destination As SyntaxNode) As CodeGenerationDestination

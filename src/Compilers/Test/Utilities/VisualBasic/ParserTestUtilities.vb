@@ -1,17 +1,23 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports System.Threading
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Microsoft.CodeAnalysis.Collections
+Imports System.Collections.Immutable
 
 Friend Module ParserTestUtilities
+    Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool(64)
 
     ' TODO (tomat): only checks error codes; we should also check error span and arguments
     Public Function ParseAndVerify(code As XCData, Optional expectedErrors As XElement = Nothing) As SyntaxTree
@@ -46,11 +52,11 @@ Friend Module ParserTestUtilities
     End Function
 
     Public Function ParseAndVerify(code As XCData, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(code.Value, VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(TestHelpers.NormalizeNewLines(code), VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
     Public Function ParseAndVerify(code As XCData, options As VisualBasicParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(code.Value, options, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(TestHelpers.NormalizeNewLines(code), options, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
     Public Function ParseAndVerify(source As String, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
@@ -75,10 +81,10 @@ Friend Module ParserTestUtilities
 
         ' Verify Errors
         If expectedDiagnostics Is Nothing Then
-            Dim errors As New StringBuilder()
-            AppendSyntaxErrors(tree.GetDiagnostics(), errors)
-            Assert.False(root.ContainsDiagnostics, errors.ToString())
-            Assert.Equal(root.ContainsDiagnostics, errors.Length > 0)
+            Dim errors = PooledStringBuilderPool.Allocate()
+            AppendSyntaxErrors(tree.GetDiagnostics(), errors.Builder)
+            Assert.Equal(root.ContainsDiagnostics, errors.Builder.Length > 0)
+            Assert.False(root.ContainsDiagnostics, errors.ToStringAndFree())
         Else
             Assert.True(root.ContainsDiagnostics, "Tree was expected to contain errors.")
             If errorCodesOnly Then
@@ -99,8 +105,12 @@ Friend Module ParserTestUtilities
         Return Parse(code, fileName:="", options:=options)
     End Function
 
-    Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
+    Public Function Parse(source As String, fileName As String, Optional options As VisualBasicParseOptions = Nothing, Optional encoding As Encoding = Nothing) As SyntaxTree
+        If encoding Is Nothing Then
+            encoding = Encoding.UTF8
+        End If
+
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)
@@ -526,6 +536,12 @@ Public Module VerificationHelpers
             End Get
         End Property
 
+        Public Overrides ReadOnly Property DiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
         Public Overrides Function WithChangedText(newText As SourceText) As SyntaxTree
             Throw New NotImplementedException()
         End Function
@@ -535,6 +551,10 @@ Public Module VerificationHelpers
         End Function
 
         Public Overrides Function WithFilePath(path As String) As SyntaxTree
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function WithDiagnosticOptions(options As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
             Throw New NotImplementedException()
         End Function
     End Class
@@ -549,28 +569,30 @@ Public Module VerificationHelpers
 #Region "Private Helpers"
 
     Private Function GetErrorString(id As Integer, message As String, start As String, [end] As String) As String
-        Dim errorString As New StringBuilder()
-        errorString.Append(vbTab)
-        errorString.Append("<error id=""")
-        errorString.Append(id)
-        errorString.Append("""")
-        If message IsNot Nothing Then
-            errorString.Append(" message=""")
-            errorString.Append(message)
-            errorString.Append("""")
-        End If
-        If start IsNot Nothing Then
-            errorString.Append(" start=""")
-            errorString.Append(start)
-            errorString.Append("""")
-        End If
-        If [end] IsNot Nothing Then
-            errorString.Append(" end=""")
-            errorString.Append([end])
-            errorString.Append("""")
-        End If
-        errorString.Append("/>")
-        Return errorString.ToString()
+        Dim errorString = PooledStringBuilderPool.Allocate()
+        With errorString.Builder
+            .Append(vbTab)
+            .Append("<error id=""")
+            .Append(id)
+            .Append("""")
+            If message IsNot Nothing Then
+                .Append(" message=""")
+                .Append(message)
+                .Append("""")
+            End If
+            If start IsNot Nothing Then
+                .Append(" start=""")
+                .Append(start)
+                .Append("""")
+            End If
+            If [end] IsNot Nothing Then
+                .Append(" end=""")
+                .Append([end])
+                .Append("""")
+            End If
+            .Append("/>")
+        End With
+        Return errorString.ToStringAndFree()
     End Function
 
     Private Function AreErrorsEquivalent(syntaxError As Diagnostic, xmlError As XElement) As Boolean
@@ -629,15 +651,21 @@ Public Module VerificationHelpers
         Next
 
         If errorScenarioFailed Then
-            Dim errorMessage As New StringBuilder()
-            errorMessage.AppendLine()
-            errorMessage.AppendLine("Expected Subset:")
-            For Each e In expectedErrors.<error>
-                errorMessage.AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
-            Next
-            errorMessage.AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
-            AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage)
-            Assert.False(errorScenarioFailed, errorMessage.ToString())
+            Dim errorMessage = PooledStringBuilderPool.Allocate()
+            With errorMessage.Builder
+                .AppendLine()
+                .AppendLine("Expected Subset:")
+                For Each e In expectedErrors.<error>
+                    .AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
+                Next
+                .AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
+                AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage.Builder)
+            End With
+            If errorScenarioFailed Then
+                Assert.False(errorScenarioFailed, errorMessage.ToStringAndFree())
+            Else
+                errorMessage.Free()
+            End If
         End If
     End Sub
 

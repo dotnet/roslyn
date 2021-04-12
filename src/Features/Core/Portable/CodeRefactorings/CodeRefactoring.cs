@@ -1,41 +1,40 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     /// <summary>
     /// Represents a set of transformations that can be applied to a piece of code.
     /// </summary>
-    internal class CodeRefactoring : ICodeRefactoring
+    internal class CodeRefactoring
     {
-        private readonly CodeRefactoringProvider _provider;
-        private readonly IReadOnlyList<CodeAction> _actions;
-
-        public CodeRefactoringProvider Provider
-        {
-            get { return _provider; }
-        }
+        public CodeRefactoringProvider Provider { get; }
 
         /// <summary>
-        /// List of possible actions that can be used to transform the code.
+        /// List of tuples of possible actions that can be used to transform the code the TextSpan within the original document they're applicable to.
         /// </summary>
-        public IReadOnlyList<CodeAction> Actions => _actions;
+        /// <remarks>
+        /// applicableToSpan should represent a logical section within the original document that the action is 
+        /// applicable to. It doesn't have to precisely represent the exact <see cref="TextSpan"/> that will get changed.
+        /// </remarks>
+        public ImmutableArray<(CodeAction action, TextSpan? applicableToSpan)> CodeActions { get; }
 
-        IEnumerable<CodeAction> ICodeRefactoring.Actions => Actions;
-
-        public CodeRefactoring(CodeRefactoringProvider provider, IEnumerable<CodeAction> actions)
+        public CodeRefactoring(CodeRefactoringProvider provider, ImmutableArray<(CodeAction, TextSpan?)> actions)
         {
-            _provider = provider;
-            _actions = actions.ToImmutableArrayOrEmpty();
+            Provider = provider;
+            CodeActions = actions.NullToEmpty();
 
-            if (_actions.Count == 0)
+            if (CodeActions.IsEmpty)
             {
-                throw new ArgumentException(FeaturesResources.ActionsCanNotBeEmpty, nameof(actions));
+                throw new ArgumentException(FeaturesResources.Actions_can_not_be_empty, nameof(actions));
             }
         }
     }

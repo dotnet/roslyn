@@ -1,7 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
@@ -45,13 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     throw Exceptions.ThrowEFail();
                 }
 
-                var typeSymbol = _typeSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol as ITypeSymbol;
-                if (typeSymbol == null)
+                if (!(_typeSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is ITypeSymbol typeSymbol))
                 {
                     throw Exceptions.ThrowEFail();
                 }
 
-                var childrenBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
+                var childrenBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
 
                 foreach (var member in typeSymbol.GetMembers())
                 {
@@ -66,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     childrenBuilder.Add(this.State.CodeModelService.CreateExternalCodeElement(this.State, _projectId, typeMember));
                 }
 
-                _children = childrenBuilder.ToImmutable();
+                _children = childrenBuilder.ToImmutableAndFree();
             }
 
             return _children;

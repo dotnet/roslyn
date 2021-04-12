@@ -1,16 +1,20 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.Progression)>
     Public Class InheritedByGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestInheritedByClassesCSharp() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -24,7 +28,7 @@ abstract class $$Base
     public abstract int CompareTo(object obj);
 }
 
-class Foo : Base, IComparable, IBlah
+class Goo : Base, IComparable, IBlah
 {
     public override int CompareTo(object obj)
     {
@@ -32,7 +36,7 @@ class Foo : Base, IComparable, IBlah
     }
 }
 
-class Foo2 : Base, IBlah
+class Goo2 : Base, IBlah
 {
     public override int CompareTo(object obj)
     {
@@ -40,14 +44,14 @@ class Foo2 : Base, IBlah
     }
 }
 
-class ReallyDerived : Foo // should not be shown as inherited by Base
+class ReallyDerived : Goo // should not be shown as inherited by Base
 {
 }
                          </Document>
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -55,12 +59,12 @@ class ReallyDerived : Foo // should not be shown as inherited by Base
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Type=Base)" Category="CodeSchema_Class" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="Base" Icon="Microsoft.VisualStudio.Class.Internal" Label="Base"/>
-                            <Node Id="(@1 Type=Foo)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Foo" Icon="Microsoft.VisualStudio.Class.Internal" Label="Foo"/>
-                            <Node Id="(@1 Type=Foo2)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Foo2" Icon="Microsoft.VisualStudio.Class.Internal" Label="Foo2"/>
+                            <Node Id="(@1 Type=Goo)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Class.Internal" Label="Goo"/>
+                            <Node Id="(@1 Type=Goo2)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Goo2" Icon="Microsoft.VisualStudio.Class.Internal" Label="Goo2"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 Type=Foo)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
-                            <Link Source="(@1 Type=Foo2)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
+                            <Link Source="(@1 Type=Goo)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
+                            <Link Source="(@1 Type=Goo2)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
@@ -69,9 +73,9 @@ class ReallyDerived : Foo // should not be shown as inherited by Base
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestInheritedByInterfacesCSharp() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -95,7 +99,7 @@ interface I3 : I2 // should not be shown as inherited by I
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -117,9 +121,9 @@ interface I3 : I2 // should not be shown as inherited by I
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestInheritedByClassesVisualBasic() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -132,7 +136,7 @@ MustInherit Class $$Base
     Public MustOverride Function CompareTo(obj As Object) As Integer
 End Class
 
-Class Foo
+Class Goo
     Inherits Base
     Implements IComparable, IBlah
     Public Overrides Function CompareTo(obj As Object) As Integer Implements IComparable.CompareTo
@@ -140,7 +144,7 @@ Class Foo
     End Function
 End Class
 
-Class Foo2
+Class Goo2
     Inherits Base
     Implements IBlah
     Public Overrides Function CompareTo(obj As Object) As Integer
@@ -149,13 +153,13 @@ Class Foo2
 End Class
 
 Class ReallyDerived ' should not be shown as inherited by Base
-    Inherits Foo
+    Inherits Goo
 End Class
                          </Document>
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
@@ -163,12 +167,12 @@ End Class
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Type=Base)" Category="CodeSchema_Class" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="Base" Icon="Microsoft.VisualStudio.Class.Internal" Label="Base"/>
-                            <Node Id="(@1 Type=Foo)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Foo" Icon="Microsoft.VisualStudio.Class.Internal" Label="Foo"/>
-                            <Node Id="(@1 Type=Foo2)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Foo2" Icon="Microsoft.VisualStudio.Class.Internal" Label="Foo2"/>
+                            <Node Id="(@1 Type=Goo)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Class.Internal" Label="Goo"/>
+                            <Node Id="(@1 Type=Goo2)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Goo2" Icon="Microsoft.VisualStudio.Class.Internal" Label="Goo2"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 Type=Foo)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
-                            <Link Source="(@1 Type=Foo2)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
+                            <Link Source="(@1 Type=Goo)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
+                            <Link Source="(@1 Type=Goo2)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
@@ -177,9 +181,9 @@ End Class
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact>
         Public Async Function TestInheritedByInterfacesVisualBasic() As Task
-            Using testState = Await ProgressionTestState.CreateAsync(
+            Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -208,7 +212,7 @@ End Interface
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
+                Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(

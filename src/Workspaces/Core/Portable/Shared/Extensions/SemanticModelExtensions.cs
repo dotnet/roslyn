@@ -1,194 +1,235 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Humanizer;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class SemanticModelExtensions
+    internal static partial class SemanticModelExtensions
     {
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return SemanticMap.From(semanticModel, node, cancellationToken);
-        }
+            => SemanticMap.From(semanticModel, node, cancellationToken);
 
         /// <summary>
-        /// Gets semantic information, such as type, symbols, and diagnostics, about the parent of a token.
+        /// Fetches the ITypeSymbol that should be used if we were generating a parameter or local that would accept <paramref name="expression"/>. If
+        /// expression is a type, that's returned; otherwise this will see if it's something like a method group and then choose an appropriate delegate.
         /// </summary>
-        /// <param name="semanticModel">The SemanticModel object to get semantic information
-        /// from.</param>
-        /// <param name="token">The token to get semantic information from. This must be part of the
-        /// syntax tree associated with the binding.</param>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetSymbolInfo(token.Parent, cancellationToken);
-        }
-
-        public static TSymbol GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            where TSymbol : ISymbol
-        {
-            for (var symbol = semanticModel.GetEnclosingSymbol(position, cancellationToken);
-                 symbol != null;
-                 symbol = symbol.ContainingSymbol)
-            {
-                if (symbol is TSymbol)
-                {
-                    return (TSymbol)symbol;
-                }
-            }
-
-            return default(TSymbol);
-        }
-
-        public static ISymbol GetEnclosingNamedTypeOrAssembly(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(position, cancellationToken) ??
-                (ISymbol)semanticModel.Compilation.Assembly;
-        }
-
-        public static INamedTypeSymbol GetEnclosingNamedType(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(position, cancellationToken);
-        }
-
-        public static INamespaceSymbol GetEnclosingNamespace(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
-        }
-
         public static ITypeSymbol GetType(
             this SemanticModel semanticModel,
             SyntaxNode expression,
             CancellationToken cancellationToken)
         {
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+
+            if (typeInfo.Type != null)
+            {
+                return typeInfo.Type;
+            }
+
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            return typeInfo.Type ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
+            return symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
-        public static IEnumerable<ISymbol> GetSymbols(
+        private static ISymbol? MapSymbol(ISymbol symbol, ITypeSymbol? type)
+        {
+            if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
+            {
+                return symbol.ContainingType;
+            }
+
+            if (symbol.IsThisParameter())
+            {
+                // Map references to this/base to the actual type that those correspond to.
+                return type;
+            }
+
+            if (symbol.IsFunctionValue() &&
+                symbol.ContainingSymbol is IMethodSymbol method)
+            {
+                if (method?.AssociatedSymbol != null)
+                {
+                    return method.AssociatedSymbol;
+                }
+                else
+                {
+                    return method;
+                }
+            }
+
+            // see if we can map the built-in language operator to a real method on the containing
+            // type of the symbol.  built-in operators can happen when querying the semantic model
+            // for operators.  However, we would prefer to just use the real operator on the type
+            // if it has one.
+            if (symbol is IMethodSymbol methodSymbol &&
+                methodSymbol.MethodKind == MethodKind.BuiltinOperator &&
+                methodSymbol.ContainingType is ITypeSymbol containingType)
+            {
+                var comparer = SymbolEquivalenceComparer.Instance.ParameterEquivalenceComparer;
+
+                // Note: this will find the real method vs the built-in.  That's because the
+                // built-in is synthesized operator that isn't actually in the list of members of
+                // its 'ContainingType'.
+                var mapped = containingType.GetMembers(methodSymbol.Name)
+                                           .OfType<IMethodSymbol>()
+                                           .FirstOrDefault(s => s.Parameters.SequenceEqual(methodSymbol.Parameters, comparer));
+                symbol = mapped ?? symbol;
+            }
+
+            return symbol;
+        }
+
+        public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
             Workspace workspace,
-            bool bindLiteralsToUnderlyingType,
             CancellationToken cancellationToken)
         {
             var languageServices = workspace.Services.GetLanguageServices(token.Language);
-            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
             if (!syntaxFacts.IsBindableToken(token))
             {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+                return TokenSemanticInfo.Empty;
             }
 
-            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
+            var semanticFacts = languageServices.GetRequiredService<ISemanticFactsService>();
 
-            return GetSymbolsEnumerable(
-                            semanticModel, semanticFacts, syntaxFacts,
-                            token, bindLiteralsToUnderlyingType, cancellationToken)
-                           .WhereNotNull()
-                           .Select(MapSymbol);
-        }
+            IAliasSymbol? aliasSymbol;
+            ITypeSymbol? type;
+            ITypeSymbol? convertedType;
+            ISymbol? declaredSymbol;
+            ImmutableArray<ISymbol?> allSymbols;
 
-        private static ISymbol MapSymbol(ISymbol symbol)
-        {
-            return symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType
-                ? symbol.ContainingType
-                : symbol;
-        }
-
-        private static IEnumerable<ISymbol> GetSymbolsEnumerable(
-            SemanticModel semanticModel,
-            ISemanticFactsService semanticFacts,
-            ISyntaxFactsService syntaxFacts,
-            SyntaxToken token,
-            bool bindLiteralsToUnderlyingType,
-            CancellationToken cancellationToken)
-        {
-            var declaredSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);
-            if (declaredSymbol != null)
+            var overriddingIdentifier = syntaxFacts.GetDeclarationIdentifierIfOverride(token);
+            if (overriddingIdentifier.HasValue)
             {
-                yield return declaredSymbol;
-                yield break;
+                // on an "override" token, we'll find the overridden symbol
+                aliasSymbol = null;
+                var overriddingSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, overriddingIdentifier.Value, cancellationToken);
+                var overriddenSymbol = overriddingSymbol.GetOverriddenMember();
+
+                // on an "override" token, the overridden symbol is the only part of TokenSemanticInfo used by callers, so type doesn't matter
+                type = null;
+                convertedType = null;
+                declaredSymbol = null;
+                allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol?>.Empty : ImmutableArray.Create<ISymbol?>(overriddenSymbol);
+            }
+            else
+            {
+                aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
+                var bindableParent = syntaxFacts.TryGetBindableParent(token);
+                var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
+                type = typeInfo.Type;
+                convertedType = typeInfo.ConvertedType;
+                declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
+
+                var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
+                allSymbols = skipSymbolInfoLookup
+                    ? ImmutableArray<ISymbol?>.Empty
+                    : semanticFacts
+                        .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
+                        .WhereAsArray(s => !s.Equals(declaredSymbol))
+                        .SelectAsArray(s => MapSymbol(s, type));
             }
 
-            var aliasInfo = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
-            if (aliasInfo != null)
+            // NOTE(cyrusn): This is a workaround to how the semantic model binds and returns
+            // information for VB event handlers.  Namely, if you have:
+            //
+            // Event X]()
+            // Sub Goo()
+            //      Dim y = New $$XEventHandler(AddressOf bar)
+            // End Sub
+            //
+            // Only GetTypeInfo will return any information for XEventHandler.  So, in this
+            // case, we upgrade the type to be the symbol we return.
+            if (type != null && allSymbols.Length == 0)
             {
-                yield return aliasInfo;
-            }
-
-            var bindableParent = syntaxFacts.GetBindableParent(token);
-            var allSymbols = semanticModel.GetSymbolInfo(bindableParent, cancellationToken).GetBestOrAllSymbols().ToList();
-            var type = semanticModel.GetTypeInfo(bindableParent, cancellationToken).Type;
-
-            if (type != null && allSymbols.Count == 0)
-            {
-                if ((bindLiteralsToUnderlyingType && syntaxFacts.IsLiteral(token)) ||
-                    syntaxFacts.IsAwaitKeyword(token))
-                {
-                    yield return type;
-                }
-
                 if (type.Kind == SymbolKind.NamedType)
                 {
                     var namedType = (INamedTypeSymbol)type;
                     if (namedType.TypeKind == TypeKind.Delegate ||
                         namedType.AssociatedSymbol != null)
                     {
-                        yield return type;
+                        allSymbols = ImmutableArray.Create<ISymbol?>(type);
+                        type = null;
                     }
                 }
             }
 
-            foreach (var symbol in allSymbols)
+            if (allSymbols.Length == 0 && syntaxFacts.IsQueryKeyword(token))
             {
-                if (symbol.IsThisParameter() && type != null)
-                {
-                    yield return type;
-                }
-                else if (symbol.IsFunctionValue())
-                {
-                    var method = symbol.ContainingSymbol as IMethodSymbol;
-
-                    if (method != null)
-                    {
-                        if (method.AssociatedSymbol != null)
-                        {
-                            yield return method.AssociatedSymbol;
-                        }
-                        else
-                        {
-                            yield return method;
-                        }
-                    }
-                    else
-                    {
-                        yield return symbol;
-                    }
-                }
-                else
-                {
-                    yield return symbol;
-                }
+                type = null;
+                convertedType = null;
             }
+
+            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
         }
 
-        public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)
+        public static string GenerateNameFromType(this SemanticModel semanticModel, ITypeSymbol type, ISyntaxFacts syntaxFacts, bool capitalize)
         {
-            if (!semanticModel.IsSpeculativeSemanticModel)
+            var pluralize = semanticModel.ShouldPluralize(type);
+            var typeArguments = type.GetAllTypeArguments();
+
+            // We may be able to use the type's arguments to generate a name if we're working with an enumerable type.
+            if (pluralize && TryGeneratePluralizedNameFromTypeArgument(syntaxFacts, typeArguments, capitalize, out var typeArgumentParameterName))
             {
-                return semanticModel;
+                return typeArgumentParameterName;
             }
 
-            Contract.ThrowIfNull(semanticModel.ParentModel);
-            Contract.ThrowIfTrue(semanticModel.ParentModel.IsSpeculativeSemanticModel);
-            Contract.ThrowIfTrue(semanticModel.ParentModel.ParentModel != null);
-            return semanticModel.ParentModel;
+            // If there's no type argument and we have an array type, we should pluralize, e.g. using 'frogs' for 'new Frog[]' instead of 'frog'
+            if (type.TypeKind == TypeKind.Array && typeArguments.IsEmpty)
+            {
+                return type.CreateParameterName(capitalize).Pluralize();
+            }
+
+            // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
+            // plural forms
+            return type.CreateParameterName(capitalize);
+        }
+
+        private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)
+        {
+            if (type == null)
+                return false;
+
+            // string implements IEnumerable<char>, so we need to specifically exclude it.
+            if (type.SpecialType == SpecialType.System_String)
+                return false;
+
+            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
+            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
+        }
+
+        private static bool TryGeneratePluralizedNameFromTypeArgument(
+            ISyntaxFacts syntaxFacts,
+            ImmutableArray<ITypeSymbol> typeArguments,
+            bool capitalize,
+            [NotNullWhen(true)] out string? parameterName)
+        {
+            // We only consider generating a name if there's one type argument.
+            // This logic can potentially be expanded upon in the future.
+            if (typeArguments.Length == 1)
+            {
+                // We only want the last part of the type, i.e. we don't want namespaces.
+                var typeArgument = typeArguments.Single().ToDisplayParts().Last().ToString();
+                if (syntaxFacts.IsValidIdentifier(typeArgument))
+                {
+                    typeArgument = typeArgument.Pluralize();
+                    parameterName = capitalize ? typeArgument.ToPascalCase() : typeArgument.ToCamelCase();
+                    return true;
+                }
+            }
+
+            parameterName = null;
+            return false;
         }
     }
 }

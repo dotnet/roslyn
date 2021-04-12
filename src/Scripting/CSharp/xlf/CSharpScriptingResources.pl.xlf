@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../CSharpScriptingResources.resx">
+    <body>
+      <trans-unit id="LogoLine1">
+        <source>Microsoft (R) Visual C# Interactive Compiler version {0}</source>
+        <target state="translated">Microsoft (R) Visual C# Interactive — wersja kompilatora {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LogoLine2">
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">Copyright (C) Microsoft Corporation. Wszelkie prawa zastrzeżone.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InteractiveHelp">
+        <source>Usage: csi [option] ... [script-file.csx] [script-argument] ...
+
+Executes script-file.csx if specified, otherwise launches an interactive REPL (Read Eval Print Loop).
+
+Options:
+  /help                          Display this usage message (alternative form: /?)
+  /version                       Display the version and exit
+  /i                             Drop to REPL after executing the specified script.
+  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative form: /reference)
+  /r:&lt;file list&gt;                 Reference metadata from the specified assembly files (alternative form: /reference)
+  /lib:&lt;path list&gt;               List of directories where to look for libraries specified by #r directive. 
+                                 (alternative forms: /libPath /libPaths)
+  /u:&lt;namespace&gt;                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
+  /langversion:?                 Display the allowed values for language version and exit
+  /langversion:&lt;string&gt;          Specify language version such as
+                                 `latest` (latest version, including minor versions),
+                                 `default` (same as `latest`),
+                                 `latestmajor` (latest version, excluding minor versions),
+                                 `preview` (latest version, including features in unsupported preview),
+                                 or specific versions like `6` or `7.1`
+  @&lt;file&gt;                        Read response file for more options
+  --                             Indicates that the remaining arguments should not be treated as options.
+</source>
+        <target state="translated">Użycie: csi [opcja] ... [plik-skryptu.csx] [argument-skryptu] ...
+
+Wykonuje plik plik-skryptu.csx, jeśli został podany. W przeciwnym razie uruchamia interakcyjną pętlę REPL (Read Eval Print Loop).
+
+Opcje:
+  /help                          Wyświetla ten komunikat o użyciu (postać alternatywna: /?)
+  /version                       Wyświetla wersję i kończy działanie
+  /i                             Powoduje przejście do pętli REPL po wykonaniu określonego skryptu
+  /r:&lt;plik&gt;                      Przywołuje metadane z określonego pliku zestawu (postać alternatywna: /reference)
+  /r:&lt;lista plików&gt;              Przywołuje metadane z określonych plików zestawu (postać alternatywna: /reference)
+  /lib:&lt;lista ścieżek&gt;           Lista katalogów, w których mają być wyszukiwane biblioteki określone przez dyrektywę #r
+                                 (postacie alternatywne: /libPath /libPaths)
+  /u:&lt;przestrzeń nazw&gt;           Definiuje globalną przestrzeń nazw (postacie alternatywne: /using, /usings, /import, /imports)
+  /langversion:?                 Wyświetla dozwolone wartości wersji języka i kończy działanie
+  /langversion:&lt;ciąg&gt;            Określa wersję języka, taką jak:
+                                 `latest` (najnowsza wersja, włącznie z wersjami pomocniczymi),
+                                 `default` (to samo co `latest`),
+                                 `latestmajor` (najnowsza wersja, bez wersji pomocniczych),
+                                 `preview` (najnowsza wersja, włącznie z funkcjami w nieobsługiwanej wersji zapoznawczej)
+                                 albo określone wersje, takie jak `6` lub `7.1`
+  @&lt;plik&gt;                        Odczytuje plik odpowiedzi, aby uzyskać więcej opcji
+  --                             Wskazuje, że pozostałe argumenty nie powinny być traktowane jako opcje.
+</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

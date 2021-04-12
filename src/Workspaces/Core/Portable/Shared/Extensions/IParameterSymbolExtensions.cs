@@ -1,19 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class IParameterSymbolExtensions
+    internal static partial class IParameterSymbolExtensions
     {
-        public static bool IsRefOrOut(this IParameterSymbol symbol)
-        {
-            return symbol.RefKind != RefKind.None;
-        }
-
         public static IParameterSymbol RenameParameter(this IParameterSymbol parameter, string parameterName)
         {
             return parameter.Name == parameterName
@@ -29,15 +26,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
         }
 
-        public static IList<IParameterSymbol> RenameParameters(this IList<IParameterSymbol> parameters, IList<string> parameterNames)
+        public static IParameterSymbol WithAttributes(this IParameterSymbol parameter, ImmutableArray<AttributeData> attributes)
         {
-            var result = new List<IParameterSymbol>();
-            for (int i = 0; i < parameterNames.Count; i++)
+            return parameter.GetAttributes() == attributes
+                ? parameter
+                : CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        attributes,
+                        parameter.RefKind,
+                        parameter.IsParams,
+                        parameter.Type,
+                        parameter.Name,
+                        parameter.IsOptional,
+                        parameter.HasExplicitDefaultValue,
+                        parameter.HasExplicitDefaultValue ? parameter.ExplicitDefaultValue : null);
+        }
+
+        public static ImmutableArray<IParameterSymbol> RenameParameters(this IList<IParameterSymbol> parameters, ImmutableArray<string> parameterNames)
+        {
+            var result = ArrayBuilder<IParameterSymbol>.GetInstance();
+            for (var i = 0; i < parameterNames.Length; i++)
             {
                 result.Add(parameters[i].RenameParameter(parameterNames[i]));
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
     }
 }

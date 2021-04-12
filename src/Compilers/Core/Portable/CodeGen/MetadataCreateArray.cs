@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -10,36 +13,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <summary>
     /// An expression that creates an array instance in metadata. Only for use in custom attributes.
     /// </summary>
-    internal sealed class MetadataCreateArray : Cci.IMetadataCreateArray
+    internal sealed class MetadataCreateArray : Cci.IMetadataExpression
     {
-        private readonly Cci.IArrayTypeReference _arrayType;
-        private readonly Cci.ITypeReference _elementType;
-        private ImmutableArray<Cci.IMetadataExpression> _initializers;
+        public Cci.IArrayTypeReference ArrayType { get; }
+        public Cci.ITypeReference ElementType { get; }
+        public ImmutableArray<Cci.IMetadataExpression> Elements { get; }
 
         public MetadataCreateArray(Cci.IArrayTypeReference arrayType, Cci.ITypeReference elementType, ImmutableArray<Cci.IMetadataExpression> initializers)
         {
-            _arrayType = arrayType;
-            _elementType = elementType;
-            _initializers = initializers;
+            ArrayType = arrayType;
+            ElementType = elementType;
+            Elements = initializers;
         }
 
-        /// <summary>
-        /// The element type of the array.
-        /// </summary>
-        Cci.ITypeReference Cci.IMetadataCreateArray.ElementType => _elementType;
-
-        uint Cci.IMetadataCreateArray.ElementCount => (uint)_initializers.Length;
-
-        /// <summary>
-        /// The initial values of the array elements. May be empty.
-        /// </summary>
-        IEnumerable<Cci.IMetadataExpression> Cci.IMetadataCreateArray.Elements => _initializers;
-
-        void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
-        {
-            visitor.Visit(this);
-        }
-
-        Cci.ITypeReference Cci.IMetadataExpression.Type => _arrayType;
+        Cci.ITypeReference Cci.IMetadataExpression.Type => ArrayType;
+        void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
     }
 }

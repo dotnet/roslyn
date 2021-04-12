@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -21,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private Task<NavigationBarModel> _modelTask;
         private NavigationBarModel _lastCompletedModel;
-        private CancellationTokenSource _modelTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _modelTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
@@ -31,11 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             AssertIsForeground();
 
             var textSnapshot = _subjectBuffer.CurrentSnapshot;
-            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return;
-            }
 
             // Cancel off any existing work
             _modelTaskCancellationSource.Cancel();
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _modelTask =
                 Task.Delay(modelUpdateDelay, cancellationToken)
                     .SafeContinueWithFromAsync(
-                        _ => ComputeModelAsync(document, textSnapshot, cancellationToken),
+                        _ => ComputeModelAsync(textSnapshot, cancellationToken),
                         cancellationToken,
                         TaskContinuationOptions.OnlyOnRanToCompletion,
                         TaskScheduler.Default);
@@ -60,10 +60,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Computes a model for the given snapshot.
         /// </summary>
-        private async Task<NavigationBarModel> ComputeModelAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
+        private async Task<NavigationBarModel> ComputeModelAsync(ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
+            // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
+            // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
+            // event the other files aren't available, then partial-type information won't be correct.  That's ok though
+            // as this is just something that happens during solution load and will pass once that is over.  By using
+            // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
+            // compilation data (like skeleton assemblies).
+            var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+            if (document == null)
+            {
+                _lastCompletedModel = null;
+                return _lastCompletedModel;
+            }
+
             // TODO: remove .FirstOrDefault()
-            var languageService = document.Project.LanguageServices.GetService<INavigationBarItemService>();
+            var languageService = document.GetLanguageService<INavigationBarItemService>();
             if (languageService != null)
             {
                 // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
@@ -92,13 +105,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 }
             }
 
-            _lastCompletedModel = _lastCompletedModel ??
-                    new NavigationBarModel(SpecializedCollections.EmptyList<NavigationBarItem>(), new VersionStamp(), null);
+            _lastCompletedModel ??= new NavigationBarModel(SpecializedCollections.EmptyList<NavigationBarItem>(), new VersionStamp(), null);
             return _lastCompletedModel;
         }
 
         private Task<NavigationBarSelectedTypeAndMember> _selectedItemInfoTask;
-        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute what item should be selected.
@@ -140,27 +152,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (updateUIWhenDone)
             {
                 asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartSelectedItemUpdateTask.UpdateUI");
-                _selectedItemInfoTask.SafeContinueWith(
-                    t => PushSelectedItemsToPresenter(t.Result),
+                _selectedItemInfoTask.SafeContinueWithFromAsync(
+                    async t =>
+                    {
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
+                        PushSelectedItemsToPresenter(t.Result);
+                    },
                     cancellationToken,
-                    TaskContinuationOptions.OnlyOnRanToCompletion,
-                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).CompletesAsyncOperation(asyncToken);
+                    TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
             }
         }
 
         internal static NavigationBarSelectedTypeAndMember ComputeSelectedTypeAndMember(NavigationBarModel model, SnapshotPoint caretPosition, CancellationToken cancellationToken)
         {
-            var leftItem = GetMatchingItem(model.Types, caretPosition, model.ItemService, cancellationToken);
+            var (item, gray) = GetMatchingItem(model.Types, caretPosition, model.ItemService, cancellationToken);
 
-            if (leftItem.Item1 == null)
+            if (item == null)
             {
                 // Nothing to show at all
                 return new NavigationBarSelectedTypeAndMember(null, null);
             }
 
-            var rightItem = GetMatchingItem(leftItem.Item1.ChildItems, caretPosition, model.ItemService, cancellationToken);
+            var rightItem = GetMatchingItem(item.ChildItems, caretPosition, model.ItemService, cancellationToken);
 
-            return new NavigationBarSelectedTypeAndMember(leftItem.Item1, leftItem.Item2, rightItem.Item1, rightItem.Item2);
+            return new NavigationBarSelectedTypeAndMember(item, gray, rightItem.item, rightItem.gray);
         }
 
         /// <summary>
@@ -168,12 +185,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// positioned after the cursor.
         /// </summary>
         /// <returns>A tuple of the matching item, and if it should be shown grayed.</returns>
-        private static ValueTuple<T, bool> GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
+        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
         {
             T exactItem = null;
-            int exactItemStart = 0;
+            var exactItemStart = 0;
             T nextItem = null;
-            int nextItemStart = int.MaxValue;
+            var nextItemStart = int.MaxValue;
 
             foreach (var item in items)
             {
@@ -204,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (exactItem != null)
             {
-                return ValueTuple.Create(exactItem, false);
+                return (exactItem, gray: false);
             }
             else
             {
@@ -216,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     itemToGray = null;
                 }
 
-                return ValueTuple.Create(itemToGray, itemToGray != null);
+                return (itemToGray, gray: itemToGray != null);
             }
         }
 

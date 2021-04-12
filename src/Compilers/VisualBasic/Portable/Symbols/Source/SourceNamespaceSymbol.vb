@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ImmutableArrayExtensions
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -320,13 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyAllMembers, members, Nothing)
             End If
 
-#If DEBUG Then
-            ' In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            ' more obviously.
-            Return _lazyAllMembers.DeOrder()
-#Else
-            Return _lazyAllMembers
-#End If
+            Return _lazyAllMembers.ConditionallyDeOrder()
         End Function
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
@@ -473,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
+            Dim diagnostics = DiagnosticBag.GetInstance()
             Dim reportedNamespaceMismatch As Boolean = False
 
             ' Check for a few issues with namespace declaration.
@@ -483,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Dim currentTree = syntaxRef.SyntaxTree
-                Dim node As VisualBasicSyntaxNode = syntaxRef.GetVisualBasicSyntax()
+                Dim node As VisualBasicSyntaxNode = syntaxRef.GetVisualBasicSyntax(cancellationToken)
                 Select Case node.Kind
                     Case SyntaxKind.IdentifierName
                         ValidateNamespaceNameSyntax(DirectCast(node, IdentifierNameSyntax), diagnostics, reportedNamespaceMismatch)
@@ -500,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 cancellationToken.ThrowIfCancellationRequested()
             Next
 
-            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, diagnostics, CompilationStage.Declare) Then
+            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, New BindingDiagnosticBag(diagnostics)) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
             diagnostics.Free()
@@ -605,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Does this namespace have multiple different case-sensitive spellings
-        ''' (i.e., "Namespace FOO" and "Namespace foo". Includes parent namespace(s).
+        ''' (i.e., "Namespace GOO" and "Namespace goo". Includes parent namespace(s).
         ''' </summary>
         Friend ReadOnly Property HasMultipleSpellings As Boolean
             Get
@@ -619,16 +616,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' syntax tree and location.
         ''' I.e., if this namespace was declared with:
         ''' Namespace zAp
-        '''  Namespace FOO.bar
+        '''  Namespace GOO.bar
         '''    'location
         '''  End Namespace
         ''' End Namespace
         ''' Namespace ZAP
-        '''  Namespace foo.bar
+        '''  Namespace goo.bar
         '''  End Namespace
         ''' End Namespace
         ''' 
-        ''' It would return "ProjectNamespace.zAp.FOO.bar".
+        ''' It would return "ProjectNamespace.zAp.GOO.bar".
         ''' </summary>
         Friend Function GetDeclarationSpelling(tree As SyntaxTree, location As Integer) As String
             If Not HasMultipleSpellings Then

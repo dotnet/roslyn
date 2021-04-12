@@ -1,19 +1,23 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
+    <[UseExportProvider]>
     Public Class GoToDefinitionApiTests
 
         Private Async Function TestAsync(workspaceDefinition As XElement, expectSuccess As Boolean) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -35,11 +39,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 Assert.NotNull(symbolInfo.Symbol)
 
-                Dim presenter = New MockNavigableItemsPresenter(Sub() Exit Sub)
+                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Exit Sub)
 
-                WpfTestCase.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a WaitAndGetResult call")
+                WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
-                    symbolInfo.Symbol, document.Project, {}, {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}, thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False, cancellationToken:=CancellationToken.None)
+                    symbolInfo.Symbol, document.Project.Solution,
+                    threadingContext,
+                    presenter,
+                    thirdPartyNavigationAllowed:=True,
+                    cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using
@@ -53,7 +62,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
         Public Async Function TestVBOperator() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>
-
     <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <Document>
 ''' &lt;summary&gt;

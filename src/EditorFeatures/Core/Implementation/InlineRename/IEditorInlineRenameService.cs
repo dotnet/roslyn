@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +36,32 @@ namespace Microsoft.CodeAnalysis.Editor
         ResolvedNonReferenceConflict,
         UnresolvedConflict,
         Complexified,
+    }
+
+    internal enum InlineRenameFileRenameInfo
+    {
+        /// <summary>
+        /// This operation is not allowed
+        /// on the symbol being renamed
+        /// </summary>
+        NotAllowed,
+
+        /// <summary>
+        /// The type being renamed has multiple definition
+        /// locations which is not supported.
+        /// </summary>
+        TypeWithMultipleLocations,
+
+        /// <summary>
+        /// The type being renamed doesn't match the file
+        /// name prior to renaming
+        /// </summary>
+        TypeDoesNotMatchFileName,
+
+        /// <summary>
+        /// File rename is allowed
+        /// </summary>
+        Allowed
     }
 
     internal struct InlineRenameReplacement
@@ -66,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor
                     return InlineRenameReplacementKind.UnresolvedConflict;
                 default:
                 case RelatedLocationType.PossiblyResolvableConflict:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(location.Type);
             }
         }
     }
@@ -165,6 +196,11 @@ namespace Microsoft.CodeAnalysis.Editor
         Glyph Glyph { get; }
 
         /// <summary>
+        /// The locations of the potential rename candidates for the symbol.
+        /// </summary>
+        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+
+        /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text
         /// in the editor.  Normally, the final name will be same as the replacement text.  However,
         /// that may not always be the same.  For example, when renaming an attribute the replacement
@@ -176,13 +212,13 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns the actual span that should be edited in the buffer for a given rename reference
         /// location.
         /// </summary>
-        TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken);
+        TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the actual span that should be edited in the buffer for a given rename conflict
         /// location.
         /// </summary>
-        TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken);
+        TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determine the set of locations to rename given the provided options. May be called 
@@ -193,15 +229,24 @@ namespace Microsoft.CodeAnalysis.Editor
 
         /// <summary>
         /// Called before the rename is applied to the specified documents in the workspace.  Return 
-        /// <code>true</code> if rename should proceed, or <code>false</code> if it should be canceled.
+        /// <see langword="true"/> if rename should proceed, or <see langword="false"/> if it should be canceled.
         /// </summary>
         bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
 
         /// <summary>
         /// Called after the rename is applied to the specified documents in the workspace.  Return 
-        /// <code>true</code> if this operation succeeded, or <code>false</code> if it failed.
+        /// <see langword="true"/> if this operation succeeded, or <see langword="false"/> if it failed.
         /// </summary>
         bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
+    }
+
+    internal interface IInlineRenameInfoWithFileRename : IInlineRenameInfo
+    {
+        /// <summary>
+        /// Returns information about the file rename capabilities of 
+        /// an inline rename
+        /// </summary>
+        InlineRenameFileRenameInfo GetFileRenameInfo();
     }
 
     /// <summary>

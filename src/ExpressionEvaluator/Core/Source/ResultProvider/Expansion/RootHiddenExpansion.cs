@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -9,18 +13,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal static Expansion CreateExpansion(
             MemberAndDeclarationInfo members,
-            DynamicFlagsMap dynamicFlagsMap)
+            CustomTypeInfoTypeArgumentMap customTypeInfoMap)
         {
-            return new RootHiddenExpansion(members, dynamicFlagsMap);
+            return new RootHiddenExpansion(members, customTypeInfoMap);
         }
 
         private readonly MemberAndDeclarationInfo _member;
-        private readonly DynamicFlagsMap _dynamicFlagsMap;
+        private readonly CustomTypeInfoTypeArgumentMap _customTypeInfoMap;
 
-        internal RootHiddenExpansion(MemberAndDeclarationInfo member, DynamicFlagsMap dynamicFlagsMap)
+        internal RootHiddenExpansion(MemberAndDeclarationInfo member, CustomTypeInfoTypeArgumentMap customTypeInfoMap)
         {
             _member = member;
-            _dynamicFlagsMap = dynamicFlagsMap;
+            _customTypeInfoMap = customTypeInfoMap;
         }
 
         internal override void GetRows(
@@ -58,8 +62,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     _member,
                     memberValue,
                     parent,
-                    _dynamicFlagsMap,
-                    ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView);
+                    _customTypeInfoMap,
+                    ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView,
+                    supportsFavorites: false);
                 var expansion = other.Expansion;
                 if (expansion != null)
                 {

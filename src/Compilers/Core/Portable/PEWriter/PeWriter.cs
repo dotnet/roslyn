@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -6,12 +10,18 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
+using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -25,23 +35,27 @@ namespace Microsoft.Cci
 
     internal static class PeWriter
     {
-        public static bool WritePeToStream(
+        internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
             Func<Stream> getPeStream,
             Func<Stream> getPortablePdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
+            BlobReader? pdbOptionsBlobReader,
             string pdbPathOpt,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool isDeterministic,
+            bool emitTestCoverageData,
+            RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
             // If PDB writer is given, we have to have PDB path.
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, isDeterministic, getPortablePdbStreamOpt != null, cancellationToken);
+            var mdWriter = FullMetadataWriter.Create(context, messageProvider, metadataOnly, isDeterministic,
+                emitTestCoverageData, getPortablePdbStreamOpt != null, cancellationToken);
 
-            var properties = context.Module.Properties;
+            var properties = context.Module.SerializationProperties;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -54,27 +68,33 @@ namespace Microsoft.Cci
             var mappedFieldDataBuilder = new BlobBuilder();
             var managedResourceBuilder = new BlobBuilder(1024);
 
-            Blob mvidFixup;
+            Blob mvidFixup, mvidStringFixup;
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
-                out mvidFixup);
+                pdbOptionsBlobReader,
+                out mvidFixup,
+                out mvidStringFixup);
 
             MethodDefinitionHandle entryPointHandle;
             MethodDefinitionHandle debugEntryPointHandle;
             mdWriter.GetEntryPoints(out entryPointHandle, out debugEntryPointHandle);
-            
+
             if (!debugEntryPointHandle.IsNil)
             {
-                nativePdbWriterOpt?.SetEntryPoint((uint)MetadataTokens.GetToken(debugEntryPointHandle));
+                nativePdbWriterOpt?.SetEntryPoint(MetadataTokens.GetToken(debugEntryPointHandle));
             }
 
             if (nativePdbWriterOpt != null)
             {
-                var assembly = mdWriter.Module.AsAssembly;
-                if (assembly != null && assembly.Kind == OutputKind.WindowsRuntimeMetadata)
+                if (context.Module.SourceLinkStreamOpt != null)
+                {
+                    nativePdbWriterOpt.EmbedSourceLink(context.Module.SourceLinkStreamOpt);
+                }
+
+                if (mdWriter.Module.OutputKind == OutputKind.WindowsRuntimeMetadata)
                 {
                     // Dev12: If compiling to winmdobj, we need to add to PDB source spans of
                     //        all types and members for better error reporting by WinMDExp.
@@ -84,10 +104,12 @@ namespace Microsoft.Cci
                 {
 #if DEBUG
                     // validate that all definitions are writable
-                    // if same scenario would happen in an winmdobj project
+                    // if same scenario would happen in a winmdobj project
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(mdWriter.Module.GetSymbolToLocationMap());
 #endif
                 }
+
+                nativePdbWriterOpt.WriteRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
             }
 
             Stream peStream = getPeStream();
@@ -96,7 +118,7 @@ namespace Microsoft.Cci
                 return false;
             }
 
-            BlobContentId pdbContentId = nativePdbWriterOpt?.GetContentId() ?? default(BlobContentId);
+            BlobContentId pdbContentId = nativePdbWriterOpt?.GetContentId() ?? default;
 
             // the writer shall not be used after this point for writing:
             nativePdbWriterOpt = null;
@@ -125,40 +147,79 @@ namespace Microsoft.Cci
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
-            var deterministicIdProvider = isDeterministic ?
-                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) :
+            var peIdProvider = isDeterministic ?
+                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSourceHash(content))) :
                 null;
 
-            if (mdWriter.EmitStandaloneDebugMetadata)
+            // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
+            var portablePdbContentHash = default(ImmutableArray<byte>);
+
+            BlobBuilder portablePdbToEmbed = null;
+            if (mdWriter.EmitPortableDebugMetadata)
             {
-                Debug.Assert(getPortablePdbStreamOpt != null);
+                mdWriter.AddRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
+
+                // The algorithm must be specified for deterministic builds (checked earlier).
+                Debug.Assert(!isDeterministic || context.Module.PdbChecksumAlgorithm.Name != null);
+
+                var portablePdbIdProvider = (context.Module.PdbChecksumAlgorithm.Name != null) ?
+                    new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(portablePdbContentHash = CryptographicHashProvider.ComputeHash(context.Module.PdbChecksumAlgorithm, content))) :
+                    null;
 
                 var portablePdbBlob = new BlobBuilder();
-                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes, debugEntryPointHandle, deterministicIdProvider);
+                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, portablePdbIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
 
-                // write to Portable PDB stream:
-                Stream portablePdbStream = getPortablePdbStreamOpt();
-                if (portablePdbStream != null)
+                if (getPortablePdbStreamOpt == null)
                 {
-                    portablePdbBlob.WriteContentTo(portablePdbStream);
+                    // embed to debug directory:
+                    portablePdbToEmbed = portablePdbBlob;
+                }
+                else
+                {
+                    // write to Portable PDB stream:
+                    Stream portablePdbStream = getPortablePdbStreamOpt();
+                    if (portablePdbStream != null)
+                    {
+                        try
+                        {
+                            portablePdbBlob.WriteContentTo(portablePdbStream);
+                        }
+                        catch (Exception e) when (!(e is OperationCanceledException))
+                        {
+                            throw new SymUnmanagedWriterException(e.Message, e);
+                        }
+                    }
                 }
             }
 
             DebugDirectoryBuilder debugDirectoryBuilder;
-            if (pdbPathOpt != null || isDeterministic)
+            if (pdbPathOpt != null || isDeterministic || portablePdbToEmbed != null)
             {
                 debugDirectoryBuilder = new DebugDirectoryBuilder();
                 if (pdbPathOpt != null)
                 {
                     string paddedPath = isDeterministic ? pdbPathOpt : PadPdbPath(pdbPathOpt);
                     debugDirectoryBuilder.AddCodeViewEntry(paddedPath, pdbContentId, portablePdbVersion);
+
+                    if (!portablePdbContentHash.IsDefault)
+                    {
+                        // Emit PDB Checksum entry for Portable and Embedded PDBs. The checksum is not as useful when the PDB is embedded, 
+                        // however it allows the client to efficiently validate a standalone Portable PDB that 
+                        // has been extracted from Embedded PDB and placed next to the PE file.
+                        debugDirectoryBuilder.AddPdbChecksumEntry(context.Module.PdbChecksumAlgorithm.Name, portablePdbContentHash);
+                    }
                 }
 
                 if (isDeterministic)
                 {
                     debugDirectoryBuilder.AddReproducibleEntry();
+                }
+
+                if (portablePdbToEmbed != null)
+                {
+                    debugDirectoryBuilder.AddEmbeddedPortablePdbEntry(portablePdbToEmbed, portablePdbVersion);
                 }
             }
             else
@@ -166,7 +227,10 @@ namespace Microsoft.Cci
                 debugDirectoryBuilder = null;
             }
 
-            var peBuilder = new ManagedPEBuilder(
+            var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
+            var corFlags = properties.CorFlags;
+
+            var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
                 metadataRootBuilder,
                 ilBuilder,
@@ -174,21 +238,20 @@ namespace Microsoft.Cci
                 managedResourceBuilder,
                 CreateNativeResourceSectionSerializer(context.Module),
                 debugDirectoryBuilder,
-                CalculateStrongNameSignatureSize(context.Module),
+                CalculateStrongNameSignatureSize(context.Module, privateKeyOpt),
                 entryPointHandle,
-                properties.CorFlags,
-                deterministicIdProvider);
+                corFlags,
+                peIdProvider,
+                metadataOnly && !context.IncludePrivateMembers);
 
             var peBlob = new BlobBuilder();
-            BlobContentId peContentId;
-            peBuilder.Serialize(peBlob, out peContentId);
+            var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
-            // Patch MVID
-            if (!mvidFixup.IsDefault)
+            PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
+
+            if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
-                var writer = new BlobWriter(mvidFixup);
-                writer.WriteGuid(peContentId.Guid);
-                Debug.Assert(writer.RemainingBytes == 0);
+                strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
             }
 
             try
@@ -203,6 +266,48 @@ namespace Microsoft.Cci
             return true;
         }
 
+        private static MethodInfo s_calculateChecksumMethod;
+        // internal for testing
+        internal static uint CalculateChecksum(BlobBuilder peBlob, Blob checksumBlob)
+        {
+            if (s_calculateChecksumMethod == null)
+            {
+                s_calculateChecksumMethod = typeof(PEBuilder).GetRuntimeMethods()
+                    .Where(m => m.Name == "CalculateChecksum" && m.GetParameters().Length == 2)
+                    .Single();
+            }
+
+            return (uint)s_calculateChecksumMethod.Invoke(null, new object[]
+            {
+                peBlob,
+                checksumBlob,
+            });
+        }
+
+        private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)
+        {
+            if (!guidFixup.IsDefault)
+            {
+                var writer = new BlobWriter(guidFixup);
+                writer.WriteGuid(mvid);
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+
+            if (!guidSectionFixup.IsDefault)
+            {
+                var writer = new BlobWriter(guidSectionFixup);
+                writer.WriteGuid(mvid);
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+
+            if (!stringFixup.IsDefault)
+            {
+                var writer = new BlobWriter(stringFixup);
+                writer.WriteUserString(mvid.ToString());
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+        }
+
         // Padding: We pad the path to this minimal size to
         // allow some tools to patch the path without the need to rewrite the entire image.
         // This is a workaround put in place until these tools are retired.
@@ -212,14 +317,14 @@ namespace Microsoft.Cci
             return path + new string('\0', Math.Max(0, minLength - Encoding.UTF8.GetByteCount(path) - 1));
         }
 
-        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(IModule module)
+        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(CommonPEModuleBuilder module)
         {
             // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
             // a set of objects implementing IWin32Resources. These are then ordered and the final image form is constructed
             // and written to the resource section. Resources in .OBJ form are already very close to their final output
-            // form. Rather than reading them and parsing them into a set of objects similar to those produced by 
-            // processing a .RES file, we process them like the native linker would, copy the relevant sections from 
+            // form. Rather than reading them and parsing them into a set of objects similar to those produced by
+            // processing a .RES file, we process them like the native linker would, copy the relevant sections from
             // the .OBJ into our output and apply some fixups.
 
             var nativeResourceSectionOpt = module.Win32ResourceSection;
@@ -234,10 +339,16 @@ namespace Microsoft.Cci
                 return new ResourceSectionBuilderFromResources(nativeResourcesOpt);
             }
 
+            var rawResourcesOpt = module.RawWin32Resources;
+            if (rawResourcesOpt != null)
+            {
+                return new ResourceSectionBuilderFromRaw(rawResourcesOpt);
+            }
+
             return null;
         }
 
-        private class ResourceSectionBuilderFromObj : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromObj : ResourceSectionBuilder
         {
             private readonly ResourceSection _resourceSection;
 
@@ -253,7 +364,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private class ResourceSectionBuilderFromResources : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromResources : ResourceSectionBuilder
         {
             private readonly IEnumerable<IWin32Resource> _resources;
 
@@ -269,28 +380,22 @@ namespace Microsoft.Cci
             }
         }
 
-        private static int CalculateStrongNameSignatureSize(IModule module)
+        private sealed class ResourceSectionBuilderFromRaw : ResourceSectionBuilder
         {
-            IAssembly assembly = module.AsAssembly;
-            if (assembly == null)
+            private readonly Stream _resources;
+            public ResourceSectionBuilderFromRaw(Stream resources)
             {
-                return 0;
+                _resources = resources;
             }
 
-            // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
-            int keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
-
-            if (keySize == 0)
+            protected override void Serialize(BlobBuilder builder, SectionLocation location)
             {
-                keySize = assembly.PublicKey.Length;
+                int value;
+                while ((value = _resources.ReadByte()) >= 0)
+                {
+                    builder.WriteByte((byte)value);
+                }
             }
-
-            if (keySize == 0)
-            {
-                return 0;
-            }
-
-            return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
     }
 }

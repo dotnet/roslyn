@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------
 ' Contains quick token accumulator.
@@ -66,6 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' The following table classifies the first &H180 Unicode characters. 
         ' R and r are marked as COMPLEX so that quick-scanning doesn't stop after "REM".
         ' # is marked complex as it may start directives.
+        ' < = > are complex because they might start a merge conflict marker.
         ' PERF: Use UShort instead of CharFlags so the compiler can use array literal initialization.
         '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
         Private Shared ReadOnly s_charProperties As UShort() = {
@@ -77,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             CharFlags.White, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.TypeChar, CharFlags.TypeChar, CharFlags.TypeChar, CharFlags.Complex,
             CharFlags.Punct, CharFlags.Punct, CharFlags.CompoundPunctStart, CharFlags.CompoundPunctStart, CharFlags.Punct, CharFlags.CompoundPunctStart, CharFlags.Punct, CharFlags.CompoundPunctStart,
             CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit,
-            CharFlags.Digit, CharFlags.Digit, CharFlags.Complex, CharFlags.Complex, CharFlags.CompoundPunctStart, CharFlags.Punct, CharFlags.CompoundPunctStart, CharFlags.Punct, _
+            CharFlags.Digit, CharFlags.Digit, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Punct, _
  _
             CharFlags.TypeChar, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter,
             CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter,
@@ -133,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Const s_CHARPROP_LENGTH = &H180
 
         ' Maximum length of a token to scan
-        Friend Const MAXTOKENSIZE = 42
+        Friend Const MAX_CACHED_TOKENSIZE = 42
 
         Shared Sub New()
             Debug.Assert(s_charProperties.Length = s_CHARPROP_LENGTH)
@@ -182,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim index = _lineBufferOffset And s_PAGE_MASK
             Dim qtStart = index
 
-            Dim limit = index + Math.Min(MAXTOKENSIZE, _bufferLen - offset)
+            Dim limit = index + Math.Min(MAX_CACHED_TOKENSIZE, _bufferLen - offset)
             limit = Math.Min(limit, pageArr.Length)
 
             Dim hashCode As Integer = Hash.FnvOffsetBias

@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -13,37 +18,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private class FailureInlineRenameInfo : IInlineRenameInfo
         {
             public FailureInlineRenameInfo(string localizedErrorMessage)
-            {
-                this.LocalizedErrorMessage = localizedErrorMessage;
-            }
+                => this.LocalizedErrorMessage = localizedErrorMessage;
 
-            public bool CanRename { get { return false; } }
+            public bool CanRename => false;
 
-            public bool HasOverloads { get { return false; } }
+            public bool HasOverloads => false;
 
-            public bool ForceRenameOverloads { get { return false; } }
+            public bool ForceRenameOverloads => false;
 
             public string LocalizedErrorMessage { get; }
 
-            public TextSpan TriggerSpan { get { return default(TextSpan); } }
+            public TextSpan TriggerSpan => default;
 
-            public string DisplayName { get { return null; } }
+            public string DisplayName => null;
 
-            public string FullDisplayName { get { return null; } }
+            public string FullDisplayName => null;
 
-            public Glyph Glyph { get { return default(Glyph); } }
+            public Glyph Glyph => Glyph.None;
 
-            public string GetFinalSymbolName(string replacementText) { return null; }
+            public ImmutableArray<DocumentSpan> DefinitionLocations => default;
 
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken) { return default(TextSpan); }
+            public string GetFinalSymbolName(string replacementText) => null;
 
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken) { return null; }
+            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken) => default;
 
-            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken) { return null; }
+            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken) => null;
 
-            public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) { return false; }
+            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken) => Task.FromResult<IInlineRenameLocationSet>(null);
 
-            public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) { return false; }
+            public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
+
+            public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
         }
     }
 }
