@@ -297,5 +297,68 @@ public class C
     }
 }");
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System.Diagnostics;
+
+public class C
+{{
+    public void M()
+    {{
+            var p = default(Process);
+            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] p.StartInfo != null)
+            {{
+            }}
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System.Diagnostics;
+
+public class C
+{{
+    public void M()
+    {{
+            var p = default(Process);
+            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] this != null)
+            {{
+            }}
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        public async Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
+        {
+            await TestMissingAsync(
+$@"using System;
+
+public class C
+{{
+    public void M()
+    {{
+            var o1 = new object();
+            if (o1 is IAsyncResult ar [|{logicalOperator}|] ar.AsyncWaitHandle != null)
+            {{
+            }}
+    }}
+}}");
+        }
     }
 }
