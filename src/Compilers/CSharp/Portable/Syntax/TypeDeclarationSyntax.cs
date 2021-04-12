@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxKind.InterfaceKeyword;
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return SyntaxKind.RecordKeyword;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
@@ -114,7 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxFactory.InterfaceDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.RecordDeclaration:
                     return SyntaxFactory.RecordDeclaration(attributes, modifiers, keyword, classKeyword: default, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-                // PROTOTYPE(record-structs): we likely need to handle RecordStructDeclaration
+                case SyntaxKind.RecordStructDeclaration:
+                    return SyntaxFactory.RecordStructDeclaration(attributes, modifiers, keyword, structKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
                     throw new ArgumentException("kind");
             }

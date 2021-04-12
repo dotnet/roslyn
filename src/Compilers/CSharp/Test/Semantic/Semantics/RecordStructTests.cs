@@ -463,6 +463,56 @@ record struct Point(int x, int y);
         }
 
         [Fact]
+        public void TypeDeclaration_IsStruct_InConstraints()
+        {
+            var src = @"
+record struct Point(int x, int y);
+
+class C<T> where T : struct
+{
+    void M(C<Point> c) { }
+}
+
+class C2<T> where T : new()
+{
+    void M(C2<Point> c) { }
+}
+
+class C3<T> where T : class
+{
+    void M(C3<Point> c) { } // 1
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (16,22): error CS0452: The type 'Point' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C3<T>'
+                //     void M(C3<Point> c) { } // 1
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c").WithArguments("C3<T>", "T", "Point").WithLocation(16, 22)
+                );
+        }
+
+        [Fact]
+        public void TypeDeclaration_IsStruct_Unmanaged()
+        {
+            var src = @"
+record struct Point(int x, int y);
+record struct Point2(string x, string y);
+
+class C<T> where T : unmanaged
+{
+    void M(C<Point> c) { }
+    void M2(C<Point2> c) { } // 1
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8377: The type 'Point2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //     void M2(C<Point2> c) { } // 1
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "c").WithArguments("C<T>", "T", "Point2").WithLocation(8, 23)
+                );
+        }
+
+        [Fact]
         public void IsRecord_Generic()
         {
             var src = @"
@@ -6445,6 +6495,30 @@ public struct B
         }
 
         [Fact]
+        public void WithExprOnStruct_OnThis()
+        {
+            var src = @"
+record struct C
+{
+    public int X { get; set; }
+
+    C(string ignored)
+    {
+        _ = this with { X = 42 }; // 1
+        this = default;
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
+                //         _ = this with { X = 42 }; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
         public void WithExprOnStruct_OnTStructParameter()
         {
             var src = @"
@@ -7261,6 +7335,15 @@ unsafe record struct C(int[] P)
                 //     public fixed int P[2];
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P").WithArguments("int*").WithLocation(4, 22)
                 );
+        }
+
+        [Fact]
+        public void SyntaxFactory_TypeDeclaration()
+        {
+            var expected = @"record struct Point
+{
+}";
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, SyntaxFactory.TypeDeclaration(SyntaxKind.RecordStructDeclaration, "Point").NormalizeWhitespace().ToString());
         }
     }
 }
