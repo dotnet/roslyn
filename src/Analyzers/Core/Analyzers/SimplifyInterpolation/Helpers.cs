@@ -147,10 +147,25 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private static bool IsInvariantCultureReference(IOperation operation)
         {
-            return Unwrap(operation) is IPropertyReferenceOperation { Member: { Name: nameof(CultureInfo.InvariantCulture), ContainingType: var containingType } }
-                && SymbolEqualityComparer.Default.Equals(
-                    containingType,
-                    operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.CultureInfo).FullName!));
+            if (Unwrap(operation) is not IPropertyReferenceOperation { Member: { } member })
+                return false;
+
+            return member.Name switch
+            {
+                nameof(CultureInfo.InvariantCulture) => SymbolEqualityComparer.Default.Equals(
+                    member.ContainingType,
+                    operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.CultureInfo).FullName!)),
+
+                "InvariantInfo" =>
+                    SymbolEqualityComparer.Default.Equals(
+                        member.ContainingType,
+                        operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.NumberFormatInfo).FullName!))
+                    || SymbolEqualityComparer.Default.Equals(
+                        member.ContainingType,
+                        operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.DateTimeFormatInfo).FullName!)),
+
+                _ => false,
+            };
         }
 
         private static bool IsInsideFormattableStringInvariant(IOperation operation)

@@ -237,6 +237,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
         }
 
         [Fact]
+        public async Task DateTimeFormatInfoInvariantInfoIsRecognized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.DateTimeFormatInfo.InvariantInfo)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NumberFormatInfoInvariantInfoIsRecognized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.NumberFormatInfo.InvariantInfo)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
         public async Task ToStringWithInvariantCultureOutsideFormattableStringInvariant()
         {
             await TestMissingInRegularAndScriptAsync(
