@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyProjectChanges(ProjectChanges projectChanges)
         {
-            Debug.Assert(_applyChangesProjectFile == null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
 
             var project = projectChanges.OldProject ?? projectChanges.NewProject;
 
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
-            Debug.Assert(_applyChangesProjectFile != null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
 
             var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
             var filePath = project?.FilePath;
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     Directory.CreateDirectory(dir);
                 }
 
-                Debug.Assert(encoding != null);
+                RoslynDebug.AssertNotNull(encoding);
                 using var writer = new StreamWriter(fullPath, append: false, encoding: encoding);
                 newText.Write(writer);
             }
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyDocumentRemoved(DocumentId documentId)
         {
-            Debug.Assert(_applyChangesProjectFile != null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
 
             var document = this.CurrentSolution.GetDocument(documentId);
             if (document?.FilePath is not null)
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
         {
-            Debug.Assert(_applyChangesProjectFile != null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
 
             var project = this.CurrentSolution.GetProject(projectReference.ProjectId);
             if (project?.FilePath is not null)
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
         {
-            Debug.Assert(_applyChangesProjectFile != null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
 
             var project = this.CurrentSolution.GetProject(projectReference.ProjectId);
             if (project?.FilePath is not null)
@@ -752,14 +752,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            Debug.Assert(_applyChangesProjectFile != null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
             _applyChangesProjectFile.AddAnalyzerReference(analyzerReference);
             this.OnAnalyzerReferenceAdded(projectId, analyzerReference);
         }
 
         protected override void ApplyAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            Debug.Assert(_applyChangesProjectFile != null);
+            RoslynDebug.AssertNotNull(_applyChangesProjectFile);
             _applyChangesProjectFile.RemoveAnalyzerReference(analyzerReference);
             this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
         }
