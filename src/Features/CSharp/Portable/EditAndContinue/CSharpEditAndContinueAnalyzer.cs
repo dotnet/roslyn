@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsRecordPrimaryConstructorParameter(SyntaxNode declaration)
             => declaration is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } };
 
-        internal override bool IsPropertyDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration)
+        private static bool IsPropertyDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration)
             => declaration is PropertyDeclarationSyntax { Parent: RecordDeclarationSyntax record, Identifier: { ValueText: var name } }
             && record.ParameterList is not null
             && record.ParameterList.Parameters.Any(p => p.Identifier.ValueText.Equals(name));
