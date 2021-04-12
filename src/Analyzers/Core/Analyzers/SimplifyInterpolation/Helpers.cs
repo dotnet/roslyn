@@ -153,25 +153,27 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private static bool IsInvariantCultureReference(IOperation operation)
         {
-            if (Unwrap(operation) is not IPropertyReferenceOperation { Member: { } member })
-                return false;
-
-            return member.Name switch
+            if (Unwrap(operation) is IPropertyReferenceOperation { Member: { } member })
             {
-                nameof(CultureInfo.InvariantCulture) => SymbolEqualityComparer.Default.Equals(
-                    member.ContainingType,
-                    operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.CultureInfo).FullName!)),
-
-                "InvariantInfo" =>
-                    SymbolEqualityComparer.Default.Equals(
+                if (member.Name == nameof(CultureInfo.InvariantCulture))
+                {
+                    return SymbolEqualityComparer.Default.Equals(
                         member.ContainingType,
-                        operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.NumberFormatInfo).FullName!))
-                    || SymbolEqualityComparer.Default.Equals(
-                        member.ContainingType,
-                        operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.DateTimeFormatInfo).FullName!)),
+                        operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.CultureInfo).FullName!));
+                }
 
-                _ => false,
-            };
+                if (member.Name == "InvariantInfo")
+                {
+                    return SymbolEqualityComparer.Default.Equals(
+                            member.ContainingType,
+                            operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.NumberFormatInfo).FullName!))
+                        || SymbolEqualityComparer.Default.Equals(
+                            member.ContainingType,
+                            operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.DateTimeFormatInfo).FullName!));
+                }
+            }
+
+            return false;
         }
 
         private static bool IsInsideFormattableStringInvariant(IOperation operation)
