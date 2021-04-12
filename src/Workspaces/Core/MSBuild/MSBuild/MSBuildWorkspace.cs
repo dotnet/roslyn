@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -372,22 +372,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectMap = ProjectMap.Create(this.CurrentSolution);
             var projectFilePaths = projectsToReload.SelectAsArray(p => p.FilePath);
             // None of the project file paths should be null
-            var projects = await _loader.LoadProjectInfoAsync(projectFilePaths!, targets, projectMap, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
-
-            foreach (var project in projects)
-            {
-                this.OnProjectRemoved(project.Id);
-                this.OnProjectAdded(project);
-            }
-
-            this.UpdateReferencesAfterAdd();
-
+            var projectInfos = await _loader.LoadProjectInfoAsync(projectFilePaths!, targets, projectMap, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
             projectsToReload.Clear();
-            foreach (var projectId in projectIds)
-            {
-                var projectResult = this.CurrentSolution.GetProject(projectId);
-                RoslynDebug.AssertNotNull(projectResult);
-                projectsToReload.Add(projectResult);
+            foreach (var projectInfo in projectInfos)
+	        {
+                this.OnProjectReloaded(projectInfo);
+                var project = this.CurrentSolution.GetProject(projectInfo.Id);
+                projectsToReload.Add(project);
+
             }
 
             return projectsToReload.ToImmutableAndFree();
