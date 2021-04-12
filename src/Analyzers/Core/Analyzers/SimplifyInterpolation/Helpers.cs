@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             where TConditionalExpressionSyntax : SyntaxNode
             where TParenthesizedExpressionSyntax : SyntaxNode
         {
+            Contract.ThrowIfNull(expression.SemanticModel);
+
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
                 HasNonImplicitInstance(invocation) &&
                 !syntaxFacts.IsBaseExpression(invocation.Instance!.Syntax) &&
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
                 {
                     if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
-                       invocation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
+                       expression.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
                        invocation.Instance.Type.Implements(systemIFormattable))
                     {
                         unwrapped = invocation.Instance;
@@ -153,23 +155,25 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private static bool IsInvariantCultureReference(IOperation operation)
         {
+            Contract.ThrowIfNull(operation.SemanticModel);
+
             if (Unwrap(operation) is IPropertyReferenceOperation { Member: { } member })
             {
                 if (member.Name == nameof(CultureInfo.InvariantCulture))
                 {
                     return SymbolEqualityComparer.Default.Equals(
                         member.ContainingType,
-                        operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.CultureInfo).FullName!));
+                        operation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.Globalization.CultureInfo).FullName!));
                 }
 
                 if (member.Name == "InvariantInfo")
                 {
                     return SymbolEqualityComparer.Default.Equals(
                             member.ContainingType,
-                            operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.NumberFormatInfo).FullName!))
+                            operation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.Globalization.NumberFormatInfo).FullName!))
                         || SymbolEqualityComparer.Default.Equals(
                             member.ContainingType,
-                            operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.Globalization.DateTimeFormatInfo).FullName!));
+                            operation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.Globalization.DateTimeFormatInfo).FullName!));
                 }
             }
 
@@ -178,6 +182,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private static bool IsInsideFormattableStringInvariant(IOperation operation)
         {
+            Contract.ThrowIfNull(operation.SemanticModel);
+
             var interpolatedStringOperation = AncestorsAndSelf(operation).OfType<IInterpolatedStringOperation>().FirstOrDefault();
 
             return Unwrap(interpolatedStringOperation?.Parent, towardsParent: true) is IArgumentOperation
@@ -186,7 +192,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 {
                     TargetMethod: { Name: nameof(FormattableString.Invariant), ContainingType: var containingType },
                 },
-            } && SymbolEqualityComparer.Default.Equals(containingType, operation.SemanticModel!.Compilation.GetTypeByMetadataName(typeof(System.FormattableString).FullName!));
+            } && SymbolEqualityComparer.Default.Equals(containingType, operation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.FormattableString).FullName!));
         }
 
         private static IEnumerable<IOperation> AncestorsAndSelf(IOperation operation)
