@@ -4040,7 +4040,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaAttributes_NullableAttributes()
+        public void LambdaAttributes_NullableAttributes_01()
         {
             var source =
 @"using System;
@@ -4051,26 +4051,95 @@ class Program
     {
         Func<object> a1 = [return: MaybeNull][return: NotNull] () => null;
         Func<object, object> a2 = [return: NotNullIfNotNull(""obj"")] (object obj) => obj;
-        Action a3 = [DoesNotReturn] () => { };
         Func<bool> a4 = [MemberNotNull(""x"")][MemberNotNullWhen(false, ""y"")][MemberNotNullWhen(true, ""z"")] () => true;
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition, NotNullIfNotNullAttributeDefinition, DoesNotReturnAttributeDefinition, MemberNotNullAttributeDefinition, MemberNotNullWhenAttributeDefinition },
+                new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition, NotNullIfNotNullAttributeDefinition, MemberNotNullAttributeDefinition, MemberNotNullWhenAttributeDefinition },
                 parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
-            Assert.Equal(4, exprs.Length);
+            Assert.Equal(3, exprs.Length);
             var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
             Assert.Equal(FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.NotNull, lambdas[0].ReturnTypeFlowAnalysisAnnotations);
             Assert.Equal(new[] { "obj" }, lambdas[1].ReturnNotNullIfParameterNotNull);
-            Assert.Equal(FlowAnalysisAnnotations.DoesNotReturn, lambdas[2].FlowAnalysisAnnotations);
-            Assert.Equal(new[] { "x" }, lambdas[3].NotNullMembers);
-            Assert.Equal(new[] { "y" }, lambdas[3].NotNullWhenFalseMembers);
-            Assert.Equal(new[] { "z" }, lambdas[3].NotNullWhenTrueMembers);
+            Assert.Equal(new[] { "x" }, lambdas[2].NotNullMembers);
+            Assert.Equal(new[] { "y" }, lambdas[2].NotNullWhenFalseMembers);
+            Assert.Equal(new[] { "z" }, lambdas[2].NotNullWhenTrueMembers);
+        }
+
+        [Fact]
+        public void LambdaAttributes_NullableAttributes_02()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void Main()
+    {
+        Func<object> a1 = [return: MaybeNull] () => null;
+        Func<object?> a2 = [return: NotNull] () => null;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            // PROTOTYPE: Report error for a2, no error for a1.
+            comp.VerifyDiagnostics(
+                // (8,53): warning CS8603: Possible null reference return.
+                //         Func<object> a1 = [return: MaybeNull] () => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 53));
+        }
+
+        [Fact]
+        public void LambdaAttributes_NullableAttributes_03()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void Main()
+    {
+        Action<object> a1 = ([AllowNull] x) => { x.ToString(); };
+        Action<object?> a2 = ([DisallowNull] x) => { x.ToString(); };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,50): warning CS8602: Dereference of a possibly null reference.
+                //         Action<object> a1 = ([AllowNull] x) => { x.ToString(); };
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 50));
+        }
+
+        [Fact]
+        public void LambdaAttributes_DoesNotReturn()
+        {
+            var source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void Main()
+    {
+        Action a1 = [DoesNotReturn] () => { };
+        Action a2 = [DoesNotReturn] () => throw new Exception();
+    }
+}";
+            var comp = CreateCompilation(new[] { source, DoesNotReturnAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            Assert.Equal(2, exprs.Length);
+            var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
+            Assert.Equal(FlowAnalysisAnnotations.DoesNotReturn, lambdas[0].FlowAnalysisAnnotations);
+            Assert.Equal(FlowAnalysisAnnotations.DoesNotReturn, lambdas[1].FlowAnalysisAnnotations);
         }
 
         [Fact]

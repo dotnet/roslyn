@@ -2590,6 +2590,30 @@ class C
         }
 
         [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LambdaAttributes()
+        {
+            string source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void M1()
+    {
+        Func<bool, int> f1 = static (bool b) => { if (b) return 0; return 1; };
+    }
+    static void M2()
+    {
+        Func<bool, int> f2 = [ExcludeFromCodeCoverage] static (bool b) => { if (b) return 0; return 1; };
+    }
+}";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            AssertInstrumented(verifier, "Program.M1");
+            AssertInstrumented(verifier, "Program.<>c__DisplayClass0_0.<M1>b__0(bool)");
+            AssertInstrumented(verifier, "Program.M2");
+            AssertNotInstrumented(verifier, "Program.<>c.<M2>b__1_0(bool)");
+        }
+
+        [Fact]
         public void ExcludeFromCodeCoverageAttribute_Type()
         {
             string source = @"
