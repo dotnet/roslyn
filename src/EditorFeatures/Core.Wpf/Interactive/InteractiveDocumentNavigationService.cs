@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => false;
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             if (workspace is not InteractiveWindowWorkspace interactiveWorkspace)
             {
