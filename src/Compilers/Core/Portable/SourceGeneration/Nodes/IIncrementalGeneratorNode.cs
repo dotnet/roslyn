@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of value this step operates on</typeparam>
     internal interface IIncrementalGeneratorNode<T>
     {
-        NodeStateTable<T> UpdateStateTable(PipelineStateTable.Builder graphState, NodeStateTable<T> previousTable);
+        NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable);
 
         IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer);
     }

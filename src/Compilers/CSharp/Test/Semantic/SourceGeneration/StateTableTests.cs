@@ -40,25 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             AssertTableEntries(table, expected);
         }
 
-        //[Fact]
-        //public void Node_Table_Entries_Can_Have_Different_States()
-        //{
-        //    var builder = new NodeStateTable<int>.Builder();
-        //    builder.AddEntries(ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Cached), (3, EntryState.Modified)));
-        //    var table = builder.ToImmutableAndFree();
-
-        //    var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Cached), (3, EntryState.Modified));
-        //    AssertTableEntries(table, expected);
-        //}
-
         [Fact]
-        public void Node_Table_Entries_Can_Be_The_Same()
+        public void Node_Table_Entries_Can_Be_The_Same_Object()
         {
-            var builder = new NodeStateTable<int>.Builder();
-            builder.AddEntries(ImmutableArray.Create(1, 1, 1), EntryState.Added);
+            var o = new object();
+
+            var builder = new NodeStateTable<object>.Builder();
+            builder.AddEntries(ImmutableArray.Create(o, o, o), EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
-            var expected = ImmutableArray.Create((1, EntryState.Added), (1, EntryState.Added), (1, EntryState.Added));
+            var expected = ImmutableArray.Create((o, EntryState.Added), (o, EntryState.Added), (o, EntryState.Added));
             AssertTableEntries(table, expected);
         }
 
@@ -101,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             AssertTableEntries(compactedTable, expected);
         }
 
+        [Fact]
+        public void Driver_Table_Entries_Can_Be_Looked_Up()
+        {
+
+        }
 
         private void AssertTableEntries<T>(NodeStateTable<T> table, IList<(T item, EntryState state)> expected)
         {
