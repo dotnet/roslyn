@@ -1464,7 +1464,6 @@ class C { }
 
             void verifyDiagnosticsWithSource(string source, (Diagnostic, TextSpan)[] reportDiagnostics, params DiagnosticDescription[] expected)
             {
-
                 var parseOptions = TestOptions.Regular;
                 Compilation compilation = CreateCompilation(source, sourceFileName: "sourcefile.cs", options: TestOptions.DebugDll, parseOptions: parseOptions);
                 compilation.VerifyDiagnostics();
