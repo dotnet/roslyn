@@ -1691,7 +1691,7 @@ partial record C { }";
         }
 
         [Fact]
-        public void RrcordInsert_AbstractVirtualOverride()
+        public void RecordInsert_AbstractVirtualOverride()
         {
             var src1 = "";
             var src2 = @"
