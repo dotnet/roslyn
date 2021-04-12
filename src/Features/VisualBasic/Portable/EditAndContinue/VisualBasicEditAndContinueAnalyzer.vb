@@ -1004,10 +1004,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
-        Friend Overrides Function GetRecordUpdatedSynthesizedMembers(compilation As Compilation, record As INamedTypeSymbol) As IEnumerable(Of ISymbol)
-            Return SpecializedCollections.EmptyEnumerable(Of ISymbol)
-        End Function
-
         Private Shared Function GetInitializerExpression(equalsValue As EqualsValueSyntax, asClause As AsClauseSyntax) As ExpressionSyntax
             If equalsValue IsNot Nothing Then
                 Return equalsValue.Value

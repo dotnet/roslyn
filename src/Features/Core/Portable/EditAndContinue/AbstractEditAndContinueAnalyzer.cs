@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Differencing;
@@ -436,11 +437,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Return true if the declaration is a property accessor for a property that represents one of the parameters in a records primary constructor.
         /// </summary>
         internal abstract bool IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, out bool isFirstAccessor);
-
-        /// <summary>
-        /// Returns the list of known synthesized members of a record that need to have edits issued for them when fields or properties change.
-        /// </summary>
-        internal abstract IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(Compilation compilation, INamedTypeSymbol record);
 
         /// <summary>
         /// Return true if the declaration is a constructor declaration to which field/property initializers are emitted. 
@@ -2338,7 +2334,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // We only need to do this once though.
                                         if (isFirst)
                                         {
-                                            ReportRecordSynthesizedMembersChanged(newCompilation, newSymbol.ContainingType, semanticEdits);
+                                            AddEditsForSynthesizedRecordMembers(newCompilation, newSymbol.ContainingType, semanticEdits);
                                         }
                                     }
 
@@ -2460,7 +2456,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 // need to issue edits for the synthezied members. Only need to do it once.
                                                 if (isFirst)
                                                 {
-                                                    ReportRecordSynthesizedMembersChanged(newCompilation, newSymbol.ContainingType, semanticEdits);
+                                                    AddEditsForSynthesizedRecordMembers(newCompilation, newSymbol.ContainingType, semanticEdits);
                                                 }
                                             }
 
@@ -2598,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         processedSymbols.Remove(newSymbol);
                                         DeferConstructorEdit(oldContainingType, newSymbol.ContainingType, edit.NewNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
 
-                                        ReportRecordSynthesizedMembersChanged(newCompilation, newContainingType, semanticEdits);
+                                        AddEditsForSynthesizedRecordMembers(newCompilation, newContainingType, semanticEdits);
                                     }
                                 }
                                 else
@@ -2844,12 +2840,57 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return semanticEdits.ToImmutable();
         }
 
-        private void ReportRecordSynthesizedMembersChanged(Compilation compilation, INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits)
+        private static void AddEditsForSynthesizedRecordMembers(Compilation compilation, INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits)
         {
-            foreach (var member in GetRecordUpdatedSynthesizedMembers(compilation, recordType).WhereNotNull())
+            foreach (var member in GetRecordUpdatedSynthesizedMembers(compilation, recordType))
             {
                 var symbolKey = SymbolKey.Create(member);
-                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, null, null, null));
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap: null, syntaxMapTree: null, partialType: null));
+            }
+        }
+
+        private static IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(Compilation compilation, INamedTypeSymbol record)
+        {
+            // All methods that are updated have well known names, and calling GetMembers(string) is
+            // faster than enumerating.
+
+            // When a new field or property is added the PrintMembers, Equals(R) and GetHashCode() methods are updated
+            // We don't need to worry about Deconstruct because it only changes when a new positional parameter
+            // is added, and those are rude edits (due to adding a constructor parameter).
+            // We don't need to worry about the constructors as they are reported elsewhere.
+            // We have to use SingleOrDefault and check IsImplicitlyDeclared because the user can provide their
+            // own implementation of these methods, and edits to them are handled by normal processing.
+            var result = record.GetMembers(WellKnownMemberNames.PrintMembersMethodName)
+                .OfType<IMethodSymbol>()
+                .SingleOrDefault(m =>
+                    m.IsImplicitlyDeclared &&
+                    m.Parameters.Length == 1 &&
+                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, compilation.GetTypeByMetadataName(typeof(StringBuilder).FullName!)) &&
+                    SymbolEqualityComparer.Default.Equals(m.ReturnType, compilation.GetTypeByMetadataName(typeof(bool).FullName!)));
+            if (result is not null)
+            {
+                yield return result;
+            }
+
+            result = record.GetMembers(WellKnownMemberNames.ObjectEquals)
+                .OfType<IMethodSymbol>()
+                .SingleOrDefault(m =>
+                    m.IsImplicitlyDeclared &&
+                    m.Parameters.Length == 1 &&
+                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType));
+            if (result is not null)
+            {
+                yield return result;
+            }
+
+            result = record.GetMembers(WellKnownMemberNames.ObjectGetHashCode)
+               .OfType<IMethodSymbol>()
+               .SingleOrDefault(m =>
+                    m.IsImplicitlyDeclared &&
+                    m.Parameters.Length == 0);
+            if (result is not null)
+            {
+                yield return result;
             }
         }
 

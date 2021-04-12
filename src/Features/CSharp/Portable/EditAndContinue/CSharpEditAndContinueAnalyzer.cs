@@ -1135,39 +1135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return false;
         }
 
-        internal override IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(Compilation compilation, INamedTypeSymbol record)
-        {
-            // All methods that are updated have well known names, and calling GetMembers(string) is
-            // faster than enumerating.
-
-            // When a new field or property is added the PrintMembers, Equals(R) and GetHashCode() methods are updated
-            // We don't need to worry about Deconstruct because it only changes when a new positional parameter
-            // is added, and those are rude edits (due to adding a constructor parameter).
-            // We don't need to worry about the constructors as they are reported elsewhere.
-            // We have to use SingleOrDefault and check IsImplicitlyDeclared because the user can provide their
-            // own implementation of these methods, and edits to them are handled by normal processing.
-            yield return record.GetMembers(WellKnownMemberNames.PrintMembersMethodName)
-                .OfType<IMethodSymbol>()
-                .SingleOrDefault(m =>
-                    m.Parameters.Length == 1 &&
-                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, compilation.GetTypeByMetadataName(typeof(StringBuilder).FullName!)) &&
-                    SymbolEqualityComparer.Default.Equals(m.ReturnType, compilation.GetTypeByMetadataName(typeof(bool).FullName!)) &&
-                    m.IsImplicitlyDeclared);
-
-            yield return record.GetMembers(WellKnownMemberNames.ObjectEquals)
-                .OfType<IMethodSymbol>()
-                .SingleOrDefault(m =>
-                    m.Parameters.Length == 1 &&
-                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType) &&
-                    m.IsImplicitlyDeclared);
-
-            yield return record.GetMembers(WellKnownMemberNames.ObjectGetHashCode)
-               .OfType<IMethodSymbol>()
-               .SingleOrDefault(m =>
-                    m.Parameters.Length == 0 &&
-                    m.IsImplicitlyDeclared);
-        }
-
         internal override bool IsConstructorWithMemberInitializers(SyntaxNode constructorDeclaration)
             => constructorDeclaration is ConstructorDeclarationSyntax ctor && (ctor.Initializer == null || ctor.Initializer.IsKind(SyntaxKind.BaseConstructorInitializer));
 
