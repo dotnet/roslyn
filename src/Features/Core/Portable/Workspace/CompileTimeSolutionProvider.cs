@@ -68,19 +68,26 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 foreach (var (_, projectState) in currentDesignTimeSolution.State.ProjectStates)
                 {
+                    var anyConfigs = false;
+
                     foreach (var configState in projectState.AnalyzerConfigDocumentStates.States)
                     {
                         if (IsRazorAnalyzerConfig(configState))
                         {
                             configIdsToRemove.Add(configState.Id);
+                            anyConfigs = true;
                         }
                     }
 
-                    foreach (var documentState in projectState.DocumentStates.States)
+                    // only remove design-time only documents when source-generated ones replace them
+                    if (anyConfigs)
                     {
-                        if (documentState.Attributes.DesignTimeOnly)
+                        foreach (var documentState in projectState.DocumentStates.States)
                         {
-                            documentIdsToRemove.Add(documentState.Id);
+                            if (documentState.Attributes.DesignTimeOnly)
+                            {
+                                documentIdsToRemove.Add(documentState.Id);
+                            }
                         }
                     }
                 }
