@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis
     {
         internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, exception: null);
 
+        //PROTOTYPE: there is no need to store the state per item
+        //           we can instead store one state per input, with
+        //           an optional set for modified states.
         readonly ImmutableArray<ImmutableArray<(T item, EntryState state)>> _states;
 
         readonly Exception? _exception;
