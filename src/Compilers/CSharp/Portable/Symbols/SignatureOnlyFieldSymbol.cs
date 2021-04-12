@@ -70,6 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes) => throw new System.NotImplementedException();
 
-        #endregion Not used by PropertySignatureComparer
+        #endregion Not used by MemberSignatureComparer
     }
 }
