@@ -287,6 +287,7 @@ End Class
 
         Shared Sub VerifyDiagnosticsWithSource(source As String, diag As Diagnostic, location As TextSpan, ParamArray expected As DiagnosticDescription())
             Dim parseOptions = TestOptions.Regular
+            source = source.Replace(Environment.NewLine, vbCrLf)
             Dim compilation As Compilation = CreateCompilation(source)
             compilation.VerifyDiagnostics()
             Assert.Single(compilation.SyntaxTrees)
