@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -249,6 +250,50 @@ class C
     void M0(IQueryable<int> q)
     {
         q.Where(item => item == 1 [||]|| item == 2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        public async Task TestMissingInPropertyAccess_NullCheckOnLeftSide()
+        {
+            await TestMissingAsync(
+@"using System;
+
+public class C
+{
+    public int I { get; }
+    
+    public EventArgs Property { get; } 
+
+    public void M()
+    {
+        if (Property != null [|&&|] I == 1)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        public async Task TestMissingInPropertyAccess_NullCheckOnRightSide()
+        {
+            await TestMissingAsync(
+@"using System;
+
+public class C
+{
+    public int I { get; }
+    
+    public EventArgs Property { get; } 
+
+    public void M()
+    {
+        if (I == 1 [|&&|] Property != null)
+        {
+        }
     }
 }");
         }
