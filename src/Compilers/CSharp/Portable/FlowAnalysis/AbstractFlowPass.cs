@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly bool _nonMonotonicTransfer;
 
+        protected void SetConditionalState((TLocalState whenTrue, TLocalState whenFalse) state)
+        {
+            SetConditionalState(state.whenTrue, state.whenFalse);
+        }
+
         protected void SetConditionalState(TLocalState whenTrue, TLocalState whenFalse)
         {
             IsConditionalState = true;
@@ -2232,24 +2237,110 @@ namespace Microsoft.CodeAnalysis.CSharp
             stack.Free();
         }
 
+#nullable enable
         protected virtual void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
         {
             var binary = stack.Pop();
-            VisitRvalue(binary.Left);
+
+            // Only the leftmost operator of a left-associative binary operator chain can learn from a conditional access on the left
+            // For simplicity, we just special case it here.
+            // For example, `a?.b(out x) == true` has a conditional access on the left of the operator,
+            // but `expr == a?.b(out x) == true` has a conditional access on the right of the operator
+            if (VisitPossibleConditionalAccess(binary.Left, out var stateWhenNotNull)
+                && canLearnFromOperator(binary)
+                && isKnownNullOrNotNull(binary.Right))
+            {
+                VisitRvalue(binary.Right);
+                Meet(ref stateWhenNotNull, ref State);
+                var isNullConstant = binary.Right.ConstantValue?.IsNull == true;
+                SetConditionalState(isNullConstant == isEquals(binary)
+                    ? (State, stateWhenNotNull)
+                    : (stateWhenNotNull, State));
+
+                if (stack.Count == 0)
+                {
+                    return;
+                }
+
+                binary = stack.Pop();
+            }
 
             while (true)
             {
-                VisitRvalue(binary.Right);
+                if (!canLearnFromOperator(binary)
+                    || !learnFromOperator(binary))
+                {
+                    Unsplit();
+                    Visit(binary.Right);
+                }
 
                 if (stack.Count == 0)
                 {
                     break;
                 }
 
-                Unsplit(); // VisitRvalue does this
                 binary = stack.Pop();
             }
+
+            static bool canLearnFromOperator(BoundBinaryOperator binary)
+            {
+                var kind = binary.OperatorKind;
+                return kind.Operator() is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual
+                    && (!kind.IsUserDefined() || kind.IsLifted());
+            }
+
+            static bool isKnownNullOrNotNull(BoundExpression expr)
+            {
+                return expr.ConstantValue is object
+                    || (expr is BoundConversion { ConversionKind: ConversionKind.ExplicitNullable or ConversionKind.ImplicitNullable } conv
+                        && conv.Operand.Type!.IsNonNullableValueType());
+            }
+
+            static bool isEquals(BoundBinaryOperator binary)
+                => binary.OperatorKind.Operator() == BinaryOperatorKind.Equal;
+
+            // Returns true if `binary.Right` was visited by the call.
+            bool learnFromOperator(BoundBinaryOperator binary)
+            {
+                // `true == a?.b(out x)`
+                if (isKnownNullOrNotNull(binary.Left) && TryVisitConditionalAccess(binary.Right, out var stateWhenNotNull))
+                {
+                    var isNullConstant = binary.Left.ConstantValue?.IsNull == true;
+                    SetConditionalState(isNullConstant == isEquals(binary)
+                        ? (State, stateWhenNotNull)
+                        : (stateWhenNotNull, State));
+
+                    return true;
+                }
+                // `a && b(out x) == true`
+                else if (IsConditionalState && binary.Right.ConstantValue is { IsBoolean: true } rightConstant)
+                {
+                    var (stateWhenTrue, stateWhenFalse) = (StateWhenTrue.Clone(), StateWhenFalse.Clone());
+                    Unsplit();
+                    Visit(binary.Right);
+                    SetConditionalState(isEquals(binary) == rightConstant.BooleanValue
+                        ? (stateWhenTrue, stateWhenFalse)
+                        : (stateWhenFalse, stateWhenTrue));
+
+                    return true;
+                }
+                // `true == a && b(out x)`
+                else if (binary.Left.ConstantValue is { IsBoolean: true } leftConstant)
+                {
+                    Unsplit();
+                    Visit(binary.Right);
+                    if (IsConditionalState && isEquals(binary) != leftConstant.BooleanValue)
+                    {
+                        SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
         }
+#nullable disable
 
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
         {
@@ -2445,9 +2536,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TLocalState savedState = VisitPossibleConditionalAccess(node.LeftOperand, out var stateWhenNotNull)
-                    ? stateWhenNotNull
-                    : State.Clone();
+                TLocalState savedState;
+                if (VisitPossibleConditionalAccess(node.LeftOperand, out var stateWhenNotNull))
+                {
+                    Debug.Assert(!IsConditionalState);
+                    savedState = stateWhenNotNull;
+                }
+                else
+                {
+                    Unsplit();
+                    savedState = State.Clone();
+                }
 
                 if (node.LeftOperand.ConstantValue != null)
                 {
@@ -2468,39 +2567,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Unconditionally visits an expression.
-        /// If the expression has "state when not null" after visiting,
-        /// the method returns 'true' and writes the state to <paramref name="stateWhenNotNull" />.
+        /// Visits a node only if it is a conditional access.
+        /// Returns 'true' if and only if the node was visited.
         /// </summary>
-        protected bool VisitPossibleConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+        private bool TryVisitConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
-            EnterRegionIfNeeded(node);
-            var hasStateWhenNotNull = visit(out stateWhenNotNull);
-            Debug.Assert(!IsConditionalState);
-            LeaveRegionIfNeeded(node);
-            return hasStateWhenNotNull;
-
-            bool visit([NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+            var access = node switch
             {
-                var access = node switch
-                {
-                    BoundConditionalAccess ca => ca,
-                    BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } when isAcceptableConversion(ca, innerConversion) => ca,
-                    _ => null
-                };
+                BoundConditionalAccess ca => ca,
+                BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } when isAcceptableConversion(ca, innerConversion) => ca,
+                _ => null
+            };
 
-                if (access is not null)
-                {
-                    return VisitConditionalAccess(access, out stateWhenNotNull);
-                }
-                else
-                {
-                    stateWhenNotNull = default;
-                    VisitWithStackGuard(node);
-                    Unsplit();
-                    return false;
-                }
+            if (access is not null)
+            {
+                EnterRegionIfNeeded(access);
+                Unsplit();
+                VisitConditionalAccess(access, out stateWhenNotNull);
+                Debug.Assert(!IsConditionalState);
+                LeaveRegionIfNeeded(access);
+                return true;
             }
+
+            stateWhenNotNull = default;
+            return false;
 
             // "State when not null" can only propagate out of a conditional access if
             // it is not subject to a user-defined conversion whose parameter is not of a non-nullable value type.
@@ -2524,15 +2614,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool VisitConditionalAccess(BoundConditionalAccess node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+        /// <summary>
+        /// Unconditionally visits an expression.
+        /// If the expression has "state when not null" after visiting,
+        /// the method returns 'true' and writes the state to <paramref name="stateWhenNotNull" />.
+        /// </summary>
+        private bool VisitPossibleConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+        {
+            if (TryVisitConditionalAccess(node, out stateWhenNotNull))
+            {
+                return true;
+            }
+            else
+            {
+                Visit(node);
+                return false;
+            }
+        }
+
+        private void VisitConditionalAccess(BoundConditionalAccess node, out TLocalState stateWhenNotNull)
         {
             VisitRvalue(node.Receiver);
 
             if (node.Receiver.ConstantValue != null && !IsConstantNull(node.Receiver))
             {
                 VisitRvalue(node.AccessExpression);
-                stateWhenNotNull = default;
-                return false;
+                stateWhenNotNull = this.State.Clone();
             }
             else
             {
@@ -2566,7 +2673,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stateWhenNotNull = State;
                 State = savedState;
                 Join(ref State, ref stateWhenNotNull);
-                return true;
             }
         }
 
@@ -3310,4 +3416,3 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal enum RegionPlace { Before, Inside, After };
 }
-
