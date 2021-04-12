@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -40,11 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private Solution? _lazyCompileTimeSolution;
         private int _correspondingDesignTimeSolutionVersion;
+        private readonly bool _enabled;
 
         public CompileTimeSolutionProvider(Workspace workspace)
         {
             _workspace = workspace;
             _correspondingDesignTimeSolutionVersion = -1;
+            _enabled = workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RazorLspEditorFeatureFlag) == true;
         }
 
         private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)
@@ -52,6 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public Solution GetCurrentCompileTimeSolution()
         {
+            if (!_enabled)
+            {
+                return _workspace.CurrentSolution;
+            }
+
             lock (_guard)
             {
                 var currentDesignTimeSolution = _workspace.CurrentSolution;
