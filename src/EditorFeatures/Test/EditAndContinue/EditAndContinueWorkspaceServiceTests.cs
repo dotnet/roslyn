@@ -3272,7 +3272,7 @@ class C { int Y => 1; }
 
             ExitBreakState();
         }
-
+        
         /// <summary>
         /// Scenario:
         /// - F5
