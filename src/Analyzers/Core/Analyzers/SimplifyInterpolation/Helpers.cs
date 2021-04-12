@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     || (invocation.Arguments.Length == 2 && UsesInvariantCultureReferenceInsideFormattableStringInvariant(invocation, formatProviderArgumentIndex: 1)))
                 {
                     if (invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
-                       expression.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
+                       FindType<System.IFormattable>(expression.SemanticModel) is { } systemIFormattable &&
                        invocation.Instance.Type.Implements(systemIFormattable))
                     {
                         unwrapped = invocation.Instance;
@@ -191,7 +191,12 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         private static bool IsType<T>(INamedTypeSymbol type, SemanticModel semanticModel)
         {
-            return SymbolEqualityComparer.Default.Equals(type, semanticModel.Compilation.GetTypeByMetadataName(typeof(T).FullName!));
+            return SymbolEqualityComparer.Default.Equals(type, FindType<T>(semanticModel));
+        }
+
+        private static INamedTypeSymbol? FindType<T>(SemanticModel semanticModel)
+        {
+            return semanticModel.Compilation.GetTypeByMetadataName(typeof(T).FullName!);
         }
 
         private static IEnumerable<IOperation> AncestorsAndSelf(IOperation operation)
