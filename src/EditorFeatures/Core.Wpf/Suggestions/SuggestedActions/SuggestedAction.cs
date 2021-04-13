@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -264,9 +265,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     foreach (var service in SourceProvider.ImageMonikerServices)
                     {
-                        if (service.Value.TryGetImageMoniker(tags, out var moniker) && !moniker.Equals(default(ImageMoniker)))
+                        if (service.Value.TryGetImageMoniker(tags, out var moniker) && !moniker.Equals(default(ImageId)))
                         {
-                            return moniker;
+                            // Not using the extension method because it's not available in Cocoa
+                            return new ImageMoniker
+                            {
+                                Guid = moniker.Guid,
+                                Id = moniker.Id
+                            };
                         }
                     }
                 }

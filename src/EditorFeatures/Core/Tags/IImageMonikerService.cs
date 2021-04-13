@@ -5,15 +5,15 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.Core.Imaging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tags
 {
     /// <summary>
-    /// Extensibility point for hosts to display <see cref="ImageMoniker"/>s for items with Tags.
+    /// Extensibility point for hosts to display <see cref="ImageId"/>s for items with Tags.
     /// </summary>
     internal interface IImageMonikerService
     {
-        bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageMoniker imageMoniker);
+        bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageId imageMoniker);
     }
 }

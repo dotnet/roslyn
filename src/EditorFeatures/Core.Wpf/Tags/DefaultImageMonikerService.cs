@@ -7,10 +7,9 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.Core.Imaging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tags
 {
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tags
         {
         }
 
-        public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageMoniker imageMoniker)
+        public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageId imageMoniker)
         {
             var glyph = tags.GetFirstGlyph();
 
@@ -38,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tags
                     break;
             }
 
-            imageMoniker = glyph.GetImageMoniker();
-            return !imageMoniker.IsNullImage();
+            imageMoniker = glyph.GetImageId();
+            return imageMoniker != default;
         }
     }
 }
