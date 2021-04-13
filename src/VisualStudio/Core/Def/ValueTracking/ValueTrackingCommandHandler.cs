@@ -230,6 +230,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     roslynPackage.DisposalToken).ConfigureAwait(false);
             }
 
+            // This can happen if the tool window was initialized outside of this command handler. The ViewModel 
+            // still needs to be initialized but had no necessary context. Provide that context now in the command handler.
+            if (ValueTrackingToolWindow.Instance.ViewModel is null)
+            {
+                ValueTrackingToolWindow.Instance.ViewModel = new ValueTrackingTreeViewModel(_classificationFormatMapService.GetClassificationFormatMap(textView), _typeMap, _formatMapService);
+            }
+
             return ValueTrackingToolWindow.Instance;
         }
 

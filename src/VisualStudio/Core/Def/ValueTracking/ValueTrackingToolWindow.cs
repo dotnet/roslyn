@@ -4,33 +4,60 @@
 
 using System;
 using System.Linq;
+using System.Windows.Controls;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     [Guid(Guids.ValueTrackingToolWindowIdString)]
     internal class ValueTrackingToolWindow : ToolWindowPane
     {
-        public static ValueTrackingToolWindow? Instance { get; set; }
-        public ValueTrackingTreeViewModel? ViewModel { get; }
+        private Grid _rootGrid = new();
 
+        public static ValueTrackingToolWindow? Instance { get; set; }
+
+        private ValueTrackingTreeViewModel? _viewModel;
+        public ValueTrackingTreeViewModel? ViewModel
+        {
+            get => _viewModel;
+            set
+            {
+                if (value is null)
+                {
+                    throw new ArgumentNullException(nameof(ViewModel));
+                }
+
+                _viewModel = value;
+                _rootGrid.Children.Clear();
+                _rootGrid.Children.Add(new ValueTrackingTree(_viewModel));
+            }
+        }
+
+        /// <summary>
+        /// This paramterless constructor is used when
+        /// the tool window is initialized on open without any
+        /// context. If the tool window is left open across shutdown/restart
+        /// of VS for example, then this gets called. 
+        /// </summary>
         public ValueTrackingToolWindow() : base(null)
         {
             Caption = ServicesVSResources.Value_Tracking;
-            Content = new BindableTextBlock()
+
+            _rootGrid.Children.Add(new TextBlock()
             {
                 Text = "Select an appropriate symbol to start value tracking"
-            };
+            });
+
+            Content = _rootGrid;
         }
 
         public ValueTrackingToolWindow(ValueTrackingTreeViewModel viewModel)
             : base(null)
         {
-            Caption = ServicesVSResources.Value_Tracking;
-
+            Content = _rootGrid;
             ViewModel = viewModel;
-            Content = new ValueTrackingTree(ViewModel);
         }
 
         public ValueTrackingTreeItemViewModel? Root
@@ -38,10 +65,12 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             get => ViewModel?.Roots.Single();
             set
             {
-                if (ViewModel is null || value is null)
+                if (value is null)
                 {
                     return;
                 }
+
+                Contract.ThrowIfNull(ViewModel);
 
                 ViewModel.Roots.Clear();
                 ViewModel.Roots.Add(value);
