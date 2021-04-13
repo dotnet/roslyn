@@ -24800,19 +24800,7 @@ public record Test(
 
             IEnumerable<string> getAttributeStrings(Symbol symbol)
             {
-                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
-                {
-                    switch (a.AttributeClass!.Name)
-                    {
-                        case "A":
-                        case "B":
-                        case "C":
-                        case "D":
-                            return true;
-                    }
-
-                    return false;
-                }));
+                return GetAttributeStrings(symbol.GetAttributes().Where(a => a.AttributeClass!.Name is "A" or "B" or "C" or "D"));
             }
         }
 

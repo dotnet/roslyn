@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordStructDeclaration:
                     return SyntaxFactory.RecordStructDeclaration(attributes, modifiers, keyword, structKeyword: SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 default:
-                    throw new ArgumentException("kind");
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
     }

@@ -1955,6 +1955,25 @@ record struct C(object P1, object P2, object P3, object P4)
         }
 
         [Fact]
+        public void RecordProperties_10()
+        {
+            var src = @"
+record struct C(object P)
+{
+    const int P = 4;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,24): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'object' to match positional parameter 'P'.
+                // record struct C(object P)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "object", "P").WithLocation(2, 24),
+                // (2,24): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(object P)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(2, 24)
+                );
+        }
+
+        [Fact]
         public void RecordProperties_11_UnreadPositionalParameter()
         {
             var comp = CreateCompilation(@"
@@ -7241,19 +7260,7 @@ public readonly record struct Test(
 
             IEnumerable<string> getAttributeStrings(Symbol symbol)
             {
-                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
-                {
-                    switch (a.AttributeClass!.Name)
-                    {
-                        case "A":
-                        case "B":
-                        case "C":
-                        case "D":
-                            return true;
-                    }
-
-                    return false;
-                }));
+                return GetAttributeStrings(symbol.GetAttributes().Where(a => a.AttributeClass!.Name is "A" or "B" or "C" or "D"));
             }
         }
 
