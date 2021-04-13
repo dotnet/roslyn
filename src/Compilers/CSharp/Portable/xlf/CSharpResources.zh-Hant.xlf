@@ -78,8 +78,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
-        <source>Attributes require a lambda expression with a parenthesized parameter list.</source>
-        <target state="new">Attributes require a lambda expression with a parenthesized parameter list.</target>
+        <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
+        <target state="new">Attributes on lambda expressions require a parenthesized parameter list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">

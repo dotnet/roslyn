@@ -3019,17 +3019,21 @@ class C
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [Fact]
-        public void Lambda_EditAttributeList()
+        [Theory]
+        [InlineData("[Attr] () => { }")]
+        [InlineData("[Attr] x => x")]
+        [InlineData("([Attr] x) => x")]
+        [InlineData("([Attr] int x) => x")]
+        public void Lambda_EditAttributeList(string lambdaExpression)
         {
             var source =
-@"class Program
-{
+$@"class Program
+{{
     static void Main()
-    {
-        F([Attr] () => { });
-    }
-}";
+    {{
+        F({lambdaExpression});
+    }}
+}}";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var text = tree.GetText();
             var substring = "Attr";
@@ -3041,22 +3045,77 @@ class C
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [Fact]
-        public void Lambda_AddAttributeList()
+        [Theory]
+        [InlineData("() => { }", "() => { }")]
+        [InlineData("x => x", "x => x")]
+        [InlineData("(x) => x", "x) => x")]
+        [InlineData("(int x) => x", "int x) => x")]
+        public void Lambda_AddFirstAttributeList(string lambdaExpression, string substring)
         {
             var source =
-@"class Program
-{
+$@"class Program
+{{
     static void Main()
-    {
-        F([Attr1] () => { });
-    }
-}";
+    {{
+        F({lambdaExpression});
+    }}
+}}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(substring), 0);
+            var change = new TextChange(span, "[Attr]");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Theory]
+        [InlineData("[Attr1] () => { }")]
+        [InlineData("[Attr1] x => x")]
+        [InlineData("([Attr1] x) => x")]
+        [InlineData("([Attr1] int x) => x")]
+        public void Lambda_AddSecondAttributeList(string lambdaExpression)
+        {
+            var source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        F({lambdaExpression});
+    }}
+}}";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var text = tree.GetText();
             var substring = @"[Attr1]";
             var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
             var change = new TextChange(span, " [Attr2]");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Theory]
+        [InlineData("[Attr] () => { }")]
+        [InlineData("[Attr] x => x")]
+        [InlineData("([Attr] x) => x")]
+        [InlineData("([Attr] int x) => x")]
+        public void Lambda_RemoveAttributeList(string lambdaExpression)
+        {
+            var source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        F({lambdaExpression});
+    }}
+}}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = "[Attr] ";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, "");
             text = text.WithChanges(change);
             tree = tree.WithChangedText(text);
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());

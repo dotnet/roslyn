@@ -3651,10 +3651,10 @@ class C
                 // (8,59): error CS7014: Attributes are not valid in this context.
                 //         Action<object, object> a = delegate (object x, [A][B] object y) { };
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[B]").WithLocation(8, 59),
-                // (9,34): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
+                // (9,34): error CS8916: Attributes on lambda expressions require a parenthesized parameter list.
                 //         Func<object, object> f = [A][B] x => x;
                 Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[A]").WithLocation(9, 34),
-                // (9,37): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
+                // (9,37): error CS8916: Attributes on lambda expressions require a parenthesized parameter list.
                 //         Func<object, object> f = [A][B] x => x;
                 Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[B]").WithLocation(9, 37)
             };
@@ -3847,7 +3847,7 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (13,34): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
+                // (13,34): error CS8916: Attributes on lambda expressions require a parenthesized parameter list.
                 //         Func<object, object> d = [D] x => x;
                 Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[D]").WithLocation(13, 34));
 
