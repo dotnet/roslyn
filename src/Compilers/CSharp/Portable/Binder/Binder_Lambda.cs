@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList = null;
             bool hasSignature;
 
+            if (syntax is LambdaExpressionSyntax lambdaSyntax)
+            {
+                checkAttributes(syntax, lambdaSyntax.AttributeLists, diagnostics);
+            }
+
             switch (syntax.Kind())
             {
                 default:
@@ -105,18 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         underscoresCount++;
                     }
 
-                    foreach (var attributeList in p.AttributeLists)
-                    {
-                        if (syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression)
-                        {
-                            // PROTOTYPE: Report error if parameter syntax is missing the type (using implicit parameter type syntax).
-                            MessageID.IDS_FeatureLambdaAttributes.CheckFeatureAvailability(diagnostics, attributeList);
-                        }
-                        else
-                        {
-                            Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
-                        }
-                    }
+                    checkAttributes(syntax, p.AttributeLists, diagnostics);
 
                     if (p.Default != null)
                     {
@@ -225,6 +219,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return discardsBuilder.ToImmutableAndFree();
+            }
+
+            static void checkAttributes(AnonymousFunctionExpressionSyntax syntax, SyntaxList< AttributeListSyntax> attributeLists, BindingDiagnosticBag diagnostics)
+            {
+                foreach (var attributeList in attributeLists)
+                {
+                    if (syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression)
+                    {
+                        MessageID.IDS_FeatureLambdaAttributes.CheckFeatureAvailability(diagnostics, attributeList);
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                    }
+                }
             }
         }
 

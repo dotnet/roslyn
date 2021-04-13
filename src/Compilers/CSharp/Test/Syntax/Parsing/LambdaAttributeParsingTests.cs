@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void LambdaAttribute_01()
         {
             string source = "[A] x => x";
-            UsingExpression(source, TestOptions.Regular9,
-                // (1,1): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // [A] x => x
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(1, 1));
+            UsingExpression(source, TestOptions.Regular9);
             verify();
 
             UsingExpression(source, TestOptions.RegularPreview);
@@ -71,10 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void LambdaAttribute_02()
         {
             string source = "[A, B] () => { }";
-            UsingExpression(source, TestOptions.Regular9,
-                // (1,1): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // [A, B] () => { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A, B]").WithArguments("lambda attributes").WithLocation(1, 1));
+            UsingExpression(source, TestOptions.Regular9);
             verify();
 
             UsingExpression(source, TestOptions.RegularPreview);
@@ -124,13 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void LambdaAttribute_03()
         {
             string source = "[A][B] (object x) => x";
-            UsingExpression(source, TestOptions.Regular9,
-                // (1,1): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // [A][B] (object x) => x
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(1, 1),
-                // (1,4): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // [A][B] (object x) => x
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(1, 4));
+            UsingExpression(source, TestOptions.Regular9);
             verify();
 
             UsingExpression(source, TestOptions.RegularPreview);
@@ -191,10 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void LambdaAttribute_04()
         {
             string source = "([A] object x) => x";
-            UsingExpression(source, TestOptions.Regular9,
-                // (1,2): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // ([A] object x) => x
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(1, 2));
+            UsingExpression(source, TestOptions.Regular9);
             verify();
 
             UsingExpression(source, TestOptions.RegularPreview);

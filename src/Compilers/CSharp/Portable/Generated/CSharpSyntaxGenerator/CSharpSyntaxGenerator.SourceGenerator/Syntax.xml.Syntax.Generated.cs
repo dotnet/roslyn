@@ -3020,6 +3020,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
+        public abstract SyntaxList<AttributeListSyntax> AttributeLists { get; }
+        public LambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeListsCore(attributeLists);
+        internal abstract LambdaExpressionSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists);
+
+        public LambdaExpressionSyntax AddAttributeLists(params AttributeListSyntax[] items) => AddAttributeListsCore(items);
+        internal abstract LambdaExpressionSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
+
         /// <summary>SyntaxToken representing equals greater than.</summary>
         public abstract SyntaxToken ArrowToken { get; }
         public LambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => WithArrowTokenCore(arrowToken);
@@ -3055,7 +3062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
         public override SyntaxTokenList Modifiers
         {
@@ -3119,7 +3126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public SimpleLambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
+        internal override LambdaExpressionSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new SimpleLambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
         public new SimpleLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Parameter, this.ArrowToken, this.Block, this.ExpressionBody);
         public SimpleLambdaExpressionSyntax WithParameter(ParameterSyntax parameter) => Update(this.AttributeLists, this.Modifiers, parameter, this.ArrowToken, this.Block, this.ExpressionBody);
@@ -3130,7 +3138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
         public new SimpleLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.Parameter, this.ArrowToken, this.Block, expressionBody);
 
-        public SimpleLambdaExpressionSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override LambdaExpressionSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new SimpleLambdaExpressionSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
         internal override AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new SimpleLambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         public SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items) => WithParameter(this.Parameter.WithAttributeLists(this.Parameter.AttributeLists.AddRange(items)));
@@ -3210,7 +3219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
 
         public override SyntaxTokenList Modifiers
         {
@@ -3274,7 +3283,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public ParenthesizedLambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        internal override LambdaExpressionSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new ParenthesizedLambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
         public new ParenthesizedLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
         public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
@@ -3285,7 +3295,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
         public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
 
-        public ParenthesizedLambdaExpressionSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override LambdaExpressionSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new ParenthesizedLambdaExpressionSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
         internal override AnonymousFunctionExpressionSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new ParenthesizedLambdaExpressionSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         public ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));

@@ -3020,6 +3020,50 @@ class C
         }
 
         [Fact]
+        public void Lambda_EditAttributeList()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        F([Attr] () => { });
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = "Attr";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, "1, Attr2");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void Lambda_AddAttributeList()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        F([Attr1] () => { });
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"[Attr1]";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, " [Attr2]");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
         public void EditGlobalStatementWithAttributes_01()
         {
             var source = @"

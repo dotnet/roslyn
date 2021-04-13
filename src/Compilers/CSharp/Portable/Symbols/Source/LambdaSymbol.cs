@@ -269,14 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            // PROTOTYPE: Move AttributeLists to LambdaExpressionSyntax base class.
-            var attributeLists = Syntax switch
-            {
-                SimpleLambdaExpressionSyntax syntax => syntax.AttributeLists,
-                ParenthesizedLambdaExpressionSyntax syntax => syntax.AttributeLists,
-                _ => default
-            };
-            return OneOrMany.Create(attributeLists);
+            return Syntax is LambdaExpressionSyntax lambdaSyntax ?
+                OneOrMany.Create(lambdaSyntax.AttributeLists) :
+                default;
         }
 
         internal void GetDeclarationDiagnostics(BindingDiagnosticBag addTo)

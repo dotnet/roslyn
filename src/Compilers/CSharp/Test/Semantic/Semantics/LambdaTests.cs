@@ -3496,7 +3496,6 @@ class A : Attribute { }
 class B : Attribute { }
 partial class Program
 {
-    static Delegate D0() => (Func<object, object>)([A] x => x);
     static Delegate D1() => (Action)([A] () => { });
     static Delegate D2(int x) => (Func<int, int, int>)((int y, [A][B] int z) => x);
     static Delegate D3() => (Action<int, object>)(([A]_, y) => { });
@@ -3531,7 +3530,6 @@ partial class Program
     }
     static void Main()
     {
-        Report(D0());
         Report(D1());
         Report(D2(0));
         Report(D3());
@@ -3546,7 +3544,6 @@ partial class Program
             var pairs = exprs.Select(e => (e, model.GetSymbolInfo(e).Symbol)).ToArray();
             var expectedAttributes = new[]
             {
-                "[A] x => x: [method: A]",
                 "[A] () => { }: [method: A]",
                 "(int y, [A][B] int z) => x: [parameter: A] [parameter: B]",
                 "([A]_, y) => { }: [parameter: A]",
@@ -3556,11 +3553,10 @@ partial class Program
             AssertEx.Equal(expectedAttributes, pairs.Select(p => getAttributesPublic(p.Item1, p.Item2)));
 
             CompileAndVerify(comp, expectedOutput:
-@"<D0>b__0_0: [method: A]
-<D1>b__1_0: [method: A]
+@"<D1>b__0_0: [method: A]
 <D2>b__0: [parameter: A] [parameter: B]
-<D3>b__3_0: [parameter: A]
-<D4>b__4_0: [method: System.Runtime.CompilerServices.CompilerGeneratedAttribute] [method: B] [return: A]");
+<D3>b__2_0: [parameter: A]
+<D4>b__3_0: [method: System.Runtime.CompilerServices.CompilerGeneratedAttribute] [method: B] [return: A]");
 
             static string getAttributesInternal(LambdaExpressionSyntax expr, ISymbol symbol)
             {
@@ -3592,7 +3588,7 @@ partial class Program
         }
 
         [Fact]
-        public void LambdaParameterAttributes()
+        public void LambdaAttributes_02()
         {
             var source =
 @"using System;
@@ -3603,6 +3599,7 @@ class C
     static void Main()
     {
         Action<object, object> a;
+        a = [A, B] (x, y) => { };
         a = ([A] x, [B] y) => { };
         a = (object x, [A][B] object y) => { };
     }
@@ -3610,37 +3607,28 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,14): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,13): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         a = [A, B] (x, y) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A, B]").WithArguments("lambda attributes").WithLocation(9, 13),
+                // (10,14): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         a = ([A] x, [B] y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(9, 14),
-                // (9,14): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(10, 14),
+                // (10,21): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         a = ([A] x, [B] y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(9, 14),
-                // (9,21): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         a = ([A] x, [B] y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(9, 21),
-                // (9,21): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         a = ([A] x, [B] y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(9, 21),
-                // (10,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(10, 21),
+                // (11,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         a = (object x, [A][B] object y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(10, 24),
-                // (10,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(11, 24),
+                // (11,27): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         a = (object x, [A][B] object y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(10, 24),
-                // (10,27): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         a = (object x, [A][B] object y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(10, 27),
-                // (10,27): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         a = (object x, [A][B] object y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(10, 27));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(11, 27));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void AnonymousMethodParameterAttributes()
+        public void LambdaAttributes_03()
         {
             var source =
 @"using System;
@@ -3651,6 +3639,7 @@ class C
     static void Main()
     {
         Action<object, object> a = delegate (object x, [A][B] object y) { };
+        Func<object, object> f = [A][B] x => x;
     }
 }";
 
@@ -3661,7 +3650,13 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(8, 56),
                 // (8,59): error CS7014: Attributes are not valid in this context.
                 //         Action<object, object> a = delegate (object x, [A][B] object y) { };
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[B]").WithLocation(8, 59)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[B]").WithLocation(8, 59),
+                // (9,34): error CS7014: Attributes are not valid in this context.
+                //         Func<object, object> f = [A][B] x => x;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(9, 34),
+                // (9,37): error CS7014: Attributes are not valid in this context.
+                //         Func<object, object> f = [A][B] x => x;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[B]").WithLocation(9, 37)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -3672,7 +3667,7 @@ class C
         }
 
         [Fact]
-        public void LambdaAttributes_02()
+        public void LambdaAttributes_04()
         {
             var sourceA =
 @"namespace N1
@@ -3699,7 +3694,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaAttributes_03()
+        public void LambdaAttributes_05()
         {
             var source =
 @"class Program
@@ -3734,7 +3729,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaAttributes_04()
+        public void LambdaAttributes_06()
         {
             var source =
 @"using System;
@@ -3838,6 +3833,7 @@ class Program
 class AAttribute : Attribute { }
 class BAttribute : Attribute { }
 class CAttribute : Attribute { }
+class DAttribute : Attribute { }
 class Program
 {
     static void Main()
@@ -3845,17 +3841,21 @@ class Program
         Action a = [A] () => { };
         Func<object> b = [return: B] () => null;
         Action<object> c = ([C] object obj) => { };
+        Func<object, object> d = [D] x => x;
     }
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,34): error CS7014: Attributes are not valid in this context.
+                //         Func<object, object> d = [D] x => x;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[D]").WithLocation(13, 34));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var attributeSyntaxes = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>();
             var actualAttributes = attributeSyntaxes.Select(a => model.GetSymbolInfo(a).Symbol.GetSymbol<MethodSymbol>()).ToImmutableArray();
-            var expectedAttributes = new[] { "AAttribute", "BAttribute", "CAttribute" }.Select(a => comp.GetTypeByMetadataName(a).InstanceConstructors.Single()).ToImmutableArray();
+            var expectedAttributes = new[] { "AAttribute", "BAttribute", "CAttribute", "DAttribute" }.Select(a => comp.GetTypeByMetadataName(a).InstanceConstructors.Single()).ToImmutableArray();
             AssertEx.Equal(expectedAttributes, actualAttributes);
         }
 
@@ -3977,6 +3977,34 @@ class Program
         }
 
         [Fact]
+        public void LambdaAttributes_ObsoleteAttribute()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Report(Delegate d)
+    {
+        foreach (var attribute in d.Method.GetCustomAttributes(inherit: false))
+            Console.Write(attribute);
+    }
+    static void Main()
+    {
+        Report((Action)([Obsolete] () => { }));
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var symbol = model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("System.ObsoleteAttribute", symbol.GetAttributes().Single().ToString());
+
+            CompileAndVerify(comp, expectedOutput: "System.ObsoleteAttribute");
+        }
+
+        [Fact]
         public void LambdaAttributes_WellKnownAttributes()
         {
             var sourceA =
@@ -4087,7 +4115,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: Report error for a2, no error for a1.
+            // PROTOTYPE: Report WRN_NullReferenceReturn for a2, not for a1.
             comp.VerifyDiagnostics(
                 // (8,53): warning CS8603: Possible null reference return.
                 //         Func<object> a1 = [return: MaybeNull] () => null;
@@ -4143,6 +4171,26 @@ class Program
         }
 
         [Fact]
+        public void LambdaAttributes_UnmanagedCallersOnly()
+        {
+            var source =
+@"using System;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Main()
+    {
+        Action a = [UnmanagedCallersOnly] static () => { };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnmanagedCallersOnlyAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                //         Action a = [UnmanagedCallersOnly] static () => { };
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 21));
+        }
+
+        [Fact]
         public void LambdaParameterAttributes_OptionalAndDefaultValueAttributes()
         {
             var source =
@@ -4195,7 +4243,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaParameterAttributes_NullableAttributes()
+        public void LambdaParameterAttributes_NullableAttributes_01()
         {
             var source =
 @"using System;
@@ -4220,6 +4268,35 @@ class Program
             var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
             Assert.Equal(FlowAnalysisAnnotations.AllowNull | FlowAnalysisAnnotations.MaybeNullWhenFalse, lambdas[0].Parameters[0].FlowAnalysisAnnotations);
             Assert.Equal(new[] { "x" }, lambdas[1].Parameters[1].NotNullIfParameterNotNull);
+        }
+
+        [Fact]
+        public void LambdaParameterAttributes_NullableAttributes_02()
+        {
+            var source =
+@"#nullable enable
+using System.Diagnostics.CodeAnalysis;
+delegate bool D(out object? obj);
+class Program
+{
+    static void Main()
+    {
+        D d = ([NotNullWhen(true)] out object? obj) =>
+            {
+                obj = null;
+                return true;
+            };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, NotNullWhenAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            // PROTOTYPE: Should report WRN_ParameterConditionallyDisallowsNull.
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var lambda = GetLambdaSymbol(model, expr);
+            Assert.Equal(FlowAnalysisAnnotations.NotNullWhenTrue, lambda.Parameters[0].FlowAnalysisAnnotations);
         }
 
         private static LambdaSymbol GetLambdaSymbol(SemanticModel model, LambdaExpressionSyntax syntax)

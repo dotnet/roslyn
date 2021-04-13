@@ -371,12 +371,6 @@ class C
                 // (8,14): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         a = ([A] _, y) => { };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(8, 14),
-                // (8,14): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         a = ([A] _, y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(8, 14),
-                // (9,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         a = (object x, [A] object _) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(9, 24),
                 // (9,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         a = (object x, [A] object _) => { };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(9, 24));
