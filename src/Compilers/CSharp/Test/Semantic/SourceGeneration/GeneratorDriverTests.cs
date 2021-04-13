@@ -1216,8 +1216,7 @@ class C { }
         }
 
         [Fact]
-        // PROTOTYPE(source-generators): checks we're dropping the incremental drivers for now, and running dual drivers as ISourceGenerator
-        public void GeneratorDriver_Does_Not_Run_Incremental_Generators()
+        public void GeneratorDriver_Prefers_Incremental_Generators()
         {
             var source = @"
 class C { }
@@ -1245,13 +1244,35 @@ class C { }
             Assert.Equal(1, initCount);
             Assert.Equal(1, executeCount);
 
-            // didn't run the incremental generator
-            Assert.Equal(0, incrementalInitCount);
+            // ran the incremental generator
+            Assert.Equal(1, incrementalInitCount);
 
-            // ran the combined generator only as an ISourceGenerator
-            Assert.Equal(1, dualInitCount);
-            Assert.Equal(1, dualExecuteCount);
-            Assert.Equal(0, dualIncrementalInitCount);
+            // ran the combined generator only as an IIncrementalGenerator
+            Assert.Equal(0, dualInitCount);
+            Assert.Equal(0, dualExecuteCount);
+            Assert.Equal(1, dualIncrementalInitCount);
+        }
+
+        [Fact]
+        public void GeneratorDriver_Initializes_Incremental_Generators()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int incrementalInitCount = 0;
+            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => incrementalInitCount++));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver.RunGenerators(compilation);
+
+            // ran the incremental generator
+            Assert.Equal(1, incrementalInitCount);
         }
 
         [Fact]
