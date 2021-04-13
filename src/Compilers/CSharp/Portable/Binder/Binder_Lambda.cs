@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Error(diagnostics, ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, attributeList);
+                        Error(diagnostics, syntax.Kind() == SyntaxKind.SimpleLambdaExpression ? ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression : ErrorCode.ERR_AttributesNotAllowed, attributeList);
                     }
                 }
             }

@@ -598,9 +598,9 @@ class Program
                 // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
                 //         const string message = "The parameter is obsolete";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22),
-                // (9,35): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
+                // (9,35): error CS7014: Attributes are not valid in this context.
                 //         Action<int> a = delegate ([ObsoleteAttribute(message)] int x) { };
-                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[ObsoleteAttribute(message)]").WithLocation(9, 35));
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(9, 35));
         }
 
         [WorkItem(540263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540263")]
@@ -3645,12 +3645,12 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (8,56): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
+                // (8,56): error CS7014: Attributes are not valid in this context.
                 //         Action<object, object> a = delegate (object x, [A][B] object y) { };
-                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[A]").WithLocation(8, 56),
-                // (8,59): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(8, 56),
+                // (8,59): error CS7014: Attributes are not valid in this context.
                 //         Action<object, object> a = delegate (object x, [A][B] object y) { };
-                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[B]").WithLocation(8, 59),
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[B]").WithLocation(8, 59),
                 // (9,34): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
                 //         Func<object, object> f = [A][B] x => x;
                 Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[A]").WithLocation(9, 34),
