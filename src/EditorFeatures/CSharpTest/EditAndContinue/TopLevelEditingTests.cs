@@ -2272,15 +2272,13 @@ record C(int X)
         }
 
         [Fact]
-        public void Record_UnImplementSynthesized_Property_Partial_Move()
+        public void Record_ImplementSynthesized_Property_Partial()
         {
-            var srcA1 = @"partial record C(int X)
-{
-    public int X { get; init; }
-}";
+            var srcA1 = @"partial record C(int X);";
             var srcB1 = @"partial record C;";
             var srcA2 = @"partial record C(int X);";
-            var srcB2 = @"partial record C
+            var srcB2 = @"
+partial record C
 {
     public int X { get; init; }
 }";
@@ -2290,7 +2288,118 @@ record C(int X)
                 new[]
                 {
                     DocumentResults(),
-                    DocumentResults()
+                    DocumentResults(
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), partialType: "C", preserveLocalVariables: true)
+                        })
+                });
+        }
+
+        [Fact]
+        public void Record_UnImplementSynthesized_Property_Partial()
+        {
+            var srcA1 = @"partial record C(int X);";
+            var srcB1 = @"
+partial record C
+{
+    public int X { get; init; }
+}";
+            var srcA2 = @"partial record C(int X);";
+            var srcB2 = @"partial record C;";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), partialType: "C", preserveLocalVariables: true)
+                        })
+                });
+        }
+
+        [Fact]
+        public void Record_ImplementSynthesized_Property_Partial_WithBody()
+        {
+            var srcA1 = @"partial record C(int X);";
+            var srcB1 = @"partial record C;";
+            var srcA2 = @"partial record C(int X);";
+            var srcB2 = @"
+partial record C
+{
+    public int X
+    {
+        get
+        {
+            return 4;
+        }
+        init
+        {
+            throw null;
+        }
+    }
+}";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").SetMethod),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), partialType : "C", preserveLocalVariables: true),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                        })
+                });
+        }
+
+        [Fact]
+        public void Record_UnImplementSynthesized_Property_Partial_WithBody()
+        {
+            var srcA1 = @"partial record C(int X);";
+            var srcB1 = @"
+partial record C
+{
+    public int X
+    {
+        get
+        {
+            return 4;
+        }
+        init
+        {
+            throw null;
+        }
+    }
+}";
+            var srcA2 = @"partial record C(int X);";
+            var srcB2 = @"partial record C;";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").GetMethod),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.X").SetMethod),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), partialType : "C", preserveLocalVariables: true),
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                        })
                 });
         }
 

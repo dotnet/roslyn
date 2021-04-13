@@ -3256,6 +3256,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             oldCtor = oldType.InstanceConstructors.Single(c => c.Parameters.Length == 1 && SymbolEqualityComparer.Default.Equals(c.Parameters[0].Type, c.ContainingType));
                             // The copy constructor does not have a syntax map
                             syntaxMapToUse = null;
+                            // Since there is no syntax map, we don't need to handle anything special to merge them for partial types.
+                            // The easiest way to do this is just to pretend this isn't a partial edit.
+                            isPartialEdit = false;
                         }
                         else
                         {
