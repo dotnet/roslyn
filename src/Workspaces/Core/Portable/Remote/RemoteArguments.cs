@@ -250,25 +250,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     group.Symbols.Select(
                         s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))));
         }
-
-        public async Task<SymbolGroup> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            var primarySymbol = await this.PrimarySymbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            if (primarySymbol == null)
-                return null;
-
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
-            foreach (var symbolAndProjectId in this.Symbols)
-            {
-                primarySymbol = await symbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-                if (primarySymbol == null)
-                    return null;
-
-                symbols.Add(primarySymbol);
-            }
-
-            return new SymbolGroup(primarySymbol, symbols.ToImmutable());
-        }
     }
 
     #endregion

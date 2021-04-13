@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -62,15 +64,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return _progress.OnFindInDocumentCompletedAsync(document);
             }
 
-            public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup serializableSymbolGroup)
+            public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup dehydrated)
             {
-                var symbolGroup = await serializableSymbolGroup.TryRehydrateAsync(_solution, _cancellationToken).ConfigureAwait(false);
-                if (symbolGroup == null)
+                var primarySymbol = await dehydrated.PrimarySymbol.TryRehydrateAsync(_solution, _cancellationToken).ConfigureAwait(false);
+                if (primarySymbol == null)
                     return;
 
+                using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+                using var _2 = ArrayBuilder<(SerializableSymbolAndProjectId, ISymbol)>.GetInstance(out var pairs);
+                foreach (var symbolAndProjectId in dehydrated.Symbols)
+                {
+                    var symbol = await symbolAndProjectId.TryRehydrateAsync(_solution, _cancellationToken).ConfigureAwait(false);
+                    if (symbol == null)
+                        return;
+
+                    symbols.Add(primarySymbol);
+                    pairs.Add((symbolAndProjectId, symbol));
+                }
+
+                var symbolGroup = new SymbolGroup(primarySymbol, symbols.ToImmutable());
                 lock (_gate)
                 {
-                    _groupMap[serializableSymbolGroup] = symbolGroup;
+                    _groupMap[dehydrated] = symbolGroup;
+                    foreach (var pair in pairs)
+                        _definitionMap[pair.Item1] = pair.Item2;
                 }
 
                 await _progress.OnDefinitionFoundAsync(symbolGroup).ConfigureAwait(false);
