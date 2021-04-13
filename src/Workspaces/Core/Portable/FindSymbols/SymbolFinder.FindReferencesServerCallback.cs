@@ -66,28 +66,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup dehydrated)
             {
-                var primarySymbol = await dehydrated.PrimarySymbol.TryRehydrateAsync(_solution, _cancellationToken).ConfigureAwait(false);
-                if (primarySymbol == null)
-                    return;
+                Contract.ThrowIfTrue(dehydrated.Symbols.Count == 0);
 
                 using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
-                using var _2 = ArrayBuilder<(SerializableSymbolAndProjectId, ISymbol)>.GetInstance(out var pairs);
+                using var _2 = PooledDictionary<SerializableSymbolAndProjectId, ISymbol>.GetInstance(out var pairs);
+
                 foreach (var symbolAndProjectId in dehydrated.Symbols)
                 {
                     var symbol = await symbolAndProjectId.TryRehydrateAsync(_solution, _cancellationToken).ConfigureAwait(false);
                     if (symbol == null)
                         return;
 
-                    symbols.Add(primarySymbol);
-                    pairs.Add((symbolAndProjectId, symbol));
+                    symbols.Add(symbol);
+                    pairs[symbolAndProjectId] = symbol;
                 }
+
+                var primarySymbol = pairs[dehydrated.PrimarySymbol];
 
                 var symbolGroup = new SymbolGroup(primarySymbol, symbols.ToImmutable());
                 lock (_gate)
                 {
                     _groupMap[dehydrated] = symbolGroup;
                     foreach (var pair in pairs)
-                        _definitionMap[pair.Item1] = pair.Item2;
+                        _definitionMap[pair.Key] = pair.Value;
                 }
 
                 await _progress.OnDefinitionFoundAsync(symbolGroup).ConfigureAwait(false);
