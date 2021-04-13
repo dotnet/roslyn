@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.SourceGeneration
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Adapts an ISourceGenerator to an incremental generator that

@@ -34,13 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            // PROTOTYPE(source-generators):
-            //            we currently drop any incremental generators.
-            //            in a future PR we'll switch this round to create adaptors for the old style generators
-            //            and natively deal with incremental generators in the driver.
-            generators = generators.WhereAsArray(g => g is not IncrementalGeneratorWrapper);
-
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]));
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, GetIncrementalGenerators(generators), additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]));
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -70,7 +64,9 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            var newState = _state.With(generators: _state.Generators.AddRange(generators), generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]), editsFailed: true);
+            var newState = _state.With(sourceGenerators: _state.Generators.AddRange(generators),
+                                       incrementalGenerators: _state.IncrementalGenerators.AddRange(GetIncrementalGenerators(generators)),
+                                       generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]));
             return FromState(newState);
         }
 
@@ -78,17 +74,19 @@ namespace Microsoft.CodeAnalysis
         {
             var newGenerators = _state.Generators;
             var newStates = _state.GeneratorStates;
+            var newIncrementalGenerators = _state.IncrementalGenerators;
             for (int i = 0; i < newGenerators.Length; i++)
             {
                 if (generators.Contains(newGenerators[i]))
                 {
                     newGenerators = newGenerators.RemoveAt(i);
                     newStates = newStates.RemoveAt(i);
+                    newIncrementalGenerators = newIncrementalGenerators.RemoveAt(i);
                     i--;
                 }
             }
 
-            return FromState(_state.With(generators: newGenerators, generatorStates: newStates));
+            return FromState(_state.With(sourceGenerators: newGenerators, incrementalGenerators: newIncrementalGenerators, generatorStates: newStates));
         }
 
         public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
@@ -363,6 +361,15 @@ namespace Microsoft.CodeAnalysis
         {
             var type = GetGeneratorType(generator);
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
+        }
+
+        private static ImmutableArray<IIncrementalGenerator> GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators)
+        {
+            return generators.SelectAsArray(g => g switch
+            {
+                IncrementalGeneratorWrapper igw => igw.Generator,
+                _ => new SourceGeneratorAdaptor(g)
+            });
         }
 
         internal abstract CommonMessageProvider MessageProvider { get; }
