@@ -137,7 +137,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The key is a symbol for methods or parameters, and syntax for attributes.
         /// The data is collected during testing only.
         /// </summary>
-        internal ConcurrentDictionary<object, NullableWalker.Data>? NullableAnalysisData;
+        internal NullableData? NullableAnalysisData;
+
+        internal sealed class NullableData
+        {
+            internal readonly int MaxRecursionDepth;
+            internal readonly ConcurrentDictionary<object, NullableWalker.Data> Data;
+
+            internal NullableData(int maxRecursionDepth = -1)
+            {
+                MaxRecursionDepth = maxRecursionDepth;
+                Data = new ConcurrentDictionary<object, NullableWalker.Data>();
+            }
+        }
 
         public override string Language
         {
@@ -2348,7 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (info.Kind == SyntaxKind.ExternAliasDirective)
                             {
                                 // Record targets of used extern aliases
-                                var node = info.Tree.GetRoot().FindToken(info.Span.Start, findInsideTrivia: false).
+                                var node = info.Tree.GetRoot(cancellationToken).FindToken(info.Span.Start, findInsideTrivia: false).
                                                Parent!.FirstAncestorOrSelf<ExternAliasDirectiveSyntax>();
 
                                 if (node is object && GetExternAliasTarget(node.Identifier.ValueText, out NamespaceSymbol target))
@@ -3384,7 +3396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override IEnumerable<SyntaxTree> CommonSyntaxTrees
+        protected override ImmutableArray<SyntaxTree> CommonSyntaxTrees
         {
             get
             {

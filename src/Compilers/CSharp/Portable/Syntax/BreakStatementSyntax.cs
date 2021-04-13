@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class BreakStatementSyntax
     {
         public BreakStatementSyntax Update(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
-            => Update(attributeLists: default, breakKeyword, semicolonToken);
+            => Update(AttributeLists, breakKeyword, semicolonToken);
     }
 }
 

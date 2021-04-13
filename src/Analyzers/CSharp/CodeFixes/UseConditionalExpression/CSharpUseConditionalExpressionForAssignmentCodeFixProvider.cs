@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseConditionalExpressionForAssignment), Shared]
     internal partial class CSharpUseConditionalExpressionForAssignmentCodeFixProvider
         : AbstractUseConditionalExpressionForAssignmentCodeFixProvider<
             StatementSyntax, IfStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, ConditionalExpressionSyntax>

@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public class CompilationOptionsReader
     {
@@ -44,6 +44,8 @@ namespace BuildValidator
         public PEReader PeReader { get; }
         private readonly ILogger _logger;
 
+        public bool HasMetadataCompilationOptions => TryGetMetadataCompilationOptions(out _);
+
         private MetadataCompilationOptions? _metadataCompilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
         private byte[]? _sourceLinkUTF8;
@@ -64,7 +66,7 @@ namespace BuildValidator
         {
             if (!TryGetMetadataCompilationOptionsBlobReader(out var reader))
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Does not contain metadata compilation options");
             }
             return reader;
         }
@@ -89,6 +91,20 @@ namespace BuildValidator
             }
 
             return _metadataCompilationOptions;
+        }
+
+        /// <summary>
+        /// Get the specified <see cref="LanguageNames"/> for this compilation.
+        /// </summary>
+        public string GetLanguageName()
+        {
+            var pdbCompilationOptions = GetMetadataCompilationOptions();
+            if (!pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Language, out var language))
+            {
+                throw new Exception("Invalid language name");
+            }
+
+            return language;
         }
 
         public Encoding GetEncoding()
@@ -131,20 +147,9 @@ namespace BuildValidator
             return _metadataReferenceInfo;
         }
 
-        public OutputKind GetOutputKind() =>
-            (PdbReader.DebugMetadataHeader is { } header && !header.EntryPoint.IsNil)
-            ? OutputKind.ConsoleApplication
-            : OutputKind.DynamicallyLinkedLibrary;
+        public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
 
-        public string? GetMainTypeName() => GetMainMethodInfo() is { } tuple
-            ? tuple.MainTypeName
-            : null;
-
-        public string? GetMainMethodName() => GetMainMethodInfo() is { } tuple
-            ? tuple.MainMethodName
-            : null;
-
-        private (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
+        public (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
         {
             if (!(PdbReader.DebugMetadataHeader is { } header) ||
                 header.EntryPoint.IsNil)
@@ -155,6 +160,15 @@ namespace BuildValidator
             var mdReader = PeReader.GetMetadataReader();
             var methodDefinition = mdReader.GetMethodDefinition(header.EntryPoint);
             var methodName = mdReader.GetString(methodDefinition.Name);
+
+            // Here we only want to give the caller the main method name and containing type name if the method is named "Main" per convention.
+            // If the main method has another name, we have to assume that specifying a main type name won't work.
+            // For example, if the compilation uses top-level statements.
+            if (methodName != WellKnownMemberNames.EntryPointMethodName)
+            {
+                return null;
+            }
+
             var typeHandle = methodDefinition.GetDeclaringType();
             var typeDefinition = mdReader.GetTypeDefinition(typeHandle);
             var typeName = mdReader.GetString(typeDefinition.Name);
@@ -214,6 +228,11 @@ namespace BuildValidator
         public byte[]? GetPublicKey()
         {
             var metadataReader = PeReader.GetMetadataReader();
+            if (!metadataReader.IsAssembly)
+            {
+                return null;
+            }
+
             var blob = metadataReader.GetAssemblyDefinition().PublicKey;
             if (blob.IsNil)
             {
@@ -321,16 +340,34 @@ namespace BuildValidator
                 var imageSize = blobReader.ReadInt32();
                 var mvid = blobReader.ReadGuid();
 
-                yield return new MetadataReferenceInfo(
-                    timestamp,
-                    imageSize,
-                    name,
-                    mvid,
-                    string.IsNullOrEmpty(externAliases)
-                        ? ImmutableArray<string>.Empty
-                        : externAliases.Split(',').ToImmutableArray(),
-                    kind,
-                    embedInteropTypes);
+                if (string.IsNullOrEmpty(externAliases))
+                {
+                    yield return new MetadataReferenceInfo(
+                        timestamp,
+                        imageSize,
+                        name,
+                        mvid,
+                        externAlias: null,
+                        kind,
+                        embedInteropTypes);
+                }
+                else
+                {
+                    foreach (var alias in externAliases.Split(','))
+                    {
+                        // The "global" alias is an invention of the tooling on top of the compiler. 
+                        // The compiler itself just sees "global" as a reference without any aliases
+                        // and we need to mimic that here.
+                        yield return new MetadataReferenceInfo(
+                            timestamp,
+                            imageSize,
+                            name,
+                            mvid,
+                            alias == "global" ? null : alias,
+                            kind,
+                            embedInteropTypes);
+                    }
+                }
             }
         }
 
@@ -350,6 +387,8 @@ namespace BuildValidator
             blobReader = default;
             return false;
         }
+
+        public bool HasEmbeddedPdb => PeReader.ReadDebugDirectory().Any(entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
 
         private static ImmutableArray<(string, string)> ParseCompilationOptions(BlobReader blobReader)
         {

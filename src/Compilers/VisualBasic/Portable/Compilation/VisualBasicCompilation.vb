@@ -901,12 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Is the passed in syntax tree in this compilation?
         ''' </summary>
         Public Shadows Function ContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
-            If syntaxTree Is Nothing Then
-                Throw New ArgumentNullException(NameOf(syntaxTree))
-            End If
-
-            Dim vbtree = syntaxTree
-            Return vbtree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(vbtree)
+            Return syntaxTree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(syntaxTree)
         End Function
 
         Public Shadows Function AddSyntaxTrees(ParamArray trees As SyntaxTree()) As VisualBasicCompilation
@@ -2719,7 +2714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
         End Function
 
-        Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)
+        Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
                 Return Me.SyntaxTrees
             End Get

@@ -157,6 +157,28 @@ End Namespace
             )
         End Sub
 
+        <Fact>
+        Public Sub SyntaxTrees_Are_Lazy()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+            Dim testGenerator = New SingleFileTestGenerator("Class C : End Class")
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(testGenerator), parseOptions:=parseOptions)
+
+            driver = driver.RunGenerators(compilation)
+
+            Dim results = driver.GetRunResult()
+
+            Dim tree = Assert.Single(results.GeneratedTrees)
+
+            Dim rootFromTryGetRoot As SyntaxNode = Nothing
+            Assert.False(tree.TryGetRoot(rootFromTryGetRoot))
+            Dim rootFromGetRoot = tree.GetRoot()
+            Assert.NotNull(rootFromGetRoot)
+            Assert.True(tree.TryGetRoot(rootFromTryGetRoot))
+            Assert.Same(rootFromGetRoot, rootFromTryGetRoot)
+        End Sub
+
         Shared Function GetCompilation(parseOptions As VisualBasicParseOptions, Optional source As String = "") As Compilation
             If (String.IsNullOrWhiteSpace(source)) Then
                 source = "
