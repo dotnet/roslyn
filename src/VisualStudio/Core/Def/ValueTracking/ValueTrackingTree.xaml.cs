@@ -34,8 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         private void ValueTrackingTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            var selectedTreeViewItem = (ValueTrackingTreeItemViewModel)ValueTrackingTreeView.SelectedItem;
-            selectedTreeViewItem.Select();
+            _viewModel.SelectedItem = (ValueTrackingTreeItemViewModel)e.NewValue;
         }
     }
 }

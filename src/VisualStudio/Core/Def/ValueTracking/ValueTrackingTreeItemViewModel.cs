@@ -32,10 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         protected Document Document { get; }
         protected IThreadingContext ThreadingContext { get; }
 
-        public int LineNumber => LineSpan.Start;
+        public int LineNumber => LineSpan.Start + 1; // LineSpan is 0 indexed, editors are not
         public ObservableCollection<TreeViewItemBase> ChildItems { get; } = new();
 
-        public string FileDisplay => $"[{Document.Name}:{LineNumber}]";
+        public string FileName => Document.FilePath ?? Document.Name;
 
         public ImageSource GlyphImage => _symbol.GetGlyph().GetImageSource(_glyphService);
 

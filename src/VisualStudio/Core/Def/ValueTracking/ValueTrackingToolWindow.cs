@@ -17,6 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public ValueTrackingToolWindow() : base(null)
         {
+            Caption = ServicesVSResources.Value_Tracking;
+            Content = new BindableTextBlock()
+            {
+                Text = "Select an appropriate symbol to start value tracking"
+            };
         }
 
         public ValueTrackingToolWindow(ValueTrackingTreeViewModel viewModel)
