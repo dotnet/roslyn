@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     internal class ValueTrackingTreeItemViewModel : TreeViewItemBase
     {
-        protected SourceText SourceText { get; }
+        private readonly SourceText _sourceText;
         private readonly ISymbol _symbol;
         private readonly IGlyphService _glyphService;
 
@@ -41,9 +41,38 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
 
-        public IList<Inline> Inlines => GetInlines(20);
+        public IList<Inline> Inlines
+        {
+            get
+            {
+                if (ClassifiedSpans.IsDefaultOrEmpty)
+                {
+                    return new List<Inline>();
+                }
 
-        public ValueTrackingTreeItemViewModel? Parent { get; set; }
+                var classifiedTexts = ClassifiedSpans.SelectAsArray(
+                   cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
+
+                var spanStartPosition = TextSpan.Start - ClassifiedSpans[0].TextSpan.Start;
+                var spanEndPosition = TextSpan.End - ClassifiedSpans[0].TextSpan.End;
+
+                return classifiedTexts.ToInlines(
+                    TreeViewModel.ClassificationFormatMap,
+                    TreeViewModel.ClassificationTypeMap,
+                    (run, classifiedText, position) =>
+                    {
+                        if (TreeViewModel.HighlightBrush is not null)
+                        {
+                            if (position >= spanStartPosition && position <= spanEndPosition)
+                            {
+                                run.SetValue(
+                                    TextElement.BackgroundProperty,
+                                    TreeViewModel.HighlightBrush);
+                            }
+                        }
+                    });
+            }
+        }
 
         public ValueTrackingTreeItemViewModel(
             Document document,
@@ -63,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             TreeViewModel = treeViewModel;
             ThreadingContext = threadingContext;
 
-            SourceText = sourceText;
+            _sourceText = sourceText;
             _symbol = symbol;
             _glyphService = glyphService;
 
@@ -71,7 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             {
                 foreach (var child in children)
                 {
-                    child.Parent = this;
                     ChildItems.Add(child);
                 }
             }
@@ -96,35 +124,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
 
             navigationService.TryNavigateToLineAndOffset(workspace, Document.Id, LineSpan.Start, 0, options, ThreadingContext.DisposalToken);
-        }
-
-        protected virtual IList<Inline> GetInlines(int maxLength)
-        {
-            var classifiedTexts = ClassifiedSpans.SelectAsArray(
-                   cs => new ClassifiedText(cs.ClassificationType, SourceText.ToString(cs.TextSpan)));
-
-            return classifiedTexts.ToInlines(
-                    TreeViewModel.ClassificationFormatMap,
-                    TreeViewModel.ClassificationTypeMap,
-                    (run, text, position) => BoldRunIfNeeded(run, position, TextSpan.Start, TextSpan.End));
-        }
-
-        protected static void BoldRunIfNeeded(Run run, int position, int start, int end)
-        {
-            if (position >= start && position <= end)
-            {
-                // Emphasize the span that's relavent for expansion using bold
-                run.SetValue(
-                    TextElement.FontWeightProperty,
-                    System.Windows.FontWeights.ExtraBold);
-            }
-            else
-            {
-                // Everything that isn't being emphasized should not be bold
-                run.SetValue(
-                    TextElement.FontWeightProperty,
-                    System.Windows.FontWeights.Normal);
-            }
         }
     }
 }

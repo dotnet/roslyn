@@ -5,11 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -17,10 +15,7 @@ using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
-using System.Windows.Documents;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
@@ -71,16 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 ChildItems.CollectionChanged += (s, a) =>
                 {
                     NotifyPropertyChanged(nameof(ChildItems));
-
-                    if (a.NewItems is null)
-                    {
-                        return;
-                    }
-
-                    foreach (var addedChild in a.NewItems.Cast<ValueTrackingTreeItemViewModel>())
-                    {
-                        addedChild.Parent = this;
-                    }
                 };
 
                 PropertyChanged += (s, a) =>
@@ -141,49 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
 
             navigationService.TryNavigateToSpan(workspace, Document.Id, _trackedItem.Span, options, ThreadingContext.DisposalToken);
-        }
-
-        protected override IList<Inline> GetInlines(int maxLength)
-        {
-            var isTruncated = _trackedItem.GetTruncatedClassifiedSpans(maxLength, out var beginning, out var middle, out var end, out var totalLength);
-
-            var inlines = ToInlines(beginning);
-
-            if (isTruncated && middle.Start > 0)
-            {
-                // Show a preamble of "..." 
-                inlines = inlines.Add(new Run("..."));
-            }
-
-            inlines = inlines.AddRange(ToInlines(middle));
-
-            if (isTruncated && (beginning.Length + middle.Length) < totalLength)
-            {
-                // Show a postamble of "..."
-                inlines = inlines.Add(new Run("..."));
-            }
-
-            inlines = inlines.AddRange(ToInlines(end));
-
-            return inlines;
-
-
-            ImmutableArray<Inline> ToInlines(ValueTrackedItem.TruncatedClassifiedSpans truncatedSpans)
-            {
-                if (truncatedSpans.IsEmpty)
-                {
-                    return ImmutableArray<Inline>.Empty;
-                }
-
-                var classifiedText = truncatedSpans.Spans.SelectAsArray(
-                   cs => new ClassifiedText(cs.ClassificationType, SourceText.ToString(cs.TextSpan)));
-
-                return classifiedText.ToInlines(
-                    TreeViewModel.ClassificationFormatMap,
-                    TreeViewModel.ClassificationTypeMap,
-                    (run, text, position) => BoldRunIfNeeded(run, position, _trackedItem.Span.Start - truncatedSpans.Start, _trackedItem.Span.End - truncatedSpans.Start))
-                    .ToImmutableArray();
-            }
         }
 
         private async Task<ImmutableArray<ValueTrackingTreeItemViewModel>> CalculateChildrenAsync(CancellationToken cancellationToken)
