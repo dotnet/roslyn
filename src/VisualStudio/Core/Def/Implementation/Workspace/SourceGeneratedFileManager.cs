@@ -44,7 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
 
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// The temporary directory that we'll create file names under to act as a prefix we can later recognize and use.
