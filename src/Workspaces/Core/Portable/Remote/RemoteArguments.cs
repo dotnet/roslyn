@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -200,17 +200,17 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SerializableSymbolGroup : IEquatable<SerializableSymbolGroup>, IEqualityComparer<SerializableSymbolAndProjectId>
     {
         [DataMember(Order = 0)]
-        public readonly SerializableSymbolAndProjectId Symbol;
+        public readonly SerializableSymbolAndProjectId PrimarySymbol;
         [DataMember(Order = 1)]
         public readonly HashSet<SerializableSymbolAndProjectId> Symbols;
 
         private int _hashCode;
 
         public SerializableSymbolGroup(
-            SerializableSymbolAndProjectId symbol,
+            SerializableSymbolAndProjectId primarySymbol,
             HashSet<SerializableSymbolAndProjectId> symbols)
         {
-            Symbol = symbol;
+            PrimarySymbol = primarySymbol;
             Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols, this);
         }
 
@@ -242,23 +242,32 @@ namespace Microsoft.CodeAnalysis.Remote
             return _hashCode;
         }
 
+        public static SerializableSymbolGroup Dehydrate(Solution solution, SymbolGroup group, CancellationToken cancellationToken)
+        {
+            return new SerializableSymbolGroup(
+                SerializableSymbolAndProjectId.Dehydrate(solution, group.PrimarySymbol, cancellationToken),
+                new HashSet<SerializableSymbolAndProjectId>(
+                    group.Symbols.Select(
+                        s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))));
+        }
+
         public async Task<SymbolGroup> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var symbol = await this.Symbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
+            var primarySymbol = await this.PrimarySymbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            if (primarySymbol == null)
                 return null;
 
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
             foreach (var symbolAndProjectId in this.Symbols)
             {
-                symbol = await symbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-                if (symbol == null)
+                primarySymbol = await symbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (primarySymbol == null)
                     return null;
 
-                symbols.Add(symbol);
+                symbols.Add(primarySymbol);
             }
 
-            return new SymbolGroup(symbol, symbols.ToImmutable());
+            return new SymbolGroup(primarySymbol, symbols.ToImmutable());
         }
     }
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -83,8 +85,111 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 options, cancellationToken);
         }
 
+        public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
+            this SymbolGroup group,
+            Solution solution,
+            bool isPrimary,
+            bool includeHiddenLocations,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
+        {
+            return ToDefinitionItemAsync(
+                group, solution, isPrimary,
+                includeHiddenLocations, includeClassifiedSpans: true,
+                options, cancellationToken);
+        }
+
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
-            this ISymbol definition,
+            this SymbolGroup group,
+            Solution solution,
+            bool isPrimary,
+            bool includeHiddenLocations,
+            bool includeClassifiedSpans,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
+        {
+            var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
+            return await ToDefinitionItemAsync(
+                group.PrimarySymbol,
+                allLocations,
+                GetAdditionalDisplayParts(solution, group, allLocations),
+                solution,
+                isPrimary,
+                includeHiddenLocations,
+                includeClassifiedSpans,
+                options,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static ImmutableArray<TaggedText> GetAdditionalDisplayParts(
+            Solution solution, SymbolGroup group, ImmutableArray<Location> allLocations)
+        {
+            // For linked symbols, add a suffix to the symbol display to say all the projects it was defined in.
+            if (group.Symbols.Count >= 2)
+            {
+                var primarySourceLocation = group.PrimarySymbol.Locations.FirstOrDefault(loc => loc.IsInSource);
+                var primaryDocument = solution.GetDocument(primarySourceLocation?.SourceTree);
+                if (primaryDocument != null)
+                {
+                    var firstProject = primaryDocument.Project;
+                    var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
+
+                    if (firstProjectName != null)
+                    {
+                        using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
+                        flavors.Add(firstProjectFlavor!);
+
+                        // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
+                        // simple name/flavor, or if the simple project name doesn't match the simple project name we started
+                        // with then we can't merge these.
+                        foreach (var location in allLocations)
+                        {
+                            var document = solution.GetDocument(location.SourceTree);
+                            var project = document?.Project;
+                            if (project != null)
+                            {
+                                var (projectName, projectFlavor) = project.State.NameAndFlavor;
+                                if (projectName == firstProjectName)
+                                    flavors.Add(projectFlavor!);
+                            }
+                        }
+
+                        flavors.RemoveDuplicates();
+                        flavors.Sort();
+
+                        return ImmutableArray.Create(new TaggedText(TextTags.Text, $" ({string.Join(", ", flavors)})"));
+                    }
+                }
+            }
+
+            return ImmutableArray<TaggedText>.Empty;
+        }
+
+        private static Task<DefinitionItem> ToDefinitionItemAsync(
+            ISymbol definition,
+            Solution solution,
+            bool isPrimary,
+            bool includeHiddenLocations,
+            bool includeClassifiedSpans,
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
+        {
+            return ToDefinitionItemAsync(
+                definition,
+                definition.Locations,
+                ImmutableArray<TaggedText>.Empty,
+                solution,
+                isPrimary,
+                includeHiddenLocations,
+                includeClassifiedSpans,
+                options,
+                cancellationToken);
+        }
+
+        private static async Task<DefinitionItem> ToDefinitionItemAsync(
+            ISymbol definition,
+            ImmutableArray<Location> locations,
+            ImmutableArray<TaggedText> additionalDisplayParts,
             Solution solution,
             bool isPrimary,
             bool includeHiddenLocations,
@@ -105,23 +210,22 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 definition = definition.OriginalDefinition;
             }
 
-            var displayParts = GetDisplayParts(definition);
+            var displayParts = GetDisplayParts(definition).AddRange(additionalDisplayParts);
             var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 options, showMetadataSymbolsWithoutReferences: false);
 
-            using var sourceLocationsDisposer = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
-
             var properties = GetProperties(definition, isPrimary);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
             // root definition node for it.  That node won't be navigable.
+            using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
             if (definition.Kind != SymbolKind.Namespace)
             {
-                foreach (var location in definition.Locations)
+                foreach (var location in locations)
                 {
                     if (location.IsInMetadata)
                     {
@@ -140,6 +244,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
+                            // If we have linked symbols, they may provide locations collide with what we already have
+                            // entries for.  Specifically, they're the same *file*/*span*, but not the same *doc*/*span.
+                            if (CollidesWithLinkedLocation(sourceLocations, document, location.SourceSpan))
+                                continue;
+
                             var documentLocation = !includeClassifiedSpans
                                 ? new DocumentSpan(document, location.SourceSpan)
                                 : await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
@@ -166,6 +275,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return DefinitionItem.Create(
                 tags, displayParts, sourceLocations.ToImmutable(),
                 nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
+
+            static bool CollidesWithLinkedLocation(ArrayBuilder<DocumentSpan> sourceLocations, Document document, TextSpan sourceSpan)
+            {
+                foreach (var existingLoc in sourceLocations)
+                {
+                    if (sourceSpan == existingLoc.SourceSpan &&
+                        existingLoc.Document.FilePath == document.FilePath)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private static ImmutableDictionary<string, string> GetProperties(ISymbol definition, bool isPrimary)
