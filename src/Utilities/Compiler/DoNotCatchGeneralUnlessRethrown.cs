@@ -36,12 +36,12 @@ namespace Analyzer.Utilities
             return false;
         }
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(AnalysisContext context)
         {
-            analysisContext.EnableConcurrentExecution();
-            analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
 
-            analysisContext.RegisterCompilationStartAction(compilationStartAnalysisContext =>
+            context.RegisterCompilationStartAction(compilationStartAnalysisContext =>
             {
                 INamedTypeSymbol? requiredAttributeType = null;
                 if (RequiresAttributeOnMethod && (requiredAttributeType = GetRequiredAttributeType(compilationStartAnalysisContext.Compilation)) == null)

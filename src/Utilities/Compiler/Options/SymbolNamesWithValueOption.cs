@@ -242,7 +242,13 @@ namespace Analyzer.Utilities
             => other != null && _names.IsEqualTo(other._names) && _symbols.IsEqualTo(other._symbols) && _wildcardNamesBySymbolKind.IsEqualTo(other._wildcardNamesBySymbolKind);
 
         public override int GetHashCode()
-            => HashUtilities.Combine(HashUtilities.Combine(_names), HashUtilities.Combine(_symbols), HashUtilities.Combine(_wildcardNamesBySymbolKind));
+        {
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(_names, ref hashCode);
+            HashUtilities.Combine(_symbols, ref hashCode);
+            HashUtilities.Combine(_wildcardNamesBySymbolKind, ref hashCode);
+            return hashCode.ToHashCode();
+        }
 
         private bool TryGetFirstWildcardMatch(ISymbol symbol, [NotNullWhen(true)] out string? firstMatchName, [MaybeNullWhen(false)] out TValue firstMatchValue)
         {

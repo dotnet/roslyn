@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-HANT" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="new">Add 'Shared' attribute</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
+      <trans-unit id="ApplyTraitToContainingType">
+        <source>Apply trait to containing type</source>
+        <target state="new">Apply trait to containing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
         <target state="translated">移除 'Opt' 尾碼</target>
@@ -20,21 +30,6 @@
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
         <target state="translated">避免 'Opt' 尾碼</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">避免多個空白行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesTitle">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">避免多個空白行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">括號之間不能有空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -112,6 +107,16 @@
         <target state="translated">無法將參考的值指派到無法複製的類型 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
+        <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
+        <target state="new">Auto-properties always copy values, so they cannot be declared with non-copyable types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
+        <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="new">Auto-property '{1}' cannot have non-copyable type '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
         <target state="translated">請勿對無法複製的值類型進行 Box 處理。</target>
@@ -120,6 +125,16 @@
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
         <target state="translated">請勿對無法複製的類型 '{0}' 進行 Box 處理</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
+        <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
+        <target state="new">A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
+        <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="new">Copyable field '{1}' cannot have non-copyable type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
@@ -282,16 +297,6 @@
         <target state="translated">非同步測試方法不需要 'Async' 尾碼</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">移除括號之間的空白行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">移除額外的空白行</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">TemporaryArray&lt;T&gt;.AsRef() 的執行個體必須是 'using' 變數。</target>
@@ -445,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">匯出 '{0}' 時使用的是 MEFv2，因此必須標記為 'SharedAttribute'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">陳述式必須位於自己的行中</target>
         <note />
       </trans-unit>
     </body>

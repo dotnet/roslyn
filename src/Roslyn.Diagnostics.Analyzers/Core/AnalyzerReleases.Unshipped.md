@@ -4,3 +4,8 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0049 | RoslynDiagnosticsReliability | Warning | TemporaryArrayAsRefAnalyzer
+
+### Removed Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+RS0101 | RoslynDiagnosticsMaintainability | Warning | AbstractBlankLinesDiagnosticAnalyzer
