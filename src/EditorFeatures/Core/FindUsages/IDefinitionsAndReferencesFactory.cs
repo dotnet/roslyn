@@ -112,57 +112,38 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return await ToDefinitionItemAsync(
                 group.PrimarySymbol,
                 allLocations,
-                GetAdditionalDisplayParts(solution, group, allLocations),
+                GetAdditionalDisplayParts(),
                 solution,
                 isPrimary,
                 includeHiddenLocations,
                 includeClassifiedSpans,
                 options,
                 cancellationToken).ConfigureAwait(false);
-        }
 
-        private static ImmutableArray<TaggedText> GetAdditionalDisplayParts(
-            Solution solution, SymbolGroup group, ImmutableArray<Location> allLocations)
-        {
-            // For linked symbols, add a suffix to the symbol display to say all the projects it was defined in.
-            if (group.Symbols.Count >= 2)
+            ImmutableArray<TaggedText> GetAdditionalDisplayParts()
             {
-                var primarySourceLocation = group.PrimarySymbol.Locations.FirstOrDefault(loc => loc.IsInSource);
-                var primaryDocument = solution.GetDocument(primarySourceLocation?.SourceTree);
-                if (primaryDocument != null)
+                // For linked symbols, add a suffix to the symbol display to say all the projects it was defined in.
+                if (group.Symbols.Count >= 2)
                 {
-                    var firstProject = primaryDocument.Project;
-                    var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
-
-                    if (firstProjectName != null)
+                    var primarySourceLocation = group.PrimarySymbol.Locations.FirstOrDefault(loc => loc.IsInSource);
+                    var primaryDocument = solution.GetDocument(primarySourceLocation?.SourceTree);
+                    var primaryProject = primaryDocument?.Project;
+                    if (primaryProject != null)
                     {
+                        var allProjectIds = allLocations.Where(loc => loc.IsInSource)
+                                                        .Select(loc => solution.GetDocument(loc.SourceTree))
+                                                        .Select(d => d?.Project.Id)
+                                                        .WhereNotNull()
+                                                        .ToImmutableArray();
+
                         using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
-                        flavors.Add(firstProjectFlavor!);
-
-                        // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
-                        // simple name/flavor, or if the simple project name doesn't match the simple project name we started
-                        // with then we can't merge these.
-                        foreach (var location in allLocations)
-                        {
-                            var document = solution.GetDocument(location.SourceTree);
-                            var project = document?.Project;
-                            if (project != null)
-                            {
-                                var (projectName, projectFlavor) = project.State.NameAndFlavor;
-                                if (projectName == firstProjectName)
-                                    flavors.Add(projectFlavor!);
-                            }
-                        }
-
-                        flavors.RemoveDuplicates();
-                        flavors.Sort();
-
+                        primaryProject.GetAllFlavors(allProjectIds, flavors);
                         return ImmutableArray.Create(new TaggedText(TextTags.Text, $" ({string.Join(", ", flavors)})"));
                     }
                 }
-            }
 
-            return ImmutableArray<TaggedText>.Empty;
+                return ImmutableArray<TaggedText>.Empty;
+            }
         }
 
         private static Task<DefinitionItem> ToDefinitionItemAsync(
