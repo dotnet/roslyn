@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     /// <summary>
     /// View model used to show the MenuItem for inheritance target.
     /// </summary>
-    internal class TargetMenuItemViewModel : InheritanceContextMenuItemViewModel
+    internal class TargetMenuItemViewModel : InheritanceMenuItemViewModel
     {
         /// <summary>
         /// DefinitionItem used for navigation.

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// <summary>
         /// ViewModels for the context menu items.
         /// </summary>
-        public ImmutableArray<InheritanceContextMenuItemViewModel> MenuItemViewModels { get; }
+        public ImmutableArray<MenuItemViewModel> MenuItemViewModels { get; }
 
         public bool HasMultipleMembers { get; }
 
@@ -44,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             ImageMoniker imageMoniker,
             TextBlock toolTipTextBlock,
             string automationName,
-            ImmutableArray<InheritanceContextMenuItemViewModel> menuItemViewModels,
+            ImmutableArray<MenuItemViewModel> menuItemViewModels,
             bool hasMultipleMembers)
         {
             ImageMoniker = imageMoniker;
@@ -77,8 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
 
                 var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
-                var menuItemViewModels = member.TargetItems
-                    .SelectAsArray(TargetMenuItemViewModel.Create).CastArray<InheritanceContextMenuItemViewModel>();
+
+                var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member.TargetItems);
                 return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, menuItemViewModels, false);
             }
             else
@@ -88,11 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     Text = ServicesVSResources.Multiple_members_are_inherited
                 };
 
-                // Same automation name can't be set for control. So add the line number info.
+                // Same automation name can't be set for control for accessibility purpose. So add the line number info.
                 var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
-                var menuItemViewModels = tag.MembersOnLine
-                    .SelectAsArray(MemberMenuItemViewModel.Create)
-                    .CastArray<InheritanceContextMenuItemViewModel>();
+                var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine);
                 return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, menuItemViewModels, true);
             }
         }

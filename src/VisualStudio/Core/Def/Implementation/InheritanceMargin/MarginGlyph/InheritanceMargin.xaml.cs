@@ -120,4 +120,3 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
     }
 }
-
