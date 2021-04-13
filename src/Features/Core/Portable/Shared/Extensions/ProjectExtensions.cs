@@ -32,8 +32,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
                     project.GetAllFlavors(allProjectIds, flavors);
 
-                    if (flavors.Count > 1)
-                        return $"{firstProjectName} ({string.Join(", ", flavors)})";
+                    return flavors.Count > 1
+                        ? $"{firstProjectName} ({string.Join(", ", flavors)})"
+                        : firstProjectName;
                 }
             }
 

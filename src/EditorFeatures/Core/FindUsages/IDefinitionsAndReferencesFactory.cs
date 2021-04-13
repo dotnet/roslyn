@@ -119,7 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                         using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
                         primaryProject.GetAllFlavors(allProjectIds, flavors);
-                        return ImmutableArray.Create(new TaggedText(TextTags.Text, $" ({string.Join(", ", flavors)})"));
+                        return flavors.Count > 1
+                            ? ImmutableArray.Create(new TaggedText(TextTags.Text, $" ({string.Join(", ", flavors)})"))
+                            : ImmutableArray<TaggedText>.Empty;
                     }
                 }
 
