@@ -5,9 +5,8 @@
 using System;
 using System.IO;
 using System.Linq;
-using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Roslyn.Test.Utilities
 {
     public static class DotNetCoreSdk
     {
