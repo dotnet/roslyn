@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tags
     /// <summary>
     /// Extensibility point for hosts to display <see cref="ImageId"/>s for items with Tags.
     /// </summary>
-    internal interface IImageMonikerService
+    internal interface IImageIdService
     {
-        bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageId imageMoniker);
+        bool TryGetImageId(ImmutableArray<string> tags, out ImageId imageId);
     }
 }

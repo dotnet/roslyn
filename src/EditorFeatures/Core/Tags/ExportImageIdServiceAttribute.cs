@@ -10,20 +10,20 @@ using System.ComponentModel.Composition;
 namespace Microsoft.CodeAnalysis.Editor.Tags
 {
     /// <summary>
-    /// Use this attribute to declare an <see cref="IImageMonikerService"/> implementation 
+    /// Use this attribute to declare an <see cref="IImageIdService"/> implementation 
     /// so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportImageMonikerServiceAttribute : ExportAttribute
+    internal sealed class ExportImageIdServiceAttribute : ExportAttribute
     {
         /// <summary>
-        /// The name of the <see cref="IImageMonikerService"/>.  
+        /// The name of the <see cref="IImageIdService"/>.  
         /// </summary>
         public string Name { get; set; }
 
-        public ExportImageMonikerServiceAttribute()
-            : base(typeof(IImageMonikerService))
+        public ExportImageIdServiceAttribute()
+            : base(typeof(IImageIdService))
         {
         }
     }

@@ -13,18 +13,18 @@ using Microsoft.VisualStudio.Core.Imaging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tags
 {
-    [ExportImageMonikerService(Name = Name)]
-    internal class DefaultImageMonikerService : IImageMonikerService
+    [ExportImageIdService(Name = Name)]
+    internal class DefaultImageIdService : IImageIdService
     {
-        public const string Name = nameof(DefaultImageMonikerService);
+        public const string Name = nameof(DefaultImageIdService);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultImageMonikerService()
+        public DefaultImageIdService()
         {
         }
 
-        public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageId imageMoniker)
+        public bool TryGetImageId(ImmutableArray<string> tags, out ImageId imageId)
         {
             var glyph = tags.GetFirstGlyph();
 
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tags
                     break;
             }
 
-            imageMoniker = glyph.GetImageId();
-            return imageMoniker != default;
+            imageId = glyph.GetImageId();
+            return imageId != default;
         }
     }
 }

@@ -36,11 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
     }
 
-    [ExportImageMonikerService(Name = Name)]
-    [Order(Before = DefaultImageMonikerService.Name)]
-    internal class VisualStudioImageMonikerService : ForegroundThreadAffinitizedObject, IImageMonikerService
+    [ExportImageIdService(Name = Name)]
+    [Order(Before = DefaultImageIdService.Name)]
+    internal class VisualStudioImageIdService : ForegroundThreadAffinitizedObject, IImageIdService
     {
-        public const string Name = nameof(VisualStudioImageMonikerService);
+        public const string Name = nameof(VisualStudioImageIdService);
 
         private readonly IVsImageService2 _imageService;
 
@@ -49,27 +49,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioImageMonikerService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+        public VisualStudioImageIdService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
             _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
         }
 
-        public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageId imageMoniker)
+        public bool TryGetImageId(ImmutableArray<string> tags, out ImageId imageId)
         {
             this.AssertIsForeground();
 
-            imageMoniker = GetImageMoniker(tags);
-            return imageMoniker != default;
+            imageId = GetImageId(tags);
+            return imageId != default;
         }
 
-        private ImageId GetImageMoniker(ImmutableArray<string> tags)
+        private ImageId GetImageId(ImmutableArray<string> tags)
         {
             var glyph = tags.GetFirstGlyph();
             switch (glyph)
             {
                 case Glyph.AddReference:
-                    return GetCompositedImageMoniker(
+                    return GetCompositedImageId(
                         CreateLayer(Glyph.Reference.GetImageMoniker(), virtualXOffset: 1, virtualYOffset: 2),
                         CreateLayer(KnownMonikers.PendingAddNode, virtualWidth: 7, virtualXOffset: -1, virtualYOffset: -2));
             }
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
             };
         }
 
-        private ImageId GetCompositedImageMoniker(params ImageCompositionLayer[] layers)
+        private ImageId GetCompositedImageId(params ImageCompositionLayer[] layers)
         {
             this.AssertIsForeground();
 

@@ -263,15 +263,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var tags = CodeAction.Tags;
                 if (tags.Length > 0)
                 {
-                    foreach (var service in SourceProvider.ImageMonikerServices)
+                    foreach (var service in SourceProvider.ImageIdServices)
                     {
-                        if (service.Value.TryGetImageMoniker(tags, out var moniker) && !moniker.Equals(default(ImageId)))
+                        if (service.Value.TryGetImageId(tags, out var imageId) && !imageId.Equals(default(ImageId)))
                         {
                             // Not using the extension method because it's not available in Cocoa
                             return new ImageMoniker
                             {
-                                Guid = moniker.Guid,
-                                Id = moniker.Id
+                                Guid = imageId.Guid,
+                                Id = imageId.Id
                             };
                         }
                     }
