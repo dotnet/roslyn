@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
         public TextStructureNavigatorProvider(
             ITextStructureNavigatorSelectorService selectorService,
             IContentTypeRegistryService contentTypeService,
-            IWaitIndicator waitIndicator)
-            : base(selectorService, contentTypeService, waitIndicator)
+            IUIThreadOperationExecutor uIThreadOperationExecutor)
+            : base(selectorService, contentTypeService, uIThreadOperationExecutor)
         {
         }
 
