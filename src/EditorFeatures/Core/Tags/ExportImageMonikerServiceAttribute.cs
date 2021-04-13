@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tags
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class ExportImageMonikerServiceAttribute : ExportAttribute
+    internal sealed class ExportImageMonikerServiceAttribute : ExportAttribute
     {
         /// <summary>
         /// The name of the <see cref="IImageMonikerService"/>.  
