@@ -28,7 +28,6 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
-using Shell = Microsoft.VisualStudio.Shell;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
@@ -55,6 +54,23 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             var result = Assert.Single(results);
             Assert.Equal(new Uri(document.FilePath), result.Uri);
             Assert.Equal("id", result.Diagnostics.Single().Code);
+        }
+
+        [Fact]
+        public async Task NoDiagnosticsWhenInPullMode()
+        {
+            using var workspace = CreateTestLspServer("", out _).TestWorkspace;
+            workspace.SetOptions(workspace.Options.WithChangedOption(
+                InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Pull));
+
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+
+            var diagnosticsMock = new Mock<IDiagnosticService>(MockBehavior.Strict);
+            // Create a mock that returns a diagnostic for the document.
+            SetupMockWithDiagnostics(diagnosticsMock, document.Id, await CreateMockDiagnosticDataAsync(document, "id").ConfigureAwait(false));
+
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 0, document).ConfigureAwait(false);
+            Assert.Empty(results);
         }
 
         [Fact]
@@ -368,11 +384,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             jsonRpc.StartListening();
 
             // Triggers language server to send notifications.
-            foreach (var document in documentsToPublish)
-                await languageServer.PublishDiagnosticsAsync(diagnosticService, document, CancellationToken.None).ConfigureAwait(false);
+            await languageServer.ProcessDiagnosticUpdatedBatchAsync(
+                diagnosticService, documentsToPublish.SelectAsArray(d => d.Id), CancellationToken.None);
 
             // Waits for all notifications to be received.
-            await callback.CallbackCompletedTask.Task.ConfigureAwait(false);
+            await callback.CallbackCompletedTask.ConfigureAwait(false);
 
             return (languageServer.GetTestAccessor(), callback.Results);
 
@@ -518,10 +534,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private class Callback
         {
+            private readonly TaskCompletionSource<object?> _callbackCompletedTaskSource = new();
             /// <summary>
             /// Task that can be awaited for the all callbacks to complete.
             /// </summary>
-            public TaskCompletionSource<object> CallbackCompletedTask { get; }
+            public Task CallbackCompletedTask => _callbackCompletedTaskSource.Task;
 
             /// <summary>
             /// Serialized results of all publish diagnostic notifications received by this callback.
@@ -531,7 +548,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             /// <summary>
             /// Lock to guard concurrent callbacks.
             /// </summary>
-            private readonly object _lock = new object();
+            private readonly object _lock = new();
 
             /// <summary>
             /// The expected number of times this callback should be hit.
@@ -547,10 +564,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             public Callback(int expectedNumberOfCallbacks)
             {
-                CallbackCompletedTask = new TaskCompletionSource<object>();
                 Results = new List<LSP.PublishDiagnosticParams>();
                 _expectedNumberOfCallbacks = expectedNumberOfCallbacks;
                 _currentNumberOfCallbacks = 0;
+
+                if (expectedNumberOfCallbacks == 0)
+                    _callbackCompletedTaskSource.SetResult(null);
             }
 
             [JsonRpcMethod(LSP.Methods.TextDocumentPublishDiagnosticsName)]
@@ -565,9 +584,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     Results.Add(diagnosticParams);
 
                     if (_currentNumberOfCallbacks == _expectedNumberOfCallbacks)
-                    {
-                        CallbackCompletedTask.SetResult(new object());
-                    }
+                        _callbackCompletedTaskSource.SetResult(null);
 
                     return Task.CompletedTask;
                 }

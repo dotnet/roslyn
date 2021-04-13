@@ -693,6 +693,92 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointer()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate * < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate*<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithManagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *managed < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* managed<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConventionAndSpecifiers()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged [ Cdecl ,  Thiscall ] < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged[Cdecl, Thiscall]<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(49732, "https://github.com/dotnet/roslyn/issues/49732")]
+        public void TestNormalizeXmlInDocComment()
+        {
+            var code = @"/// <returns>
+/// If this method succeeds, it returns <b xmlns:loc=""http://microsoft.com/wdcml/l10n"">S_OK</b>.
+/// </returns>";
+            TestNormalizeDeclaration(code, code);
+        }
+
         [Theory]
         [InlineData("_=()=>{};", "_ = () =>\r\n{\r\n};")]
         [InlineData("_=x=>{};", "_ = x =>\r\n{\r\n};")]

@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     ' QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                     ' In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
                     If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso Not name.Parent.IsKind(SyntaxKind.QualifiedName) Then
-                        Dim type = semanticModel.GetTypeInfo(name).Type
+                        Dim type = semanticModel.GetTypeInfo(name, cancellationToken).Type
                         If type IsNot Nothing Then
                             Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
                             If keywordKind <> SyntaxKind.None Then
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
         Private Shared Function TryOmitModuleName(name As QualifiedNameSyntax, semanticModel As SemanticModel, <Out()> ByRef replacementNode As ExpressionSyntax, <Out()> ByRef issueSpan As TextSpan, cancellationToken As CancellationToken) As Boolean
             If name.IsParentKind(SyntaxKind.QualifiedName) Then
-                Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax)).Symbol
+                Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax), cancellationToken).Symbol
 
                 ' in case this QN is used in a "New NSName.ModuleName.MemberName()" expression
                 ' the returned symbol is a constructor. Then we need to get the containing type.

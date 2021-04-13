@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
             _diagnosticsWorkQueue = new AsyncBatchingWorkQueue<DocumentId>(
                 TimeSpan.FromMilliseconds(250),
-                ProcessDiagnosticUpdatedBatchAsync,
+                (ids, ct) => ProcessDiagnosticUpdatedBatchAsync(_diagnosticService, ids, ct),
                 EqualityComparer<DocumentId>.Default,
                 Listener,
                 Queue.CancellationToken);
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
         }
 
-        private void DiagnosticService_DiagnosticsUpdated(object? _, DiagnosticsUpdatedArgs e)
+        private void DiagnosticService_DiagnosticsUpdated(object _, DiagnosticsUpdatedArgs e)
             => DiagnosticService_DiagnosticsUpdated(e.Solution, e.DocumentId);
 
         private void DiagnosticService_DiagnosticsUpdated(Solution? solution, DocumentId? documentId)
@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                     return;
 
                 // Only publish document diagnostics for the languages this provider supports.
-                if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
+                if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
                     return;
 
                 _diagnosticsWorkQueue.AddWork(document.Id);
@@ -185,8 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// This dictionary stores the previously computed diagnostics for the published file so that we can
         /// union the currently computed diagnostics (e.g. for dA) with previously computed diagnostics (e.g. from dB).
         /// </summary>
-        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LSP.Diagnostic>>> _publishedFileToDiagnostics =
-            new();
+        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LSP.Diagnostic>>> _publishedFileToDiagnostics = new();
 
         /// <summary>
         /// Stores the mapping of a document to the uri(s) of diagnostics previously produced for this document.  When
@@ -204,9 +203,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
 
-        private async Task ProcessDiagnosticUpdatedBatchAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        // internal for testing purposes
+        internal async Task ProcessDiagnosticUpdatedBatchAsync(
+            IDiagnosticService? diagnosticService, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
-            if (_diagnosticService == null)
+            if (diagnosticService == null)
                 return;
 
             foreach (var documentId in documentIds)
@@ -215,12 +216,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 var document = WorkspaceRegistrationService.GetAllRegistrations().Select(w => w.CurrentSolution.GetDocument(documentId)).FirstOrDefault();
 
                 if (document != null)
-                    await PublishDiagnosticsAsync(_diagnosticService, document, cancellationToken).ConfigureAwait(false);
+                {
+                    // If this is a `pull` client, and `pull` diagnostics is on, then we should not `publish` (push) the
+                    // diagnostics here. 
+                    var diagnosticMode = document.IsRazorDocument()
+                        ? InternalDiagnosticsOptions.RazorDiagnosticMode
+                        : InternalDiagnosticsOptions.NormalDiagnosticMode;
+                    if (document.Project.Solution.Workspace.IsPushDiagnostics(diagnosticMode))
+                        await PublishDiagnosticsAsync(diagnosticService, document, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
-        // Internal for testing purposes.
-        internal async Task PublishDiagnosticsAsync(IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
+        private async Task PublishDiagnosticsAsync(IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
         {
             // Retrieve all diagnostics for the current document grouped by their actual file uri.
             var fileUriToDiagnostics = await GetDiagnosticsAsync(diagnosticService, document, cancellationToken).ConfigureAwait(false);
