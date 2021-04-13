@@ -44,6 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
 
+        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+
         /// <summary>
         /// The temporary directory that we'll create file names under to act as a prefix we can later recognize and use.
         /// </summary>
@@ -102,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // The IVsRunningDocumentTable is a free-threaded VS service that allows fetching of the service and advising events
             // to be done without implicitly marshalling to the UI thread.
             _runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
-            _ = new RunningDocumentTableEventTracker(
+            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(
                 threadingContext,
                 editorAdaptersFactoryService,
                 _runningDocumentTable,

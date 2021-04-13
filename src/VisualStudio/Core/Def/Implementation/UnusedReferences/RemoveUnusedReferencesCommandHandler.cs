@@ -41,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoveUnusedReferencesCommandHandler(
             RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
-            IVsHierarchyItemManager vsHierarchyItemManager,
             IUIThreadOperationExecutor threadOperationExecutor,
             VisualStudioWorkspace workspace)
         {
