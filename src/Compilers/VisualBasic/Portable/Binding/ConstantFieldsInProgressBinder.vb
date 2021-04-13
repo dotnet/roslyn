@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
@@ -14,16 +16,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class ConstantFieldsInProgressBinder
         Inherits Binder
 
-        Private ReadOnly _inProgress As SymbolsInProgress(Of FieldSymbol)
+        Private ReadOnly _inProgress As ConstantFieldsInProgress
         Private ReadOnly _field As FieldSymbol
 
-        Friend Sub New(inProgress As SymbolsInProgress(Of FieldSymbol), [next] As Binder, field As FieldSymbol)
+        Friend Sub New(inProgress As ConstantFieldsInProgress, [next] As Binder, field As FieldSymbol)
             MyBase.New([next])
             Me._inProgress = inProgress
             Me._field = field
         End Sub
 
-        Friend Overrides ReadOnly Property ConstantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
+        Friend Overrides ReadOnly Property ConstantFieldsInProgress As ConstantFieldsInProgress
             Get
                 Return _inProgress
             End Get

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -237,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Resets numbering in anonymous type names and compiles the
         /// anonymous type methods. Also seals the collection of templates.
         /// </summary>
-        public void AssignTemplatesNamesAndCompile(MethodCompiler compiler, PEModuleBuilder moduleBeingBuilt, DiagnosticBag diagnostics)
+        public void AssignTemplatesNamesAndCompile(MethodCompiler compiler, PEModuleBuilder moduleBeingBuilt, BindingDiagnosticBag diagnostics)
         {
             // Ensure all previous anonymous type templates are included so the
             // types are available for subsequent edit and continue generations.
@@ -303,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var method in template.SpecialMembers)
                     {
-                        moduleBeingBuilt.AddSynthesizedDefinition(template, method);
+                        moduleBeingBuilt.AddSynthesizedDefinition(template, method.GetCciAdapter());
                     }
 
                     compiler.Visit(template, null);
@@ -386,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var nameAndIndex = template.NameAndIndex;
                 var key = template.GetAnonymousTypeKey();
-                var value = new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template);
+                var value = new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template.GetCciAdapter());
                 result.Add(key, value);
             }
             templates.Free();

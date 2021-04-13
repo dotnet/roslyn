@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Options
@@ -19,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                     Class B
                         Inherits C
-                        Public Shared Funtion Goo() As Integer
+                        Public Shared Function Goo() As Integer
                         End Function
                     End Class
                     Module Program
@@ -48,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                     Class B
                         Inherits C
-                        Public Shared Funtion Goo() As Integer
+                        Public Shared Function Goo() As Integer
                         End Function
                     End Class
                     Module Program
@@ -68,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -100,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -165,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -202,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -253,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -289,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Imports System
                     Imports I = System.Int32
                     Module Program
-                        Public Dim x = 5
+                        Public Dim x As Integer = 5
                         Function Goo() As Integer
                         End Function
                         Sub Main(args As String())
@@ -303,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -356,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -407,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -467,7 +469,7 @@ class D : C
 }]]>
               </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInference, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -522,7 +524,7 @@ End Class
 ]]>
               </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInference, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -555,7 +557,7 @@ End Namespace
               <text>
 Namespace X
     Module Program
-        Public Dim t = A.getInt()
+        Public Dim t as Integer = A.getInt()
         Sub Main(args As String())
         End Sub
     End Module
@@ -568,7 +570,7 @@ Namespace X
 End Namespace
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -604,7 +606,7 @@ End Namespace
 Namespace Y
     Namespace X
         Module Program
-            Public Dim t = A.getInt()
+            Public Dim t as Integer = A.getInt()
             Sub Main(args As String())
             End Function
         End Module
@@ -618,7 +620,7 @@ Namespace Y
 End Namespace
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function

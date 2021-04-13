@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression result;
 
-            string indexedPropertyName = indexerAccess.TryGetIndexedPropertyName();
+            string? indexedPropertyName = indexerAccess.TryGetIndexedPropertyName();
             if (indexedPropertyName != null)
             {
                 // Dev12 forces the receiver to be typed to dynamic to workaround a bug in the runtime binder.
@@ -38,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            Debug.Assert(node.ReceiverOpt != null);
-
-            var loweredReceiver = VisitExpression(node.ReceiverOpt);
+            var loweredReceiver = VisitExpression(node.Receiver);
             var loweredArguments = VisitList(node.Arguments);
 
             return MakeDynamicGetIndex(node, loweredReceiver, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
             Debug.Assert(node.Indexer.IsIndexer || node.Indexer.IsIndexedProperty);
-            Debug.Assert((object)node.Indexer.GetOwnOrInheritedGetMethod() != null);
+            Debug.Assert((object?)node.Indexer.GetOwnOrInheritedGetMethod() != null);
 
             return VisitIndexerAccess(node, isLeftOfAssignment: false);
         }
@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
 
             // Rewrite the receiver.
-            BoundExpression rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            Debug.Assert(rewrittenReceiver is { });
 
             // Rewrite the arguments.
             // NOTE: We may need additional argument rewriting such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgumentRefKindsOpt,
                 node.Expanded,
                 node.ArgsToParamsOpt,
+                node.DefaultArguments,
                 node.Type,
                 node,
                 isLeftOfAssignment);
@@ -108,8 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
             TypeSymbol type,
-            BoundIndexerAccess oldNodeOpt,
+            BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
         {
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
@@ -118,13 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type);
+                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
             }
             else
             {
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();
-                Debug.Assert((object)getMethod != null);
+                Debug.Assert(getMethod is not null);
 
                 // We have already lowered each argument, but we may need some additional rewriting for the arguments,
                 // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
@@ -133,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenArguments,
                     indexer,
-                    getMethod,
                     expanded,
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
@@ -209,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var F = _factory;
 
+            Debug.Assert(receiver.Type is { });
             var receiverLocal = F.StoreToTemp(
                 VisitExpression(receiver),
                 out var receiverStore,
@@ -249,14 +252,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default,
                     expanded: false,
                     argsToParamsOpt: default,
+                    defaultArguments: default,
                     intIndexer.Type,
                     oldNodeOpt: null,
                     isLeftOfAssignment));
         }
 
+        /// <summary>
+        /// Used to construct a pattern index offset expression, of the form
+        ///     `unloweredExpr.GetOffset(lengthAccess)`
+        /// where unloweredExpr is an expression of type System.Index and the
+        /// lengthAccess retrieves the length of the indexing target.
+        /// </summary>
+        /// <param name="unloweredExpr">The unlowered argument to the indexing expression</param>
+        /// <param name="lengthAccess">
+        /// An expression accessing the length of the indexing target. This should
+        /// be a non-side-effecting operation.
+        /// </param>
+        /// <param name="usedLength">
+        /// True if we were able to optimize the <paramref name="unloweredExpr"/>
+        /// to use the <paramref name="lengthAccess"/> operation directly on the receiver, instead of
+        /// using System.Index helpers.
+        /// </param>
         private BoundExpression MakePatternIndexOffsetExpression(
             BoundExpression unloweredExpr,
-            BoundLocal lengthAccess,
+            BoundExpression lengthAccess,
             out bool usedLength)
         {
             Debug.Assert(TypeSymbol.Equals(
@@ -270,16 +290,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the System.Index argument is `^index`, we can replace the
                 // `argument.GetOffset(length)` call with `length - index`
-                Debug.Assert(hatExpression.Operand.Type.SpecialType == SpecialType.System_Int32);
+                Debug.Assert(hatExpression.Operand is { Type: { SpecialType: SpecialType.System_Int32 } });
                 usedLength = true;
                 return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
             }
-            else if (unloweredExpr is BoundConversion conversion && conversion.Operand.Type.SpecialType == SpecialType.System_Int32)
+            else if (unloweredExpr is BoundConversion { Operand: { Type: { SpecialType: SpecialType.System_Int32 } } operand })
             {
                 // If the System.Index argument is a conversion from int to Index we
                 // can return the int directly
                 usedLength = false;
-                return VisitExpression(conversion.Operand);
+                return VisitExpression(operand);
             }
             else
             {

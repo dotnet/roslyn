@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.VisualStudio;
@@ -15,9 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsLibrary.GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary.GetGuid(out Guid ppguidLib)
         {
@@ -44,9 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsLibrary.GetSeparatorString(string[] pszSeparator)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary.GetSupportedCategoryFields(LIB_CATEGORY category, out uint pCatField)
         {
@@ -55,19 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsLibrary.LoadState(Microsoft.VisualStudio.OLE.Interop.IStream pIStream, LIB_PERSISTTYPE lptType)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary.RemoveBrowseContainer(uint dwReserved, string pszLibName)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary.SaveState(Microsoft.VisualStudio.OLE.Interop.IStream pIStream, LIB_PERSISTTYPE lptType)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary.UpdateCounter(out uint pCurUpdate)
         {

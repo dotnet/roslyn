@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -852,7 +854,9 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Public S
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40679: The test hook is blocked by this issue.
+        <WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <WorkItem(40679, "https://github.com/dotnet/roslyn/issues/40679")>
         Public Sub ParameterReference_LateAddressOfOperator()
             Dim source = <![CDATA[
 Option Strict Off

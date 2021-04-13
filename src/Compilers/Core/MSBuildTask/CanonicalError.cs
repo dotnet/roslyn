@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Globalization;
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             /// <summary>
             /// Name of the file or tool (not localized)
             /// </summary>
-            internal string origin;
+            internal string? origin;
 
             /// <summary>
             /// The line number.
@@ -196,17 +198,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             /// <summary>
             /// The sub category (localized)
             /// </summary>
-            internal string subcategory;
+            internal string? subcategory;
 
             /// <summary>
             /// The error code (not localized)
             /// </summary>
-            internal string code;
+            internal string? code;
 
             /// <summary>
             /// The error message text (localized)
             /// </summary>
-            internal string text;
+            internal string? text;
 
 #if NEVER
             internal new string ToString()
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <owner>JomoF</owner>
         /// <param name="message"></param>
         /// <returns>Decomposed canonical message, or null.</returns>
-        internal static Parts Parse(string message)
+        internal static Parts? Parse(string message)
         {
             // An unusually long string causes pathologically slow Regex back-tracking.
             // To avoid that, only scan the first 400 characters. That's enough for 

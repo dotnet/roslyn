@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -84,7 +90,6 @@ namespace BuildBoss
                     textWriter.WriteLine($"\tDo not use {propertyName}");
                     return false;
                 }
-
             }
 
             return true;
@@ -98,7 +103,6 @@ namespace BuildBoss
             var declaredList = declaredEntryList.Select(x => x.ProjectKey).ToList();
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
-            allGood &= CheckTransitiveReferences(textWriter, declaredList);
             allGood &= CheckNoGuidsOnProjectReferences(textWriter, declaredEntryList);
 
             return allGood;
@@ -124,18 +128,36 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var name = packageRef.Name.Replace(".", "").Replace("-", "");
-                var floatingName = $"$({name}Version)";
-                var fixedName = $"$({name}FixedVersion)";
-                if (packageRef.Version != floatingName && packageRef.Version != fixedName)
+                var allowedPackageVersons = GetAllowedPackageReferenceVersions(packageRef).ToList();
+
+                if (!allowedPackageVersons.Contains(packageRef.Version))
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
-                    textWriter.WriteLine($"Allowed values are {floatingName} or {fixedName}");
+                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersons));
                     allGood = false;
                 }
             }
 
             return allGood;
+        }
+
+        private IEnumerable<string> GetAllowedPackageReferenceVersions(PackageReference packageReference)
+        {
+            // If this is a generator project, if it has a reference to Microsoft.CodeAnalysis.Common, that means it's
+            // a source generator. In that case, we require the version of the API being built against to match the toolset
+            // version, so that way the source generator can actually be loaded by the toolset. We don't apply this rule to
+            // any other project, as any other project having a reason to reference a version of Roslyn via a PackageReference
+            // probably doesn't fall under this rule.
+            if (ProjectFilePath.Contains("CompilerGeneratorTools") && packageReference.Name == "Microsoft.CodeAnalysis.Common")
+            {
+                yield return "$(SourceGeneratorMicrosoftCodeAnalysisVersion)";
+            }
+            else
+            {
+                var name = packageReference.Name.Replace(".", "").Replace("-", "");
+                yield return $"$({name}Version)";
+                yield return $"$({name}FixedVersion)";
+            }
         }
 
         private bool CheckInternalsVisibleTo(TextWriter textWriter)
@@ -252,63 +274,6 @@ namespace BuildBoss
             return allGood;
         }
 
-        /// <summary>
-        /// In order to ensure all dependencies are properly copied on deployment projects, the declared reference
-        /// set much match the transitive dependency set.  When there is a difference it represents dependencies that
-        /// MSBuild won't deploy on build.
-        /// </summary>
-        private bool CheckTransitiveReferences(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
-        {
-            if (!_projectUtil.IsDeploymentProject)
-            {
-                return true;
-            }
-
-            var list = GetProjectReferencesTransitive(declaredReferences);
-            var set = new HashSet<ProjectKey>(declaredReferences);
-            var allGood = true;
-            foreach (var key in list)
-            {
-                if (!set.Contains(key))
-                {
-                    textWriter.WriteLine($"Missing project reference {key.FileName}");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-        }
-
-        private List<ProjectKey> GetProjectReferencesTransitive(IEnumerable<ProjectKey> declaredReferences)
-        {
-            var list = new List<ProjectKey>();
-            var toVisit = new Queue<ProjectKey>(declaredReferences);
-            var seen = new HashSet<ProjectKey>();
-
-            while (toVisit.Count > 0)
-            {
-                var current = toVisit.Dequeue();
-                if (!seen.Add(current))
-                {
-                    continue;
-                }
-
-                if (!_solutionMap.TryGetValue(current, out var data))
-                {
-                    continue;
-                }
-
-                list.Add(current);
-                foreach (var dep in data.ProjectUtil.GetDeclaredProjectReferences())
-                {
-                    toVisit.Enqueue(dep.ProjectKey);
-                }
-            }
-
-            list.Sort((x, y) => x.FileName.CompareTo(y.FileName));
-            return list;
-        }
-
         private bool CheckTargetFrameworks(TextWriter textWriter)
         {
             if (!_data.IsUnitTestProject)
@@ -319,30 +284,13 @@ namespace BuildBoss
             var allGood = true;
             foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {
-                // TODO: Code Style projects need to be moved over to 4.7.2 and netstandard2.0
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/712825 
-                if (ProjectFilePath.Contains("CodeStyle"))
+                switch (targetFramework)
                 {
-
-                    switch (targetFramework)
-                    {
-                        case "net46":
-                        case "netstandard1.3":
-                            continue;
-                    }
-                }
-                else
-                {
-                    switch (targetFramework)
-                    {
-                        case "net20":
-                        case "net472":
-                        case "netcoreapp1.1":
-                        case "netcoreapp2.1":
-                        case "netcoreapp3.0":
-                        case "$(RoslynPortableTargetFrameworks)":
-                            continue;
-                    }
+                    case "net20":
+                    case "net472":
+                    case "netcoreapp3.1":
+                    case "net5.0":
+                        continue;
                 }
 
                 textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");

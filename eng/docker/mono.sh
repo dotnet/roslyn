@@ -15,6 +15,7 @@ dockerfile="$dir"/Mono
 
 # Ensure the container isn't already running. Can happened for cancelled jobs in CI
 docker kill $CONTAINER_NAME || true
+docker container rm $CONTAINER_NAME || true
 
 # Make container names CI-specific if we're running in CI
 #  Jenkins

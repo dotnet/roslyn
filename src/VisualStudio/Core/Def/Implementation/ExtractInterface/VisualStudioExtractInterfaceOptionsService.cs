@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +16,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 {
@@ -22,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext)
         {
             _glyphService = glyphService;
@@ -49,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 allTypeNames,
                 defaultNamespace,
                 generatedNameTypeParameterSuffix,
-                languageName,
-                languageName == LanguageNames.CSharp ? ".cs" : ".vb");
+                languageName);
 
             var dialog = new ExtractInterfaceDialog(viewModel);
             var result = dialog.ShowModal();
@@ -62,9 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 return new ExtractInterfaceOptionsResult(
                     isCancelled: false,
                     includedMembers: includedMembers.AsImmutable(),
-                    interfaceName: viewModel.InterfaceName.Trim(),
-                    fileName: viewModel.FileName.Trim(),
-                    location: GetLocation(viewModel.Destination));
+                    interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
+                    fileName: viewModel.DestinationViewModel.FileName.Trim(),
+                    location: GetLocation(viewModel.DestinationViewModel.Destination));
             }
             else
             {
@@ -72,13 +78,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             }
         }
 
-        private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(InterfaceDestination destination)
+        private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(NewTypeDestination destination)
         {
             switch (destination)
             {
-                case InterfaceDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
-                case InterfaceDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
-                default: throw new InvalidOperationException();
+                case NewTypeDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
+                case NewTypeDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
+                default: throw ExceptionUtilities.UnexpectedValue(destination);
             }
         }
     }

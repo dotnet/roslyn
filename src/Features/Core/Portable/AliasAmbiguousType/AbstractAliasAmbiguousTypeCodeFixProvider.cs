@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -44,6 +48,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 var compilation = semanticModel.Compilation;
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+                var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
                 foreach (var symbol in symbolInfo.CandidateSymbols.Cast<ITypeSymbol>())
                 {
@@ -52,10 +57,11 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                     codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, c =>
                         {
                             var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
-                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
+                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
                             return Task.FromResult(document.WithSyntaxRoot(newRoot));
                         }));
                 }
+
                 var groupingTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
                 var groupingCodeAction = new CodeActionWithNestedActions(groupingTitle, codeActionsBuilder.ToImmutable(), isInlinable: true);
                 context.RegisterCodeFix(groupingCodeAction, context.Diagnostics.First());

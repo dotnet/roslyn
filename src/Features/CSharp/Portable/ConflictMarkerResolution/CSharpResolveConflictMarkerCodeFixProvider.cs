@@ -1,29 +1,26 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConflictMarkerResolution;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConflictMarkerResolution), Shared]
     internal class CSharpResolveConflictMarkerCodeFixProvider : AbstractResolveConflictMarkerCodeFixProvider
     {
         private const string CS8300 = nameof(CS8300); // Merge conflict marker encountered
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpResolveConflictMarkerCodeFixProvider()
-            : base(CS8300)
+            : base(CSharpSyntaxKinds.Instance, CS8300)
         {
         }
-
-        protected override bool IsConflictMarker(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.ConflictMarkerTrivia;
-
-        protected override bool IsDisabledText(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.DisabledTextTrivia;
-
-        protected override bool IsEndOfLine(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
     }
 }

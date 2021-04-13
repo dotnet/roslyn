@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.[Text]
@@ -14,6 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Roslyn.Test.Utilities.TestMetadata
 
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
@@ -23,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         <Fact>
         Public Sub Test1()
-            Dim oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim oldMsCorLib = Net40.mscorlib
             Dim c1 = VisualBasicCompilation.Create("C1", references:={oldMsCorLib, TestReferences.SymbolsTests.CustomModifiers.Modifiers.netmodule})
 
             Dim c1Assembly = c1.Assembly
-            Dim newMsCorLib = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim newMsCorLib = Net451.mscorlib
             Dim c2 = VisualBasicCompilation.Create("C2", references:=New MetadataReference() {newMsCorLib, New VisualBasicCompilationReference(c1)})
             Dim mscorlibAssembly = c2.GetReferencedAssemblySymbol(newMsCorLib)
             Assert.NotSame(mscorlibAssembly, c1.GetReferencedAssemblySymbol(oldMsCorLib))
@@ -88,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         <Fact>
         Public Sub Test2()
-            Dim oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim oldMsCorLib = Net40.mscorlib
             Dim source = "
 public class Modifiers
 
@@ -101,7 +104,7 @@ End Class"
             Dim c1 = VisualBasicCompilation.Create("C1", {Parse(source)}, {oldMsCorLib})
 
             Dim c1Assembly = c1.Assembly
-            Dim newMsCorLib = TestReferences.NetFx.v4_0_30319.mscorlib
+            Dim newMsCorLib = Net451.mscorlib
 
             Dim r1 = New VisualBasicCompilationReference(c1)
             Dim c2 As VisualBasicCompilation = VisualBasicCompilation.Create("C2", references:={newMsCorLib, r1})
@@ -118,7 +121,7 @@ End Class"
             Assert.Equal(SpecialType.System_Int32, volatileFld.[Type].SpecialType)
             Assert.Equal("volatileFld", volatileFld.Name)
             Assert.Same(volatileFld, volatileFld.OriginalDefinition)
-            Assert.Null(volatileFld.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty))
+            Assert.Null(volatileFld.GetConstantValue(ConstantFieldsInProgress.Empty))
             Assert.Null(volatileFld.ConstantValue)
             Assert.Null(volatileFld.AssociatedSymbol)
             Assert.Same(c1AsmRef, volatileFld.ContainingAssembly)

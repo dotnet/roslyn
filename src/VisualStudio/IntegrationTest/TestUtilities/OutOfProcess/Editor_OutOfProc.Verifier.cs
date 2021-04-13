@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -17,6 +22,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             public Verifier(Editor_OutOfProc editor, VisualStudioInstance instance)
                 : base(editor, instance)
             {
+            }
+
+            public void IsNotSaved()
+            {
+                _textViewWindow._editorInProc.VerifyNotSaved();
+            }
+
+            public string IsSaved()
+            {
+                return _textViewWindow._editorInProc.VerifySaved();
             }
 
             public void CurrentLineText(
@@ -194,7 +209,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles);
                 var actualTags = _textViewWindow.GetErrorTags();
-                Assert.Equal(expectedTags, actualTags);
+                AssertEx.EqualOrDiff(
+                    string.Join(Environment.NewLine, expectedTags),
+                    string.Join(Environment.NewLine, actualTags));
             }
 
             public void IsProjectItemDirty(bool expectedValue)

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -15,8 +19,8 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders;
@@ -36,34 +40,36 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         internal CSharpCodeModelService(
             HostLanguageServices languageServiceProvider,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+            IThreadingContext threadingContext)
             : base(languageServiceProvider,
                    editorOptionsFactoryService,
                    refactorNotifyServices,
                    BlankLineInGeneratedMethodFormattingRule.Instance,
-                   EndRegionFormattingRule.Instance)
+                   EndRegionFormattingRule.Instance,
+                   threadingContext)
         {
         }
 
         private static readonly SymbolDisplayFormat s_codeTypeRefAsFullNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.ExpandNullable);
 
         private static readonly SymbolDisplayFormat s_codeTypeRefAsStringFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private static readonly SymbolDisplayFormat s_externalNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_externalFullNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -71,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName);
 
         private static readonly SymbolDisplayFormat s_setTypeFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -413,9 +419,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         private static bool NodeIsSupported(bool test, SyntaxNode node)
-        {
-            return !test || IsNameableNode(node);
-        }
+            => !test || IsNameableNode(node);
 
         /// <summary>
         /// Retrieves the members of a specified <paramref name="container"/> node. The members that are
@@ -623,9 +627,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override EnvDTE.CodeElement CreateUnknownRootNamespaceCodeElement(CodeModelState state, FileCodeModel fileCodeModel)
-        {
-            return (EnvDTE.CodeElement)CodeNamespace.CreateUnknown(state, fileCodeModel, (int)SyntaxKind.NamespaceDeclaration, string.Empty);
-        }
+            => (EnvDTE.CodeElement)CodeNamespace.CreateUnknown(state, fileCodeModel, (int)SyntaxKind.NamespaceDeclaration, string.Empty);
 
         public override EnvDTE.CodeTypeRef CreateCodeTypeRef(CodeModelState state, ProjectId projectId, object type)
         {
@@ -751,29 +753,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string GetAsFullNameForCodeTypeRef(ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.ToDisplayString(s_codeTypeRefAsFullNameFormat);
-        }
+            => typeSymbol.ToDisplayString(s_codeTypeRefAsFullNameFormat);
 
         public override string GetAsStringForCodeTypeRef(ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.ToDisplayString(s_codeTypeRefAsStringFormat);
-        }
+            => typeSymbol.ToDisplayString(s_codeTypeRefAsStringFormat);
 
         public override bool IsParameterNode(SyntaxNode node)
-        {
-            return node is ParameterSyntax;
-        }
+            => node is ParameterSyntax;
 
         public override bool IsAttributeNode(SyntaxNode node)
-        {
-            return node is AttributeSyntax;
-        }
+            => node is AttributeSyntax;
 
         public override bool IsAttributeArgumentNode(SyntaxNode node)
-        {
-            return node is AttributeArgumentSyntax;
-        }
+            => node is AttributeArgumentSyntax;
 
         public override bool IsOptionNode(SyntaxNode node)
         {
@@ -782,9 +774,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override bool IsImportNode(SyntaxNode node)
-        {
-            return node is UsingDirectiveSyntax;
-        }
+            => node is UsingDirectiveSyntax;
 
         public override string GetUnescapedName(string name)
         {
@@ -1096,9 +1086,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override SyntaxNode GetNodeWithInitializer(SyntaxNode node)
-        {
-            return node;
-        }
+            => node;
 
         private EnvDTE.vsCMAccess GetDefaultAccessibility(SyntaxNode node)
         {
@@ -1356,7 +1344,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             // trim off leading whitespace and exterior trivia.
             var lengthToStrip = lines[0].GetLeadingWhitespace().Length;
-            var linesCount = lines.Length;
 
             for (var i = 1; i < lines.Length; i++)
             {
@@ -1805,9 +1792,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override SyntaxNode CreateParameterNode(string name, string type)
-        {
-            return SyntaxFactory.Parameter(SyntaxFactory.Identifier(name)).WithType(SyntaxFactory.ParseTypeName(type));
-        }
+            => SyntaxFactory.Parameter(SyntaxFactory.Identifier(name)).WithType(SyntaxFactory.ParseTypeName(type));
 
         public override string GetAttributeArgumentValue(SyntaxNode attributeArgumentNode)
         {
@@ -2757,8 +2742,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var newFieldDeclaration = fieldDeclaration.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-                return document.ReplaceNodeAsync(fieldDeclaration, newFieldDeclaration, CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+                return document.ReplaceNodeSynchronously(fieldDeclaration, newFieldDeclaration, CancellationToken.None);
             }
         }
 
@@ -2779,8 +2763,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 newEnumDeclaration = newEnumDeclaration.ReplaceNode(lastMember, lastMember.WithTrailingTrivia(trailingTrivia));
             }
 
-            return document.ReplaceNodeAsync(enumDeclaration, newEnumDeclaration, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(enumDeclaration, newEnumDeclaration, CancellationToken.None);
         }
 
         private Document Delete(Document document, AttributeSyntax node)
@@ -2790,8 +2773,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             // If we don't have anything left, then just delete the whole attribute list.
             if (attributeList.Attributes.Count == 1)
             {
-                var text = document.GetTextAsync(CancellationToken.None)
-                                   .WaitAndGetResult_CodeModel(CancellationToken.None);
+                var text = document.GetTextSynchronously(CancellationToken.None);
 
                 // Note that we want to keep all leading trivia and delete all trailing trivia.
                 var deletionStart = attributeList.SpanStart;
@@ -2805,8 +2787,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var newAttributeList = attributeList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-                return document.ReplaceNodeAsync(attributeList, newAttributeList, CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+                return document.ReplaceNodeSynchronously(attributeList, newAttributeList, CancellationToken.None);
             }
         }
 
@@ -2815,8 +2796,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var argumentList = node.FirstAncestorOrSelf<AttributeArgumentListSyntax>();
             var newArgumentList = argumentList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return document.ReplaceNodeAsync(argumentList, newArgumentList, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(argumentList, newArgumentList, CancellationToken.None);
         }
 
         private Document Delete(Document document, ParameterSyntax node)
@@ -2824,14 +2804,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var parameterList = node.FirstAncestorOrSelf<ParameterListSyntax>();
             var newParameterList = parameterList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return document.ReplaceNodeAsync(parameterList, newParameterList, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(parameterList, newParameterList, CancellationToken.None);
         }
 
         private Document DeleteMember(Document document, SyntaxNode node)
         {
-            var text = document.GetTextAsync(CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             // We want to delete all the leading trivia from the node back to,
             // but not including:
@@ -2977,9 +2955,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
-        {
-            return CSharpCodeGenerationHelpers.GetDestination(node);
-        }
+            => CSharpCodeGenerationHelpers.GetDestination(node);
 
         protected override Accessibility GetDefaultAccessibility(SymbolKind targetSymbolKind, CodeGenerationDestination destination)
         {
@@ -3153,9 +3129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     // If a variable declarator was specified, make sure we return
                     // the index of the last variable declarator in the parenting field declaration.
-                    if (member.Kind() == SyntaxKind.VariableDeclarator)
+                    if (member.IsKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax variableDeclarator))
                     {
-                        var variableDeclarator = (VariableDeclaratorSyntax)member;
                         var variableDeclaration = (VariableDeclarationSyntax)member.Parent;
                         var indexOfDeclaratorInField = variableDeclaration.Variables.IndexOf(variableDeclarator);
                         return index + (variableDeclaration.Variables.Count - indexOfDeclaratorInField);
@@ -3520,9 +3495,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override bool IsNamespace(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.NamespaceDeclaration);
-        }
+            => node.IsKind(SyntaxKind.NamespaceDeclaration);
 
         public override bool IsType(SyntaxNode node)
         {
@@ -3586,8 +3559,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
         {
-            if (!methodDeclaration.IsParentKind(SyntaxKind.ClassDeclaration) ||
-                !((ClassDeclarationSyntax)methodDeclaration.Parent).Modifiers.Any(SyntaxKind.StaticKeyword))
+            if (!methodDeclaration.IsParentKind(SyntaxKind.ClassDeclaration, out ClassDeclarationSyntax classDecl) ||
+                !classDecl.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 return false;
             }
@@ -3602,14 +3575,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         private static bool IsPartialMethod(MethodDeclarationSyntax methodDeclaration)
-        {
-            return methodDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
-        }
+            => methodDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
 
         public override string[] GetFunctionExtenderNames()
-        {
-            return new[] { ExtenderNames.ExtensionMethod, ExtenderNames.PartialMethod };
-        }
+            => new[] { ExtenderNames.ExtensionMethod, ExtenderNames.PartialMethod };
 
         public override object GetFunctionExtender(string name, SyntaxNode node, ISymbol symbol)
         {
@@ -3649,9 +3618,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetPropertyExtenderNames()
-        {
-            return new[] { ExtenderNames.AutoImplementedProperty };
-        }
+            => new[] { ExtenderNames.AutoImplementedProperty };
 
         public override object GetPropertyExtender(string name, SyntaxNode node, ISymbol symbol)
         {
@@ -3673,9 +3640,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetExternalTypeExtenderNames()
-        {
-            return new[] { ExtenderNames.ExternalLocation };
-        }
+            => new[] { ExtenderNames.ExternalLocation };
 
         public override object GetExternalTypeExtender(string name, string externalLocation)
         {
@@ -3690,14 +3655,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetTypeExtenderNames()
-        {
-            return Array.Empty<string>();
-        }
+            => Array.Empty<string>();
 
         public override object GetTypeExtender(string name, AbstractCodeType symbol)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         protected override bool AddBlankLineToMethodBody(SyntaxNode node, SyntaxNode newNode)
         {

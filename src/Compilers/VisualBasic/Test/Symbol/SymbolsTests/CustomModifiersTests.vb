@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Xml.Linq
@@ -267,7 +269,7 @@ Class CL3
     Inherits CL2
 
     Overrides Sub Test(x as Integer)
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     End Sub
 End Class 
 ]]>
@@ -287,7 +289,7 @@ End Class
             Assert.True(withoutModifiers.IsSameTypeIgnoringAll(withModifiers))
             Assert.NotEqual(withoutModifiers, withModifiers)
 
-            CompileAndVerify(compilation, expectedOutput:="Overriden")
+            CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
         <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
@@ -345,7 +347,7 @@ Class CL3
     Inherits CL2
 
     Overrides Sub Test(ByRef x as Integer)
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     End Sub
 End Class 
 ]]>
@@ -358,7 +360,7 @@ End Class
             Dim test = cl3.GetMember(Of MethodSymbol)("Test")
             Assert.Equal("Sub CL3.Test(ByRef x As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong))", test.ToTestDisplayString())
 
-            CompileAndVerify(compilation, expectedOutput:="Overriden")
+            CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
         <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
@@ -416,7 +418,7 @@ Class CL3
     Inherits CL2
 
     Overrides Sub Test(ByRef x as Integer)
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     End Sub
 End Class 
 ]]>
@@ -429,7 +431,7 @@ End Class
             Dim test = cl3.GetMember(Of MethodSymbol)("Test")
             Assert.Equal("Sub CL3.Test(ByRef modopt(System.Runtime.CompilerServices.IsConst) x As System.Int32 modopt(System.Runtime.CompilerServices.IsLong))", test.ToTestDisplayString())
 
-            CompileAndVerify(compilation, expectedOutput:="Overriden")
+            CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
         <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
@@ -487,7 +489,7 @@ Class CL3
     Inherits CL2
 
     Overrides Sub Test(ByRef x as Integer)
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     End Sub
 End Class 
 ]]>
@@ -500,7 +502,7 @@ End Class
             Dim test = cl3.GetMember(Of MethodSymbol)("Test")
             Assert.Equal("Sub CL3.Test(ByRef x As System.Int32 modopt(System.Runtime.CompilerServices.IsLong))", test.ToTestDisplayString())
 
-            CompileAndVerify(compilation, expectedOutput:="Overriden")
+            CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
         <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
@@ -558,7 +560,7 @@ Class CL3
     Inherits CL2
 
     Overrides Sub Test(ByRef x as Integer)
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     End Sub
 End Class 
 ]]>
@@ -571,7 +573,7 @@ End Class
             Dim test = cl3.GetMember(Of MethodSymbol)("Test")
             Assert.Equal("Sub CL3.Test(ByRef modopt(System.Runtime.CompilerServices.IsConst) x As System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong))", test.ToTestDisplayString())
 
-            CompileAndVerify(compilation, expectedOutput:="Overriden")
+            CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
         <Fact(), WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")>
@@ -1030,10 +1032,10 @@ Class CL3
 
     Overrides Property Test As Integer
         Get
-            System.Console.WriteLine("Get Overriden")
+            System.Console.WriteLine("Get Overridden")
         End Get
         Set
-            System.Console.WriteLine("Set Overriden")
+            System.Console.WriteLine("Set Overridden")
         End Set
     End Property
 End Class 
@@ -1049,8 +1051,8 @@ End Class
             Assert.Equal("Function CL3.get_Test() As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)", test.GetMethod.ToTestDisplayString())
             Assert.Equal("Sub CL3.set_Test(Value As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong))", test.SetMethod.ToTestDisplayString())
 
-            CompileAndVerify(compilation, expectedOutput:="Set Overriden
-Get Overriden")
+            CompileAndVerify(compilation, expectedOutput:="Set Overridden
+Get Overridden")
         End Sub
 
         <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
@@ -1108,7 +1110,7 @@ Class CL3
     Inherits CL2
 
     Overrides Sub Test(x as Integer())
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     End Sub
 End Class 
 ]]>
@@ -1121,7 +1123,7 @@ End Class
             Dim test = cl3.GetMember(Of MethodSymbol)("Test")
             Assert.Equal("Sub CL3.Test(x As System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) ())", test.ToTestDisplayString())
 
-            CompileAndVerify(compilation, expectedOutput:="Overriden")
+            CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
         <Fact(), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")>
@@ -1714,7 +1716,7 @@ Class CL3
     Inherits CL2
 
     Overrides Function Test(x as System.Func(Of Integer, Integer), y as Integer) As Integer
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
         return x(y)
     End Function
 End Class 
@@ -1727,9 +1729,9 @@ End Class
 
             CompileAndVerify(compilation, expectedOutput:="Test 1
 Test 2
-Overriden
+Overridden
 Test 3
-Overriden
+Overridden
 Test 4
 MyDelegate
 Test 5
@@ -1780,7 +1782,7 @@ class Test11
     Inherits Test1
 
     public overrides Sub Test(c As Integer(,))
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     End Sub
 End Class
 ]]>
@@ -1790,7 +1792,7 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="Test
-Overriden")
+Overridden")
         End Sub
 
         <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
@@ -1851,7 +1853,7 @@ class CL3
     Inherits CL2
 
     public overrides Sub Test(c As Integer)
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     end Sub
 End Class
 ]]>
@@ -1861,7 +1863,7 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="Test
-Overriden")
+Overridden")
         End Sub
 
         <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
@@ -1922,7 +1924,7 @@ class CL3
     Inherits CL2
 
     public overrides Sub Test(c As Integer)
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
     end Sub
 End Class
 ]]>
@@ -1932,7 +1934,7 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="Test
-Overriden")
+Overridden")
         End Sub
 
         <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
@@ -1994,7 +1996,7 @@ class CL3
     Inherits CL2
 
     public overrides Function Test(c As Integer) As Integer()
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
         return Nothing
     end Function
 End Class
@@ -2005,7 +2007,7 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="Test
-Overriden")
+Overridden")
         End Sub
 
         <Fact, WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")>
@@ -2024,7 +2026,7 @@ class CL2
     Inherits CL1
 
     public overrides Function Test(Of U As Structure)(c As System.ValueType) As System.ValueType
-        System.Console.WriteLine("Overriden")
+        System.Console.WriteLine("Overridden")
         return c
     end Function
 End Class
@@ -2041,7 +2043,7 @@ End Class
             Assert.Equal("Function CL2.Test(Of U)(c As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of U))) As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of U))", test.ToTestDisplayString())
             Assert.Equal("Function CL1.Test(Of T)(x As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of T))) As System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(System.Nullable(Of T))", test.OverriddenMethod.ToTestDisplayString())
 
-            CompileAndVerify(compilation, expectedOutput:="Overriden")
+            CompileAndVerify(compilation, expectedOutput:="Overridden")
         End Sub
 
         <Fact, WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")>

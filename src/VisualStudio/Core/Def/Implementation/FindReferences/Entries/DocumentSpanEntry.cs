@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
@@ -14,9 +17,12 @@ using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -28,10 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// contents of that line, and hovering will reveal a tooltip showing that line along
         /// with a few lines above/below it.
         /// </summary>
-        private class DocumentSpanEntry : AbstractDocumentSpanEntry
+        private class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
         {
             private readonly HighlightSpanKind _spanKind;
             private readonly ExcerptResult _excerptResult;
+            private readonly SymbolReferenceKinds _symbolReferenceKinds;
             private readonly ImmutableDictionary<string, string> _customColumnsData;
 
             public DocumentSpanEntry(
@@ -43,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 MappedSpanResult mappedSpanResult,
                 ExcerptResult excerptResult,
                 SourceText lineText,
+                SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData)
                 : base(context,
                       definitionBucket,
@@ -53,6 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 _spanKind = spanKind;
                 _excerptResult = excerptResult;
+                _symbolReferenceKinds = symbolUsageInfo.ToSymbolReferenceKinds();
                 _customColumnsData = customColumnsData;
             }
 
@@ -96,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return inlines;
             }
 
-            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            public override bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
             {
                 if (base.TryCreateColumnContent(columnName, out content))
                 {
@@ -104,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // solution is never supposed to be kept alive for long time, meaning there is bunch of conditional weaktable or weak reference
                     // keyed by solution/project/document or corresponding states. this will cause all those to be kept alive in memory as well.
                     // probably we need to dig in to see how expensvie it is to support this
-                    var controlService = _excerptResult.Document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
+                    var controlService = _excerptResult.Document.Project.Solution.Workspace.Services.GetRequiredService<IContentControlService>();
                     controlService.AttachToolTipToControl(content, () =>
                         CreateDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
 
@@ -114,14 +123,26 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            protected override object GetValueWorker(string keyName)
-                => _customColumnsData.TryGetValue(keyName, out var value) ? value : base.GetValueWorker(keyName);
+            protected override object? GetValueWorker(string keyName)
+            {
+                if (keyName == StandardTableKeyNames2.SymbolKind)
+                {
+                    return _symbolReferenceKinds;
+                }
+
+                if (_customColumnsData.TryGetValue(keyName, out var value))
+                {
+                    return value;
+                }
+
+                return base.GetValueWorker(keyName);
+            }
 
             private DisposableToolTip CreateDisposableToolTip(Document document, TextSpan sourceSpan)
             {
                 Presenter.AssertIsForeground();
 
-                var controlService = document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
+                var controlService = document.Project.Solution.Workspace.Services.GetRequiredService<IContentControlService>();
                 var sourceText = document.GetTextSynchronously(CancellationToken.None);
 
                 var excerptService = document.Services.GetService<IDocumentExcerptService>();
@@ -179,6 +200,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return Span.FromBounds(
                     sourceText.Lines[firstLineNumber].Start,
                     sourceText.Lines[lastLineNumber].End);
+            }
+
+            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
+            {
+                // If the document is a source generated document, we need to do the navigation ourselves;
+                // this is because the file path given to the table control isn't a real file path to a file
+                // on disk.
+                if (_excerptResult.Document is SourceGeneratedDocument)
+                {
+                    var workspace = _excerptResult.Document.Project.Solution.Workspace;
+                    var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
+
+                    if (documentNavigationService != null)
+                    {
+                        return documentNavigationService.TryNavigateToSpan(
+                            workspace,
+                            _excerptResult.Document.Id,
+                            _excerptResult.Span,
+                            workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
+                            cancellationToken);
+                    }
+                }
+
+                return false;
             }
         }
     }

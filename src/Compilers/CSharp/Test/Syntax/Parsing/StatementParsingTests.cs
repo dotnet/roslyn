@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1268,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ts.Catches[0].Declaration.OpenParenToken);
             Assert.NotNull(ts.Catches[0].Declaration.Type);
             Assert.Equal("T", ts.Catches[0].Declaration.Type.ToString());
-            Assert.Equal(ts.Catches[0].Declaration.Identifier.Kind(), SyntaxKind.None);
+            Assert.Equal(SyntaxKind.None, ts.Catches[0].Declaration.Identifier.Kind());
             Assert.NotEqual(default, ts.Catches[0].Declaration.CloseParenToken);
             Assert.NotNull(ts.Catches[0].Block);
 
@@ -1956,9 +1960,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, fs.ForEachKeyword);
             Assert.Equal(SyntaxKind.ForEachKeyword, fs.ForEachKeyword.Kind());
             Assert.True(fs.ForEachKeyword.IsMissing);
-            Assert.Equal(fs.ForEachKeyword.TrailingTrivia.Count, 1);
-            Assert.Equal(fs.ForEachKeyword.TrailingTrivia[0].Kind(), SyntaxKind.SkippedTokensTrivia);
-            Assert.Equal(fs.ForEachKeyword.TrailingTrivia[0].ToString(), "for");
+            Assert.Equal(1, fs.ForEachKeyword.TrailingTrivia.Count);
+            Assert.Equal(SyntaxKind.SkippedTokensTrivia, fs.ForEachKeyword.TrailingTrivia[0].Kind());
+            Assert.Equal("for", fs.ForEachKeyword.TrailingTrivia[0].ToString());
 
             Assert.NotEqual(default, fs.OpenParenToken);
             Assert.NotNull(fs.Type);
@@ -2231,7 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ss.SwitchKeyword);
             Assert.Equal(SyntaxKind.SwitchKeyword, ss.SwitchKeyword.Kind());
             Assert.NotEqual(default, ss.OpenParenToken);
-            Assert.NotEqual(default, ss.Expression);
+            Assert.NotNull(ss.Expression);
             Assert.Equal("a", ss.Expression.ToString());
             Assert.NotEqual(default, ss.CloseParenToken);
             Assert.NotEqual(default, ss.OpenBraceToken);
@@ -2750,25 +2754,25 @@ class C
         [Fact]
         public void TestAwaitUsingVarWithVarAndNoUsingDeclarationTree()
         {
-            UsingStatement(@"await var a = b;", TestOptions.Regular8, expectedErrors:
-                // (1,11): error CS1003: Syntax error, ',' expected
+            UsingStatement(@"await var a = b;", TestOptions.Regular8,
+                // (1,1): error CS1073: Unexpected token 'a'
                 // await var a = b;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 11)
-            );
-            N(SyntaxKind.LocalDeclarationStatement);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "await var ").WithArguments("a").WithLocation(1, 1),
+                // (1,11): error CS1002: ; expected
+                // await var a = b;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "a").WithLocation(1, 11));
+
+            N(SyntaxKind.ExpressionStatement);
             {
-                N(SyntaxKind.VariableDeclaration);
+                N(SyntaxKind.AwaitExpression);
                 {
+                    N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "await");
-                    }
-                    N(SyntaxKind.VariableDeclarator);
                     {
                         N(SyntaxKind.IdentifierToken, "var");
                     }
                 }
-                N(SyntaxKind.SemicolonToken);
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
@@ -3335,7 +3339,7 @@ class C
 
             var decl = (LocalDeclarationStatementSyntax)statement;
             Assert.Equal(keywordText, decl.Declaration.Type.ToString());
-            Assert.IsType(typeof(IdentifierNameSyntax), decl.Declaration.Type);
+            Assert.IsType<IdentifierNameSyntax>(decl.Declaration.Type);
             var name = (IdentifierNameSyntax)decl.Declaration.Type;
             Assert.Equal(kind, name.Identifier.ContextualKind());
             Assert.Equal(SyntaxKind.IdentifierToken, name.Identifier.Kind());
@@ -3559,6 +3563,22 @@ System.Console.WriteLine(true)";
                 // { label: public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
                 );
+
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.LabeledStatement);
+                {
+                    N(SyntaxKind.IdentifierToken, "label");
+                    N(SyntaxKind.ColonToken);
+                    M(SyntaxKind.EmptyStatement);
+                    {
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
 
         [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]

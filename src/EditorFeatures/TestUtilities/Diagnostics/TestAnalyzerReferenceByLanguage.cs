@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -7,41 +10,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class TestAnalyzerReferenceByLanguage : AnalyzerReference
     {
-        private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;
+        private readonly IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;
 
-        public TestAnalyzerReferenceByLanguage(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
+        public TestAnalyzerReferenceByLanguage(IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap, string? fullPath = null)
         {
             _analyzersMap = analyzersMap;
+            FullPath = fullPath;
         }
 
-        public override string FullPath
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public override string Display
-        {
-            get
-            {
-                return nameof(TestAnalyzerReferenceByLanguage);
-            }
-        }
-
-        public override object Id
-        {
-            get
-            {
-                return Display;
-            }
-        }
+        public override string? FullPath { get; }
+        public override string Display => nameof(TestAnalyzerReferenceByLanguage);
+        public override object Id => Display;
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-        {
-            return _analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
-        }
+            => _analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {

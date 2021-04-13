@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (type.TypeKind == TypeKind.Enum)
                 {
                     var enumType = (INamedTypeSymbol)type;
-                    return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(enumType, value);
+                    return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.TryCreateEnumConstantValue(enumType, value);
                 }
                 else if (type.IsNullable())
                 {
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static string DetermineSuffix(ITypeSymbol type, object value)
         {
-            if (value is float f)
+            if (value is float)
             {
                 var stringValue = ((IFormattable)value).ToString("R", CultureInfo.InvariantCulture);
 

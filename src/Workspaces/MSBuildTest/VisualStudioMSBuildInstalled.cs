@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -106,9 +110,16 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
     }
 
+    internal class VisualStudio16_9_Preview3OrHigherMSBuildInstalled : VisualStudioMSBuildInstalled
+    {
+        public VisualStudio16_9_Preview3OrHigherMSBuildInstalled() : base(new Version(16, 9, 30914, 41))
+        {
+        }
+    }
+
     internal static class VisualStudioMSBuildLocator
     {
-        private static Lazy<(Version version, string path)> s_versionAndPath = new Lazy<(Version version, string path)>(FindMSBuildToolsPathFromVisualStudioCore);
+        private static readonly Lazy<(Version version, string path)> s_versionAndPath = new(FindMSBuildToolsPathFromVisualStudioCore);
 
         public static bool TryFindMSBuildToolsPath(out (Version version, string path) versionAndPath)
         {

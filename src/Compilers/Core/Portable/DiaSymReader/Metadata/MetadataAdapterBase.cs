@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -13,25 +17,25 @@ namespace Microsoft.DiaSymReader
 
         public virtual int GetSigFromToken(
             int standaloneSignature,
-            [Out]byte** signature,
-            [Out]int* signatureLength)
+            [Out] byte** signature,
+            [Out] int* signatureLength)
             => throw new NotImplementedException();
 
         public virtual int GetTypeDefProps(
             int typeDef,
-            [Out]char* qualifiedName,
+            [Out] char* qualifiedName,
             int qualifiedNameBufferLength,
-            [Out]int* qualifiedNameLength,
-            [Out]TypeAttributes* attributes,
-            [Out]int* baseType)
+            [Out] int* qualifiedNameLength,
+            [Out] TypeAttributes* attributes,
+            [Out] int* baseType)
             => throw new NotImplementedException();
 
         public virtual int GetTypeRefProps(
             int typeRef,
-            [Out]int* resolutionScope, // ModuleRef or AssemblyRef
-            [Out]char* qualifiedName,
+            [Out] int* resolutionScope, // ModuleRef or AssemblyRef
+            [Out] char* qualifiedName,
             int qualifiedNameBufferLength,
-            [Out]int* qualifiedNameLength)
+            [Out] int* qualifiedNameLength)
             => throw new NotImplementedException();
 
         public virtual int GetNestedClassProps(int nestedClass, out int enclosingClass)

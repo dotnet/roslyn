@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,14 +13,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class AnonymousTypeManager
     {
-        private sealed class NameAndIndex
+        internal sealed class NameAndIndex
         {
             public NameAndIndex(string name, int index)
             {
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Represents an anonymous type 'template' which is a generic type to be used for all 
         /// anonymous type having the same structure, i.e. the same number of fields and field names.
         /// </summary>
-        private sealed class AnonymousTypeTemplateSymbol : NamedTypeSymbol, IAnonymousTypeTemplateSymbolInternal
+        internal sealed class AnonymousTypeTemplateSymbol : NamedTypeSymbol
         {
             /// <summary> Name to be used as metadata name during emit </summary>
             private NameAndIndex _nameAndIndex;
@@ -120,14 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new AnonymousTypeToStringMethodSymbol(this));
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             internal AnonymousTypeKey GetAnonymousTypeKey()
             {
                 var properties = Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
                 return new AnonymousTypeKey(properties);
             }
-
-            AnonymousTypeKey IAnonymousTypeTemplateSymbolInternal.GetAnonymousTypeKey()
-                => GetAnonymousTypeKey();
 
             /// <summary>
             /// Smallest location of the template, actually contains the smallest location 
@@ -298,6 +301,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            public sealed override bool AreLocalsZeroed
+            {
+                get { return ContainingModule.AreLocalsZeroed; }
+            }
+
             public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             {
                 return ImmutableArray<NamedTypeSymbol>.Empty;
@@ -428,6 +436,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AttributeUsageInfo.Null;
             }
 
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+            internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+            internal override bool IsRecord => false;
+
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -447,6 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private SynthesizedAttributeData TrySynthesizeDebuggerDisplayAttribute()
             {
+                // Escape open '{' with '\' to avoid parsing it as an embedded expression.
+
                 string displayString;
                 if (this.Properties.Length == 0)
                 {
@@ -491,6 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
                                         new TypedConstant(Manager.System_String, TypedConstantKind.Primitive, "<Anonymous Type>"))));
             }
+
+            internal override bool HasPossibleWellKnownCloneMethod() => false;
         }
     }
 }

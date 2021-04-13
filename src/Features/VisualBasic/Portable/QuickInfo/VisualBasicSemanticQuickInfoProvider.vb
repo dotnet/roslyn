@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -15,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         Inherits CommonSemanticQuickInfoProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -106,7 +110,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return False
         End Function
 
-        Private Overloads Async Function BuildContentAsync(
+        Protected Overrides Function GetBindableNodeForTokenIndicatingPossibleIndexerAccess(token As SyntaxToken, ByRef found As SyntaxNode) As Boolean
+            If token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken) AndAlso
+                token.Parent?.Parent.IsKind(SyntaxKind.InvocationExpression) = True Then
+                found = token.Parent.Parent
+                Return True
+            End If
+
+            found = Nothing
+            Return False
+        End Function
+
+        Private Overloads Shared Async Function BuildContentAsync(
                 document As Document,
                 token As SyntaxToken,
                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
@@ -119,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Dim semantics = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim types = declarators.SelectMany(Function(d) d.Names).Select(
-                Function(n)
+                Function(n) As ISymbol
                     Dim symbol = semantics.GetDeclaredSymbol(n, cancellationToken)
                     If symbol Is Nothing Then
                         Return Nothing
@@ -132,20 +147,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                     Else
                         Return Nothing
                     End If
-                End Function).WhereNotNull().Distinct().ToList()
+                End Function).WhereNotNull().Distinct().ToImmutableArray()
 
-            If types.Count = 0 Then
+            If types.Length = 0 Then
                 Return Nothing
             End If
 
-            If types.Count > 1 Then
+            If types.Length > 1 Then
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(document.Project.Solution.Workspace, token, semantics, types, supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(document.Project.Solution.Workspace, token, semantics, New TokenInformation(types), supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Async Function BuildContentForIntrinsicOperatorAsync(document As Document,
+        Private Shared Async Function BuildContentForIntrinsicOperatorAsync(document As Document,
                                                                      token As SyntaxToken,
                                                                      expression As SyntaxNode,
                                                                      documentation As AbstractIntrinsicOperatorDocumentation,

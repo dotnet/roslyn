@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -7,20 +9,20 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.IntegrationTests.Basic
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicF1Help : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicF1Help(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicF1Help))
+        public BasicF1Help(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicF1Help))
         {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        void F1Help()
+        private void F1Help()
         {
             var text = @"
 Imports System

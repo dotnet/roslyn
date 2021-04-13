@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -118,11 +122,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var editorWorkspace = document.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+
+                    // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                     navigationService.TryNavigateToLineAndOffset(
                         editorWorkspace,
                         document.Id,
                         sourceLocation.StartPosition.Line,
-                        sourceLocation.StartPosition.Character);
+                        sourceLocation.StartPosition.Character,
+                        CancellationToken.None);
                 }
             }
         }

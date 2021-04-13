@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +25,18 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 {
-    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConfigureSeverity)]
+    [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(Before = PredefinedConfigurationFixProviderNames.ConfigureSeverity)]
+    [ExtensionOrder(After = PredefinedConfigurationFixProviderNames.Suppression)]
     internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<bool> s_boolValues = ImmutableArray.Create(true, false);
+
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public ConfigureCodeStyleOptionCodeFixProvider()
+        {
+        }
 
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
         {
@@ -54,12 +66,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            // Bail out if NativeEditorConfigSupport experiment is not enabled.
-            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
-            {
-                return ImmutableArray<CodeFix>.Empty;
-            }
-
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
@@ -73,12 +79,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 // For each code style option, create a top level code action with nested code actions for every valid option value.
                 // For example, if the option value is CodeStyleOption<bool>, we will have two nested actions, one for 'true' setting and one
                 // for 'false' setting. If the option value is CodeStyleOption<SomeEnum>, we will have a nested action for each enum field.
-                var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
                 var optionSet = project.Solution.Workspace.Options;
                 var hasMultipleOptions = codeStyleOptions.Length > 1;
-                foreach (var (optionKey, codeStyleOption, editorConfigLocation) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
+                foreach (var (optionKey, codeStyleOption, editorConfigLocation, perLanguageOption) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
                 {
-                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, codeStyleOption, editorConfigLocation, diagnostic, optionSet, hasMultipleOptions);
+                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, codeStyleOption, editorConfigLocation, diagnostic, perLanguageOption, optionSet, hasMultipleOptions);
                     if (topLevelAction != null)
                     {
                         nestedActions.Add(topLevelAction);
@@ -94,8 +100,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 
                     result.Add(new CodeFix(project, resultCodeAction, diagnostic));
                 }
-
-                nestedActions.Free();
             }
 
             return result.ToImmutableAndFree();
@@ -106,15 +110,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 ICodeStyleOption codeStyleOption,
                 IEditorConfigStorageLocation2 editorConfigLocation,
                 Diagnostic diagnostic,
+                bool isPerLanguage,
                 OptionSet optionSet,
-                bool hasMultiplOptions)
+                bool hasMultipleOptions)
             {
                 // Add a code action for every valid value of the given code style option.
                 // We only support light-bulb configuration of code style options with boolean or enum values.
 
-                var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
 
-                var severity = codeStyleOption.Notification.ToEditorConfigString();
                 string optionName = null;
                 if (codeStyleOption.Value is bool)
                 {
@@ -136,12 +140,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                     // If this is not a unique code style option for the diagnostic, use the optionName as the code action title.
                     // In that case, we will already have a containing top level action for the diagnostic.
                     // Otherwise, use the diagnostic information in the title.
-                    return hasMultiplOptions
-                        ? new TopLevelConfigureCodeStyleOptionCodeAction(optionName, nestedActions.ToImmutableAndFree())
-                        : new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
+                    return hasMultipleOptions
+                        ? new TopLevelConfigureCodeStyleOptionCodeAction(optionName, nestedActions.ToImmutable())
+                        : new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, nestedActions.ToImmutable());
                 }
 
-                nestedActions.Free();
                 return null;
 
                 // Local functions
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                         nestedActions.Add(
                             new SolutionChangeAction(
                                 parts.optionValue,
-                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, parts.optionSeverity, diagnostic, project, cancellationToken)));
+                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken)));
                     }
                 }
             }

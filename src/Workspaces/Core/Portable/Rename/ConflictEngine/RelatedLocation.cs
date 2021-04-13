@@ -1,5 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -7,24 +14,71 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// <summary>
     /// Gives information about an identifier span that was affected by Rename (Reference or Non reference)
     /// </summary>
-    internal sealed class RelatedLocation
+    [DataContract]
+    internal readonly struct RelatedLocation : IEquatable<RelatedLocation>
     {
-        // The Span of the original identifier if it was in source, otherwise the span to check for implicit references
-        public TextSpan ConflictCheckSpan { get; }
-        public RelatedLocationType Type { get; set; }
-        public bool IsReference { get; }
-        public DocumentId DocumentId { get; }
+        /// <summary>
+        /// The Span of the original identifier if it was in source, otherwise the span to check for implicit
+        /// references.
+        /// </summary>
+        [DataMember(Order = 0)]
+        public readonly TextSpan ConflictCheckSpan;
 
-        // If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses ComplexifiedTargetSpan span to be expanded to resolve the conflict
-        public TextSpan ComplexifiedTargetSpan { get; }
+        [DataMember(Order = 1)]
+        public readonly DocumentId DocumentId;
 
-        public RelatedLocation(TextSpan location, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default)
+        [DataMember(Order = 2)]
+        public readonly RelatedLocationType Type;
+
+        [DataMember(Order = 3)]
+        public readonly bool IsReference;
+
+        /// <summary>
+        /// If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses
+        /// ComplexifiedTargetSpan span to be expanded to resolve the conflict.
+        /// </summary>
+        [DataMember(Order = 4)]
+        public readonly TextSpan ComplexifiedTargetSpan;
+
+        public RelatedLocation(TextSpan conflictCheckSpan, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default)
         {
-            this.ConflictCheckSpan = location;
-            this.Type = type;
-            this.IsReference = isReference;
-            this.DocumentId = documentId;
-            this.ComplexifiedTargetSpan = complexifiedTargetSpan;
+            ConflictCheckSpan = conflictCheckSpan;
+            Type = type;
+            IsReference = isReference;
+            DocumentId = documentId;
+            ComplexifiedTargetSpan = complexifiedTargetSpan;
         }
+
+        public RelatedLocation WithType(RelatedLocationType type)
+            => new(ConflictCheckSpan, DocumentId, type, IsReference, ComplexifiedTargetSpan);
+
+        public override bool Equals(object obj)
+            => obj is RelatedLocation location && Equals(location);
+
+        public bool Equals(RelatedLocation other)
+        {
+            return ConflictCheckSpan.Equals(other.ConflictCheckSpan) &&
+                   Type == other.Type &&
+                   IsReference == other.IsReference &&
+                   EqualityComparer<DocumentId>.Default.Equals(DocumentId, other.DocumentId) &&
+                   ComplexifiedTargetSpan.Equals(other.ComplexifiedTargetSpan);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 928418920;
+            hashCode = hashCode * -1521134295 + ConflictCheckSpan.GetHashCode();
+            hashCode = hashCode * -1521134295 + Type.GetHashCode();
+            hashCode = hashCode * -1521134295 + IsReference.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<DocumentId>.Default.GetHashCode(DocumentId);
+            hashCode = hashCode * -1521134295 + ComplexifiedTargetSpan.GetHashCode();
+            return hashCode;
+        }
+
+        public static bool operator ==(RelatedLocation left, RelatedLocation right)
+            => left.Equals(right);
+
+        public static bool operator !=(RelatedLocation left, RelatedLocation right)
+            => !(left == right);
     }
 }

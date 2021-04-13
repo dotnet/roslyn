@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -18,12 +22,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
             var markup =
 @"using {|foldingRange:System;
 using System.Linq;|}";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range))
                 .ToArray();
 
-            var results = await RunGetFoldingRangeAsync(solution);
+            var results = await RunGetFoldingRangeAsync(testLspServer);
             AssertJsonEquals(expected, results);
         }
 
@@ -34,12 +38,12 @@ using System.Linq;|}";
 @"{|foldingRange:// A comment|}
 {|foldingRange:/* A multiline
 comment */|}";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range))
                 .ToArray();
 
-            var results = await RunGetFoldingRangeAsync(solution);
+            var results = await RunGetFoldingRangeAsync(testLspServer);
             AssertJsonEquals(expected, results);
         }
 
@@ -50,24 +54,25 @@ comment */|}";
 @"{|foldingRange:#region ARegion
 #endregion|}
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range))
                 .ToArray();
 
-            var results = await RunGetFoldingRangeAsync(solution);
+            var results = await RunGetFoldingRangeAsync(testLspServer);
             AssertJsonEquals(expected, results);
         }
 
-        private static async Task<LSP.FoldingRange[]> RunGetFoldingRangeAsync(Solution solution)
+        private static async Task<LSP.FoldingRange[]> RunGetFoldingRangeAsync(TestLspServer testLspServer)
         {
-            var document = solution.Projects.First().Documents.First();
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var request = new LSP.FoldingRangeParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
             };
 
-            return await GetLanguageServer(solution).GetFoldingRangeAsync(solution, request, new LSP.ClientCapabilities(), CancellationToken.None);
+            return await testLspServer.ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName,
+                request, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.FoldingRange CreateFoldingRange(LSP.FoldingRangeKind kind, LSP.Range range)

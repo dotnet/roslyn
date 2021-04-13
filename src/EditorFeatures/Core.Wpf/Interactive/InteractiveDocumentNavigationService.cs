@@ -1,38 +1,36 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     internal sealed class InteractiveDocumentNavigationService : IDocumentNavigationService
     {
-        public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
-        {
-            return true;
-        }
+        public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+            => true;
 
-        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset)
-        {
-            return false;
-        }
+        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
+            => false;
 
-        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0)
-        {
-            return false;
-        }
+        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+            => false;
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
-            if (!(workspace is InteractiveWorkspace interactiveWorkspace))
+            if (workspace is not InteractiveWindowWorkspace interactiveWorkspace)
             {
                 Debug.Fail("InteractiveDocumentNavigationService called with incorrect workspace!");
                 return false;
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var textView = interactiveWorkspace.Window.TextView;
             var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
 
-            var textSnapshot = document.GetTextSynchronously(CancellationToken.None).FindCorrespondingEditorTextSnapshot();
+            var textSnapshot = document.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
             if (textSnapshot == null)
             {
                 return false;
@@ -69,14 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return true;
         }
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options)
-        {
-            throw new NotSupportedException();
-        }
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options)
-        {
-            throw new NotSupportedException();
-        }
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
     }
 }

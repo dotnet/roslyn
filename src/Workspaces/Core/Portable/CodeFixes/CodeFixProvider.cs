@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -30,9 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Return null if the provider doesn't support fix all/multiple occurrences.
         /// Otherwise, you can return any of the well known fix all providers from <see cref="WellKnownFixAllProviders"/> or implement your own fix all provider.
         /// </summary>
-        public virtual FixAllProvider GetFixAllProvider()
-        {
-            return null;
-        }
+        public virtual FixAllProvider? GetFixAllProvider()
+            => null;
     }
 }

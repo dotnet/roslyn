@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -22,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// (c) <see cref="FixAllScope.Solution"/>
         /// </summary>
         public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-        {
-            return ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
-        }
+            => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
 
         /// <summary>
         /// Gets the diagnostic IDs for which fix all occurrences is supported.
@@ -32,27 +33,43 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="originalCodeFixProvider">Original code fix provider that returned this fix all provider from <see cref="CodeFixProvider.GetFixAllProvider"/> method.</param>
         public virtual IEnumerable<string> GetSupportedFixAllDiagnosticIds(CodeFixProvider originalCodeFixProvider)
-        {
-            return originalCodeFixProvider.FixableDiagnosticIds;
-        }
+            => originalCodeFixProvider.FixableDiagnosticIds;
 
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
-        public abstract Task<CodeAction> GetFixAsync(FixAllContext fixAllContext);
+        public abstract Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext);
 
-        internal virtual Task<CodeAction> GetFixAsync(
-            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+        /// <summary>
+        /// Create a <see cref="FixAllProvider"/> that fixes documents independently.  This should be used instead of
+        /// <see cref="WellKnownFixAllProviders.BatchFixer"/> in the case where fixes for a <see cref="Diagnostic"/>
+        /// only affect the <see cref="Document"/> the diagnostic was produced in.
+        /// </summary>
+        /// <param name="fixAllAsync">
+        /// Callback that will the fix diagnostics present in the provided document.  The document returned will only be
+        /// examined for its content (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects
+        /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
+        /// will be considered.
+        /// </param>
+        public static FixAllProvider Create(Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync)
         {
-            return Task.FromResult<CodeAction>(null);
+            if (fixAllAsync == null)
+                throw new ArgumentNullException(nameof(fixAllAsync));
+
+            return new CallbackDocumentBasedFixAllProvider(fixAllAsync);
         }
 
-        internal virtual Task<CodeAction> GetFixAsync(
-            ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+        private class CallbackDocumentBasedFixAllProvider : DocumentBasedFixAllProvider
         {
-            return Task.FromResult<CodeAction>(null);
+            private readonly Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> _fixAllAsync;
+
+            public CallbackDocumentBasedFixAllProvider(Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync)
+            {
+                _fixAllAsync = fixAllAsync;
+            }
+
+            protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
+                => _fixAllAsync(context, document, diagnostics);
         }
     }
 }

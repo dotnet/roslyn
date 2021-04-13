@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -583,7 +585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="alphaRenamedTypeParameters">Alpha-renamed type parameters.</param>
         Public Shared Function CreateForAlphaRename(
             parent As TypeSubstitution,
-            alphaRenamedTypeParameters As ImmutableArray(Of TypeParameterSymbol)
+            alphaRenamedTypeParameters As ImmutableArray(Of SubstitutedTypeParameterSymbol)
         ) As TypeSubstitution
             Debug.Assert(parent IsNot Nothing)
             Debug.Assert(Not alphaRenamedTypeParameters.IsEmpty)
@@ -607,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim pairs(typeParametersDefinitions.Length - 1) As KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)
 
             For i As Integer = 0 To typeParametersDefinitions.Length - 1 Step 1
-                Debug.Assert(Not alphaRenamedTypeParameters(i).Equals(typeParametersDefinitions(i)))
+                Debug.Assert(Not TypeOf typeParametersDefinitions(i) Is SubstitutedTypeParameterSymbol)
                 Debug.Assert(alphaRenamedTypeParameters(i).OriginalDefinition Is typeParametersDefinitions(i))
                 pairs(i) = New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(typeParametersDefinitions(i), New TypeWithModifiers(alphaRenamedTypeParameters(i)))
             Next

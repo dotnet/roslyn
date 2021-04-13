@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
     internal interface IGenerateTypeService : ILanguageService
     {
         Task<ImmutableArray<CodeAction>> GenerateTypeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
-        Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
+        Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
         string GetRootNamespace(CompilationOptions options);
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -56,21 +58,6 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
         Public Sub CloseDocument(hostDocument As TestHostDocument)
             hostDocument.CloseTextView()
             Workspace.CloseDocument(hostDocument.Id)
-
-            ' When all documents sharing the same TextBuffer are closed
-            ' the TextBuffer Properties should be cleared.
-            Dim textBufferClosed = Workspace.GetOpenDocumentIds().
-                All(Function(id) Workspace.GetTestDocument(id)?.TextBuffer Is hostDocument.TextBuffer)
-            If textBufferClosed Then
-                ClearTextBufferProperties(hostDocument)
-            End If
-        End Sub
-
-        Private Sub ClearTextBufferProperties(testDocument As TestHostDocument)
-            Dim propertyKeys = testDocument.TextBuffer.Properties.PropertyList.Select(Function(kvp) kvp.Key)
-            For Each key In propertyKeys
-                testDocument.TextBuffer.Properties.RemoveProperty(key)
-            Next
         End Sub
 
         Public Sub InsertText(hostDocument As TestHostDocument, insertedText As String)
@@ -116,13 +103,10 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
             Assert.Equal(textSpan, pastedTextSpan)
         End Function
 
-        Public Async Function AssertMissingPastedTextSpanAsync(hostDocument As TestHostDocument) As Task
-            Dim document = Workspace.CurrentSolution.GetDocument(hostDocument.Id)
-            Dim sourceText = Await document.GetTextAsync()
-
+        Public Sub AssertMissingPastedTextSpan(textBuffer As ITextBuffer)
             Dim textSpan As TextSpan
-            Assert.False(PasteTrackingService.TryGetPastedTextSpan(sourceText.Container, textSpan))
-        End Function
+            Assert.False(PasteTrackingService.TryGetPastedTextSpan(textBuffer.AsTextContainer(), textSpan))
+        End Sub
 
         Private Sub Dispose() Implements IDisposable.Dispose
             Workspace.Dispose()

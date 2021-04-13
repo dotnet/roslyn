@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -18,10 +20,10 @@ namespace Microsoft.CodeAnalysis
     [StructLayout(LayoutKind.Auto)]
     public readonly partial struct SyntaxTokenList : IEquatable<SyntaxTokenList>, IReadOnlyList<SyntaxToken>
     {
-        private readonly SyntaxNode _parent;
+        private readonly SyntaxNode? _parent;
         private readonly int _index;
 
-        internal SyntaxTokenList(SyntaxNode parent, GreenNode tokenOrList, int position, int index)
+        internal SyntaxTokenList(SyntaxNode? parent, GreenNode? tokenOrList, int position, int index)
         {
             Debug.Assert(tokenOrList != null || (position == 0 && index == 0 && parent == null));
             Debug.Assert(position >= 0);
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private static GreenNode CreateNode(SyntaxToken[] tokens)
+        private static GreenNode? CreateNode(SyntaxToken[] tokens)
         {
             if (tokens == null)
             {
@@ -69,13 +71,15 @@ namespace Microsoft.CodeAnalysis
             var builder = new SyntaxTokenListBuilder(tokens.Length);
             for (int i = 0; i < tokens.Length; i++)
             {
-                builder.Add(tokens[i].Node);
+                var node = tokens[i].Node;
+                Debug.Assert(node is object);
+                builder.Add(node);
             }
 
             return builder.ToList().Node;
         }
 
-        private static GreenNode CreateNode(IEnumerable<SyntaxToken> tokens)
+        private static GreenNode? CreateNode(IEnumerable<SyntaxToken> tokens)
         {
             if (tokens == null)
             {
@@ -85,13 +89,14 @@ namespace Microsoft.CodeAnalysis
             var builder = SyntaxTokenListBuilder.Create();
             foreach (var token in tokens)
             {
+                Debug.Assert(token.Node is object);
                 builder.Add(token.Node);
             }
 
             return builder.ToList().Node;
         }
 
-        internal GreenNode Node { get; }
+        internal GreenNode? Node { get; }
 
         internal int Position { get; }
 
@@ -237,7 +242,7 @@ namespace Microsoft.CodeAnalysis
             return new Reversed(this);
         }
 
-        internal void CopyTo(int offset, GreenNode[] array, int arrayOffset, int count)
+        internal void CopyTo(int offset, GreenNode?[] array, int arrayOffset, int count)
         {
             Debug.Assert(this.Count >= offset + count);
 
@@ -250,15 +255,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// get the green node at the given slot
         /// </summary>
-        private GreenNode GetGreenNodeAt(int i)
+        private GreenNode? GetGreenNodeAt(int i)
         {
+            Debug.Assert(Node is object);
             return GetGreenNodeAt(Node, i);
         }
 
         /// <summary>
         /// get the green node at the given slot
         /// </summary>
-        private static GreenNode GetGreenNodeAt(GreenNode node, int i)
+        private static GreenNode? GetGreenNodeAt(GreenNode node, int i)
         {
             Debug.Assert(node.IsList || (i == 0 && !node.IsList));
             return node.IsList ? node.GetSlot(i) : node;
@@ -355,7 +361,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return new SyntaxTokenList(null, list[0].Node.CreateList(list.Select(n => n.Node)), 0, 0);
+            return new SyntaxTokenList(null, GreenNode.CreateList(list, static n => n.RequiredNode), 0, 0);
         }
 
         /// <summary>
@@ -371,7 +377,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTokenList(null, Node.CreateList(list.Select(n => n.Node)), 0, 0);
+            return new SyntaxTokenList(null, GreenNode.CreateList(list, static n => n.RequiredNode), 0, 0);
         }
 
         /// <summary>
@@ -417,7 +423,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTokens);
-                return new SyntaxTokenList(null, Node.CreateList(list.Select(n => n.Node)), 0, 0);
+                return new SyntaxTokenList(null, GreenNode.CreateList(list, static n => n.RequiredNode), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(tokenInList));
@@ -485,9 +491,9 @@ namespace Microsoft.CodeAnalysis
         /// Compares this <see cref=" SyntaxTokenList"/> with the <paramref name="obj"/> for equality.
         /// </summary>
         /// <returns>True if the two objects are equal.</returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj is SyntaxTokenList && Equals((SyntaxTokenList)obj);
+            return obj is SyntaxTokenList list && Equals(list);
         }
 
         /// <summary>

@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -28,26 +32,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private sealed class WrappedValue
         {
-            public TValue Value { get; set; }
+            public WrappedValue(TValue value)
+            {
+                Value = value;
+            }
+
+            public TValue Value { get; }
         }
 
         private WrappedValue ComputeValue(TKey key)
         {
             var value = _computeValue(key);
-            return new WrappedValue { Value = value };
+            return new WrappedValue(value);
         }
 
-        internal bool TryGetValue(TKey key, out TValue value)
+        internal bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             // Catch any exceptions from the computeValue callback, which calls into user code.
             try
             {
                 value = _valueCache.GetValue(key, _valueCacheCallback).Value;
+                Debug.Assert(value is object);
                 return true;
             }
             catch (Exception)
             {
-                value = default(TValue);
+                value = default;
                 return false;
             }
         }

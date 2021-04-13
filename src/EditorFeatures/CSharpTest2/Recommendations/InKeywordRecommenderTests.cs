@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -302,7 +306,7 @@ class C {
         var q = from Int32 $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInMethods()
         {
@@ -313,7 +317,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInSecondParameter()
         {
@@ -324,7 +328,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInDelegates()
         {
@@ -332,7 +336,7 @@ class Program
 public delegate int Delegate($$ int p);");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInLocalFunctions()
         {
@@ -346,7 +350,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInLambdaExpressions()
         {
@@ -362,7 +366,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInAnonymousMethods()
         {
@@ -378,7 +382,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInMethodReturnTypes()
         {
@@ -392,7 +396,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInGlobalMemberDeclaration()
         {
@@ -400,7 +404,7 @@ class Program
 public $$ ");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInDelegateReturnType()
         {
@@ -412,7 +416,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInMemberDeclaration()
         {
@@ -423,7 +427,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInMethodFirstArgumentModifier()
         {
@@ -433,7 +437,7 @@ class C {
         Call($$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInMethodSecondArgumentModifier()
         {
@@ -443,7 +447,7 @@ class C {
         Call(arg1, $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInBaseCallFirstArgumentModifier()
         {
@@ -452,7 +456,7 @@ class C {
     public C() : base($$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInBaseCallSecondArgumentModifier()
         {
@@ -461,7 +465,7 @@ class C {
     public C(object arg1) : base(arg1, $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInThisCallFirstArgumentModifier()
         {
@@ -470,7 +474,7 @@ class C {
     public C() : this($$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInThisCallSecondArgumentModifier()
         {
@@ -479,7 +483,7 @@ class C {
     public C(object arg1) : this(arg1, $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestInAsParameterModifierInConversionOperators()
@@ -491,7 +495,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestInAsParameterModifierInBinaryOperators()
@@ -503,7 +507,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInConstructorCallFirstArgumentModifier()
         {
@@ -513,7 +517,7 @@ class C {
         new MyType($$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInConstructorSecondArgumentModifier()
         {
@@ -523,7 +527,7 @@ class C {
         new MyType(arg1, $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInMethodFirstNamedArgumentModifier()
         {
@@ -533,7 +537,7 @@ class C {
         Call(a: $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInMethodSecondNamedArgumentModifier()
         {
@@ -543,7 +547,7 @@ class C {
         Call(a: arg1, b: $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInBaseCallFirstNamedArgumentModifier()
         {
@@ -552,7 +556,7 @@ class C {
     public C() : base(a: $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInBaseCallSecondNamedArgumentModifier()
         {
@@ -561,7 +565,7 @@ class C {
     public C(object arg1) : base(a: arg1, b: $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInThisCallFirstNamedArgumentModifier()
         {
@@ -570,7 +574,7 @@ class C {
     public C() : this(a: $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInThisCallSecondNamedArgumentModifier()
         {
@@ -579,7 +583,7 @@ class C {
     public C(object arg1) : this(a: arg1, b: $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInConstructorCallFirstNamedArgumentModifier()
         {
@@ -589,7 +593,7 @@ class C {
         new MyType(a: $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInConstructorSecondNamedArgumentModifier()
         {
@@ -694,6 +698,28 @@ class C {
             await VerifyAbsenceAsync(
 @"static class Extensions {
     void Extension(this int i, this $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeNoExistingModifiers()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<$$");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("in")]
+        [InlineData("out")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        public async Task TestNotInFunctionPointerTypeExistingModifiers(string modifier)
+        {
+            await VerifyAbsenceAsync($@"
+class C
+{{
+    delegate*<{modifier} $$");
         }
     }
 }

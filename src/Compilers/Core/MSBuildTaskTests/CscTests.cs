@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -470,12 +472,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs", "subdir\\test.cs");
             csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
-            Assert.Equal(@"/out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.cs subdir\test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal($@"/out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.cs subdir{Path.DirectorySeparatorChar}test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
             Assert.Equal(@"/out:test.exe /analyzerconfig:..\.editorconfig /analyzerconfig:""sub dir\.editorconfig"" test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
+        public void SkipAnalyzersFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SkipAnalyzers = true;
+            Assert.Equal("/out:test.exe /skipanalyzers+ test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SkipAnalyzers = false;
+            Assert.Equal("/out:test.exe /skipanalyzers- test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
     }
 }

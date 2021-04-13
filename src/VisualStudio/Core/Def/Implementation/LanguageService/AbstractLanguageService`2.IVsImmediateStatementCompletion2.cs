@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -17,8 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsImmediateStatementCompletion2
     {
-        protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter<TPackage, TLanguageService>> filters =
-            new Dictionary<IVsTextView, DebuggerIntelliSenseFilter<TPackage, TLanguageService>>();
+        protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter> filters =
+            new();
 
         int IVsImmediateStatementCompletion2.EnableStatementCompletion(int enable, int startIndex, int endIndex, IVsTextView textView)
         {
@@ -47,13 +49,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // of textview->filters.
             if (install != 0)
             {
-                DebuggerIntelliSenseFilter<TPackage, TLanguageService> filter;
+                DebuggerIntelliSenseFilter filter;
                 if (!this.filters.ContainsKey(textView))
                 {
-                    filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService>(this,
+                    filter = new DebuggerIntelliSenseFilter(
                         this.EditorAdaptersFactoryService.GetWpfTextView(textView),
-                        this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>(),
-                        this.Package.ComponentModel.GetService<ICommandHandlerServiceFactory>(),
+                        this.Package.ComponentModel,
                         this.Package.ComponentModel.GetService<IFeatureServiceFactory>());
                     this.filters[textView] = filter;
                     Marshal.ThrowExceptionForHR(textView.AddCommandFilter(filter, out var nextFilter));
@@ -94,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 if (!contextBuffer.ContentType.IsOfType(this.ContentTypeName))
                 {
-                    FatalError.ReportWithoutCrash(
+                    FatalError.ReportAndCatch(
                         new ArgumentException($"Expected content type {this.ContentTypeName} " +
                         $"but got buffer of content type {contextBuffer.ContentType}"));
 

@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 
 namespace Roslyn.Utilities
@@ -13,6 +14,7 @@ namespace Roslyn.Utilities
             return new ReadLockExiter(@lock);
         }
 
+        [NonCopyable]
         internal readonly struct ReadLockExiter : IDisposable
         {
             private readonly ReaderWriterLockSlim _lock;
@@ -34,6 +36,7 @@ namespace Roslyn.Utilities
             return new UpgradeableReadLockExiter(@lock);
         }
 
+        [NonCopyable]
         internal readonly struct UpgradeableReadLockExiter : IDisposable
         {
             private readonly ReaderWriterLockSlim _lock;
@@ -65,6 +68,7 @@ namespace Roslyn.Utilities
             return new WriteLockExiter(@lock);
         }
 
+        [NonCopyable]
         internal readonly struct WriteLockExiter : IDisposable
         {
             private readonly ReaderWriterLockSlim _lock;

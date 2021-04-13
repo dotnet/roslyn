@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -126,6 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               ((CSharpCompilationOptions)options).NullableContextOptions,
                                                               options.GeneralDiagnosticOption,
                                                               options.SpecificDiagnosticOptions,
+                                                              options.SyntaxTreeOptionsProvider,
+                                                              CancellationToken.None, // We don't have a tree so there's no need to pass cancellation to the SyntaxTreeOptionsProvider
                                                               out hasPragmaSuppression);
         }
 
@@ -146,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int WRN_AnalyzerCannotBeCreated => (int)ErrorCode.WRN_AnalyzerCannotBeCreated;
         public override int WRN_NoAnalyzerInAssembly => (int)ErrorCode.WRN_NoAnalyzerInAssembly;
         public override int WRN_UnableToLoadAnalyzer => (int)ErrorCode.WRN_UnableToLoadAnalyzer;
+        public override int WRN_AnalyzerReferencesFramework => (int)ErrorCode.WRN_AnalyzerReferencesFramework;
         public override int INF_UnableToLoadSomeTypesInAnalyzer => (int)ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer;
         public override int ERR_CantReadRulesetFile => (int)ErrorCode.ERR_CantReadRulesetFile;
         public override int ERR_CompileCancelled => (int)ErrorCode.ERR_CompileCancelled;
@@ -225,46 +233,50 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_EncUpdateFailedMissingAttribute => (int)ErrorCode.ERR_EncUpdateFailedMissingAttribute;
         public override int ERR_InvalidDebugInfo => (int)ErrorCode.ERR_InvalidDebugInfo;
 
-        public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
+        // Generators:
+        public override int WRN_GeneratorFailedDuringInitialization => (int)ErrorCode.WRN_GeneratorFailedDuringInitialization;
+        public override int WRN_GeneratorFailedDuringGeneration => (int)ErrorCode.WRN_GeneratorFailedDuringGeneration;
+
+        protected override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {
             var node = (AttributeSyntax)attributeSyntax;
             CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(parameterIndex, node);
             diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, node.GetErrorDisplayName());
         }
 
-        public override void ReportInvalidNamedArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName)
+        protected override void ReportInvalidNamedArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName)
         {
             var node = (AttributeSyntax)attributeSyntax;
             diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, node.ArgumentList.Arguments[namedArgumentIndex].Location, parameterName);
         }
 
-        public override void ReportParameterNotValidForType(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex)
+        protected override void ReportParameterNotValidForType(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex)
         {
             var node = (AttributeSyntax)attributeSyntax;
             diagnostics.Add(ErrorCode.ERR_ParameterNotValidForType, node.ArgumentList.Arguments[namedArgumentIndex].Location);
         }
 
-        public override void ReportMarshalUnmanagedTypeNotValidForFields(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
+        protected override void ReportMarshalUnmanagedTypeNotValidForFields(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
         {
             var node = (AttributeSyntax)attributeSyntax;
             CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(parameterIndex, node);
             diagnostics.Add(ErrorCode.ERR_MarshalUnmanagedTypeNotValidForFields, attributeArgumentSyntax.Location, unmanagedTypeName);
         }
 
-        public override void ReportMarshalUnmanagedTypeOnlyValidForFields(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
+        protected override void ReportMarshalUnmanagedTypeOnlyValidForFields(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, string unmanagedTypeName, AttributeData attribute)
         {
             var node = (AttributeSyntax)attributeSyntax;
             CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(parameterIndex, node);
             diagnostics.Add(ErrorCode.ERR_MarshalUnmanagedTypeOnlyValidForFields, attributeArgumentSyntax.Location, unmanagedTypeName);
         }
 
-        public override void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName)
+        protected override void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName)
         {
             var node = (AttributeSyntax)attributeSyntax;
             diagnostics.Add(ErrorCode.ERR_AttributeParameterRequired1, node.Name.Location, parameterName);
         }
 
-        public override void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2)
+        protected override void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2)
         {
             var node = (AttributeSyntax)attributeSyntax;
             diagnostics.Add(ErrorCode.ERR_AttributeParameterRequired2, node.Name.Location, parameterName1, parameterName2);

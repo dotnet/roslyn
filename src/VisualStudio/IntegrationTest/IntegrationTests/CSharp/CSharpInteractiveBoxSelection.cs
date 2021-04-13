@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -12,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 
@@ -155,7 +159,6 @@ __234567890ABCDEF
 __|234567890ABCDEF
 1234567890ABCDEF");
         }
-
 
         [WpfFact]
         public void BottomLeftTopRightSymbolToSymbol()

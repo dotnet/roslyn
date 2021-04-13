@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -142,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("a", "{object[1]}", "System.Array {object[]}", "(new C()).a", DkmEvaluationResultFlags.Expandable),
-                EvalResult("o", "{int[2]}", "object {int[]}", "(new C()).o", DkmEvaluationResultFlags.Expandable));
+                EvalResult("a", "{object[1]}", "System.Array {object[]}", "(new C()).a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("o", "{int[2]}", "object {int[]}", "(new C()).o", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             Verify(GetChildren(children[0]),
                 EvalResult("[0]", "null", "object", "((object[])(new C()).a)[0]"));
             Verify(GetChildren(children[1]),
@@ -180,8 +184,8 @@ class B : A
                 EvalResult("[1]", "{B}", "object {B}", "o[1]", DkmEvaluationResultFlags.Expandable));
             children = GetChildren(children[1]);
             Verify(children,
-                EvalResult("F", "2", "object {int}", "((A)o[1]).F"),
-                EvalResult("P", "2", "object {int}", "((B)o[1]).P", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "2", "object {int}", "((A)o[1]).F", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P", "2", "object {int}", "((B)o[1]).P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(1022157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022157")]
@@ -209,15 +213,15 @@ class C
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("F", "{A[1]}", "object[] {A[]}", "o.F", DkmEvaluationResultFlags.Expandable),
-                EvalResult("G", "{B[1]}", "A[] {B[]}", "o.G", DkmEvaluationResultFlags.Expandable),
-                EvalResult("H", "{B[1]}", "I[] {B[]}", "o.H", DkmEvaluationResultFlags.Expandable));
+                EvalResult("F", "{A[1]}", "object[] {A[]}", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("G", "{B[1]}", "A[] {B[]}", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("H", "{B[1]}", "I[] {B[]}", "o.H", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             var moreChildren = GetChildren(children[0]);
             Verify(moreChildren,
                 EvalResult("[0]", "{A}", "object {A}", "((A[])o.F)[0]", DkmEvaluationResultFlags.Expandable));
             moreChildren = GetChildren(moreChildren[0]);
             Verify(moreChildren,
-                EvalResult("F", "1", "object {int}", "((A)((A[])o.F)[0]).F"));
+                EvalResult("F", "1", "object {int}", "((A)((A[])o.F)[0]).F", DkmEvaluationResultFlags.CanFavorite));
             moreChildren = GetChildren(children[1]);
             Verify(moreChildren,
                 EvalResult("[0]", "{B}", "A {B}", "((B[])o.G)[0]", DkmEvaluationResultFlags.Expandable));
@@ -244,8 +248,8 @@ class C
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("F", "{char[1]}", "char[]", "o.F", DkmEvaluationResultFlags.Expandable),
-                EvalResult("G", "{char[1]}", "System.Collections.IEnumerable {char[]}", "o.G", DkmEvaluationResultFlags.Expandable));
+                EvalResult("F", "{char[1]}", "char[]", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("G", "{char[1]}", "System.Collections.IEnumerable {char[]}", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             var moreChildren = GetChildren(children[0]);
             Verify(moreChildren,
                 EvalResult("[0]", "49 '1'", "char", "o.F[0]", editableValue: "'1'"));

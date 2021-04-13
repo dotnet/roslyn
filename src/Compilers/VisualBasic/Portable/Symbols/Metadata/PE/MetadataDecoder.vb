@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -131,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
-            Catch e As Exception When FatalError.Report(e) ' Trying to get more useful Watson dumps.
+            Catch e As Exception When FatalError.ReportAndPropagate(e) ' Trying to get more useful Watson dumps.
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function
@@ -359,8 +361,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                         ' Let's use a trick. To make sure the kind is the same, make sure
                         ' base type is the same.
-                        Dim baseSpecialType As SpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault()
-                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> (baseType?.SpecialType).GetValueOrDefault() Then
+                        Dim baseSpecialType As SpecialType = If(candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType, SpecialType.None)
+                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> If(baseType?.SpecialType, SpecialType.None) Then
                             Continue For
                         End If
 
@@ -446,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Debug.Assert(Not targetTypeSymbol.IsTupleType)
 
-            If scope IsNot Nothing AndAlso Not TypeSymbol.Equals(targetTypeSymbol, scope, TypeCompareKind.ConsiderEverything) AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, Nothing) Then
+            If scope IsNot Nothing AndAlso Not TypeSymbol.Equals(targetTypeSymbol, scope, TypeCompareKind.ConsiderEverything) AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                 Return Nothing
             End If
 

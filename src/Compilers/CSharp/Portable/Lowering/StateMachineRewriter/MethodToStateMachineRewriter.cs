@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool useFinalizerBookkeeping)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
         {
@@ -440,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyAvailableReusableHoistedFields == null)
                 {
-                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
                 }
 
                 _lazyAvailableReusableHoistedFields.Add(field.Type, fields = new ArrayBuilder<StateMachineFieldSymbol>());
@@ -618,10 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (slotAllocatorOpt == null ||
                             !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
                                 awaitSyntaxOpt,
-                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics),
+                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
                                 kind,
                                 id,
-                                Diagnostics,
+                                Diagnostics.DiagnosticBag,
                                 out slotIndex))
                         {
                             slotIndex = _nextFreeHoistedLocalSlot++;
@@ -841,11 +845,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dispatches = oldDispatches;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
+
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(
                     condition: ShouldEnterFinallyBlock(),
-                    thenClause: (BoundBlock)this.Visit(node.FinallyBlockOpt)
+                    thenClause: VisitFinally(node.FinallyBlockOpt)
                 ),
                 F.HiddenSequencePoint());
 
@@ -860,6 +865,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        protected virtual BoundBlock VisitFinally(BoundBlock finallyBlock)
+        {
+            return (BoundBlock)this.Visit(finallyBlock);
         }
 
         protected virtual BoundBinaryOperator ShouldEnterFinallyBlock()

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -124,10 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         /// <summary>
-        /// The underlying AssemblySymbol.
-        /// This cannot be an instance of RetargetingAssemblySymbol.
+        /// The underlying <see cref="SourceAssemblySymbol"/>.
         /// </summary>
-        public AssemblySymbol UnderlyingAssembly
+        public SourceAssemblySymbol UnderlyingAssembly
         {
             get
             {
@@ -285,6 +288,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
 
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
+        }
+
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            foreach (NamedTypeSymbol underlying in _underlyingAssembly.GetAllTopLevelForwardedTypes())
+            {
+                yield return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
+            }
         }
 
         public override AssemblyMetadata GetMetadata() => _underlyingAssembly.GetMetadata();

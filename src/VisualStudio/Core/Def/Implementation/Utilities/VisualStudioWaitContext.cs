@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -111,24 +115,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private void UpdateDialog()
         {
-            _dialog.UpdateProgress(
+            ((IVsThreadedWaitDialog2)_dialog).UpdateProgress(
                 this.ProgressTracker.Description ?? _message,
                 szProgressText: null,
                 szStatusBarText: null,
                 iCurrentStep: this.ProgressTracker.CompletedItems,
                 iTotalSteps: this.ProgressTracker.TotalItems,
                 fDisableCancel: !_allowCancel,
-                pfCanceled: out var hasCancelled);
+                pfCanceled: out _);
         }
 
         public void Dispose()
         {
             _dialog.EndWaitDialog(out var canceled);
 
+            // Let the global operation object know that we completed with/without user cancelling.  If the user
+            // canceled, we won't call 'Done', and so calling 'Dispose' will log that we didn't complete fully.
             if (canceled == 0)
-            {
                 _registration.Done();
-            }
 
             _registration.Dispose();
         }

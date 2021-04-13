@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindUsages
@@ -9,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockSymbolNavigationService
         Implements ISymbolNavigationService
 
-        Public _triedNavigationToSymbol As Boolean = False
-        Public _triedSymbolNavigationNotify As Boolean = False
-        Public _wouldNavigateToSymbol As Boolean = False
+        Public _triedNavigationToSymbol As Boolean
+        Public _triedSymbolNavigationNotify As Boolean
+        Public _wouldNavigateToSymbol As Boolean
 
         Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
             _triedNavigationToSymbol = True

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +13,7 @@ namespace Roslyn.Utilities
         {
             internal class Set<T> : Collection<T>, ISet<T>, IReadOnlySet<T>
             {
-                public static readonly new Set<T> Instance = new Set<T>();
+                public static new readonly Set<T> Instance = new();
 
                 protected Set()
                 {

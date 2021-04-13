@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
 {
@@ -7,27 +11,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
     /// </summary>
     internal class AnalyzerActionCounts
     {
-        internal static readonly AnalyzerActionCounts Empty = new AnalyzerActionCounts(null);
+        internal static readonly AnalyzerActionCounts Empty = new AnalyzerActionCounts(in AnalyzerActions.Empty);
 
-        internal AnalyzerActionCounts(AnalyzerActions analyzerActions) :
+        internal AnalyzerActionCounts(in AnalyzerActions analyzerActions) :
             this(
-                analyzerActions?.CompilationStartActionsCount ?? 0,
-                analyzerActions?.CompilationEndActionsCount ?? 0,
-                analyzerActions?.CompilationActionsCount ?? 0,
-                analyzerActions?.SyntaxTreeActionsCount ?? 0,
-                analyzerActions?.SemanticModelActionsCount ?? 0,
-                analyzerActions?.SymbolActionsCount ?? 0,
-                analyzerActions?.SymbolStartActionsCount ?? 0,
-                analyzerActions?.SymbolEndActionsCount ?? 0,
-                analyzerActions?.SyntaxNodeActionsCount ?? 0,
-                analyzerActions?.CodeBlockStartActionsCount ?? 0,
-                analyzerActions?.CodeBlockEndActionsCount ?? 0,
-                analyzerActions?.CodeBlockActionsCount ?? 0,
-                analyzerActions?.OperationActionsCount ?? 0,
-                analyzerActions?.OperationBlockStartActionsCount ?? 0,
-                analyzerActions?.OperationBlockEndActionsCount ?? 0,
-                analyzerActions?.OperationBlockActionsCount ?? 0,
-                analyzerActions?.Concurrent ?? false)
+                analyzerActions.CompilationStartActionsCount,
+                analyzerActions.CompilationEndActionsCount,
+                analyzerActions.CompilationActionsCount,
+                analyzerActions.SyntaxTreeActionsCount,
+                analyzerActions.AdditionalFileActionsCount,
+                analyzerActions.SemanticModelActionsCount,
+                analyzerActions.SymbolActionsCount,
+                analyzerActions.SymbolStartActionsCount,
+                analyzerActions.SymbolEndActionsCount,
+                analyzerActions.SyntaxNodeActionsCount,
+                analyzerActions.CodeBlockStartActionsCount,
+                analyzerActions.CodeBlockEndActionsCount,
+                analyzerActions.CodeBlockActionsCount,
+                analyzerActions.OperationActionsCount,
+                analyzerActions.OperationBlockStartActionsCount,
+                analyzerActions.OperationBlockEndActionsCount,
+                analyzerActions.OperationBlockActionsCount,
+                analyzerActions.Concurrent)
         {
         }
 
@@ -36,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             int compilationEndActionsCount,
             int compilationActionsCount,
             int syntaxTreeActionsCount,
+            int additionalFileActionsCount,
             int semanticModelActionsCount,
             int symbolActionsCount,
             int symbolStartActionsCount,
@@ -54,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             CompilationEndActionsCount = compilationEndActionsCount;
             CompilationActionsCount = compilationActionsCount;
             SyntaxTreeActionsCount = syntaxTreeActionsCount;
+            AdditionalFileActionsCount = additionalFileActionsCount;
             SemanticModelActionsCount = semanticModelActionsCount;
             SymbolActionsCount = symbolActionsCount;
             SymbolStartActionsCount = symbolStartActionsCount;
@@ -96,6 +103,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Count of registered syntax tree actions.
         /// </summary>
         public int SyntaxTreeActionsCount { get; }
+
+        /// <summary>
+        /// Count of registered additional file actions.
+        /// </summary>
+        public int AdditionalFileActionsCount { get; }
 
         /// <summary>
         /// Count of registered semantic model actions.

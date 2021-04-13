@@ -1,35 +1,41 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+#If Not DEBUG Then
+Imports EventSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.EventSymbol
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
     Friend NotInheritable Class EmbeddedEvent
         Inherits EmbeddedTypesManager.CommonEmbeddedEvent
 
-        Public Sub New(underlyingEvent As EventSymbol, adder As EmbeddedMethod, remover As EmbeddedMethod, caller As EmbeddedMethod)
+        Public Sub New(underlyingEvent As EventSymbolAdapter, adder As EmbeddedMethod, remover As EmbeddedMethod, caller As EmbeddedMethod)
             MyBase.New(underlyingEvent, adder, remover, caller)
         End Sub
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingEvent.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
+            Return UnderlyingEvent.AdaptedEventSymbol.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides ReadOnly Property IsRuntimeSpecial As Boolean
             Get
-                Return UnderlyingEvent.HasRuntimeSpecialName
+                Return UnderlyingEvent.AdaptedEventSymbol.HasRuntimeSpecialName
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsSpecialName As Boolean
             Get
-                Return UnderlyingEvent.HasSpecialName
+                Return UnderlyingEvent.AdaptedEventSymbol.HasSpecialName
             End Get
         End Property
 
         Protected Overrides Function [GetType](moduleBuilder As PEModuleBuilder, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.ITypeReference
-            Return moduleBuilder.Translate(UnderlyingEvent.Type, syntaxNodeOpt, diagnostics)
+            Return moduleBuilder.Translate(UnderlyingEvent.AdaptedEventSymbol.Type, syntaxNodeOpt, diagnostics)
         End Function
 
         Protected Overrides ReadOnly Property ContainingType As EmbeddedType
@@ -40,13 +46,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property Visibility As Cci.TypeMemberVisibility
             Get
-                Return PEModuleBuilder.MemberVisibility(UnderlyingEvent)
+                Return PEModuleBuilder.MemberVisibility(UnderlyingEvent.AdaptedEventSymbol)
             End Get
         End Property
 
         Protected Overrides ReadOnly Property Name As String
             Get
-                Return UnderlyingEvent.MetadataName
+                Return UnderlyingEvent.AdaptedEventSymbol.MetadataName
             End Get
         End Property
 
@@ -57,13 +63,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' interface method is also included, even if it is not otherwise referenced in the embedding project.
             Dim underlyingContainingType = ContainingType.UnderlyingNamedType
 
-            For Each attrData In underlyingContainingType.GetAttributes()
-                If attrData.IsTargetAttribute(underlyingContainingType, AttributeDescription.ComEventInterfaceAttribute) Then
+            For Each attrData In underlyingContainingType.AdaptedNamedTypeSymbol.GetAttributes()
+                If attrData.IsTargetAttribute(underlyingContainingType.AdaptedNamedTypeSymbol, AttributeDescription.ComEventInterfaceAttribute) Then
                     Dim foundMatch = False
                     Dim sourceInterface As NamedTypeSymbol = Nothing
 
                     If attrData.CommonConstructorArguments.Length = 2 Then
-                        sourceInterface = TryCast(attrData.CommonConstructorArguments(0).Value, NamedTypeSymbol)
+                        sourceInterface = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, NamedTypeSymbol)
                         If sourceInterface IsNot Nothing Then
                             foundMatch = EmbedMatchingInterfaceMethods(sourceInterface, syntaxNodeOpt, diagnostics)
 
@@ -78,14 +84,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     If Not foundMatch AndAlso isUsedForComAwareEventBinding Then
                         If sourceInterface Is Nothing Then
                             ' ERRID_SourceInterfaceMustBeInterface/ERR_MissingSourceInterface
-                            EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_SourceInterfaceMustBeInterface, syntaxNodeOpt, underlyingContainingType, UnderlyingEvent)
+                            EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_SourceInterfaceMustBeInterface, syntaxNodeOpt, underlyingContainingType.AdaptedNamedTypeSymbol, UnderlyingEvent.AdaptedEventSymbol)
                         Else
-                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                            sourceInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                            diagnostics.Add(If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation()), useSiteDiagnostics)
+                            Dim useSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies
+                            sourceInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteInfo)
+                            diagnostics.Add(If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation()), useSiteInfo.Diagnostics)
 
                             ' ERRID_EventNoPIANoBackingMember/ERR_MissingMethodOnSourceInterface
-                            EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_EventNoPIANoBackingMember, syntaxNodeOpt, sourceInterface, UnderlyingEvent.MetadataName, UnderlyingEvent)
+                            EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_EventNoPIANoBackingMember, syntaxNodeOpt, sourceInterface, UnderlyingEvent.AdaptedEventSymbol.MetadataName, UnderlyingEvent.AdaptedEventSymbol)
                         End If
                     End If
 
@@ -96,9 +102,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Private Function EmbedMatchingInterfaceMethods(sourceInterface As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Boolean
             Dim foundMatch = False
-            For Each m In sourceInterface.GetMembers(UnderlyingEvent.MetadataName)
+            For Each m In sourceInterface.GetMembers(UnderlyingEvent.AdaptedEventSymbol.MetadataName)
                 If m.Kind = SymbolKind.Method Then
-                    TypeManager.EmbedMethodIfNeedTo(DirectCast(m, MethodSymbol), syntaxNodeOpt, diagnostics)
+                    TypeManager.EmbedMethodIfNeedTo(DirectCast(m, MethodSymbol).GetCciAdapter(), syntaxNodeOpt, diagnostics)
                     foundMatch = True
                 End If
             Next

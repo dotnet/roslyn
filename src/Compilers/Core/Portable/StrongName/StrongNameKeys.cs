@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A diagnostic created in the process of determining the key.
         /// </summary>
-        internal readonly Diagnostic DiagnosticOpt;
+        internal readonly Diagnostic? DiagnosticOpt;
 
         /// <summary>
         /// The CSP key container containing the public key used to produce the key,
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         /// The original value as specified by <see cref="System.Reflection.AssemblyKeyNameAttribute"/> or 
         /// <see cref="CompilationOptions.CryptoKeyContainer"/>.
         /// </remarks>
-        internal readonly string KeyContainer;
+        internal readonly string? KeyContainer;
 
         /// <summary>
         /// Original key file path, or null if the key is provided by the <see cref="KeyContainer"/>.
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// The original value as specified by <see cref="System.Reflection.AssemblyKeyFileAttribute"/> or 
         /// <see cref="CompilationOptions.CryptoKeyFile"/>
         /// </remarks>
-        internal readonly string KeyFilePath;
+        internal readonly string? KeyFilePath;
 
         /// <summary>
         /// True when the assembly contains a <see cref="System.Reflection.AssemblySignatureKeyAttribute"/> value 
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             this.DiagnosticOpt = diagnostic;
         }
 
-        internal StrongNameKeys(ImmutableArray<byte> keyPair, ImmutableArray<byte> publicKey, RSAParameters? privateKey, string keyContainerName, string keyFilePath, bool hasCounterSignature)
+        internal StrongNameKeys(ImmutableArray<byte> keyPair, ImmutableArray<byte> publicKey, RSAParameters? privateKey, string? keyContainerName, string? keyFilePath, bool hasCounterSignature)
         {
             Debug.Assert(keyContainerName == null || keyPair.IsDefault);
             Debug.Assert(keyPair.IsDefault || keyFilePath != null);
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis
 
             if (MetadataHelpers.IsValidPublicKey(publicKey))
             {
-                return new StrongNameKeys(default(ImmutableArray<byte>), publicKey, privateKey, null, null, hasCounterSignature);
+                return new StrongNameKeys(keyPair: default, publicKey, privateKey, keyContainerName: null, keyFilePath: null, hasCounterSignature);
             }
             else
             {
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static StrongNameKeys Create(string keyFilePath, CommonMessageProvider messageProvider)
+        internal static StrongNameKeys Create(string? keyFilePath, CommonMessageProvider messageProvider)
         {
             if (string.IsNullOrEmpty(keyFilePath))
             {
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis
         //In IDE typing scenarios we often need to infer public key from the same
         //key file blob repeatedly and it is relatively expensive.
         //So we will store last seen blob and corresponding key here.
-        private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>, RSAParameters?> s_lastSeenKeyPair;
+        private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>, RSAParameters?>? s_lastSeenKeyPair;
 
         // Note: Errors are reported by throwing an IOException
         internal static StrongNameKeys CreateHelper(ImmutableArray<byte> keyFileContent, string keyFilePath, bool hasCounterSignature)
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                 if (MetadataHelpers.IsValidPublicKey(keyFileContent))
                 {
                     publicKey = keyFileContent;
-                    keyPair = default(ImmutableArray<byte>);
+                    keyPair = default;
                 }
                 else if (CryptoBlobParser.TryParseKey(keyFileContent, out publicKey, out privateKey))
                 {
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis
             return new StrongNameKeys(keyPair, publicKey, privateKey, null, keyFilePath, hasCounterSignature);
         }
 
-        internal static StrongNameKeys Create(StrongNameProvider providerOpt, string keyFilePath, string keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
+        internal static StrongNameKeys Create(StrongNameProvider? providerOpt, string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
         {
             if (string.IsNullOrEmpty(keyFilePath) && string.IsNullOrEmpty(keyContainerName))
             {
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static Diagnostic GetError(string keyFilePath, string keyContainerName, object message, CommonMessageProvider messageProvider)
+        internal static Diagnostic GetError(string? keyFilePath, string? keyContainerName, object message, CommonMessageProvider messageProvider)
         {
             if (keyContainerName != null)
             {
@@ -207,6 +209,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
+                Debug.Assert(keyFilePath is object);
                 return GetKeyFileError(messageProvider, keyFilePath, message);
             }
         }
@@ -221,7 +224,7 @@ namespace Microsoft.CodeAnalysis
             return messageProvider.CreateDiagnostic(messageProvider.ERR_PublicKeyFileFailure, Location.None, path, message);
         }
 
-        internal static bool IsValidPublicKeyString(string publicKey)
+        internal static bool IsValidPublicKeyString(string? publicKey)
         {
             if (string.IsNullOrEmpty(publicKey) || publicKey.Length % 2 != 0)
             {

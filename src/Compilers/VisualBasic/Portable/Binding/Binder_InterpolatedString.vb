@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -11,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class Binder
 
-        Private Function BindInterpolatedStringExpression(syntax As InterpolatedStringExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindInterpolatedStringExpression(syntax As InterpolatedStringExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim contentBuilder = ArrayBuilder(Of BoundNode).GetInstance()
 
@@ -31,11 +33,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Private Function BindInterpolatedStringText(syntax As InterpolatedStringTextSyntax, diagnostics As DiagnosticBag) As BoundLiteral
+        Private Function BindInterpolatedStringText(syntax As InterpolatedStringTextSyntax, diagnostics As BindingDiagnosticBag) As BoundLiteral
             Return CreateStringLiteral(syntax, syntax.TextToken.ValueText, compilerGenerated:=False, diagnostics:=diagnostics)
         End Function
 
-        Private Function BindInterpolation(syntax As InterpolationSyntax, diagnostics As DiagnosticBag) As BoundInterpolation
+        Private Function BindInterpolation(syntax As InterpolationSyntax, diagnostics As BindingDiagnosticBag) As BoundInterpolation
 
             Dim expression = BindRValue(syntax.Expression, diagnostics)
 

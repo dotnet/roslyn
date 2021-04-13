@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Host;
 
@@ -9,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class DefaultTextDocumentServiceProvider : IDocumentServiceProvider
     {
-        public static readonly DefaultTextDocumentServiceProvider Instance = new DefaultTextDocumentServiceProvider();
+        public static readonly DefaultTextDocumentServiceProvider Instance = new();
 
         private DefaultTextDocumentServiceProvider() { }
 
@@ -18,17 +22,22 @@ namespace Microsoft.CodeAnalysis
             // right now, it doesn't implement much services but we expect it to implements all 
             // document services in future so that we can remove all if branches in feature code
             // but just delegate work to default document services.
-            if (DocumentOperationService.Instance is TService service)
+            if (DocumentOperationService.Instance is TService documentOperationService)
             {
-                return service;
+                return documentOperationService;
             }
 
-            return default;
+            if (DocumentPropertiesService.Default is TService documentPropertiesService)
+            {
+                return documentPropertiesService;
+            }
+
+            return null;
         }
 
         private class DocumentOperationService : IDocumentOperationService
         {
-            public static readonly DocumentOperationService Instance = new DocumentOperationService();
+            public static readonly DocumentOperationService Instance = new();
 
             // right now, we return CanApplyChange for all C# documents, but we probably want to return
             // false for generated files such as resx files or winform designer files.

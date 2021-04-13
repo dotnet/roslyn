@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -12,20 +15,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class ElseKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
             Dim parent = targetToken.GetAncestor(Of SingleLineIfStatementSyntax)()
 
             If parent IsNot Nothing AndAlso Not parent.Statements.IsEmpty() Then
                 If context.IsFollowingCompleteStatement(Of SingleLineIfStatementSyntax)(Function(ifStatement) ifStatement.Statements.Last()) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True))
+                    Return ImmutableArray.Create(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True))
                 End If
             End If
 
             If context.IsSingleLineStatementContext AndAlso
                IsDirectlyInIfOrElseIf(context) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True))
+                Return ImmutableArray.Create(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_a_group_of_statements_in_an_If_statement_that_is_executed_if_no_previous_condition_evaluates_to_True))
             End If
 
             ' Determine whether we can offer "Else" after "Case" in a Select block.
@@ -37,15 +40,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
                     ' Finally, ensure this case statement is the last one in the parenting "Select" block.
                     If selectBlock.CaseBlocks.Last().CaseStatement Is targetToken.Parent Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_the_statements_to_run_if_none_of_the_previous_cases_in_the_Select_Case_statement_returns_True))
+                        Return ImmutableArray.Create(New RecommendedKeyword("Else", VBFeaturesResources.Introduces_the_statements_to_run_if_none_of_the_previous_cases_in_the_Select_Case_statement_returns_True))
                     End If
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
 
-        Private Function IsDirectlyInIfOrElseIf(context As VisualBasicSyntaxContext) As Boolean
+        Private Shared Function IsDirectlyInIfOrElseIf(context As VisualBasicSyntaxContext) As Boolean
             ' Maybe we're after the Then keyword
             If context.TargetToken.IsKind(SyntaxKind.ThenKeyword) AndAlso
                 context.TargetToken.Parent?.Parent.IsKind(SyntaxKind.MultiLineIfBlock, SyntaxKind.ElseIfBlock) Then

@@ -1,16 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions;
-using System;
+using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -18,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Format1()
-        {
-            await AssertFormatAsync("namespace A { }", "namespace A{}");
-        }
+            => await AssertFormatAsync("namespace A { }", "namespace A{}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Format2()
@@ -955,9 +957,9 @@ label3:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task RelativeIndentationToFirstTokenInBaseTokenWithObjectInitializers()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
             };
             await AssertFormatAsync(@"class Program
 {
@@ -996,9 +998,9 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task RemoveSpacingAroundBinaryOperatorsShouldMakeAtLeastOneSpaceForIsAndAsKeywords()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove }
+                { CSharpFormattingOptions2.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove }
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -1027,7 +1029,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentUserSettingNonDefaultTest_OpenBracesOfLambdaWithNoNewLine()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentBraces, true },
                 { IndentBlock, false },
@@ -1060,7 +1062,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentUserSettingNonDefaultTest()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentBraces, true },
                 { IndentBlock, false },
@@ -1151,7 +1153,7 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentSwitch_IndentCase_IndentWhenBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentSwitchSection, true },
                 { IndentSwitchCaseSection, true },
@@ -1191,7 +1193,7 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentSwitch_IndentCase_NoIndentWhenBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentSwitchSection, true },
                 { IndentSwitchCaseSection, true },
@@ -1231,7 +1233,7 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentSwitch_NoIndentCase_IndentWhenBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentSwitchSection, true },
                 { IndentSwitchCaseSection, false },
@@ -1271,7 +1273,7 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentSwitch_NoIndentCase_NoIndentWhenBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentSwitchSection, true },
                 { IndentSwitchCaseSection, false },
@@ -1311,7 +1313,7 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentSwitch_IndentCase_IndentWhenBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentSwitchSection, false },
                 { IndentSwitchCaseSection, true },
@@ -1351,7 +1353,7 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentSwitch_IndentCase_NoIndentWhenBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentSwitchSection, false },
                 { IndentSwitchCaseSection, true },
@@ -1391,7 +1393,7 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentSwitch_NoIndentCase_IndentWhenBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentSwitchSection, false },
                 { IndentSwitchCaseSection, false },
@@ -1431,7 +1433,7 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NoIndentSwitch_NoIndentCase_NoIndentWhenBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { IndentSwitchSection, false },
                 { IndentSwitchCaseSection, false },
@@ -1510,9 +1512,9 @@ l:
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestWrappingNonDefault_FormatBlock()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.WrappingPreserveSingleLine, false }
+                { CSharpFormattingOptions2.WrappingPreserveSingleLine, false }
             };
             await AssertFormatAsync(@"class Class5
 {
@@ -1581,9 +1583,9 @@ class goo{int x = 0;}", false, changingOptions);
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestWrappingNonDefault_FormatStatmtMethDecl()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false }
+                { CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, false }
             };
             await AssertFormatAsync(@"class Class5
 {
@@ -1648,10 +1650,10 @@ class goo
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestWrappingNonDefault()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.WrappingPreserveSingleLine, false },
-                { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false }
+                { CSharpFormattingOptions2.WrappingPreserveSingleLine, false },
+                { CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, false }
             };
             await AssertFormatAsync(@"class Class5
 {
@@ -1731,9 +1733,9 @@ class goo{int x = 0;}", false, changingOptions);
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task TestLeaveStatementMethodDeclarationSameLineNotAffectingForStatement()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false }
+                { CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, false }
             };
             await AssertFormatAsync(@"class Program
 {
@@ -1888,7 +1890,7 @@ public class goo : System.Object
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NewLineForOpenBracesNonDefault()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { NewLinesForBracesInTypes, false },
                 { NewLinesForBracesInMethods, false },
@@ -2078,11 +2080,11 @@ if (a > b)
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NewLineForKeywordNonDefault()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLineForElse, false },
-                { CSharpFormattingOptions.NewLineForCatch, false },
-                { CSharpFormattingOptions.NewLineForFinally, false }
+                { CSharpFormattingOptions2.NewLineForElse, false },
+                { CSharpFormattingOptions2.NewLineForCatch, false },
+                { CSharpFormattingOptions2.NewLineForFinally, false }
             };
             await AssertFormatAsync(@"class c
 {
@@ -2144,7 +2146,7 @@ else
         [WorkItem(33458, "https://github.com/dotnet/roslyn/issues/33458")]
         public async Task NoNewLineForElseChecksBraceOwner()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
                 { NewLineForElse, false },
                 { NewLinesForBracesInControlBlocks, false },
@@ -2244,11 +2246,11 @@ MyObject obj = new MyObject {       X1 = 0,        Y1 = 1, X2 = 2,       Y2 = 3 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NewLineForExpressionNonDefault()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLineForMembersInObjectInit, false },
-                { CSharpFormattingOptions.NewLineForMembersInAnonymousTypes, false },
-                { CSharpFormattingOptions.NewLineForClausesInQuery, false }
+                { CSharpFormattingOptions2.NewLineForMembersInObjectInit, false },
+                { CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes, false },
+                { CSharpFormattingOptions2.NewLineForClausesInQuery, false }
             };
             await AssertFormatAsync(@"class f00
 {
@@ -2325,9 +2327,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DontInsertLineBreaksInSingleLineEnum()
-        {
-            await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
-        }
+            => await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task AlreadyFormattedSwitchIsNotFormatted_Bug2588()
@@ -3462,6 +3462,22 @@ static void Main(string[] args)
 ");
         }
 
+        [WorkItem(50723, "https://github.com/dotnet/roslyn/issues/50723")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TuplePointer()
+        {
+            var properlyFormattedCode = @"public unsafe static class Program
+{
+    public static void Main(string[] args)
+    {
+        int* intPointer = null;
+        (int, int)* intIntPointer = null;
+    }
+}
+";
+            await AssertFormatAsync(properlyFormattedCode, properlyFormattedCode);
+        }
+
         [WorkItem(537886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537886")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Tild()
@@ -3780,9 +3796,7 @@ public       void       Method      (       )           {
         [WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Tab1()
-        {
-            await AssertFormatAsync(@"using System;", @"			using System;");
-        }
+            => await AssertFormatAsync(@"using System;", @"			using System;");
 
         [WorkItem(538329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538329")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -4433,7 +4447,7 @@ class C
 
             var expected = @"class Program
 {
-    void AddClass(string name, [OptionalAttribute]    object position, [OptionalAttribute]    object bases)
+    void AddClass(string name, [OptionalAttribute] object position, [OptionalAttribute] object bases)
     {
     }
 }";
@@ -4597,7 +4611,7 @@ class innerClass
                 SyntaxFactory.List<AttributeListSyntax>(),
                 SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
                 SyntaxFactory.ParseTypeName("int"),
-                default,
+                null,
                 SyntaxFactory.Identifier("Prop"),
                 SyntaxFactory.AccessorList(
                     SyntaxFactory.List(
@@ -4908,7 +4922,29 @@ var(x,y)=(1,2);
 {
     void bar()
     {
-        (string a, string b)[] ab = new (
+        (string a, string b)[] ab = new(
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInImplicitObjectCreation()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        C a = new ();
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        C a = new();
     }
 }";
 
@@ -5172,9 +5208,9 @@ _ = this is  C( 1 , 2 ){}  ; }
         [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceBetweenTypeAndPositionalSubpattern()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceAfterMethodCallName, true }
+                { CSharpFormattingOptions2.SpaceAfterMethodCallName, true }
             };
             var code = @"class C
 {
@@ -5196,9 +5232,9 @@ _ = this is  C( 1 , 2 ){}  ; }
         [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceInsidePositionalSubpatternParentheses()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true }
+                { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true }
             };
             var code = @"class C
 {
@@ -5222,9 +5258,9 @@ _ = this is  C(  ){}  ; }
         [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
         public async Task FormatRecursivePattern_PreferSpaceInsideEmptyPositionalSubpatternParentheses()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true }
+                { CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, true }
             };
             var code = @"class C
 {
@@ -5248,8 +5284,8 @@ _ = this is  C(  ){}  ; }
         [WorkItem(34683, "https://github.com/dotnet/roslyn/issues/34683")]
         public async Task FormatRecursivePattern_InBinaryOperation()
         {
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true);
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp);
+            changingOptions.Add(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true);
             var code = @"class C
 {
     void M()
@@ -5991,9 +6027,9 @@ using (null)
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Bugfix_553654_LabelStatementIndenting()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.LabelPositioning, LabelPositionOptions.LeftMost }
+                { CSharpFormattingOptions2.LabelPositioning, LabelPositionOptions.LeftMost }
             };
 
             var code = @"class Program
@@ -6154,7 +6190,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ShouldFormatDocCommentWithIndentSameAsTabSizeWithUseTabTrue()
         {
-            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
 
             await AssertFormatAsync(@"namespace ConsoleApplication1
 {
@@ -6263,7 +6299,7 @@ class Program
         { }
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceWithinOtherParentheses, true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.SpaceWithinOtherParentheses, true } };
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
@@ -6352,7 +6388,7 @@ class Program
         { }
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword, false } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword, false } };
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
@@ -6389,7 +6425,7 @@ class Program
         var digits = new List<int> { 1,2,3,4 };
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceAfterComma, false } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.SpaceAfterComma, false } };
             await AssertFormatAsync(expectedAfterCommaDisabled, code, changedOptionSet: optionSet);
 
             var expectedBeforeCommaEnabled = @"
@@ -6401,7 +6437,7 @@ class Program
         var digits = new List<int> { 1 ,2 ,3 ,4 };
     }
 }";
-            optionSet.Add(CSharpFormattingOptions.SpaceBeforeComma, true);
+            optionSet.Add(CSharpFormattingOptions2.SpaceBeforeComma, true);
             await AssertFormatAsync(expectedBeforeCommaEnabled, code, changedOptionSet: optionSet);
         }
 
@@ -6451,11 +6487,6 @@ class C
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task QueryExpressionInExpression()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
-            {
-                { CSharpFormattingOptions.NewLinesForBracesInMethods, false }
-            };
-
             var code = @"
 class C
 {
@@ -6514,9 +6545,9 @@ class C
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task EmbeddedStatementElse()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLineForElse, false }
+                { CSharpFormattingOptions2.NewLineForElse, false }
             };
 
             var code = @"
@@ -6549,7 +6580,44 @@ class C
         [Fact]
         [WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task CommentAtTheEndOfLine()
+        public async Task LineCommentAtTheEndOfLine()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(); // this is a comment
+                                        // that I would like to keep
+
+                // properly indented
+    }
+}
+";
+
+            var expected = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(); // this is a comment
+                             // that I would like to keep
+
+        // properly indented
+    }
+}
+";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task BlockCommentAtTheEndOfLine1()
         {
             var code = @"
 using System;
@@ -6574,13 +6642,70 @@ class Program
     static void Main(string[] args)
     {
         Console.WriteLine(); /* this is a comment */
-                             // that I would like to keep
+        // that I would like to keep
 
         // properly indented
     }
 }
 ";
             await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task BlockCommentAtTheEndOfLine2()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(); // this is a comment
+                                        /* that I would like to keep */
+
+                // properly indented
+    }
+}
+";
+
+            var expected = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(); // this is a comment
+        /* that I would like to keep */
+
+        // properly indented
+    }
+}
+";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task BlockCommentAtBeginningOfLine()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void Main(
+        int x, // Some comment
+        /*A*/ int y)
+    {
+    }
+}
+";
+            await AssertFormatAsync(code, code);
         }
 
         [Fact]
@@ -6650,7 +6775,7 @@ class Program
 	}
 }
 ";
-            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
 
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
             await AssertFormatAsync(expected, expected, changedOptionSet: optionSet);
@@ -6671,7 +6796,7 @@ namespace N
     }
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingPreserveSingleLine, false } };
+            var options = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.WrappingPreserveSingleLine, false } };
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
@@ -6689,7 +6814,7 @@ class C
     }
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingPreserveSingleLine, false } };
+            var options = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.WrappingPreserveSingleLine, false } };
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
@@ -6715,7 +6840,7 @@ class Program
     }
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false } };
+            var options = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, false } };
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
@@ -6740,7 +6865,7 @@ class Program
     var a = new[] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, false },
                 { SpaceWithinSquareBrackets, false },
@@ -6771,7 +6896,7 @@ class Program
     var a = new[] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, false },
                 { SpaceWithinSquareBrackets, false },
@@ -6802,7 +6927,7 @@ class Program
     var a = new[] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, false },
                 { SpaceWithinSquareBrackets, false },
@@ -6833,7 +6958,7 @@ class Program
     var a = new[] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, false },
                 { SpaceWithinSquareBrackets, false },
@@ -6864,7 +6989,7 @@ class Program
     var a = new[] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, false },
                 { SpaceWithinSquareBrackets, true },
@@ -6895,7 +7020,7 @@ class Program
     var a = new[] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, false },
                 { SpaceWithinSquareBrackets, true },
@@ -6926,7 +7051,7 @@ class Program
     var a = new[] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, false },
                 { SpaceWithinSquareBrackets, true },
@@ -6957,7 +7082,7 @@ class Program
     var a = new[] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, false },
                 { SpaceWithinSquareBrackets, true },
@@ -6988,7 +7113,7 @@ class Program
     var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, true },
                 { SpaceWithinSquareBrackets, false },
@@ -7019,7 +7144,7 @@ class Program
     var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, true },
                 { SpaceWithinSquareBrackets, false },
@@ -7050,7 +7175,7 @@ class Program
     var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, true },
                 { SpaceWithinSquareBrackets, false },
@@ -7081,7 +7206,7 @@ class Program
     var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, true },
                 { SpaceWithinSquareBrackets, false },
@@ -7112,7 +7237,7 @@ class Program
     var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, true },
                 { SpaceWithinSquareBrackets, true },
@@ -7143,7 +7268,7 @@ class Program
     var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, true },
                 { SpaceWithinSquareBrackets, true },
@@ -7174,7 +7299,7 @@ class Program
     var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, true },
                 { SpaceWithinSquareBrackets, true },
@@ -7205,12 +7330,45 @@ class Program
     var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
                 { SpaceBetweenEmptySquareBrackets, true },
                 { SpaceWithinSquareBrackets, true },
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, true },
+            };
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
+        }
+
+        [WorkItem(14128, "https://github.com/dotnet/roslyn/issues/14128")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpaceBeforeCommasInLocalFunctionParameters()
+        {
+            var code = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i, string s)
+        {
+        }
+    }
+}";
+
+            var expected = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i , string s)
+        {
+        }
+    }
+}";
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeComma, true },
             };
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
@@ -7230,10 +7388,10 @@ class Program
     var t = new Goo(new[] { ""a"", ""b"" });
 }";
 
-            var options = new Dictionary<OptionKey, object>
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceWithinSquareBrackets, true },
-                { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, false }
+                { CSharpFormattingOptions2.SpaceWithinSquareBrackets, true },
+                { CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets, false }
             };
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
@@ -7253,7 +7411,7 @@ class Program
     int [] x;
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBeforeOpenSquareBracket, true } };
+            var options = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket, true } };
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
@@ -7272,7 +7430,7 @@ class Program
     int[ 3 ] x;
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceWithinSquareBrackets, true } };
+            var options = new OptionsCollection(LanguageNames.CSharp) { { CSharpFormattingOptions2.SpaceWithinSquareBrackets, true } };
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
@@ -7303,9 +7461,9 @@ class Program
     }
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false }
+                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: options);
@@ -7343,9 +7501,9 @@ class Program
     }
 }";
 
-            var options = new Dictionary<OptionKey, object>()
+            var options = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false }
+                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: options);
@@ -7398,9 +7556,9 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IgnoreSpacesInDeclarationStatementEnabled()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true }
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, true }
             };
             var code = @"
 class Program
@@ -7751,7 +7909,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ReconstructWhitespaceStringUsingTabs_SingleLineComment()
         {
-            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
             await AssertFormatAsync(@"using System;
 
 class Program
@@ -7777,7 +7935,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ReconstructWhitespaceStringUsingTabs_MultiLineComment()
         {
-            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
             await AssertFormatAsync(@"using System;
 
 class Program
@@ -7964,11 +8122,11 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingRulesAroundMethodCallAndParenthesisAppliedInAttributeNonDefault()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceAfterMethodCallName, true },
-                { CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true },
-                { CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true }
+                { CSharpFormattingOptions2.SpaceAfterMethodCallName, true },
+                { CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, true },
+                { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true }
             };
             await AssertFormatAsync(@"[Obsolete ( ""Test"" ), Obsolete ( )]
 class Program
@@ -8028,11 +8186,11 @@ class Program
         M ( );
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true },
-                { CSharpFormattingOptions.SpaceAfterMethodCallName, true },
-                { CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true },
+                { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true },
+                { CSharpFormattingOptions2.SpaceAfterMethodCallName, true },
+                { CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, true },
             };
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
@@ -8131,9 +8289,9 @@ class Program
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement, false },
+                { CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement, false },
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
@@ -8162,10 +8320,10 @@ class Program
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement, true },
-                { CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement, false },
+                { CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement, true },
+                { CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement, false },
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
@@ -8194,9 +8352,9 @@ class Program
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement, true },
+                { CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement, true },
             };
 
             await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
@@ -8229,9 +8387,9 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task VerifySpacingAfterMethodDeclarationName_NonDefault()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true }
+                { CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, true }
             };
             var code = @"class Program<T>
 {
@@ -8339,9 +8497,9 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SwitchSectionHonorsNewLineForBracesinControlBlockOption_NonDefault()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false }
+                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
             };
             var code = @"class Program
 {
@@ -8379,7 +8537,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormattingCodeWithMissingTokensShouldRespectFormatTabsOption1()
         {
-            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
 
             await AssertFormatAsync(@"class Program
 {
@@ -8400,7 +8558,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormattingCodeWithMissingTokensShouldRespectFormatTabsOption2()
         {
-            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
 
             await AssertFormatAsync(@"struct Goo
 {
@@ -8423,7 +8581,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormattingCodeWithBrokenLocalDeclarationShouldRespectFormatTabsOption()
         {
-            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
 
             await AssertFormatAsync(@"class AClass
 {
@@ -8463,7 +8621,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormattingCodeWithBrokenInterpolatedStringShouldRespectFormatTabsOption()
         {
-            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
 
             await AssertFormatAsync(@"class AClass
 {
@@ -8487,9 +8645,9 @@ class Program
         [WorkItem(849870, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
         public async Task NewLinesForBracesInPropertiesTest()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLinesForBracesInProperties, false }
+                { CSharpFormattingOptions2.NewLinesForBracesInProperties, false }
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -8526,9 +8684,9 @@ class Program
         [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
         public async Task NewLinesForBracesInAccessorsTest()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLinesForBracesInAccessors, false }
+                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false }
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -8565,10 +8723,10 @@ class Program
         [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
         public async Task NewLinesForBracesInPropertiesAndAccessorsTest()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.NewLinesForBracesInProperties, false },
-                { CSharpFormattingOptions.NewLinesForBracesInAccessors, false }
+                { CSharpFormattingOptions2.NewLinesForBracesInProperties, false },
+                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false }
             };
             await AssertFormatAsync(@"class Class2
 {
@@ -8621,10 +8779,10 @@ class C
         [WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
         public async Task SingleLinePropertiesPreservedWithLeaveStatementsAndMembersOnSingleLineFalse()
         {
-            var changedOptionSet = new Dictionary<OptionKey, object>
+            var changedOptionSet = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.WrappingPreserveSingleLine, true },
-                { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false},
+                { CSharpFormattingOptions2.WrappingPreserveSingleLine, true },
+                { CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, false},
             };
 
             await AssertFormatAsync(@"
@@ -9031,9 +9189,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
-        {
-            Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
-        }
+            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatIndexExpression()
@@ -9218,7 +9374,7 @@ public class Test
         {
             var expectedSpacing = spacingAfterMethodDeclarationName ? " " : "";
             var initialSpacing = spacingAfterMethodDeclarationName ? "" : " ";
-            var changedOptionSet = new Dictionary<OptionKey, object> { { SpacingAfterMethodDeclarationName, spacingAfterMethodDeclarationName } };
+            var changedOptionSet = new OptionsCollection(LanguageNames.CSharp) { { SpacingAfterMethodDeclarationName, spacingAfterMethodDeclarationName } };
             await AssertFormatAsync(
                 $@"
 public unsafe class Test
@@ -9237,9 +9393,9 @@ public unsafe class Test
         [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
         public async Task SpaceAroundDeclaration()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true }
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, true }
             };
             await AssertFormatAsync(
                 @"
@@ -9264,10 +9420,10 @@ class Program
         [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
         public async Task SpaceAroundDeclarationAndPreserveSingleLine()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true },
-                { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false }
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, true },
+                { CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, false }
             };
             await AssertFormatAsync(
                 @"
@@ -9362,9 +9518,9 @@ class Program
         [WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
         public async Task SpaceAroundEnumMemberDeclarationIgnored()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true }
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, true }
             };
             await AssertFormatAsync(
                 @"
@@ -9385,9 +9541,9 @@ enum TestEnum
         [WorkItem(37030, "https://github.com/dotnet/roslyn/issues/37030")]
         public async Task SpaceAroundEnumMemberDeclarationSingle()
         {
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, false }
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, false }
             };
             await AssertFormatAsync(
                 @"
@@ -9404,5 +9560,305 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(38895, "https://github.com/dotnet/roslyn/issues/38895")]
+        public async Task FormattingNbsp()
+        {
+            await AssertFormatAsync(
+                @"
+class C
+{
+    List<C> list = new List<C>
+    {
+new C()
+    };
+}",
+                @"
+class C
+{
+    List<C> list = new List<C>
+    {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;C()
+    };
+}".Replace("&nbsp;", "\u00A0"));
+        }
+
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+    {
+        return this with
+{
+X = 1
+};
+    }
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+    {
+        return this with
+        {
+            X = 1
+        };
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith_ArrowBody()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+        => this with
+{
+X = 1
+};
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+        => this with
+        {
+            X = 1
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith_ArrowBody_WithTrailingComma()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+        => this with
+{
+X = 1,
+};
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+        => this with
+        {
+            X = 1,
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute()
+        {
+            var code = @"class C
+{
+    void M([My]string?[]?[] x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My] string?[]?[] x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_Multiple()
+        {
+            var code = @"class C
+{
+    void M([My][My]  int x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(47442, "https://github.com/dotnet/roslyn/issues/47442")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentImplicitObjectCreationInitializer()
+        {
+            var code = @"
+class C
+{
+    public string Name { get; set; }
+    public static C Create1(string name)
+        => new C()
+    {
+        Name = name
+    };
+    public static C Create2(string name)
+        => new()
+    {
+        Name = name
+    };
+}";
+            var expectedCode = @"
+class C
+{
+    public string Name { get; set; }
+    public static C Create1(string name)
+        => new C()
+        {
+            Name = name
+        };
+    public static C Create2(string name)
+        => new()
+        {
+            Name = name
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        public async Task NewLinesForBraces_SwitchExpression_Default()
+        {
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch
+        {
+            _ => null
+        };
+    }
+}",
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch {
+            _ => null
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        public async Task NewLinesForBraces_SwitchExpression_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch {
+            _ => null
+        };
+    }
+}",
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch
+        {
+            _ => null
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        public async Task NewLinesForBraces_RecordWithInitializer_Default()
+        {
+            await AssertFormatAsync(
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with
+        {
+            X = 0
+        };
+    }
+}",
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with {
+            X = 0
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        public async Task NewLinesForBraces_RecordWithInitializer_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with {
+            X = 0
+        };
+    }
+}",
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with
+        {
+            X = 0
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
     }
 }

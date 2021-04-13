@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
 
     <!-- NuGet -->
@@ -20,14 +20,7 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <!-- 
-      Workaround for https://github.com/NuGet/Home/issues/1471.
-
-      RoslynTools.LightUp.System.Runtime.Loader distributes System.Runtime.Loader in ref/netstandard1.3 directory,
-      so that it can be referenced in libraries targeting netstandard1.3 once they check that the executing runtime 
-      is .NET Core.
-    -->
-    <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs" />
@@ -52,11 +45,7 @@
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs">
       <Link>Hosting\Resolvers\MonoGlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Update="ScriptingResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ScriptingResources.resx</DependentUpon>
-    </Compile>
+    <Compile Update="ScriptingResources.Designer.cs" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
@@ -64,11 +53,10 @@
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveHost" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
@@ -76,13 +64,10 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="ScriptingResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="ScriptingResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

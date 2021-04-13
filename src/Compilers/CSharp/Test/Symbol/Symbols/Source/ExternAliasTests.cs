@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -93,7 +97,7 @@ class Maine
 extern alias Bar;
 Bar::NS.Goo d = new Bar::NS.Goo();
 ";
-            var comp = CreateCompilationWithMscorlib45(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib45(src, options: TestOptions.DebugExe, parseOptions: TestOptions.Script);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics();
         }
@@ -404,14 +408,14 @@ class A : Bar::NS.Goo {}
                 var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
 
                 var aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
-                return (NamespaceSymbol)aliasSymbol.Target;
+                return (INamespaceSymbol)aliasSymbol.Target;
             }).ToArray(); //force evaluation
 
             var firstTarget = targets.First();
             Assert.NotNull(firstTarget);
-            Assert.IsType<MergedNamespaceSymbol>(firstTarget);
-            firstTarget.GetMember<NamedTypeSymbol>("C");
-            firstTarget.GetMember<NamedTypeSymbol>("D");
+            Assert.IsType<MergedNamespaceSymbol>(firstTarget.GetSymbol());
+            firstTarget.GetMember<INamedTypeSymbol>("C");
+            firstTarget.GetMember<INamedTypeSymbol>("D");
 
             Assert.True(targets.All(target => ReferenceEquals(firstTarget, target)));
         }
@@ -430,13 +434,13 @@ class A : Bar::NS.Goo {}
                 var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
 
                 var aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
-                return (NamespaceSymbol)aliasSymbol.Target;
+                return (INamespaceSymbol)aliasSymbol.Target;
             }).ToArray(); //force evaluation
 
             var firstTarget = targets.First();
             Assert.NotNull(firstTarget);
-            Assert.IsType<MissingNamespaceSymbol>(firstTarget);
-            Assert.Equal(0, firstTarget.GetMembers().Length);
+            Assert.IsType<MissingNamespaceSymbol>(firstTarget.GetSymbol());
+            Assert.Empty(firstTarget.GetMembers());
 
             Assert.True(targets.All(target => ReferenceEquals(firstTarget, target)));
         }
@@ -465,7 +469,7 @@ class Test
     }
 }";
             var libRef = new CSharpCompilationReference(CreateCompilation(libSource, assemblyName: "lib"), aliases: ImmutableArray.Create("A"));
-            var comp = CreateCompilation(source, new[] { libRef });
+            var comp = (Compilation)CreateCompilation(source, new[] { libRef });
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -477,9 +481,9 @@ class Test
             var usingTargetSyntax = (QualifiedNameSyntax)usingSyntax.Name;
             var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)usingTargetSyntax.Left;
 
-            var aliasedGlobalNamespace = comp.GetReferencedAssemblySymbol(libRef).GlobalNamespace;
-            var namespaceN = aliasedGlobalNamespace.GetMember<NamespaceSymbol>("N");
-            var typeC = namespaceN.GetMember<NamedTypeSymbol>("C");
+            var aliasedGlobalNamespace = ((IAssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef)).GlobalNamespace;
+            var namespaceN = aliasedGlobalNamespace.GetMember<INamespaceSymbol>("N");
+            var typeC = namespaceN.GetMember<INamedTypeSymbol>("C");
 
             var externAliasSymbol = model.GetDeclaredSymbol(externAliasSyntax);
             Assert.Equal("A", externAliasSymbol.Name);

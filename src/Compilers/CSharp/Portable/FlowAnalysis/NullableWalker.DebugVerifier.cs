@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#nullable enable
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,17 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class DebugVerifier : BoundTreeWalker
         {
-            private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMap;
-            private readonly ImmutableDictionary<(BoundNode, Symbol), Symbol> _updatedMethodSymbols;
-            private readonly SnapshotManager _snapshotManager;
+            private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> _analyzedNullabilityMap;
+            private readonly SnapshotManager? _snapshotManager;
             private readonly HashSet<BoundExpression> _visitedExpressions = new HashSet<BoundExpression>();
             private int _recursionDepth;
 
-            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedMethodSymbols, SnapshotManager snapshotManager)
+            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager? snapshotManager)
             {
                 _analyzedNullabilityMap = analyzedNullabilityMap;
                 _snapshotManager = snapshotManager;
-                _updatedMethodSymbols = updatedMethodSymbols;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -35,26 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Same behavior as NullableWalker
             }
 
-            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedMethodSymbols, SnapshotManager snapshotManagerOpt, BoundNode node)
+            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager? snapshotManagerOpt, BoundNode node)
             {
-                var verifier = new DebugVerifier(analyzedNullabilityMap, updatedMethodSymbols, snapshotManagerOpt);
+                var verifier = new DebugVerifier(analyzedNullabilityMap, snapshotManagerOpt);
                 verifier.Visit(node);
-
-                foreach (var ((expr, originalSymbol), updatedSymbol) in updatedMethodSymbols)
-                {
-                    Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {expr.Syntax}");
-                    Debug.Assert(originalSymbol is object, $"Recorded null original symbol for {expr.Syntax}");
-                    Debug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {expr.Syntax}");
-                    Debug.Assert(areSymbolsIdentical(originalSymbol, updatedSymbol), @$"Symbol for `{expr.Syntax}` changed:
-Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
-Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
-
-                    static bool areSymbolsIdentical(Symbol original, Symbol updated) => (original, updated) switch
-                    {
-                        (FieldSymbol { IsTupleField: true } originalField, FieldSymbol { IsTupleField: true } updatedField) => originalField.Type.Equals(updatedField.Type, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames),
-                        _ => original.Equals(updated, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames)
-                    };
-                }
+                snapshotManagerOpt?.VerifyUpdatedSymbols();
 
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
                 Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
@@ -131,6 +114,18 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
             public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
             {
                 Visit(node.IterationVariableType);
+                Visit(node.AwaitOpt);
+                if (node.EnumeratorInfoOpt != null)
+                {
+                    Visit(node.EnumeratorInfoOpt.DisposeAwaitableInfo);
+                    if (node.EnumeratorInfoOpt.GetEnumeratorInfo.Method.IsExtensionMethod)
+                    {
+                        foreach (var arg in node.EnumeratorInfoOpt.GetEnumeratorInfo.Arguments)
+                        {
+                            Visit(arg);
+                        }
+                    }
+                }
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
@@ -155,6 +150,21 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 // https://github.com/dotnet/roslyn/issues/33441 dynamic collection initializers aren't being handled correctly
                 VerifyExpression(node, overrideSkippedExpression: true);
                 return null;
+            }
+
+            public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
+            {
+                // We're not correctly visiting the right side of object creation initializers when
+                // the symbol is null (such as for dynamic)
+                // https://github.com/dotnet/roslyn/issues/45088
+                if (node.Left is BoundObjectInitializerMember { MemberSymbol: null })
+                {
+                    VerifyExpression(node);
+                    Visit(node.Left);
+                    return null;
+                }
+
+                return base.VisitAssignmentOperator(node);
             }
 
             public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
@@ -199,6 +209,38 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 // Ignore any dimensions
                 VerifyExpression(node);
                 Visit(node.BoundContainingTypeOpt);
+                return null;
+            }
+
+            public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+            {
+                this.Visit(node.Pattern);
+                // If the constant value of a when clause is true, it can be skipped by the dag
+                // generator as an optimization. In that case, it's a value type and will be set
+                // as not nullable in the output.
+                if (node.WhenClause?.ConstantValue != ConstantValue.True)
+                {
+                    this.Visit(node.WhenClause);
+                }
+                this.Visit(node.Value);
+                return null;
+            }
+
+            public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
+            {
+                // We're not handling nopia object creations correctly
+                // https://github.com/dotnet/roslyn/issues/45082
+                if (node.InitializerExpressionOpt is object)
+                {
+                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
+                }
+                return null;
+            }
+
+            public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+            {
+                // These nodes are only involved in return type inference for unbound lambdas. We don't analyze their subnodes, and no
+                // info is exposed to consumers.
                 return null;
             }
         }

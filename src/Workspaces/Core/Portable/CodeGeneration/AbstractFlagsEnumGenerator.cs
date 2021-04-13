@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -12,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol field, ulong value)>
     {
         protected abstract SyntaxGenerator GetSyntaxGenerator();
-        protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
+        protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object? constantValue);
         protected abstract bool IsValidName(INamedTypeSymbol enumType, string name);
 
-        internal SyntaxNode CreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        public SyntaxNode? TryCreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
             // Code copied from System.Enum.
             var isFlagsEnum = IsFlagsEnum(enumType);
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        private bool IsFlagsEnum(INamedTypeSymbol typeSymbol)
+        private static bool IsFlagsEnum(INamedTypeSymbol typeSymbol)
         {
             if (typeSymbol.TypeKind != TypeKind.Enum)
             {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return false;
         }
 
-        private SyntaxNode CreateFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        private SyntaxNode? CreateFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
             // These values are sorted by value. Don't change this.
             var allFieldsAndValues = new List<(IFieldSymbol field, ulong value)>();
@@ -70,12 +71,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return CreateFlagsEnumConstantValue(enumType, constantValue, allFieldsAndValues, usedFieldsAndValues);
         }
 
-        private SyntaxNode CreateFlagsEnumConstantValue(
+        private SyntaxNode? CreateFlagsEnumConstantValue(
             INamedTypeSymbol enumType,
             object constantValue,
             List<(IFieldSymbol field, ulong value)> allFieldsAndValues,
             List<(IFieldSymbol field, ulong value)> usedFieldsAndValues)
         {
+            Contract.ThrowIfNull(enumType.EnumUnderlyingType);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             if (result == 0 && usedFieldsAndValues.Count > 0)
             {
                 // We want to emit the fields in lower to higher value.  So we walk backward.
-                SyntaxNode finalNode = null;
+                SyntaxNode? finalNode = null;
                 for (var i = usedFieldsAndValues.Count - 1; i >= 0; i--)
                 {
                     var field = usedFieldsAndValues[i];
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        private IFieldSymbol GetZeroField(List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
+        private static IFieldSymbol? GetZeroField(List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
         {
             for (var i = allFieldsAndValues.Count - 1; i >= 0; i--)
             {
@@ -172,17 +174,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol enumType,
             List<(IFieldSymbol field, ulong value)> allFieldsAndValues)
         {
+            Contract.ThrowIfNull(enumType.EnumUnderlyingType);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-            foreach (var member in enumType.GetMembers())
+            foreach (var field in enumType.GetMembers().OfType<IFieldSymbol>())
             {
-                if (member.Kind == SymbolKind.Field)
+                if (field is { HasConstantValue: true, ConstantValue: not null })
                 {
-                    var field = (IFieldSymbol)member;
-                    if (field.HasConstantValue)
-                    {
-                        var value = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
-                        allFieldsAndValues.Add((field, value));
-                    }
+                    var value = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                    allFieldsAndValues.Add((field, value));
                 }
             }
 
@@ -191,22 +190,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private SyntaxNode CreateNonFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
+            Contract.ThrowIfNull(enumType.EnumUnderlyingType);
             var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
             // See if there's a member with this value.  If so, then use that.
-            foreach (var member in enumType.GetMembers())
+            foreach (var field in enumType.GetMembers().OfType<IFieldSymbol>())
             {
-                if (member.Kind == SymbolKind.Field)
+                if (field is { HasConstantValue: true, ConstantValue: not null })
                 {
-                    var field = (IFieldSymbol)member;
-                    if (field.HasConstantValue)
+                    var fieldValue = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
+                    if (constantValueULong == fieldValue)
                     {
-                        var fieldValue = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(field.ConstantValue, underlyingSpecialType);
-                        if (constantValueULong == fieldValue)
-                        {
-                            return CreateMemberAccessExpression(field, enumType, underlyingSpecialType);
-                        }
+                        return CreateMemberAccessExpression(field, enumType, underlyingSpecialType);
                     }
                 }
             }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 
@@ -27,10 +29,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return CheckResultAsync(validLocation, position, tree)
         End Function
 
-        Private Function VerifyAsPositionAsync(text As String, position As Integer, validLocation As Boolean) As Task
-            Return VerifyAtPositionAsync(text, position, validLocation, "")
-        End Function
-
         Private Function VerifyAtPosition_TypePartiallyWrittenAsync(text As String, position As Integer, validLocation As Boolean) As Threading.Tasks.Task
             Return VerifyAtPositionAsync(text, position, validLocation, "Str")
         End Function
@@ -49,10 +47,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await CheckResultAsync(validLocation, position, tree)
         End Function
 
-        Private Function VerifyAtEndOfFileAsync(text As String, position As Integer, validLocation As Boolean) As Task
-            Return VerifyAtEndOfFileAsync(text, position, validLocation, "")
-        End Function
-
         Private Function VerifyAtEndOfFile_TypePartiallyWrittenAsync(text As String, position As Integer, validLocation As Boolean) As Task
             Return VerifyAtEndOfFileAsync(text, position, validLocation, "Str")
         End Function
@@ -65,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return VerifyWorkerAsync(text, validLocation:=False)
         End Function
 
-        Protected Function AddInsideMethod(text As String) As String
+        Protected Shared Function AddInsideMethod(text As String) As String
             Return "Class C" & vbCrLf &
                    "    Function F()" & vbCrLf &
                    "        " & text & vbCrLf &
@@ -73,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                    "End Class"
         End Function
 
-        Protected Function CreateContent(ParamArray contents As String()) As String
+        Protected Shared Function CreateContent(ParamArray contents As String()) As String
             Return String.Join(vbCrLf, contents)
         End Function
     End Class

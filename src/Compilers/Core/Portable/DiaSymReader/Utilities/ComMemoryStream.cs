@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -16,7 +20,7 @@ namespace Microsoft.DiaSymReader
     /// 2. Read and Write are optimized to avoid copying (see <see cref="IUnsafeComStream"/>)
     /// 3. Allocates in chunks instead of a contiguous buffer to avoid re-alloc and copy costs when growing.
     /// </summary>
-    internal unsafe sealed class ComMemoryStream : IUnsafeComStream
+    internal sealed unsafe class ComMemoryStream : IUnsafeComStream
     {
         // internal for testing
         internal const int STREAM_SEEK_SET = 0;
@@ -96,7 +100,7 @@ namespace Microsoft.DiaSymReader
                 remainingBytes -= bytesToCopy;
             }
         }
-        private unsafe static void ZeroMemory(byte* dest, int count)
+        private static unsafe void ZeroMemory(byte* dest, int count)
         {
             var p = dest;
             while (count-- > 0)

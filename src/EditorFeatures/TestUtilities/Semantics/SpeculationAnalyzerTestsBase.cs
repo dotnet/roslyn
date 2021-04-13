@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.IO;
 using System.Linq;
@@ -25,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
         protected void Test(string code, string replacementExpression, bool semanticChanges, string expressionToAnalyze = null, bool isBrokenCode = false)
         {
             var initialMatch = UnderTestRegex.Match(code);
-            Assert.Equal(true, initialMatch.Success);
+            Assert.True(initialMatch.Success);
             var initialExpression = initialMatch.Groups["content"].Value;
 
             var initialTree = Parse(UnderTestRegex.Replace(code, m => m.Groups["content"].Value));
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Semantics
         {
             using (var temporaryStream = new MemoryStream())
             {
-                Assert.Equal(true, CompilationSucceeded(compilation, temporaryStream));
+                Assert.True(CompilationSucceeded(compilation, temporaryStream));
             }
         }
 

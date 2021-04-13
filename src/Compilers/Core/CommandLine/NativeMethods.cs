@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -10,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal struct STARTUPINFO
     {
         internal Int32 cb;
-        internal string lpReserved;
-        internal string lpDesktop;
-        internal string lpTitle;
+        internal string? lpReserved;
+        internal string? lpDesktop;
+        internal string? lpTitle;
         internal Int32 dwX;
         internal Int32 dwY;
         internal Int32 dwXSize;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         #region Constants
 
         internal static readonly IntPtr NullPtr = IntPtr.Zero;
-        internal static readonly IntPtr InvalidIntPtr = new IntPtr((int)-1);
+        internal static readonly IntPtr InvalidIntPtr = new IntPtr(-1);
 
         internal const uint NORMAL_PRIORITY_CLASS = 0x0020;
         internal const uint CREATE_NO_WINDOW = 0x08000000;
@@ -69,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool CreateProcess
         (
-            string lpApplicationName,
-            [In, Out]StringBuilder lpCommandLine,
+            string? lpApplicationName,
+            [In, Out] StringBuilder lpCommandLine,
             IntPtr lpProcessAttributes,
             IntPtr lpThreadAttributes,
             [In, MarshalAs(UnmanagedType.Bool)]

@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             _fullWidth = fullWidth;
         }
 
-        protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, int fullWidth)
+        protected GreenNode(ushort kind, DiagnosticInfo[]? diagnostics, int fullWidth)
         {
             _kind = kind;
             _fullWidth = fullWidth;
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics)
+        protected GreenNode(ushort kind, DiagnosticInfo[]? diagnostics)
         {
             _kind = kind;
             if (diagnostics?.Length > 0)
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations) :
+        protected GreenNode(ushort kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations) :
             this(kind, diagnostics)
         {
             if (annotations?.Length > 0)
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, int fullWidth) :
+        protected GreenNode(ushort kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations, int fullWidth) :
             this(kind, diagnostics, fullWidth)
         {
             if (annotations?.Length > 0)
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis
 
         protected void AdjustFlagsAndWidth(GreenNode node)
         {
-            Debug.Assert(node != null, "PERF: caller must ensure that node!=null, we do not want to re-check that here.");
+            RoslynDebug.Assert(node != null, "PERF: caller must ensure that node!=null, we do not want to re-check that here.");
             this.flags |= (node.flags & NodeFlags.InheritMask);
             _fullWidth += node._fullWidth;
         }
@@ -154,7 +157,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal abstract GreenNode GetSlot(int index);
+        internal abstract GreenNode? GetSlot(int index);
+
+        internal GreenNode GetRequiredSlot(int index)
+        {
+            var node = GetSlot(index);
+            RoslynDebug.Assert(node is object);
+            return node;
+        }
 
         // for slot counts >= byte.MaxValue
         protected virtual int GetSlotCount()
@@ -382,14 +392,14 @@ namespace Microsoft.CodeAnalysis
         public virtual int GetLeadingTriviaWidth()
         {
             return this.FullWidth != 0 ?
-                this.GetFirstTerminal().GetLeadingTriviaWidth() :
+                this.GetFirstTerminal()!.GetLeadingTriviaWidth() :
                 0;
         }
 
         public virtual int GetTrailingTriviaWidth()
         {
             return this.FullWidth != 0 ?
-                this.GetLastTerminal().GetTrailingTriviaWidth() :
+                this.GetLastTerminal()!.GetTrailingTriviaWidth() :
                 0;
         }
 
@@ -506,7 +516,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             var annotations = this.GetAnnotations();
             if (annotations == s_noAnnotations)
@@ -585,7 +595,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.ContainsAnnotations)
             {
-                SyntaxAnnotation[] annotations;
+                SyntaxAnnotation[]? annotations;
                 if (s_annotationsTable.TryGetValue(this, out annotations))
                 {
                     System.Diagnostics.Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
@@ -596,7 +606,7 @@ namespace Microsoft.CodeAnalysis
             return s_noAnnotations;
         }
 
-        internal abstract GreenNode SetAnnotations(SyntaxAnnotation[] annotations);
+        internal abstract GreenNode SetAnnotations(SyntaxAnnotation[]? annotations);
 
         #endregion
 
@@ -605,7 +615,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.ContainsDiagnostics)
             {
-                DiagnosticInfo[] diags;
+                DiagnosticInfo[]? diags;
                 if (s_diagnosticsTable.TryGetValue(this, out diags))
                 {
                     return diags;
@@ -615,7 +625,7 @@ namespace Microsoft.CodeAnalysis
             return s_noDiagnostics;
         }
 
-        internal abstract GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics);
+        internal abstract GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics);
         #endregion
 
         #region Text
@@ -740,28 +750,28 @@ namespace Microsoft.CodeAnalysis
         #region Tokens 
 
         public virtual int RawContextualKind { get { return this.RawKind; } }
-        public virtual object GetValue() { return null; }
+        public virtual object? GetValue() { return null; }
         public virtual string GetValueText() { return string.Empty; }
-        public virtual GreenNode GetLeadingTriviaCore() { return null; }
-        public virtual GreenNode GetTrailingTriviaCore() { return null; }
+        public virtual GreenNode? GetLeadingTriviaCore() { return null; }
+        public virtual GreenNode? GetTrailingTriviaCore() { return null; }
 
-        public virtual GreenNode WithLeadingTrivia(GreenNode trivia)
+        public virtual GreenNode WithLeadingTrivia(GreenNode? trivia)
         {
             return this;
         }
 
-        public virtual GreenNode WithTrailingTrivia(GreenNode trivia)
+        public virtual GreenNode WithTrailingTrivia(GreenNode? trivia)
         {
             return this;
         }
 
-        internal GreenNode GetFirstTerminal()
+        internal GreenNode? GetFirstTerminal()
         {
-            GreenNode node = this;
+            GreenNode? node = this;
 
             do
             {
-                GreenNode firstChild = null;
+                GreenNode? firstChild = null;
                 for (int i = 0, n = node.SlotCount; i < n; i++)
                 {
                     var child = node.GetSlot(i);
@@ -777,13 +787,13 @@ namespace Microsoft.CodeAnalysis
             return node;
         }
 
-        internal GreenNode GetLastTerminal()
+        internal GreenNode? GetLastTerminal()
         {
-            GreenNode node = this;
+            GreenNode? node = this;
 
             do
             {
-                GreenNode lastChild = null;
+                GreenNode? lastChild = null;
                 for (int i = node.SlotCount - 1; i >= 0; i--)
                 {
                     var child = node.GetSlot(i);
@@ -799,13 +809,13 @@ namespace Microsoft.CodeAnalysis
             return node;
         }
 
-        internal GreenNode GetLastNonmissingTerminal()
+        internal GreenNode? GetLastNonmissingTerminal()
         {
-            GreenNode node = this;
+            GreenNode? node = this;
 
             do
             {
-                GreenNode nonmissingChild = null;
+                GreenNode? nonmissingChild = null;
                 for (int i = node.SlotCount - 1; i >= 0; i--)
                 {
                     var child = node.GetSlot(i);
@@ -824,7 +834,7 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Equivalence 
-        public virtual bool IsEquivalentTo(GreenNode other)
+        public virtual bool IsEquivalentTo([NotNullWhen(true)] GreenNode? other)
         {
             if (this == other)
             {
@@ -848,12 +858,12 @@ namespace Microsoft.CodeAnalysis
                 // child if necessary.
                 if (node1.IsList && node1.SlotCount == 1)
                 {
-                    node1 = node1.GetSlot(0);
+                    node1 = node1.GetRequiredSlot(0);
                 }
 
                 if (node2.IsList && node2.SlotCount == 1)
                 {
-                    node2 = node2.GetSlot(0);
+                    node2 = node2.GetRequiredSlot(0);
                 }
 
                 if (node1.RawKind != node2.RawKind)
@@ -894,34 +904,63 @@ namespace Microsoft.CodeAnalysis
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 
-        public virtual GreenNode CreateList(IEnumerable<GreenNode> nodes, bool alwaysCreateListNode = false)
-        {
-            if (nodes == null)
+        /*
+         * There are 3 overloads of this, because most callers already know what they have is a List<T> and only transform it.
+         * In those cases List<TFrom> performs much better.
+         * In other cases, the type is unknown / is IEnumerable<T>, where we try to find the best match.
+         * There is another overload for IReadOnlyList, since most collections already implement this, so checking for it will
+         * perform better then copying to a List<T>, though not as good as List<T> directly.
+         */
+        public static GreenNode? CreateList<TFrom>(IEnumerable<TFrom>? enumerable, Func<TFrom, GreenNode> select)
+            => enumerable switch
             {
-                return null;
-            }
+                null => null,
+                List<TFrom> l => CreateList(l, select),
+                IReadOnlyList<TFrom> l => CreateList(l, select),
+                _ => CreateList(enumerable.ToList(), select)
+            };
 
-            var list = nodes.ToArray();
-
-            switch (list.Length)
+        public static GreenNode? CreateList<TFrom>(List<TFrom> list, Func<TFrom, GreenNode> select)
+        {
+            switch (list.Count)
             {
                 case 0:
                     return null;
                 case 1:
-                    if (alwaysCreateListNode)
-                    {
-                        goto default;
-                    }
-                    else
-                    {
-                        return list[0];
-                    }
+                    return select(list[0]);
                 case 2:
-                    return SyntaxList.List(list[0], list[1]);
+                    return SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
-                    return SyntaxList.List(list[0], list[1], list[2]);
+                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
                 default:
-                    return SyntaxList.List(list);
+                    {
+                        var array = new ArrayElement<GreenNode>[list.Count];
+                        for (int i = 0; i < array.Length; i++)
+                            array[i].Value = select(list[i]);
+                        return SyntaxList.List(array);
+                    }
+            }
+        }
+
+        public static GreenNode? CreateList<TFrom>(IReadOnlyList<TFrom> list, Func<TFrom, GreenNode> select)
+        {
+            switch (list.Count)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return select(list[0]);
+                case 2:
+                    return SyntaxList.List(select(list[0]), select(list[1]));
+                case 3:
+                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                default:
+                    {
+                        var array = new ArrayElement<GreenNode>[list.Count];
+                        for (int i = 0; i < array.Length; i++)
+                            array[i].Value = select(list[i]);
+                        return SyntaxList.List(array);
+                    }
             }
         }
 
@@ -930,7 +969,7 @@ namespace Microsoft.CodeAnalysis
             return CreateRed(null, 0);
         }
 
-        internal abstract SyntaxNode CreateRed(SyntaxNode parent, int position);
+        internal abstract SyntaxNode CreateRed(SyntaxNode? parent, int position);
 
         #endregion
 
@@ -965,7 +1004,7 @@ namespace Microsoft.CodeAnalysis
             return code & Int32.MaxValue;
         }
 
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode child1)
+        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1)
         {
             Debug.Assert(this.IsCacheable);
 
@@ -974,7 +1013,7 @@ namespace Microsoft.CodeAnalysis
                 this.GetSlot(0) == child1;
         }
 
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode child1, GreenNode child2)
+        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2)
         {
             Debug.Assert(this.IsCacheable);
 
@@ -984,7 +1023,7 @@ namespace Microsoft.CodeAnalysis
                 this.GetSlot(1) == child2;
         }
 
-        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode child1, GreenNode child2, GreenNode child3)
+        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3)
         {
             Debug.Assert(this.IsCacheable);
 

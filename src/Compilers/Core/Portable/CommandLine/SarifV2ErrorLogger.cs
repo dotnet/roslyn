@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string PrimaryLocationPropertyName => "physicalLocation";
 
-        public override void LogDiagnostic(Diagnostic diagnostic)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
@@ -53,8 +55,8 @@ namespace Microsoft.CodeAnalysis
 
             _writer.Write("level", GetLevel(diagnostic.Severity));
 
-            string message = diagnostic.GetMessage(_culture);
-            if (!string.IsNullOrEmpty(message))
+            string? message = diagnostic.GetMessage(_culture);
+            if (!RoslynString.IsNullOrEmpty(message))
             {
                 _writer.WriteObjectStart("message");
                 _writer.Write("text", message);
@@ -66,6 +68,12 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteArrayStart("suppressions");
                 _writer.WriteObjectStart(); // suppression
                 _writer.Write("kind", "inSource");
+                string? justification = suppressionInfo?.Attribute?.DecodeNamedArgument<string>("Justification", SpecialType.System_String);
+                if (justification != null)
+                {
+                    _writer.Write("justification", justification);
+                }
+
                 _writer.WriteObjectEnd(); // suppression
                 _writer.WriteArrayEnd();
             }
@@ -177,16 +185,16 @@ namespace Microsoft.CodeAnalysis
                     _writer.WriteObjectStart(); // rule
                     _writer.Write("id", descriptor.Id);
 
-                    string shortDescription = descriptor.Title.ToString(_culture);
-                    if (!string.IsNullOrEmpty(shortDescription))
+                    string? shortDescription = descriptor.Title.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(shortDescription))
                     {
                         _writer.WriteObjectStart("shortDescription");
                         _writer.Write("text", shortDescription);
                         _writer.WriteObjectEnd();
                     }
 
-                    string fullDescription = descriptor.Description.ToString(_culture);
-                    if (!string.IsNullOrEmpty(fullDescription))
+                    string? fullDescription = descriptor.Description.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(fullDescription))
                     {
                         _writer.WriteObjectStart("fullDescription");
                         _writer.Write("text", fullDescription);

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +19,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -25,37 +28,26 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var (succeeded, highlights) = await GetDocumentHighlightsInRemoteProcessAsync(
-                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+            var solution = document.Project.Solution;
 
-            if (succeeded)
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                return highlights;
+                var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (!result.HasValue)
+                {
+                    return ImmutableArray<DocumentHighlights>.Empty;
+                }
+
+                return result.Value.SelectAsArray(h => h.Rehydrate(solution));
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
                 document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<(bool succeeded, ImmutableArray<DocumentHighlights> highlights)> GetDocumentHighlightsInRemoteProcessAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
-        {
-            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableDocumentHighlights>>(
-                nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
-                new object[]
-                {
-                    document.Id,
-                    position,
-                    documentsToSearch.Select(d => d.Id).ToArray()
-                },
-                cancellationToken).ConfigureAwait(false);
-
-            if (result == null)
-            {
-                return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
-            }
-
-            return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
@@ -68,11 +60,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return result;
             }
 
-            // use speculative semantic model to see whether we are on a symbol we can do HR
-            var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -80,19 +70,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return ImmutableArray<DocumentHighlights>.Empty;
             }
 
-            symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
-            {
-                return ImmutableArray<DocumentHighlights>.Empty;
-            }
-
             // Get unique tags for referenced symbols
             return await GetTagsForReferencedSymbolAsync(
-                new SymbolAndProjectId(symbol, document.Project.Id),
-                document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
@@ -117,35 +100,20 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return default;
         }
 
-        private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // see whether we can use the symbol as it is
-            var currentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (currentSemanticModel == semanticModel)
-            {
-                return symbol;
-            }
-
-            // get symbols from current document again
-            return await SymbolFinder.FindSymbolAtPositionAsync(currentSemanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Document document,
             IImmutableSet<Document> documentsToSearch,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             Contract.ThrowIfNull(symbol);
             if (ShouldConsiderSymbol(symbol))
             {
-                var progress = new StreamingProgressCollector(
-                    StreamingFindReferencesProgress.Instance);
+                var progress = new StreamingProgressCollector();
 
-                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+                var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
-                    symbolAndProjectId, document.Project.Solution, progress,
+                    symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(
@@ -181,22 +149,21 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
-            IEnumerable<ReferencedSymbol> references, Document startingDocument,
+            ImmutableArray<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindSymbols.FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var solution = startingDocument.Project.Solution;
-
             references = references.FilterToItemsToShow(options);
             references = references.FilterNonMatchingMethodNames(solution, symbol);
             references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 
             if (symbol.IsConstructor())
             {
-                references = references.Where(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
+                references = references.WhereAsArray(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
             }
 
-            var additionalReferences = new List<Location>();
+            using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
 
             foreach (var currentDocument in documentsToSearch)
             {
@@ -225,7 +192,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Solution solution,
             ISymbol symbol,
             IEnumerable<ReferencedSymbol> references,
-            IEnumerable<Location> additionalReferences,
+            ArrayBuilder<Location> additionalReferences,
             IImmutableSet<Document> documentToSearch,
             CancellationToken cancellationToken)
         {
@@ -243,7 +210,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 if (symbol.Locations.First().IsInSource)
                 {
                     // For alias symbol we want to get the tag only for the alias definition, not the target symbol's definition.
-                    await AddLocationSpan(symbol.Locations.First(), solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
+                    await AddLocationSpanAsync(symbol.Locations.First(), solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -269,7 +236,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
                             if (documentToSearch.Contains(document))
                             {
-                                await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
+                                await AddLocationSpanAsync(location, solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -278,14 +245,14 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 foreach (var referenceLocation in reference.Locations)
                 {
                     var referenceKind = referenceLocation.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference;
-                    await AddLocationSpan(referenceLocation.Location, solution, spanSet, tagMap, referenceKind, cancellationToken).ConfigureAwait(false);
+                    await AddLocationSpanAsync(referenceLocation.Location, solution, spanSet, tagMap, referenceKind, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             // Add additional references
             foreach (var location in additionalReferences)
             {
-                await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
+                await AddLocationSpanAsync(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
             }
 
             using var listDisposer = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
@@ -312,22 +279,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
                 case SymbolKind.NamedType:
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
-
-                case SymbolKind.Parameter:
-                    // If it's an indexer parameter, we will have also cascaded to the accessor
-                    // one that actually receives the references
-                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
-                    {
-                        return false;
-                    }
-
-                    break;
             }
 
             return true;
         }
 
-        private static async Task AddLocationSpan(Location location, Solution solution, HashSet<DocumentSpan> spanSet, MultiDictionary<Document, HighlightSpan> tagList, HighlightSpanKind kind, CancellationToken cancellationToken)
+        private static async Task AddLocationSpanAsync(Location location, Solution solution, HashSet<DocumentSpan> spanSet, MultiDictionary<Document, HighlightSpan> tagList, HighlightSpanKind kind, CancellationToken cancellationToken)
         {
             var span = await GetLocationSpanAsync(solution, location, cancellationToken).ConfigureAwait(false);
             if (span != null && !spanSet.Contains(span.Value))
@@ -361,7 +318,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     }
                 }
             }
-            catch (NullReferenceException e) when (FatalError.ReportWithoutCrash(e))
+            catch (NullReferenceException e) when (FatalError.ReportAndCatch(e))
             {
                 // We currently are seeing a strange null references crash in this code.  We have
                 // a strong belief that this is recoverable, but we'd like to know why it is 

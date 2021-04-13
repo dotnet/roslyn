@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,35 +19,55 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     public class RunCodeActionsTests : AbstractLanguageServerProtocolTests
     {
         [WpfFact]
-        public async Task TestRunCodeActionsAsync()
+        public async Task TestRunCodeActions()
         {
             var markup =
 @"class A
 {
-    void M()
+    class {|caret:|}B
     {
-        {|caret:|}int i = 1;
     }
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
-            var codeActionLocation = ranges["caret"].First();
 
-            var results = await RunExecuteWorkspaceCommand(solution, codeActionLocation, CSharpFeaturesResources.Use_implicit_type);
-            Assert.True(results);
+            var expectedTextForB =
+@"partial class A
+{
+    class B
+    {
+    }
+}";
+
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var caretLocation = locations["caret"].Single();
+
+            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, new LSP.TextDocumentIdentifier
+            {
+                Uri = caretLocation.Uri
+            });
+
+            var results = await ExecuteRunCodeActionCommandAsync(testLspServer, commandArgument);
+
+            var documentForB = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single(doc => doc.Name.Equals("B.cs", StringComparison.OrdinalIgnoreCase));
+            var textForB = await documentForB.GetTextAsync();
+            Assert.Equal(expectedTextForB, textForB.ToString());
         }
 
-        private static async Task<bool> RunExecuteWorkspaceCommand(Solution solution, LSP.Location caret, string title, LSP.ClientCapabilities clientCapabilities = null)
-            => (bool)await GetLanguageServer(solution).ExecuteWorkspaceCommandAsync(solution, CreateExecuteCommandParams(caret, title),
-                clientCapabilities, CancellationToken.None);
-
-        private static LSP.ExecuteCommandParams CreateExecuteCommandParams(LSP.Location location, string title)
-            => new LSP.ExecuteCommandParams()
+        private static async Task<bool> ExecuteRunCodeActionCommandAsync(
+            TestLspServer testLspServer,
+            CodeActionResolveData codeActionData)
+        {
+            var command = new LSP.ExecuteCommandParams
             {
-                Command = "Roslyn.RunCodeAction",
+                Command = CodeActionsHandler.RunCodeActionCommandName,
                 Arguments = new object[]
                 {
-                    JObject.FromObject(CreateRunCodeActionParams(title, location))
-                },
+                    JToken.FromObject(codeActionData)
+                }
             };
+
+            var result = await testLspServer.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
+                LSP.Methods.WorkspaceExecuteCommandName, command, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            return (bool)result;
+        }
     }
 }

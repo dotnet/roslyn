@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -77,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         async t =>
                         {
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
-                            _cancellationToken.ThrowIfCancellationRequested();
 
                             stateMachine.UpdateTrackingSessionIfRenamable();
                         },
@@ -105,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 task.SafeContinueWithFromAsync(async t =>
                    {
                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
-                       _cancellationToken.ThrowIfCancellationRequested();
 
                        if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
                        {
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var languageHeuristicsService = document.GetLanguageService<IRenameTrackingLanguageHeuristicsService>();
                     if (syntaxFactsService.IsIdentifier(token) && languageHeuristicsService.IsIdentifierValidForRenameTracking(token.Text))
                     {
-                        var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
+                        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
                         var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
                         var renameSymbolInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, token, _cancellationToken);
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
                             _forceRenameOverloads = true;
 
-                            return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document, token).ConfigureAwait(false);
+                            return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document).ConfigureAwait(false);
                         }
                         else
                         {
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return TriggerIdentifierKind.NotRenamable;
             }
 
-            private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document, SyntaxToken token)
+            private async Task<TriggerIdentifierKind> DetermineIfRenamableSymbolsAsync(IEnumerable<ISymbol> symbols, Document document)
             {
                 foreach (var symbol in symbols)
                 {
@@ -274,9 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             private bool NewIdentifierDefinitelyBindsToReference()
-            {
-                return _newIdentifierBindsTask.Status == TaskStatus.RanToCompletion && _newIdentifierBindsTask.Result;
-            }
+                => _newIdentifierBindsTask.Status == TaskStatus.RanToCompletion && _newIdentifierBindsTask.Result;
         }
     }
 }

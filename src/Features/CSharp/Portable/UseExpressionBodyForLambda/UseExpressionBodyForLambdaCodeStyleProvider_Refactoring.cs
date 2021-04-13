@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return toExpressionBodyRefactorings.AddRange(toBlockBodyRefactorings);
         }
 
-        private async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
+        private static async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
             Document document, TextSpan span, ExpressionBodyPreference option, CancellationToken cancellationToken)
         {
             var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
@@ -122,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return result.ToImmutable();
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

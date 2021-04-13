@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class AbstractFlowPass<TLocalState>
+    internal partial class AbstractFlowPass<TLocalState, TLocalFunctionState>
     {
         /// <summary>
         /// This is the "top" state of the data flow lattice. Generally, it is considered the state
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 3. Meet(Top, X) = X
         ///
         /// </summary>
-        protected abstract void Meet(ref TLocalState self, ref TLocalState other);
+        protected abstract bool Meet(ref TLocalState self, ref TLocalState other);
 
         internal interface ILocalState
         {

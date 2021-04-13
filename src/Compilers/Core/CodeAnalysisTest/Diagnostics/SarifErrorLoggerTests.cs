@@ -1,4 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -34,10 +39,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                 IEnumerable<Location> additionalLocations = new[] {
                     Location.Create(@"Relative Additional/Location.cs", span, position),
-                    Location.Create(@"a:cannot/interpret/as\uri", span, position),
                 };
 
-                logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations));
+                logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations), null);
             }
 
             string actual = Encoding.UTF8.GetString(stream.ToArray());
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void DescriptorIdCollisionImpl()
         {
             var descriptors = new[] {
-                // Toughest case: generation of TST001-001 collides with with actual TST001-001 and must be bumped to TST001-002
+                // Toughest case: generation of TST001-001 collides with actual TST001-001 and must be bumped to TST001-002
                 new DiagnosticDescriptor("TST001-001",    "_TST001-001_",     "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001_",         "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001-002_",     "", "", DiagnosticSeverity.Warning, true),
@@ -75,13 +79,58 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 {
                     foreach (var descriptor in descriptors)
                     {
-                        logger.LogDiagnostic(Diagnostic.Create(descriptor, Location.None));
+                        logger.LogDiagnostic(Diagnostic.Create(descriptor, Location.None), null);
                     }
                 }
             }
 
             string actual = Encoding.UTF8.GetString(stream.ToArray());
             Assert.Equal(ExpectedOutputForDescriptorIdCollision, actual);
+        }
+
+        protected void PathToUriImpl(string formatString)
+        {
+            var isUnix = PathUtilities.IsUnixLikePlatform;
+            var paths = new[] {
+                (@"A:\B\C\\..\D.cs", isUnix ? @"A:/B/C/D.cs" : "file:///A:/B/D.cs"),
+                (@"A\B\C\\..\D.cs", isUnix ? @"A%5CB%5CC%5C%5C..%5CD.cs" : @"A/B/D.cs")
+            };
+
+            foreach (var (inputPath, outputPath) in paths)
+            {
+                var stream = new MemoryStream();
+
+                using (var logger = CreateLogger(
+                    stream,
+                    toolName: "",
+                    toolFileVersion: "",
+                    toolAssemblyVersion: Version.Parse("1.0.0"),
+                    CultureInfo.InvariantCulture))
+                {
+                    var location = Location.Create(
+                        inputPath,
+                        textSpan: default,
+                        lineSpan: default);
+
+                    logger.LogDiagnostic(Diagnostic.Create(
+                        "uriDiagnostic",
+                        category: "",
+                        message: "blank diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 3,
+                        location: location),
+                        null);
+                }
+
+                var buffer = stream.ToArray();
+                Assert.Equal(
+                    string.Format(formatString, outputPath),
+                    Encoding.UTF8.GetString(buffer, 0, buffer.Length),
+                    ignoreLineEndingDifferences: true,
+                    ignoreWhiteSpaceDifferences: true);
+            }
         }
     }
 }

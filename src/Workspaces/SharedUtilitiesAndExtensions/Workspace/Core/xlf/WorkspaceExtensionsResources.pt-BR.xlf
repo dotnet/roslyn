@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../WorkspaceExtensionsResources.resx">
+    <body>
+      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
+        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
+        <target state="translated">A compilação é necessária para realizar a tarefa, mas não é compatível com o projeto {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0">
+        <source>Fix all '{0}'</source>
+        <target state="translated">Corrigir todos os '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_1">
+        <source>Fix all '{0}' in '{1}'</source>
+        <target state="translated">Corrigir todos os '{0}' em '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_0_in_Solution">
+        <source>Fix all '{0}' in Solution</source>
+        <target state="translated">Corrigir todos os '{0}' na Solução</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
+        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
+        <target state="translated">O projeto com a ID {0} é necessário para realizar a tarefa, mas não está disponível na solução</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Supplied_diagnostic_cannot_be_null">
+        <source>Supplied diagnostic cannot be null.</source>
+        <target state="translated">O diagnóstico fornecido não pode ser nulo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
+        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
+        <target state="translated">A árvore de sintaxe é necessária para realizar a tarefa, mas não é compatível com o documento {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_does_not_contain_the_specified_document">
+        <source>The solution does not contain the specified document.</source>
+        <target state="translated">A solução não contém o documento especificado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
+        <source>Warning: Declaration changes scope and may change meaning.</source>
+        <target state="translated">Aviso: a declaração altera e escopo e pode alterar o significado.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

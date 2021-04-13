@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -34,15 +38,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 notificationService)));
         }
 
-        internal void AddSymbolSpecification(INamingStylesInfoDialogViewModel symbolSpecification)
+        internal void AddSymbolSpecification(INamingStylesInfoDialogViewModel _)
         {
 
         }
 
         internal void RemoveSymbolSpecification(INamingStylesInfoDialogViewModel symbolSpecification)
-        {
-            Items.Remove(symbolSpecification);
-        }
+            => Items.Remove(symbolSpecification);
 
         public void AddItem()
         {
@@ -55,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         public void RemoveItem(INamingStylesInfoDialogViewModel item)
-        {
-            Items.Remove(item);
-        }
+            => Items.Remove(item);
 
         public void EditItem(INamingStylesInfoDialogViewModel item)
         {

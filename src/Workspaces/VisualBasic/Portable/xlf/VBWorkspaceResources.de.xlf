@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="The_event_handler_to_associate_with_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate_lambdaExpression">
         <source>The event handler to associate with the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</source>
-        <target state="translated">Der Ereignishandler, dem das Ereignis zugeordnet wird. Dies kann die Form { AddressOf &lt;Ereignishandler&gt; | &lt;Delegat&gt; | &lt;lambda-Ausdruck&gt; } haben.</target>
+        <target state="translated">Der Ereignishandler, dem das Ereignis zugeordnet wird. Dies kann die Form { AddressOf &lt;Ereignishandler&gt; | &lt;Delegat&gt; | &lt;Lambdaausdruck&gt; } haben.</target>
         <note />
       </trans-unit>
       <trans-unit id="If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing">

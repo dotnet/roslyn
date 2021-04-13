@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -12,6 +16,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -22,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
         internal readonly Cci.ModulePropertiesForSerialization SerializationProperties;
         internal readonly OutputKind OutputKind;
+        internal Stream RawWin32Resources;
         internal IEnumerable<Cci.IWin32Resource> Win32Resources;
         internal Cci.ResourceSection Win32ResourceSection;
         internal Stream SourceLinkStreamOpt;
@@ -29,20 +35,22 @@ namespace Microsoft.CodeAnalysis.Emit
         internal Cci.IMethodReference PEEntryPoint;
         internal Cci.IMethodReference DebugEntryPoint;
 
-        private readonly ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody> _methodBodyMap;
-        private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
-        private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
-        private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new ItemTokenMap<Cci.DebugSourceDocument>();
+        private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
+        private readonly TokenMap _referencesInILMap = new();
+        private readonly ItemTokenMap<string> _stringsInILMap = new();
+        private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new();
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
         private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
         private IEnumerable<EmbeddedText> _embeddedTexts = SpecializedCollections.EmptyEnumerable<EmbeddedText>();
 
         // Only set when running tests to allow realized IL for a given method to be looked up by method.
-        internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
+        internal ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> TestData { get; private set; }
 
-        internal readonly DebugInformationFormat DebugInformationFormat;
-        internal readonly HashAlgorithmName PdbChecksumAlgorithm;
+        internal EmitOptions EmitOptions { get; }
+
+        internal DebugInformationFormat DebugInformationFormat => EmitOptions.DebugInformationFormat;
+        internal HashAlgorithmName PdbChecksumAlgorithm => EmitOptions.PdbChecksumAlgorithm;
 
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
@@ -59,9 +67,8 @@ namespace Microsoft.CodeAnalysis.Emit
             DebugDocumentsBuilder = new DebugDocumentsBuilder(compilation.Options.SourceReferenceResolver, compilation.IsCaseSensitive);
             OutputKind = outputKind;
             SerializationProperties = serializationProperties;
-            _methodBodyMap = new ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
-            DebugInformationFormat = emitOptions.DebugInformationFormat;
-            PdbChecksumAlgorithm = emitOptions.PdbChecksumAlgorithm;
+            _methodBodyMap = new ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
+            EmitOptions = emitOptions;
         }
 
         /// <summary>
@@ -79,18 +86,18 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         internal abstract string ModuleName { get; }
 
-        internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
-        internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
-        internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
+        internal abstract Cci.IAssemblyReference Translate(IAssemblySymbolInternal symbol, DiagnosticBag diagnostics);
+        internal abstract Cci.ITypeReference Translate(ITypeSymbolInternal symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
+        internal abstract Cci.IMethodReference Translate(IMethodSymbolInternal symbol, DiagnosticBag diagnostics, bool needDeclaration);
         internal abstract bool SupportsPrivateImplClass { get; }
         internal abstract Compilation CommonCompilation { get; }
-        internal abstract IModuleSymbol CommonSourceModule { get; }
-        internal abstract IAssemblySymbol CommonCorLibrary { get; }
+        internal abstract IModuleSymbolInternal CommonSourceModule { get; }
+        internal abstract IAssemblySymbolInternal CommonCorLibrary { get; }
         internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
         internal abstract void CompilationFinished();
-        internal abstract ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> GetAllSynthesizedMembers();
+        internal abstract ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllSynthesizedMembers();
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
-        internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
+        internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbolInternal type, DiagnosticBag diagnostics);
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly);
         public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
@@ -206,6 +213,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return this;
         }
 
+        Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
         public abstract ISourceAssemblySymbolInternal SourceAssemblyOpt { get; }
 
         /// <summary>
@@ -219,11 +228,11 @@ namespace Microsoft.CodeAnalysis.Emit
             // a healthy amount of room based on compiling Roslyn.
             => (int)(_methodBodyMap.Count * 1.5);
 
-        internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
+        internal Cci.IMethodBody GetMethodBody(IMethodSymbolInternal methodSymbol)
         {
             Debug.Assert(methodSymbol.ContainingModule == CommonSourceModule);
             Debug.Assert(methodSymbol.IsDefinition);
-            Debug.Assert(methodSymbol.PartialDefinitionPart == null); // Must be definition.
+            Debug.Assert(((IMethodSymbol)methodSymbol.GetISymbol()).PartialDefinitionPart == null); // Must be definition.
 
             Cci.IMethodBody body;
 
@@ -235,17 +244,17 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        public void SetMethodBody(IMethodSymbol methodSymbol, Cci.IMethodBody body)
+        public void SetMethodBody(IMethodSymbolInternal methodSymbol, Cci.IMethodBody body)
         {
             Debug.Assert(methodSymbol.ContainingModule == CommonSourceModule);
             Debug.Assert(methodSymbol.IsDefinition);
-            Debug.Assert(methodSymbol.PartialDefinitionPart == null); // Must be definition.
-            Debug.Assert(body == null || (object)methodSymbol == body.MethodDefinition);
+            Debug.Assert(((IMethodSymbol)methodSymbol.GetISymbol()).PartialDefinitionPart == null); // Must be definition.
+            Debug.Assert(body == null || (object)methodSymbol == body.MethodDefinition.GetInternalSymbol());
 
             _methodBodyMap.Add(methodSymbol, body);
         }
 
-        internal void SetPEEntryPoint(IMethodSymbol method, DiagnosticBag diagnostics)
+        internal void SetPEEntryPoint(IMethodSymbolInternal method, DiagnosticBag diagnostics)
         {
             Debug.Assert(method == null || IsSourceDefinition(method));
             Debug.Assert(OutputKind.IsApplication());
@@ -253,14 +262,14 @@ namespace Microsoft.CodeAnalysis.Emit
             PEEntryPoint = Translate(method, diagnostics, needDeclaration: true);
         }
 
-        internal void SetDebugEntryPoint(IMethodSymbol method, DiagnosticBag diagnostics)
+        internal void SetDebugEntryPoint(IMethodSymbolInternal method, DiagnosticBag diagnostics)
         {
             Debug.Assert(method == null || IsSourceDefinition(method));
 
             DebugEntryPoint = Translate(method, diagnostics, needDeclaration: true);
         }
 
-        private bool IsSourceDefinition(IMethodSymbol method)
+        private bool IsSourceDefinition(IMethodSymbolInternal method)
         {
             return method.ContainingModule == CommonSourceModule && method.IsDefinition;
         }
@@ -288,11 +297,20 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public uint GetFakeSymbolTokenForIL(Cci.IReference symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            bool added;
-            uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out added);
+            uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out bool added);
             if (added)
             {
                 ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
+            }
+            return token;
+        }
+
+        public uint GetFakeSymbolTokenForIL(Cci.ISignature symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out bool added);
+            if (added)
+            {
+                ReferenceDependencyWalker.VisitSignature(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
             }
             return token;
         }
@@ -307,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _sourceDocumentsInILMap.GetItem(token);
         }
 
-        public Cci.IReference GetReferenceFromToken(uint token)
+        public object GetReferenceFromToken(uint token)
         {
             return _referencesInILMap.GetItem(token);
         }
@@ -322,9 +340,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return _stringsInILMap.GetItem(token);
         }
 
-        public IEnumerable<Cci.IReference> ReferencesInIL(out int count)
+        public ReadOnlySpan<object> ReferencesInIL()
         {
-            return _referencesInILMap.GetAllItemsAndCount(out count);
+            return _referencesInILMap.GetAllItems();
         }
 
         /// <summary>
@@ -430,12 +448,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal bool SaveTestData => TestData != null;
 
-        internal void SetMethodTestData(IMethodSymbol method, ILBuilder builder)
+        internal void SetMethodTestData(IMethodSymbolInternal method, ILBuilder builder)
         {
             TestData.Add(method, new CompilationTestData.MethodData(builder, method));
         }
 
-        internal void SetMethodTestData(ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> methods)
+        internal void SetMethodTestData(ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> methods)
         {
             Debug.Assert(TestData == null);
             TestData = methods;
@@ -447,17 +465,15 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     internal abstract class PEModuleBuilder<TCompilation, TSourceModuleSymbol, TAssemblySymbol, TTypeSymbol, TNamedTypeSymbol, TMethodSymbol, TSyntaxNode, TEmbeddedTypesManager, TModuleCompilationState> : CommonPEModuleBuilder, ITokenDeferral
         where TCompilation : Compilation
-        where TSourceModuleSymbol : class, IModuleSymbol
-        where TAssemblySymbol : class, IAssemblySymbol
-        where TTypeSymbol : class
-        where TNamedTypeSymbol : class, TTypeSymbol, INamedTypeSymbol, Cci.INamespaceTypeDefinition
-        where TMethodSymbol : class, Cci.IMethodDefinition
+        where TSourceModuleSymbol : class, IModuleSymbolInternal
+        where TAssemblySymbol : class, IAssemblySymbolInternal
+        where TTypeSymbol : class, ITypeSymbolInternal
+        where TNamedTypeSymbol : class, TTypeSymbol, INamedTypeSymbolInternal
+        where TMethodSymbol : class, IMethodSymbolInternal
         where TSyntaxNode : SyntaxNode
         where TEmbeddedTypesManager : CommonEmbeddedTypesManager
         where TModuleCompilationState : ModuleCompilationState<TNamedTypeSymbol, TMethodSymbol>
     {
-        private readonly Cci.RootModuleType _rootModuleType = new Cci.RootModuleType();
-
         internal readonly TSourceModuleSymbol SourceModule;
         internal readonly TCompilation Compilation;
 
@@ -466,6 +482,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private HashSet<string> _namesOfTopLevelTypes;
 
         internal readonly TModuleCompilationState CompilationState;
+        public Cci.RootModuleType RootModuleType { get; } = new Cci.RootModuleType();
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
@@ -492,13 +509,12 @@ namespace Microsoft.CodeAnalysis.Emit
             this.CompilationState.Freeze();
         }
 
-        internal override IAssemblySymbol CommonCorLibrary => CorLibrary;
+        internal override IAssemblySymbolInternal CommonCorLibrary => CorLibrary;
         internal abstract TAssemblySymbol CorLibrary { get; }
 
-        internal abstract Cci.INamedTypeReference GetSystemType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
 
-        internal sealed override Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics)
+        internal sealed override Cci.ITypeReference EncTranslateType(ITypeSymbolInternal type, DiagnosticBag diagnostics)
         {
             return EncTranslateLocalVariableType((TTypeSymbol)type, diagnostics);
         }
@@ -549,9 +565,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 Dispatch(typeReferenceIndexer);
             }
 
-            AddTopLevelType(names, _rootModuleType);
-            VisitTopLevelType(typeReferenceIndexer, _rootModuleType);
-            yield return _rootModuleType;
+            AddTopLevelType(names, RootModuleType);
+            VisitTopLevelType(typeReferenceIndexer, RootModuleType);
+            yield return RootModuleType;
 
             foreach (var typeDef in GetAnonymousTypeDefinitions(context))
             {
@@ -591,14 +607,8 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
-            => GetAdditionalTopLevelTypes(context.Diagnostics);
-
-        public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+        public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()
             => ImmutableArray<TNamedTypeSymbol>.Empty;
-
-        public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)
-            => GetEmbeddedTypes(context.Diagnostics);
 
         public virtual ImmutableArray<TNamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
             => ImmutableArray<TNamedTypeSymbol>.Empty;
@@ -607,22 +617,22 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(TMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
 
-        internal sealed override Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics)
+        internal sealed override Cci.IAssemblyReference Translate(IAssemblySymbolInternal symbol, DiagnosticBag diagnostics)
         {
             return Translate((TAssemblySymbol)symbol, diagnostics);
         }
 
-        internal sealed override Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        internal sealed override Cci.ITypeReference Translate(ITypeSymbolInternal symbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             return Translate((TTypeSymbol)symbol, (TSyntaxNode)syntaxNodeOpt, diagnostics);
         }
 
-        internal sealed override Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        internal sealed override Cci.IMethodReference Translate(IMethodSymbolInternal symbol, DiagnosticBag diagnostics, bool needDeclaration)
         {
             return Translate((TMethodSymbol)symbol, diagnostics, needDeclaration);
         }
 
-        internal sealed override IModuleSymbol CommonSourceModule => SourceModule;
+        internal sealed override IModuleSymbolInternal CommonSourceModule => SourceModule;
         internal sealed override Compilation CommonCompilation => Compilation;
         internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
         internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
@@ -685,15 +695,15 @@ namespace Microsoft.CodeAnalysis.Emit
             public ConcurrentQueue<Cci.IPropertyDefinition> Properties;
             public ConcurrentQueue<Cci.IFieldDefinition> Fields;
 
-            public ImmutableArray<ISymbol> GetAllMembers()
+            public ImmutableArray<ISymbolInternal> GetAllMembers()
             {
-                var builder = ArrayBuilder<ISymbol>.GetInstance();
+                var builder = ArrayBuilder<ISymbolInternal>.GetInstance();
 
                 if (Fields != null)
                 {
                     foreach (var field in Fields)
                     {
-                        builder.Add((ISymbol)field);
+                        builder.Add(field.GetInternalSymbol());
                     }
                 }
 
@@ -701,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     foreach (var method in Methods)
                     {
-                        builder.Add((ISymbol)method);
+                        builder.Add(method.GetInternalSymbol());
                     }
                 }
 
@@ -709,7 +719,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     foreach (var property in Properties)
                     {
-                        builder.Add((ISymbol)property);
+                        builder.Add(property.GetInternalSymbol());
                     }
                 }
 
@@ -717,7 +727,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     foreach (var type in NestedTypes)
                     {
-                        builder.Add((ISymbol)type);
+                        builder.Add(type.GetInternalSymbol());
                     }
                 }
 
@@ -728,7 +738,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions> _synthesizedTypeMembers =
             new ConcurrentDictionary<TNamedTypeSymbol, SynthesizedDefinitions>(ReferenceEqualityComparer.Instance);
 
-        private ConcurrentDictionary<INamespaceSymbol, ConcurrentQueue<INamespaceOrTypeSymbol>> _lazySynthesizedNamespaceMembers;
+        private ConcurrentDictionary<INamespaceSymbolInternal, ConcurrentQueue<INamespaceOrTypeSymbolInternal>> _lazySynthesizedNamespaceMembers;
 
         internal abstract IEnumerable<Cci.INestedTypeDefinition> GetSynthesizedNestedTypes(TNamedTypeSymbol container);
 
@@ -816,15 +826,15 @@ namespace Microsoft.CodeAnalysis.Emit
             defs.NestedTypes.Enqueue(nestedType);
         }
 
-        public void AddSynthesizedDefinition(INamespaceSymbol container, INamespaceOrTypeSymbol typeOrNamespace)
+        public void AddSynthesizedDefinition(INamespaceSymbolInternal container, INamespaceOrTypeSymbolInternal typeOrNamespace)
         {
             Debug.Assert(typeOrNamespace != null);
             if (_lazySynthesizedNamespaceMembers == null)
             {
-                Interlocked.CompareExchange(ref _lazySynthesizedNamespaceMembers, new ConcurrentDictionary<INamespaceSymbol, ConcurrentQueue<INamespaceOrTypeSymbol>>(), null);
+                Interlocked.CompareExchange(ref _lazySynthesizedNamespaceMembers, new ConcurrentDictionary<INamespaceSymbolInternal, ConcurrentQueue<INamespaceOrTypeSymbolInternal>>(), null);
             }
 
-            _lazySynthesizedNamespaceMembers.GetOrAdd(container, _ => new ConcurrentQueue<INamespaceOrTypeSymbol>()).Enqueue(typeOrNamespace);
+            _lazySynthesizedNamespaceMembers.GetOrAdd(container, _ => new ConcurrentQueue<INamespaceOrTypeSymbolInternal>()).Enqueue(typeOrNamespace);
         }
 
         /// <summary>
@@ -845,9 +855,9 @@ namespace Microsoft.CodeAnalysis.Emit
         public IEnumerable<Cci.IMethodDefinition> GetSynthesizedMethods(TNamedTypeSymbol container)
             => _synthesizedTypeMembers.TryGetValue(container, out var defs) ? defs.Methods : null;
 
-        internal override ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> GetAllSynthesizedMembers()
+        internal override ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllSynthesizedMembers()
         {
-            var builder = ImmutableDictionary.CreateBuilder<ISymbol, ImmutableArray<ISymbol>>();
+            var builder = ImmutableDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
 
             foreach (var entry in _synthesizedTypeMembers)
             {
@@ -859,7 +869,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 foreach (var entry in namespaceMembers)
                 {
-                    builder.Add(entry.Key, entry.Value.ToImmutableArray<ISymbol>());
+                    builder.Add(entry.Key, entry.Value.ToImmutableArray<ISymbolInternal>());
                 }
             }
 
@@ -952,7 +962,7 @@ namespace Microsoft.CodeAnalysis.Emit
             switch (platformType)
             {
                 case Cci.PlatformType.SystemType:
-                    return GetSystemType((TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                    throw ExceptionUtilities.UnexpectedValue(platformType);
 
                 default:
                     return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);

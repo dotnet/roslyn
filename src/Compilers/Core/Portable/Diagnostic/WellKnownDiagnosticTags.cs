@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -40,5 +42,17 @@ namespace Microsoft.CodeAnalysis
         /// Indicates that the diagnostic is related to an exception thrown by a <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
         public const string AnalyzerException = nameof(AnalyzerException);
+
+        /// <summary>
+        /// Indicates that the diagnostic is an obsolete diagnostic with a custom ID
+        /// specified by the 'DiagnosticId' property on 'ObsoleteAttribute'.
+        /// </summary>
+        public const string CustomObsolete = nameof(CustomObsolete);
+
+        /// <summary>
+        /// Indicates that the diagnostic is a compilation end diagnostic reported
+        /// from a compilation end action.
+        /// </summary>
+        public const string CompilationEnd = nameof(CompilationEnd);
     }
 }

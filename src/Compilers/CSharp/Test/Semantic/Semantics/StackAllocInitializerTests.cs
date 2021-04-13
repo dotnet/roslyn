@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -123,7 +127,7 @@ unsafe class Test
 }
 namespace System {
     public struct ValueTuple<T1, T2> {
-        public ValueTuple(T1 a, T2 b) { }
+        public ValueTuple(T1 a, T2 b) => throw null;
     }
 }
 ", TestOptions.UnsafeReleaseDll);
@@ -187,7 +191,7 @@ unsafe class Test
 }
 namespace System {
     public struct ValueTuple<T1, T2> {
-        public ValueTuple(T1 a, T2 b) { }
+        public ValueTuple(T1 a, T2 b) => throw null;
     }
 }
 ", TestOptions.UnsafeReleaseDll);
@@ -255,9 +259,6 @@ unsafe class Test
                 // (8,40): error CS0841: Cannot use local variable 'obj3' before it is declared
                 //         var obj3 = stackalloc    [ ] { obj3 };
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(8, 40),
-                // (8,40): error CS0165: Use of unassigned local variable 'obj3'
-                //         var obj3 = stackalloc    [ ] { obj3 };
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "obj3").WithArguments("obj3").WithLocation(8, 40),
                 // (13,40): error CS0841: Cannot use local variable 'obj1' before it is declared
                 //         var obj1 = stackalloc int[2] { obj1[0] , obj1[1] };
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(13, 40),
@@ -311,9 +312,6 @@ unsafe class Test
                 // (8,54): error CS0841: Cannot use local variable 'obj3' before it is declared
                 //         var obj3 = c ? default : stackalloc    [ ] { obj3 };
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj3").WithArguments("obj3").WithLocation(8, 54),
-                // (8,54): error CS0165: Use of unassigned local variable 'obj3'
-                //         var obj3 = c ? default : stackalloc    [ ] { obj3 };
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "obj3").WithArguments("obj3").WithLocation(8, 54),
                 // (13,54): error CS0841: Cannot use local variable 'obj1' before it is declared
                 //         var obj1 = c ? default : stackalloc int[2] { obj1[0] , obj1[1] };
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "obj1").WithArguments("obj1").WithLocation(13, 54),
@@ -594,24 +592,24 @@ class Test
 }";
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (6,15): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,15): error CS8370: Feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         lock (stackalloc int[3] { 1, 2, 3 }) {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(6, 15),
-                // (6,15): error CS0185: 'stackalloc int[3]' is not a reference type as required by the lock statement
+                // (6,15): error CS0185: 'int*' is not a reference type as required by the lock statement
                 //         lock (stackalloc int[3] { 1, 2, 3 }) {}
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[3] { 1, 2, 3 }").WithArguments("stackalloc int[3]").WithLocation(6, 15),
-                // (7,15): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[3] { 1, 2, 3 }").WithArguments("int*").WithLocation(6, 15),
+                // (7,15): error CS8370: Feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         lock (stackalloc int[ ] { 1, 2, 3 }) {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(7, 15),
-                // (7,15): error CS0185: 'stackalloc int[]' is not a reference type as required by the lock statement
+                // (7,15): error CS0185: 'int*' is not a reference type as required by the lock statement
                 //         lock (stackalloc int[ ] { 1, 2, 3 }) {}
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("stackalloc int[]").WithLocation(7, 15),
-                // (8,15): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("int*").WithLocation(7, 15),
+                // (8,15): error CS8370: Feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         lock (stackalloc    [ ] { 1, 2, 3 }) {} 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(8, 15),
-                // (8,15): error CS0185: 'stackalloc int[]' is not a reference type as required by the lock statement
+                // (8,15): error CS0185: 'int*' is not a reference type as required by the lock statement
                 //         lock (stackalloc    [ ] { 1, 2, 3 }) {} 
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("stackalloc int[]").WithLocation(8, 15)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("int*").WithLocation(8, 15)
                 );
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
                 .VerifyDiagnostics(
@@ -1024,7 +1022,7 @@ unsafe class Test
                 Assert.Equal("obj1", obj1.Identifier.Text);
 
                 var obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj1Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj1Value.Type).PointedAtType.SpecialType);
                 Assert.Equal("Test", obj1Value.ConvertedType.Name);
                 Assert.Equal(ConversionKind.ImplicitUserDefined, obj1Value.ImplicitConversion.Kind);
 
@@ -1032,8 +1030,8 @@ unsafe class Test
                 Assert.Equal("obj2", obj2.Identifier.Text);
 
                 var obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.Kind);
 
                 var obj3 = variables.ElementAt(i + 2);
@@ -1048,16 +1046,16 @@ unsafe class Test
                 Assert.Equal("obj4", obj4.Identifier.Text);
 
                 var obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.Kind);
 
                 var obj5 = variables.ElementAt(i + 4);
                 Assert.Equal("obj5", obj5.Identifier.Text);
 
                 var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
-                Assert.Null(obj5Value.Type);
-                Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj5Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Double, ((IPointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
             }
         }
@@ -1135,8 +1133,8 @@ unsafe class Test
                 Assert.Equal("obj2", obj2.Identifier.Text);
 
                 var obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.Kind);
 
                 var obj3 = variables.ElementAt(i + 2);
@@ -1151,16 +1149,16 @@ unsafe class Test
                 Assert.Equal("obj4", obj4.Identifier.Text);
 
                 var obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.Kind);
 
                 var obj5 = variables.ElementAt(i + 4);
                 Assert.Equal("obj5", obj5.Identifier.Text);
 
                 var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
-                Assert.Null(obj5Value.Type);
-                Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj5Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Double, ((IPointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
             }
         }
@@ -1582,7 +1580,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p1 = stackalloc int[1] { 1 };
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15),
@@ -2542,7 +2540,7 @@ unsafe class Test
             var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
 
             Assert.Null(stackallocInfo.Symbol);
-            Assert.Null(stackallocInfo.Type);
+            Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Int16*", stackallocInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.NoConversion, stackallocInfo.ImplicitConversion);
 
@@ -2570,7 +2568,7 @@ unsafe class Test
             stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
 
             Assert.Null(stackallocInfo.Symbol);
-            Assert.Null(stackallocInfo.Type);
+            Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Span<System.Int16>", stackallocInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.NoConversion, stackallocInfo.ImplicitConversion);
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -390,8 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
-            Assert.IsType(typeof(string), token.ValueText);
+            Assert.NotNull(token.ValueText);
+            Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
 
@@ -407,8 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
-            Assert.IsType(typeof(string), token.ValueText);
+            Assert.NotNull(token.ValueText);
+            Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
 
@@ -424,8 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
-            Assert.IsType(typeof(string), token.ValueText);
+            Assert.NotNull(token.ValueText);
+            Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
 
@@ -441,8 +445,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
-            Assert.IsType(typeof(string), token.ValueText);
+            Assert.NotNull(token.ValueText);
+            Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
 
@@ -458,8 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
-            Assert.IsType(typeof(string), token.ValueText);
+            Assert.NotNull(token.ValueText);
+            Assert.IsType<string>(token.ValueText);
             Assert.Equal(3, ((string)token.ValueText).Length);
         }
 
@@ -475,8 +479,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
-            Assert.IsType(typeof(string), token.ValueText);
+            Assert.NotNull(token.ValueText);
+            Assert.IsType<string>(token.ValueText);
             Assert.Equal(4, ((string)token.ValueText).Length);
         }
 
@@ -492,8 +496,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.NotEqual(default, token.ValueText);
-            Assert.IsType(typeof(string), token.ValueText);
+            Assert.NotNull(token.ValueText);
+            Assert.IsType<string>(token.ValueText);
             Assert.Equal(1, ((string)token.ValueText).Length);
         }
 
@@ -535,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.NotNull(token.ValueText);
-            Assert.IsType(typeof(string), token.ValueText);
+            Assert.IsType<string>(token.ValueText);
             Assert.Equal(3, ((string)token.ValueText).Length);
         }
 
@@ -3443,7 +3447,7 @@ class C
             Assert.True(token.HasLeadingTrivia);
             var trivia = token.LeadingTrivia.Single();
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia.Span.Length, 22);
+            Assert.Equal(22, trivia.Span.Length);
 
             Assert.True(trivia.ContainsDiagnostics);
             var errors = trivia.Errors();
@@ -3456,7 +3460,7 @@ class C
             Assert.Equal(3, token.LeadingTrivia.Count);
             trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia.Span.Length, 16);
+            Assert.Equal(16, trivia.Span.Length);
 
             Assert.True(trivia.ContainsDiagnostics);
             errors = trivia.Errors();
@@ -3465,13 +3469,13 @@ class C
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(trivia.Span.Start, 16);
-            Assert.Equal(trivia.Span.Length, 2);
+            Assert.Equal(16, trivia.Span.Start);
+            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(trivia.Span.Start, 18);
-            Assert.Equal(trivia.Span.Length, 13);
+            Assert.Equal(18, trivia.Span.Start);
+            Assert.Equal(13, trivia.Span.Length);
 
             token = Lex("======= Trailing\r\ndisabled text\r\n>>>> still disabled").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
@@ -3480,7 +3484,7 @@ class C
 
             trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia.Span.Length, 16);
+            Assert.Equal(16, trivia.Span.Length);
 
             Assert.True(trivia.ContainsDiagnostics);
             errors = trivia.Errors();
@@ -3489,19 +3493,19 @@ class C
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(trivia.Span.Length, 2);
+            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(trivia.Span.Length, 34);
+            Assert.Equal(34, trivia.Span.Length);
 
             token = Lex("======= Trailing\r\ndisabled text\r\n>>>>>>> Actually the end").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
-            Assert.Equal(token.LeadingTrivia.Count, 4);
+            Assert.Equal(4, token.LeadingTrivia.Count);
             var trivia1 = token.LeadingTrivia[0];
             Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia1.Span.Length, 16);
+            Assert.Equal(16, trivia1.Span.Length);
 
             Assert.True(trivia1.ContainsDiagnostics);
             errors = trivia1.Errors();
@@ -3510,18 +3514,18 @@ class C
 
             var trivia2 = token.LeadingTrivia[1];
             Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(trivia2.Span.Start, 16);
-            Assert.Equal(trivia2.Span.Length, 2);
+            Assert.Equal(16, trivia2.Span.Start);
+            Assert.Equal(2, trivia2.Span.Length);
 
             var trivia3 = token.LeadingTrivia[2];
             Assert.True(trivia3.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(trivia3.Span.Start, 18);
-            Assert.Equal(trivia3.Span.Length, 15);
+            Assert.Equal(18, trivia3.Span.Start);
+            Assert.Equal(15, trivia3.Span.Length);
 
             var trivia4 = token.LeadingTrivia[3];
             Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia4.Span.Start, 33);
-            Assert.Equal(trivia4.Span.Length, 24);
+            Assert.Equal(33, trivia4.Span.Start);
+            Assert.Equal(24, trivia4.Span.Length);
 
             Assert.True(trivia4.ContainsDiagnostics);
             errors = trivia4.Errors();
@@ -3532,10 +3536,10 @@ class C
             token = Lex("======= Trailing\r\n>>>>>>> Actually the end").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
-            Assert.Equal(token.LeadingTrivia.Count, 3);
+            Assert.Equal(3, token.LeadingTrivia.Count);
             trivia1 = token.LeadingTrivia[0];
             Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia1.Span.Length, 16);
+            Assert.Equal(16, trivia1.Span.Length);
 
             Assert.True(trivia1.ContainsDiagnostics);
             errors = trivia1.Errors();
@@ -3544,13 +3548,13 @@ class C
 
             trivia2 = token.LeadingTrivia[1];
             Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(trivia2.Span.Start, 16);
-            Assert.Equal(trivia2.Span.Length, 2);
+            Assert.Equal(16, trivia2.Span.Start);
+            Assert.Equal(2, trivia2.Span.Length);
 
             trivia3 = token.LeadingTrivia[2];
             Assert.True(trivia3.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia3.Span.Start, 18);
-            Assert.Equal(trivia3.Span.Length, 24);
+            Assert.Equal(18, trivia3.Span.Start);
+            Assert.Equal(24, trivia3.Span.Length);
 
             Assert.True(trivia3.ContainsDiagnostics);
             errors = trivia3.Errors();
@@ -3583,7 +3587,7 @@ class C
             Assert.True(token.HasLeadingTrivia);
             var trivia = token.LeadingTrivia.Single();
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia.Span.Length, 22);
+            Assert.Equal(22, trivia.Span.Length);
 
             token = Lex("{\r\n======= Trailing\r\ndisabled text").Skip(1).First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
@@ -3591,17 +3595,17 @@ class C
             Assert.Equal(3, token.LeadingTrivia.Count);
             trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia.Span.Length, 16);
+            Assert.Equal(16, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(trivia.Span.Start, 19);
-            Assert.Equal(trivia.Span.Length, 2);
+            Assert.Equal(19, trivia.Span.Start);
+            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(trivia.Span.Start, 21);
-            Assert.Equal(trivia.Span.Length, 13);
+            Assert.Equal(21, trivia.Span.Start);
+            Assert.Equal(13, trivia.Span.Length);
 
             token = Lex("{\r\n======= Trailing\r\ndisabled text\r\n>>>> still disabled").Skip(1).First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
@@ -3610,39 +3614,39 @@ class C
 
             trivia = token.LeadingTrivia[0];
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia.Span.Length, 16);
+            Assert.Equal(16, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[1];
             Assert.True(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(trivia.Span.Length, 2);
+            Assert.Equal(2, trivia.Span.Length);
 
             trivia = token.LeadingTrivia[2];
             Assert.True(trivia.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(trivia.Span.Length, 34);
+            Assert.Equal(34, trivia.Span.Length);
 
 
             token = Lex("{\r\n======= Trailing\r\ndisabled text\r\n>>>>>>> Actually the end").Skip(1).First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
-            Assert.Equal(token.LeadingTrivia.Count, 4);
+            Assert.Equal(4, token.LeadingTrivia.Count);
             var trivia1 = token.LeadingTrivia[0];
             Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia1.Span.Length, 16);
+            Assert.Equal(16, trivia1.Span.Length);
 
             var trivia2 = token.LeadingTrivia[1];
             Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
-            Assert.Equal(trivia2.Span.Start, 19);
-            Assert.Equal(trivia2.Span.Length, 2);
+            Assert.Equal(19, trivia2.Span.Start);
+            Assert.Equal(2, trivia2.Span.Length);
 
             var trivia3 = token.LeadingTrivia[2];
             Assert.True(trivia3.Kind() == SyntaxKind.DisabledTextTrivia);
-            Assert.Equal(trivia3.Span.Start, 21);
-            Assert.Equal(trivia3.Span.Length, 15);
+            Assert.Equal(21, trivia3.Span.Start);
+            Assert.Equal(15, trivia3.Span.Length);
 
             var trivia4 = token.LeadingTrivia[3];
             Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
-            Assert.Equal(trivia4.Span.Start, 36);
-            Assert.Equal(trivia4.Span.Length, 24);
+            Assert.Equal(36, trivia4.Span.Start);
+            Assert.Equal(24, trivia4.Span.Length);
         }
     }
 }

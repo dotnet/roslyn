@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -1659,7 +1663,9 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546825")]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39969
+        [WorkItem(546825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546825")]
+        [WorkItem(39969, "https://github.com/dotnet/roslyn/issues/39969")]
         public void Bug16910()
         {
             string mod =
@@ -1674,7 +1680,7 @@ class Program
                 public class Test { }
                 ";
 
-            var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { SystemCoreRef });
+            var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { TestMetadata.Net40.SystemCore });
             var appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
             var diagnostics = appCompilation.GetDiagnostics();
             Assert.False(diagnostics.Any());

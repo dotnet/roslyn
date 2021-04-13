@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -502,9 +504,7 @@ End Class
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("goo", DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(
-            errorText.Contains("HRESULT") AndAlso
-            errorText.Contains("0x80090016"))
+        Assert.True(errorText.Contains("0x80090016"))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -655,14 +655,12 @@ End Class
         'BC36981: Error extracting public key from container 'bogus': Keyset does not exist (Exception from HRESULT: 0x80090016)
         'c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
 
-        Dim err = c2.GetDiagnostics(CompilationStage.Emit).Single()
+        Dim err = c2.GetEmitDiagnostics().Single()
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(
-            errorText.Contains("HRESULT") AndAlso
-            errorText.Contains("0x80090016"))
+        Assert.True(errorText.Contains("0x80090016"))
     End Sub
 
     <Theory>
@@ -1796,9 +1794,7 @@ End Class
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal(s_keyPairFile, DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(
-            errorText.Contains("HRESULT") AndAlso
-            errorText.Contains("0x80131423"))
+        Assert.True(errorText.Contains("0x80131423"))
     End Sub
 
     <Theory>

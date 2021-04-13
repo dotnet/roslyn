@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -9,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
@@ -17,25 +23,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
     internal class IfStatementHighlighter : AbstractKeywordHighlighter<IfStatementSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IfStatementHighlighter()
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            IfStatementSyntax ifStatement, CancellationToken cancellationToken)
+        protected override void AddHighlights(
+            IfStatementSyntax ifStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
             if (ifStatement.Parent.Kind() != SyntaxKind.ElseClause)
             {
-                return ComputeSpans(ifStatement);
+                ComputeSpans(ifStatement, highlights);
             }
-
-            return Enumerable.Empty<TextSpan>();
         }
 
-        private IEnumerable<TextSpan> ComputeSpans(
-            IfStatementSyntax ifStatement)
+        private static void ComputeSpans(
+            IfStatementSyntax ifStatement, List<TextSpan> highlights)
         {
-            yield return ifStatement.IfKeyword.Span;
+            highlights.Add(ifStatement.IfKeyword.Span);
 
             // Loop to get all the else if parts
             while (ifStatement != null && ifStatement.Else != null)
@@ -48,15 +53,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
                     if (OnlySpacesBetween(elseKeyword, elseIfStatement.IfKeyword))
                     {
                         // Highlight both else and if tokens if they are on the same line
-                        yield return TextSpan.FromBounds(
+                        highlights.Add(TextSpan.FromBounds(
                             elseKeyword.SpanStart,
-                            elseIfStatement.IfKeyword.Span.End);
+                            elseIfStatement.IfKeyword.Span.End));
                     }
                     else
                     {
                         // Highlight the else and if tokens separately
-                        yield return elseKeyword.Span;
-                        yield return elseIfStatement.IfKeyword.Span;
+                        highlights.Add(elseKeyword.Span);
+                        highlights.Add(elseIfStatement.IfKeyword.Span);
                     }
 
                     // Continue the enumeration looking for more else blocks
@@ -65,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
                 else
                 {
                     // Highlight just the else and we're done
-                    yield return elseKeyword.Span;
+                    highlights.Add(elseKeyword.Span);
                     break;
                 }
             }

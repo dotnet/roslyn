@@ -1,19 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class KeywordCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New KeywordCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(KeywordCompletionProvider)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -67,7 +63,6 @@ End Class
 
             Await VerifyNoItemsExistAsync(code)
         End Function
-
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TestNotInUnterminatedString() As Task

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int typeToken,
             MakeAssemblyReferencesKind kind)
         {
-            CSharpCompilation compilation;
+            CSharpCompilation? compilation;
 
             if (kind == MakeAssemblyReferencesKind.DirectReferencesOnly)
             {
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
             Lazy<ImmutableArray<AssemblyReaders>> unusedLazyAssemblyReaders,
-            object symReader,
+            object? symReader,
             Guid moduleVersionId,
             int methodToken,
             int methodVersion,
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             GetMetadataContextDelegate<TAppDomain> getMetadataContext,
             SetMetadataContextDelegate<TAppDomain> setMetadataContext,
             ImmutableArray<MetadataBlock> metadataBlocks,
-            object symReader,
+            object? symReader,
             Guid moduleVersionId,
             int methodToken,
             int methodVersion,

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpQuickInfo(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpQuickInfo))
+        public CSharpQuickInfo(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpQuickInfo))
         {
         }
 
@@ -87,7 +91,7 @@ class C
         }");
 
             VisualStudio.Editor.InvokeQuickInfo();
-            var expected = "(awaitable) Task<int> C.M()\r\n\r\nUsage:\r\n  int x = await M();\r\n\r\nExceptions:\r\n  Exception";
+            var expected = "(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception";
             Assert.Equal(expected, VisualStudio.Editor.GetQuickInfo());
         }
     }

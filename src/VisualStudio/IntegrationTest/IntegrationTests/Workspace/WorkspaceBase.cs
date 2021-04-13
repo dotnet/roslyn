@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     public abstract class WorkspaceBase : AbstractEditorTest
     {
-        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
-            : base(instanceFactory, testOutputHelper, nameof(WorkspaceBase), projectTemplate)
+        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
+            : base(instanceFactory, nameof(WorkspaceBase), projectTemplate)
         {
             DefaultProjectTemplate = projectTemplate;
         }

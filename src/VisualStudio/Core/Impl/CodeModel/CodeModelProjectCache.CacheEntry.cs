@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
@@ -27,9 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             private readonly WeakComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> _fileCodeModelWeakComHandle;
 
             public CacheEntry(ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> handle)
-            {
-                _fileCodeModelWeakComHandle = new WeakComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(handle);
-            }
+                => _fileCodeModelWeakComHandle = new WeakComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(handle);
 
             public EnvDTE80.FileCodeModel2 FileCodeModelRcw
             {
@@ -40,9 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             internal bool TryGetFileCodeModelInstanceWithoutCaringWhetherRcwIsAlive(out FileCodeModel fileCodeModel)
-            {
-                return _fileCodeModelWeakComHandle.TryGetManagedObjectWithoutCaringWhetherNativeObjectIsAlive(out fileCodeModel);
-            }
+                => _fileCodeModelWeakComHandle.TryGetManagedObjectWithoutCaringWhetherNativeObjectIsAlive(out fileCodeModel);
 
             public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>? ComHandle
             {

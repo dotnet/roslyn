@@ -1,7 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -12,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static partial class ITextBufferExtensions
     {
-        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, Option<bool> option)
+        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, Option2<bool> option)
         {
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
@@ -24,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return option.DefaultValue;
         }
 
-        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, PerLanguageOption<bool> option)
+        internal static T GetFeatureOnOffOption<T>(this ITextBuffer buffer, PerLanguageOption2<T> option)
         {
             // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
             try
@@ -38,13 +42,44 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 return option.DefaultValue;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        internal static bool TryGetWorkspace(this ITextBuffer buffer, out Workspace workspace)
+        internal static bool? GetOptionalFeatureOnOffOption(this ITextBuffer buffer, PerLanguageOption2<bool?> option)
+        {
+            // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
+            try
+            {
+                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                if (document != null)
+                {
+                    return document.Project.Solution.Options.GetOption(option, document.Project.Language);
+                }
+
+                return option.DefaultValue;
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal static bool IsInLspEditorContext(this ITextBuffer buffer)
+        {
+            if (buffer.TryGetWorkspace(out var workspace))
+            {
+                var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
+                return workspaceContextService.IsInLspEditorContext();
+            }
+
+            return false;
+        }
+
+        internal static bool TryGetWorkspace(this ITextBuffer buffer, [NotNullWhen(true)] out Workspace? workspace)
             => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace);
 
         /// <summary>
@@ -71,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         internal static bool SupportsNavigationToAnyPosition(this ITextBuffer buffer)
             => TryGetSupportsFeatureService(buffer, out var service) && service.SupportsNavigationToAnyPosition(buffer);
 
-        private static bool TryGetSupportsFeatureService(ITextBuffer buffer, out ITextBufferSupportsFeatureService service)
+        private static bool TryGetSupportsFeatureService(ITextBuffer buffer, [NotNullWhen(true)] out ITextBufferSupportsFeatureService? service)
         {
             service = null;
             if (buffer.TryGetWorkspace(out var workspace))

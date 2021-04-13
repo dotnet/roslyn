@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -11,7 +15,6 @@ using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -27,6 +30,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
+
+        public AddParameterDialog_OutOfProc AddParameterDialog { get; }
 
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
@@ -85,19 +90,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public bool IsUsingLspEditor { get; }
+
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath, bool isUsingLspEditor)
         {
             HostProcess = hostProcess;
             Dte = dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
+            IsUsingLspEditor = isUsingLspEditor;
 
             if (System.Diagnostics.Debugger.IsAttached)
             {
                 // If a Visual Studio debugger is attached to the test process, attach it to the instance running
                 // integration tests as well.
                 var debuggerHostDte = GetDebuggerHostDte();
-                int targetProcessId = Process.GetCurrentProcess().Id;
+                var targetProcessId = Process.GetCurrentProcess().Id;
                 var localProcess = debuggerHostDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>().FirstOrDefault(p => p.ProcessID == hostProcess.Id);
                 if (localProcess != null)
                 {
@@ -123,6 +131,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
+            AddParameterDialog = new AddParameterDialog_OutOfProc(this);
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
@@ -211,7 +220,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
+            Workspace.WaitForAllAsyncOperationsOrFail(Helper.HangMitigatingTimeout);
 
             // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
@@ -225,6 +234,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Prevent the start page from showing after each solution closes
             StartPage.SetEnabled(false);
+            Workspace.ResetOptions();
         }
 
         public void Close(bool exitHostProcess = true)

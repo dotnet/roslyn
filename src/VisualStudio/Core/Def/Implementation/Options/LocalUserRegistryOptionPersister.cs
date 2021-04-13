@@ -1,12 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -17,21 +20,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// Serializes options marked with <see cref="LocalUserProfileStorageLocation"/> to the local hive-specific registry.
     /// </summary>
-    [Export(typeof(IOptionPersister))]
     internal sealed class LocalUserRegistryOptionPersister : IOptionPersister
     {
         /// <summary>
         /// An object to gate access to <see cref="_registryKey"/>.
         /// </summary>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly RegistryKey _registryKey;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LocalUserRegistryOptionPersister([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public LocalUserRegistryOptionPersister(IThreadingContext threadingContext, IServiceProvider serviceProvider)
         {
-            // Starting in Dev16, the ILocalRegistry service behind this call is free-threaded, and since the service is offered by msenv.dll can be requested
-            // without any marshalling (explicit or otherwise) to the UI thread.
+            // Starting with Dev16, the ILocalRegistry service is expected to be free-threaded, and aquiring it from the
+            // global service provider is expected to complete without any UI thread marshaling requirements. However,
+            // since none of this is publicly documented, we keep this assertion for maximum compatibility assurance.
+            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.vsregistry.registryroot
+            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.ilocalregistry
+            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.slocalregistry
+            threadingContext.ThrowIfNotOnUIThread();
+
             this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
         }
 
@@ -136,7 +142,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
             {
-                value = null;
                 return false;
             }
 
@@ -165,6 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     {
                         subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
                     }
+
                     return true;
                 }
                 else

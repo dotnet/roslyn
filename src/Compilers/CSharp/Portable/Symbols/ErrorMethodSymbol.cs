@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -76,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
         public override Accessibility DeclaredAccessibility
         {
             get { return Accessibility.Public; }
@@ -125,6 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
 
         internal override int ParameterCount
         {
@@ -230,6 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal sealed override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return null; }
@@ -259,5 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
     }
 }

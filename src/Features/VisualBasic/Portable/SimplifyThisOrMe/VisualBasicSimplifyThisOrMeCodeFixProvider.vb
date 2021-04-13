@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.SimplifyThisOrMe
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
         Inherits AbstractSimplifyThisOrMeCodeFixProvider(Of MemberAccessExpressionSyntax)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -20,25 +24,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             Return VBFeaturesResources.Remove_Me_qualification
         End Function
 
-        Protected Overrides Function Rewrite(semanticModel As SemanticModel, root As SyntaxNode, memberAccessNodes As ISet(Of MemberAccessExpressionSyntax)) As SyntaxNode
-            Dim rewriter = New Rewriter(semanticModel, memberAccessNodes)
-            Return rewriter.Visit(root)
+        Protected Overrides Function Rewrite(root As SyntaxNode, memberAccessNodes As ISet(Of MemberAccessExpressionSyntax)) As SyntaxNode
+            Return New Rewriter(memberAccessNodes).Visit(root)
         End Function
 
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Private ReadOnly semanticModel As SemanticModel
             Private ReadOnly memberAccessNodes As ISet(Of MemberAccessExpressionSyntax)
 
-            Public Sub New(semanticModel As SemanticModel, memberAccessNodes As ISet(Of MemberAccessExpressionSyntax))
-                Me.semanticModel = semanticModel
+            Public Sub New(memberAccessNodes As ISet(Of MemberAccessExpressionSyntax))
                 Me.memberAccessNodes = memberAccessNodes
             End Sub
 
             Public Overrides Function VisitMemberAccessExpression(node As MemberAccessExpressionSyntax) As SyntaxNode
                 Return If(memberAccessNodes.Contains(node),
-                    node.GetNameWithTriviaMoved(semanticModel),
+                    node.GetNameWithTriviaMoved(),
                     MyBase.VisitMemberAccessExpression(node))
             End Function
         End Class

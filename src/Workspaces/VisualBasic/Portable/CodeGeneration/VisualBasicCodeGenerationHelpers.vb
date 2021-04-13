@@ -1,19 +1,23 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Module VisualBasicCodeGenerationHelpers
 
-        Friend Sub AddAccessibilityModifiers(accessibility As Accessibility,
-                                                       tokens As IList(Of SyntaxToken),
-                                                       destination As CodeGenerationDestination,
-                                                       options As CodeGenerationOptions,
-                                                       nonStructureAccessibility As Accessibility)
+        Friend Sub AddAccessibilityModifiers(
+                accessibility As Accessibility,
+                tokens As ArrayBuilder(Of SyntaxToken),
+                destination As CodeGenerationDestination,
+                options As CodeGenerationOptions,
+                nonStructureAccessibility As Accessibility)
             options = If(options, CodeGenerationOptions.Default)
             If Not options.GenerateDefaultAccessibility Then
                 If destination = CodeGenerationDestination.StructType AndAlso accessibility = Accessibility.Public Then
@@ -110,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AfterDeclaration(Of TDeclaration As SyntaxNode)(
-            declarationList As SyntaxList(Of TDeclaration),
             options As CodeGenerationOptions,
             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
 
@@ -126,9 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function BeforeDeclaration(Of TDeclaration As SyntaxNode)(
-            declarationList As SyntaxList(Of TDeclaration),
             options As CodeGenerationOptions,
-             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
+            [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
 
             options = If(options, CodeGenerationOptions.Default)
 
@@ -149,8 +151,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional after As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing,
             Optional before As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing) As SyntaxList(Of TDeclaration)
 
-            after = AfterDeclaration(declarationList, options, after)
-            before = BeforeDeclaration(declarationList, options, before)
+            after = AfterDeclaration(options, after)
+            before = BeforeDeclaration(options, before)
 
             Dim index = GetInsertionIndex(
                 declarationList, declaration, options, availableIndices,

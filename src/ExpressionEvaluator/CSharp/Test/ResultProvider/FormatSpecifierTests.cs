@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -398,9 +402,9 @@ class C
                 // GetChildren without ResultsOnly
                 var children = GetChildren(evalResult, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.None));
                 Verify(children,
-                    EvalResult("F", "{C.<get_F>d__1}", "System.Collections.Generic.IEnumerable<int> {C.<get_F>d__1}", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("G", "{C.<get_G>d__3}", "System.Collections.IEnumerable {C.<get_G>d__3}", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("H", "3", "int", "o.H", DkmEvaluationResultFlags.ReadOnly));
+                    EvalResult("F", "{C.<get_F>d__1}", "System.Collections.Generic.IEnumerable<int> {C.<get_F>d__1}", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("G", "{C.<get_G>d__3}", "System.Collections.IEnumerable {C.<get_G>d__3}", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("H", "3", "int", "o.H", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
                 // GetChildren with ResultsOnly
                 children = GetChildren(evalResult, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(children,

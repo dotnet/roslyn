@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -31,19 +35,19 @@ namespace Microsoft.DiaSymReader
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = CreateSymReaderFactoryName)]
-        private extern static void CreateSymReader32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
+        private static extern void CreateSymReader32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName64, EntryPoint = CreateSymReaderFactoryName)]
-        private extern static void CreateSymReader64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
+        private static extern void CreateSymReader64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = CreateSymWriterFactoryName)]
-        private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
+        private static extern void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName64, EntryPoint = CreateSymWriterFactoryName)]
-        private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
+        private static extern void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
         [DllImport("kernel32")]
         private static extern IntPtr LoadLibrary(string path);
@@ -54,10 +58,10 @@ namespace Microsoft.DiaSymReader
         [DllImport("kernel32")]
         private static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
 
-        private delegate void NativeFactory(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object instance);
+        private delegate void NativeFactory(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object instance);
 
 #if !NET20
-        private static Lazy<Func<string, string>> s_lazyGetEnvironmentVariable = new Lazy<Func<string, string>>(() =>
+        private static readonly Lazy<Func<string, string>> s_lazyGetEnvironmentVariable = new Lazy<Func<string, string>>(() =>
         {
             try
             {

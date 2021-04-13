@@ -1,4 +1,10 @@
-﻿using System.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -91,9 +97,9 @@ class C
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var localsSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
-            var local = (MethodSymbol)semanticModel.GetDeclaredSymbol(localsSyntax[0]);
+            var local = semanticModel.GetDeclaredSymbol(localsSyntax[0]).GetSymbol<MethodSymbol>();
             Assert.False(local.RequiresInstanceReceiver);
-            var staticLocal = (MethodSymbol)semanticModel.GetDeclaredSymbol(localsSyntax[0]);
+            var staticLocal = semanticModel.GetDeclaredSymbol(localsSyntax[0]).GetSymbol<MethodSymbol>();
             Assert.False(staticLocal.RequiresInstanceReceiver);
         }
     }

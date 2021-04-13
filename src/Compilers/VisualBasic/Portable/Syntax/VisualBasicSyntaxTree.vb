@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel
@@ -129,6 +131,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
+            ' Diagnostic options are obsolete, but preserved for compat
+#Disable Warning BC40000
             Dim tree = New ParsedSyntaxTree(
                 newText,
                 newText.Encoding,
@@ -138,6 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 root,
                 isMyTemplate:=False,
                 DiagnosticOptions)
+#Enable Warning BC40000
 
             tree.VerifySource(changes)
             Return tree
@@ -152,6 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new syntax tree from a syntax node.
         ''' </summary>
+        ''' <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         Public Shared Function Create(root As VisualBasicSyntaxNode,
                                       Optional options As VisualBasicParseOptions = Nothing,
                                       Optional path As String = "",
@@ -195,6 +201,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cloneRoot:=False)
         End Function
 
+        Friend Shared Function ParseTextLazy(text As SourceText,
+                                         Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional path As String = "") As SyntaxTree
+            Return New LazySyntaxTree(text, If(options, VisualBasicParseOptions.Default), path, Nothing)
+        End Function
+
+        ''' <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         Public Shared Function ParseText(text As String,
                                          Optional options As VisualBasicParseOptions = Nothing,
                                          Optional path As String = "",

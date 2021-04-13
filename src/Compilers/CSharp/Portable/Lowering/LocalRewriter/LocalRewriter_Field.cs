@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -8,23 +10,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
-            BoundExpression rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
             return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValue, node.ResultKind, node.Type, node);
         }
 
         private BoundExpression MakeFieldAccess(
             SyntaxNode syntax,
-            BoundExpression rewrittenReceiver,
+            BoundExpression? rewrittenReceiver,
             FieldSymbol fieldSymbol,
-            ConstantValue constantValueOpt,
+            ConstantValue? constantValueOpt,
             LookupResultKind resultKind,
             TypeSymbol type,
-            BoundFieldAccess oldNodeOpt = null)
+            BoundFieldAccess? oldNodeOpt = null)
         {
-
-            if (fieldSymbol.IsTupleField)
+            if (fieldSymbol.ContainingType.IsTupleType)
             {
-                return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver, constantValueOpt, resultKind);
+                return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver);
             }
 
             BoundExpression result = oldNodeOpt != null ?
@@ -49,13 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeTupleFieldAccess(
             SyntaxNode syntax,
             FieldSymbol tupleField,
-            BoundExpression rewrittenReceiver,
-            ConstantValue constantValueOpt,
-            LookupResultKind resultKind)
+            BoundExpression? rewrittenReceiver)
         {
             var tupleType = tupleField.ContainingType;
 
-            NamedTypeSymbol currentLinkType = tupleType.TupleUnderlyingType;
+            NamedTypeSymbol currentLinkType = tupleType;
             FieldSymbol underlyingField = tupleField.TupleUnderlyingField;
 
             if ((object)underlyingField == null)
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.BadExpression(tupleField.Type);
             }
 
-            if (rewrittenReceiver.Kind == BoundKind.DefaultExpression)
+            if (rewrittenReceiver?.Kind == BoundKind.DefaultExpression)
             {
                 // Optimization: `default((int, string)).Item2` is simply `default(string)`
                 return new BoundDefaultExpression(syntax, tupleField.Type);
@@ -72,10 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2))
             {
-                WellKnownMember wellKnownTupleRest = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition);
-                var tupleRestField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
+                WellKnownMember wellKnownTupleRest = NamedTypeSymbol.GetTupleTypeMember(NamedTypeSymbol.ValueTupleRestPosition, NamedTypeSymbol.ValueTupleRestPosition);
+                var tupleRestField = (FieldSymbol?)NamedTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
 
-                if ((object)tupleRestField == null)
+                if (tupleRestField is null)
                 {
                     // error tolerance for cases when Rest is missing
                     return _factory.BadExpression(tupleField.Type);
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol nestedFieldSymbol = tupleRestField.AsMember(currentLinkType);
                     rewrittenReceiver = _factory.Field(rewrittenReceiver, nestedFieldSymbol);
 
-                    currentLinkType = currentLinkType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].Type.TupleUnderlyingType;
+                    currentLinkType = (NamedTypeSymbol)currentLinkType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.ValueTupleRestPosition - 1].Type;
                 }
                 while (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2));
             }
@@ -102,13 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields from inferred names are not usable in C# 7.0.
             field = field.CorrespondingTupleField ?? field;
 
-            DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
-            if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+            UseSiteInfo<AssemblySymbol> useSiteInfo = field.GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo?.Severity != DiagnosticSeverity.Error)
             {
-                Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
+                useSiteInfo = useSiteInfo.AdjustDiagnosticInfo(null);
             }
 
-            return MakeTupleFieldAccess(syntax, field, tuple, null, LookupResultKind.Empty);
+            _diagnostics.Add(useSiteInfo, syntax.Location);
+
+            return MakeTupleFieldAccess(syntax, field, tuple);
         }
     }
 }

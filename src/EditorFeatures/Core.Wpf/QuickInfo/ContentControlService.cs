@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -45,11 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         }
 
         public void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip)
-        {
-            LazyToolTip.AttachTo(element, _threadingContext, createToolTip);
-        }
+            => LazyToolTip.AttachTo(element, _threadingContext, createToolTip);
 
-        public DisposableToolTip CreateDisposableToolTip(Document baseDocument, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
+        public DisposableToolTip CreateDisposableToolTip(Document document, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
         {
             var control = CreateViewHostingControl(textBuffer, contentSpan);
 
@@ -65,9 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             // 
             // our underlying preview tagger and mechanism to attach tagger to associated buffer of
             // opened document will light up automatically
-            var document = baseDocument.WithText(textBuffer.AsTextContainer().CurrentText);
             var workspace = new PreviewWorkspace(document.Project.Solution);
-            workspace.OpenDocument(document.Id);
+            workspace.OpenDocument(document.Id, textBuffer.AsTextContainer());
 
             return new DisposableToolTip(toolTip, workspace);
         }

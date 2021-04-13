@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -62,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub FindDominantType(
             resultList As ArrayBuilder(Of TDominantTypeData),
             ByRef inferenceErrorReasons As InferenceErrorReasons,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
 
             ' THE RULES FOR DOMINANT TYPE ARE THESE:
@@ -143,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     candidateTypeData,
                                                                     hintTypeData,
                                                                     hintTypeData.InferenceRestrictions,
-                                                                    useSiteDiagnostics)
+                                                                    useSiteInfo)
 
                     numberSatisfied(hintSatisfaction) += 1
                 Next
@@ -260,11 +262,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim arrayLiteralType = TryCast(inner.ResultType, ArrayLiteralTypeSymbol)
 
                     If arrayLiteralType Is Nothing Then
-                        conversion = Conversions.ClassifyConversion(inner.ResultType, outer.ResultType, useSiteDiagnostics).Key
+                        conversion = Conversions.ClassifyConversion(inner.ResultType, outer.ResultType, useSiteInfo).Key
                     Else
                         ' If source is an array literal then use ClassifyArrayLiteralConversion
                         Dim arrayLiteral = arrayLiteralType.ArrayLiteral
-                        conversion = Conversions.ClassifyConversion(arrayLiteral, outer.ResultType, arrayLiteral.Binder, useSiteDiagnostics).Key
+                        conversion = Conversions.ClassifyConversion(arrayLiteral, outer.ResultType, arrayLiteral.Binder, useSiteInfo).Key
                         If Conversions.IsWideningConversion(conversion) AndAlso
                             IsSameTypeIgnoringAll(arrayLiteralType, outer.ResultType) Then
                             conversion = ConversionKind.Identity
@@ -331,10 +333,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AppendArrayElements(DirectCast(candidate.ResultType, ArrayLiteralTypeSymbol).ArrayLiteral.Initializer, elements)
                             Next
 
+                            Dim dominantTypeDiagnostics = New BindingDiagnosticBag(diagnosticBag:=Nothing, PooledHashSet(Of AssemblySymbol).GetInstance())
                             Dim inferredElementType = DirectCast(resultList(0).ResultType, ArrayLiteralTypeSymbol).ArrayLiteral.
-                                    Binder.InferDominantTypeOfExpressions(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing), elements, New DiagnosticBag(), Nothing)
+                                    Binder.InferDominantTypeOfExpressions(VisualBasicSyntaxTree.Dummy.GetRoot(Nothing), elements, dominantTypeDiagnostics, Nothing)
 
                             If inferredElementType IsNot Nothing Then
+                                useSiteInfo.AddDependencies(dominantTypeDiagnostics.DependenciesBag)
+
                                 ' That should match an element type inferred for one of the array literals 
                                 Dim match As TDominantTypeData = Nothing
                                 Dim matchLiteral As BoundArrayLiteral = Nothing
@@ -361,6 +366,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     resultList.Add(match)
                                 End If
                             End If
+
+                            dominantTypeDiagnostics.Free()
                         End If
                     End If
                 End If
@@ -410,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             candidateData As DominantTypeData,
             hintData As DominantTypeData,
             hintRestrictions As RequiredConversion,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As HintSatisfaction
             ' This algorithm is used in type inference (where we examine whether a candidate works against a set of hints)
             ' It is also used in inferring a dominant type out of a collection e.g. for array literals:
@@ -430,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf hintRestrictions = RequiredConversion.None Then
                 conversion = ConversionKind.Identity
             ElseIf hintRestrictions = RequiredConversion.Identity Then
-                conversion = Conversions.ClassifyDirectCastConversion(hint, candidate, useSiteDiagnostics)
+                conversion = Conversions.ClassifyDirectCastConversion(hint, candidate, useSiteInfo)
 
                 If Not Conversions.IsIdentityConversion(conversion) Then
                     conversion = Nothing
@@ -442,11 +449,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim arrayLiteralType = TryCast(hint, ArrayLiteralTypeSymbol)
 
                 If arrayLiteralType Is Nothing Then
-                    conversion = Conversions.ClassifyConversion(hint, candidate, useSiteDiagnostics).Key
+                    conversion = Conversions.ClassifyConversion(hint, candidate, useSiteInfo).Key
                 Else
                     ' If source is an array literal then use ClassifyArrayLiteralConversion
                     Dim arrayLiteral = arrayLiteralType.ArrayLiteral
-                    conversion = Conversions.ClassifyConversion(arrayLiteral, candidate, arrayLiteral.Binder, useSiteDiagnostics).Key
+                    conversion = Conversions.ClassifyConversion(arrayLiteral, candidate, arrayLiteral.Binder, useSiteInfo).Key
                     If Conversions.IsWideningConversion(conversion) Then
                         If IsSameTypeIgnoringAll(arrayLiteralType, candidate) Then
                             ' ClassifyConversion returns widening for identity.  For hint satisfaction it should be promoted to Identity
@@ -467,14 +474,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ElseIf hintRestrictions = RequiredConversion.AnyReverse Then
                 ' copyback TO the hint (i.e. argument) FROM the candidate for parameter type T
-                conversion = Conversions.ClassifyConversion(candidate, hint, useSiteDiagnostics).Key
+                conversion = Conversions.ClassifyConversion(candidate, hint, useSiteInfo).Key
 
             ElseIf hintRestrictions = RequiredConversion.AnyAndReverse Then
                 ' forwards copy of argument into parameter
-                Dim inConversion As ConversionKind = Conversions.ClassifyConversion(hint, candidate, useSiteDiagnostics).Key
+                Dim inConversion As ConversionKind = Conversions.ClassifyConversion(hint, candidate, useSiteInfo).Key
 
                 ' back copy from the parameter back into the argument
-                Dim outConversion As ConversionKind = Conversions.ClassifyConversion(candidate, hint, useSiteDiagnostics).Key
+                Dim outConversion As ConversionKind = Conversions.ClassifyConversion(candidate, hint, useSiteInfo).Key
 
                 ' Pick the lowest for our classification of identity/widening/narrowing/error.
                 If Conversions.NoConversion(inConversion) OrElse Conversions.NoConversion(outConversion) Then
@@ -490,12 +497,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             ElseIf hintRestrictions = RequiredConversion.ArrayElement Then
-                conversion = Conversions.ClassifyArrayElementConversion(hint, candidate, useSiteDiagnostics)
+                conversion = Conversions.ClassifyArrayElementConversion(hint, candidate, useSiteInfo)
 
             ElseIf hintRestrictions = RequiredConversion.Reference Then
 
                 If hint.IsReferenceType AndAlso candidate.IsReferenceType Then
-                    conversion = Conversions.ClassifyDirectCastConversion(hint, candidate, useSiteDiagnostics)
+                    conversion = Conversions.ClassifyDirectCastConversion(hint, candidate, useSiteInfo)
 
 
 
@@ -517,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If hint.IsReferenceType AndAlso candidate.IsReferenceType Then
                     '  in reverse
-                    conversion = Conversions.ClassifyDirectCastConversion(candidate, hint, useSiteDiagnostics)
+                    conversion = Conversions.ClassifyDirectCastConversion(candidate, hint, useSiteInfo)
 
                     ' Dev10#595234: as above, if there's narrowing inside a generic type parameter context is unforgivable.
                     If Conversions.IsNarrowingConversion(conversion) Then

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -16,11 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TypeMap : AbstractTypeParameterMap
     {
-        public static readonly System.Func<TypeWithAnnotations, TypeSymbol> AsTypeSymbol = t => t.Type;
+        public static readonly Func<TypeWithAnnotations, TypeSymbol> AsTypeSymbol = t => t.Type;
 
         internal static ImmutableArray<TypeWithAnnotations> TypeParametersAsTypeSymbolsWithAnnotations(ImmutableArray<TypeParameterSymbol> typeParameters)
         {
-            return typeParameters.SelectAsArray((tp) => TypeWithAnnotations.Create(tp));
+            return typeParameters.SelectAsArray(static (tp) => TypeWithAnnotations.Create(tp));
+        }
+
+        internal static ImmutableArray<TypeWithAnnotations> TypeParametersAsTypeSymbolsWithIgnoredAnnotations(ImmutableArray<TypeParameterSymbol> typeParameters)
+        {
+            return typeParameters.SelectAsArray(static (tp) => TypeWithAnnotations.Create(tp, NullableAnnotation.Ignored));
         }
 
         internal static ImmutableArray<TypeSymbol> AsTypeSymbols(ImmutableArray<TypeWithAnnotations> typesOpt)

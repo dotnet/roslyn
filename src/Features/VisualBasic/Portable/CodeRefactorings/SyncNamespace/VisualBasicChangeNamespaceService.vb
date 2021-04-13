@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -15,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -38,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
 
                 [new] = [new].WithTriviaFrom(old)
 
-            ElseIf syntaxFacts.IsNameOfMemberAccessExpression(nameRef) Then
+            ElseIf syntaxFacts.IsNameOfsimpleMemberAccessExpression(nameRef) Then
                 old = nameRef.Parent
                 If IsGlobalNamespace(newNamespaceParts) Then
                     [new] = SyntaxFactory.SimpleMemberAccessExpression(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
@@ -55,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
 
         ' TODO: Implement the service for VB
         Protected Overrides Function GetValidContainersFromAllLinkedDocumentsAsync(document As Document, container As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (DocumentId, SyntaxNode)))
-            Return Task.FromResult(CType(Nothing, ImmutableArray(Of (DocumentId, SyntaxNode))))
+            Return SpecializedTasks.Default(Of ImmutableArray(Of (DocumentId, SyntaxNode)))()
         End Function
 
         ' This is only reachable when called from a VB service, which is not implemented yet.

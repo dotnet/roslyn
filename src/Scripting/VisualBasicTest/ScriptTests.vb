@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Scripting
@@ -10,9 +12,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
     Public Class ScriptTests
         Inherits TestBase
 
+        ''' <summary>
+        ''' Need to create a <see cref="PortableExecutableReference"/> without a file path here. Scripting
+        ''' will attempt to validate file paths and one does not exist for this reference as it's an in
+        ''' memory item.
+        ''' </summary>
+        Private Shared ReadOnly s_msvbReference As PortableExecutableReference = AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.MicrosoftVisualBasic).GetReference()
+
         ' It shouldn't be necessary to include VB runtime assembly
         ' explicitly in VisualBasicScript.Create.
-        Private Shared ReadOnly s_defaultOptions As ScriptOptions = ScriptOptions.Default.AddReferences(MsvbRef)
+        Private Shared ReadOnly s_defaultOptions As ScriptOptions = ScriptOptions.Default.AddReferences(s_msvbReference)
 
         <Fact>
         Public Sub TestCreateScript()

@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Tasks;
 using Microsoft.Build.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -25,6 +26,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public MapSourceRoots()
         {
             TaskResources = ErrorString.ResourceManager;
+
+            // These required properties will all be assigned by MSBuild. Suppress warnings about leaving them with
+            // their default values.
+            SourceRoots = null!;
         }
 
         /// <summary>
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Items listed in <see cref="SourceRoots"/> that have the same ItemSpec will be merged into a single item in this list.
         /// </summary>
         [Output]
-        public ITaskItem[] MappedSourceRoots { get; private set; }
+        public ITaskItem[]? MappedSourceRoots { get; private set; }
 
         private static class Names
         {
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private void MergeSourceRootMetadata(ITaskItem left, ITaskItem right)
         {
-            foreach (string metadataName in right.MetadataNames)
+            foreach (string? metadataName in right.MetadataNames)
             {
                 var leftValue = left.GetMetadata(metadataName);
                 var rightValue = right.GetMetadata(metadataName);

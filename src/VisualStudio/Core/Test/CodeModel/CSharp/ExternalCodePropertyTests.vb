@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -11,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "OverrideKind tests"
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_None()
             Dim code =
 <Code>
@@ -34,7 +36,7 @@ class C
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Abstract()
             Dim code =
 <Code>
@@ -52,7 +54,7 @@ abstract class C
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Virtual()
             Dim code =
 <Code>
@@ -75,7 +77,7 @@ class C
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Override()
             Dim code =
 <Code>
@@ -98,7 +100,7 @@ class C : B
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Sealed()
             Dim code =
 <Code>
@@ -125,7 +127,7 @@ class C : B
 #Region "Parameter name tests"
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
 <Code>
@@ -147,7 +149,7 @@ class Program
 #Region "ReadWrite tests"
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_GetSet()
             Dim code =
 <Code>
@@ -170,7 +172,7 @@ class C
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_Get()
             Dim code =
 <Code>
@@ -190,7 +192,7 @@ class C
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_Set()
             Dim code =
 <Code>

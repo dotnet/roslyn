@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -10,11 +14,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
 {
     public class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public SpellCheckTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpSpellCheckCodeFixProvider());
 
@@ -67,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
                 String.Format(FeaturesResources.Change_0_to_1, "Foa", "for")
             });
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestInFunc()
@@ -532,8 +541,6 @@ class Program : IProjectConfigurationsService
 }");
         }
 
-
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
@@ -592,6 +599,92 @@ class C
 {
     public SomeClass() { }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        public async Task TestInExplicitInterfaceImplementation1()
+        {
+            var text = @"
+using System;
+
+class Program : IDisposable
+{
+    void IDisposable.[|Dspose|]
+}";
+
+            var expected = @"
+using System;
+
+class Program : IDisposable
+{
+    void IDisposable.Dispose
+}";
+
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        public async Task TestInExplicitInterfaceImplementation2()
+        {
+            var text = @"
+using System;
+
+interface IInterface
+{
+    void Generic<K, V>();
+}
+
+class Program : IInterface
+{
+    void IInterface.[|Generi|]
+}";
+
+            var expected = @"
+using System;
+
+interface IInterface
+{
+    void Generic<K, V>();
+}
+
+class Program : IInterface
+{
+    void IInterface.Generic
+}";
+
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        public async Task TestInExplicitInterfaceImplementation3()
+        {
+            var text = @"
+using System;
+
+interface IInterface
+{
+    int this[int i] { get; }
+}
+
+class Program : IInterface
+{
+    void IInterface.[|thi|]
+}";
+
+            var expected = @"
+using System;
+
+interface IInterface
+{
+    int this[int i] { get; }
+}
+
+class Program : IInterface
+{
+    void IInterface.this
+}";
+
+            await TestInRegularAndScriptAsync(text, expected);
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -32,16 +36,16 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-        private ISymbolSearchUpdateEngine _updateEngine;
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
+
+        // Note: A remote engine is disposable as it maintains a connection with ServiceHub,
+        // but we want to keep it alive until the VS is closed, so we don't dispose it.
+        private ISymbolSearchUpdateEngine _lazyUpdateEngine;
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IPackageInstallerService _installerService;
         private readonly string _localSettingsDirectory;
         private readonly LogService _logService;
-        private readonly ISymbolSearchProgressService _progressService;
-
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,50 +62,43 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
             _logService = new LogService(threadingContext, (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
-            _progressService = workspace.Services.GetService<ISymbolSearchProgressService>();
         }
 
-        protected override void EnableService()
+        protected override Task EnableServiceAsync(CancellationToken cancellationToken)
         {
             // When our service is enabled hook up to package source changes.
             // We need to know when the list of sources have changed so we can
             // kick off the work to process them.
             _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+            return Task.CompletedTask;
         }
 
         private void OnPackageSourcesChanged(object sender, EventArgs e)
-        {
-            StartWorking();
-        }
+            => StartWorking();
 
         protected override void StartWorking()
         {
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
-            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSource));
+            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSource, ThreadingContext.DisposalToken));
         }
 
         private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (_updateEngine == null)
-                {
-                    _updateEngine = await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
-                        _workspace, _logService, _progressService, cancellationToken).ConfigureAwait(false);
-                }
-
-                return _updateEngine;
+                return _lazyUpdateEngine ??= await SymbolSearchUpdateEngineFactory.CreateEngineAsync(
+                    _workspace, _logService, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task UpdateSourceInBackgroundAsync(string sourceName)
+        private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
         {
-            var engine = await GetEngineAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
-            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
+            var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
+            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, _logService, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
@@ -111,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return FilterAndOrderPackages(allPackagesWithType);
         }
 
-        public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        public async ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
@@ -163,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return result.ToImmutableAndFree();
         }
 
-        public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);

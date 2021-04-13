@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -163,16 +165,16 @@ Class C
         d((0, 0))
     End Sub
 End Class"
-            Dim comp = CreateEmptyCompilation({source0})
+            Dim comp = CreateEmptyCompilation({source0}, assemblyName:="corelib")
             comp.AssertTheseDiagnostics()
             Dim ref0 = comp.EmitToImageReference()
             comp = CreateEmptyCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
-BC30002: Type 'System.String' is not defined.
+BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
         Dim d As D(Of (x As Integer, y As Integer)) = Sub(o)
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
+BC31091: Import of type 'String' from assembly or module 'corelib.dll' failed.
         Dim d As D(Of (x As Integer, y As Integer)) = Sub(o)
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
@@ -202,16 +204,16 @@ End Namespace"
         Return Nothing
     End Function
 End Class"
-            Dim comp = CreateEmptyCompilation({source0})
+            Dim comp = CreateEmptyCompilation({source0}, assemblyName:="corelib")
             comp.AssertTheseDiagnostics()
             Dim ref0 = comp.EmitToImageReference()
             comp = CreateEmptyCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
-BC30002: Type 'System.String' is not defined.
+BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
     Shared Function M() As (x As Integer, y As Integer)
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
+BC31091: Import of type 'String' from assembly or module 'corelib.dll' failed.
     Shared Function M() As (x As Integer, y As Integer)
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 </expected>)

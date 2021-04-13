@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Xml.Linq;
@@ -79,6 +83,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
+        public void AddAnalyzerReference(string filePath, ProjectUtils.Project projectName)
+        {
+            _inProc.AddAnalyzerReference(filePath, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void RemoveAnalyzerReference(string filePath, ProjectUtils.Project projectName)
+        {
+            _inProc.RemoveAnalyzerReference(filePath, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void SetLanguageVersion(ProjectUtils.Project projectName, string languageVersion)
+        {
+            _inProc.SetLanguageVersion(projectName.Name, languageVersion);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
         /// <summary>
         /// Add a PackageReference to the specified project. Generally this should be followed up by
         /// a call to <see cref="RestoreNuGetPackages"/>.
@@ -105,8 +127,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetFileContents(ProjectUtils.Project project, string fileName)
             => _inProc.GetFileContents(project.Name, fileName);
 
-        public void BuildSolution(bool waitForBuildToFinish)
-            => _inProc.BuildSolution(waitForBuildToFinish);
+        public void BuildSolution()
+            => _inProc.BuildSolution();
 
         public void OpenFileWithDesigner(ProjectUtils.Project project, string fileName)
             => _inProc.OpenFileWithDesigner(project.Name, fileName);
@@ -206,11 +228,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddStandaloneFile(string fileName)
             => _inProc.AddStandaloneFile(fileName);
-
-        public void BeginWatchForCodingConventionsChange(ProjectUtils.Project project, string fileName)
-            => _inProc.BeginWatchForCodingConventionsChange(project.Name, fileName);
-
-        public void EndWaitForCodingConventionsChange(TimeSpan timeout)
-            => _inProc.EndWaitForCodingConventionsChange(timeout);
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             var block = method.Body;
             var statement = block.Statements[0] as LocalDeclarationStatementSyntax;
             var expression = statement.Declaration.Variables[0].Initializer.Value as BinaryExpressionSyntax;
-            Assert.Equal(expression.Kind(), SyntaxKind.MultiplyExpression);
+            Assert.Equal(SyntaxKind.MultiplyExpression, expression.Kind());
         }
 
         [Fact]

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -20,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             => GetNestedActions(actions);
 
         protected Task TestAsync(string initial, string expected, int index = 0)
-        {
-            return TestAsync(initial, expected, Options.Script, null, index);
-        }
+            => TestAsync(initial, expected, Options.Script, null, index);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()

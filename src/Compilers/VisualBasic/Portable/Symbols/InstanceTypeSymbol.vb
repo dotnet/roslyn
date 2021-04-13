@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -126,23 +128,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetHashCode() As Integer
+            Return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Me)
+        End Function
+
+        Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            If other Is Me Then
+                Return True
+            End If
+
+            If other Is Nothing OrElse (comparison And TypeCompareKind.AllIgnoreOptionsForVB) = 0 Then
+                Return False
+            End If
+
+            Dim otherTuple = TryCast(other, TupleTypeSymbol)
+            If otherTuple IsNot Nothing Then
+                Return otherTuple.Equals(Me, comparison)
+            End If
+
+            If other.OriginalDefinition IsNot Me Then
+                Return False
+            End If
+
+            ' Delegate comparison to the other type to ensure symmetry
+            Debug.Assert(TypeOf other Is SubstitutedNamedType)
+            Return other.Equals(Me, comparison)
+        End Function
+
 #Region "Use-Site Diagnostics"
 
-        Protected Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Protected Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             ' Check base type.
-            Dim baseErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromBase()
+            Dim useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency).AdjustDiagnosticInfo(DeriveUseSiteErrorInfoFromBase())
 
-            If baseErrorInfo IsNot Nothing Then
-                Return baseErrorInfo
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                Return useSiteInfo
             End If
 
             ' If we reach a type (Me) that is in an assembly with unified references, 
             ' we check if that type definition depends on a type from a unified reference.
             If Me.ContainingModule.HasUnifiedReferences Then
-                Return GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
+                Dim errorInfo As DiagnosticInfo = GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
+                If errorInfo IsNot Nothing Then
+                    Debug.Assert(errorInfo.Severity = DiagnosticSeverity.Error)
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                End If
             End If
 
-            Return Nothing
+            Return useSiteInfo
         End Function
 
         Private Function DeriveUseSiteErrorInfoFromBase() As DiagnosticInfo
@@ -152,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             While base IsNot Nothing
 
                 If base.IsErrorType() AndAlso TypeOf base Is NoPiaIllegalGenericInstantiationSymbol Then
-                    Return base.GetUseSiteErrorInfo()
+                    Return base.GetUseSiteInfo().DiagnosticInfo
                 End If
 
                 base = base.BaseTypeNoUseSiteDiagnostics

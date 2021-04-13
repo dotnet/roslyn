@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         {
             _languagesProvider = languagesProvider;
             SyntaxTokenKinds =
-                languagesProvider.Languages.SelectMany(p => p.Classifier.SyntaxTokenKinds).Distinct().ToImmutableArray();
+                languagesProvider.Languages.Where(p => p.Classifier != null)
+                                           .SelectMany(p => p.Classifier.SyntaxTokenKinds)
+                                           .Distinct()
+                                           .ToImmutableArray();
         }
 
         public override void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

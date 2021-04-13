@@ -1,24 +1,54 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(OverrideCompletionProvider))]
+    [Shared]
     internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PartialMethodCompletionProvider()
         {
+        }
+
+        protected override bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken)
+        {
+            var declaration = (MethodDeclarationSyntax)method.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            foreach (var mod in declaration.Modifiers)
+            {
+                switch (mod.Kind())
+                {
+                    case SyntaxKind.PublicKeyword:
+                    case SyntaxKind.ProtectedKeyword:
+                    case SyntaxKind.InternalKeyword:
+                    case SyntaxKind.PrivateKeyword:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         protected override SyntaxNode GetSyntax(SyntaxToken token)
@@ -42,30 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var ch = text[characterPosition];
-            return ch == ' ' || (CompletionUtilities.IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
+            return ch == ' ' || (CompletionUtilities.IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override bool IsPartial(IMethodSymbol method)
         {
-            if (method.DeclaredAccessibility != Accessibility.NotApplicable &&
-                method.DeclaredAccessibility != Accessibility.Private)
-            {
-                return false;
-            }
-
-            if (!method.ReturnsVoid)
-            {
-                return false;
-            }
-
-            if (method.IsVirtual)
-            {
-                return false;
-            }
-
             var declarations = method.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<MethodDeclarationSyntax>();
             return declarations.Any(d => d.Body == null && d.Modifiers.Any(SyntaxKind.PartialKeyword));
         }
@@ -90,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private bool VerifyModifiers(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers)
+        private static bool VerifyModifiers(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers)
         {
             var touchingToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = touchingToken.GetPreviousToken();
@@ -100,12 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             while (IsOnSameLine(token, touchingToken, tree.GetText(cancellationToken)))
             {
-                if (token.IsKind(SyntaxKind.ExternKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword))
-                {
-                    modifiers = default;
-                    return false;
-                }
-
                 if (token.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword))
                 {
                     foundAsync = true;
@@ -121,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return foundPartial;
         }
 
-        private bool IsOnSameLine(SyntaxToken syntaxToken, SyntaxToken touchingToken, SourceText text)
+        private static bool IsOnSameLine(SyntaxToken syntaxToken, SyntaxToken touchingToken, SourceText text)
         {
             return !syntaxToken.IsKind(SyntaxKind.None)
                 && !touchingToken.IsKind(SyntaxKind.None)
@@ -129,8 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override string GetDisplayText(IMethodSymbol method, SemanticModel semanticModel, int position)
-        {
-            return method.ToMinimalDisplayString(semanticModel, position, SignatureDisplayFormat);
-        }
+            => method.ToMinimalDisplayString(semanticModel, position, SignatureDisplayFormat);
     }
 }

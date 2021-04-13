@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -36,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             verifier.Compilation.VerifyPdb(expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
             return verifier;
@@ -50,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             verifier.Compilation.VerifyPdb(expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
             return verifier;
@@ -65,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             verifier.Compilation.VerifyPdb(qualifiedMethodName, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
             return verifier;
@@ -80,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             verifier.Compilation.VerifyPdb(qualifiedMethodName, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
             return verifier;
@@ -102,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<int> methodTokens,
             string expectedPdb,
             DebugInformationFormat format = DebugInformationFormat.Pdb,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             VerifyPdb(diff, methodTokens, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: false);
         }
@@ -113,8 +117,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<int> methodTokens,
             XElement expectedPdb,
             DebugInformationFormat format = DebugInformationFormat.Pdb,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             VerifyPdb(diff, methodTokens, expectedPdb.ToString(), format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: true);
         }
@@ -150,8 +154,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             VerifyPdb(compilation, "", expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
@@ -164,8 +168,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             VerifyPdbImpl(
                 compilation,
@@ -187,8 +191,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             VerifyPdb(compilation, "", expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
@@ -201,8 +205,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
             PdbValidationOptions options = PdbValidationOptions.Default,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             VerifyPdbImpl(
                 compilation,
@@ -419,7 +423,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             while (RemoveElements(from e in pdb.DescendantsAndSelf()
                                   where e.Name == "scope" && !e.HasElements
-                                  select e)) ;
+                                  select e))
+                ;
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)
@@ -507,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ValidateDebugDirectory(peStream, portable ? pdbStream : null, compilation.AssemblyName + ".pdb", emitOptions.PdbChecksumAlgorithm, hasEmbeddedPdb: false, isDeterministic: compilation.IsEmitDeterministic);
         }
 
-        public unsafe static byte[] GetSourceLinkData(Stream pdbStream)
+        public static unsafe byte[] GetSourceLinkData(Stream pdbStream)
         {
             pdbStream.Position = 0;
 
@@ -608,11 +613,47 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(entries.Length, entryIndex);
         }
 
-        private unsafe static void ValidatePortablePdbId(MetadataReader pdbReader, uint stampInDebugDirectory, Guid guidInDebugDirectory)
+        private static unsafe void ValidatePortablePdbId(MetadataReader pdbReader, uint stampInDebugDirectory, Guid guidInDebugDirectory)
         {
             var expectedId = new BlobContentId(guidInDebugDirectory, stampInDebugDirectory);
             var actualId = new BlobContentId(pdbReader.DebugMetadataHeader.Id);
             Assert.Equal(expectedId, actualId);
         }
+
+        internal static void VerifyPdbLambdasAndClosures(this Compilation compilation, SourceWithMarkedNodes source)
+        {
+            var pdb = GetPdbXml(compilation);
+            var pdbXml = XElement.Parse(pdb);
+
+            // We need to get the method start index from the input source, as its not in the PDB
+            var methodStartTags = source.MarkedSpans.WhereAsArray(s => s.TagName == "M");
+            Assert.True(methodStartTags.Length == 1, "There must be one and only one method start tag per test input.");
+            var methodStart = methodStartTags[0].MatchedSpan.Start;
+
+            // Calculate the expected tags for closures
+            var expectedTags = pdbXml.DescendantsAndSelf("closure").Select((c, i) => new { Tag = $"<C:{i}>", StartIndex = methodStart + int.Parse(c.Attribute("offset").Value) }).ToList();
+
+            // Add the expected tags for lambdas
+            expectedTags.AddRange(pdbXml.DescendantsAndSelf("lambda").Select((c, i) => new { Tag = $"<L:{i}.{int.Parse(c.Attribute("closure").Value)}>", StartIndex = methodStart + int.Parse(c.Attribute("offset").Value) }));
+
+            // Order by start index so they line up nicely
+            expectedTags.Sort((x, y) => x.StartIndex.CompareTo(y.StartIndex));
+
+            // Ensure the tag for the method start is the first element
+            expectedTags.Insert(0, new { Tag = "<M>", StartIndex = methodStart });
+
+            // Now reverse the list so we can insert without worrying about offsets
+            expectedTags.Reverse();
+
+            var expected = source.Source;
+
+            foreach (var tag in expectedTags)
+            {
+                expected = expected.Insert(tag.StartIndex, tag.Tag);
+            }
+
+            AssertEx.EqualOrDiff(expected, source.Input);
+        }
     }
 }
+

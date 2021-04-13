@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             };
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - 'text' is used for API consistency with other extension methods in this file.
         public static VsTextSpan GetVsTextSpanForLineOffset(this SourceText text, int lineNumber, int offset)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             return new VsTextSpan
             {

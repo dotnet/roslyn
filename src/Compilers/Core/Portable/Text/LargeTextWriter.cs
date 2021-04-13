@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -9,15 +11,15 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal sealed class LargeTextWriter : SourceTextWriter
     {
-        private readonly Encoding _encoding;
+        private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private readonly ArrayBuilder<char[]> _chunks;
 
-        private int _bufferSize;
-        private char[] _buffer;
+        private readonly int _bufferSize;
+        private char[]? _buffer;
         private int _currentUsed;
 
-        public LargeTextWriter(Encoding encoding, SourceHashAlgorithm checksumAlgorithm, int length)
+        public LargeTextWriter(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int length)
         {
             _encoding = encoding;
             _checksumAlgorithm = checksumAlgorithm;
@@ -31,9 +33,10 @@ namespace Microsoft.CodeAnalysis.Text
             return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
         }
 
+        // https://github.com/dotnet/roslyn/issues/40830
         public override Encoding Encoding
         {
-            get { return _encoding; }
+            get { return _encoding!; }
         }
 
         public bool CanFitInAllocatedBuffer(int chars)
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override void Write(string value)
+        public override void Write(string? value)
         {
             if (value != null)
             {
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     EnsureBuffer();
 
-                    var remaining = _buffer.Length - _currentUsed;
+                    var remaining = _buffer!.Length - _currentUsed;
                     var copy = Math.Min(remaining, count);
 
                     value.CopyTo(index, _buffer, _currentUsed, copy);
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 EnsureBuffer();
 
-                var remaining = _buffer.Length - _currentUsed;
+                var remaining = _buffer!.Length - _currentUsed;
                 var copy = Math.Min(remaining, count);
 
                 Array.Copy(chars, index, _buffer, _currentUsed, copy);

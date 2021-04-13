@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Options;
 
@@ -9,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     /// </summary>
     internal static class RuntimeOptions
     {
-        public static readonly Option<bool> FullSolutionAnalysis = new Option<bool>(nameof(RuntimeOptions), nameof(FullSolutionAnalysis), defaultValue: true);
-        public static readonly Option<bool> FullSolutionAnalysisInfoBarShown = new Option<bool>(nameof(RuntimeOptions), nameof(FullSolutionAnalysisInfoBarShown), defaultValue: false);
+        public static readonly Option<bool> BackgroundAnalysisSuspendedInfoBarShown = new(nameof(RuntimeOptions), "FullSolutionAnalysisInfoBarShown", defaultValue: false);
     }
 }

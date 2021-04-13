@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -44,9 +46,9 @@ namespace Microsoft.CodeAnalysis
 
         public void AddIdentifier(string identifier)
         {
-            Debug.Assert(identifier != null);
+            RoslynDebug.Assert(identifier != null);
 
-            object value;
+            object? value;
             if (!_map.TryGetValue(identifier, out value))
             {
                 AddInitialSpelling(identifier);
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool ContainsIdentifier(string identifier, bool caseSensitive)
         {
-            Debug.Assert(identifier != null);
+            RoslynDebug.Assert(identifier != null);
 
             if (caseSensitive)
             {
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis
 
         private bool CaseSensitiveContains(string identifier)
         {
-            object spellings;
+            object? spellings;
             if (_map.TryGetValue(identifier, out spellings))
             {
                 var spelling = spellings as string;

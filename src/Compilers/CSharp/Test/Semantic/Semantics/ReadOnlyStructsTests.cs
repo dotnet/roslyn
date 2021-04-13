@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -1034,7 +1038,7 @@ public struct S2
             verifier.VerifyDiagnostics();
         }
 
-        private static string ilreadonlyStructWithWriteableFieldIL = @"
+        private static readonly string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
 {
@@ -1204,7 +1208,7 @@ public readonly struct S2
             Assert.True(getEvent(s1, "E").AddMethod.IsReadOnly);
             Assert.True(getEvent(s1, "E").RemoveMethod.IsReadOnly);
 
-            var s2 = comp.GetMember<NamedTypeSymbol>("S2");
+            var s2 = comp.GetMember<INamedTypeSymbol>("S2");
             Assert.True(getMethod(s2, "M1").IsReadOnly);
             Assert.False(getMethod(s2, "M2").IsReadOnly);
 
@@ -1257,7 +1261,7 @@ public static class C
 ";
             Compilation comp = CreateCompilation(csharp);
 
-            var c = comp.GetMember<MethodSymbol>("C.Test");
+            var c = comp.GetMember<IMethodSymbol>("C.Test");
             var testMethodSyntax = (MethodDeclarationSyntax)c.DeclaringSyntaxReferences.Single().GetSyntax();
 
             var semanticModel = comp.GetSemanticModel(testMethodSyntax.SyntaxTree);
@@ -1276,15 +1280,15 @@ public static class C
                 var expressionStatement = (ExpressionStatementSyntax)statementSyntax;
                 var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
 
-                var symbol = (MethodSymbol)semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol;
+                var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol;
                 var reducedFrom = symbol.ReducedFrom;
 
-                Assert.Equal(isEffectivelyReadOnly, symbol.IsEffectivelyReadOnly);
-                Assert.Equal(isEffectivelyReadOnly, ((IMethodSymbol)symbol).IsReadOnly);
+                Assert.Equal(isEffectivelyReadOnly, symbol.GetSymbol().IsEffectivelyReadOnly);
+                Assert.Equal(isEffectivelyReadOnly, symbol.IsReadOnly);
 
-                Assert.False(symbol.IsDeclaredReadOnly);
-                Assert.False(reducedFrom.IsDeclaredReadOnly);
-                Assert.False(reducedFrom.IsEffectivelyReadOnly);
+                Assert.False(symbol.GetSymbol().IsDeclaredReadOnly);
+                Assert.False(reducedFrom.GetSymbol().IsDeclaredReadOnly);
+                Assert.False(reducedFrom.GetSymbol().IsEffectivelyReadOnly);
                 Assert.False(((IMethodSymbol)reducedFrom).IsReadOnly);
             }
         }
@@ -1320,7 +1324,7 @@ public struct S1
                 Assert.True(property.IsReadOnly);
                 Assert.Equal(isReadOnly, property.GetMethod.IsDeclaredReadOnly);
                 Assert.Equal(isReadOnly, property.GetMethod.IsEffectivelyReadOnly);
-                Assert.Equal(isReadOnly, ((IMethodSymbol)property.GetMethod).IsReadOnly);
+                Assert.Equal(isReadOnly, property.GetMethod.GetPublicSymbol().IsReadOnly);
             }
         }
 
@@ -1856,7 +1860,7 @@ public struct S1
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'S1' because 'S1' does not contain a public instance definition for 'GetEnumerator'
+                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'S1' because 'S1' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var x in this) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "this").WithArguments("S1", "GetEnumerator").WithLocation(6, 27));
         }
@@ -1910,7 +1914,7 @@ public struct S2
         {
             // 'using' results in a boxing conversion when the struct implements 'IDisposable'.
             // Boxing conversions are out of scope of the implicit copy warning.
-            // 'await using' can't be used with ref structs, so implicity copy warnings can't be produced in that scenario.
+            // 'await using' can't be used with ref structs, so implicitly copy warnings can't be produced in that scenario.
             var csharp = @"
 public ref struct S1
 {

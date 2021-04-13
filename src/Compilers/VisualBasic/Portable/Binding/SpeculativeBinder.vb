@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -37,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' TODO override SyntaxTree property to return correct tree. (after e.g. bugs 2174, 5848)
 
-        Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Overridden method returns a BadExpression.
             Return Me.ContainingBinder.BindGroupAggregationExpression(group, diagnostics)
         End Function
 
-        Friend Overrides Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Overrides Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Overridden method returns a BadExpression.
             Return Me.ContainingBinder.BindFunctionAggregationExpression([function], diagnostics)
         End Function

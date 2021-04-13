@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,12 +13,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private CancellationTokenSource? _cancellationTokenSource;
 
             private ITableDataSink _tableDataSink;
 
@@ -37,7 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             protected readonly IWpfTableControl2 TableControl;
 
-            protected readonly object Gate = new object();
+            private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
+
+            protected readonly object Gate = new();
 
             #region Fields that should be locked by _gate
 
@@ -54,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> Definitions = new List<DefinitionItem>();
+            protected readonly List<DefinitionItem> Definitions = new();
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -65,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// and then always return that for all future references found.
             /// </summary>
             private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
-                new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
+                new();
 
             /// <summary>
             /// We want to hide declarations of a symbol if the user is grouping by definition.
@@ -78,24 +80,27 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
             protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
 
-            private TableEntriesSnapshot _lastSnapshot;
+            private TableEntriesSnapshot? _lastSnapshot;
             public int CurrentVersionNumber { get; protected set; }
 
-            /// <summary>
-            /// Map from custom column names to column states.
-            /// </summary>
-            private readonly Dictionary<string, ColumnState2> _customColumnTitleToStatesMap;
-
             #endregion
+
+            public sealed override CancellationToken CancellationToken { get; }
 
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
-                 ImmutableArray<AbstractCustomColumnDefinition> customColumns,
+                 ImmutableArray<ITableColumnDefinition> customColumns,
                  bool includeContainingTypeAndMemberColumns,
-                 bool includeKindColumn)
+                 bool includeKindColumn,
+                 CancellationToken cancellationToken)
             {
                 presenter.AssertIsForeground();
+
+                // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
+                // caller can cancel our work or we can cancel the work.
+                _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                CancellationToken = _cancellationTokenSource.Token;
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -113,83 +118,56 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // Additionally, add applicable custom columns to display custom reference information
                 _findReferencesWindow.Manager.AddSource(
                     this,
-                    SelectCustomColumnsToInclude(customColumns, includeContainingTypeAndMemberColumns, includeKindColumn).ToReadOnlyCollection());
+                    SelectCustomColumnsToInclude(customColumns, includeContainingTypeAndMemberColumns, includeKindColumn));
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
-                Debug.Assert(_tableDataSink != null);
+                RoslynDebug.Assert(_tableDataSink != null);
 
-                // Initialize custom column states at start of the FAR query.
-                _customColumnTitleToStatesMap = GetInitialCustomColumnStates(findReferencesWindow.TableControl.ColumnStates, customColumns);
-
-                // Now update the custom columns' state/visibility in the FAR window.
-                // Note that the visibility of the custom column(s) can change only at two possible places:
-                //  1. FAR query start, i.e. below invocation to SetColumnStates and/or
-                //  2. First reference result which has a non-default custom column value
-                //     (UpdateCustomColumnVisibility method below).
-                // Also note that the TableControl.SetColumnStates is not dependent on order of the input column states.
-                TableControl.SetColumnStates(_customColumnTitleToStatesMap.Values);
+                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
+                // VS actually responds to each SetProgess call by queuing a UI task to do the
+                // progress bar update.  This can made FindReferences feel extremely slow when
+                // thousands of SetProgress calls are made.
+                //
+                // To ensure a reasonable experience, we instead add the progress into a queue and
+                // only update the UI a few times a second so as to not overload it.
+                _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
+                    TimeSpan.FromMilliseconds(250),
+                    this.UpdateTableProgressAsync,
+                    this.CancellationToken);
             }
 
-            private static List<string> SelectCustomColumnsToInclude(ImmutableArray<AbstractCustomColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+            private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
             {
-                var customColumnsToInclude = new List<string>();
+                var customColumnsToInclude = ArrayBuilder<string>.GetInstance();
 
-                if (includeContainingTypeAndMemberColumns)
+                foreach (var column in customColumns)
                 {
-                    foreach (var column in customColumns.Where(c => c.Name == AbstractReferenceFinder.ContainingMemberInfoPropertyName || c.Name == AbstractReferenceFinder.ContainingTypeInfoPropertyName))
+                    switch (column.Name)
                     {
-                        customColumnsToInclude.Add(column.Name);
+                        case AbstractReferenceFinder.ContainingMemberInfoPropertyName:
+                        case AbstractReferenceFinder.ContainingTypeInfoPropertyName:
+                            if (includeContainingTypeAndMemberColumns)
+                            {
+                                customColumnsToInclude.Add(column.Name);
+                            }
+
+                            break;
+
+                        case StandardTableColumnDefinitions2.SymbolKind:
+                            if (includeKindColumn)
+                            {
+                                customColumnsToInclude.Add(column.Name);
+                            }
+
+                            break;
                     }
                 }
 
-                if (includeKindColumn)
-                {
-                    foreach (var column in customColumns.Where(c => c.Name == nameof(SymbolUsageInfo)))
-                    {
-                        customColumnsToInclude.Add(column.Name);
-                    }
-                }
+                customColumnsToInclude.Add(StandardTableKeyNames.Repository);
+                customColumnsToInclude.Add(StandardTableKeyNames.ItemOrigin);
 
-                return customColumnsToInclude;
-            }
-
-            /// <summary>
-            /// Gets the initial column states.
-            /// Note that this method itself does not actually cause any UI/column updates,
-            /// but just computes and returns the new states.
-            /// </summary>
-            private static Dictionary<string, ColumnState2> GetInitialCustomColumnStates(
-                IReadOnlyList<ColumnState> allColumnStates,
-                ImmutableArray<AbstractCustomColumnDefinition> customColumns)
-            {
-                var customColumnStatesMap = new Dictionary<string, ColumnState2>(customColumns.Length);
-                var customColumnNames = new HashSet<string>(customColumns.Select(c => c.Name));
-
-                // Compute the default visibility for each custom column.
-                // If there is an existing column state for the custom column, flip it to be non-visible
-                // by default at the start of FAR query.
-                // We do so because the column will have empty values for all results for a FAR query for
-                // certain cases such as types, literals, no references found case, etc.
-                // It is preferable to dynamically hide an empty column for such queries, and dynamically
-                // show the column if it has at least one non-default value.
-                foreach (ColumnState2 columnState in allColumnStates.Where(c => customColumnNames.Contains(c.Name)))
-                {
-                    var newColumnState = new ColumnState2(columnState.Name, isVisible: false, columnState.Width,
-                        columnState.SortPriority, columnState.DescendingSort, columnState.GroupingPriority);
-                    customColumnStatesMap.Add(columnState.Name, newColumnState);
-                }
-
-                // For the remaining custom columns with no existing column state, use the default column state.
-                foreach (var customColumn in customColumns)
-                {
-                    if (!customColumnStatesMap.ContainsKey(customColumn.Name))
-                    {
-                        customColumnStatesMap.Add(customColumn.Name, customColumn.DefaultColumnState);
-                    }
-                }
-
-                return customColumnStatesMap;
+                return customColumnsToInclude.ToImmutableAndFree();
             }
 
             protected void NotifyChange()
@@ -248,10 +226,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void CancelSearch()
             {
                 Presenter.AssertIsForeground();
-                _cancellationTokenSource.Cancel();
-            }
 
-            public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
+                // Cancel any in flight find work that is going on.
+                if (_cancellationTokenSource != null)
+                {
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
+                    _cancellationTokenSource = null;
+                }
+            }
 
             public void Clear()
             {
@@ -306,14 +289,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #region FindUsagesContext overrides.
 
-            public sealed override Task SetSearchTitleAsync(string title)
+            public sealed override ValueTask SetSearchTitleAsync(string title)
             {
                 // Note: IFindAllReferenceWindow.Title is safe to set from any thread.
                 _findReferencesWindow.Title = title;
-                return Task.CompletedTask;
+                return default;
             }
 
-            public sealed override async Task OnCompletedAsync()
+            public sealed override async ValueTask OnCompletedAsync()
             {
                 await OnCompletedAsyncWorkerAsync().ConfigureAwait(false);
 
@@ -322,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract Task OnCompletedAsyncWorkerAsync();
 
-            public sealed override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (Gate)
                 {
@@ -332,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return OnDefinitionFoundWorkerAsync(definition);
             }
 
-            protected abstract Task OnDefinitionFoundWorkerAsync(DefinitionItem definition);
+            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
             protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
             {
@@ -351,12 +334,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (guid, projectName, sourceText);
             }
 
-            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
+            protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
-                ImmutableDictionary<string, ImmutableArray<string>> propertiesWithMultipleValuesMapOpt,
-                ImmutableArray<FindUsageProperty> additionalProperties)
+                SymbolUsageInfo symbolUsageInfo,
+                ImmutableDictionary<string, string> additionalProperties)
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
@@ -370,8 +353,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetCustomColumnsData(propertiesWithMultipleValuesMapOpt, additionalProperties));
+                    this,
+                    definitionBucket,
+                    spanKind,
+                    projectName,
+                    guid,
+                    mappedDocumentSpan.Value,
+                    excerptResult,
+                    lineText,
+                    symbolUsageInfo,
+                    additionalProperties);
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -399,133 +390,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            private ImmutableDictionary<string, string> GetCustomColumnsData(IEnumerable<KeyValuePair<string, ImmutableArray<string>>> customColumnsWithMultipleValuesOpt, ImmutableArray<FindUsageProperty> customColumns)
-            {
-                var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
+                => OnReferenceFoundWorkerAsync(reference);
 
-                // First, aggregate the dictionary values that contain an array of string values to get appropriate column display values. For example, below input:
-                //
-                // {
-                //   { "Column1", {"Value1", "Value2"} },
-                //   { "Column2", {"Value3", "Value4"} }
-                // }
-                //
-                // will transform to:
-                //
-                // {
-                //   { "Column1", "Value1, Value2" },
-                //   { "Column2", "Value3, Value4" }
-                // }
-                if (customColumnsWithMultipleValuesOpt != null && customColumnsWithMultipleValuesOpt.Any())
-                {
-                    foreach (var column in customColumnsWithMultipleValuesOpt)
-                    {
-                        if (_customColumnTitleToStatesMap.ContainsKey(column.Key))
-                        {
-                            builder.Add(
-                                column.Key,
-                                ((AbstractCustomColumnDefinitionWithMultipleValues)TableControl.ColumnDefinitionManager.GetColumnDefinition(column.Key)).GetDisplayStringForColumnValues(column.Value));
-                        }
-                    }
-                }
+            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
 
-                // Next, add the dictionary values that contain a single string
-                if (customColumns != null)
-                {
-                    foreach (var column in customColumns)
-                    {
-                        builder.Add(column.Label, column.Value);
-                    }
-                }
-
-                return builder.ToImmutable();
-            }
-
-            private void UpdateCustomColumnsVisibility(ImmutableDictionary<string, ImmutableArray<string>> additionalPropertiesWithMultipleValues)
-            {
-                // Check if we have any custom reference data to display.
-                // columnDefinitionManager will be null under unit test
-                var columnDefinitionManager = TableControl.ColumnDefinitionManager;
-                if (additionalPropertiesWithMultipleValues.Count == 0 || columnDefinitionManager == null)
-                {
-                    return;
-                }
-
-                // Get the new column states corresponding to the custom columns to display for custom data.
-                var newColumnStates = ArrayBuilder<ColumnState2>.GetInstance();
-
-                try
-                {
-                    lock (Gate)
-                    {
-                        foreach (var customColumnName in additionalPropertiesWithMultipleValues.Keys)
-                        {
-                            // Get the matching custom column.
-                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractCustomColumnDefinition;
-                            if (customColumnDefinition == null)
-                            {
-                                Debug.Fail($"{nameof(SourceReferenceItem.AdditionalPropertiesWithMultipleValues)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractCustomColumnDefinition)}' with this name.");
-                                continue;
-                            }
-
-                            // Ensure that we flip the visibility to true for the custom column.
-                            // Note that the actual UI update happens outside the lock when we
-                            // invoke "TableControl.SetColumnStates" below.
-                            ColumnState2 newColumnStateOpt = null;
-                            if (_customColumnTitleToStatesMap.TryGetValue(customColumnDefinition.Name, out var columnState))
-                            {
-                                if (!columnState.IsVisible)
-                                {
-                                    newColumnStateOpt = new ColumnState2(columnState.Name, isVisible: true, columnState.Width,
-                                        columnState.SortPriority, columnState.DescendingSort, columnState.GroupingPriority);
-                                }
-                            }
-                            else
-                            {
-                                newColumnStateOpt = customColumnDefinition.DefaultColumnState;
-                            }
-
-                            if (newColumnStateOpt != null)
-                            {
-                                _customColumnTitleToStatesMap[customColumnDefinition.Name] = newColumnStateOpt;
-
-                                newColumnStates.Add(newColumnStateOpt);
-                            }
-                        }
-                    }
-
-                    // Update the column states if required.
-                    if (newColumnStates.Count > 0)
-                    {
-                        // SetColumnStates API forces a switch to UI thread, so it should be safe to call
-                        // from a background thread here.
-                        // Also note that we will call it only once for each new custom column to add for
-                        // each find references query - the lock above guarantees that newColumnStatesOpt is
-                        // going to be non-null only for the first result that has a non-empty column value.
-                        TableControl.SetColumnStates(newColumnStates.ToImmutable());
-                    }
-                }
-                finally
-                {
-                    newColumnStates.Free();
-                }
-            }
-
-            public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
-            {
-                UpdateCustomColumnsVisibility(reference.AdditionalPropertiesWithMultipleValues);
-                return OnReferenceFoundWorkerAsync(reference);
-            }
-
-            protected abstract Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
-
-            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
+            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {
                 lock (Gate)
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = new RoslynDefinitionBucket(Presenter, this, definition);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault);
                         _definitionToBucket.Add(definition, bucket);
                     }
 
@@ -533,24 +409,34 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public sealed override Task ReportProgressAsync(int current, int maximum)
+            public sealed override ValueTask ReportMessageAsync(string message)
+                => throw new InvalidOperationException("This should never be called in the streaming case.");
+
+            protected sealed override ValueTask ReportProgressAsync(int current, int maximum)
             {
-                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
-                // Right now VS actually responds to each SetProgess call by enqueueing a UI task
-                // to do the progress bar update.  This can made FindReferences feel extremely slow
-                // when thousands of SetProgress calls are made.  So, for now, we're removing
-                // the progress update until the FindRefs window fixes that perf issue.
-#if false
-                try
+                _progressQueue.AddWork((current, maximum));
+                return default;
+            }
+
+            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken cancellationToken)
+            {
+                if (!nextBatch.IsEmpty)
                 {
-                    // The original FAR window exposed a SetProgress(double). Ensure that we 
-                    // don't crash if this code is running on a machine without the new API.
-                    _findReferencesWindow.SetProgress(current, maximum);
+                    var (current, maximum) = nextBatch.Last();
+
+                    // Do not update the UI if the current progress is zero.  It will switch us from the indeterminate
+                    // progress bar (which conveys to the user that we're working) to showing effectively nothing (which
+                    // makes it appear as if the search is complete).  So the user sees:
+                    //
+                    //      indeterminate->complete->progress
+                    //
+                    // instead of:
+                    //
+                    //      indeterminate->progress
+
+                    if (current > 0)
+                        _findReferencesWindow.SetProgress(current, maximum);
                 }
-                catch
-                {
-                }
-#endif
 
                 return Task.CompletedTask;
             }
@@ -584,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public ITableEntriesSnapshot GetSnapshot(int versionNumber)
+            public ITableEntriesSnapshot? GetSnapshot(int versionNumber)
             {
                 lock (Gate)
                 {

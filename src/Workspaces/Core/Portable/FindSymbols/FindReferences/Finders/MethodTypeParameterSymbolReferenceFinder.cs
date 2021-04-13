@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,18 +12,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class MethodTypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
     {
         protected override bool CanFind(ITypeParameterSymbol symbol)
-        {
-            return symbol.TypeParameterKind == TypeParameterKind.Method;
-        }
+            => symbol.TypeParameterKind == TypeParameterKind.Method;
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<ITypeParameterSymbol> symbolAndProjectId,
+        protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
+            ITypeParameterSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             var method = (IMethodSymbol)symbol.ContainingSymbol;
             var ordinal = method.TypeParameters.IndexOf(symbol);
 
@@ -31,23 +30,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
                 {
                     return Task.FromResult(ImmutableArray.Create(
-                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal])));
+                        ((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal], cascadeDirection)));
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
                 {
                     return Task.FromResult(ImmutableArray.Create(
-                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal])));
+                        ((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal], cascadeDirection)));
                 }
             }
 
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
+            return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ITypeParameterSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -61,7 +60,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             //
             // Also, we only look for files that have the name of the owning type.  This helps filter
             // down the set considerably.
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name,
+            Contract.ThrowIfNull(symbol.DeclaringMethod);
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name,
                 GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
                 symbol.DeclaringMethod.ContainingType.Name);
         }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : fullName;
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,

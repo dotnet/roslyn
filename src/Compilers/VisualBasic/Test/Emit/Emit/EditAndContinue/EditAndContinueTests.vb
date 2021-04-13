@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -625,7 +627,7 @@ End Class
   IL_0001:  ldc.i4.3
   IL_0002:  newarr     ""Integer""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000d:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -967,7 +969,7 @@ End Class
             Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
             Assert.Equal(members.Length, 2)
             For Each member In members
-                Dim other = DirectCast(matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition)), MethodSymbol)
+                Dim other = DirectCast(matcher.MapDefinition(DirectCast(member.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
                 Assert.NotNull(other)
             Next
         End Sub
@@ -991,7 +993,7 @@ End Class
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
-            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition)), MethodSymbol)
+            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
             Assert.NotNull(other)
         End Sub
 
@@ -1025,7 +1027,7 @@ End Class
             Assert.Equal(nModifiers, DirectCast(member1.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
-            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1, Cci.IMethodDefinition)), MethodSymbol)
+            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
             Assert.NotNull(other)
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
         End Sub
@@ -5297,7 +5299,70 @@ End Class")
 ")
         End Sub
 
+        <Fact>
+        Public Sub AddImports_AmbiguousCode()
 
+            Dim source0 = MarkedSource("
+Imports System.Threading
+
+Class C
+    Shared Sub E()
+        Dim t = New Timer(Sub(s) System.Console.WriteLine(s))
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Imports System.Threading
+Imports System.Timers
+
+Class C
+    Shared Sub E()
+        Dim t = New Timer(Sub(s) System.Console.WriteLine(s))
+    End Sub
+
+    Shared Sub G()
+        System.Console.WriteLine(new TimersDescriptionAttribute(""""))
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilation(source0.Tree, targetFramework:=TargetFramework.NetStandard20, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim e0 = compilation0.GetMember(Of MethodSymbol)("C.E")
+            Dim e1 = compilation1.GetMember(Of MethodSymbol)("C.E")
+            Dim g1 = compilation1.GetMember(Of MethodSymbol)("C.G")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            ' Pretend there was an update to C.E to ensure we haven't invalidated the test
+
+            Dim diffError = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diffError.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_AmbiguousInImports2, "Timer").WithArguments("Timer", "System.Threading, System.Timers").WithLocation(7, 21))
+
+            Dim diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, g1)))
+
+            diff.EmitResult.Diagnostics.Verify()
+
+            diff.VerifyIL("C.G", "
+{
+    // Code size       18 (0x12)
+    .maxstack  1
+    IL_0000:  nop
+    IL_0001:  ldstr      """"
+    IL_0006:  newobj     ""Sub System.Timers.TimersDescriptionAttribute..ctor(String)""
+    IL_000b:  call       ""Sub System.Console.WriteLine(Object)""
+    IL_0010:  nop
+    IL_0011:  ret
+}")
+        End Sub
 
     End Class
 End Namespace

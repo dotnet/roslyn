@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -9,14 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     internal abstract partial class AbstractLegacyProject : IAnalyzerHost
     {
         void IAnalyzerHost.AddAnalyzerReference(string analyzerAssemblyFullPath)
-        {
-            VisualStudioProject.AddAnalyzerReference(analyzerAssemblyFullPath);
-        }
+            => VisualStudioProject.AddAnalyzerReference(analyzerAssemblyFullPath);
 
         void IAnalyzerHost.RemoveAnalyzerReference(string analyzerAssemblyFullPath)
-        {
-            VisualStudioProject.RemoveAnalyzerReference(analyzerAssemblyFullPath);
-        }
+            => VisualStudioProject.RemoveAnalyzerReference(analyzerAssemblyFullPath);
 
         void IAnalyzerHost.SetRuleSetFile(string ruleSetFileFullPath)
         {
@@ -36,13 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         }
 
         void IAnalyzerHost.AddAdditionalFile(string additionalFilePath)
-        {
-            VisualStudioProject.AddAdditionalFile(additionalFilePath);
-        }
+            => VisualStudioProject.AddAdditionalFile(additionalFilePath);
 
         void IAnalyzerHost.RemoveAdditionalFile(string additionalFilePath)
-        {
-            VisualStudioProject.RemoveAdditionalFile(additionalFilePath);
-        }
+            => VisualStudioProject.RemoveAdditionalFile(additionalFilePath);
     }
 }

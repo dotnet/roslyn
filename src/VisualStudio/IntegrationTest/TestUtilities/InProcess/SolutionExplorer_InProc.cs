@@ -1,19 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
@@ -22,8 +22,10 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using NuGet.SolutionRestoreManager;
 using Roslyn.Hosting.Diagnostics.Waiters;
+using Roslyn.Utilities;
 using VSLangProj;
-using Task = System.Threading.Tasks.Task;
+using VSLangProj140;
+using VSLangProj80;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -88,6 +90,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             reference.Remove();
         }
 
+        public void AddAnalyzerReference(string filePath, string projectName)
+        {
+            var project = GetProject(projectName);
+            var vsProject = (VSProject3)project.Object;
+            vsProject.AnalyzerReferences.Add(filePath);
+        }
+
+        public void RemoveAnalyzerReference(string filePath, string projectName)
+        {
+            var project = GetProject(projectName);
+            ((VSProject3)project.Object).AnalyzerReferences.Remove(filePath);
+        }
+
+        public void SetLanguageVersion(string projectName, string languageVersion)
+        {
+            var project = GetProject(projectName);
+            var projectConfiguration = (CSharpProjectConfigurationProperties3)project.ConfigurationManager.ActiveConfiguration.Object;
+            projectConfiguration.LanguageVersion = languageVersion;
+        }
+
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
         public string SolutionFileFullPath
@@ -117,7 +139,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 CloseSolution(saveExistingSolutionIfExists);
             }
 
-            string solutionPath = IntegrationHelper.CreateTemporaryPath();
+            var solutionPath = IntegrationHelper.CreateTemporaryPath();
             var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
             Directory.CreateDirectory(solutionPath);
@@ -236,12 +258,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var project = GetProject(projectName);
             var projectToReference = GetProject(projectToReferenceName);
             ((VSProject)project.Object).References.AddProject(projectToReference);
-        }
-
-        public void AddReference(string projectName, string fullyQualifiedAssemblyName)
-        {
-            var project = GetProject(projectName);
-            ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
         }
 
         public void AddPackageReference(string projectName, string packageName, string version)
@@ -403,7 +419,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 _sendKeys.Send(VirtualKey.Escape);
 
                 dte.Debugger.TerminateAll();
-                WaitForDesignMode();
+                WaitForDesignMode(dte);
             }
 
             CloseSolution();
@@ -415,10 +431,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private static void WaitForDesignMode()
+        private static void WaitForDesignMode(EnvDTE.DTE dte)
         {
-            var stopwatch = Stopwatch.StartNew();
-
+#if TODO// https://github.com/dotnet/roslyn/issues/35965
             // This delay was originally added to address test failures in BasicEditAndContinue. When running
             // multiple tests in sequence, situations were observed where the Edit and Continue state was not reset:
             //
@@ -431,17 +446,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             // state believing a debugger session was active.
             //
             // This delay should be replaced with a proper wait condition once the correct one is determined.
-            var editAndContinueService = GetComponentModelService<IEditAndContinueService>();
-            do
+            var debugService = GetComponentModelService<VisualStudioWorkspace>().Services.GetRequiredService<IDebuggingWorkspaceService>();
+            using (var debugSessionEndedEvent = new ManualResetEventSlim(initialState: false))
             {
-                if (stopwatch.Elapsed >= Helper.HangMitigatingTimeout)
+                debugService.BeforeDebuggingStateChanged += (_, e) =>
+                {
+                    if (e.After == DebuggingState.Design)
+                    {
+                        debugSessionEndedEvent.Set();
+                    }
+                };
+
+                if (dte.Debugger.CurrentMode == EnvDTE.dbgDebugMode.dbgDesignMode)
+                {
+                    return;
+                }
+
+                if (!debugSessionEndedEvent.Wait(Helper.HangMitigatingTimeout))
                 {
                     throw new TimeoutException("Failed to enter design mode in a timely manner.");
                 }
-
-                Thread.Yield();
             }
-            while (editAndContinueService?.DebuggingSession != null);
+#endif
         }
 
         private void CloseSolution()
@@ -594,8 +620,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     Marshal.ThrowExceptionForHR(hresult);
                     var activeVsTextView = (IVsUserData)vsTextView;
 
-                    var editorGuid = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
-                    hresult = activeVsTextView.GetData(editorGuid, out var wpfTextViewHost);
+                    hresult = activeVsTextView.GetData(Editor_InProc.IWpfTextViewId, out var wpfTextViewHost);
                     Marshal.ThrowExceptionForHR(hresult);
 
                     var view = ((IWpfTextViewHost)wpfTextViewHost).TextView;
@@ -638,7 +663,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 File.Create(filePath).Dispose();
             }
 
-            var projectItem = project.ProjectItems.AddFromFile(filePath);
+            _ = project.ProjectItems.AddFromFile(filePath);
 
             if (open)
             {
@@ -676,7 +701,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
         }
 
-
         public void SetFileContents(string projectName, string relativeFilePath, string contents)
         {
             var project = GetProject(projectName);
@@ -695,24 +719,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return File.ReadAllText(filePath);
         }
 
-        public void BuildSolution(bool waitForBuildToFinish)
+        public void BuildSolution()
         {
             var buildOutputWindowPane = GetBuildOutputWindowPane();
             buildOutputWindowPane.Clear();
             ExecuteCommand(WellKnownCommandNames.Build_BuildSolution);
-            WaitForBuildToFinish(buildOutputWindowPane);
+            WaitForBuildToFinish();
         }
 
         public void ClearBuildOutputWindowPane()
         {
             var buildOutputWindowPane = GetBuildOutputWindowPane();
             buildOutputWindowPane.Clear();
-        }
-
-        public void WaitForBuildToFinish()
-        {
-            var buildOutputWindowPane = GetBuildOutputWindowPane();
-            WaitForBuildToFinish(buildOutputWindowPane);
         }
 
         private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
@@ -722,7 +740,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return outputWindow.OutputWindowPanes.Item("Build");
         }
 
-        private void WaitForBuildToFinish(EnvDTE.OutputWindowPane buildOutputWindowPane)
+        public void WaitForBuildToFinish()
         {
             var buildManager = GetGlobalService<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
             using (var semaphore = new SemaphoreSlim(1))
@@ -745,7 +763,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
         {
             private uint cookie;
-            private IVsSolutionBuildManager2 solutionBuildManager;
+            private readonly IVsSolutionBuildManager2 solutionBuildManager;
 
             internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
             internal delegate void UpdateSolutionBeginEvent(ref bool cancel);
@@ -801,7 +819,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
             {
-                return OnActiveProjectCfgChange(pIVsHierarchy);
+                return OnActiveProjectCfgChange();
             }
 
             int IVsUpdateSolutionEvents2.UpdateSolution_Begin(ref int pfCancelUpdate)
@@ -834,7 +852,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             int IVsUpdateSolutionEvents2.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
             {
-                return OnActiveProjectCfgChange(pIVsHierarchy);
+                return OnActiveProjectCfgChange();
             }
 
             int IVsUpdateSolutionEvents2.UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
@@ -860,7 +878,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return 0;
             }
 
-            private int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
+            private int OnActiveProjectCfgChange()
             {
                 OnActiveProjectConfigurationChange?.Invoke();
                 return 0;
@@ -1028,7 +1046,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var projects = _solution.Projects;
             EnvDTE.Project project = null;
-            for (int i = 1; i <= projects.Count; i++)
+            for (var i = 1; i <= projects.Count; i++)
             {
                 project = projects.Item(i);
                 if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
@@ -1130,44 +1148,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             return null;
-        }
-
-        private CodingConventionsChangedWatcher _codingConventionsChangedWatcher;
-
-        public void BeginWatchForCodingConventionsChange(string projectName, string relativeFilePath)
-        {
-            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
-            _codingConventionsChangedWatcher = new CodingConventionsChangedWatcher(filePath);
-        }
-
-        public void EndWaitForCodingConventionsChange(TimeSpan timeout)
-        {
-            var watcher = Interlocked.Exchange(ref _codingConventionsChangedWatcher, null);
-            if (watcher is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            watcher.Changed.Wait(timeout);
-        }
-
-        private class CodingConventionsChangedWatcher
-        {
-            private readonly TaskCompletionSource<object> _taskCompletionSource = new TaskCompletionSource<object>();
-            private readonly ICodingConventionContext _codingConventionContext;
-
-            public CodingConventionsChangedWatcher(string filePath)
-            {
-                var codingConventionsManager = GetComponentModelService<ICodingConventionsManager>();
-                _codingConventionContext = codingConventionsManager.GetConventionContextAsync(filePath, CancellationToken.None).Result;
-                _codingConventionContext.CodingConventionsChangedAsync += (sender, e) =>
-                {
-                    _taskCompletionSource.SetResult(null);
-                    return Task.CompletedTask;
-                };
-            }
-
-            public Task Changed => _taskCompletionSource.Task;
         }
     }
 }

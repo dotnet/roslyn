@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -15,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public sealed class AnalyzerImageReference : AnalyzerReference
     {
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
-        private readonly string _fullPath;
-        private readonly string _display;
+        private readonly string? _fullPath;
+        private readonly string? _display;
         private readonly string _id;
 
-        public AnalyzerImageReference(ImmutableArray<DiagnosticAnalyzer> analyzers, string fullPath = null, string display = null)
+        public AnalyzerImageReference(ImmutableArray<DiagnosticAnalyzer> analyzers, string? fullPath = null, string? display = null)
         {
             if (analyzers.Any(a => a == null))
             {
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzers;
         }
 
-        public override string FullPath
+        public override string? FullPath
         {
             get
             {

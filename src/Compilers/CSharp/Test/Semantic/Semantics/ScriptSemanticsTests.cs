@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +11,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -401,7 +406,7 @@ G();
 
             Assert.Equal(1, members.Length);
             Assert.Equal("Goo", members[0].Name);
-            Assert.IsAssignableFrom(typeof(NamespaceSymbol), members[0]);
+            Assert.IsAssignableFrom<NamespaceSymbol>(members[0]);
             var ns = (NamespaceSymbol)members[0];
             members = ns.GetMembers();
 
@@ -595,7 +600,7 @@ this[1]
                     var type = (NamedTypeSymbol)symbol;
                     Assert.False(type.IsScriptClass);
                     Assert.False(type.IsSubmissionClass);
-                    Assert.NotEqual(type.TypeKind, TypeKind.Submission);
+                    Assert.NotEqual(TypeKind.Submission, type.TypeKind);
                 }
             }
 
@@ -753,7 +758,7 @@ public E e4;
             CreateSubmission(@"protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"internal A x;", previous: c1).VerifyDiagnostics(
@@ -763,7 +768,7 @@ public E e4;
             CreateSubmission(@"internal protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "A"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"public A x;", previous: c1).VerifyDiagnostics(
@@ -777,7 +782,7 @@ public E e4;
             CreateSubmission(@"internal protected B x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'B' is less accessible than field 'x'
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "B"),
-                // (1,13): warning CS0628: 'x': new protected member declared in sealed class
+                // (1,13): warning CS0628: 'x': new protected member declared in sealed type
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "x").WithArguments("x"));
 
             CreateSubmission(@"public B x;", previous: c1).VerifyDiagnostics(
@@ -1102,7 +1107,7 @@ goto Label;");
         [Fact]
         public void DefineExtensionMethods()
         {
-            var references = new[] { TestReferences.NetFx.v4_0_30319.System_Core };
+            var references = new[] { TestMetadata.Net451.SystemCore };
 
             // No error for extension method defined in interactive session.
             var s0 = CreateSubmission("static void E(this object o) { }", references);
@@ -1167,8 +1172,9 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_01()
         {
             var code = "System.Console.WriteLine(1);";
@@ -1255,8 +1261,9 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_02()
         {
             var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit("\nSystem.Console.WriteLine(1);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
@@ -1292,8 +1299,9 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_03()
         {
             var code = "System.Console.WriteLine(out var x, x);";

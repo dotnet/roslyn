@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -93,7 +97,7 @@ class B
             for (int i = 0; i < n; i++)
             {
                 var member = members[(i + startAt) % n];
-                var other = matcher.MapDefinition((Cci.IDefinition)member);
+                var other = matcher.MapDefinition((Cci.IDefinition)member.GetCciAdapter());
                 Assert.NotNull(other);
             }
         }
@@ -130,10 +134,10 @@ class B
                 default,
                 null);
             var members = compilation1.GetMember<NamedTypeSymbol>("A.B").GetMembers("M");
-            Assert.Equal(members.Length, 2);
+            Assert.Equal(2, members.Length);
             foreach (var member in members)
             {
-                var other = matcher.MapDefinition((Cci.IMethodDefinition)member);
+                var other = matcher.MapDefinition((Cci.IMethodDefinition)member.GetCciAdapter());
                 Assert.NotNull(other);
             }
         }
@@ -162,7 +166,7 @@ class C
                 default,
                 null);
             var member = compilation1.GetMember<MethodSymbol>("C.M");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             Assert.NotNull(other);
         }
 
@@ -185,8 +189,8 @@ class C
             var compilation1 = compilation0.WithSource(source);
 
             var member1 = compilation1.GetMember<MethodSymbol>("B.F");
-            Assert.Equal(((PointerTypeSymbol)member1.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)member1.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length, 1);
+            Assert.Equal(1, ((PointerTypeSymbol)member1.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length);
+            Assert.Equal(1, ((ArrayTypeSymbol)member1.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
@@ -196,10 +200,10 @@ class C
                 default,
                 null);
 
-            var other = (MethodSymbol)matcher.MapDefinition(member1);
+            var other = (MethodSymbol)matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol();
             Assert.NotNull(other);
-            Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)other.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length, 1);
+            Assert.Equal(1, ((PointerTypeSymbol)other.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length);
+            Assert.Equal(1, ((ArrayTypeSymbol)other.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length);
         }
 
         [Fact]
@@ -245,9 +249,9 @@ abstract class C
             var g1 = compilation1.GetMember<MethodSymbol>("C.G");
             var h1 = compilation1.GetMember<MethodSymbol>("C.H");
 
-            Assert.Same(f0, (MethodSymbol)matcher.MapDefinition(f1));
-            Assert.Same(g0, (MethodSymbol)matcher.MapDefinition(g1));
-            Assert.Null(matcher.MapDefinition(h1));
+            Assert.Same(f0, (MethodSymbol)matcher.MapDefinition(f1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(g0, (MethodSymbol)matcher.MapDefinition(g1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Null(matcher.MapDefinition(h1.GetCciAdapter()));
         }
 
         [Fact]
@@ -293,9 +297,9 @@ abstract class C
             var g1 = compilation1.GetMember<MethodSymbol>("C.G");
             var h1 = compilation1.GetMember<MethodSymbol>("C.H");
 
-            Assert.Equal(f0, (MethodSymbol)matcher.MapDefinition(f1));
-            Assert.Equal(g0, (MethodSymbol)matcher.MapDefinition(g1));
-            Assert.Null(matcher.MapDefinition(h1));
+            Assert.Equal(f0, (MethodSymbol)matcher.MapDefinition(f1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Equal(g0, (MethodSymbol)matcher.MapDefinition(g1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Null(matcher.MapDefinition(h1.GetCciAdapter()));
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -328,8 +332,8 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var mf1 = matcher.MapDefinition(f1);
-            Assert.Equal(f0, mf1);
+            var mf1 = matcher.MapDefinition(f1.GetCciAdapter());
+            Assert.Equal(f0, mf1.GetInternalSymbol());
         }
 
         [WorkItem(1533, "https://github.com/dotnet/roslyn/issues/1533")]
@@ -366,7 +370,7 @@ class C
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreateArrayTypeSymbol(elementType);
-            var other = matcher.MapReference(member);
+            var other = matcher.MapReference(member.GetCciAdapter());
             Assert.NotNull(other);
         }
 
@@ -403,7 +407,7 @@ class C
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreateArrayTypeSymbol(elementType);
-            var other = matcher.MapReference(member);
+            var other = matcher.MapReference(member.GetCciAdapter());
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
         }
@@ -441,7 +445,7 @@ class C
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
             var member = compilation1.CreatePointerTypeSymbol(elementType);
-            var other = matcher.MapReference(member);
+            var other = matcher.MapReference(member.GetCciAdapter());
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
         }
@@ -481,7 +485,7 @@ class C
                 default,
                 null);
             var member = compilation1.GetMember<FieldSymbol>("C.y");
-            var other = matcher.MapReference((Cci.ITypeReference)member.Type);
+            var other = matcher.MapReference((Cci.ITypeReference)member.Type.GetCciAdapter());
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
         }
@@ -647,7 +651,7 @@ class C
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other);
         }
@@ -677,7 +681,7 @@ class C
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("C.x");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // Types must match because just an element name was changed.
             Assert.NotNull(other);
         }
@@ -707,7 +711,7 @@ class C
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.X");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other);
         }
@@ -737,7 +741,7 @@ class C
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.X");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // Types must match because just an element name was changed.
             Assert.NotNull(other);
         }
@@ -767,7 +771,7 @@ class C
                 null);
 
             var member = compilation1.GetMember<PropertySymbol>("C.X");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other);
         }
@@ -797,7 +801,7 @@ class C
                 null);
 
             var member = compilation1.GetMember<PropertySymbol>("C.X");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // Types must match because just an element name was changed.
             Assert.NotNull(other);
         }
@@ -827,7 +831,7 @@ public struct Vector
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // If a type changes within a tuple, we do not expect types to match.
             Assert.Null(other);
         }
@@ -857,7 +861,7 @@ public struct Vector
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // Types must match because just an element name was changed.
             Assert.NotNull(other);
         }
@@ -887,7 +891,7 @@ public class C
                 null);
 
             var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // Tuple delegate defines a type. We should be able to match old and new types by name.
             Assert.NotNull(other);
         }
@@ -917,7 +921,7 @@ public class C
                 null);
 
             var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             // Types must match because just an element name was changed.
             Assert.NotNull(other);
         }
@@ -968,12 +972,12 @@ struct C
             var s1 = compilation1.GetMember<MethodSymbol>("C.S");
             var t1 = compilation1.GetMember<MethodSymbol>("C.T");
 
-            Assert.Null(matcher.MapDefinition(p1));
-            Assert.Null(matcher.MapDefinition(q1));
-            Assert.Null(matcher.MapDefinition(r1));
+            Assert.Null(matcher.MapDefinition(p1.GetCciAdapter()));
+            Assert.Null(matcher.MapDefinition(q1.GetCciAdapter()));
+            Assert.Null(matcher.MapDefinition(r1.GetCciAdapter()));
 
-            Assert.Same(s0, matcher.MapDefinition(s1));
-            Assert.Same(t0, matcher.MapDefinition(t1));
+            Assert.Same(s0, matcher.MapDefinition(s1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(t0, matcher.MapDefinition(t1.GetCciAdapter()).GetInternalSymbol());
         }
 
         [Fact]
@@ -1022,12 +1026,12 @@ struct C
             var s1 = compilation1.GetMember<PropertySymbol>("C.S");
             var t1 = compilation1.GetMember<PropertySymbol>("C.T");
 
-            Assert.Null(matcher.MapDefinition(p1));
-            Assert.Null(matcher.MapDefinition(q1));
-            Assert.Null(matcher.MapDefinition(r1));
+            Assert.Null(matcher.MapDefinition(p1.GetCciAdapter()));
+            Assert.Null(matcher.MapDefinition(q1.GetCciAdapter()));
+            Assert.Null(matcher.MapDefinition(r1.GetCciAdapter()));
 
-            Assert.Same(s0, matcher.MapDefinition(s1));
-            Assert.Same(t0, matcher.MapDefinition(t1));
+            Assert.Same(s0, matcher.MapDefinition(s1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(t0, matcher.MapDefinition(t1.GetCciAdapter()).GetInternalSymbol());
         }
 
         [Fact]
@@ -1070,9 +1074,9 @@ class C : I<int, bool>
             var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var matcher = new CSharpSymbolMatcher(null, compilation1.SourceAssembly, emitContext, peAssemblySymbol0);
 
-            var mappedProperty = (Cci.IPropertyDefinition)matcher.MapDefinition(property);
+            var mappedProperty = (Cci.IPropertyDefinition)matcher.MapDefinition(property.GetCciAdapter());
 
-            Assert.Equal("I<System.Int32,System.Boolean>.Item", ((PropertySymbol)mappedProperty).MetadataName);
+            Assert.Equal("I<System.Int32,System.Boolean>.Item", ((PropertySymbol)mappedProperty.GetInternalSymbol()).MetadataName);
         }
 
         [Fact]
@@ -1104,7 +1108,7 @@ class C
                 null);
 
             var member = compilation1.GetMember<MethodSymbol>("C.M");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             Assert.NotNull(other);
         }
 
@@ -1133,7 +1137,7 @@ class C
                 null);
 
             var member = compilation1.GetMember<FieldSymbol>("C.S");
-            var other = matcher.MapDefinition(member);
+            var other = matcher.MapDefinition(member.GetCciAdapter());
             Assert.NotNull(other);
         }
 
@@ -1261,14 +1265,144 @@ interface I
             var e1 = compilation1.GetMember<EventSymbol>("I.E");
             var f1 = compilation1.GetMember<EventSymbol>("I.F");
 
-            Assert.Same(x0, matcher.MapDefinition(x1));
-            Assert.Same(y0, matcher.MapDefinition(y1));
-            Assert.Same(m0, matcher.MapDefinition(m1));
-            Assert.Same(n0, matcher.MapDefinition(n1));
-            Assert.Same(p0, matcher.MapDefinition(p1));
-            Assert.Same(q0, matcher.MapDefinition(q1));
-            Assert.Same(e0, matcher.MapDefinition(e1));
-            Assert.Same(f0, matcher.MapDefinition(f1));
+            Assert.Same(x0, matcher.MapDefinition(x1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(y0, matcher.MapDefinition(y1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(m0, matcher.MapDefinition(m1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(n0, matcher.MapDefinition(n1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(p0, matcher.MapDefinition(p1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(q0, matcher.MapDefinition(q1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(e0, matcher.MapDefinition(e1.GetCciAdapter()).GetInternalSymbol());
+            Assert.Same(f0, matcher.MapDefinition(f1.GetCciAdapter()).GetInternalSymbol());
+        }
+
+        [Fact]
+        public void FunctionPointerMembersTranslated()
+        {
+            var source = @"
+unsafe class C
+{
+    delegate*<void> f1;
+    delegate*<C, C, C> f2;
+    delegate*<ref C> f3;
+    delegate*<ref readonly C> f4;
+    delegate*<ref C, void> f5;
+    delegate*<in C, void> f6;
+    delegate*<out C, void> f7;
+}
+";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
+            var compilation1 = compilation0.WithSource(source);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            for (int i = 1; i <= 7; i++)
+            {
+                var f_0 = compilation0.GetMember<FieldSymbol>($"C.f{i}");
+                var f_1 = compilation1.GetMember<FieldSymbol>($"C.f{i}");
+
+                Assert.Same(f_0, matcher.MapDefinition(f_1.GetCciAdapter()).GetInternalSymbol());
+            }
+        }
+
+        [Theory]
+        [InlineData("C", "void")]
+        [InlineData("C", "object")]
+        [InlineData("C", "ref C")]
+        [InlineData("C", "ref readonly C")]
+        [InlineData("ref C", "ref readonly C")]
+        public void FunctionPointerMembers_ReturnMismatch(string return1, string return2)
+        {
+            var source1 = $@"
+unsafe class C
+{{
+    delegate*<C, {return1}> f1;
+}}";
+
+            var source2 = $@"
+unsafe class C
+{{
+    delegate*<C, {return2}> f1;
+}}";
+
+            var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
+            var compilation1 = compilation0.WithSource(source2);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var f_1 = compilation1.GetMember<FieldSymbol>($"C.f1");
+
+            Assert.Null(matcher.MapDefinition(f_1.GetCciAdapter()));
+        }
+
+        [Theory]
+        [InlineData("C", "object")]
+        [InlineData("C", "ref C")]
+        [InlineData("C", "out C")]
+        [InlineData("C", "in C")]
+        [InlineData("ref C", "out C")]
+        [InlineData("ref C", "in C")]
+        [InlineData("out C", "in C")]
+        [InlineData("C, C", "C")]
+        public void FunctionPointerMembers_ParamMismatch(string param1, string param2)
+        {
+            var source1 = $@"
+unsafe class C
+{{
+    delegate*<{param1}, C, void>* f1;
+}}";
+
+            var source2 = $@"
+unsafe class C
+{{
+    delegate*<{param2}, C, void>* f1;
+}}";
+
+            verify(source1, source2);
+
+            source1 = $@"
+unsafe class C
+{{
+    delegate*<C, {param1}, void> f1;
+}}";
+
+            source2 = $@"
+unsafe class C
+{{
+    delegate*<C, {param2}, void> f1;
+}}";
+
+            verify(source1, source2);
+
+            static void verify(string source1, string source2)
+            {
+                var compilation0 = CreateCompilation(source1, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
+                var compilation1 = compilation0.WithSource(source2);
+
+                var matcher = new CSharpSymbolMatcher(
+                    null,
+                    compilation1.SourceAssembly,
+                    default,
+                    compilation0.SourceAssembly,
+                    default,
+                    null);
+
+                var f_1 = compilation1.GetMember<FieldSymbol>($"C.f1");
+
+                Assert.Null(matcher.MapDefinition(f_1.GetCciAdapter()));
+            }
         }
     }
 }

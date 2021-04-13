@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,8 +79,10 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">Zobrazit diagnostiku pro zavřené soubory;
+Use enhanced colors;
+Editor Color Scheme;</source>
+        <target state="translated">Zobrazovat vložené nápovědy;
+Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz; 
 Zvýrazňovat související komponenty pod kurzorem; 
 Nahlásit neplatné regulární výrazy;
@@ -124,7 +127,8 @@ preferovat vyvolávací vlastnosti;
 preferovat automatické vlastnosti;
 reg. výr.;
 regulární výraz;
-Používat rozšířené barvy;</target>
+Používat rozšířené barvy;
+Barevné schéma editoru;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -272,8 +276,10 @@ Vložit mezeru před a za binární operátory;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -282,10 +288,12 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Změnit nastavení pro seznam dokončení;Předvolit naposledy použitou položku; Seznamy dokončení;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">Změnit nastavení pro seznam dokončení;Předvolit naposledy použitou položku; Seznamy dokončení;
 Po zadání znaku zobrazit seznam dokončení;
 Po odstranění znaku zobrazit seznam dokončení;
+Automaticky zobrazovat seznam dokončení v seznamech argumentů (experimentální);
 Zvýraznit odpovídající části položek seznamu dokončení;
 Zobrazit filtry položek dokončení;
 Chování fragmentů;
@@ -296,7 +304,8 @@ Chování klávesy Enter;
 Při stisknutí klávesy Enter nikdy nepřidávat nový řádek;
 Při stisknutí klávesy Enter přidat nový řádek jenom po dopsání celého slova;
 Při stisknutí klávesy Enter vždy přidat nový řádek;
-Zobrazovat návrhy názvů;</target>
+Zobrazovat návrhy názvů;
+Zobrazit položky z neimportovaných oborů názvů (experimentální);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -316,7 +325,7 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">Obalování</target>
+        <target state="translated">Zalamování</target>
         <note />
       </trans-unit>
       <trans-unit id="111">
@@ -331,12 +340,12 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="2358">
         <source>C# Editor</source>
-        <target state="needs-review-translation">Editor CSharp</target>
+        <target state="translated">Editor C#</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>C# Editor with Encoding</source>
-        <target state="needs-review-translation">Editor CSharp s kódováním</target>
+        <target state="translated">Editor C# s kódováním</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -361,7 +370,7 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="314">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">Styl pojmenování;Styly názvů;Pravidlo pro pojmenování;Konvence pojmenování</target>
+        <target state="translated">Styl pojmenování;Styly názvů;Pravidlo pojmenování;Konvence pojmenování</target>
         <note>C# Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="116">

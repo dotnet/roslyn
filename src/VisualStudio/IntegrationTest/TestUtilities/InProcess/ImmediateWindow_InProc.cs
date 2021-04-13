@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.VisualStudio.Shell;
@@ -15,17 +19,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string GetText()
         {
-            IVsUIShell vsUIShell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShell));
-            Guid immediateWindowGuid = VSConstants.StandardToolWindows.Immediate;
+            var vsUIShell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShell));
+            var immediateWindowGuid = VSConstants.StandardToolWindows.Immediate;
             IVsWindowFrame immediateWindowFrame;
             ErrorHandler.ThrowOnFailure(vsUIShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, ref immediateWindowGuid, out immediateWindowFrame));
             ErrorHandler.ThrowOnFailure(immediateWindowFrame.Show());
-            ErrorHandler.ThrowOnFailure(immediateWindowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object docView));
+            ErrorHandler.ThrowOnFailure(immediateWindowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out var docView));
             var vsTextView = (IVsTextView)docView;
-            ErrorHandler.ThrowOnFailure(vsTextView.GetBuffer(out IVsTextLines vsTextLines));
-            ErrorHandler.ThrowOnFailure(vsTextLines.GetLineCount(out int lineCount));
-            ErrorHandler.ThrowOnFailure(vsTextLines.GetLengthOfLine(lineCount - 1, out int lastLineLength));
-            ErrorHandler.ThrowOnFailure(vsTextLines.GetLineText(0, 0, lineCount - 1, lastLineLength, out string text));
+            ErrorHandler.ThrowOnFailure(vsTextView.GetBuffer(out var vsTextLines));
+            ErrorHandler.ThrowOnFailure(vsTextLines.GetLineCount(out var lineCount));
+            ErrorHandler.ThrowOnFailure(vsTextLines.GetLengthOfLine(lineCount - 1, out var lastLineLength));
+            ErrorHandler.ThrowOnFailure(vsTextLines.GetLineText(0, 0, lineCount - 1, lastLineLength, out var text));
             return text;
         }
 

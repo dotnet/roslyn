@@ -5,6 +5,7 @@
     <DisplayName>Roslyn Insiders (Without Tool Window)</DisplayName>
     <Description>Pre-release build of Roslyn compilers and language services.</Description>
     <License>EULA.rtf</License>
+    <AllowClientRole>true</AllowClientRole>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[15.0,]" />
@@ -27,15 +28,6 @@
                 d:VsixSubPath="Vsixes"
                 Location="|VisualStudioSetup;VSIXContainerProjectOutputGroup|"
                 Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
-    
-    <Dependency d:ProjectName="VisualStudioInteractiveComponents" 
-                DisplayName="Roslyn Interactive Components" 
-                Version="[|%CurrentProject%;GetVsixVersion|,)"
-                d:Source="Project"  
-                d:InstallSource="Embed" 
-                d:VsixSubPath="Vsixes" 
-                Location="|VisualStudioInteractiveComponents;VSIXContainerProjectOutputGroup|" 
-                Id="500fff63-afcf-4195-8db4-3fa8a5180e79" />
     
     <Dependency  d:ProjectName="ExpressionEvaluatorPackage" 
                  DisplayName="Roslyn Expression Evaluators" 

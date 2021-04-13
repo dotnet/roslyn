@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -774,7 +778,8 @@ class F : E
             CompileAndVerify(source: source, expectedOutput: output);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39959")]
+        [WorkItem(39959, "https://github.com/dotnet/roslyn/issues/39959")]
         public void TestIntPtrUserDefinedConversions()
         {
             // IntPtr and UIntPtr violate the rules of user-defined conversions for 
@@ -1145,6 +1150,7 @@ unsafe class P
             // All of the cases above should pass semantic analysis:
             var comp = CreateCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             // However, we have not yet implemented lowering and code generation for decimal,
             // lifted operators, nullable conversions and unsafe code so only generate code for

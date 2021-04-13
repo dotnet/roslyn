@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -11,7 +13,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class Parser
+    Partial Friend Class Parser
 
         ' File: Parser.cpp
         ' Lines: 13261 - 13261
@@ -2420,7 +2422,7 @@ TryResync:
 
     Friend Structure XmlContext
         Private ReadOnly _start As XmlElementStartTagSyntax
-        Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
+        Private ReadOnly _content As SyntaxListBuilder(Of XmlNodeSyntax)
         Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)

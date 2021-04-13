@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -14,7 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private sealed class RuleSetFile : IRuleSetFile, IDisposable
         {
             private readonly VisualStudioRuleSetManager _ruleSetManager;
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
+            private readonly CancellationTokenSource _disposalCancellationSource;
+            private readonly CancellationToken _disposalToken;
 
             private FileChangeWatcher.IContext _fileChangeContext;
 
@@ -30,6 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 FilePath = filePath;
                 _ruleSetManager = ruleSetManager;
+
+                _disposalCancellationSource = new();
+                _disposalToken = _disposalCancellationSource.Token;
             }
 
             public void InitializeFileTracking(FileChangeWatcher fileChangeWatcher)
@@ -138,6 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public void Dispose()
             {
                 RemoveFromRuleSetManagerAndDisconnectFileTrackers();
+                _disposalCancellationSource.Cancel();
+                _disposalCancellationSource.Dispose();
             }
 
             private void RemoveFromRuleSetManagerAndDisconnectFileTrackers()
@@ -168,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // To avoid this, just queue up a Task to do the work on the foreground thread later, after
                 // the lock on the file change service has been released.
                 _ruleSetManager._foregroundNotificationService.RegisterNotification(
-                    () => IncludeUpdateCore(), _ruleSetManager._listener.BeginAsyncOperation("IncludeUpdated"));
+                    () => IncludeUpdateCore(), _ruleSetManager._listener.BeginAsyncOperation("IncludeUpdated"), _disposalToken);
             }
 
             private void IncludeUpdateCore()

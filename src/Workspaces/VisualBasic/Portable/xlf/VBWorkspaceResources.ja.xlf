@@ -12,15 +12,15 @@
         <target state="translated">属性、式、またはステートメントのみを明示的にすることができます</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">	
-        <source>R&amp;emove and Sort Imports</source>	
-        <target state="translated">インポートの削除と並べ替え(&amp;E)</target>	
-        <note />	
+      <trans-unit id="Remove_and_Sort_Imports">
+        <source>R&amp;emove and Sort Imports</source>
+        <target state="translated">インポートの削除と並べ替え(&amp;E)</target>
+        <note />
       </trans-unit>
-      <trans-unit id="Sort_Imports">	
-        <source>&amp;Sort Imports</source>	
-        <target state="translated">インポートの並べ替え(&amp;S)</target>	
-        <note />	
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">インポートの並べ替え(&amp;S)</target>
+        <note />
       </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>

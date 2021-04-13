@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -641,7 +645,7 @@ Block[B0] - Entry
                   Left: 
                     ILocalReferenceOperation: p (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'p = b ? &i1 : &i2')
                   Right: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'b ? &i1 : &i2')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'b ? &i1 : &i2')
 
             Next (Regular) Block[B5]
                 Leaving: {R2}

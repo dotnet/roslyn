@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 '-----------------------------------------------------------------------------
 ' Contains the definition of the Scanner, which produces tokens from text 
@@ -2216,7 +2218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        ' Parses the as-clause and initializer for both locals, fields an properties
+        ' Parses the as-clause and initializer for both locals, fields and properties
         ' Properties allow Attributes before the type and allow implicit line continuations before "FROM", otherwise, fields and
         ' properties allow the same syntax.
         Private Sub ParseFieldOrPropertyAsClauseAndInitializer(isProperty As Boolean, allowAsNewWith As Boolean, ByRef optionalAsClause As AsClauseSyntax, ByRef optionalInitializer As EqualsValueSyntax)
@@ -4179,14 +4181,6 @@ checkNullable:
 
             If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                 propertyParameters = ParseParameters(openParen, closeParen)
-
-                ' If we blow up on the parameters try to resume on the AS, =, or Implements
-                ' TODO - GreenSepList knows its error count. Expose it instead of recomputing it.
-                If propertyParameters.Count = 0 Then
-                    Dim unexpected = ResyncAt({SyntaxKind.AsKeyword, SyntaxKind.ImplementsKeyword, SyntaxKind.EqualsToken})
-                    closeParen = closeParen.AddTrailingSyntax(unexpected)
-                End If
-
                 optionalParameters = SyntaxFactory.ParameterList(openParen, propertyParameters, closeParen)
             Else
                 If ident.ContainsDiagnostics Then
@@ -6078,16 +6072,6 @@ checkNullable:
             _currentToken = Nothing
         End Sub
 
-        ''' <summary>
-        ''' returns true if feature is available
-        ''' </summary>
-        Private Function AssertLanguageFeature(
-            feature As ERRID
-        ) As Boolean
-
-            Return True
-        End Function
-
         '============ Methods to test properties of NodeKind. ====================
         '
 
@@ -6190,14 +6174,21 @@ checkNullable:
         ''' <summary>
         ''' Returns false and reports an error if the feature is un-available
         ''' </summary>
-        Friend Shared Function CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
+        Friend Shared Function CheckFeatureAvailability(diagnosticsOpt As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
             If Not CheckFeatureAvailability(languageVersion, feature) Then
-                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName, requiredVersion)
+                If diagnosticsOpt IsNot Nothing Then
+                    Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                    Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+                    diagnosticsOpt.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName, requiredVersion)
+                End If
+
                 Return False
             End If
             Return True
+        End Function
+
+        Friend Shared Function CheckFeatureAvailability(diagnostics As BindingDiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
+            Return CheckFeatureAvailability(diagnostics.DiagnosticBag, location, languageVersion, feature)
         End Function
 
     End Class

@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -9,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -52,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // Note: we cache this data once we've retrieved the actual syntax tree for a document.  This 
             // way, when we call into the actual classification service, it should be very quick for the 
             // it to get the tree if it needs it.
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private ITextSnapshot _lastProcessedSnapshot;
             private Document _lastProcessedDocument;
 
@@ -114,9 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             internal void IncrementReferenceCount()
-            {
-                _taggerReferenceCount++;
-            }
+                => _taggerReferenceCount++;
 
             internal void DecrementReferenceCountAndDisposeIfNecessary()
             {
@@ -155,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var document = workspace.CurrentSolution.GetDocument(documentId);
                     if (document != null)
                     {
-                        EnqueueProcessSnapshotAsync(document);
+                        EnqueueProcessSnapshot(document);
                     }
                 }
             }
@@ -176,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private void EnqueueProcessSnapshotAsync(Document newDocument)
+            private void EnqueueProcessSnapshot(Document newDocument)
             {
                 if (newDocument != null)
                 {
@@ -199,9 +203,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
-                // F#/typescript and other languages that doesn't support syntax tree will return null here.
-                _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
+                using (latencyTracker)
+                {
+                    // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
+                    // F#/typescript and other languages that doesn't support syntax tree will return null here.
+                    _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                }
 
                 lock (_gate)
                 {
@@ -231,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         return;
                     }
                 }
+
                 this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(changeSpan));
             }
 
@@ -412,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 ClassificationUtilities.ReturnClassifiedSpanList(tempList);
             }
 
-            private void AddClassifiedSpansForTokens(
+            private static void AddClassifiedSpansForTokens(
                 IClassificationService classificationService,
                 SnapshotSpan span,
                 List<ClassifiedSpan> classifiedSpans)
@@ -462,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                             // make sure in case of parse config change, we re-colorize whole document. not just edited section.
                             var configChanged = !object.Equals(oldProject.ParseOptions, newProject.ParseOptions);
-                            EnqueueProcessSnapshotAsync(newProject.GetDocument(documentId));
+                            EnqueueProcessSnapshot(newProject.GetDocument(documentId));
                             break;
                         }
 
@@ -547,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var openDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
                     if (openDocumentId == documentId)
                     {
-                        EnqueueProcessSnapshotAsync(newSolution.GetDocument(documentId));
+                        EnqueueProcessSnapshot(newSolution.GetDocument(documentId));
                     }
                 }
             }

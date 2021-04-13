@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -458,7 +462,7 @@ class Test
   IL_003f:  ldc.i4.3
   IL_0040:  newarr     ""int""
   IL_0045:  dup
-  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_004b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0050:  callvirt   ""int C.this[params int[]].get""
   IL_0055:  pop
@@ -466,7 +470,7 @@ class Test
   IL_0057:  ldc.i4.3
   IL_0058:  newarr     ""int""
   IL_005d:  dup
-  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0063:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0068:  callvirt   ""int C.this[params int[]].get""
   IL_006d:  pop
@@ -606,7 +610,7 @@ class Test
   IL_003f:  ldc.i4.3
   IL_0040:  newarr     ""int""
   IL_0045:  dup
-  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_004b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0050:  ldc.i4.4
   IL_0051:  callvirt   ""void C.this[params int[]].set""
@@ -614,7 +618,7 @@ class Test
   IL_0057:  ldc.i4.3
   IL_0058:  newarr     ""int""
   IL_005d:  dup
-  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0063:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0068:  ldc.i4.4
   IL_0069:  callvirt   ""void C.this[params int[]].set""
@@ -800,7 +804,7 @@ class Test
   IL_0084:  ldc.i4.3
   IL_0085:  newarr     ""int""
   IL_008a:  dup
-  IL_008b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_008b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0090:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0095:  stloc.3
   IL_0096:  ldloc.2
@@ -818,7 +822,7 @@ class Test
   IL_00aa:  ldc.i4.3
   IL_00ab:  newarr     ""int""
   IL_00b0:  dup
-  IL_00b1:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00b1:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00b6:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00bb:  stloc.3
   IL_00bc:  ldloc.2
@@ -1030,7 +1034,7 @@ class Test
   IL_00a2:  ldc.i4.3
   IL_00a3:  newarr     ""int""
   IL_00a8:  dup
-  IL_00a9:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00a9:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00ae:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00b3:  stloc.2
   IL_00b4:  ldloc.1
@@ -1047,7 +1051,7 @@ class Test
   IL_00cb:  ldc.i4.3
   IL_00cc:  newarr     ""int""
   IL_00d1:  dup
-  IL_00d2:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00d2:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00d7:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00dc:  stloc.2
   IL_00dd:  ldloc.1
@@ -1125,6 +1129,58 @@ class Test
   IL_0022:  call       ""void System.Console.WriteLine(int)""
   IL_0027:  ret
 }
+");
+        }
+
+        [Fact]
+        public void IndexerOverrideNotAllAccessors_DefaultParameterValues()
+        {
+            var text = @"
+using System;
+
+class Base
+{
+    public virtual int this[int x, int y = 1]
+    {
+        get
+        {
+            Console.WriteLine(""Base.get y: "" + y);
+            return y;
+        }
+        set { Console.WriteLine(""Base.set y: "" + y); }
+    }
+}
+
+class Override : Base
+{
+    public override int this[int x, int y = 2]
+    {
+        set { Console.WriteLine(""Override.set y: "" + y); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Base b = new Base();
+        _ = b[0];
+        b[0] = 0;
+
+        Override o = new Override();
+        _ = o[0];
+        o[0] = 0;
+        o[0] += 0;
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput:
+@"Base.get y: 1
+Base.set y: 1
+Base.get y: 1
+Override.set y: 2
+Base.get y: 1
+Override.set y: 1
 ");
         }
 

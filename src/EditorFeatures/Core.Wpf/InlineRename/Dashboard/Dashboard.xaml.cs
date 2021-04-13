@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -158,14 +164,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         internal void FocusNextElement()
-        {
-            FocusElement(_tabNavigableChildren.First(), i => i == _tabNavigableChildren.Count - 1 ? 0 : i + 1);
-        }
+            => FocusElement(_tabNavigableChildren.First(), i => i == _tabNavigableChildren.Count - 1 ? 0 : i + 1);
 
         internal void FocusPreviousElement()
-        {
-            FocusElement(_tabNavigableChildren.Last(), i => i == 0 ? _tabNavigableChildren.Count - 1 : i - 1);
-        }
+            => FocusElement(_tabNavigableChildren.Last(), i => i == 0 ? _tabNavigableChildren.Count - 1 : i - 1);
 
         private void OnPresentationSourceChanged(object sender, SourceChangedEventArgs args)
         {
@@ -250,9 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected override AutomationPeer OnCreateAutomationPeer()
-        {
-            return new DashboardAutomationPeer(this, _model.OriginalName);
-        }
+            => new DashboardAutomationPeer(this, _model.OriginalName);
 
         private void DisconnectFromPresentationSource()
         {
@@ -272,10 +272,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void FindAdornmentCanvas_LayoutUpdated(object sender, EventArgs e)
-        {
-            PositionDashboard();
-        }
+            => PositionDashboard();
 
+#pragma warning disable CA1822 // Mark members as static - used in xaml
         public string RenameOverloads => EditorFeaturesResources.Include_overload_s;
         public Visibility RenameOverloadsVisibility => _model.RenameOverloadsVisibility;
         public bool IsRenameOverloadsEditable => _model.IsRenameOverloadsEditable;
@@ -287,6 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string RenameInstructions => EditorFeaturesResources.Modify_any_highlighted_location_to_begin_renaming;
         public string ApplyToolTip { get { return EditorFeaturesResources.Apply3 + " (Enter)"; } }
         public string CancelToolTip { get { return EditorFeaturesResources.Cancel + " (Esc)"; } }
+#pragma warning restore CA1822 // Mark members as static
 
         private void OnElementSizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -316,9 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void OnTextViewLostAggregateFocus(object sender, EventArgs e)
-        {
-            this.Visibility = Visibility.Collapsed;
-        }
+            => this.Visibility = Visibility.Collapsed;
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -327,9 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)
-        {
-            Commit();
-        }
+            => Commit();
 
         private void Commit()
         {
@@ -345,6 +341,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // handle that case gracefully
                 var notificationService = _model.Session.Workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+                // Show a nice error to the user via an info bar
+                var errorReportingService = _model.Session.Workspace.Services.GetService<IErrorReportingService>();
+                if (errorReportingService is null)
+                {
+                    return;
+                }
+
+                errorReportingService.ShowGlobalErrorInfo(
+                    string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    new InfoBarUI(
+                        WorkspacesResources.Show_Stack_Trace,
+                        InfoBarUI.UIKind.HyperLink,
+                        () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
             }
         }
 
@@ -402,9 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected override void OnMouseUp(MouseButtonEventArgs e)
-        {
-            e.Handled = true;
-        }
+            => e.Handled = true;
 
         protected override void OnIsKeyboardFocusWithinChanged(DependencyPropertyChangedEventArgs e)
         {

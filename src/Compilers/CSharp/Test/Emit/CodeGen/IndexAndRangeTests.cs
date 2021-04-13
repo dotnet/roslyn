@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -36,6 +40,121 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             Assert.Equal(methodName, symbol.Name);
             Assert.Equal(2, symbol.Parameters.Length);
             Assert.Equal(containingTypeName, symbol.ContainingType.Name);
+        }
+
+        [Fact]
+        public void ExpressionTreePatternIndexAndRange()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+struct S
+{
+    public int Length => 0;
+    public S Slice(int start, int length) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int[], int>> e = (int[] a) => a[new Index(0, true)]; // 1
+        Expression<Func<List<int>, int>> e2 = (List<int> a) => a[new Index(0, true)]; // 2
+        
+        Expression<Func<int[], int[]>> e3 = (int[] a) => a[new Range(0, 1)]; // 3
+        Expression<Func<S, S>> e4 = (S s) => s[new Range(0, 1)]; // 4
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(
+                new[] { src, TestSources.GetSubArray, });
+            comp.VerifyEmitDiagnostics(
+                // (16,55): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<int[], int>> e = (int[] a) => a[new Index(0, true)]; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(16, 55),
+                // (17,64): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<List<int>, int>> e2 = (List<int> a) => a[new Index(0, true)]; // 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Index(0, true)]").WithLocation(17, 64),
+                // (19,58): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<int[], int[]>> e3 = (int[] a) => a[new Range(0, 1)]; // 3
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "a[new Range(0, 1)]").WithLocation(19, 58),
+                // (20,46): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<S, S>> e4 = (S s) => s[new Range(0, 1)]; // 4
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer, "s[new Range(0, 1)]").WithLocation(20, 46)
+            );
+        }
+
+        [Fact]
+        public void ExpressionTreeFromEndIndexAndRange()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<Index>> e = () => ^1;
+        Expression<Func<Range>> e2 = () => 1..2;
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (10,43): error CS8791: An expression tree may not contain a from-end index ('^') expression.
+                //         Expression<Func<Index>> e = () => ^1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsFromEndIndexExpression, "^1").WithLocation(10, 43),
+                // (11,44): error CS8792: An expression tree may not contain a range ('..') expression.
+                //         Expression<Func<Range>> e2 = () => 1..2;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsRangeExpression, "1..2").WithLocation(11, 44)
+            );
+        }
+
+        [Fact]
+        public void PatternIndexArray()
+        {
+            var src = @"
+class C
+{
+    static int M1(int[] arr) => arr[^1];
+    static char M2(string s) => s[^1];
+}
+";
+            var verifier = CompileAndVerifyWithIndexAndRange(src);
+            // Code gen for the following two should look basically
+            // the same, except that string will use Length/indexer
+            // and array will use ldlen/ldelem, and string may have
+            // more temporaries
+            verifier.VerifyIL("C.M1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldlen
+  IL_0003:  conv.i4
+  IL_0004:  ldc.i4.1
+  IL_0005:  sub
+  IL_0006:  ldelem.i4
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  callvirt   ""int string.Length.get""
+  IL_0007:  ldc.i4.1
+  IL_0008:  sub
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""char string.this[int].get""
+  IL_0010:  ret
+}");
         }
 
         [Fact]
@@ -905,7 +1024,7 @@ class C
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.D033850C1A3F6F1209A6CD84146E8561DDC73C79""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.B35A10C764778866E34111165FC69660C6171DF0CB0141E39FA0217EF7A97646""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  call       ""System.Span<int> System.Span<int>.op_Implicit(int[])""
   IL_0016:  stloc.0
@@ -1080,7 +1199,7 @@ class C
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.D033850C1A3F6F1209A6CD84146E8561DDC73C79""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.B35A10C764778866E34111165FC69660C6171DF0CB0141E39FA0217EF7A97646""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  call       ""System.Span<int> System.Span<int>.op_Implicit(int[])""
   IL_0016:  stloc.0
@@ -1400,11 +1519,9 @@ class C
 5");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       82 (0x52)
+  // Code size       67 (0x43)
   .maxstack  4
-  .locals init (int& V_0, //r2
-                int[] V_1,
-                System.Index V_2)
+  .locals init (int& V_0) //r2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.2
   IL_0002:  ldelema    ""int""
@@ -1412,40 +1529,34 @@ class C
   IL_0008:  ldind.i4
   IL_0009:  call       ""void System.Console.WriteLine(int)""
   IL_000e:  ldarg.0
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  ldc.i4.2
-  IL_0012:  ldc.i4.1
-  IL_0013:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0018:  stloc.2
-  IL_0019:  ldloca.s   V_2
-  IL_001b:  ldloc.1
-  IL_001c:  ldlen
-  IL_001d:  conv.i4
-  IL_001e:  call       ""int System.Index.GetOffset(int)""
-  IL_0023:  ldelema    ""int""
-  IL_0028:  stloc.0
-  IL_0029:  ldloc.0
-  IL_002a:  ldind.i4
-  IL_002b:  call       ""void System.Console.WriteLine(int)""
-  IL_0030:  ldloc.0
-  IL_0031:  ldc.i4.7
-  IL_0032:  stind.i4
-  IL_0033:  dup
-  IL_0034:  ldind.i4
-  IL_0035:  call       ""void System.Console.WriteLine(int)""
-  IL_003a:  ldloc.0
-  IL_003b:  ldind.i4
-  IL_003c:  call       ""void System.Console.WriteLine(int)""
-  IL_0041:  dup
-  IL_0042:  ldc.i4.5
-  IL_0043:  stind.i4
-  IL_0044:  ldind.i4
-  IL_0045:  call       ""void System.Console.WriteLine(int)""
-  IL_004a:  ldloc.0
-  IL_004b:  ldind.i4
-  IL_004c:  call       ""void System.Console.WriteLine(int)""
-  IL_0051:  ret
+  IL_000f:  dup
+  IL_0010:  ldlen
+  IL_0011:  conv.i4
+  IL_0012:  ldc.i4.2
+  IL_0013:  sub
+  IL_0014:  ldelema    ""int""
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ldloc.0
+  IL_0022:  ldc.i4.7
+  IL_0023:  stind.i4
+  IL_0024:  dup
+  IL_0025:  ldind.i4
+  IL_0026:  call       ""void System.Console.WriteLine(int)""
+  IL_002b:  ldloc.0
+  IL_002c:  ldind.i4
+  IL_002d:  call       ""void System.Console.WriteLine(int)""
+  IL_0032:  dup
+  IL_0033:  ldc.i4.5
+  IL_0034:  stind.i4
+  IL_0035:  ldind.i4
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  ldloc.0
+  IL_003c:  ldind.i4
+  IL_003d:  call       ""void System.Console.WriteLine(int)""
+  IL_0042:  ret
 }");
         }
 
@@ -1621,6 +1732,82 @@ class C
 }");
         }
 
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
+        public void FakeIndexIndexerOnDefaultStruct()
+        {
+            var verifier = CompileAndVerifyWithIndexAndRange(@"
+using System;
+
+struct NotASpan
+{
+    public int Length => 1;
+
+    public int this[int index] => 0;
+}
+
+class C
+{
+    static int Repro() => default(NotASpan)[^0];
+
+    static void Main() => Repro();
+}");
+
+            verifier.VerifyIL("C.Repro", @"
+{
+    // Code size       25 (0x19)
+    .maxstack  3
+    .locals init (int V_0,
+                  NotASpan V_1)
+    IL_0000:  ldloca.s   V_1
+    IL_0002:  dup
+    IL_0003:  initobj    ""NotASpan""
+    IL_0009:  dup
+    IL_000a:  call       ""int NotASpan.Length.get""
+    IL_000f:  ldc.i4.0
+    IL_0010:  sub
+    IL_0011:  stloc.0
+    IL_0012:  ldloc.0
+    IL_0013:  call       ""int NotASpan.this[int].get""
+    IL_0018:  ret
+}");
+        }
+
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
+        public void FakeIndexIndexerOnStructConstructor()
+        {
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+
+class C
+{
+    static byte Repro() => new Span<byte>(new byte[] { })[^1];
+}");
+
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("C.Repro", @"
+ {
+    // Code size       31 (0x1f)
+    .maxstack  3
+    .locals init (int V_0,
+                  System.Span<byte> V_1)
+    IL_0000:  ldc.i4.0
+    IL_0001:  newarr     ""byte""
+    IL_0006:  newobj     ""System.Span<byte>..ctor(byte[])""
+    IL_000b:  stloc.1
+    IL_000c:  ldloca.s   V_1
+    IL_000e:  dup
+    IL_000f:  call       ""int System.Span<byte>.Length.get""
+    IL_0014:  ldc.i4.1
+    IL_0015:  sub
+    IL_0016:  stloc.0
+    IL_0017:  ldloc.0
+    IL_0018:  call       ""ref byte System.Span<byte>.this[int].get""
+    IL_001d:  ldind.u1
+    IL_001e:  ret
+}");
+        }
+
         [Fact]
         public void FakeRangeIndexerStringOpenEnd()
         {
@@ -1678,7 +1865,7 @@ class C
 11");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       55 (0x37)
+  // Code size       40 (0x28)
   .maxstack  3
   .locals init (int[] V_0,
                 System.Index V_1)
@@ -1697,20 +1884,14 @@ class C
   IL_0015:  ldelem.i4
   IL_0016:  call       ""void System.Console.WriteLine(int)""
   IL_001b:  ldarg.0
-  IL_001c:  stloc.0
-  IL_001d:  ldloc.0
-  IL_001e:  ldc.i4.1
+  IL_001c:  dup
+  IL_001d:  ldlen
+  IL_001e:  conv.i4
   IL_001f:  ldc.i4.1
-  IL_0020:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0025:  stloc.1
-  IL_0026:  ldloca.s   V_1
-  IL_0028:  ldloc.0
-  IL_0029:  ldlen
-  IL_002a:  conv.i4
-  IL_002b:  call       ""int System.Index.GetOffset(int)""
-  IL_0030:  ldelem.i4
-  IL_0031:  call       ""void System.Console.WriteLine(int)""
-  IL_0036:  ret
+  IL_0020:  sub
+  IL_0021:  ldelem.i4
+  IL_0022:  call       ""void System.Console.WriteLine(int)""
+  IL_0027:  ret
 }");
         }
 
@@ -1734,7 +1915,7 @@ class C
     }
 }";
             // cover case in ConvertToArrayIndex
-            var comp = CreateCompilationWithIndex(source, WithNonNullTypesTrue(TestOptions.DebugExe));
+            var comp = CreateCompilationWithIndex(source, WithNullableEnable(TestOptions.DebugExe));
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "211");
         }

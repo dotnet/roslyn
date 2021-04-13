@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -17,15 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
     internal static class Extensions
     {
-        /// <summary>
-        /// format span
-        /// </summary>
-        public static void Format(this ITextBuffer buffer, TextSpan span, IEnumerable<AbstractFormattingRule> rules)
-        {
-            var snapshot = buffer.CurrentSnapshot;
-            snapshot.FormatAndApplyToBuffer(span, rules, CancellationToken.None);
-        }
-
         /// <summary>
         /// create caret preserving edit transaction with automatic code change undo merging policy
         /// </summary>
@@ -54,25 +49,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// insert text to workspace and get updated version of the document
         /// </summary>
         public static Document InsertText(this Document document, int position, string text, CancellationToken cancellationToken = default)
-        {
-            return document.ReplaceText(new TextSpan(position, 0), text, cancellationToken);
-        }
+            => document.ReplaceText(new TextSpan(position, 0), text, cancellationToken);
 
         /// <summary>
         /// replace text to workspace and get updated version of the document
         /// </summary>
         public static Document ReplaceText(this Document document, TextSpan span, string text, CancellationToken cancellationToken)
-        {
-            return document.ApplyTextChange(new TextChange(span, text), cancellationToken);
-        }
+            => document.ApplyTextChange(new TextChange(span, text), cancellationToken);
 
         /// <summary>
         /// apply text changes to workspace and get updated version of the document
         /// </summary>
         public static Document ApplyTextChange(this Document document, TextChange textChange, CancellationToken cancellationToken)
-        {
-            return document.ApplyTextChanges(SpecializedCollections.SingletonEnumerable(textChange), cancellationToken);
-        }
+            => document.ApplyTextChanges(SpecializedCollections.SingletonEnumerable(textChange), cancellationToken);
 
         /// <summary>
         /// apply text changes to workspace and get updated version of the document
@@ -110,25 +99,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             return new SnapshotSpan(open, close);
         }
 
-        public static int GetValueInValidRange(this int value, int smallest, int largest)
-        {
-            return Math.Max(smallest, Math.Min(value, largest));
-        }
-
-        public static bool PositionInSnapshot(this int position, ITextSnapshot snapshot)
-        {
-            return position.GetValueInValidRange(0, Math.Max(0, snapshot.Length - 1)) == position;
-        }
-
         public static SnapshotPoint? GetCaretPosition(this IBraceCompletionSession session)
-        {
-            return GetCaretPoint(session, session.SubjectBuffer);
-        }
+            => GetCaretPoint(session, session.SubjectBuffer);
 
         // get the caret position within the given buffer
         private static SnapshotPoint? GetCaretPoint(this IBraceCompletionSession session, ITextBuffer buffer)
-        {
-            return session.TextView.Caret.Position.Point.GetPoint(buffer, PositionAffinity.Predecessor);
-        }
+            => session.TextView.Caret.Position.Point.GetPoint(buffer, PositionAffinity.Predecessor);
     }
 }

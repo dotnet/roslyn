@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// with the annotations attached.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public sealed class SyntaxAnnotation : IObjectWritable, IEquatable<SyntaxAnnotation>
+    public sealed class SyntaxAnnotation : IObjectWritable, IEquatable<SyntaxAnnotation?>
     {
         static SyntaxAnnotation()
         {
@@ -30,21 +32,21 @@ namespace Microsoft.CodeAnalysis
         private static long s_nextId;
 
         // use a value identity instead of object identity so a deserialized instance matches the original instance.
-        public string Kind { get; }
-        public string Data { get; }
+        public string? Kind { get; }
+        public string? Data { get; }
 
         public SyntaxAnnotation()
         {
             _id = System.Threading.Interlocked.Increment(ref s_nextId);
         }
 
-        public SyntaxAnnotation(string kind)
+        public SyntaxAnnotation(string? kind)
             : this()
         {
             this.Kind = kind;
         }
 
-        public SyntaxAnnotation(string kind, string data)
+        public SyntaxAnnotation(string? kind, string? data)
             : this(kind)
         {
             this.Data = data;
@@ -71,42 +73,25 @@ namespace Microsoft.CodeAnalysis
             return string.Format("Annotation: Kind='{0}' Data='{1}'", this.Kind ?? "", this.Data ?? "");
         }
 
-        public bool Equals(SyntaxAnnotation other)
+        public bool Equals(SyntaxAnnotation? other)
         {
-            return (object)other != null && _id == other._id;
+            return other is object && _id == other._id;
         }
 
-        public static bool operator ==(SyntaxAnnotation left, SyntaxAnnotation right)
+        public static bool operator ==(SyntaxAnnotation? left, SyntaxAnnotation? right)
         {
-            if ((object)left == (object)right)
+            if (left is null)
             {
-                return true;
-            }
-
-            if ((object)left == null || (object)right == null)
-            {
-                return false;
+                return right is null;
             }
 
             return left.Equals(right);
         }
 
-        public static bool operator !=(SyntaxAnnotation left, SyntaxAnnotation right)
-        {
-            if ((object)left == (object)right)
-            {
-                return false;
-            }
+        public static bool operator !=(SyntaxAnnotation? left, SyntaxAnnotation? right) =>
+            !(left == right);
 
-            if ((object)left == null || (object)right == null)
-            {
-                return true;
-            }
-
-            return !left.Equals(right);
-        }
-
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as SyntaxAnnotation);
         }

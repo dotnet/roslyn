@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
@@ -121,7 +126,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // We don't want to block up file removal on the UI thread since we want that path to stay asynchronous.
                 CodeModelService.DetachFormatTrackingToBuffer(_invisibleEditor.TextBuffer);
 
-                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(() => { _invisibleEditor.Dispose(); });
+                State.ProjectCodeModelFactory.ScheduleDeferredCleanupTask(
+                    cancellationToken =>
+                    {
+                        // Ignore cancellationToken: we always need to call Dispose since it triggers the file save.
+                        _ = cancellationToken;
+
+                        _invisibleEditor.Dispose();
+                    });
             }
 
             base.Shutdown();
@@ -218,9 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         internal void OnCodeElementDeleted(SyntaxNodeKey nodeKey)
-        {
-            _codeElementTable.Remove(nodeKey);
-        }
+            => _codeElementTable.Remove(nodeKey);
 
         internal T GetOrCreateCodeElement<T>(SyntaxNode node)
         {
@@ -320,8 +330,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var result = action(document);
 
-                var formatted = Formatter.FormatAsync(result, Formatter.Annotation).WaitAndGetResult_CodeModel(CancellationToken.None);
-                formatted = Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).WaitAndGetResult_CodeModel(CancellationToken.None);
+                var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(true);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(true);
+
+                    return formatted;
+                });
 
                 ApplyChanges(workspace, formatted);
             });
@@ -374,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return true;
             }
 
-            if (!TryGetDocumentId(out var documentId) && _previousDocument != null)
+            if (!TryGetDocumentId(out _) && _previousDocument != null)
             {
                 document = _previousDocument;
             }
@@ -397,41 +412,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal SyntaxTree GetSyntaxTree()
         {
-            return GetDocument()
-                .GetSyntaxTreeAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return GetDocument().GetSyntaxTreeSynchronously(CancellationToken.None);
         }
 
         internal SyntaxNode GetSyntaxRoot()
         {
-            return GetDocument()
-                .GetSyntaxRootAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return GetDocument().GetSyntaxRootSynchronously(CancellationToken.None);
         }
 
         internal SemanticModel GetSemanticModel()
-        {
-            return GetDocument()
-                .GetSemanticModelAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
-        }
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetSemanticModelAsync(CancellationToken.None);
+            });
 
         internal Compilation GetCompilation()
-        {
-            return GetDocument().Project
-                .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
-        }
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument().Project
+                    .GetCompilationAsync(CancellationToken.None);
+            });
 
         internal ProjectId GetProjectId()
-        {
-            return GetDocumentId().ProjectId;
-        }
+            => GetDocumentId().ProjectId;
 
         internal SyntaxNode LookupNode(SyntaxNodeKey nodeKey)
-        {
-            return CodeModelService.LookupNode(nodeKey, GetSyntaxTree());
-        }
+            => CodeModelService.LookupNode(nodeKey, GetSyntaxTree());
 
         internal TSyntaxNode LookupNode<TSyntaxNode>(SyntaxNodeKey nodeKey)
             where TSyntaxNode : SyntaxNode
@@ -472,9 +479,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeFunction AddFunction(string name, EnvDTE.vsCMFunction kind, object type, object position, EnvDTE.vsCMAccess access)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public EnvDTE80.CodeImport AddImport(string name, object position, string alias)
         {
@@ -509,9 +514,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeVariable AddVariable(string name, object type, object position, EnvDTE.vsCMAccess access)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public EnvDTE.CodeElement CodeElementFromPoint(EnvDTE.TextPoint point, EnvDTE.vsCMElement scope)
         {
@@ -682,7 +685,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(() =>
+                            Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None));
+
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 
                         // done using batch document
@@ -745,9 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeElement ElementFromID(string id)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public EnvDTE80.vsCMParseStatus ParseStatus
         {
@@ -761,14 +764,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public void Synchronize()
-        {
-            FireEvents();
-        }
+            => FireEvents();
 
         EnvDTE.CodeElements ICodeElementContainer<AbstractCodeElement>.GetCollection()
-        {
-            return CodeElements;
-        }
+            => CodeElements;
 
         internal List<GlobalNodeKey> GetCurrentNodeKeys()
         {

@@ -30,17 +30,18 @@ This document provides guidance for thinking about language interactions and tes
     - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
 - Performance and stress testing
+- Can build VS
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-    - types
-    - methods
-    - fields
-    - properties (including get/set accessors)
-    - events (including add/remove accessors)
+- type declarations (class, record with or without positional members, struct, interface, type parameter)
+- methods
+- fields
+- properties (including get/set/init accessors)
+- events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
-- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`)
+- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
 - Literals
@@ -54,7 +55,7 @@ This document provides guidance for thinking about language interactions and tes
 - Partial method
 - Named and optional parameters
 - String interpolation
-- Properties (read-write, read-only, write-only, auto-property, expression-bodied)
+- Properties (read-write, read-only, init-only, write-only, auto-property, expression-bodied)
 - Interfaces (implicit vs. explicit interface member implementation)
 - Delegates
 - Multi-declaration
@@ -62,6 +63,8 @@ This document provides guidance for thinking about language interactions and tes
 - Dynamic
 - Ref structs, Readonly structs
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
+- SkipLocalsInit
+- Method override or explicit implementation with `where T : { class, struct, default }`
  
 # Code
 - Operators (see Eric's list below)
@@ -91,6 +94,9 @@ This document provides guidance for thinking about language interactions and tes
 - Patterns (constant, declaration, `var`, positional, property, and discard forms)
 - Switch expressions
 - Nullability annotations (`?`, attributes) and analysis
+- If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
+- If you add a new expression form that requires spilling, test it in the catch filter.
+- extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -99,6 +105,7 @@ This document provides guidance for thinking about language interactions and tes
 - modopt and modreq
 - ref assemblies
 - extern alias
+- UnmanagedCallersOnly
 - telemetry
 
 # Testing in interaction with other components
@@ -110,7 +117,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - "go to", Find All References, and renaming
     - cref comments
     - UpgradeProject code fixer
-    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
+    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/main/docs/contributing/IDE%20Test%20Plan.md)
 
 - Debugger / EE
     - Stepping, setting breakpoints
@@ -208,6 +215,7 @@ a[e]
 x++ 
 x-- 
 new X() 
+new() 
 typeof(T) 
 default(T)
 default 
@@ -306,6 +314,8 @@ __makeref( x )
 - Interpolated string
 - Tuple literal
 - Tuple
+- Default literal
+- Implicit object creation (target-typed new)
 
 ## Types 
 
@@ -343,6 +353,12 @@ __makeref( x )
 - Declaration Pattern
 - Constant Pattern
 - Recursive Pattern
+- Parenthesized Pattern
+- `and` Pattern
+- `or` Pattern
+- `not` Pattern
+- Relational Pattern
+- Type Pattern
 
 ## Metadata table numbers / token prefixes 
  

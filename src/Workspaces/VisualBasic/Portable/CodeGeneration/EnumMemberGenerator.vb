@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
@@ -91,8 +93,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                 If numericLiteral.Token.ValueText = "1" Then
                                     ' The user is left shifting ones, stick with that pattern
                                     Dim shiftValue = IntegerUtilities.LogBase2(value)
+
+                                    ' Using the numericLiteral text will ensure the correct type character, ignoring the None that is passed in below
                                     Return SyntaxFactory.LeftShiftExpression(
-                                    left:=SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken("1", LiteralBase.Decimal, TypeCharacter.None, 1)),
+                                    left:=SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(numericLiteral.Token.Text, LiteralBase.Decimal, TypeCharacter.None, 1)),
                                     right:=SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(shiftValue.ToString(), LiteralBase.Decimal, TypeCharacter.None, IntegerUtilities.ToUnsigned(shiftValue))))
                                 End If
                             End If

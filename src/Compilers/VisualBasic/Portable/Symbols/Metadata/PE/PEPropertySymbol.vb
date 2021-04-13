@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
         Private _lazyDocComment As Tuple(Of CultureInfo, String)
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         ' mutable because we only know this part after the property is constructed.
         ' Integer because we want to use CMPXCHG on it
@@ -68,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If propEx IsNot Nothing Then
-                result._lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(result))
+                result._lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(result)))
             End If
 
             Return result
@@ -112,8 +114,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             _parameters = GetParameters(Me, _getMethod, _setMethod, propertyParams, parametersMatch)
 
             If Not signaturesMatch OrElse Not parametersMatch OrElse
-               getEx IsNot Nothing OrElse setEx IsNot Nothing OrElse mrEx IsNot Nothing Then
-                _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(Me))
+               getEx IsNot Nothing OrElse setEx IsNot Nothing OrElse mrEx IsNot Nothing OrElse
+               propertyParams.Any(Function(p) p.RefCustomModifiers.AnyRequired() OrElse p.CustomModifiers.AnyRequired()) Then
+                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.QualifiedName(Me)))
             End If
 
             If _getMethod IsNot Nothing Then
@@ -531,12 +534,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return PEDocumentationCommentUtils.GetDocumentationComment(Me, _containingType.ContainingPEModule, preferredCulture, cancellationToken, _lazyDocComment)
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfo())
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
         Friend ReadOnly Property Handle As PropertyDefinitionHandle

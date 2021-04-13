@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -14,14 +19,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             private readonly IList<ITypeParameterSymbol> _typeParametersInDeclaration;
             private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList;
-            private readonly IList<VariableInfo> _variables;
+            private readonly ImmutableArray<VariableInfo> _variables;
             private readonly VariableInfo _variableToUseAsReturnValue;
 
             public AnalyzerResult(
                 SemanticDocument document,
                 IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
                 IEnumerable<ITypeParameterSymbol> typeParametersInConstraintList,
-                IList<VariableInfo> variables,
+                ImmutableArray<VariableInfo> variables,
                 VariableInfo variableToUseAsReturnValue,
                 ITypeSymbol returnType,
                 bool awaitTaskReturn,
@@ -150,22 +155,18 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition(CancellationToken cancellationToken)
+            public ImmutableArray<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition(CancellationToken cancellationToken)
             {
-                return _variables
-                           .Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitIn ||
-                                       v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
+                return _variables.WhereAsArray(
+                    v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitIn ||
+                         v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
             }
 
             public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)
-            {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
-            }
+                => _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
 
             public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSite(CancellationToken cancellationToken)
-            {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
-            }
+                => _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
 
             public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete(CancellationToken cancellationToken)
             {

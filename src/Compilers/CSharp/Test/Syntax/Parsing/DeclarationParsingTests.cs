@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -39,31 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ea.AliasKeyword);
             Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.Kind());
             Assert.False(ea.AliasKeyword.IsMissing);
-            Assert.NotEqual(default, ea.Identifier);
-            Assert.Equal("a", ea.Identifier.ToString());
-            Assert.NotEqual(default, ea.SemicolonToken);
-        }
-
-        [Fact]
-        public void TestExternWithoutAlias()
-        {
-            var text = "extern a;";
-            var file = this.ParseFile(text);
-
-            Assert.NotNull(file);
-            Assert.Equal(1, file.Externs.Count);
-            Assert.Equal(text, file.ToString());
-            var errors = file.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
-
-            var ea = file.Externs[0];
-
-            Assert.NotEqual(default, ea.ExternKeyword);
-            Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.Kind());
-            Assert.NotEqual(default, ea.AliasKeyword);
-            Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.Kind());
-            Assert.True(ea.AliasKeyword.IsMissing);
             Assert.NotEqual(default, ea.Identifier);
             Assert.Equal("a", ea.Identifier.ToString());
             Assert.NotEqual(default, ea.SemicolonToken);
@@ -342,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotEqual(default, ad.OpenBracketToken);
-            Assert.NotEqual(default, ad.Target);
+            Assert.NotNull(ad.Target);
             Assert.NotEqual(default, ad.Target.Identifier);
             Assert.Equal(@"as\u0073embly", ad.Target.Identifier.ToString());
             Assert.Equal("assembly", ad.Target.Identifier.ValueText);
@@ -3021,14 +3000,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
-            Assert.NotEqual(default, ms.ParameterList.Parameters[0].Type);
+            Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
             Assert.NotEqual(default, ms.ParameterList.Parameters[0].Identifier);
             Assert.Equal("d", ms.ParameterList.Parameters[0].Identifier.ToString());
 
             Assert.Equal(0, ms.ParameterList.Parameters[1].AttributeLists.Count);
             Assert.Equal(0, ms.ParameterList.Parameters[1].Modifiers.Count);
-            Assert.NotEqual(default, ms.ParameterList.Parameters[1].Type);
+            Assert.NotNull(ms.ParameterList.Parameters[1].Type);
             Assert.Equal("e", ms.ParameterList.Parameters[1].Type.ToString());
             Assert.NotEqual(default, ms.ParameterList.Parameters[1].Identifier);
             Assert.Equal("f", ms.ParameterList.Parameters[1].Identifier.ToString());
@@ -3036,7 +3015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
-            Assert.NotEqual(default, ms.Body);
+            Assert.NotNull(ms.Body);
             Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
             Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
@@ -3047,7 +3026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "class a { b X(" + SyntaxFacts.GetText(mod) + " c d) { } }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
@@ -3848,7 +3827,7 @@ class Class1<T>{
             var text = "class a { b c = { }; }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
@@ -3872,15 +3851,15 @@ class Class1<T>{
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
-            Assert.NotEqual(default, fs.Declaration.Type);
+            Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
             Assert.NotEqual(default, fs.Declaration.Variables[0].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(fs.Declaration.Variables[0].ArgumentList);
-            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer);
+            Assert.NotNull(fs.Declaration.Variables[0].Initializer);
             Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.EqualsToken);
-            Assert.NotEqual(default, fs.Declaration.Variables[0].Initializer.Value);
+            Assert.NotNull(fs.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ArrayInitializerExpression, fs.Declaration.Variables[0].Initializer.Value.Kind());
             Assert.Equal("{ }", fs.Declaration.Variables[0].Initializer.Value.ToString());
             Assert.NotEqual(default, fs.SemicolonToken);
@@ -3893,7 +3872,7 @@ class Class1<T>{
             var text = "class a { b c, d, e; }";
             var file = this.ParseFile(text);
 
-            Assert.NotEqual(default, file);
+            Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
@@ -5746,10 +5725,10 @@ partial class PartialPartial
         {
             var text = @"partial enum E{}";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
-                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
@@ -6260,7 +6239,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.PropertyDeclaration);
                     {
@@ -6268,7 +6247,7 @@ class C
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "A");
                         N(SyntaxKind.AccessorList);
                         {
                             N(SyntaxKind.OpenBraceToken);
@@ -6284,17 +6263,21 @@ class C
                                         N(SyntaxKind.SimpleMemberAccessExpression);
                                         {
                                             N(SyntaxKind.ThisExpression);
-                                            N(SyntaxKind.ThisKeyword);
+                                            {
+                                                N(SyntaxKind.ThisKeyword);
+                                            }
                                             N(SyntaxKind.DotToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
                                         }
-                                        N(SyntaxKind.SemicolonToken);
+                                        M(SyntaxKind.SemicolonToken);
                                     }
-                                    N(SyntaxKind.CloseBraceToken);
+                                    M(SyntaxKind.CloseBraceToken);
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
                         }
                     }
                     N(SyntaxKind.FieldDeclaration);
@@ -6308,7 +6291,7 @@ class C
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "B");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -6317,6 +6300,7 @@ class C
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7174,6 +7158,658 @@ class C<T> where T : struct? {}
                         {
                             N(SyntaxKind.StructKeyword);
                             N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void IncompleteGenericInBaseList1()
+        {
+            var tree = UsingNode(@"
+class B : A<int
+{
+}
+", TestOptions.Regular7_3,
+                // (2,16): error CS1003: Syntax error, '>' expected
+                // class B : A<int
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "{").WithLocation(2, 16));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "B");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot1()
+        {
+            var text = @"namespace a..b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (1,13): error CS1001: Identifier expected
+                // namespace a..b { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void IncompleteGenericInBaseList2()
+        {
+            var tree = UsingNode(@"
+class B<X, Y> : A<int
+    where X : Y
+{
+}
+", TestOptions.Regular7_3,
+                // (2,22): error CS1003: Syntax error, '>' expected
+                // class B<X, Y> : A<int
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "").WithLocation(2, 22));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "B");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        public void TestExtraneousColonInBaseList()
+        {
+            var tree = UsingNode(@"
+class A : B : C
+{
+}
+", TestOptions.Regular7_3,
+                // (2,13): error CS1514: { expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1513: } expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(2, 13),
+                // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
+                // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // class A : B : C
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
+                // (3,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.
+                // {
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, @"{
+}").WithArguments("top-level statements", "9.0").WithLocation(3, 1),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // {
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
+}").WithLocation(3, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "A");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot2()
+        {
+            var text = @"namespace a
+                    ..b { }";
+
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (2,22): error CS1001: Identifier expected
+                //                     ..b { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 22));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot3()
+        {
+            var text = @"namespace a..
+b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (1,13): error CS1001: Identifier expected
+                // namespace a..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(35236, "https://github.com/dotnet/roslyn/issues/35236")]
+        public void TestNamespaceWithDotDot4()
+        {
+            var text = @"namespace a
+                    ..
+b { }";
+            var tree = UsingNode(
+                text, TestOptions.Regular7_3,
+                // (2,22): error CS1001: Identifier expected
+                //                     ..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 22));
+
+            // verify that we can roundtrip
+            Assert.Equal(text, tree.ToFullString());
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultConstraint_01(bool useCSharp8)
+        {
+            UsingNode(
+@"class C<T> where T : default { }",
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
+                useCSharp8 ?
+                    new[]
+                    {
+                        // (1,22): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                        // class C<T> where T : default { }
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(1, 22)
+                    } :
+                    Array.Empty<DiagnosticDescription>());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_02()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : default
+    where U : default { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultConstraint_03(bool useCSharp8)
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : struct, default
+    where U : default, class { }",
+                useCSharp8 ? TestOptions.Regular8 : TestOptions.Regular9,
+                useCSharp8 ?
+                    new[]
+                    {
+                        // (2,23): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                        //     where T : struct, default
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(2, 23),
+                        // (3,15): error CS8400: Feature 'default type parameter constraints' is not available in C# 8.0. Please use language version 9.0 or greater.
+                        //     where U : default, class { }
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "default").WithArguments("default type parameter constraints", "9.0").WithLocation(3, 15)
+                    } :
+                    Array.Empty<DiagnosticDescription>());
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void DefaultConstraint_04()
+        {
+            UsingNode(
+@"class C<T, U>
+    where T : struct default
+    where U : default class { }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "U");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.DefaultConstraint);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
                         }
                     }
                     N(SyntaxKind.OpenBraceToken);

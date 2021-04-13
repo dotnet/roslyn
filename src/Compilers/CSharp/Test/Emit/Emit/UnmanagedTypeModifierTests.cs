@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1051,10 +1055,46 @@ public class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
-                // (2,32): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
-                // public class Test<T> where T : unmanaged
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(2, 32));
+            CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DuplicateUnmanagedTypeInReferences_NoTypeInCorlib()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class ValueType { }
+    public struct Void { }
+    public class Attribute { }
+}
+";
+
+            var corlibWithoutUnmanagedTypeRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+            var refCode = @"
+namespace System.Runtime.InteropServices
+{
+    public class UnmanagedType {}
+}";
+
+            var ref1 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }).EmitToImageReference();
+            var ref2 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }).EmitToImageReference();
+
+            var user = @"
+public class Test<T> where T : unmanaged
+{
+}";
+
+            CreateEmptyCompilation(user, references: new[] { ref1, ref2, corlibWithoutUnmanagedTypeRef })
+                .VerifyDiagnostics(
+                    // (2,32): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
+                    // public class Test<T> where T : unmanaged
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(2, 32));
         }
 
         [Fact]

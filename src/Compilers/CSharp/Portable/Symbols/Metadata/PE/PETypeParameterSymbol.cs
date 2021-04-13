@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
@@ -29,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// First error calculating bounds.
         /// </summary>
-        private DiagnosticInfo _lazyConstraintsUseSiteErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedConstraintsUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         private readonly GenericParameterAttributes _flags;
         private ThreeState _lazyHasIsUnmanagedConstraint;
@@ -81,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = string.Empty;
                 }
 
-                _lazyConstraintsUseSiteErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyCachedConstraintsUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
             }
 
             // Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
@@ -225,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     // we do not recognize these combinations as "unmanaged"
                     hasUnmanagedModreqPattern = false;
-                    Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                    _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency: null, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
                 }
 
                 _lazyHasIsUnmanagedConstraint = hasUnmanagedModreqPattern.ToThreeState();
@@ -253,21 +258,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private TypeWithAnnotations GetConstraintTypeOrDefault(PEModuleSymbol moduleSymbol, MetadataReader metadataReader, MetadataDecoder tokenDecoder, GenericParameterConstraintHandle constraintHandle, ref bool hasUnmanagedModreqPattern)
         {
             var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
-            var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool hasUnmanagedModreq);
+            var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out ImmutableArray<ModifierInfo<TypeSymbol>> modifiers);
 
-            if (typeSymbol.SpecialType == SpecialType.System_ValueType)
+            if (!modifiers.IsDefaultOrEmpty && modifiers.Length > 1)
+            {
+                typeSymbol = new UnsupportedMetadataTypeSymbol();
+            }
+            else if (typeSymbol.SpecialType == SpecialType.System_ValueType)
             {
                 // recognize "(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType" pattern as "unmanaged"
-                if (hasUnmanagedModreq)
+                if (!modifiers.IsDefaultOrEmpty)
                 {
-                    hasUnmanagedModreqPattern = true;
+                    ModifierInfo<TypeSymbol> m = modifiers.Single();
+                    if (!m.IsOptional && m.Modifier.IsWellKnownTypeUnmanagedType())
+                    {
+                        hasUnmanagedModreqPattern = true;
+                    }
+                    else
+                    {
+                        // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                        typeSymbol = new UnsupportedMetadataTypeSymbol();
+                    }
                 }
 
                 // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
+                if (typeSymbol.SpecialType == SpecialType.System_ValueType && ((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
                 {
                     return default;
                 }
+            }
+            else if (!modifiers.IsDefaultOrEmpty)
+            {
+                // Other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                typeSymbol = new UnsupportedMetadataTypeSymbol();
             }
 
             var type = TypeWithAnnotations.Create(typeSymbol);
@@ -387,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             catch (BadImageFormatException)
             {
                 constraints = default(GenericParameterConstraintHandleCollection);
-                Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency: null, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             return constraints;
@@ -427,6 +450,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return (_flags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
+            }
+        }
+
+        public override bool IsReferenceTypeFromConstraintTypes
+        {
+            get
+            {
+                return CalculateIsReferenceTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
             }
         }
 
@@ -530,6 +561,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get
+            {
+                Debug.Assert(!HasValueTypeConstraint);
+                return CalculateIsValueTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
+            }
+        }
+
         public override bool HasUnmanagedTypeConstraint
         {
             get
@@ -614,44 +654,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
                 bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;
                 var bounds = this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited, currentCompilation: null,
-                                                diagnosticsBuilder: diagnostics, useSiteDiagnosticsBuilder: ref useSiteDiagnosticsBuilder);
-                DiagnosticInfo errorInfo = null;
+                                                diagnosticsBuilder: diagnostics, useSiteDiagnosticsBuilder: ref useSiteDiagnosticsBuilder, template: default);
 
-                if (diagnostics.Count > 0)
+                if (useSiteDiagnosticsBuilder != null)
                 {
-                    errorInfo = diagnostics[0].DiagnosticInfo;
+                    diagnostics.AddRange(useSiteDiagnosticsBuilder);
                 }
-                else if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
+
+                AssemblySymbol primaryDependency = PrimaryDependency;
+                var useSiteInfo = new UseSiteInfo<AssemblySymbol>(primaryDependency);
+
+                foreach (var diag in diagnostics)
                 {
-                    foreach (var diag in useSiteDiagnosticsBuilder)
+                    MergeUseSiteInfo(ref useSiteInfo, diag.UseSiteInfo);
+                    if (useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
                     {
-                        if (diag.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
-                        {
-                            errorInfo = diag.DiagnosticInfo;
-                            break;
-                        }
-                        else if ((object)errorInfo == null)
-                        {
-                            errorInfo = diag.DiagnosticInfo;
-                        }
+                        break;
                     }
                 }
 
                 diagnostics.Free();
 
-                Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
+                _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency, useSiteInfo);
                 Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
             }
 
-            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
+            Debug.Assert(_lazyCachedConstraintsUseSiteInfo.IsInitialized);
             return _lazyBounds;
         }
 
-        internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
+        internal override UseSiteInfo<AssemblySymbol> GetConstraintsUseSiteErrorInfo()
         {
             EnsureAllConstraintsAreResolved();
-            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
-            return _lazyConstraintsUseSiteErrorInfo;
+            Debug.Assert(_lazyCachedConstraintsUseSiteInfo.IsInitialized);
+            return _lazyCachedConstraintsUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
         private NamedTypeSymbol GetDefaultBaseType()

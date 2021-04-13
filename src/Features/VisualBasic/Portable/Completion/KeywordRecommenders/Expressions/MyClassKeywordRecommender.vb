@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -12,7 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class MyClassKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MyClassKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides))
+
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
 
             If (context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext OrElse context.IsNameOfContext) AndAlso
@@ -21,17 +27,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                 Dim methodBlock = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
 
                 If methodBlock IsNot Nothing AndAlso methodBlock.BlockStatement.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.SharedKeyword) Then
-                    Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                    Return ImmutableArray(Of RecommendedKeyword).Empty
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MyClassKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides))
+                Return s_keywords
             End If
 
             If context.IsAccessibleEventContext(startAtEnclosingBaseType:=False, cancellationToken:=cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword(SyntaxFacts.GetText(SyntaxKind.MyClassKeyword), VBFeaturesResources.Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides))
+                Return s_keywords
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

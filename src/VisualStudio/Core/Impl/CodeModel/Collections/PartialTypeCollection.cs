@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,16 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
     {
         internal static EnvDTE.CodeElements Create(
             CodeModelState state,
-            FileCodeModel fileCodeModel,
             AbstractCodeType parent)
         {
-            var collection = new PartialTypeCollection(state, fileCodeModel, parent);
+            var collection = new PartialTypeCollection(state, parent);
             return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
         }
 
         private PartialTypeCollection(
             CodeModelState state,
-            FileCodeModel fileCodeModel,
             AbstractCodeType parent)
             : base(state, parent)
         {

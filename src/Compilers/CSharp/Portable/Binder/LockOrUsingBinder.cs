@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -71,12 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundExpression BindTargetExpression(DiagnosticBag diagnostics, Binder originalBinder, TypeSymbol targetTypeOpt = null)
+        protected BoundExpression BindTargetExpression(BindingDiagnosticBag diagnostics, Binder originalBinder, TypeSymbol targetTypeOpt = null)
         {
             if (_lazyExpressionAndDiagnostics == null)
             {
                 // Filter out method group in conversion.
-                DiagnosticBag expressionDiagnostics = DiagnosticBag.GetInstance();
+                var expressionDiagnostics = BindingDiagnosticBag.GetInstance();
                 BoundExpression boundExpression = originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
                 if (targetTypeOpt is object)
                 {
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    boundExpression = originalBinder.BindToNaturalType(boundExpression, diagnostics);
+                    boundExpression = originalBinder.BindToNaturalType(boundExpression, expressionDiagnostics);
                 }
                 Interlocked.CompareExchange(ref _lazyExpressionAndDiagnostics, new ExpressionAndDiagnostics(boundExpression, expressionDiagnostics.ToReadOnlyAndFree()), null);
             }
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (diagnostics != null)
             {
-                diagnostics.AddRange(_lazyExpressionAndDiagnostics.Diagnostics);
+                diagnostics.AddRange(_lazyExpressionAndDiagnostics.Diagnostics, allowMismatchInDependencyAccumulation: true);
             }
 
             return _lazyExpressionAndDiagnostics.Expression;
@@ -106,9 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class ExpressionAndDiagnostics
         {
             public readonly BoundExpression Expression;
-            public readonly ImmutableArray<Diagnostic> Diagnostics;
+            public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-            public ExpressionAndDiagnostics(BoundExpression expression, ImmutableArray<Diagnostic> diagnostics)
+            public ExpressionAndDiagnostics(BoundExpression expression, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             {
                 this.Expression = expression;
                 this.Diagnostics = diagnostics;

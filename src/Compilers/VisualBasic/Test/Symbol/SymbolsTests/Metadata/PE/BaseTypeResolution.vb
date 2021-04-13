@@ -1,8 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -12,14 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact()>
         Public Sub Test1()
 
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestMetadata.ResourcesNet40.mscorlib)
 
             TestBaseTypeResolutionHelper1(assembly)
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {TestResources.General.MDTestLib1,
                                      TestResources.General.MDTestLib2,
-                                     TestResources.NetFX.v4_0_21006.mscorlib})
+                                     TestMetadata.ResourcesNet40.mscorlib})
 
             TestBaseTypeResolutionHelper2(assemblies)
 
@@ -286,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact()>
         Public Sub Test3()
 
-            Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
+            Dim mscorlibRef = TestMetadata.Net40.mscorlib
 
             Dim c1 = VisualBasicCompilation.Create("Test", references:={mscorlibRef})
 

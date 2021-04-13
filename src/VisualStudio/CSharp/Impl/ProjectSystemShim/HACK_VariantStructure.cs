@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -23,12 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     {
         private readonly short _type;
 
+#pragma warning disable IDE0051 // Remove unused private members - padding bytes
         private readonly short _padding1;
         private readonly short _padding2;
         private readonly short _padding3;
 
         private readonly short _booleanValue;
         private readonly IntPtr _padding4; // this will be aligned to the IntPtr-sized address
+#pragma warning restore IDE0051 // Remove unused private members
 
         public unsafe object ConvertToObject()
         {

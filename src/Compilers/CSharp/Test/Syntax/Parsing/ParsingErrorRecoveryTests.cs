@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -430,13 +434,6 @@ class C
             var file = this.ParseTree(text);
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.Externs.Count);
-            Assert.Equal(1, file.Usings.Count);
-            Assert.Equal(1, file.AttributeLists.Count);
-            Assert.Equal(3, file.Members.Count);
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[1].Kind());
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[2].Kind());
         }
 
         [Fact]
@@ -674,10 +671,6 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_EOFExpected, file.Errors()[0].Code);
         }
 
         [Fact]
@@ -6419,27 +6412,27 @@ class C
             Assert.Equal(text, file.ToFullString());
 
             var incompleteMemberDecl = file.ChildNodesAndTokens()[0];
-            Assert.Equal(incompleteMemberDecl.Kind(), SyntaxKind.IncompleteMember);
+            Assert.Equal(SyntaxKind.IncompleteMember, incompleteMemberDecl.Kind());
             Assert.False(incompleteMemberDecl.IsMissing);
 
             var attributeDecl = incompleteMemberDecl.ChildNodesAndTokens()[0];
-            Assert.Equal(attributeDecl.Kind(), SyntaxKind.AttributeList);
+            Assert.Equal(SyntaxKind.AttributeList, attributeDecl.Kind());
             Assert.False(attributeDecl.IsMissing);
 
             var openBracketToken = attributeDecl.ChildNodesAndTokens()[0];
-            Assert.Equal(openBracketToken.Kind(), SyntaxKind.OpenBracketToken);
+            Assert.Equal(SyntaxKind.OpenBracketToken, openBracketToken.Kind());
             Assert.False(openBracketToken.IsMissing);
 
             var attribute = attributeDecl.ChildNodesAndTokens()[1];
-            Assert.Equal(attribute.Kind(), SyntaxKind.Attribute);
+            Assert.Equal(SyntaxKind.Attribute, attribute.Kind());
             Assert.True(attribute.IsMissing);
 
             var identifierName = attribute.ChildNodesAndTokens()[0];
-            Assert.Equal(identifierName.Kind(), SyntaxKind.IdentifierName);
+            Assert.Equal(SyntaxKind.IdentifierName, identifierName.Kind());
             Assert.True(identifierName.IsMissing);
 
             var identifierToken = identifierName.ChildNodesAndTokens()[0];
-            Assert.Equal(identifierToken.Kind(), SyntaxKind.IdentifierToken);
+            Assert.Equal(SyntaxKind.IdentifierToken, identifierToken.Kind());
             Assert.True(identifierToken.IsMissing);
         }
 
@@ -6527,23 +6520,12 @@ public class Test
     };
 }";
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Regular9);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
-
-            Assert.Equal($"{{{Environment.NewLine}", syntaxTree.GetCompilationUnitRoot().GetLeadingTrivia().Node.ToFullString());
 
             // The issue (9391) was exhibited while enumerating the diagnostics
             Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[]
             {
-                "(1,2): error CS1031: Type expected",
-                "(1,1): error CS1022: Type or namespace definition, or end-of-file expected",
-                "(2,13): error CS1003: Syntax error, '[' expected",
-                "(2,13): error CS1001: Identifier expected",
-                "(2,16): error CS1001: Identifier expected",
-                "(2,19): error CS1003: Syntax error, ',' expected",
-                "(2,20): error CS1003: Syntax error, ']' expected",
-                "(2,20): error CS1514: { expected",
-                "(3,6): error CS1597: Semicolon after method or accessor block is not valid",
                 "(4,1): error CS1022: Type or namespace definition, or end-of-file expected",
             }));
         }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Xml
@@ -414,11 +416,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        ERRID.ERR_None)
 
                         If nameAttribute IsNot Nothing Then
-                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(nameAttribute.Reference, useSiteDiagnostics)
+                            Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(Me._diagnostics)
+                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(nameAttribute.Reference, useSiteInfo)
 
                             If node.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                                Me._diagnostics.Add(node, useSiteDiagnostics)
+                                Me._diagnostics.Add(node, useSiteInfo)
+                            Else
+                                Me._diagnostics.AddDependencies(useSiteInfo)
                             End If
 
                             Dim needDiagnostic As Boolean = True

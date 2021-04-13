@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial struct InvocationReasons : IEnumerable<string>
     {
-        public static readonly InvocationReasons Empty = new InvocationReasons(ImmutableHashSet<string>.Empty);
+        public static readonly InvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
 
         private readonly ImmutableHashSet<string> _reasons;
 
@@ -18,24 +22,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         private InvocationReasons(ImmutableHashSet<string> reasons)
-        {
-            _reasons = reasons;
-        }
+            => _reasons = reasons;
 
         public bool Contains(string reason)
-        {
-            return _reasons.Contains(reason);
-        }
+            => _reasons.Contains(reason);
 
         public InvocationReasons With(InvocationReasons invocationReasons)
-        {
-            return new InvocationReasons((_reasons ?? ImmutableHashSet<string>.Empty).Union(invocationReasons._reasons));
-        }
+            => new((_reasons ?? ImmutableHashSet<string>.Empty).Union(invocationReasons._reasons));
 
         public InvocationReasons With(string reason)
-        {
-            return new InvocationReasons((_reasons ?? ImmutableHashSet<string>.Empty).Add(reason));
-        }
+            => new((_reasons ?? ImmutableHashSet<string>.Empty).Add(reason));
 
         public bool IsEmpty
         {
@@ -46,23 +42,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public ImmutableHashSet<string>.Enumerator GetEnumerator()
-        {
-            return _reasons.GetEnumerator();
-        }
+            => _reasons.GetEnumerator();
 
         IEnumerator<string> IEnumerable<string>.GetEnumerator()
-        {
-            return _reasons.GetEnumerator();
-        }
+            => _reasons.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _reasons.GetEnumerator();
-        }
+            => _reasons.GetEnumerator();
 
         public override string ToString()
-        {
-            return string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
-        }
+            => string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
     }
 }

@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -23,13 +28,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private void InlineAllDelegateAnonymousTypes()
             {
 restart:
-                foreach (var kvp in _groupMap)
+                foreach (var (group, parts) in _groupMap)
                 {
-                    var parts = kvp.Value;
-                    var updatedParts = _anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parts, _semanticModel, _position, _displayService);
+                    var updatedParts = _anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parts, _semanticModel, _position);
                     if (parts != updatedParts)
                     {
-                        _groupMap[kvp.Key] = updatedParts;
+                        _groupMap[group] = updatedParts;
                         goto restart;
                     }
                 }
@@ -44,7 +48,7 @@ restart:
                     select (INamedTypeSymbol)part.Symbol;
 
                 var info = _anonymousTypeDisplayService.GetNormalAnonymousTypeDisplayInfo(
-                    firstSymbol, directNormalAnonymousTypeReferences, _semanticModel, _position, _displayService);
+                    firstSymbol, directNormalAnonymousTypeReferences, _semanticModel, _position);
 
                 if (info.AnonymousTypesParts.Count > 0)
                 {
@@ -52,13 +56,12 @@ restart:
                         info.AnonymousTypesParts);
 
 restart:
-                    foreach (var kvp in _groupMap)
+                    foreach (var (group, parts) in _groupMap)
                     {
-                        var parts = _groupMap[kvp.Key];
                         var updatedParts = info.ReplaceAnonymousTypes(parts);
                         if (parts != updatedParts)
                         {
-                            _groupMap[kvp.Key] = updatedParts;
+                            _groupMap[group] = updatedParts;
                             goto restart;
                         }
                     }

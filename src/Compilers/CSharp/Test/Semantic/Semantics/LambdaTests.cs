@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -14,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class LambdaTests : CompilingTestBase
+    public class LambdaTests : CSharpTestBase
     {
         [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()
@@ -362,7 +366,7 @@ public class C
 
             var comp1 = CreateCompilationWithMscorlib40(
                 new[] { Parse(text1) },
-                new[] { TestReferences.NetFx.v4_0_30319.System });
+                new[] { TestMetadata.Net451.System });
 
             var text2 = @"
 class Program
@@ -564,10 +568,10 @@ class Program
 ";
             var vbMetadata = vbProject.EmitToArray(options: new EmitOptions(metadataOnly: true));
             var csProject = CreateCompilation(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
-
-            var diagnostics = csProject.GetDiagnostics().Select(DumpDiagnostic);
-            Assert.Equal(1, diagnostics.Count());
-            Assert.Equal("'x' error CS0721: 'GC': static types cannot be used as parameters", diagnostics.First());
+            csProject.VerifyDiagnostics(
+                // (6,15): error CS0721: 'GC': static types cannot be used as parameters
+                //         M.F = x=>{};
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "x").WithArguments("System.GC").WithLocation(6, 15));
         }
 
         [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
@@ -780,7 +784,7 @@ class Program
             var sym = model.GetSymbolInfo(expr).Symbol;
             Assert.NotNull(sym);
             Assert.Equal(SymbolKind.Method, sym.Kind);
-            Assert.Equal(MethodKind.AnonymousFunction, (sym as MethodSymbol).MethodKind);
+            Assert.Equal(MethodKind.AnonymousFunction, (sym as IMethodSymbol).MethodKind);
 
             expr = exprs.Last();
             tinfo = model.GetTypeInfo(expr);
@@ -790,7 +794,7 @@ class Program
             sym = model.GetSymbolInfo(expr).Symbol;
             Assert.NotNull(sym);
             Assert.Equal(SymbolKind.Method, sym.Kind);
-            Assert.Equal(MethodKind.AnonymousFunction, (sym as MethodSymbol).MethodKind);
+            Assert.Equal(MethodKind.AnonymousFunction, (sym as IMethodSymbol).MethodKind);
         }
 
         [WorkItem(544594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544594")]
@@ -962,7 +966,7 @@ namespace IntellisenseBug
                 .Where(e => e.ToFullString() == "x/* */")
                 .Last();
             var typeInfo = model.GetTypeInfo(xReference);
-            Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("String"));
+            Assert.NotNull(((ITypeSymbol)typeInfo.Type).GetMember("String"));
         }
 
         [WorkItem(722288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722288")]
@@ -1016,7 +1020,7 @@ public class IntelliSenseError
                 .Where(e => e.ToFullString() == "o/* */")
                 .Last();
             var typeInfo = model.GetTypeInfo(oReference);
-            Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("SomeProperty"));
+            Assert.NotNull(((ITypeSymbol)typeInfo.Type).GetMember("SomeProperty"));
         }
 
         [WorkItem(871896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871896")]
@@ -1903,7 +1907,7 @@ namespace RoslynAsyncDelegate
 
             Assert.Equal("void System.EventHandler.Invoke(System.Object sender, System.EventArgs e)", model.GetTypeInfo(node1).ConvertedType.GetMembers("Invoke").Single().ToTestDisplayString());
 
-            var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
+            var lambdaParameters = ((IMethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
 
             Assert.Equal("System.Object <p0>", lambdaParameters[0].ToTestDisplayString());
             Assert.Equal("System.EventArgs <p1>", lambdaParameters[1].ToTestDisplayString());
@@ -2585,23 +2589,23 @@ class C
             // F(1, (t, a, b, c) => { });
             var lambda = lambdas[0];
             var parameters = lambda.ParameterList.Parameters;
-            var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            var parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
             Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
-            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
+            parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
             Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
-            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
+            parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
             Assert.Equal(tooMany, parameter.Type.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
 
             // var o = this[(a, b, c) => { }];
             lambda = lambdas[1];
             parameters = lambda.ParameterList.Parameters;
-            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
             Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
-            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
+            parameter = (IParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
             Assert.Equal(tooMany, parameter.Type.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
         }
@@ -2961,14 +2965,14 @@ class Program
 
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("ContentType", contentType.ToString());
-            var lambda = (MethodSymbol)model.GetEnclosingSymbol(contentType.SpanStart);
+            var lambda = (IMethodSymbol)model.GetEnclosingSymbol(contentType.SpanStart);
             Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
 
             ExpressionSyntax b = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b").Single();
 
             model = comp.GetSemanticModel(tree);
             Assert.Equal("b", b.ToString());
-            lambda = (MethodSymbol)model.GetEnclosingSymbol(b.SpanStart);
+            lambda = (IMethodSymbol)model.GetEnclosingSymbol(b.SpanStart);
             Assert.Equal(MethodKind.AnonymousFunction, lambda.MethodKind);
 
             model = comp.GetSemanticModel(tree);
@@ -3331,18 +3335,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            verifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,37): error CS8370: Feature 'lambda discard parameters' is not available in C# 7.3. Please use language version 9.0 or greater.
+                //         Func<int, int, int> f = (_, _) => 0;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(8, 37));
 
             comp = CreateCompilation(source);
-            verifyDiagnostics();
-
-            void verifyDiagnostics()
-            {
-                comp.VerifyDiagnostics(
-                    // (8,37): error CS0100: The parameter name '_' is a duplicate
-                    //         Func<int, int, int> f = (_, _) => 0;
-                    Diagnostic(ErrorCode.ERR_DuplicateParamName, "_").WithArguments("_").WithLocation(8, 37));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

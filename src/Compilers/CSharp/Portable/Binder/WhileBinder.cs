@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntax = syntax;
         }
 
-        internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundWhileStatement BindWhileParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             var node = (WhileStatementSyntax)_syntax;
 
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundWhileStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
         }
 
-        internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundDoStatement BindDoParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             var node = (DoStatementSyntax)_syntax;
 
@@ -41,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDoStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
         }
 
-        override protected ImmutableArray<LocalSymbol> BuildLocals()
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             ExpressionSyntax condition;

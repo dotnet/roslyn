@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -172,7 +175,6 @@ Enum E
     [|X|]
 End Enum"))
         End Sub
-
 
         <Fact>
         Public Sub IsMethodLevelMember_DeclareStatement()
@@ -500,18 +502,16 @@ Do
 Loop $$While index < 10")))
         End Sub
 
-        Private Function IsMethodLevelMember(markup As String) As Boolean
+        Private Shared Function IsMethodLevelMember(markup As String) As Boolean
             Dim code As String = Nothing
             Dim span As TextSpan
             MarkupTestFile.GetSpan(markup, code, span)
             Dim tree = SyntaxFactory.ParseSyntaxTree(code)
             Dim node = tree.GetRoot().FindNode(span)
-            Dim service = VisualBasicSyntaxFactsService.Instance
-
-            Return service.IsMethodLevelMember(node)
+            Return VisualBasicSyntaxFacts.Instance.IsMethodLevelMember(node)
         End Function
 
-        Private Function WrapInMethod(methodBody As String) As String
+        Private Shared Function WrapInMethod(methodBody As String) As String
             Return $"
 Class C
     Sub M()
@@ -520,15 +520,29 @@ Class C
 End Class"
         End Function
 
-        Private Function IsQueryKeyword(markup As String) As Boolean
+        Private Shared Function IsQueryKeyword(markup As String) As Boolean
             Dim code As String = Nothing
             Dim position As Integer
             MarkupTestFile.GetPosition(markup, code, position)
             Dim tree = SyntaxFactory.ParseSyntaxTree(code)
             Dim token = tree.GetRoot().FindToken(position)
-            Dim service = VisualBasicSyntaxFactsService.Instance
+            Return VisualBasicSyntaxFacts.Instance.IsQueryKeyword(token)
+        End Function
 
-            Return service.IsQueryKeyword(token)
+        <Fact, WorkItem(40917, "https://github.com/dotnet/roslyn/issues/40917")>
+        Public Sub IsLeftSideOfCompoundAssignment()
+            Assert.True(IsLeftSideOfCompoundAssignment(WrapInMethod("
+Dim index As Integer = 0
+$$index += 1")))
+        End Sub
+
+        Private Shared Function IsLeftSideOfCompoundAssignment(markup As String) As Boolean
+            Dim code As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(markup, code, position)
+            Dim tree = SyntaxFactory.ParseSyntaxTree(code)
+            Dim node = tree.GetRoot().FindToken(position).Parent
+            Return VisualBasicSyntaxFacts.Instance.IsLeftSideOfCompoundAssignment(node)
         End Function
     End Class
 

@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -558,13 +563,19 @@ class C
 
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-            CompileAndVerify(compilation).VerifyIL("C<T>..cctor", @"
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}
-");
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            void validator(ModuleSymbol module)
+            {
+                // note: we could make the synthesized constructor smarter and realize that
+                // nothing needs to be emitted for these initializers.
+                // but it doesn't serve any realistic scenarios at this time.
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C`1");
+                Assert.NotNull(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(530445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530445")]
@@ -680,6 +691,7 @@ class B
             compilation1.VerifyDiagnostics(
                 // (3,27): error CS0133: The expression being assigned to 'B.F1' must be constant
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "F2").WithArguments("B.F1").WithLocation(3, 27));
+
             var source2 =
 @"class A
 {
@@ -689,8 +701,8 @@ class B
             CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "2110a705-cc34-430b-9450-ca37031aa828")
                 .Emit(new System.IO.MemoryStream()).Diagnostics
                     .Verify(
-                    // error CS7038: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa828'.
-                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("2110a705-cc34-430b-9450-ca37031aa828"));
+                    // error CS7038: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa828': Unable to determine specific cause of the failure.
+                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("2110a705-cc34-430b-9450-ca37031aa828", "Unable to determine specific cause of the failure."));
         }
     }
 }

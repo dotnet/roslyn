@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.IO;
@@ -12,9 +16,7 @@ namespace Roslyn.Test.Utilities
         public decimal Time { get; }
 
         public TestInfo(decimal time)
-        {
-            Time = time;
-        }
+            => Time = time;
 
         public static ImmutableDictionary<string, TestInfo> GetPassedTestsInfo()
         {

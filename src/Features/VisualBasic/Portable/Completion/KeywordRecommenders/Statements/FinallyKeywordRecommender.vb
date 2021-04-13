@@ -1,5 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Text
@@ -13,16 +16,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class FinallyKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Finally", VBFeaturesResources.Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure))
+
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If Not context.IsMultiLineStatementContext Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
             Dim tryBlock = targetToken.GetAncestor(Of TryBlockSyntax)()
 
             If tryBlock Is Nothing OrElse tryBlock.FinallyBlock IsNot Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             ' If we're in the Try block, then we simply need to make sure we have no catch blocks, or else a Finally
@@ -31,18 +37,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                Not IsInCatchOfTry(targetToken, tryBlock) Then
 
                 If tryBlock.CatchBlocks.Count = 0 Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Finally", VBFeaturesResources.Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure))
+                    Return s_keywords
                 End If
             ElseIf IsInCatchOfTry(targetToken, tryBlock) Then
                 If TextSpan.FromBounds(tryBlock.CatchBlocks.Last().SpanStart, tryBlock.EndTryStatement.SpanStart).Contains(context.Position) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Finally", VBFeaturesResources.Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure))
+                    Return s_keywords
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
 
-        Private Function IsInCatchOfTry(targetToken As SyntaxToken, tryBlock As TryBlockSyntax) As Boolean
+        Private Shared Function IsInCatchOfTry(targetToken As SyntaxToken, tryBlock As TryBlockSyntax) As Boolean
             Dim parent = targetToken.Parent
             While parent IsNot tryBlock
                 If parent.IsKind(SyntaxKind.CatchBlock) AndAlso tryBlock.CatchBlocks.Contains(DirectCast(parent, CatchBlockSyntax)) Then

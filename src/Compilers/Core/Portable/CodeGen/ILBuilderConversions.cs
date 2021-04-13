@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -147,6 +148,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                                 // Don't want to sign extend if this is a widening conversion.
                                 this.EmitOpCode(ILOpCode.Conv_u); // potentially widening, so not NOP
                             break;
+                        case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
+                            if (@checked)
+                                goto default;
+                            break; // NOP
                         default:
                             if (@checked)
                                 this.EmitOpCode(fromUnsigned ? ILOpCode.Conv_ovf_i_un : ILOpCode.Conv_ovf_i);
@@ -160,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     switch (fromPredefTypeKind)
                     {
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
+                        case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                             break; // NOP
                         case Microsoft.Cci.PrimitiveTypeCode.UInt8:
                         case Microsoft.Cci.PrimitiveTypeCode.UInt16:
@@ -202,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             this.EmitOpCode(ILOpCode.Conv_u8); // 0 extend
                             break;
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                             if (@checked)
                                 this.EmitOpCode(ILOpCode.Conv_ovf_i8_un);
@@ -231,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         case Microsoft.Cci.PrimitiveTypeCode.UInt16:
                         case Microsoft.Cci.PrimitiveTypeCode.UInt32:
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                         case Microsoft.Cci.PrimitiveTypeCode.Char:
                             this.EmitOpCode(ILOpCode.Conv_u8); // 0 extend
@@ -281,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     break;
 
                 case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                     if (@checked)
                     {
                         switch (fromPredefTypeKind)
@@ -299,6 +310,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             case Microsoft.Cci.PrimitiveTypeCode.Int64:
                                 this.EmitOpCode(ILOpCode.Conv_ovf_u);
                                 break;
+                            case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
+                                this.EmitOpCode(ILOpCode.Conv_ovf_u);
+                                break;
+                            case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
+                                break; // NOP
                             default:
                                 throw ExceptionUtilities.UnexpectedValue(fromPredefTypeKind);
                         }
@@ -321,6 +337,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                                 // rather than conv_u, to sign-extend the value.
                                 this.EmitOpCode(ILOpCode.Conv_i);
                                 break;
+                            case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
+                            case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
+                                break; // NOP
                             default:
                                 throw ExceptionUtilities.UnexpectedValue(fromPredefTypeKind);
                         }

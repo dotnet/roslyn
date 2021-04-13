@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -113,6 +117,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly))
                     {
                         EmitCallExpression(call, UseKind.UsedAsAddress);
+                        break;
+                    }
+
+                    goto default;
+
+                case BoundKind.FunctionPointerInvocation:
+                    var funcPtrInvocation = (BoundFunctionPointerInvocation)expression;
+                    var funcPtrRefKind = funcPtrInvocation.FunctionPointer.Signature.RefKind;
+                    if (funcPtrRefKind == RefKind.Ref ||
+                        (IsAnyReadOnly(addressKind) && funcPtrRefKind == RefKind.RefReadOnly))
+                    {
+                        EmitCalli(funcPtrInvocation, UseKind.UsedAsAddress);
                         break;
                     }
 
@@ -389,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementAddress(Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type),
+                _builder.EmitArrayElementAddress(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type),
                                                 arrayAccess.Syntax, _diagnostics);
             }
         }

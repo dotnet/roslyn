@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -1031,6 +1033,120 @@ End Class
            Diagnostic(ERRID.ERR_ExpectedDotAfterMyClass, "MyClass"),
            Diagnostic(ERRID.ERR_ExpectedDotAfterMyBase, "MyBase"),
            Diagnostic(ERRID.ERR_InvalidConstructorCall, ".New"))
+        End Sub
+
+        <Fact()>
+        <WorkItem(49904, "https://github.com/dotnet/roslyn/issues/49904")>
+        Public Sub ArrayAccessWithOmittedIndexAsWithTarget_01()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="c.vb">
+Class Test
+
+    Private MyArr(9, 3, 11) As MyStruct
+
+    Sub Main()
+        Dim n, p, r As Integer
+        For n = 0 To 9
+            For p = 0 To 3
+                For r = 0 To 11
+                    With MyArr(n, )
+                        .A = n
+                        .B = p
+                        .C = r
+                    End With
+                Next
+            Next
+        Next
+    End Sub
+
+End Class
+
+Structure MyStruct
+    Dim A As Integer
+    Dim B As Integer
+    Dim C As Integer
+End Structure
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+
+            For Each node In tree.GetRoot().DescendantNodes()
+                Dim model = compilation.GetSemanticModel(tree)
+                model.GetMemberGroup(node)
+                model = compilation.GetSemanticModel(tree)
+                model.GetSymbolInfo(node)
+                model = compilation.GetSemanticModel(tree)
+                model.GetTypeInfo(node)
+            Next
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+BC30105: Number of indices is less than the number of dimensions of the indexed array.
+                    With MyArr(n, )
+                              ~~~~~
+BC30491: Expression does not produce a value.
+                    With MyArr(n, )
+                                  ~
+</expected>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(49904, "https://github.com/dotnet/roslyn/issues/49904")>
+        Public Sub ArrayAccessWithOmittedIndexAsWithTarget_02()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="c.vb">
+Class Test
+
+    Private MyArr(9, 3, 11) As MyStruct
+
+    Sub Main()
+        Dim n, p, r As Integer
+        For n = 0 To 9
+            For p = 0 To 3
+                For r = 0 To 11
+                    With MyArr(n, , )
+                        .A = n
+                        .B = p
+                        .C = r
+                    End With
+                Next
+            Next
+        Next
+    End Sub
+
+End Class
+
+Structure MyStruct
+    Dim A As Integer
+    Dim B As Integer
+    Dim C As Integer
+End Structure
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+
+            For Each node In tree.GetRoot().DescendantNodes()
+                Dim model = compilation.GetSemanticModel(tree)
+                model.GetMemberGroup(node)
+                model = compilation.GetSemanticModel(tree)
+                model.GetSymbolInfo(node)
+                model = compilation.GetSemanticModel(tree)
+                model.GetTypeInfo(node)
+            Next
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+BC30491: Expression does not produce a value.
+                    With MyArr(n, , )
+                                  ~
+BC30491: Expression does not produce a value.
+                    With MyArr(n, , )
+                                    ~
+</expected>)
         End Sub
 
     End Class

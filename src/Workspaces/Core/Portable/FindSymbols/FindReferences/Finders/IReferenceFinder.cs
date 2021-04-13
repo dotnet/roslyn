@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,9 +24,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Called by the find references search engine to determine which projects should be
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called by the find references search engine to determine which documents in the supplied
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents,
+            ISymbol symbol, Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
@@ -66,8 +68,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,
+        ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+            ISymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
     }
 }

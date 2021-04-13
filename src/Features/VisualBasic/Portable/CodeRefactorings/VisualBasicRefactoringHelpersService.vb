@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -10,6 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRefactoringHelpersService
         Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax)
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Iterator Function ExtractNodesSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
             For Each baseExtraction In MyBase.ExtractNodesSimple(node, syntaxFacts)
@@ -47,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
 
         End Function
 
-        Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
+        Public Shared Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
             Return (TypeOf node Is ModifiedIdentifierSyntax) AndAlso (TypeOf node.Parent Is ParameterSyntax) AndAlso (CType(node.Parent, ParameterSyntax).Identifier Is node)
         End Function
     End Class

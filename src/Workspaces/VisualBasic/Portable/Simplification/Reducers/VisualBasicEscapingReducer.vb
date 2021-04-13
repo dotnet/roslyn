@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -17,7 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_pool)
         End Sub
 
+#Disable Warning IDE0060 ' Remove unused parameter - False positive, used as a delegate in a nested type.
+        ' https://github.com/dotnet/roslyn/issues/44226
         Private Shared Function TryUnescapeToken(identifier As SyntaxToken, semanticModel As SemanticModel, optionSet As OptionSet, cancellationToken As CancellationToken) As SyntaxToken
+#Enable Warning IDE0060 ' Remove unused parameter
             If Not identifier.IsBracketed Then
                 Return identifier
             End If

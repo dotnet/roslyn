@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.Text;
@@ -52,24 +56,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         #region not implemented
         public bool ClearOptionValue<T>(EditorOptionKey<T> key)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public bool ClearOptionValue(string optionId)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public object GetOptionValue(string optionId)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public T GetOptionValue<T>(string optionId)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public IEditorOptions GlobalOptions
         {
@@ -77,14 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         public bool IsOptionDefined<T>(EditorOptionKey<T> key, bool localScopeOnly)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public bool IsOptionDefined(string optionId, bool localScopeOnly)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
 #pragma warning disable 67
         public event EventHandler<EditorOptionChangedEventArgs> OptionChanged;
@@ -103,14 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         public void SetOptionValue<T>(EditorOptionKey<T> key, T value)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void SetOptionValue(string optionId, object value)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public System.Collections.Generic.IEnumerable<EditorOptionDefinition> SupportedOptions
         {

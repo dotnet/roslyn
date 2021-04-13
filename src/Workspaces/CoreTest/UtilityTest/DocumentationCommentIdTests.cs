@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.IO;
 using System.Linq;
-using System.Xml;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,13 +14,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class DocumentationCommentIdTests : TestBase
     {
-        private CSharpCompilation CreateCSharpCompilation(string sourceText)
+        private static CSharpCompilation CreateCSharpCompilation(string sourceText)
         {
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText);
-            return CSharpCompilation.Create("goo.exe").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(syntaxTree);
+            return CSharpCompilation.Create("goo.exe").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(syntaxTree);
         }
 
-        private void CheckDeclarationId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)
+        private static void CheckDeclarationId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)
         {
             var id = DocumentationCommentId.CreateDeclarationId(symbol);
             Assert.Equal(expectedId, id);
@@ -28,17 +29,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(symbol, sym);
         }
 
-        private TSymbol CheckDeclarationId<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
+        private static TSymbol CheckDeclarationId<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
             where TSymbol : ISymbol
         {
             var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(expectedId, compilation);
-            Assert.Equal(true, symbol is TSymbol);
-            Assert.Equal(true, test((TSymbol)symbol));
+            Assert.True(symbol is TSymbol);
+            Assert.True(test((TSymbol)symbol));
 
             return (TSymbol)symbol;
         }
 
-        private void CheckDeclarationIdExact<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
+        private static void CheckDeclarationIdExact<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
             where TSymbol : ISymbol
         {
             var symbol = CheckDeclarationId(expectedId, compilation, test);
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expectedId, id);
         }
 
-        private void CheckReferenceId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)
+        private static void CheckReferenceId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)
         {
             var id = DocumentationCommentId.CreateReferenceId(symbol);
             Assert.Equal(expectedId, id);

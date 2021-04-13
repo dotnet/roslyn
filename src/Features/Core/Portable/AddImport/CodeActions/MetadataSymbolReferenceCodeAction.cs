@@ -1,6 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -15,14 +21,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.MetadataSymbol);
             }
 
-            protected override Project UpdateProject(Project project)
+            protected override Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
             {
-                var projectWithReference = project.Solution.GetProject(FixData.PortableExecutableReferenceProjectId);
+                var projectWithReference = project.Solution.GetRequiredProject(FixData.PortableExecutableReferenceProjectId);
                 var reference = projectWithReference.MetadataReferences
                                                     .OfType<PortableExecutableReference>()
                                                     .First(pe => pe.FilePath == FixData.PortableExecutableReferenceFilePathToAdd);
 
-                return project.AddMetadataReference(reference);
+                return Task.FromResult<CodeActionOperation?>(new ApplyChangesOperation(project.AddMetadataReference(reference).Solution));
             }
         }
     }

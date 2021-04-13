@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 #pragma warning disable RS0013 // We need to invoke Diagnostic.Descriptor here to log all the metadata properties of the diagnostic.
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// Used for logging compiler diagnostics to a stream in the unstandardized SARIF
     /// (Static Analysis Results Interchange Format) v1.0.0 format.
     /// https://github.com/sarif-standard/sarif-spec
-    /// https://rawgit.com/sarif-standard/sarif-spec/master/Static%20Analysis%20Results%20Interchange%20Format%20(SARIF).html
+    /// https://rawgit.com/sarif-standard/sarif-spec/main/Static%20Analysis%20Results%20Interchange%20Format%20(SARIF).html
     /// </summary>
     /// <remarks>
     /// To log diagnostics in the standardized SARIF v2.1.0 format, use the SarifV2ErrorLogger.
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string PrimaryLocationPropertyName => "resultFile";
 
-        public override void LogDiagnostic(Diagnostic diagnostic)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
@@ -63,8 +64,8 @@ namespace Microsoft.CodeAnalysis
 
             _writer.Write("level", GetLevel(diagnostic.Severity));
 
-            string message = diagnostic.GetMessage(_culture);
-            if (!string.IsNullOrEmpty(message))
+            string? message = diagnostic.GetMessage(_culture);
+            if (!RoslynString.IsNullOrEmpty(message))
             {
                 _writer.Write("message", message);
             }
@@ -149,14 +150,14 @@ namespace Microsoft.CodeAnalysis
                     _writer.WriteObjectStart(pair.Key); // rule
                     _writer.Write("id", descriptor.Id);
 
-                    string shortDescription = descriptor.Title.ToString(_culture);
-                    if (!string.IsNullOrEmpty(shortDescription))
+                    string? shortDescription = descriptor.Title.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(shortDescription))
                     {
                         _writer.Write("shortDescription", shortDescription);
                     }
 
-                    string fullDescription = descriptor.Description.ToString(_culture);
-                    if (!string.IsNullOrEmpty(fullDescription))
+                    string? fullDescription = descriptor.Description.ToString(_culture);
+                    if (!RoslynString.IsNullOrEmpty(fullDescription))
                     {
                         _writer.Write("fullDescription", fullDescription);
                     }
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis
             public string Add(DiagnosticDescriptor descriptor)
             {
                 // Case 1: Descriptor has already been seen -> retrieve key from cache.
-                if (_keys.TryGetValue(descriptor, out string key))
+                if (_keys.TryGetValue(descriptor, out string? key))
                 {
                     return key;
                 }

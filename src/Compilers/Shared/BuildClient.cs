@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -47,16 +51,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private readonly RequestLanguage _language;
         private readonly CompileFunc _compileFunc;
+        private readonly ICompilerServerLogger _logger;
         private readonly CreateServerFunc _createServerFunc;
         private readonly int? _timeoutOverride;
 
         /// <summary>
         /// When set it overrides all timeout values in milliseconds when communicating with the server.
         /// </summary>
-        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, CreateServerFunc createServerFunc = null, int? timeoutOverride = null)
+        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, ICompilerServerLogger logger, CreateServerFunc createServerFunc = null, int? timeoutOverride = null)
         {
             _language = language;
             _compileFunc = compileFunc;
+            _logger = logger;
             _createServerFunc = createServerFunc ?? BuildServerConnection.TryCreateServerCore;
             _timeoutOverride = timeoutOverride;
         }
@@ -71,16 +77,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 : RuntimeEnvironment.GetRuntimeDirectory();
         }
 
-        public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
-        {
-#if NET472
-            return new DesktopAnalyzerAssemblyLoader();
-#else
-            return new CoreClrAnalyzerAssemblyLoader();
-#endif
-        }
-
-        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
+        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, ICompilerServerLogger logger)
         {
             var sdkDir = GetSystemSdkDirectory();
             if (RuntimeHostInfo.IsCoreClrRuntime)
@@ -90,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             }
 
-            var client = new BuildClient(language, compileFunc);
+            var client = new BuildClient(language, compileFunc, logger);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
@@ -204,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            var loader = CreateAnalyzerAssemblyLoader();
+            var loader = new DefaultAnalyzerAssemblyLoader();
             return _compileFunc(arguments, buildPaths, textWriter, loader);
         }
 
@@ -223,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var buildResponseTask = RunServerCompilation(
+                var buildResponseTask = RunServerCompilationAsync(
                     arguments,
                     buildPaths,
                     sessionName,
@@ -269,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        private Task<BuildResponse> RunServerCompilation(
+        private Task<BuildResponse> RunServerCompilationAsync(
             List<string> arguments,
             BuildPaths buildPaths,
             string sessionKey,
@@ -277,10 +274,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libDirectory,
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, cancellationToken);
+            return RunServerCompilationCoreAsync(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, _logger, cancellationToken);
         }
 
-        private static Task<BuildResponse> RunServerCompilationCore(
+        private static Task<BuildResponse> RunServerCompilationCoreAsync(
             RequestLanguage language,
             List<string> arguments,
             BuildPaths buildPaths,
@@ -289,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libEnvVariable,
             int? timeoutOverride,
             CreateServerFunc createServerFunc,
+            ICompilerServerLogger logger,
             CancellationToken cancellationToken)
         {
             var alt = new BuildPathsAlt(
@@ -297,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 buildPaths.SdkDirectory,
                 buildPaths.TempDirectory);
 
-            return BuildServerConnection.RunServerCompilationCore(
+            return BuildServerConnection.RunServerCompilationCoreAsync(
                 language,
                 arguments,
                 alt,
@@ -306,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 libEnvVariable,
                 timeoutOverride,
                 createServerFunc,
+                logger,
                 cancellationToken);
         }
 
@@ -316,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         private static string GetPipeName(BuildPaths buildPaths)
         {
-            return BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+            return BuildServerConnection.GetPipeNameForPath(buildPaths.ClientDirectory);
         }
 
         private static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)

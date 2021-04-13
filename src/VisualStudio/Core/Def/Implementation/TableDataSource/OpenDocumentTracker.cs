@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,9 +14,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal class OpenDocumentTracker<TItem>
         where TItem : TableItem
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map =
-            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>>();
+            new();
 
         private readonly Workspace _workspace;
 
@@ -111,8 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs e)
-        {
-            StopTracking(e.Document.Id);
-        }
+            => StopTracking(e.Document.Id);
     }
 }

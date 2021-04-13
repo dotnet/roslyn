@@ -1,12 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
-Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavigation
     <[UseExportProvider]>
@@ -231,10 +231,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                Dim provider = New TextStructureNavigatorProvider(
-                               workspace.GetService(Of ITextStructureNavigatorSelectorService),
-                               workspace.GetService(Of IContentTypeRegistryService),
-                               workspace.GetService(Of IWaitIndicator))
+                Dim provider = Assert.IsType(Of TextStructureNavigatorProvider)(
+                    workspace.GetService(Of ITextStructureNavigatorProvider)(ContentTypeNames.VisualBasicContentType))
 
                 Dim navigator = provider.CreateTextStructureNavigator(buffer)
 

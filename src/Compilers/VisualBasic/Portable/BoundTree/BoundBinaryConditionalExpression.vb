@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -6,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundBinaryConditionalExpression
+    Partial Friend Class BoundBinaryConditionalExpression
 
 #If DEBUG Then
         Private Sub Validate()
@@ -36,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Else
                     If Not Type.IsSameTypeIgnoringAll(TestExpression.Type.GetNullableUnderlyingTypeOrSelf()) Then
-                        Dim conversion As ConversionKind = Conversions.ClassifyDirectCastConversion(TestExpression.Type, Type, Nothing)
+                        Dim conversion As ConversionKind = Conversions.ClassifyDirectCastConversion(TestExpression.Type, Type, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                         Debug.Assert(Conversions.IsWideningConversion(conversion) AndAlso Conversions.IsCLRPredefinedConversion(conversion))
                     End If
                 End If

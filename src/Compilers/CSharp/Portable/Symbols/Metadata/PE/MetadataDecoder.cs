@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -135,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
             }
-            catch (Exception e) when (FatalError.Report(e)) // Trying to get more useful Watson dumps.
+            catch (Exception e) when (FatalError.ReportAndPropagate(e)) // Trying to get more useful Watson dumps.
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -234,11 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     do
                     {
-                        if (namedType.IsTupleType)
-                        {
-                            return IsOrClosedOverATypeFromAssemblies(namedType.TupleUnderlyingType, assemblies);
-                        }
-
                         var arguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                         int count = arguments.Length;
 
@@ -407,8 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         // Let's use a trick. To make sure the kind is the same, make sure
                         // base type is the same.
-                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault();
-                        if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType).GetValueOrDefault())
+                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType ?? SpecialType.None);
+                        if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType ?? SpecialType.None))
                         {
                             continue;
                         }
@@ -519,17 +518,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(scope.Kind == SymbolKind.NamedType || scope.Kind == SymbolKind.ErrorType);
 
                 // We only want to consider members that are at or above "scope" in the type hierarchy.
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 if (!TypeSymbol.Equals(scope, targetTypeSymbol, TypeCompareKind.ConsiderEverything2) &&
                     !(targetTypeSymbol.IsInterfaceType()
-                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, TypeSymbol.EqualsCLRSignatureComparer) != -1
-                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.CLRSignatureCompareOptions, useSiteDiagnostics: ref useSiteDiagnostics)))
+                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, SymbolEqualityComparer.CLRSignature) != -1
+                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.CLRSignatureCompareOptions, useSiteInfo: ref discardedUseSiteInfo)))
                 {
                     return null;
                 }
             }
 
-            if (!targetTypeSymbol.IsTupleCompatible())
+            if (!targetTypeSymbol.IsTupleType)
             {
                 targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames: default);
             }

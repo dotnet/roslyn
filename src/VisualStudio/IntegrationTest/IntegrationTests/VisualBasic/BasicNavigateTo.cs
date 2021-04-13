@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicNavigateTo(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicNavigateTo))
+        public BasicNavigateTo(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicNavigateTo))
         {
         }
 
@@ -31,7 +33,6 @@ Class FirstClass
     Sub FirstMethod()
     End Sub
 End Class");
-
 
             VisualStudio.SolutionExplorer.AddFile(project, "test2.vb", open: true, contents: @"
 ");

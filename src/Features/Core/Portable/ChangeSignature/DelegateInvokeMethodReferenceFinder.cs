@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -7,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -26,25 +31,21 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public static readonly IReferenceFinder DelegateInvokeMethod = new DelegateInvokeMethodReferenceFinder();
 
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.DelegateInvoke;
-        }
+            => symbol.MethodKind == MethodKind.DelegateInvoke;
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
+            IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
-            var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+            using var _ = ArrayBuilder<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.GetInstance(out var result);
 
-            var symbol = symbolAndProjectId.Symbol;
             var beginInvoke = symbol.ContainingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName).FirstOrDefault();
             if (beginInvoke != null)
-            {
-                result.Add(symbolAndProjectId.WithSymbol(beginInvoke));
-            }
+                result.Add((beginInvoke, cascadeDirection));
 
             // All method group references
             foreach (var project in solution.Projects)
@@ -52,8 +53,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 foreach (var document in project.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
-                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(
-                        symbolAndProjectId, document, cancellationToken).ConfigureAwait(false));
+                    var cascaded = await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
+                        symbol, document, cancellationToken).ConfigureAwait(false);
+                    result.AddRange(cascaded.SelectAsArray(s => (s, cascadeDirection)));
                 }
             }
 
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return Task.FromResult(project.Documents.ToImmutableArray());
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,

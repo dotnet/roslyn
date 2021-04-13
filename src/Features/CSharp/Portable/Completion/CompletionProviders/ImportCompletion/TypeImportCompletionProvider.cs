@@ -1,12 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -15,34 +23,65 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class TypeImportCompletionProvider : AbstractTypeImportCompletionProvider
+    [ExportCompletionProvider(nameof(TypeImportCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(PropertySubpatternCompletionProvider))]
+    [Shared]
+    internal sealed class TypeImportCompletionProvider : AbstractTypeImportCompletionProvider<UsingDirectiveSyntax>
     {
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TypeImportCompletionProvider()
+        {
+        }
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         protected override ImmutableArray<string> GetImportedNamespaces(
             SyntaxNode location,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
+            => ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel);
+
+        protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, bool usePartialSemantic, CancellationToken cancellationToken)
+            => ImportCompletionProviderHelper.CreateContextAsync(document, position, usePartialSemantic, cancellationToken);
+
+        protected override bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token)
         {
-            // Get namespaces from usings
-            return semanticModel.GetUsingNamespacesInScope(location)
-                .SelectAsArray(namespaceSymbol => namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
+            if (token.IsKind(SyntaxKind.None) || token.IsMissing)
+                return false;
+
+            return directive switch
+            {
+                UsingDirectiveSyntax usingDirective => usingDirective.SemicolonToken == token,
+                ExternAliasDirectiveSyntax externAliasDirective => externAliasDirective.SemicolonToken == token,
+                _ => false,
+            };
         }
 
-        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<bool> ShouldProvideParenthesisCompletionAsync(
+            Document document,
+            CompletionItem item,
+            char? commitKey,
+            CancellationToken cancellationToken)
         {
-            // Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
-            // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+            if (commitKey is ';' or '.')
+            {
+                // Only consider add '()' if the type is used under object creation context
+                var position = item.Span.Start;
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                return syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken);
+            }
+
+            return false;
         }
 
-        protected override async Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
-            return leftToken.GetAncestor<UsingDirectiveSyntax>() != null;
-        }
+        protected override ImmutableArray<UsingDirectiveSyntax> GetAliasDeclarationNodes(SyntaxNode node)
+            => node.GetEnclosingUsingDirectives()
+                .Where(n => n.Alias != null)
+                .ToImmutableArray();
     }
 }

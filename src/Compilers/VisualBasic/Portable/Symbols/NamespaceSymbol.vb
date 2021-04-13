@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -14,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class NamespaceSymbol
         Inherits NamespaceOrTypeSymbol
-        Implements INamespaceSymbol
+        Implements INamespaceSymbol, INamespaceSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -54,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns whether this namespace is the unnamed, global namespace that is 
         ''' at the root of all namespaces.
         ''' </summary>
-        Public Overridable ReadOnly Property IsGlobalNamespace As Boolean Implements INamespaceSymbol.IsGlobalNamespace
+        Public Overridable ReadOnly Property IsGlobalNamespace As Boolean Implements INamespaceSymbol.IsGlobalNamespace, INamespaceSymbolInternal.IsGlobalNamespace
             Get
                 Return ContainingNamespace Is Nothing
             End Get

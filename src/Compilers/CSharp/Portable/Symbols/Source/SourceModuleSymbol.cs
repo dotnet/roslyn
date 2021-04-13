@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Concurrent;
@@ -187,10 +191,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
+                    var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
                     var globalNS = new SourceNamespaceSymbol(
                         this, this, DeclaringCompilation.MergedRootDeclaration, diagnostics);
-                    Debug.Assert(diagnostics.IsEmptyWithoutResolution);
+                    Debug.Assert(diagnostics.DiagnosticBag.IsEmptyWithoutResolution);
                     diagnostics.Free();
                     Interlocked.CompareExchange(ref _globalNamespace, globalNS, null);
                 }
@@ -223,11 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            DiagnosticBag diagnostics = null;
+                            BindingDiagnosticBag diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
-                                diagnostics = DiagnosticBag.GetInstance();
+                                diagnostics = BindingDiagnosticBag.GetInstance();
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
 
@@ -235,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (diagnostics != null)
                                 {
-                                    _assemblySymbol.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
+                                    _assemblySymbol.AddDeclarationDiagnostics(diagnostics);
                                 }
 
                                 _state.NotePartComplete(CompletionPart.FinishValidatingReferencedAssemblies);
@@ -283,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ValidateLinkedAssemblies(DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void ValidateLinkedAssemblies(BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             foreach (AssemblySymbol a in GetReferencedAssemblySymbols())
             {
@@ -479,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private CommonModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private ModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -487,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -501,23 +505,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
-                if (!CommonModuleWellKnownAttributeData.IsValidCharSet(charSet))
+                if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
                     CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                    arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
-                    arguments.GetOrCreateData<CommonModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
+                    arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute))
             {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullablePublicOnlyAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullablePublicOnlyAttribute);
+                CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
         }
 
@@ -568,6 +572,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasDefaultCharSetAttribute ? data.DefaultCharacterSet : (CharSet?)null;
+            }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.HasSkipLocalsInitAttribute != true;
             }
         }
 

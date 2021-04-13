@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -40,8 +44,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             }
         }
 
-        private readonly static Func<string, byte[]> s_bytesLoader = LoadBytes;
-        private readonly static Func<string, string> s_textLoader = LoadText;
+        private static readonly Func<string, byte[]> s_bytesLoader = LoadBytes;
+        private static readonly Func<string, string> s_textLoader = LoadText;
         private static Dictionary<string, byte[]> s_bytesCache;
         private static Dictionary<string, string> s_textCache;
 
@@ -71,6 +75,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
         public static string Directory_Build_targets => GetText("Directory.Build.targets");
         public static byte[] Key_snk => GetBytes("key.snk");
         public static string NuGet_Config => GetText("NuGet.Config");
+
+        public static class SolutionFilters
+        {
+            public static string Invalid => GetText("SolutionFilters.InvalidSolutionFilter.slnf");
+            public static string CSharp => GetText("SolutionFilters.CSharpSolutionFilter.slnf");
+        }
 
         public static class SolutionFiles
         {
@@ -115,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CircularProjectReferences_CircularCSharpProject2 => GetText("CircularProjectReferences.CircularCSharpProject2.csproj");
                 public static string CSharpProject => GetText("ProjectFiles.CSharp.CSharpProject.csproj");
                 public static string DuplicateFile => GetText("ProjectFiles.CSharp.DuplicateFile.csproj");
-                public static string DuplicateProjectReference => GetText("ProjectFiles.CSharp.DuplicateProjectReference.csproj");
+                public static string DuplicateReferences => GetText("ProjectFiles.CSharp.DuplicateReferences.csproj");
                 public static string DuplicatedGuidLibrary1 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary1.csproj");
                 public static string DuplicatedGuidLibrary2 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary2.csproj");
                 public static string DuplicatedGuidLibrary3 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary3.csproj");
@@ -138,15 +148,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string NetCoreApp2AndTwoLibraries_Library1 => GetText("NetCoreApp2AndTwoLibraries.Library1.csproj");
                 public static string NetCoreApp2AndTwoLibraries_Library2 => GetText("NetCoreApp2AndTwoLibraries.Library2.csproj");
                 public static string NetCoreMultiTFM_Project => GetText("NetCoreMultiTFM.Project.csproj");
+                public static string NetCoreMultiTFM_ExtensionWithConditionOnTFM_Project => GetText("NetCoreMultiTFM_ExtensionWithConditionOnTFM.Project.csproj");
+                public static string NetCoreMultiTFM_ExtensionWithConditionOnTFM_ProjectTestProps => GetText("NetCoreMultiTFM_ExtensionWithConditionOnTFM.Project.csproj.test.props");
                 public static string NetCoreMultiTFM_ProjectReference_Library => GetText("NetCoreMultiTFM_ProjectReference.Library.csproj");
                 public static string NetCoreMultiTFM_ProjectReference_Project => GetText("NetCoreMultiTFM_ProjectReference.Project.csproj");
                 public static string NetCoreMultiTFM_ProjectReferenceToFSharp_CSharpLib = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.csharplib.csharplib.csproj");
-                public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Library => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Library.csproj");
-                public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Project => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Project.csproj");
                 public static string PortableProject => GetText("ProjectFiles.CSharp.PortableProject.csproj");
                 public static string ProjectLoadErrorOnMissingDebugType => GetText("ProjectFiles.CSharp.ProjectLoadErrorOnMissingDebugType.csproj");
                 public static string ProjectReference => GetText("ProjectFiles.CSharp.ProjectReference.csproj");
                 public static string ReferencesPortableProject => GetText("ProjectFiles.CSharp.ReferencesPortableProject.csproj");
+                public static string ShouldUnsetParentConfigurationAndPlatform => GetText("ProjectFiles.CSharp.ShouldUnsetParentConfigurationAndPlatform.csproj");
                 public static string Wildcards => GetText("ProjectFiles.CSharp.Wildcards.csproj");
                 public static string WithoutCSharpTargetsImported => GetText("ProjectFiles.CSharp.WithoutCSharpTargetsImported.csproj");
                 public static string WithDiscoverEditorConfigFiles => GetText("ProjectFiles.CSharp.WithDiscoverEditorConfigFiles.csproj");
@@ -203,8 +214,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string NetCoreMultiTFM_ProjectReference_Class1 => GetText("NetCoreMultiTFM_ProjectReference.Class1.cs");
                 public static string NetCoreMultiTFM_ProjectReference_Program => GetText("NetCoreMultiTFM_ProjectReference.Program.cs");
                 public static string NetCoreMultiTFM_ProjectReferenceToFSharp_CSharpLib_Class1 = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.csharplib.Class1.cs");
-                public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Class1 => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Class1.cs");
-                public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Program => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Program.cs");
                 public static string MainWindow => GetText("SourceFiles.CSharp.MainWindow.xaml.cs");
                 public static string OtherStuff_Foo => GetText("SourceFiles.CSharp.OtherStuff_Foo.cs");
             }

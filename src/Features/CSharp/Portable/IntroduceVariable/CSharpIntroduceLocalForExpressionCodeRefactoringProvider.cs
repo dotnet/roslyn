@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceVariable;
@@ -8,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), Shared]
     internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
             ExpressionSyntax,
@@ -16,6 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax>
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpIntroduceLocalForExpressionCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsValid(ExpressionStatementSyntax expressionStatement, TextSpan span)
         {
             // Expression is likely too simple to want to offer to generate a local for.

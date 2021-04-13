@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
@@ -8,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             internal struct Enumerator
             {
-                private readonly GreenNode _node;
+                private readonly GreenNode? _node;
                 private int _childIndex;
-                private GreenNode _list;
+                private GreenNode? _list;
                 private int _listIndex;
-                private GreenNode _currentChild;
+                private GreenNode? _currentChild;
 
-                internal Enumerator(GreenNode node)
+                internal Enumerator(GreenNode? node)
                 {
                     if (node != null)
                     {
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
                 public GreenNode Current
                 {
-                    get { return _currentChild; }
+                    get { return _currentChild!; }
                 }
             }
         }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -25,22 +29,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = lambdaSymbol.Parameters;
             if (!parameters.IsDefaultOrEmpty)
             {
-                RecordDefinitions(parameters);
+                recordDefinitions(parameters);
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
-                    this.parameterMap.Add(parameter.Name, parameter);
+                    if (!parameter.IsDiscard)
+                    {
+                        this.parameterMap.Add(parameter.Name, parameter);
+                    }
                 }
             }
-        }
 
-        private void RecordDefinitions(ImmutableArray<ParameterSymbol> definitions)
-        {
-            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
-            foreach (var s in definitions)
+            void recordDefinitions(ImmutableArray<ParameterSymbol> definitions)
             {
-                if (!declarationMap.ContainsKey(s.Name))
+                var declarationMap = _definitionMap ??= new SmallDictionary<string, ParameterSymbol>();
+                foreach (var s in definitions)
                 {
-                    declarationMap.Add(s.Name, s);
+                    if (!s.IsDiscard && !declarationMap.ContainsKey(s.Name))
+                    {
+                        declarationMap.Add(s.Name, s);
+                    }
                 }
             }
         }
@@ -71,17 +78,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: Specifically not overriding IsIndirectlyInIterator.
 
-        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType()
+        {
+            return TypeWithAnnotations.Create(CreateErrorType());
+        }
+
+        protected override void ValidateYield(YieldStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             if (node != null)
             {
                 diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
             }
-            return TypeWithAnnotations.Create(CreateErrorType());
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(result.IsClear);
 
@@ -92,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameterSymbol in parameterMap[name])
             {
-                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteInfo));
             }
         }
 
@@ -110,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, BindingDiagnosticBag diagnostics)
         {
             var oldLocation = parameter.Locations[0];
             if (oldLocation == newLocation)
@@ -152,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
+        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
         {
             ParameterSymbol existingDeclaration;
             var map = _definitionMap;

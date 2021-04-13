@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -33,7 +34,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions && !moveToNamespaceOptions.IsCancelled)
+            // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
+            if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&
+                !moveToNamespaceOptions.IsCancelled &&
+                !string.IsNullOrEmpty(moveToNamespaceOptions.Namespace))
             {
                 var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                     _moveToNamespaceAnalysisResult,
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             Debug.Assert(moveToNamespaceResult.Succeeded);
 
-            var operations = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance();
+            using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
             operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
 
             var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
@@ -74,13 +78,13 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 }
             }
 
-            return operations.ToImmutableAndFree();
+            return operations.ToImmutable();
         }
 
         public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
             => analysisResult.Container switch
             {
-                MoveToNamespaceAnalysisResult.ContainerType.NamedType => (AbstractMoveToNamespaceCodeAction)new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
+                MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
                 MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
                 _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
             };

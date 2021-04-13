@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,35 +17,42 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentSignatureHelpName)]
-    internal class SignatureHelpHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentSignatureHelpName)]
+    internal class SignatureHelpHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
 
+        public override string Method => LSP.Methods.TextDocumentSignatureHelpName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
         {
             _allProviders = allProviders;
         }
 
-        public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+
+        public override async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = context.Document;
             if (document == null)
             {
-                return new LSP.SignatureHelp();
+                return null;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var providers = _allProviders.Where(p => p.Metadata.Language == document.Project.Language);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
 
             foreach (var provider in providers)
             {
-                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(keepThreadContext);
+                var items = await provider.Value.GetItemsAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
 
                 if (items != null)
                 {
@@ -52,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     foreach (var item in items.Items)
                     {
                         LSP.SignatureInformation sigInfo;
-                        if (clientCapabilities?.HasVisualStudioLspCapability() == true)
+                        if (context.ClientCapabilities?.HasVisualStudioLspCapability() == true)
                         {
                             sigInfo = new LSP.VSSignatureInformation
                             {
@@ -85,9 +94,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            return new LSP.SignatureHelp();
+            return null;
         }
-
 
         private static int GetActiveSignature(SignatureHelpItems items)
         {
@@ -107,11 +115,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         /// <summary>
-        /// The <see cref="SignatureHelpItem"/> contains a prefix, parameters seperated by a
+        /// The <see cref="SignatureHelpItem"/> contains a prefix, parameters separated by a
         /// separator and a suffix. Parameters themselves have a prefix, display and suffix.
         /// Concatenate them all to get the text.
         /// </summary>
-        private string GetSignatureText(SignatureHelpItem item)
+        private static string GetSignatureText(SignatureHelpItem item)
         {
             var sb = new StringBuilder();
 
@@ -137,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return sb.ToString();
         }
-        private ClassifiedTextElement GetSignatureClassifiedText(SignatureHelpItem item)
+        private static ClassifiedTextElement GetSignatureClassifiedText(SignatureHelpItem item)
         {
             var taggedTexts = new ArrayBuilder<TaggedText>();
 

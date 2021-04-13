@@ -1,11 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     <UseExportProvider>
@@ -14,16 +15,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Const s_unicodeEllipsis = ChrW(&H2026)
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New SymbolCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(SymbolCompletionProvider)
         End Function
 
-        Protected Overrides Function GetExportProvider() As ExportProvider
-            Return ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService))).CreateExportProvider()
+        Protected Overrides Function GetComposition() As TestComposition
+            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
@@ -1355,7 +1352,7 @@ Class C
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
-                displayTextSuffix:=Nothing, matchingFilters:=Nothing)
+                displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, matchingFilters:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -2759,7 +2756,7 @@ Class C
 End Class
 </Text>.Value
 
-            Await VerifyProviderCommitAsync(markup, "class", expected, "("c, "")
+            Await VerifyProviderCommitAsync(markup, "class", expected, "("c)
         End Function
 
         <WorkItem(543104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")>
@@ -2990,9 +2987,7 @@ End Class</Code>.Value
 
             Dim description =
 $"<{VBFeaturesResources.Awaitable}> Function C.Goo() As Task
-Doc Comment!
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo()"
+Doc Comment!"
 
             Await VerifyItemWithMscorlib45Async(code, "Goo", description, LanguageNames.VisualBasic)
         End Function
@@ -3012,7 +3007,6 @@ Class SomeClass
         Return Await Task.Run(Function() 42)
     End Function
 End Class</Code>.Value
-
 
             Await VerifyItemExistsAsync(code, "Bar")
         End Function
@@ -3200,7 +3194,6 @@ End Class
                 sourceLanguage:=LanguageNames.VisualBasic,
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
-
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5381,7 +5374,7 @@ Class C
     Inherits [Inherits].
 "
 
-            Await VerifyProviderCommitAsync(markup, "Inherits", expected, "."c, "")
+            Await VerifyProviderCommitAsync(markup, "Inherits", expected, "."c)
         End Function
 
         <WorkItem(546801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546801")>
@@ -5544,7 +5537,7 @@ Class DG
 End Class
 "
 
-            Await VerifyProviderCommitAsync(markup, "G(Of " & s_unicodeEllipsis & ")", expected, "("c, "")
+            Await VerifyProviderCommitAsync(markup, "G(Of " & s_unicodeEllipsis & ")", expected, "("c)
         End Function
 
         <WorkItem(579186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579186")>
@@ -5585,7 +5578,7 @@ Class DG
     Inherits G(
 End Class
 "
-            Await VerifyProviderCommitAsync(markup, "G", expected, "("c, "")
+            Await VerifyProviderCommitAsync(markup, "G", expected, "("c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5761,7 +5754,7 @@ Class C
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = $"({FeaturesResources.field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_context
+            Dim expectedDescription = $"({FeaturesResources.field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 
@@ -5786,7 +5779,7 @@ Class DG
     Function Bar() as G(Of
 End Class</code>.Value
 
-            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, Nothing, "")
+            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, Nothing)
         End Function
 
         <WorkItem(909121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909121")>
@@ -5811,7 +5804,7 @@ Class DG
     Function Bar() as G(
 End Class</code>.Value
 
-            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, "("c, "")
+            Await VerifyProviderCommitAsync(text, "G(Of …)", expected, "("c)
         End Function
 
         <WorkItem(668159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668159")>
@@ -5961,7 +5954,6 @@ End Namespace
 Namespace $$
 
 ]]></code>.Value
-
 
             Await VerifyItemExistsAsync(source, "A")
         End Function
@@ -6295,7 +6287,7 @@ Class Await
     End Sub
 End Class]]></code>.Value
 
-            Await VerifyProviderCommitAsync(text, "Await", expected, "]"c, Nothing)
+            Await VerifyProviderCommitAsync(text, "Await", expected, "]"c)
         End Function
 
         <WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
@@ -6317,7 +6309,7 @@ Class [Class]
     End Sub
 End Class]]></code>.Value
 
-            Await VerifyProviderCommitAsync(text, "Class", expected, "]"c, Nothing)
+            Await VerifyProviderCommitAsync(text, "Class", expected, "]"c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6455,7 +6447,6 @@ End Class
             Await VerifyItemExistsAsync(text, "b")
             Await VerifyItemIsAbsentAsync(text, "c")
         End Function
-
 
         <WorkItem(1079694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079694")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -6815,6 +6806,22 @@ Class D
     End Sub
 End Class
 ]]></code>.Value
+
+            Await VerifyItemExistsAsync(text, "Bar")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(46472, "https://github.com/dotnet/roslyn/issues/46472")>
+        Public Async Function TestAllowCompletionInNameOfArgumentContext17() As Task
+            Dim text =
+<code><![CDATA[
+Public Class C
+  Event Bar()
+  
+Public Sub Baz()
+    Dim s = NameOf($$
+  End Sub
+End Class]]></code>.Value
 
             Await VerifyItemExistsAsync(text, "Bar")
         End Function
@@ -7265,10 +7272,8 @@ End Module
             Await VerifyProviderCommitAsync(markupBeforeCommit:=String.Format(text, "$$"),
                                  itemToCommit:="Delegate",
                                  expectedCodeAfterCommit:=String.Format(text, "[Delegate]"),
-                                 commitChar:=Nothing,
-                                 textTypedSoFar:="")
+                                 commitChar:=Nothing)
         End Function
-
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -7760,7 +7765,6 @@ End Namespace
             Dim input =
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="_MyType=WindowsForms">
-
                         <Document name="Form.vb">
                             <![CDATA[
 Namespace Global.System.Windows.Forms
@@ -7803,19 +7807,18 @@ Namespace Global.WindowsApplication1
     End Class
 End Namespace
     ]]></Document>
-
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input)
+            Using workspace = TestWorkspace.Create(input, exportProvider:=ExportProvider)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
             End Using
 
         End Function
@@ -8064,6 +8067,202 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionForLambdaWithOverloads() As Task
+            Dim source =
+<code><![CDATA[
+Imports System.Linq.Expressions
+Imports System.Collections
+Imports System
+Imports System.Collections.Generic
+
+Namespace VBTest
+    Public Class SomeItem
+        Public A As String
+        Public B As Integer
+    End Class
+
+    Class SomeCollection(Of T)
+        Inherits List(Of T)
+        Public Overridable Function Include(path As String) As SomeCollection(Of T)
+            Return Nothing
+        End Function
+    End Class
+
+    Module Extensions
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of T, TProperty)(ByVal source As IList(Of T), path As Expression(Of Func(Of T, TProperty))) As IList(Of T)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+       Public Function Include(ByVal source As IList, path As String) As IList
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of T)(ByVal source As IList(Of T), path As String) As IList(Of T)
+            Return Nothing
+        End Function
+    End Module
+
+    Class Program
+        Sub M(c As SomeCollection(Of SomeItem))
+            Dim a = From m In c.Include(Function(t) t.$$)
+        End Sub
+    End Class
+End Namespace
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "A")
+            Await VerifyItemExistsAsync(source, "B")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        Public Async Function CompletionForLambdaWithOverloads2() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As String)
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        Public Async Function CompletionForLambdaWithOverloads3() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As Action(Of String))
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a as Integer) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        Public Async Function CompletionForLambdaWithOverloads4() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As Action(Of String))
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(y:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(Optional x As Integer = 0, Optional y As Action(Of String) = Nothing)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(z:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Action(Of String))
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
+        Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameterWithDifferentCasing() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub Test()
+        M(Z:=Sub(x)
+                 x.$$
+          End Sub)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Action(Of String))
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Length")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionInsideMethodsWithNonFunctionsAsArguments() As Task
             Dim source =
 <code><![CDATA[
@@ -8239,7 +8438,7 @@ End Class
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.FieldFilter, FilterSet.TargetTypedFilter})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
@@ -8254,7 +8453,7 @@ End Class"
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.FieldFilter})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
@@ -8269,7 +8468,7 @@ End Class"
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "GetHashCode",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.MethodFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
         End Function
     End Class
 End Namespace

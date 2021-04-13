@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
@@ -86,7 +88,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))))
     End Sub
 End Class
 
@@ -180,7 +182,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))))), Global.Program)), (CStr((""))))
     End Sub
 End Class
 
@@ -227,7 +229,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))), (CStr((""))), (CStr((""))))), Global.Program)), (CStr((""))), (CStr((""))), (CStr((""))))
     End Sub
 End Class
 

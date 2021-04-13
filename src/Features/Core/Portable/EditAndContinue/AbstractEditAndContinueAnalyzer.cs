@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -15,12 +18,59 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
     {
+        internal const int DefaultStatementPart = 0;
+
+        /// <summary>
+        /// Contains enough information to determine whether two symbols have the same signature.
+        /// </summary>
+        private static readonly SymbolDisplayFormat s_unqualifiedMemberDisplayFormat =
+            new(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeType,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        private static readonly SymbolDisplayFormat s_fullyQualifiedMemberDisplayFormat =
+            new(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                    SymbolDisplayMemberOptions.IncludeContainingType,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeType,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        // used by tests to validate correct handlign of unexpected exceptions
+        private readonly Action<SyntaxNode>? _testFaultInjector;
+
+        protected AbstractEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector)
+        {
+            _testFaultInjector = testFaultInjector;
+        }
+
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
         /// <summary>
@@ -30,9 +80,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// The implementation has to decide what kinds of nodes in top-level match relationship represent a declaration.
         /// Every member declaration must be represented by exactly one node, but not all nodes have to represent a declaration.
         /// </remarks>
-        internal abstract SyntaxNode FindMemberDeclaration(SyntaxNode root, SyntaxNode node);
+        internal abstract SyntaxNode? FindMemberDeclaration(SyntaxNode? root, SyntaxNode node);
 
-        internal SyntaxNode FindMemberDeclaration(SyntaxNode root, int activeStatementStart)
+        internal SyntaxNode? FindMemberDeclaration(SyntaxNode root, int activeStatementStart)
         {
             var node = TryGetNode(root, activeStatementStart);
             return (node != null) ? FindMemberDeclaration(root, node) : null;
@@ -43,9 +93,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// i.e. a node used as the root of statement-level match.
         /// </summary>
         /// <param name="node">A node representing a declaration or a top-level edit node.</param>
-        /// <param name="isMember">
-        /// True if <paramref name="isMember"/> represents a member declaration,
-        /// false if it represents an edit node.</param>
+        /// 
         /// <returns>
         /// Returns null for nodes that don't represent declarations.
         /// </returns>
@@ -57,30 +105,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// 
         /// Body does not need to cover all active statements that may be associated with the member. 
         /// E.g. Body of a C# constructor is the method body block. Active statements may be placed on the base constructor call.
-        ///      Body if a VB field declaration with shared AsNew initializer is the New expression. Active statements might be placed on the field variables.
+        ///      Body of a VB field declaration with shared AsNew initializer is the New expression. Active statements might be placed on the field variables.
         /// <see cref="FindStatementAndPartner"/> has to account for such cases.
         /// </remarks>
-        internal abstract SyntaxNode TryGetDeclarationBody(SyntaxNode node, bool isMember);
+        internal abstract SyntaxNode? TryGetDeclarationBody(SyntaxNode node);
 
         /// <summary>
         /// Interprets an edit as a declaration body edit.
         /// </summary>
-        /// <param name="edit">A top-level edit.</param>
-        /// <param name="editMap">All top-level edits by syntax node.</param>
+        /// <param name="oldDeclaration">Old member declaration node.</param>
+        /// <param name="newDeclaration">New member declaration node.</param>
         /// <param name="oldBody">The old body participating in the edit.</param>
         /// <param name="newBody">The new body participating in the edit.</param>
-        /// <returns>
-        /// True if the specified edit is a declaration body edit, false otherwise.
-        /// </returns>
-        protected virtual bool TryGetDeclarationBodyEdit(
-            Edit<SyntaxNode> edit,
-            Dictionary<SyntaxNode, EditKind> editMap,
-            out SyntaxNode oldBody,
-            out SyntaxNode newBody)
+        protected virtual void GetUpdatedDeclarationBodies(
+            SyntaxNode oldDeclaration,
+            SyntaxNode newDeclaration,
+            out SyntaxNode? oldBody,
+            out SyntaxNode? newBody)
         {
-            oldBody = (edit.OldNode != null) ? TryGetDeclarationBody(edit.OldNode, isMember: false) : null;
-            newBody = (edit.NewNode != null) ? TryGetDeclarationBody(edit.NewNode, isMember: false) : null;
-            return true;
+            oldBody = TryGetDeclarationBody(oldDeclaration);
+            newBody = TryGetDeclarationBody(newDeclaration);
         }
 
         /// <summary>
@@ -96,21 +140,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// The implementation has to decide what kinds of nodes in top-level match relationship represent a declaration.
         /// Every member declaration must be represented by exactly one node, but not all nodes have to represent a declaration.
         /// </remarks>
-        internal abstract IEnumerable<SyntaxToken> TryGetActiveTokens(SyntaxNode node);
+        internal abstract IEnumerable<SyntaxToken>? TryGetActiveTokens(SyntaxNode node);
 
         /// <summary>
         /// Returns an ancestor that encompasses all active and statement level 
-        /// nodes that belong to the member represented by <paramref name="bodyOrMatchRootOpt"/>.
+        /// nodes that belong to the member represented by <paramref name="bodyOrMatchRoot"/>.
         /// </summary>
-        protected SyntaxNode GetEncompassingAncestor(SyntaxNode bodyOrMatchRootOpt)
+        protected SyntaxNode? GetEncompassingAncestor(SyntaxNode? bodyOrMatchRoot)
         {
-            if (bodyOrMatchRootOpt == null)
+            if (bodyOrMatchRoot == null)
             {
                 return null;
             }
 
-            var root = GetEncompassingAncestorImpl(bodyOrMatchRootOpt);
-            Debug.Assert(root.Span.Contains(bodyOrMatchRootOpt.Span));
+            var root = GetEncompassingAncestorImpl(bodyOrMatchRoot);
+            Debug.Assert(root.Span.Contains(bodyOrMatchRoot.Span));
             return root;
         }
 
@@ -118,14 +162,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Finds a statement at given span and a declaration body.
-        /// Also returns the corresponding partner statement in <paramref name="partnerDeclarationBodyOpt"/>, if specified.
+        /// Also returns the corresponding partner statement in <paramref name="partnerDeclarationBody"/>, if specified.
         /// </summary>
         /// <remarks>
         /// The declaration body node may not contain the <paramref name="span"/>. 
         /// This happens when an active statement associated with the member is outside of its body (e.g. C# constructor).
         /// If the position doesn't correspond to any statement uses the start of the <paramref name="declarationBody"/>.
         /// </remarks>
-        protected abstract SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, TextSpan span, SyntaxNode partnerDeclarationBodyOpt, out SyntaxNode partnerOpt, out int statementPart);
+        protected abstract SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, TextSpan span, SyntaxNode? partnerDeclarationBody, out SyntaxNode? partner, out int statementPart);
 
         private SyntaxNode FindStatement(SyntaxNode declarationBody, TextSpan span, out int statementPart)
             => FindStatementAndPartner(declarationBody, span, null, out _, out statementPart);
@@ -136,14 +180,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal abstract SyntaxNode FindPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode);
 
-        internal abstract SyntaxNode FindPartnerInMemberInitializer(SemanticModel leftModel, INamedTypeSymbol leftType, SyntaxNode leftNode, INamedTypeSymbol rightType, CancellationToken cancellationToken);
+        internal abstract SyntaxNode? FindPartnerInMemberInitializer(SemanticModel leftModel, INamedTypeSymbol leftType, SyntaxNode leftNode, INamedTypeSymbol rightType, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns a node that represents a body of a lambda containing specified <paramref name="node"/>,
         /// or null if the node isn't contained in a lambda. If a node is returned it must uniquely represent the lambda,
         /// i.e. be no two distinct nodes may represent the same lambda.
         /// </summary>
-        protected abstract SyntaxNode FindEnclosingLambdaBody(SyntaxNode containerOpt, SyntaxNode node);
+        protected abstract SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode node);
 
         /// <summary>
         /// Given a node that represents a lambda body returns all nodes of the body in a syntax list.
@@ -154,10 +198,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody);
 
-        protected abstract SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
+        protected abstract SyntaxNode? TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda);
 
         protected abstract Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit);
-        protected abstract Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> knownMatches);
+        protected abstract Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches);
+        protected abstract Match<SyntaxNode> ComputeTopLevelDeclarationMatch(SyntaxNode oldDeclaration, SyntaxNode newDeclaration);
         protected abstract IEnumerable<SequenceEdit> GetSyntaxSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes);
 
         /// <summary>
@@ -169,7 +214,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             int statementPart,
             SyntaxNode oldBody,
             SyntaxNode newBody,
-            out SyntaxNode newStatement);
+            [NotNullWhen(true)] out SyntaxNode? newStatement);
 
         protected abstract bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span);
 
@@ -189,7 +234,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Pairs of (node, statement part), or (node, -1) indicating there is no logical following statement.
         /// The enumeration continues until the root is reached.
         /// </returns>
-        protected abstract IEnumerable<KeyValuePair<SyntaxNode, int>> EnumerateNearStatements(SyntaxNode statement);
+        protected abstract IEnumerable<(SyntaxNode statement, int statementPart)> EnumerateNearStatements(SyntaxNode statement);
 
         protected abstract bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2);
 
@@ -214,7 +259,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart);
 
-        protected abstract ISymbol GetSymbolForEdit(SemanticModel model, SyntaxNode node, EditKind editKind, Dictionary<SyntaxNode, EditKind> editMap, CancellationToken cancellationToken);
+        /// <summary>
+        /// Returns the symbol associated with an edit of the specified <paramref name="node"/>.
+        /// </summary>
+        /// <param name="model">Semantic model</param>
+        /// <param name="node">Edit node</param>
+        /// <param name="editKind">Edit kind</param>
+        /// <param name="editMap">Edit map</param>
+        /// <param name="isAmbiguous">
+        /// True if the node edit is associated with multiple symbols.
+        /// The returned symbol is one of these symbols.
+        /// All symbols must have the same containing symbol.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        protected abstract ISymbol? GetSymbolForEdit(
+            SemanticModel model,
+            SyntaxNode node,
+            EditKind editKind,
+            IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
+            out bool isAmbiguous,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
@@ -235,21 +299,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected virtual TextSpan GetBodyDiagnosticSpan(SyntaxNode node, EditKind editKind)
         {
-            var initialNode = node;
-
+            var current = node.Parent;
             while (true)
             {
-                node = node.Parent;
-                if (node == null)
+                if (current == null)
                 {
-                    return initialNode.Span;
+                    return node.Span;
                 }
 
-                var span = TryGetDiagnosticSpan(node, editKind);
+                var span = TryGetDiagnosticSpan(current, editKind);
                 if (span != null)
                 {
                     return span.Value;
                 }
+
+                current = current.Parent;
             }
         }
 
@@ -264,24 +328,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         protected virtual string GetBodyDisplayName(SyntaxNode node, EditKind editKind = EditKind.Update)
         {
-            var initialNode = node;
+            var current = node.Parent;
             while (true)
             {
-                node = node.Parent;
-                if (node == null)
+                if (current == null)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(initialNode.GetType().Name);
+                    throw ExceptionUtilities.UnexpectedValue(node.GetType().Name);
                 }
 
-                var displayName = TryGetDisplayName(node, editKind);
+                var displayName = TryGetDisplayName(current, editKind);
                 if (displayName != null)
                 {
                     return displayName;
                 }
+
+                current = current.Parent;
             }
         }
 
-        protected abstract string TryGetDisplayName(SyntaxNode node, EditKind editKind);
+        protected abstract string? TryGetDisplayName(SyntaxNode node, EditKind editKind);
 
         protected virtual string GetSuspensionPointDisplayName(SyntaxNode node, EditKind editKind)
             => GetDisplayName(node, editKind);
@@ -291,12 +356,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
-        internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
-        internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
-        internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isNonLeaf);
-        internal abstract void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span);
-        internal abstract void ReportInsertedMemberSymbolRudeEdits(List<RudeEditDiagnostic> diagnostics, ISymbol newSymbol);
-        internal abstract void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode);
+        protected abstract void ReportLocalFunctionsDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> bodyMatch);
+
+        internal abstract void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
+        internal abstract void ReportEnclosingExceptionHandlingRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
+        internal abstract void ReportOtherRudeEditsAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isNonLeaf);
+        internal abstract void ReportMemberUpdateRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span);
+        internal abstract void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType);
+        internal abstract void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode);
+        internal abstract void ReportTypeDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, INamedTypeSymbol oldSymbol, INamedTypeSymbol newSymbol, SyntaxNode newDeclaration, CancellationToken cancellationToken);
 
         internal abstract bool IsLambda(SyntaxNode node);
         internal abstract bool IsInterfaceDeclaration(SyntaxNode node);
@@ -311,7 +379,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool ContainsLambda(SyntaxNode declaration);
         internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
         internal abstract IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken);
-        internal abstract SyntaxNode GetContainingQueryExpression(SyntaxNode node);
+        internal abstract SyntaxNode? GetContainingQueryExpression(SyntaxNode node);
         internal abstract bool QueryClauseLambdasTypeEquivalent(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken);
 
         /// <summary>
@@ -329,10 +397,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// 
         /// Some lambda queries (group by, join by) have two bodies.
         /// </remarks>
-        internal abstract bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2);
+        internal abstract bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? body1, out SyntaxNode? body2);
 
         internal abstract bool IsStateMachineMethod(SyntaxNode declaration);
-        internal abstract SyntaxNode TryGetContainingTypeDeclaration(SyntaxNode node);
+
+        /// <summary>
+        /// Returns the type declaration that contains a specified <paramref name="node"/>.
+        /// This can be class, struct, interface, record or enum declaration.
+        /// </summary>
+        internal abstract SyntaxNode? TryGetContainingTypeDeclaration(SyntaxNode node);
+
+        /// <summary>
+        /// Returns a property, indexer or event declaration whose accessor is the specified <paramref name="node"/>,
+        /// or null if <paramref name="node"/> is not an accessor.
+        /// </summary>
+        internal abstract SyntaxNode? TryGetAssociatedMemberDeclaration(SyntaxNode node);
 
         internal abstract bool HasBackingField(SyntaxNode propertyDeclaration);
 
@@ -348,6 +427,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool IsConstructorWithMemberInitializers(SyntaxNode declaration);
 
         internal abstract bool IsPartial(INamedTypeSymbol type);
+
         internal abstract SyntaxNode EmptyCompilationUnit { get; }
 
         private static readonly SourceText s_emptySource = SourceText.From("");
@@ -355,55 +435,77 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Document Analysis 
 
         public async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
-            Project baseProjectOpt,
-            ImmutableArray<ActiveStatement> baseActiveStatements,
-            Document document,
-            IActiveStatementTrackingService trackingServiceOpt,
+            Project oldProject,
+            ImmutableArray<ActiveStatement> oldActiveStatements,
+            Document newDocument,
+            ImmutableArray<TextSpan> newActiveStatementSpans,
             CancellationToken cancellationToken)
         {
-            DocumentAnalysisResults.Log.Write("Analyzing document {0}", document.Name);
+            DocumentAnalysisResults.Log.Write("Analyzing document {0}", newDocument.Name);
+
+            Debug.Assert(!newActiveStatementSpans.IsDefault);
+            Debug.Assert(newDocument.SupportsSyntaxTree);
+            Debug.Assert(newDocument.SupportsSemanticModel);
+
+            // assume changes until we determine there are none so that EnC is blocked on unexpected exception:
+            var hasChanges = true;
 
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                SyntaxTree oldTreeOpt;
+                SyntaxTree? oldTree;
                 SyntaxNode oldRoot;
                 SourceText oldText;
 
-                var oldDocumentOpt = baseProjectOpt?.GetDocument(document.Id);
-                if (oldDocumentOpt != null)
+                var oldDocument = await oldProject.GetDocumentAsync(newDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                if (oldDocument != null)
                 {
-                    oldTreeOpt = await oldDocumentOpt.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    oldRoot = await oldTreeOpt.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    oldText = await oldDocumentOpt.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(oldTree);
+
+                    oldRoot = await oldTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    oldTreeOpt = null;
+                    oldTree = null;
                     oldRoot = EmptyCompilationUnit;
                     oldText = s_emptySource;
                 }
 
-                var newTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var newTree = await newDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(newTree);
 
                 // Changes in parse options might change the meaning of the code even if nothing else changed.
                 // The IDE should disallow changing the options during debugging session. 
-                Debug.Assert(oldTreeOpt == null || oldTreeOpt.Options.Equals(newTree.Options));
+                Debug.Assert(oldTree == null || oldTree.Options.Equals(newTree.Options));
 
                 var newRoot = await newTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                hasChanges = !oldText.ContentEquals(newText);
 
+                _testFaultInjector?.Invoke(newRoot);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // TODO: newTree.HasErrors?
                 var syntaxDiagnostics = newRoot.GetDiagnostics();
-                var syntaxErrorCount = syntaxDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
+                var hasSyntaxError = syntaxDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error);
+                if (hasSyntaxError)
+                {
+                    // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
+                    // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
+                    DocumentAnalysisResults.Log.Write("{0}: syntax errors", newDocument.Name);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray<RudeEditDiagnostic>.Empty, hasChanges);
+                }
 
-                var newActiveStatements = new ActiveStatement[baseActiveStatements.Length];
-                var newExceptionRegions = (syntaxErrorCount == 0) ? new ImmutableArray<LinePositionSpan>[baseActiveStatements.Length] : null;
+                var newActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
+                newActiveStatements.Count = oldActiveStatements.Length;
 
-                if (oldText.ContentEquals(newText))
+                var newExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<LinePositionSpan>>(oldActiveStatements.Length);
+                newExceptionRegions.Count = oldActiveStatements.Length;
+
+                if (!hasChanges)
                 {
                     // The document might have been closed and reopened, which might have triggered analysis. 
                     // If the document is unchanged don't continue the analysis since 
@@ -411,43 +513,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // b) we need to ignore errors in unchanged documents
 
                     AnalyzeUnchangedDocument(
-                        baseActiveStatements,
+                        oldActiveStatements,
                         newText,
                         newRoot,
-                        document.Id,
-                        trackingServiceOpt,
                         newActiveStatements,
                         newExceptionRegions);
 
-                    if (syntaxErrorCount > 0)
-                    {
-                        DocumentAnalysisResults.Log.Write("{0}: unchanged with syntax errors", document.Name);
-                    }
-                    else
-                    {
-                        DocumentAnalysisResults.Log.Write("{0}: unchanged", document.Name);
-                    }
-
-                    return DocumentAnalysisResults.Unchanged(newActiveStatements.AsImmutable(), newExceptionRegions.AsImmutableOrNull());
-                }
-
-                if (syntaxErrorCount > 0)
-                {
-                    // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
-                    // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
-                    DocumentAnalysisResults.Log.Write("Syntax errors: {0} total", syntaxErrorCount);
-
-                    return DocumentAnalysisResults.SyntaxErrors(ImmutableArray<RudeEditDiagnostic>.Empty);
+                    DocumentAnalysisResults.Log.Write("{0}: unchanged", newDocument.Name);
+                    return DocumentAnalysisResults.Unchanged(newDocument.Id, newActiveStatements.MoveToImmutable(), newExceptionRegions.MoveToImmutable());
                 }
 
                 // Disallow modification of a file with experimental features enabled.
                 // These features may not be handled well by the analysis below.
                 if (ExperimentalFeaturesEnabled(newTree))
                 {
-                    DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", document.Name);
+                    DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", newDocument.Name);
 
-                    return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)));
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
+                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), hasChanges);
                 }
 
                 // We do calculate diffs even if there are semantic errors for the following reasons: 
@@ -456,138 +539,133 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // 2) If there are syntactic rude edits we'll report them faster without waiting for semantic analysis.
                 //    The user may fix them before they address all the semantic errors.
 
-                var updatedMethods = new List<UpdatedMemberInfo>();
-                var diagnostics = new List<RudeEditDiagnostic>();
+                using var _2 = ArrayBuilder<RudeEditDiagnostic>.GetInstance(out var diagnostics);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var topMatch = ComputeTopLevelMatch(oldRoot, newRoot);
                 var syntacticEdits = topMatch.GetTreeEdits();
                 var editMap = BuildEditMap(syntacticEdits);
+                var hasRudeEdits = false;
 
-                AnalyzeSyntax(
+                ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
+
+                if (diagnostics.Count > 0 && !hasRudeEdits)
+                {
+                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, newDocument.FilePath);
+                    hasRudeEdits = true;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using var _3 = ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>.GetInstance(out var triviaEdits);
+                using var _4 = ArrayBuilder<SourceLineUpdate>.GetInstance(out var lineEdits);
+
+                // Do not analyze trivia in presence of syntactic rude edits.
+                // The implementation depends on edit map capturing all updates and inserts,
+                // which might not be the case when rude edits are reported.
+                if (diagnostics.Count == 0)
+                {
+                    AnalyzeTrivia(
+                        oldText,
+                        newText,
+                        topMatch,
+                        editMap,
+                        triviaEdits,
+                        lineEdits,
+                        diagnostics,
+                        cancellationToken);
+
+                    if (diagnostics.Count > 0 && !hasRudeEdits)
+                    {
+                        DocumentAnalysisResults.Log.Write("{0} trivia rude edits, first: {1}@{2}", diagnostics.Count, newDocument.FilePath, diagnostics.First().Span.Start);
+                        hasRudeEdits = true;
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
+                var semanticEdits = await AnalyzeSemanticsAsync(
                     syntacticEdits,
                     editMap,
                     oldText,
                     newText,
-                    document.Id,
-                    trackingServiceOpt,
-                    baseActiveStatements,
+                    oldActiveStatements,
+                    newActiveStatementSpans,
+                    triviaEdits,
+                    oldProject,
+                    oldDocument,
+                    newDocument,
+                    diagnostics,
                     newActiveStatements,
                     newExceptionRegions,
-                    updatedMethods,
-                    diagnostics);
-
-                if (diagnostics.Count > 0)
-                {
-                    DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, document.FilePath);
-                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
-                }
-
-                // Disallow addition of a new file.
-                // During EnC, a new file cannot be added to the current solution, but some IDE features (i.e., CodeFix) try to do so. 
-                // In most cases, syntactic rude edits detect them with specific reasons but some reach up to here and we bail them out with a general message.
-                if (oldDocumentOpt == null)
-                {
-                    DocumentAnalysisResults.Log.Write("A new file added: {0}", document.Name);
-                    return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.InsertFile, default)));
-                }
+                    cancellationToken).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-                var lineEdits = new List<LineChange>();
+                AnalyzeUnchangedMemberBodies(diagnostics, syntacticEdits.Match, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions);
+                Debug.Assert(newActiveStatements.All(a => a != null));
 
-                AnalyzeTrivia(
-                    oldText,
-                    newText,
-                    topMatch,
-                    editMap,
-                    triviaEdits,
-                    lineEdits,
-                    diagnostics,
-                    cancellationToken);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (diagnostics.Count > 0)
+                if (diagnostics.Count > 0 && !hasRudeEdits)
                 {
-                    DocumentAnalysisResults.Log.Write("{0} trivia rude edits, first: {1}@{2}", diagnostics.Count, document.FilePath, diagnostics.First().Span.Start);
-                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                List<SemanticEdit> semanticEdits = null;
-                if (syntacticEdits.Edits.Length > 0 || triviaEdits.Count > 0)
-                {
-                    var newModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var oldModel = await oldDocumentOpt.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                    semanticEdits = new List<SemanticEdit>();
-                    AnalyzeSemantics(
-                        syntacticEdits,
-                        editMap,
-                        oldText,
-                        baseActiveStatements,
-                        triviaEdits,
-                        updatedMethods,
-                        oldModel,
-                        newModel,
-                        semanticEdits,
-                        diagnostics,
-                        out var firstDeclaratingErrorOpt,
-                        cancellationToken);
-
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (firstDeclaratingErrorOpt != null)
-                    {
-                        var location = firstDeclaratingErrorOpt.Location;
-                        DocumentAnalysisResults.Log.Write("Declaration errors, first: {0}", location.IsInSource ? location.SourceTree.FilePath : location.MetadataModule.Name);
-
-                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray.Create<RudeEditDiagnostic>(), hasSemanticErrors: true);
-                    }
-
-                    if (diagnostics.Count > 0)
-                    {
-                        DocumentAnalysisResults.Log.Write("{0}@{1}: semantic rude edit ({2} total)", document.FilePath, diagnostics.First().Span.Start, diagnostics.Count);
-                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
-                    }
+                    DocumentAnalysisResults.Log.Write("{0}@{1}: rude edit ({2} total)", newDocument.FilePath, diagnostics.First().Span.Start, diagnostics.Count);
+                    hasRudeEdits = true;
                 }
 
                 return new DocumentAnalysisResults(
-                    newActiveStatements.AsImmutable(),
-                    diagnostics.AsImmutable(),
-                    semanticEdits.AsImmutableOrEmpty(),
-                    newExceptionRegions.AsImmutable(),
-                    lineEdits.AsImmutable(),
-                    hasSemanticErrors: false);
+                    newDocument.Id,
+                    newActiveStatements.MoveToImmutable(),
+                    diagnostics.ToImmutable(),
+                    hasRudeEdits ? default : semanticEdits,
+                    hasRudeEdits ? default : newExceptionRegions.MoveToImmutable(),
+                    hasRudeEdits ? default : lineEdits.ToImmutable(),
+                    hasChanges: true,
+                    hasSyntaxErrors: false);
             }
-            catch (Exception e) when (ReportFatalErrorAnalyzeDocumentAsync(baseActiveStatements, e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 // The same behavior as if there was a syntax error - we are unable to analyze the document. 
-                return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
-                    new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { document.FilePath, e.ToString() })));
+                // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.
+                // In such case we report a rude edit for the document. If the host is actually running out of memory,
+                // it might throw another OOM here or later on.
+                var diagnostic = (e is OutOfMemoryException) ?
+                    new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: new[] { newDocument.FilePath }) :
+                    new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
+
+                // Report as "syntax error" - we can't analyze the document
+                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(diagnostic), hasChanges);
             }
         }
 
-        // Active statements spans are usually unavailable in crash dumps due to a bug in the debugger (DevDiv #150901), 
-        // so we stash them here in plain array (can't use immutable, see the bug) just before we report NFW.
-        private static ActiveStatement[] s_fatalErrorBaseActiveStatements;
-
-        private static bool ReportFatalErrorAnalyzeDocumentAsync(ImmutableArray<ActiveStatement> baseActiveStatements, Exception e)
+        private void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
         {
-            if (!(e is OperationCanceledException))
+            foreach (var edit in syntacticEdits.Edits)
             {
-                s_fatalErrorBaseActiveStatements = baseActiveStatements.ToArray();
+                ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits.Match, edit, editMap);
             }
-
-            return FatalError.ReportWithoutCrashUnlessCanceled(e);
         }
 
-        internal Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
+        /// <summary>
+        /// Reports rude edits for a symbol that's been deleted in one location and inserted in another and the edit was not classified as
+        /// <see cref="EditKind.Move"/> or <see cref="EditKind.Reorder"/>.
+        /// The scenarios include moving a type declaration from one file to another and moving a member of a partial type from one partial declaration to another.
+        /// </summary>
+        internal void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
+        {
+            // Consider replacing following syntax analysis with semantic analysis of the corresponding symbols,
+            // or a combination of semantic and syntax analysis (e.g. primarily analyze symbols but fall back
+            // to syntax analysis for comparisons of attribute values, optional parameter values, etc.).
+            // Such approach would likely be simpler and allow us to handle more cases.
+
+            var match = ComputeTopLevelDeclarationMatch(oldNode, newNode);
+            var syntacticEdits = match.GetTreeEdits();
+            var editMap = BuildEditMap(syntacticEdits);
+            ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
+
+            ReportMemberUpdateRudeEdits(diagnostics, newNode, GetDiagnosticSpan(newNode, EditKind.Update));
+        }
+
+        internal static Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
         {
             var map = new Dictionary<SyntaxNode, EditKind>(editScript.Edits.Length);
 
@@ -611,74 +689,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
-        #region Syntax Analysis 
+        #region Syntax Analysis
 
-        private void AnalyzeSyntax(
-            EditScript<SyntaxNode> script,
-            Dictionary<SyntaxNode, EditKind> editMap,
-            SourceText oldText,
-            SourceText newText,
-            DocumentId documentId,
-            IActiveStatementTrackingService trackingServiceOpt,
-            ImmutableArray<ActiveStatement> oldActiveStatements,
-            [Out]ActiveStatement[] newActiveStatements,
-            [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<UpdatedMemberInfo> updatedMethods,
-            [Out]List<RudeEditDiagnostic> diagnostics)
-        {
-            Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
-            Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
-            Debug.Assert(updatedMethods != null);
-            Debug.Assert(updatedMethods.Count == 0);
-
-            var updatedTrackingSpans = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance();
-
-            for (var i = 0; i < script.Edits.Length; i++)
-            {
-                var edit = script.Edits[i];
-
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingServiceOpt, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
-                ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
-            }
-
-            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, documentId, trackingServiceOpt, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedTrackingSpans);
-
-            Debug.Assert(newActiveStatements.All(a => a != null));
-
-            if (updatedTrackingSpans.Count > 0)
-            {
-                trackingServiceOpt.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
-            }
-
-            updatedTrackingSpans.Free();
-        }
-
-        private void UpdateUneditedSpans(
-            List<RudeEditDiagnostic> diagnostics,
+        private void AnalyzeUnchangedMemberBodies(
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> topMatch,
             SourceText oldText,
             SourceText newText,
-            DocumentId documentId,
-            IActiveStatementTrackingService trackingServiceOpt,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            [In, Out]ActiveStatement[] newActiveStatements,
-            [In, Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [In, Out]ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans)
+            ImmutableArray<TextSpan> newActiveStatementSpans,
+            [In, Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
+            [In, Out] ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions)
         {
-            Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
-            Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
+            Debug.Assert(!newActiveStatementSpans.IsDefault);
+            Debug.Assert(newActiveStatementSpans.IsEmpty || oldActiveStatements.Length == newActiveStatementSpans.Length);
+            Debug.Assert(oldActiveStatements.Length == newActiveStatements.Count);
+            Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Count);
 
             // Active statements in methods that were not updated 
             // are not changed but their spans might have been. 
 
-            for (var i = 0; i < newActiveStatements.Length; i++)
+            for (var i = 0; i < newActiveStatements.Count; i++)
             {
                 if (newActiveStatements[i] == null)
                 {
                     Contract.ThrowIfFalse(newExceptionRegions[i].IsDefault);
-                    TextSpan trackedSpan = default;
-                    var isTracked = trackingServiceOpt != null &&
-                                     trackingServiceOpt.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
+
                     if (!TryGetTextSpan(oldText.Lines, oldActiveStatements[i].Span, out var oldStatementSpan))
                     {
                         DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
@@ -701,8 +737,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var hasPartner = topMatch.TryGetNewNode(oldMember, out var newMember);
                     Contract.ThrowIfFalse(hasPartner);
 
-                    var oldBody = TryGetDeclarationBody(oldMember, isMember: true);
-                    var newBody = TryGetDeclarationBody(newMember, isMember: true);
+                    var oldBody = TryGetDeclarationBody(oldMember);
+                    var newBody = TryGetDeclarationBody(newMember);
 
                     // Guard against invalid active statement spans (in case PDB was somehow out of sync with the source).
                     if (oldBody == null || newBody == null)
@@ -714,11 +750,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var statementPart = -1;
-                    SyntaxNode newStatement = null;
+                    SyntaxNode? newStatement = null;
 
                     // The tracking span might have been deleted or moved outside of the member span.
                     // It is not an error to move the statement - we just ignore it.
-                    if (isTracked && trackedSpan.Length != 0 && newMember.Span.Contains(trackedSpan))
+                    var trackedSpan = newActiveStatementSpans.IsEmpty ? default : newActiveStatementSpans[i];
+                    if (trackedSpan.Length != 0 && newMember.Span.Contains(trackedSpan))
                     {
                         var trackedStatement = FindStatement(newBody, trackedSpan, out var trackedStatementPart);
                         Contract.ThrowIfNull(trackedStatement);
@@ -730,7 +767,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // The tracking span might have been moved outside of lambda.
                         // It is not an error to move the statement - we just ignore it.
-                        var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldMember.FindToken(adjustedOldStatementStart).Parent);
+                        var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldMember.FindToken(adjustedOldStatementStart).Parent!);
                         var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody, trackedStatement);
                         if (oldEnclosingLambdaBody == newEnclosingLambdaBody)
                         {
@@ -758,12 +795,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var newStatementSpan = FindClosestActiveSpan(newStatement, statementPart);
 
                     newActiveStatements[i] = oldActiveStatements[i].WithSpan(newText.Lines.GetLinePositionSpan(newStatementSpan));
-
-                    // Update tracking span if we found a matching active statement whose span is different.
-                    if (isTracked && newStatementSpan != trackedSpan)
-                    {
-                        updatedTrackingSpans.Add((new ActiveStatementId(documentId, i), new ActiveStatementTextSpan(oldActiveStatements[i].Flags, newStatementSpan)));
-                    }
                 }
             }
         }
@@ -772,91 +803,72 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatement> oldActiveStatements,
             SourceText newText,
             SyntaxNode newRoot,
-            DocumentId documentId,
-            IActiveStatementTrackingService trackingServiceOpt,
-            [In, Out]ActiveStatement[] newActiveStatements,
-            [In, Out]ImmutableArray<LinePositionSpan>[] newExceptionRegionsOpt)
+            [Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
+            [Out] ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions)
         {
-            Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
-            Debug.Assert(newExceptionRegionsOpt == null || oldActiveStatements.Length == newExceptionRegionsOpt.Length);
-
-            var updatedTrackingSpans = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance();
+            Debug.Assert(oldActiveStatements.Length == newActiveStatements.Count);
+            Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Count);
 
             // Active statements in methods that were not updated 
             // are not changed but their spans might have been. 
 
-            for (var i = 0; i < newActiveStatements.Length; i++)
+            for (var i = 0; i < oldActiveStatements.Length; i++)
             {
                 if (!TryGetTextSpan(newText.Lines, oldActiveStatements[i].Span, out var oldStatementSpan) ||
                     !TryGetEnclosingBreakpointSpan(newRoot, oldStatementSpan.Start, out var newStatementSpan))
                 {
                     newActiveStatements[i] = oldActiveStatements[i].WithSpan(default);
-                    newExceptionRegionsOpt[i] = ImmutableArray<LinePositionSpan>.Empty;
+                    newExceptionRegions[i] = ImmutableArray<LinePositionSpan>.Empty;
+
                     continue;
                 }
 
                 var newNode = TryGetNode(newRoot, oldStatementSpan.Start);
-                Debug.Assert(newNode != null); // we wouldn't find a breakpoint span otherwise
+                Contract.ThrowIfNull(newNode); // we wouldn't find a breakpoint span otherwise
 
-                if (newExceptionRegionsOpt != null)
-                {
-                    var ancestors = GetExceptionHandlingAncestors(newNode, oldActiveStatements[i].IsNonLeaf);
-                    newExceptionRegionsOpt[i] = GetExceptionRegions(ancestors, newText);
-                }
+                var ancestors = GetExceptionHandlingAncestors(newNode, oldActiveStatements[i].IsNonLeaf);
 
+                newExceptionRegions[i] = GetExceptionRegions(ancestors, newText);
                 newActiveStatements[i] = oldActiveStatements[i].WithSpan(newText.Lines.GetLinePositionSpan(newStatementSpan));
-
-                // Update tracking span if we found a matching active statement whose span is different.
-                TextSpan trackedSpan = default;
-                var isTracked = trackingServiceOpt != null &&
-                                 trackingServiceOpt.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
-
-                if (isTracked && newStatementSpan != trackedSpan)
-                {
-                    updatedTrackingSpans.Add((new ActiveStatementId(documentId, i), new ActiveStatementTextSpan(oldActiveStatements[i].Flags, newStatementSpan)));
-                }
             }
-
-            if (updatedTrackingSpans.Count > 0)
-            {
-                trackingServiceOpt.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
-            }
-
-            updatedTrackingSpans.Free();
         }
 
         internal readonly struct ActiveNode
         {
             public readonly SyntaxNode OldNode;
-            public readonly SyntaxNode NewTrackedNodeOpt;
-            public readonly SyntaxNode EnclosingLambdaBodyOpt;
+            public readonly SyntaxNode? NewTrackedNode;
+            public readonly SyntaxNode? EnclosingLambdaBody;
             public readonly int StatementPart;
-            public readonly TextSpan? TrackedSpanOpt;
+            public readonly TextSpan? TrackedSpan;
 
-            public ActiveNode(SyntaxNode oldNode, SyntaxNode enclosingLambdaBodyOpt, int statementPart, TextSpan? trackedSpanOpt, SyntaxNode newTrackedNodeOpt)
+            public ActiveNode(SyntaxNode oldNode, SyntaxNode? enclosingLambdaBody, int statementPart, TextSpan? trackedSpan, SyntaxNode? newTrackedNode)
             {
-                Debug.Assert(oldNode != null);
-
                 OldNode = oldNode;
-                NewTrackedNodeOpt = newTrackedNodeOpt;
-                EnclosingLambdaBodyOpt = enclosingLambdaBodyOpt;
+                NewTrackedNode = newTrackedNode;
+                EnclosingLambdaBody = enclosingLambdaBody;
                 StatementPart = statementPart;
-                TrackedSpanOpt = trackedSpanOpt;
+                TrackedSpan = trackedSpan;
             }
         }
 
+        /// <summary>
+        /// Information about an active and/or a matched lambda.
+        /// </summary>
         internal readonly struct LambdaInfo
         {
-            public readonly List<int> ActiveNodeIndices;
-            public readonly Match<SyntaxNode> Match;
-            public readonly SyntaxNode NewBody;
+            // non-null for an active lambda (lambda containing an active statement)
+            public readonly List<int>? ActiveNodeIndices;
+
+            // both fields are non-null for a matching lambda (lambda that exists in both old and new document):
+            public readonly Match<SyntaxNode>? Match;
+            public readonly SyntaxNode? NewBody;
 
             public LambdaInfo(List<int> activeNodeIndices)
                 : this(activeNodeIndices, null, null)
             {
             }
 
-            private LambdaInfo(List<int> activeNodeIndices, Match<SyntaxNode> match, SyntaxNode newLambdaBody)
+            private LambdaInfo(List<int>? activeNodeIndices, Match<SyntaxNode>? match, SyntaxNode? newLambdaBody)
             {
                 ActiveNodeIndices = activeNodeIndices;
                 Match = match;
@@ -864,122 +876,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             public LambdaInfo WithMatch(Match<SyntaxNode> match, SyntaxNode newLambdaBody)
-            {
-                return new LambdaInfo(ActiveNodeIndices, match, newLambdaBody);
-            }
+                => new(ActiveNodeIndices, match, newLambdaBody);
         }
 
-        internal readonly struct UpdatedMemberInfo
-        {
-            // Index in top edit script.
-            public readonly int EditOrdinal;
-
-            // node that represents the old body of the method:
-            public readonly SyntaxNode OldBody;
-
-            // node that represents the new body of the method:
-            public readonly SyntaxNode NewBody;
-
-            // { NewNode <-> OldNode }
-            public readonly BidirectionalMap<SyntaxNode> Map;
-
-            // { OldLambdaBody -> LambdaInfo }
-            public readonly IReadOnlyDictionary<SyntaxNode, LambdaInfo> ActiveOrMatchedLambdasOpt;
-
-            // the method has an active statement (the statement might be in the body itself or in a lambda)
-            public readonly bool HasActiveStatement;
-
-            // The old method body has a suspension point (await/yield); 
-            // only true if the body itself has the suspension point, not if it contains async/iterator lambda
-            public readonly bool OldHasStateMachineSuspensionPoint;
-
-            // The new method body has a suspension point (await/yield); 
-            // only true if the body itself has the suspension point, not if it contains async/iterator lambda
-            public readonly bool NewHasStateMachineSuspensionPoint;
-
-            public UpdatedMemberInfo(
-                int editOrdinal,
-                SyntaxNode oldBody,
-                SyntaxNode newBody,
-                BidirectionalMap<SyntaxNode> map,
-                IReadOnlyDictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdasOpt,
-                bool hasActiveStatement,
-                bool oldHasStateMachineSuspensionPoint,
-                bool newHasStateMachineSuspensionPoint)
-            {
-                Debug.Assert(editOrdinal >= 0);
-                Debug.Assert(!map.IsDefaultOrEmpty);
-                Debug.Assert(oldBody != null);
-                Debug.Assert(newBody != null);
-
-                EditOrdinal = editOrdinal;
-                OldBody = oldBody;
-                NewBody = newBody;
-                Map = map;
-                ActiveOrMatchedLambdasOpt = activeOrMatchedLambdasOpt;
-                HasActiveStatement = hasActiveStatement;
-                OldHasStateMachineSuspensionPoint = oldHasStateMachineSuspensionPoint;
-                NewHasStateMachineSuspensionPoint = newHasStateMachineSuspensionPoint;
-            }
-        }
-
-        private void AnalyzeUpdatedActiveMethodBodies(
-            EditScript<SyntaxNode> topEditScript,
-            int editOrdinal,
-            Dictionary<SyntaxNode, EditKind> editMap,
+        private void AnalyzeChangedMemberBody(
+            SyntaxNode oldDeclaration,
+            SyntaxNode newDeclaration,
+            SyntaxNode oldBody,
+            SyntaxNode? newBody,
             SourceText oldText,
             SourceText newText,
-            DocumentId documentId,
-            IActiveStatementTrackingService trackingServiceOpt,
+            SemanticModel oldModel,
+            SemanticModel newModel,
+            ISymbol oldSymbol,
+            ISymbol newSymbol,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            [Out]ActiveStatement[] newActiveStatements,
-            [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<UpdatedMemberInfo> updatedMembers,
-            [Out]ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans,
-            [Out]List<RudeEditDiagnostic> diagnostics)
+            ImmutableArray<TextSpan> newActiveStatementSpans,
+            [Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
+            [Out] ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions,
+            [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
+            out Func<SyntaxNode, SyntaxNode?>? syntaxMap,
+            CancellationToken cancellationToken)
         {
-            Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
-            Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
+            Debug.Assert(!newActiveStatementSpans.IsDefault);
+            Debug.Assert(newActiveStatementSpans.IsEmpty || oldActiveStatements.Length == newActiveStatementSpans.Length);
+            Debug.Assert(oldActiveStatements.IsEmpty || oldActiveStatements.Length == newActiveStatements.Count);
+            Debug.Assert(newActiveStatements.Count == newExceptionRegions.Count);
 
-            var edit = topEditScript.Edits[editOrdinal];
+            syntaxMap = null;
 
-            // new code can't contain active statements, code that moved doesn't contain updates:
-            if (edit.Kind == EditKind.Insert || edit.Kind == EditKind.Reorder || edit.Kind == EditKind.Move)
-            {
-                return;
-            }
-
-            if (!TryGetDeclarationBodyEdit(edit, editMap, out var oldBody, out var newBody) || oldBody == null)
-            {
-                return;
-            }
-
-            var hasActiveStatement = TryGetOverlappingActiveStatements(oldText, edit.OldNode.Span, oldActiveStatements, out var start, out var end);
-
-            if (edit.Kind == EditKind.Delete)
-            {
-                // The entire member has been deleted.
-
-                // TODO: if the member isn't a field/property we should return empty span.
-                // We need to adjust the tracking span design and UpdateUneditedSpans to account for such empty spans.
-                if (hasActiveStatement)
-                {
-                    var newSpan = IsDeclarationWithInitializer(edit.OldNode) ?
-                        GetDeletedNodeActiveSpan(topEditScript.Match.Matches, edit.OldNode) :
-                        GetDeletedNodeDiagnosticSpan(topEditScript.Match.Matches, edit.OldNode);
-
-                    for (var i = start; i < end; i++)
-                    {
-                        // TODO: VB field multi-initializers break this
-                        // Debug.Assert(newActiveStatements[i] == default(LinePositionSpan));
-
-                        newActiveStatements[i] = oldActiveStatements[i].WithSpan(newText.Lines.GetLinePositionSpan(newSpan));
-                        newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
-                    }
-                }
-
-                return;
-            }
+            var hasActiveStatement = TryGetOverlappingActiveStatements(oldText, oldDeclaration.Span, oldActiveStatements, out var start, out var end);
 
             if (newBody == null)
             {
@@ -987,7 +913,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (hasActiveStatement)
                 {
-                    var newSpan = FindClosestActiveSpan(edit.NewNode, 0);
+                    var newSpan = FindClosestActiveSpan(newDeclaration, DefaultStatementPart);
                     for (var i = start; i < end; i++)
                     {
                         Debug.Assert(newActiveStatements[i] == null && newSpan != default);
@@ -999,208 +925,268 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            // Populated with active lambdas and matched lambdas. 
-            // Unmatched non-active lambdas are not included.
-            // { old-lambda-body -> info }
-            Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas = null;
-
-            // finds leaf nodes that correspond to the old active statements:
-            Debug.Assert(end > start || !hasActiveStatement && end == start);
-            var activeNodes = new ActiveNode[end - start];
-            for (var i = 0; i < activeNodes.Length; i++)
+            try
             {
-                var ordinal = start + i;
-                var oldStatementSpan = oldText.Lines.GetTextSpanSafe(oldActiveStatements[ordinal].Span);
+                _testFaultInjector?.Invoke(newBody);
 
-                var oldStatementSyntax = FindStatement(oldBody, oldStatementSpan, out var statementPart);
-                Contract.ThrowIfNull(oldStatementSyntax);
+                // Populated with active lambdas and matched lambdas. 
+                // Unmatched non-active lambdas are not included.
+                // { old-lambda-body -> info }
+                Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
 
-                var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldStatementSyntax);
-
-                if (oldEnclosingLambdaBody != null)
+                // finds leaf nodes that correspond to the old active statements:
+                Debug.Assert(end > start || !hasActiveStatement && end == start);
+                var activeNodes = new ActiveNode[end - start];
+                for (var i = 0; i < activeNodes.Length; i++)
                 {
-                    lazyActiveOrMatchedLambdas ??= new Dictionary<SyntaxNode, LambdaInfo>();
+                    var ordinal = start + i;
+                    var oldStatementSpan = oldText.Lines.GetTextSpanSafe(oldActiveStatements[ordinal].Span);
 
-                    if (!lazyActiveOrMatchedLambdas.TryGetValue(oldEnclosingLambdaBody, out var lambda))
+                    var oldStatementSyntax = FindStatement(oldBody, oldStatementSpan, out var statementPart);
+                    Contract.ThrowIfNull(oldStatementSyntax);
+
+                    var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldStatementSyntax);
+                    if (oldEnclosingLambdaBody != null)
                     {
-                        lambda = new LambdaInfo(new List<int>());
-                        lazyActiveOrMatchedLambdas.Add(oldEnclosingLambdaBody, lambda);
+                        lazyActiveOrMatchedLambdas ??= new Dictionary<SyntaxNode, LambdaInfo>();
+
+                        if (!lazyActiveOrMatchedLambdas.TryGetValue(oldEnclosingLambdaBody, out var lambda))
+                        {
+                            lambda = new LambdaInfo(new List<int>());
+                            lazyActiveOrMatchedLambdas.Add(oldEnclosingLambdaBody, lambda);
+                        }
+
+                        lambda.ActiveNodeIndices!.Add(i);
                     }
 
-                    lambda.ActiveNodeIndices.Add(i);
-                }
+                    SyntaxNode? trackedNode = null;
 
-                SyntaxNode trackedNode = null;
-                // Tracking spans corresponding to the active statements from the tracking service.
-                // We seed the method body matching algorithm with tracking spans (unless they were deleted)
-                // to get precise matching.
-                TextSpan trackedSpan = default;
-                var isTracked = trackingServiceOpt?.TryGetSpan(new ActiveStatementId(documentId, ordinal), newText, out trackedSpan) ?? false;
-
-                if (isTracked)
-                {
-                    // The tracking span might have been deleted or moved outside of the member span.
-                    // It is not an error to move the statement - we just ignore it.
-                    if (trackedSpan.Length != 0 && edit.NewNode.Span.Contains(trackedSpan))
+                    // Tracking spans corresponding to the active statements from the tracking service.
+                    // We seed the method body matching algorithm with tracking spans (unless they were deleted)
+                    // to get precise matching.
+                    var trackedSpan = newActiveStatementSpans.IsEmpty ? (TextSpan?)null : newActiveStatementSpans[ordinal];
+                    if (trackedSpan.HasValue)
                     {
-                        var newStatementSyntax = FindStatement(newBody, trackedSpan, out var part);
-                        Contract.ThrowIfNull(newStatementSyntax);
-
-                        var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody, newStatementSyntax);
-
-                        // The tracking span might have been moved outside of the lambda span.
+                        // The tracking span might have been deleted or moved outside of the member span.
                         // It is not an error to move the statement - we just ignore it.
-                        if (oldEnclosingLambdaBody == newEnclosingLambdaBody &&
-                            StatementLabelEquals(oldStatementSyntax, newStatementSyntax))
+                        if (trackedSpan.Value.Length != 0 && newDeclaration.Span.Contains(trackedSpan.Value))
                         {
-                            trackedNode = newStatementSyntax;
+                            var newStatementSyntax = FindStatement(newBody, trackedSpan.Value, out var part);
+                            Contract.ThrowIfNull(newStatementSyntax);
+
+                            var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody, newStatementSyntax);
+
+                            // The tracking span might have been moved outside of the lambda span.
+                            // It is not an error to move the statement - we just ignore it.
+                            if (oldEnclosingLambdaBody == newEnclosingLambdaBody &&
+                                StatementLabelEquals(oldStatementSyntax, newStatementSyntax))
+                            {
+                                trackedNode = newStatementSyntax;
+                            }
                         }
                     }
+
+                    activeNodes[i] = new ActiveNode(oldStatementSyntax, oldEnclosingLambdaBody, statementPart, trackedSpan, trackedNode);
                 }
 
-                activeNodes[i] = new ActiveNode(oldStatementSyntax, oldEnclosingLambdaBody, statementPart, isTracked ? trackedSpan : (TextSpan?)null, trackedNode);
-            }
+                var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodes.Where(n => n.EnclosingLambdaBody == null).ToArray(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
+                var map = ComputeMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, diagnostics);
 
-            var bodyMatch = ComputeBodyMatch(oldBody, newBody, activeNodes.Where(n => n.EnclosingLambdaBodyOpt == null).ToArray(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
-            var map = ComputeMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, diagnostics);
-
-            // Save the body match for local variable mapping.
-            // We'll use it to tell the compiler what local variables to preserve in an active method.
-            // An edited async/iterator method is considered active.
-            updatedMembers.Add(new UpdatedMemberInfo(editOrdinal, oldBody, newBody, map, lazyActiveOrMatchedLambdas, hasActiveStatement, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint));
-
-            for (var i = 0; i < activeNodes.Length; i++)
-            {
-                var ordinal = start + i;
-                var hasMatching = false;
-                var isNonLeaf = oldActiveStatements[ordinal].IsNonLeaf;
-                var isPartiallyExecuted = (oldActiveStatements[ordinal].Flags & ActiveStatementFlags.PartiallyExecuted) != 0;
-                var statementPart = activeNodes[i].StatementPart;
-                var oldStatementSyntax = activeNodes[i].OldNode;
-                var oldEnclosingLambdaBody = activeNodes[i].EnclosingLambdaBodyOpt;
-
-                newExceptionRegions[ordinal] = ImmutableArray.Create<LinePositionSpan>();
-
-                TextSpan newSpan;
-                SyntaxNode newStatementSyntaxOpt;
-                Match<SyntaxNode> match;
-
-                if (oldEnclosingLambdaBody == null)
+                if (oldHasStateMachineSuspensionPoint)
                 {
-                    match = bodyMatch;
-
-                    hasMatching = TryMatchActiveStatement(oldStatementSyntax, statementPart, oldBody, newBody, out newStatementSyntaxOpt) ||
-                                  match.TryGetNewNode(oldStatementSyntax, out newStatementSyntaxOpt);
+                    ReportStateMachineRudeEdits(oldModel.Compilation, oldSymbol, newBody, diagnostics);
                 }
-                else
-                {
-                    var oldLambdaInfo = lazyActiveOrMatchedLambdas[oldEnclosingLambdaBody];
-                    var newEnclosingLambdaBody = oldLambdaInfo.NewBody;
-                    match = oldLambdaInfo.Match;
 
-                    if (match != null)
+                ReportLambdaAndClosureRudeEdits(
+                    oldModel,
+                    oldBody,
+                    newModel,
+                    newBody,
+                    newSymbol,
+                    lazyActiveOrMatchedLambdas,
+                    map,
+                    diagnostics,
+                    out var newBodyHasLambdas,
+                    cancellationToken);
+
+                // We need to provide syntax map to the compiler if 
+                // 1) The new member has a active statement
+                //    The values of local variables declared or synthesized in the method have to be preserved.
+                // 2) The new member generates a state machine 
+                //    In case the state machine is suspended we need to preserve variables.
+                // 3) The new member contains lambdas
+                //    We need to map new lambdas in the method to the matching old ones. 
+                //    If the old method has lambdas but the new one doesn't there is nothing to preserve.
+                // 4) Constructor that emits initializers is updated.
+                //    We create syntax map even if it's not necessary: if any data member initializers are active/contain lambdas.
+                //    Since initializers are usually simple the map should not be large enough to make it worth optimizing it away.
+                if (hasActiveStatement ||
+                    newHasStateMachineSuspensionPoint ||
+                    newBodyHasLambdas ||
+                    IsConstructorWithMemberInitializers(newDeclaration) ||
+                    IsDeclarationWithInitializer(oldDeclaration) ||
+                    IsDeclarationWithInitializer(newDeclaration))
+                {
+                    syntaxMap = CreateSyntaxMap(map.Reverse);
+                }
+
+                for (var i = 0; i < activeNodes.Length; i++)
+                {
+                    var ordinal = start + i;
+                    var hasMatching = false;
+                    var isNonLeaf = oldActiveStatements[ordinal].IsNonLeaf;
+                    var isPartiallyExecuted = (oldActiveStatements[ordinal].Flags & ActiveStatementFlags.PartiallyExecuted) != 0;
+                    var statementPart = activeNodes[i].StatementPart;
+                    var oldStatementSyntax = activeNodes[i].OldNode;
+                    var oldEnclosingLambdaBody = activeNodes[i].EnclosingLambdaBody;
+
+                    newExceptionRegions[ordinal] = ImmutableArray.Create<LinePositionSpan>();
+
+                    TextSpan newSpan;
+                    SyntaxNode? newStatementSyntax;
+                    Match<SyntaxNode>? match;
+
+                    if (oldEnclosingLambdaBody == null)
                     {
-                        hasMatching = TryMatchActiveStatement(oldStatementSyntax, statementPart, oldEnclosingLambdaBody, newEnclosingLambdaBody, out newStatementSyntaxOpt) ||
-                                      match.TryGetNewNode(oldStatementSyntax, out newStatementSyntaxOpt);
+                        match = bodyMatch;
+
+                        hasMatching = TryMatchActiveStatement(oldStatementSyntax, statementPart, oldBody, newBody, out newStatementSyntax) ||
+                                      match.TryGetNewNode(oldStatementSyntax, out newStatementSyntax);
                     }
                     else
                     {
-                        // Lambda match is null if lambdas can't be matched, 
-                        // in such case we won't have active statement matched either.
-                        hasMatching = false;
-                        newStatementSyntaxOpt = null;
+                        RoslynDebug.Assert(lazyActiveOrMatchedLambdas != null);
+
+                        var oldLambdaInfo = lazyActiveOrMatchedLambdas[oldEnclosingLambdaBody];
+                        var newEnclosingLambdaBody = oldLambdaInfo.NewBody;
+                        match = oldLambdaInfo.Match;
+
+                        if (match != null)
+                        {
+                            RoslynDebug.Assert(newEnclosingLambdaBody != null); // matching lambda has body
+
+                            hasMatching = TryMatchActiveStatement(oldStatementSyntax, statementPart, oldEnclosingLambdaBody, newEnclosingLambdaBody, out newStatementSyntax) ||
+                                          match.TryGetNewNode(oldStatementSyntax, out newStatementSyntax);
+                        }
+                        else
+                        {
+                            // Lambda match is null if lambdas can't be matched, 
+                            // in such case we won't have active statement matched either.
+                            hasMatching = false;
+                            newStatementSyntax = null;
+                        }
                     }
-                }
 
-                if (hasMatching)
-                {
-                    Debug.Assert(newStatementSyntaxOpt != null);
-
-                    // The matching node doesn't produce sequence points.
-                    // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
-                    newSpan = FindClosestActiveSpan(newStatementSyntaxOpt, statementPart);
-
-                    if ((isNonLeaf || isPartiallyExecuted) && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntaxOpt, statementPart))
+                    if (hasMatching)
                     {
-                        // rude edit: non-leaf active statement changed
-                        diagnostics.Add(new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.ActiveStatementUpdate : RudeEditKind.PartiallyExecutedActiveStatementUpdate, newSpan));
+                        RoslynDebug.Assert(newStatementSyntax != null);
+                        RoslynDebug.Assert(match != null);
+
+                        // The matching node doesn't produce sequence points.
+                        // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
+                        newSpan = FindClosestActiveSpan(newStatementSyntax, statementPart);
+
+                        if ((isNonLeaf || isPartiallyExecuted) && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntax, statementPart))
+                        {
+                            // rude edit: non-leaf active statement changed
+                            diagnostics.Add(new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.ActiveStatementUpdate : RudeEditKind.PartiallyExecutedActiveStatementUpdate, newSpan));
+                        }
+
+                        // other statements around active statement:
+                        ReportOtherRudeEditsAroundActiveStatement(diagnostics, match, oldStatementSyntax, newStatementSyntax, isNonLeaf);
                     }
-
-                    // other statements around active statement:
-                    ReportOtherRudeEditsAroundActiveStatement(diagnostics, match, oldStatementSyntax, newStatementSyntaxOpt, isNonLeaf);
-                }
-                else if (match == null)
-                {
-                    Debug.Assert(oldEnclosingLambdaBody != null);
-
-                    newSpan = GetDeletedNodeDiagnosticSpan(oldEnclosingLambdaBody, bodyMatch, lazyActiveOrMatchedLambdas);
-
-                    // Lambda containing the active statement can't be found in the new source.
-                    var oldLambda = GetLambda(oldEnclosingLambdaBody);
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldLambda,
-                        new[] { GetDisplayName(oldLambda) }));
-                }
-                else
-                {
-                    newSpan = GetDeletedNodeActiveSpan(match.Matches, oldStatementSyntax);
-
-                    if (isNonLeaf || isPartiallyExecuted)
+                    else if (match == null)
                     {
-                        // rude edit: internal active statement deleted
-                        diagnostics.Add(
-                            new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.DeleteActiveStatement : RudeEditKind.PartiallyExecutedActiveStatementDelete,
-                            GetDeletedNodeDiagnosticSpan(match.Matches, oldStatementSyntax)));
+                        RoslynDebug.Assert(oldEnclosingLambdaBody != null);
+                        RoslynDebug.Assert(lazyActiveOrMatchedLambdas != null);
+
+                        newSpan = GetDeletedNodeDiagnosticSpan(oldEnclosingLambdaBody, bodyMatch, lazyActiveOrMatchedLambdas);
+
+                        // Lambda containing the active statement can't be found in the new source.
+                        var oldLambda = GetLambda(oldEnclosingLambdaBody);
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldLambda,
+                            new[] { GetDisplayName(oldLambda) }));
+                    }
+                    else
+                    {
+                        newSpan = GetDeletedNodeActiveSpan(match.Matches, oldStatementSyntax);
+
+                        if (isNonLeaf || isPartiallyExecuted)
+                        {
+                            // rude edit: internal active statement deleted
+                            diagnostics.Add(
+                                new RudeEditDiagnostic(isNonLeaf ? RudeEditKind.DeleteActiveStatement : RudeEditKind.PartiallyExecutedActiveStatementDelete,
+                                GetDeletedNodeDiagnosticSpan(match.Matches, oldStatementSyntax),
+                                arguments: new[] { FeaturesResources.code }));
+                        }
+                    }
+
+                    // exception handling around the statement:
+                    CalculateExceptionRegionsAroundActiveStatement(
+                        bodyMatch,
+                        oldStatementSyntax,
+                        newStatementSyntax,
+                        newSpan,
+                        ordinal,
+                        newText,
+                        isNonLeaf,
+                        newExceptionRegions,
+                        diagnostics);
+
+                    Debug.Assert(newActiveStatements[ordinal] == null && newSpan != default);
+
+                    newActiveStatements[ordinal] = oldActiveStatements[ordinal].WithSpan(newText.Lines.GetLinePositionSpan(newSpan));
+                }
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                // Set the new spans of active statements overlapping the method body to match the old spans.
+                // Even though these might be now outside of the method body it's ok since we report a rude edit and don't allow to continue.
+
+                if (hasActiveStatement)
+                {
+                    for (var i = start; i < end; i++)
+                    {
+                        Debug.Assert(newActiveStatements[i] == null);
+                        newActiveStatements[i] = oldActiveStatements[i];
+                        newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                     }
                 }
 
-                // exception handling around the statement:
-                CalculateExceptionRegionsAroundActiveStatement(
-                    bodyMatch,
-                    oldStatementSyntax,
-                    newStatementSyntaxOpt,
-                    newSpan,
-                    ordinal,
-                    newText,
-                    isNonLeaf,
-                    newExceptionRegions,
-                    diagnostics);
-
-                Debug.Assert(newActiveStatements[ordinal] == null && newSpan != default);
-
-                newActiveStatements[ordinal] = oldActiveStatements[ordinal].WithSpan(newText.Lines.GetLinePositionSpan(newSpan));
-
-                // Update tracking span if we found a matching active statement whose span is different.
-                // It could have been deleted or moved out of the method/lambda body, in which case we set it to empty.
-                if (activeNodes[i].TrackedSpanOpt.HasValue && activeNodes[i].TrackedSpanOpt.Value != newSpan)
-                {
-                    updatedTrackingSpans.Add((new ActiveStatementId(documentId, ordinal), new ActiveStatementTextSpan(oldActiveStatements[ordinal].Flags, newSpan)));
-                }
+                // We expect OOM to be thrown during the analysis if the number of statements is too large.
+                // In such case we report a rude edit for the document. If the host is actually running out of memory,
+                // it might throw another OOM here or later on.
+                diagnostics.Add(new RudeEditDiagnostic(
+                    (e is OutOfMemoryException) ? RudeEditKind.MemberBodyTooBig : RudeEditKind.MemberBodyInternalError,
+                    GetBodyDiagnosticSpan(newBody, EditKind.Update),
+                    newBody,
+                    arguments: new[] { GetBodyDisplayName(newBody) }));
             }
         }
 
         private void CalculateExceptionRegionsAroundActiveStatement(
             Match<SyntaxNode> bodyMatch,
             SyntaxNode oldStatementSyntax,
-            SyntaxNode newStatementSyntaxOpt,
+            SyntaxNode? newStatementSyntax,
             TextSpan newStatementSyntaxSpan,
             int ordinal,
             SourceText newText,
             bool isNonLeaf,
-            ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            List<RudeEditDiagnostic> diagnostics)
+            ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
-            if (newStatementSyntaxOpt == null && bodyMatch.NewRoot.Span.Contains(newStatementSyntaxSpan.Start))
+            if (newStatementSyntax == null)
             {
-                newStatementSyntaxOpt = bodyMatch.NewRoot.FindToken(newStatementSyntaxSpan.Start).Parent;
-            }
+                if (!bodyMatch.NewRoot.Span.Contains(newStatementSyntaxSpan.Start))
+                {
+                    return;
+                }
 
-            if (newStatementSyntaxOpt == null)
-            {
-                return;
+                newStatementSyntax = bodyMatch.NewRoot.FindToken(newStatementSyntaxSpan.Start).Parent;
             }
 
             var oldAncestors = GetExceptionHandlingAncestors(oldStatementSyntax, isNonLeaf);
-            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntaxOpt, isNonLeaf);
+            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntax!, isNonLeaf);
 
             if (oldAncestors.Count > 0 || newAncestors.Count > 0)
             {
@@ -1222,10 +1208,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private BidirectionalMap<SyntaxNode> ComputeMap(
             Match<SyntaxNode> bodyMatch,
             ActiveNode[] activeNodes,
-            ref Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
-            List<RudeEditDiagnostic> diagnostics)
+            ref Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
-            ArrayBuilder<Match<SyntaxNode>> lambdaBodyMatches = null;
+            ArrayBuilder<Match<SyntaxNode>>? lambdaBodyMatches = null;
             var currentLambdaBodyMatch = -1;
             var currentBodyMatch = bodyMatch;
 
@@ -1287,14 +1273,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 foreach (var pair in lambdaBodyMatch.Matches)
                 {
-                    // Body match of a lambda whose body is an expression has the lambda as a root.
-                    // The lambda has already been included when enumerating parent body matches.
-                    Debug.Assert(
-                        !map.ContainsKey(pair.Key) ||
-                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key) && IsLambda(pair.Value));
-
-                    map[pair.Key] = pair.Value;
-                    reverseMap[pair.Value] = pair.Key;
+                    if (!map.ContainsKey(pair.Key))
+                    {
+                        map[pair.Key] = pair.Value;
+                        reverseMap[pair.Value] = pair.Key;
+                    }
                 }
             }
 
@@ -1307,10 +1290,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldLambdaBody,
             SyntaxNode newLambdaBody,
             ActiveNode[] activeNodes,
-            [Out]Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
-            [Out]List<RudeEditDiagnostic> diagnostics)
+            [Out] Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
+            [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
-            ActiveNode[] activeNodesInLambda;
+            ActiveNode[]? activeNodesInLambda;
             if (activeOrMatchedLambdas.TryGetValue(oldLambdaBody, out var info))
             {
                 // Lambda may be matched but not be active.
@@ -1336,17 +1319,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldBody,
             SyntaxNode newBody,
             ActiveNode[] activeNodes,
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool oldHasStateMachineSuspensionPoint,
             out bool newHasStateMachineSuspensionPoint)
         {
-            Debug.Assert(oldBody != null);
-            Debug.Assert(newBody != null);
-            Debug.Assert(activeNodes != null);
-            Debug.Assert(diagnostics != null);
-
-            List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches = null;
-            List<SequenceEdit> lazyRudeEdits = null;
+            List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches = null;
+            List<SequenceEdit>? lazyRudeEdits = null;
             GetStateMachineInfo(oldBody, out var oldStateMachineSuspensionPoints, out var oldStateMachineKinds);
             GetStateMachineInfo(newBody, out var newStateMachineSuspensionPoints, out var newStateMachineKinds);
 
@@ -1374,6 +1352,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var match = ComputeBodyMatch(oldBody, newBody, lazyKnownMatches);
+
+            if (IsLocalFunction(match.OldRoot) && IsLocalFunction(match.NewRoot))
+            {
+                ReportLocalFunctionsDeclarationRudeEdits(diagnostics, match);
+            }
 
             if (lazyRudeEdits != null)
             {
@@ -1458,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return match;
         }
 
-        internal virtual void ReportStateMachineSuspensionPointDeletedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
+        internal virtual void ReportStateMachineSuspensionPointDeletedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.Delete,
@@ -1467,7 +1450,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 new[] { GetSuspensionPointDisplayName(deletedSuspensionPoint, EditKind.Delete) }));
         }
 
-        internal virtual void ReportStateMachineSuspensionPointInsertedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
+        internal virtual void ReportStateMachineSuspensionPointInsertedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 aroundActiveStatement ? RudeEditKind.InsertAroundActiveStatement : RudeEditKind.Insert,
@@ -1476,26 +1459,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 new[] { GetSuspensionPointDisplayName(insertedSuspensionPoint, EditKind.Insert) }));
         }
 
-        private static void AddMatchingActiveNodes(ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches, IEnumerable<ActiveNode> activeNodes)
+        private static void AddMatchingActiveNodes(ref List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches, IEnumerable<ActiveNode> activeNodes)
         {
             // add nodes that are tracked by the editor buffer to known matches:
             foreach (var activeNode in activeNodes)
             {
-                if (activeNode.NewTrackedNodeOpt != null)
+                if (activeNode.NewTrackedNode != null)
                 {
-                    if (lazyKnownMatches == null)
-                    {
-                        lazyKnownMatches = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
-                    }
-
-                    lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNodeOpt));
+                    lazyKnownMatches ??= new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
+                    lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
                 }
             }
         }
 
         private void AddMatchingStateMachineSuspensionPoints(
-            ref List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches,
-            ref List<SequenceEdit> lazyRudeEdits,
+            ref List<KeyValuePair<SyntaxNode, SyntaxNode>>? lazyKnownMatches,
+            ref List<SequenceEdit>? lazyRudeEdits,
             ImmutableArray<SyntaxNode> oldStateMachineSuspensionPoints,
             ImmutableArray<SyntaxNode> newStateMachineSuspensionPoints)
         {
@@ -1552,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var textSpan = text.Lines.GetTextSpanSafe(activeStatementSpan);
             var token = syntaxRoot.FindToken(textSpan.Start);
-            var ancestors = GetExceptionHandlingAncestors(token.Parent, isNonLeaf);
+            var ancestors = GetExceptionHandlingAncestors(token.Parent!, isNonLeaf);
             return GetExceptionRegions(ancestors, text, out isCovered);
         }
 
@@ -1565,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (exceptionHandlingAncestors.Count == 0)
             {
-                return ImmutableArray.Create<LinePositionSpan>();
+                return ImmutableArray<LinePositionSpan>.Empty;
             }
 
             var result = ArrayBuilder<LinePositionSpan>.GetInstance();
@@ -1637,10 +1616,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal TextSpan GetDeletedNodeActiveSpan(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode deletedNode)
         {
-            foreach (var nodeAndPart in EnumerateNearStatements(deletedNode))
+            foreach (var (oldNode, part) in EnumerateNearStatements(deletedNode))
             {
-                var oldNode = nodeAndPart.Key;
-                var part = nodeAndPart.Value;
                 if (part == -1)
                 {
                     break;
@@ -1658,14 +1635,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TextSpan GetDeletedNodeDiagnosticSpan(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode deletedNode)
         {
             var hasAncestor = TryGetMatchingAncestor(forwardMap, deletedNode, out var newAncestor);
-            Debug.Assert(hasAncestor);
+            RoslynDebug.Assert(hasAncestor && newAncestor != null);
             return GetDiagnosticSpan(newAncestor, EditKind.Delete);
         }
 
         /// <summary>
         /// Finds the inner-most ancestor of the specified node that has a matching node in the new tree.
         /// </summary>
-        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode oldNode, out SyntaxNode newAncestor)
+        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode? oldNode, [NotNullWhen(true)] out SyntaxNode? newAncestor)
         {
             while (oldNode != null)
             {
@@ -1718,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
-        protected static bool HasParentEdit(Dictionary<SyntaxNode, EditKind> editMap, Edit<SyntaxNode> edit)
+        protected static bool HasParentEdit(IReadOnlyDictionary<SyntaxNode, EditKind> editMap, Edit<SyntaxNode> edit)
         {
             SyntaxNode node;
             switch (edit.Kind)
@@ -1738,23 +1715,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return HasEdit(editMap, node.Parent, edit.Kind);
         }
 
-        protected static bool HasEdit(Dictionary<SyntaxNode, EditKind> editMap, SyntaxNode node, EditKind editKind)
+        protected static bool HasEdit(IReadOnlyDictionary<SyntaxNode, EditKind> editMap, SyntaxNode? node, EditKind editKind)
         {
-            return editMap.TryGetValue(node, out var parentEdit) && parentEdit == editKind;
+            return
+                node is object &&
+                editMap.TryGetValue(node, out var parentEdit) &&
+                parentEdit == editKind;
         }
 
         #endregion
 
         #region Rude Edits around Active Statement 
 
-        protected void AddAroundActiveStatementRudeDiagnostic(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, TextSpan newActiveStatementSpan)
+        protected void AddAroundActiveStatementRudeDiagnostic(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode? oldNode, SyntaxNode? newNode, TextSpan newActiveStatementSpan)
         {
             if (oldNode == null)
             {
+                RoslynDebug.Assert(newNode != null);
                 AddRudeInsertAroundActiveStatement(diagnostics, newNode);
             }
             else if (newNode == null)
             {
+                RoslynDebug.Assert(oldNode != null);
                 AddRudeDeleteAroundActiveStatement(diagnostics, oldNode, newActiveStatementSpan);
             }
             else
@@ -1763,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected void AddRudeUpdateAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
+        protected void AddRudeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.UpdateAroundActiveStatement,
@@ -1772,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 new[] { GetDisplayName(newNode, EditKind.Update) }));
         }
 
-        protected void AddRudeInsertAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
+        protected void AddRudeInsertAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.InsertAroundActiveStatement,
@@ -1781,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 new[] { GetDisplayName(newNode, EditKind.Insert) }));
         }
 
-        protected void AddRudeDeleteAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, TextSpan newActiveStatementSpan)
+        protected void AddRudeDeleteAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, TextSpan newActiveStatementSpan)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.DeleteAroundActiveStatement,
@@ -1791,45 +1773,46 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         protected void ReportUnmatchedStatements<TSyntaxNode>(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             Func<SyntaxNode, bool> nodeSelector,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             Func<TSyntaxNode, TSyntaxNode, bool> areEquivalent,
-            Func<TSyntaxNode, TSyntaxNode, bool> areSimilar)
+            Func<TSyntaxNode, TSyntaxNode, bool>? areSimilar)
             where TSyntaxNode : SyntaxNode
         {
-            List<SyntaxNode> oldNodes = null, newNodes = null;
-            GetAncestors(GetEncompassingAncestor(match.OldRoot), oldActiveStatement, nodeSelector, ref oldNodes);
-            GetAncestors(GetEncompassingAncestor(match.NewRoot), newActiveStatement, nodeSelector, ref newNodes);
-
-            if (newNodes != null)
+            var newNodes = GetAncestors(GetEncompassingAncestor(match.NewRoot), newActiveStatement, nodeSelector);
+            if (newNodes == null)
             {
-                int matchCount;
-                if (oldNodes != null)
-                {
-                    matchCount = MatchNodes(oldNodes, newNodes, diagnostics: null, match: match, comparer: areEquivalent);
+                return;
+            }
 
-                    // Do another pass over the nodes to improve error messages.
-                    if (areSimilar != null && matchCount < Math.Min(oldNodes.Count, newNodes.Count))
-                    {
-                        matchCount += MatchNodes(oldNodes, newNodes, diagnostics: diagnostics, match: null, comparer: areSimilar);
-                    }
-                }
-                else
-                {
-                    matchCount = 0;
-                }
+            var oldNodes = GetAncestors(GetEncompassingAncestor(match.OldRoot), oldActiveStatement, nodeSelector);
 
-                if (matchCount < newNodes.Count)
+            int matchCount;
+            if (oldNodes != null)
+            {
+                matchCount = MatchNodes(oldNodes, newNodes, diagnostics: null, match: match, comparer: areEquivalent);
+
+                // Do another pass over the nodes to improve error messages.
+                if (areSimilar != null && matchCount < Math.Min(oldNodes.Count, newNodes.Count))
                 {
-                    ReportRudeEditsAndInserts(oldNodes, newNodes, diagnostics);
+                    matchCount += MatchNodes(oldNodes, newNodes, diagnostics: diagnostics, match: null, comparer: areSimilar);
                 }
+            }
+            else
+            {
+                matchCount = 0;
+            }
+
+            if (matchCount < newNodes.Count)
+            {
+                ReportRudeEditsAndInserts(oldNodes, newNodes, diagnostics);
             }
         }
 
-        private void ReportRudeEditsAndInserts(List<SyntaxNode> oldNodes, List<SyntaxNode> newNodes, List<RudeEditDiagnostic> diagnostics)
+        private void ReportRudeEditsAndInserts(List<SyntaxNode?>? oldNodes, List<SyntaxNode?> newNodes, ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
             var oldNodeCount = (oldNodes != null) ? oldNodes.Count : 0;
 
@@ -1842,7 +1825,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Any difference can be expressed as insert, delete & insert, edit, or move & edit.
                     // Heuristic: If the nesting levels of the old and new nodes are the same we report an edit.
                     // Otherwise we report an insert.
-                    if (i < oldNodeCount && oldNodes[i] != null)
+                    if (i < oldNodeCount && oldNodes![i] != null)
                     {
                         AddRudeUpdateAroundActiveStatement(diagnostics, newNode);
                     }
@@ -1855,10 +1838,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private int MatchNodes<TSyntaxNode>(
-            List<SyntaxNode> oldNodes,
-            List<SyntaxNode> newNodes,
-            List<RudeEditDiagnostic> diagnostics,
-            Match<SyntaxNode> match,
+            List<SyntaxNode?> oldNodes,
+            List<SyntaxNode?> newNodes,
+            ArrayBuilder<RudeEditDiagnostic>? diagnostics,
+            Match<SyntaxNode>? match,
             Func<TSyntaxNode, TSyntaxNode, bool> comparer)
             where TSyntaxNode : SyntaxNode
         {
@@ -1872,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                SyntaxNode oldNode;
+                SyntaxNode? oldNode;
                 while (oldIndex < oldNodes.Count)
                 {
                     oldNode = oldNodes[oldIndex];
@@ -1918,7 +1901,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return matchCount;
         }
 
-        private static int IndexOfEquivalent<TSyntaxNode>(SyntaxNode newNode, List<SyntaxNode> oldNodes, int startIndex, Func<TSyntaxNode, TSyntaxNode, bool> comparer)
+        private static int IndexOfEquivalent<TSyntaxNode>(SyntaxNode newNode, List<SyntaxNode?> oldNodes, int startIndex, Func<TSyntaxNode, TSyntaxNode, bool> comparer)
             where TSyntaxNode : SyntaxNode
         {
             for (var i = startIndex; i < oldNodes.Count; i++)
@@ -1933,43 +1916,48 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return -1;
         }
 
-        private static void GetAncestors(SyntaxNode root, SyntaxNode node, Func<SyntaxNode, bool> nodeSelector, ref List<SyntaxNode> list)
+        private static List<SyntaxNode?>? GetAncestors(SyntaxNode? root, SyntaxNode node, Func<SyntaxNode, bool> nodeSelector)
         {
-            while (node != root)
-            {
-                if (nodeSelector(node))
-                {
-                    if (list == null)
-                    {
-                        list = new List<SyntaxNode>();
-                    }
+            List<SyntaxNode?>? list = null;
+            var current = node;
 
-                    list.Add(node);
+            while (current is object && current != root)
+            {
+                if (nodeSelector(current))
+                {
+                    list ??= new List<SyntaxNode?>();
+                    list.Add(current);
                 }
 
-                node = node.Parent;
+                current = current.Parent;
             }
 
-            if (list != null)
-            {
-                list.Reverse();
-            }
+            list?.Reverse();
+
+            return list;
         }
 
         #endregion
 
         #region Trivia Analysis
 
+        /// <summary>
+        /// Top-level edit script does not contain edits for a member if only trivia changed in its body.
+        /// Members that are unchanged but their location in the file changes are not considered updated.
+        /// This method calculates line and trivia edits for both of these cases.
+        /// </summary>
         private void AnalyzeTrivia(
             SourceText oldSource,
             SourceText newSource,
             Match<SyntaxNode> topMatch,
-            Dictionary<SyntaxNode, EditKind> editMap,
-            [Out]List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-            [Out]List<LineChange> lineEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
+            [Out] ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
+            [Out] ArrayBuilder<SourceLineUpdate> lineEdits,
+            [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(diagnostics.Count == 0);
+
             foreach (var (oldNode, newNode) in topMatch.Matches)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -1987,8 +1975,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
+                // A (rude) edit could have been made that changes whether the node may contain active statements,
+                // so although the nodes match they might not have the same active tokens.
+                // E.g. field declaration changed to const field declaration.
+                var oldTokens = TryGetActiveTokens(oldNode);
+                if (oldTokens == null)
+                {
+                    continue;
+                }
+
                 var newTokensEnum = newTokens.GetEnumerator();
-                var oldTokensEnum = TryGetActiveTokens(oldNode).GetEnumerator();
+                var oldTokensEnum = oldTokens.GetEnumerator();
 
                 var oldLines = oldSource.Lines;
                 var newLines = newSource.Lines;
@@ -2012,7 +2009,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var requiresUpdate = false;
                 var isFirstToken = true;
                 var firstTokenLineDelta = 0;
-                LineChange firstTokenLineChange = default;
+                SourceLineUpdate firstTokenLineChange = default;
                 bool oldHasToken;
                 bool newHasToken;
                 while (true)
@@ -2045,7 +2042,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         isFirstToken = false;
                         firstTokenLineDelta = lineDelta;
-                        firstTokenLineChange = (lineDelta != 0) ? new LineChange(oldPosition.Line, newPosition.Line) : default;
+                        firstTokenLineChange = (lineDelta != 0) ? new SourceLineUpdate(oldPosition.Line, newPosition.Line) : default;
                     }
                     else if (firstTokenLineDelta != lineDelta)
                     {
@@ -2074,23 +2071,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            lineEdits.Sort(CompareLineChanges);
+            lineEdits.Sort(CompareLineUpdates);
         }
 
-        private static int CompareLineChanges(LineChange x, LineChange y)
-        {
-            return x.OldLine.CompareTo(y.OldLine);
-        }
+        private static int CompareLineUpdates(SourceLineUpdate x, SourceLineUpdate y)
+            => x.OldLine.CompareTo(y.OldLine);
 
         #endregion
 
         #region Semantic Analysis
 
-        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol>
+        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol?>
         {
-            public static readonly IEqualityComparer<IAssemblySymbol> Instance = new AssemblyEqualityComparer();
+            public static readonly IEqualityComparer<IAssemblySymbol?> Instance = new AssemblyEqualityComparer();
 
-            public bool Equals(IAssemblySymbol x, IAssemblySymbol y)
+            public bool Equals(IAssemblySymbol? x, IAssemblySymbol? y)
             {
                 // Types defined in old source assembly need to be treated as equivalent to types in the new source assembly,
                 // provided that they only differ in their containing assemblies.
@@ -2101,16 +2096,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // a single PE symbol. Thus comparing assemblies by identity partitions them so that each partition
                 // contains assemblies that originated from the same Gen0 assembly.
 
-                return x.Identity.Equals(y.Identity);
+                return Equals(x?.Identity, y?.Identity);
             }
 
-            public int GetHashCode(IAssemblySymbol obj)
-            {
-                return obj.Identity.GetHashCode();
-            }
+            public int GetHashCode(IAssemblySymbol? obj)
+                => obj?.Identity.GetHashCode() ?? 0;
         }
 
-        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(AssemblyEqualityComparer.Instance, distinguishRefFromOut: true);
+        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new(
+            AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: false);
 
         protected static bool SignaturesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
         {
@@ -2119,44 +2113,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         protected static bool MemberSignaturesEquivalent(
-            ISymbol oldMemberOpt,
-            ISymbol newMemberOpt,
-            Func<ImmutableArray<IParameterSymbol>, ITypeSymbol, ImmutableArray<IParameterSymbol>, ITypeSymbol, bool> signatureComparer = null)
+            ISymbol? oldMember,
+            ISymbol? newMember,
+            Func<ImmutableArray<IParameterSymbol>, ITypeSymbol, ImmutableArray<IParameterSymbol>, ITypeSymbol, bool>? signatureComparer = null)
         {
-            if (oldMemberOpt == newMemberOpt)
+            if (oldMember == newMember)
             {
                 return true;
             }
 
-            if (oldMemberOpt == null || newMemberOpt == null || oldMemberOpt.Kind != newMemberOpt.Kind)
+            if (oldMember == null || newMember == null || oldMember.Kind != newMember.Kind)
             {
                 return false;
             }
 
-            if (signatureComparer == null)
-            {
-                signatureComparer = SignaturesEquivalent;
-            }
+            signatureComparer ??= SignaturesEquivalent;
 
-            switch (oldMemberOpt.Kind)
+            switch (oldMember.Kind)
             {
                 case SymbolKind.Field:
-                    var oldField = (IFieldSymbol)oldMemberOpt;
-                    var newField = (IFieldSymbol)newMemberOpt;
+                    var oldField = (IFieldSymbol)oldMember;
+                    var newField = (IFieldSymbol)newMember;
                     return signatureComparer(ImmutableArray<IParameterSymbol>.Empty, oldField.Type, ImmutableArray<IParameterSymbol>.Empty, newField.Type);
 
                 case SymbolKind.Property:
-                    var oldProperty = (IPropertySymbol)oldMemberOpt;
-                    var newProperty = (IPropertySymbol)newMemberOpt;
+                    var oldProperty = (IPropertySymbol)oldMember;
+                    var newProperty = (IPropertySymbol)newMember;
                     return signatureComparer(oldProperty.Parameters, oldProperty.Type, newProperty.Parameters, newProperty.Type);
 
                 case SymbolKind.Method:
-                    var oldMethod = (IMethodSymbol)oldMemberOpt;
-                    var newMethod = (IMethodSymbol)newMemberOpt;
+                    var oldMethod = (IMethodSymbol)oldMember;
+                    var newMethod = (IMethodSymbol)newMember;
                     return signatureComparer(oldMethod.Parameters, oldMethod.ReturnType, newMethod.Parameters, newMethod.ReturnType);
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(oldMemberOpt.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(oldMember.Kind);
             }
         }
 
@@ -2164,475 +2155,634 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             public readonly INamedTypeSymbol OldType;
 
-            // { new field/property initializer or constructor declaration -> syntax map }
-            public readonly Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode>> ChangedDeclarations;
+            /// <summary>
+            /// Contains syntax maps for all changed data member initializers or constructor declarations (of constructors emitting initializers)
+            /// in the currently analyzed document. The key is the declaration of the member.
+            /// </summary>
+            public readonly Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?> ChangedDeclarations;
 
             public ConstructorEdit(INamedTypeSymbol oldType)
             {
-                Debug.Assert(oldType != null);
-
                 OldType = oldType;
-                ChangedDeclarations = new Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode>>();
+                ChangedDeclarations = new Dictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?>();
             }
         }
 
-        private void AnalyzeSemantics(
+        private async Task<ImmutableArray<SemanticEditInfo>> AnalyzeSemanticsAsync(
             EditScript<SyntaxNode> editScript,
-            Dictionary<SyntaxNode, EditKind> editMap,
+            IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
             SourceText oldText,
+            SourceText newText,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-            List<UpdatedMemberInfo> updatedMembers,
-            SemanticModel oldModel,
-            SemanticModel newModel,
-            [Out]List<SemanticEdit> semanticEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
-            out Diagnostic firstDeclarationErrorOpt,
+            ImmutableArray<TextSpan> newActiveStatementSpans,
+            IReadOnlyList<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
+            Project oldProject,
+            Document? oldDocument,
+            Document newDocument,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
+            ImmutableArray<ActiveStatement>.Builder newActiveStatements,
+            ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions,
             CancellationToken cancellationToken)
         {
-            // { new type -> constructor update }
-            Dictionary<INamedTypeSymbol, ConstructorEdit> instanceConstructorEdits = null;
-            Dictionary<INamedTypeSymbol, ConstructorEdit> staticConstructorEdits = null;
-
-            INamedTypeSymbol layoutAttribute = null;
-            var newSymbolsWithEdit = new HashSet<ISymbol>();
-            var updatedMemberIndex = 0;
-            firstDeclarationErrorOpt = null;
-            for (var i = 0; i < editScript.Edits.Length; i++)
+            if (editScript.Edits.Length == 0 && triviaEdits.Count == 0)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                return ImmutableArray<SemanticEditInfo>.Empty;
+            }
 
-                var edit = editScript.Edits[i];
+            // { new type -> constructor update }
+            PooledDictionary<INamedTypeSymbol, ConstructorEdit>? instanceConstructorEdits = null;
+            PooledDictionary<INamedTypeSymbol, ConstructorEdit>? staticConstructorEdits = null;
 
-                ISymbol oldSymbol, newSymbol;
-                Func<SyntaxNode, SyntaxNode> syntaxMapOpt;
-                SemanticEditKind editKind;
+            var oldModel = (oldDocument != null) ? await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false) : null;
+            var newModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var oldCompilation = oldModel?.Compilation ?? await oldProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var newCompilation = newModel.Compilation;
 
-                switch (edit.Kind)
+            using var _1 = PooledHashSet<ISymbol>.GetInstance(out var processedSymbols);
+            using var _2 = ArrayBuilder<SemanticEditInfo>.GetInstance(out var semanticEdits);
+
+            try
+            {
+                INamedTypeSymbol? lazyLayoutAttribute = null;
+                for (var i = 0; i < editScript.Edits.Length; i++)
                 {
-                    case EditKind.Move:
-                        // Move is always a Rude Edit.
-                        throw ExceptionUtilities.UnexpectedValue(edit.Kind);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    case EditKind.Delete:
-                        {
-                            editKind = SemanticEditKind.Delete;
+                    var edit = editScript.Edits[i];
 
-                            if (HasParentEdit(editMap, edit))
+                    ISymbol? oldSymbol;
+                    ISymbol? newSymbol;
+                    SymbolKey? lazySymbolKey = null;
+                    Func<SyntaxNode, SyntaxNode?>? syntaxMap;
+                    SemanticEditKind editKind;
+
+                    switch (edit.Kind)
+                    {
+                        case EditKind.Move:
+                            // Move is either a Rude Edit and already reported in syntax analysis, or has no semantic effect.
+                            // For example, in VB we allow move from field multi-declaration.
+                            // "Dim a, b As Integer" -> "Dim a As Integer" (update) and "Dim b As Integer" (move)
+                            continue;
+
+                        case EditKind.Reorder:
+                            // Currently we don't do any semantic checks for reordering
+                            // and we don't need to report them to the compiler either.
+                            // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
+
+                            // Consider: Reordering of fields is not allowed since it changes the layout of the type.
+                            // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
+                            // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
+                            Debug.Assert(!IsDeclarationWithInitializer(edit.OldNode) && !IsDeclarationWithInitializer(edit.NewNode));
+                            continue;
+
+                        case EditKind.Delete:
                             {
-                                continue;
-                            }
+                                Contract.ThrowIfNull(oldModel);
 
-                            oldSymbol = GetSymbolForEdit(oldModel, edit.OldNode, edit.Kind, editMap, cancellationToken);
-                            if (oldSymbol == null)
-                            {
-                                continue;
-                            }
-
-                            // The only member that is allowed to be deleted is a parameterless constructor. 
-                            // For any other member a rude edit is reported earlier during syntax edit classification.
-                            // Deleting a parameterless constructor needs special handling.
-                            // If the new type has a parameterless ctor of the same accessibility then UPDATE.
-                            // Error otherwise.
-
-                            Debug.Assert(AsParameterlessConstructor(oldSymbol) != null);
-
-                            var oldTypeSyntax = TryGetContainingTypeDeclaration(edit.OldNode);
-                            Debug.Assert(oldTypeSyntax != null);
-
-                            var newType = TryGetPartnerType(oldTypeSyntax, editScript.Match, newModel, cancellationToken);
-
-                            newSymbol = TryGetParameterlessConstructor(newType, oldSymbol.IsStatic);
-                            if (newSymbol == null || newSymbol.DeclaredAccessibility != oldSymbol.DeclaredAccessibility)
-                            {
-                                diagnostics.Add(new RudeEditDiagnostic(
-                                    RudeEditKind.Delete,
-                                    GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, edit.OldNode),
-                                    edit.OldNode,
-                                    new[] { GetDisplayName(edit.OldNode, EditKind.Delete) }));
-
-                                continue;
-                            }
-
-                            editKind = SemanticEditKind.Update;
-                            syntaxMapOpt = null;
-                        }
-
-                        break;
-
-                    case EditKind.Reorder:
-                        // Currently we don't do any semantic checks for reordering
-                        // and we don't need to report them to the compiler either.
-
-                        // Reordering of fields is not allowed since it changes the layout of the type.
-                        Debug.Assert(!IsDeclarationWithInitializer(edit.OldNode) && !IsDeclarationWithInitializer(edit.NewNode));
-                        continue;
-
-                    case EditKind.Insert:
-                        {
-                            editKind = SemanticEditKind.Insert;
-
-                            var newTypeSyntax = TryGetContainingTypeDeclaration(edit.NewNode);
-
-                            if (newTypeSyntax != null && HasEdit(editMap, newTypeSyntax, EditKind.Insert))
-                            {
-                                // inserting into a new type
-                                continue;
-                            }
-
-                            syntaxMapOpt = null;
-                            oldSymbol = null;
-                            newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, cancellationToken);
-
-                            if (newSymbol == null)
-                            {
-                                // node doesn't represent a symbol
-                                continue;
-                            }
-
-                            // TODO: scripting
-                            // inserting a top-level member/type
-                            if (newTypeSyntax == null)
-                            {
-                                break;
-                            }
-
-                            var newType = (INamedTypeSymbol)newModel.GetDeclaredSymbol(newTypeSyntax, cancellationToken);
-                            var oldType = TryGetPartnerType(newTypeSyntax, editScript.Match, oldModel, cancellationToken);
-
-                            // There has to be a matching old type syntax since the containing type hasn't been inserted.
-                            Debug.Assert(oldType != null);
-                            Debug.Assert(newType != null);
-
-                            // Validate that the type declarations are correct. If not we can't reason about their members.
-                            // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
-                            firstDeclarationErrorOpt =
-                                GetFirstDeclarationError(oldModel, oldType, cancellationToken) ??
-                                GetFirstDeclarationError(newModel, newType, cancellationToken);
-
-                            if (firstDeclarationErrorOpt != null)
-                            {
-                                continue;
-                            }
-
-                            // Inserting a parameterless constructor needs special handling:
-                            // 1) static ctor
-                            //    a) old type has an implicit static ctor
-                            //       UPDATE of the implicit static ctor
-                            //    b) otherwise
-                            //       INSERT of a static parameterless ctor
-                            // 
-                            // 2) public instance ctor
-                            //    a) old type has an implicit instance ctor
-                            //       UPDATE of the implicit instance ctor
-                            //    b) otherwise
-                            //       ERROR: adding a non-private member
-                            // 3) non-public instance ctor
-                            //    a) old type has an implicit instance ctor
-                            //       ERROR: changing visibility of the ctor
-                            //    b) otherwise
-                            //       INSERT of an instance parameterless ctor
-
-                            var newCtor = AsParameterlessConstructor(newSymbol);
-                            if (newCtor != null)
-                            {
-                                oldSymbol = TryGetParameterlessConstructor(oldType, newSymbol.IsStatic);
-
-                                if (newCtor.IsStatic)
+                                oldSymbol = GetSymbolForEdit(oldModel, edit.OldNode, edit.Kind, editMap, out var oldIsAmbiguous, cancellationToken);
+                                if (oldSymbol == null || oldIsAmbiguous || !processedSymbols.Add(oldSymbol))
                                 {
-                                    if (oldSymbol != null)
+                                    // Node doesn't represent a symbol or it represents multiple symbols and the semantic delete
+                                    // will be issued for node that represents the specific symbol.
+                                    continue;
+                                }
+
+                                var hasActiveStatement = TryGetOverlappingActiveStatements(oldText, edit.OldNode.Span, oldActiveStatements, out var start, out var end);
+
+                                // TODO: if the member isn't a field/property we should return empty span.
+                                // We need to adjust the tracking span design and UpdateUneditedSpans to account for such empty spans.
+                                if (hasActiveStatement)
+                                {
+                                    var newSpan = IsDeclarationWithInitializer(edit.OldNode) ?
+                                        GetDeletedNodeActiveSpan(editScript.Match.Matches, edit.OldNode) :
+                                        GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, edit.OldNode);
+
+                                    for (var index = start; index < end; index++)
                                     {
-                                        editKind = SemanticEditKind.Update;
+                                        // TODO: VB field multi-initializers break this
+                                        // Debug.Assert(newActiveStatements[i] == default(LinePositionSpan));
+
+                                        newActiveStatements[index] = oldActiveStatements[index].WithSpan(newText.Lines.GetLinePositionSpan(newSpan));
+                                        newExceptionRegions[index] = ImmutableArray.Create<LinePositionSpan>();
                                     }
                                 }
-                                else if (oldSymbol != null)
-                                {
-                                    if (oldSymbol.DeclaredAccessibility != newCtor.DeclaredAccessibility)
-                                    {
-                                        // changing visibility of a member
-                                        diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.ChangingConstructorVisibility,
-                                            GetDiagnosticSpan(edit.NewNode, EditKind.Insert)));
-                                    }
-                                    else
-                                    {
-                                        editKind = SemanticEditKind.Update;
-                                    }
-                                }
-                            }
 
-                            if (editKind == SemanticEditKind.Insert)
-                            {
-                                ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol);
-                                ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref layoutAttribute);
-                            }
+                                syntaxMap = null;
+                                editKind = SemanticEditKind.Delete;
 
-                            bool isConstructorWithMemberInitializers;
-                            if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode)) ||
-                                IsDeclarationWithInitializer(edit.NewNode))
-                            {
-                                if (DeferConstructorEdit(
-                                    oldType,
-                                    newType,
-                                    editKind,
-                                    edit.NewNode,
-                                    newSymbol,
-                                    newModel,
-                                    isConstructorWithMemberInitializers,
-                                    ref syntaxMapOpt,
-                                    ref instanceConstructorEdits,
-                                    ref staticConstructorEdits,
-                                    diagnostics,
-                                    cancellationToken))
+                                // Check if the declaration has been moved from one document to another.
+                                var symbolKey = SymbolKey.Create(oldSymbol, cancellationToken);
+                                lazySymbolKey = symbolKey;
+
+                                // Ignore ambiguous resolution result - it may happen if there are semantic errors in the compilation.
+                                newSymbol = symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                if (newSymbol != null && !(newSymbol is IMethodSymbol newMethod && newMethod.IsPartialDefinition))
                                 {
-                                    if (newSymbol.Kind == SymbolKind.Method)
+                                    // Symbol has actually not been deleted but rather moved to another document, another partial type declaration
+                                    // or replaced with an implicitly generated one (e.g. parameterless constructor, auto-generated record methods, etc.)
+
+                                    // Report rude edit if the deleted code contains active statements.
+                                    // TODO (https://github.com/dotnet/roslyn/issues/51177):
+                                    // Only report rude edit when replacing member with an implicit one if it has an active statement.
+                                    // We might be able to support moving active members but we would need to 
+                                    // 1) Move AnalyzeChangedMemberBody from Insert to Delete
+                                    // 2) Handle active statements that moved to a different document in ActiveStatementTrackingService
+                                    // 3) The debugger's ManagedActiveStatementUpdate might need another field indicating the source file path.
+                                    if (hasActiveStatement)
                                     {
-                                        // Don't add a separate semantic edit for a field/property with an initializer.
-                                        // All edits of initializers will be aggregated to edits of constructors where these initializers are emitted.
+                                        ReportDeletedMemberRudeEdit(diagnostics, editScript, edit.OldNode, oldSymbol, RudeEditKind.DeleteActiveStatement);
                                         continue;
                                     }
-                                    else
+
+                                    if (!newSymbol.IsImplicitlyDeclared)
                                     {
-                                        // A semantic edit to create the field/property is gonna be added.
-                                        Debug.Assert(editKind == SemanticEditKind.Insert);
+                                        // Ignore the delete. The new symbol is explicitly declared and thus there will be an insert edit that will issue a semantic update.
+                                        continue;
                                     }
-                                }
-                            }
-                        }
 
-                        break;
+                                    // can't change visibility:
+                                    if (newSymbol.DeclaredAccessibility != oldSymbol.DeclaredAccessibility)
+                                    {
+                                        ReportDeletedMemberRudeEdit(diagnostics, editScript, edit.OldNode, oldSymbol, RudeEditKind.ChangingVisibility);
+                                        continue;
+                                    }
 
-                    case EditKind.Update:
-                        {
-                            editKind = SemanticEditKind.Update;
+                                    // If a constructor is deleted and replaced by an implicit one the update needs to aggregate updates to all data member initializers.
+                                    if (IsConstructorWithMemberInitializers(edit.OldNode))
+                                    {
+                                        processedSymbols.Remove(oldSymbol);
+                                        DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration: null, syntaxMap, oldSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
+                                        continue;
+                                    }
 
-                            newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, cancellationToken);
-                            if (newSymbol == null)
-                            {
-                                // node doesn't represent a symbol
-                                continue;
-                            }
-
-                            oldSymbol = GetSymbolForEdit(oldModel, edit.OldNode, edit.Kind, editMap, cancellationToken);
-                            Debug.Assert((newSymbol == null) == (oldSymbol == null));
-
-                            var oldContainingType = oldSymbol.ContainingType;
-                            var newContainingType = newSymbol.ContainingType;
-
-                            // Validate that the type declarations are correct to avoid issues with invalid partial declarations, etc.
-                            // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
-                            firstDeclarationErrorOpt =
-                                GetFirstDeclarationError(oldModel, oldContainingType, cancellationToken) ??
-                                GetFirstDeclarationError(newModel, newContainingType, cancellationToken);
-
-                            if (firstDeclarationErrorOpt != null)
-                            {
-                                continue;
-                            }
-
-                            if (updatedMemberIndex < updatedMembers.Count && updatedMembers[updatedMemberIndex].EditOrdinal == i)
-                            {
-                                var updatedMember = updatedMembers[updatedMemberIndex];
-
-                                ReportStateMachineRudeEdits(oldModel.Compilation, updatedMember, oldSymbol, diagnostics);
-
-                                ReportLambdaAndClosureRudeEdits(
-                                    oldModel,
-                                    updatedMember.OldBody,
-                                    newModel,
-                                    updatedMember.NewBody,
-                                    newSymbol,
-                                    updatedMember.ActiveOrMatchedLambdasOpt,
-                                    updatedMember.Map,
-                                    diagnostics,
-                                    out var newBodyHasLambdas,
-                                    cancellationToken);
-
-                                // We need to provide syntax map to the compiler if 
-                                // 1) The new member has a active statement
-                                //    The values of local variables declared or synthesized in the method have to be preserved.
-                                // 2) The new member generates a state machine 
-                                //    In case the state machine is suspended we need to preserve variables.
-                                // 3) The new member contains lambdas
-                                //    We need to map new lambdas in the method to the matching old ones. 
-                                //    If the old method has lambdas but the new one doesn't there is nothing to preserve.
-                                if (updatedMember.HasActiveStatement || updatedMember.NewHasStateMachineSuspensionPoint || newBodyHasLambdas)
-                                {
-                                    syntaxMapOpt = CreateSyntaxMap(updatedMember.Map.Reverse);
+                                    // there is no insert edit for an implicit declaration, therefore we need to issue an update:
+                                    editKind = SemanticEditKind.Update;
                                 }
                                 else
                                 {
-                                    syntaxMapOpt = null;
-                                }
+                                    // Check if the symbol being deleted is a member of a type or associated with a property or event that's also being deleted.
+                                    // If so, skip the member deletion and only report the containing symbol deletion.
+                                    var oldContainingSymbol = (oldSymbol as IMethodSymbol)?.AssociatedSymbol ?? oldSymbol.ContainingType;
+                                    if (oldContainingSymbol != null)
+                                    {
+                                        var containingSymbolKey = SymbolKey.Create(oldContainingSymbol, cancellationToken);
+                                        var newContatiningSymbol = containingSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                        if (newContatiningSymbol == null)
+                                        {
+                                            continue;
+                                        }
+                                    }
 
-                                updatedMemberIndex++;
-                            }
-                            else
-                            {
-                                syntaxMapOpt = null;
-                            }
+                                    // deleting symbol is not allowed
+                                    var diagnosticSpan = GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, edit.OldNode);
 
-                            // If a constructor changes from including initializers to not including initializers
-                            // we don't need to aggregate syntax map from all initializers for the constructor update semantic edit.
-                            bool isConstructorWithMemberInitializers;
-                            if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode)) ||
-                                IsDeclarationWithInitializer(edit.OldNode) ||
-                                IsDeclarationWithInitializer(edit.NewNode))
-                            {
-                                if (DeferConstructorEdit(
-                                    oldContainingType,
-                                    newContainingType,
-                                    editKind,
-                                    edit.NewNode,
-                                    newSymbol,
-                                    newModel,
-                                    isConstructorWithMemberInitializers,
-                                    ref syntaxMapOpt,
-                                    ref instanceConstructorEdits,
-                                    ref staticConstructorEdits,
-                                    diagnostics,
-                                    cancellationToken))
-                                {
-                                    // Don't add a separate semantic edit for a field/property with an initializer.
-                                    // All edits of initializers will be aggregated to edits of constructors where these initializers are emitted.
+                                    diagnostics.Add(new RudeEditDiagnostic(
+                                        RudeEditKind.Delete,
+                                        diagnosticSpan,
+                                        edit.OldNode,
+                                        new[]
+                                        {
+                                            string.Format(FeaturesResources.member_kind_and_name,
+                                                GetDisplayName(edit.OldNode, EditKind.Delete),
+                                                oldSymbol.ToDisplayString(diagnosticSpan.IsEmpty ? s_fullyQualifiedMemberDisplayFormat : s_unqualifiedMemberDisplayFormat))
+                                        }));
+
                                     continue;
                                 }
                             }
+
+                            break;
+
+                        case EditKind.Insert:
+                            {
+                                Contract.ThrowIfNull(newModel);
+
+                                syntaxMap = null;
+                                oldSymbol = null;
+                                newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, out var newIsAmbiguous, cancellationToken);
+                                if (newSymbol == null || newIsAmbiguous || !processedSymbols.Add(newSymbol))
+                                {
+                                    // Node doesn't represent a symbol or it represents multiple symbols and the semantic insert
+                                    // will be issued for node that represents the specific symbol.
+                                    continue;
+                                }
+
+                                editKind = SemanticEditKind.Insert;
+                                INamedTypeSymbol? oldContainingType;
+                                var newContainingType = newSymbol.ContainingType;
+
+                                // Check if the declaration has been moved from one document to another.
+                                var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
+                                lazySymbolKey = symbolKey;
+
+                                // Ignore ambiguous resolution result - it may happen if there are semantic errors in the compilation.
+                                oldSymbol = symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                if (oldSymbol != null)
+                                {
+                                    // Symbol has actually not been inserted but rather moved between documents or partial type declarations,
+                                    // or is replacing an implicitly generated one (e.g. parameterless constructor, auto-generated record methods, etc.)
+                                    oldContainingType = oldSymbol.ContainingType;
+
+                                    if (oldSymbol.IsImplicitlyDeclared)
+                                    {
+                                        // Replace implicit declaration with an explicit one.
+
+                                        if (oldSymbol.DeclaredAccessibility != newSymbol.DeclaredAccessibility)
+                                        {
+                                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingVisibility,
+                                                GetDiagnosticSpan(edit.NewNode, edit.Kind),
+                                                arguments: new[] { GetDisplayName(edit.NewNode, edit.Kind) }));
+
+                                            continue;
+                                        }
+                                    }
+                                    else if (newSymbol is IFieldSymbol { ContainingType: { TypeKind: TypeKind.Enum } })
+                                    {
+                                        // Skip enum field declarations. Enums can't be partial their fields must be inserted at the same time as the enum itself.
+                                        continue;
+                                    }
+                                    else if (newSymbol is INamedTypeSymbol { TypeKind: not (TypeKind.Delegate or TypeKind.Enum) } newTypeSymbol)
+                                    {
+                                        // The old symbol must be named type as well since we resolved it via symbol key above.
+                                        var oldTypeSymbol = (INamedTypeSymbol)oldSymbol;
+
+                                        // The types have multiple partial declaration parts, each can contribute attributes and base types.
+                                        // All have to declare the same type parameters, but each can add different attributes to them.
+                                        // Only one can contribute generic type parameter constraints.
+                                        // We collect all these entities and require them to be unchanged.
+                                        ReportTypeDeclarationInsertDeleteRudeEdits(diagnostics, oldTypeSymbol, newTypeSymbol, edit.NewNode, cancellationToken);
+
+                                        continue;
+                                    }
+                                    else if (oldSymbol.DeclaringSyntaxReferences.Length == 1 && newSymbol.DeclaringSyntaxReferences.Length == 1)
+                                    {
+                                        // We ignore partial method definition parts when processing edits (GetSymbolForEdit).
+                                        // The only declaration in compilation without syntax errors that can have multiple declaring references is a type declaration.
+                                        // We can therefore ignore any symbols that have more than one declaration.
+                                        ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref lazyLayoutAttribute);
+
+                                        // Compare the old declaration syntax of the symbol with its new declaration and report rude edits
+                                        // if it changed in any way that's not allowed.
+                                        var oldNode = GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences[0], cancellationToken);
+                                        var newNode = edit.NewNode;
+
+                                        ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode);
+
+                                        var oldBody = TryGetDeclarationBody(oldNode);
+                                        var newBody = TryGetDeclarationBody(newNode);
+                                        if (oldBody == null && newBody == null)
+                                        {
+                                            continue;
+                                        }
+
+                                        if (oldBody != null)
+                                        {
+                                            // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
+                                            var oldSyntaxDocument = oldProject.Solution.GetRequiredDocument(oldNode.SyntaxTree);
+                                            var oldSyntaxModel = await oldSyntaxDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                                            var oldSyntaxText = await oldSyntaxDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                                            // Skip analysis of active statements. We already report rude edit for removal of code containing
+                                            // active statements in the old declaration and don't currently support moving active statements.
+                                            AnalyzeChangedMemberBody(
+                                                oldNode,
+                                                newNode,
+                                                oldBody,
+                                                newBody,
+                                                oldSyntaxText,
+                                                newText,
+                                                oldSyntaxModel,
+                                                newModel,
+                                                oldSymbol,
+                                                newSymbol,
+                                                oldActiveStatements: ImmutableArray<ActiveStatement>.Empty,
+                                                newActiveStatementSpans: ImmutableArray<TextSpan>.Empty,
+                                                newActiveStatements,
+                                                newExceptionRegions,
+                                                diagnostics,
+                                                out syntaxMap,
+                                                cancellationToken);
+                                        }
+
+                                        // If a constructor changes from including initializers to not including initializers
+                                        // we don't need to aggregate syntax map from all initializers for the constructor update semantic edit.
+                                        if (IsConstructorWithMemberInitializers(newNode) ||
+                                            IsDeclarationWithInitializer(oldNode) ||
+                                            IsDeclarationWithInitializer(newNode))
+                                        {
+                                            processedSymbols.Remove(newSymbol);
+                                            DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
+
+                                            // Don't add a separate semantic edit.
+                                            // Updates of data members with initializers and constructors that emit initializers will be aggregated and added later.
+                                            continue;
+                                        }
+
+                                        editKind = SemanticEditKind.Update;
+                                    }
+                                }
+                                else if (newSymbol.ContainingType != null)
+                                {
+                                    // The edit actually adds a new symbol into an existing or a new type.
+
+                                    // If the symbol is an accessor and the containing property/indexer/event declaration has also been inserted skip
+                                    // the insert of the accessor as it will be inserted by the property/indexer/event.
+                                    var newAssociatedMemberDeclaration = TryGetAssociatedMemberDeclaration(edit.NewNode);
+                                    if (newAssociatedMemberDeclaration != null && HasEdit(editMap, newAssociatedMemberDeclaration, EditKind.Insert))
+                                    {
+                                        continue;
+                                    }
+
+                                    var containingSymbolKey = SymbolKey.Create(newContainingType, cancellationToken);
+                                    oldContainingType = containingSymbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
+
+                                    // Check rude edits for each member even if it is inserted into a new type.
+                                    ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol, edit.NewNode, insertingIntoExistingContainingType: oldContainingType != null);
+
+                                    if (oldContainingType == null)
+                                    {
+                                        // Insertion of a new symbol into a new type.
+                                        // We'll produce a single insert edit for the entire type.
+                                        continue;
+                                    }
+
+                                    // Report rude edits for changes to data member changes of a type with an explicit layout.
+                                    // We disallow moving a data member of a partial type with explicit layout even when it actually does not change the layout.
+                                    // We could compare the exact order of the members but the scenario is unlikely to occur.
+                                    ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref lazyLayoutAttribute);
+                                }
+                                else
+                                {
+                                    // adds a new top-level type
+                                    Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol);
+
+                                    oldContainingType = null;
+                                    ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol, edit.NewNode, insertingIntoExistingContainingType: false);
+                                }
+
+                                var isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode);
+                                if (isConstructorWithMemberInitializers || IsDeclarationWithInitializer(edit.NewNode))
+                                {
+                                    Contract.ThrowIfNull(newContainingType);
+                                    Contract.ThrowIfNull(oldContainingType);
+
+                                    // TODO (bug https://github.com/dotnet/roslyn/issues/2504)
+                                    if (isConstructorWithMemberInitializers &&
+                                        editKind == SemanticEditKind.Insert &&
+                                        IsPartial(newContainingType) &&
+                                        HasMemberInitializerContainingLambda(oldContainingType, newSymbol.IsStatic, cancellationToken))
+                                    {
+                                        // rude edit: Adding a constructor to a type with a field or property initializer that contains an anonymous function
+                                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, GetDiagnosticSpan(edit.NewNode, EditKind.Insert)));
+                                        break;
+                                    }
+
+                                    DeferConstructorEdit(oldContainingType, newContainingType, edit.NewNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
+
+                                    if (isConstructorWithMemberInitializers || editKind == SemanticEditKind.Update)
+                                    {
+                                        processedSymbols.Remove(newSymbol);
+
+                                        // Don't add a separate semantic edit.
+                                        // Edits of data members with initializers and constructors that emit initializers will be aggregated and added later.
+                                        continue;
+                                    }
+
+                                    // A semantic edit to create the field/property is gonna be added.
+                                    Contract.ThrowIfFalse(editKind == SemanticEditKind.Insert);
+                                }
+                            }
+
+                            break;
+
+                        case EditKind.Update:
+                            {
+                                Contract.ThrowIfNull(oldModel);
+                                Contract.ThrowIfNull(newModel);
+
+                                newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, out var newIsAmbiguous, cancellationToken);
+                                if (newSymbol == null || !processedSymbols.Add(newSymbol))
+                                {
+                                    // node doesn't represent a symbol or the symbol has already been processed
+                                    continue;
+                                }
+
+                                editKind = SemanticEditKind.Update;
+                                syntaxMap = null;
+                                oldSymbol = GetSymbolForEdit(oldModel, edit.OldNode, edit.Kind, editMap, out var oldIsAmbiguous, cancellationToken);
+                                if (oldSymbol == null)
+                                {
+                                    // May happen when the old node represents partial method changed from a definition to an implementation (adding a body).
+                                    // This is already reported as rude edit.
+                                    continue;
+                                }
+
+                                GetUpdatedDeclarationBodies(edit.OldNode, edit.NewNode, out var oldBody, out var newBody);
+                                if (oldBody != null)
+                                {
+                                    AnalyzeChangedMemberBody(
+                                        edit.OldNode,
+                                        edit.NewNode,
+                                        oldBody,
+                                        newBody,
+                                        oldText,
+                                        newText,
+                                        oldModel,
+                                        newModel,
+                                        oldSymbol,
+                                        newSymbol,
+                                        oldActiveStatements,
+                                        newActiveStatementSpans,
+                                        newActiveStatements,
+                                        newExceptionRegions,
+                                        diagnostics,
+                                        out syntaxMap,
+                                        cancellationToken);
+                                }
+
+                                // If a constructor changes from including initializers to not including initializers
+                                // we don't need to aggregate syntax map from all initializers for the constructor update semantic edit.
+                                if (IsConstructorWithMemberInitializers(edit.NewNode) ||
+                                    IsDeclarationWithInitializer(edit.OldNode) ||
+                                    IsDeclarationWithInitializer(edit.NewNode))
+                                {
+                                    processedSymbols.Remove(newSymbol);
+                                    DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, edit.NewNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
+
+                                    // Don't add a separate semantic edit.
+                                    // Updates of data members with initializers and constructors that emit initializers will be aggregated and added later.
+                                    continue;
+                                }
+
+                                // Do not create a semantic update if the edit is not specific to a single symbol.
+                                // The update might still affect a constructor update processed above.
+                                if (oldIsAmbiguous || newIsAmbiguous)
+                                {
+                                    continue;
+                                }
+                            }
+
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(edit.Kind);
+                    }
+
+                    Contract.ThrowIfFalse(editKind is SemanticEditKind.Update or SemanticEditKind.Insert);
+
+                    if (editKind == SemanticEditKind.Update)
+                    {
+                        // The only update to the type itself that's supported is an addition or removal of the partial modifier,
+                        // which does not have impact on the emitted type metadata.
+                        if (newSymbol is INamedTypeSymbol)
+                        {
+                            continue;
                         }
 
-                        break;
+                        // The property itself is being updated. Currently we do not allow any modifiers or attributes to be updated,
+                        // so the only case when this happens is in C# for a property/indexer that has an expression body.
+                        // The symbol that's actually being updated is the getter.
+                        // TODO: This will need to be revisited in https://github.com/dotnet/roslyn/issues/52300
+                        if (newSymbol is IPropertySymbol { GetMethod: var propertyGetter and not null })
+                        {
+                            newSymbol = propertyGetter;
+                            lazySymbolKey = null;
+                        }
+                    }
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(edit.Kind);
+                    lazySymbolKey ??= SymbolKey.Create(newSymbol, cancellationToken);
+
+                    // Edits in data member initializers and constructors are deferred, edits of other members (even on partial types)
+                    // do not need merging accross partial type declarations.
+                    semanticEdits.Add(new SemanticEditInfo(editKind, lazySymbolKey.Value, syntaxMap, syntaxMapTree: null, partialType: null));
                 }
 
-                semanticEdits.Add(new SemanticEdit(editKind, oldSymbol, newSymbol, syntaxMapOpt, preserveLocalVariables: syntaxMapOpt != null));
-                newSymbolsWithEdit.Add(newSymbol);
-            }
-
-            foreach (var (oldNode, newNode) in triviaEdits)
-            {
-                var oldSymbol = GetSymbolForEdit(oldModel, oldNode, EditKind.Update, editMap, cancellationToken);
-                var newSymbol = GetSymbolForEdit(newModel, newNode, EditKind.Update, editMap, cancellationToken);
-                var oldContainingType = oldSymbol.ContainingType;
-                var newContainingType = newSymbol.ContainingType;
-
-                // Validate that the type declarations are correct to avoid issues with invalid partial declarations, etc.
-                // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
-                firstDeclarationErrorOpt =
-                    GetFirstDeclarationError(oldModel, oldContainingType, cancellationToken) ??
-                    GetFirstDeclarationError(newModel, newContainingType, cancellationToken);
-
-                if (firstDeclarationErrorOpt != null)
+                foreach (var (oldNode, newNode) in triviaEdits)
                 {
-                    continue;
-                }
+                    Contract.ThrowIfNull(oldModel);
+                    Contract.ThrowIfNull(newModel);
 
-                // We need to provide syntax map to the compiler if the member is active (see member update above):
-                var isActiveMember =
-                    TryGetOverlappingActiveStatements(oldText, oldNode.Span, oldActiveStatements, out var start, out var end) ||
-                    IsStateMachineMethod(oldNode) ||
-                    ContainsLambda(oldNode);
+                    var newSymbol = GetSymbolForEdit(newModel, newNode, EditKind.Update, editMap, out var newIsAmbiguous, cancellationToken);
 
-                var syntaxMap = isActiveMember ? CreateSyntaxMapForEquivalentNodes(oldNode, newNode) : null;
+                    // Trivia edits are only calculated for member bodies and each member has a symbol.
+                    Contract.ThrowIfNull(newSymbol);
 
-                // only trivia changed:
-                Debug.Assert(IsConstructorWithMemberInitializers(oldNode) == IsConstructorWithMemberInitializers(newNode));
-                Debug.Assert(IsDeclarationWithInitializer(oldNode) == IsDeclarationWithInitializer(newNode));
-
-                bool isConstructorWithMemberInitializers;
-                if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(newNode)) ||
-                    IsDeclarationWithInitializer(newNode))
-                {
-                    if (DeferConstructorEdit(
-                        oldContainingType,
-                        newContainingType,
-                        SemanticEditKind.Update,
-                        newNode,
-                        newSymbol,
-                        newModel,
-                        isConstructorWithMemberInitializers,
-                        ref syntaxMap,
-                        ref instanceConstructorEdits,
-                        ref staticConstructorEdits,
-                        diagnostics,
-                        cancellationToken))
+                    if (!processedSymbols.Add(newSymbol))
                     {
-                        // Don't add a separate semantic edit for a field/property with an initializer.
-                        // All edits of initializers will be aggregated to edits of constructors where these initializers are emitted.
+                        // symbol already processed
                         continue;
                     }
+
+                    var oldSymbol = GetSymbolForEdit(oldModel, oldNode, EditKind.Update, editMap, out var oldIsAmbiguous, cancellationToken);
+                    Contract.ThrowIfNull(oldSymbol);
+
+                    var oldContainingType = oldSymbol.ContainingType;
+                    var newContainingType = newSymbol.ContainingType;
+
+                    // We need to provide syntax map to the compiler if the member is active (see member update above):
+                    var isActiveMember =
+                        TryGetOverlappingActiveStatements(oldText, oldNode.Span, oldActiveStatements, out var start, out var end) ||
+                        IsStateMachineMethod(oldNode) ||
+                        ContainsLambda(oldNode);
+
+                    var syntaxMap = isActiveMember ? CreateSyntaxMapForEquivalentNodes(oldNode, newNode) : null;
+
+                    // only trivia changed:
+                    Contract.ThrowIfFalse(IsConstructorWithMemberInitializers(oldNode) == IsConstructorWithMemberInitializers(newNode));
+                    Contract.ThrowIfFalse(IsDeclarationWithInitializer(oldNode) == IsDeclarationWithInitializer(newNode));
+
+                    if (IsConstructorWithMemberInitializers(newNode) || IsDeclarationWithInitializer(newNode))
+                    {
+                        // TODO: only create syntax map if any field initializers are active/contain lambdas or this is a partial type
+                        syntaxMap ??= CreateSyntaxMapForEquivalentNodes(oldNode, newNode);
+
+                        processedSymbols.Remove(newSymbol);
+                        DeferConstructorEdit(oldContainingType, newContainingType, newNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
+
+                        // Don't add a separate semantic edit.
+                        // Updates of data members with initializers and constructors that emit initializers will be aggregated and added later.
+                        continue;
+                    }
+
+                    // Do not create a semantic update if the edit is not specific to a single symbol.
+                    // The update might still affect a constructor update processed above.
+                    if (oldIsAmbiguous || newIsAmbiguous)
+                    {
+                        continue;
+                    }
+
+                    // Edits in data member initializers and constructors are deferred, edits of other members (even on partial types)
+                    // do not need merging accross partial type declarations.
+                    var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
+                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null));
                 }
 
-                semanticEdits.Add(new SemanticEdit(SemanticEditKind.Update, oldSymbol, newSymbol, syntaxMap, isActiveMember));
-                newSymbolsWithEdit.Add(newSymbol);
+                if (instanceConstructorEdits != null)
+                {
+                    AddConstructorEdits(
+                        instanceConstructorEdits,
+                        editScript.Match,
+                        oldModel,
+                        oldCompilation,
+                        processedSymbols,
+                        isStatic: false,
+                        semanticEdits,
+                        diagnostics,
+                        cancellationToken);
+                }
+
+                if (staticConstructorEdits != null)
+                {
+                    AddConstructorEdits(
+                        staticConstructorEdits,
+                        editScript.Match,
+                        oldModel,
+                        oldCompilation,
+                        processedSymbols,
+                        isStatic: true,
+                        semanticEdits,
+                        diagnostics,
+                        cancellationToken);
+                }
+            }
+            finally
+            {
+                instanceConstructorEdits?.Free();
+                staticConstructorEdits?.Free();
             }
 
-            if (instanceConstructorEdits != null)
-            {
-                AddConstructorEdits(
-                    instanceConstructorEdits,
-                    editScript.Match,
-                    oldModel,
-                    newSymbolsWithEdit,
-                    isStatic: false,
-                    semanticEdits: semanticEdits,
-                    diagnostics: diagnostics,
-                    cancellationToken: cancellationToken);
-            }
-
-            if (staticConstructorEdits != null)
-            {
-                AddConstructorEdits(
-                    staticConstructorEdits,
-                    editScript.Match,
-                    oldModel,
-                    newSymbolsWithEdit,
-                    isStatic: true,
-                    semanticEdits: semanticEdits,
-                    diagnostics: diagnostics,
-                    cancellationToken: cancellationToken);
-            }
+            return semanticEdits.ToImmutable();
         }
 
-        private Diagnostic GetFirstDeclarationError(SemanticModel primaryModel, ISymbol symbol, CancellationToken cancellationToken)
+        private void ReportDeletedMemberRudeEdit(
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
+            EditScript<SyntaxNode> editScript,
+            SyntaxNode oldNode,
+            ISymbol oldSymbol,
+            RudeEditKind rudeEditKind)
         {
-            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
-            {
-                SemanticModel model;
-                if (primaryModel.SyntaxTree == syntaxReference.SyntaxTree)
+            diagnostics.Add(new RudeEditDiagnostic(
+                rudeEditKind,
+                GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldNode),
+                arguments: new[]
                 {
-                    model = primaryModel;
-                }
-                else
-                {
-                    model = primaryModel.Compilation.GetSemanticModel(syntaxReference.SyntaxTree, ignoreAccessibility: false);
-                }
-
-                var diagnostics = model.GetDeclarationDiagnostics(syntaxReference.Span, cancellationToken);
-                var firstError = diagnostics.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
-                if (firstError != null)
-                {
-                    return firstError;
-                }
-            }
-
-            return null;
+                    string.Format(FeaturesResources.member_kind_and_name, GetDisplayName(oldNode, EditKind.Delete), oldSymbol.ToDisplayString(s_unqualifiedMemberDisplayFormat))
+                }));
         }
 
         #region Type Layout Update Validation 
 
         internal void ReportTypeLayoutUpdateRudeEdits(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             ISymbol newSymbol,
             SyntaxNode newSyntax,
             SemanticModel newModel,
-            ref INamedTypeSymbol layoutAttribute)
+            ref INamedTypeSymbol? lazyLayoutAttribute)
         {
             switch (newSymbol.Kind)
             {
                 case SymbolKind.Field:
-                    if (HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref layoutAttribute))
+                    if (HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref lazyLayoutAttribute))
                     {
                         ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newSyntax);
                     }
@@ -2641,7 +2791,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 case SymbolKind.Property:
                     if (HasBackingField(newSyntax) &&
-                        HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref layoutAttribute))
+                        HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref lazyLayoutAttribute))
                     {
                         ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newSyntax);
                     }
@@ -2650,7 +2800,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 case SymbolKind.Event:
                     if (HasBackingField((IEventSymbol)newSymbol) &&
-                        HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref layoutAttribute))
+                        HasExplicitOrSequentialLayout(newSymbol.ContainingType, newModel, ref lazyLayoutAttribute))
                     {
                         ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, newSyntax);
                     }
@@ -2659,7 +2809,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void ReportTypeLayoutUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, ISymbol symbol, SyntaxNode syntax)
+        private void ReportTypeLayoutUpdateRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol symbol, SyntaxNode syntax)
         {
             var intoStruct = symbol.ContainingType.TypeKind == TypeKind.Struct;
 
@@ -2670,21 +2820,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 new[]
                 {
                     GetDisplayName(syntax, EditKind.Insert),
-                    GetDisplayName(TryGetContainingTypeDeclaration(syntax), EditKind.Update)
+                    GetDisplayName(TryGetContainingTypeDeclaration(syntax)!, EditKind.Update)
                 }));
         }
 
         private static bool HasBackingField(IEventSymbol @event)
         {
+#nullable disable // https://github.com/dotnet/roslyn/issues/39288
             return @event.AddMethod.IsImplicitlyDeclared
+#nullable enable
                 && !@event.IsAbstract;
         }
 
-        // TODO: the compiler should expose TypeLayout property on INamedTypeSymbol
         private static bool HasExplicitOrSequentialLayout(
             INamedTypeSymbol type,
             SemanticModel model,
-            ref INamedTypeSymbol layoutAttribute)
+            ref INamedTypeSymbol? lazyLayoutAttribute)
         {
             if (type.TypeKind == TypeKind.Struct)
             {
@@ -2703,18 +2854,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            if (layoutAttribute == null)
+            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
+            if (lazyLayoutAttribute == null)
             {
-                layoutAttribute = model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName);
-                if (layoutAttribute == null)
-                {
-                    return false;
-                }
+                return false;
             }
 
             foreach (var attribute in attributes)
             {
-                if (attribute.AttributeClass.Equals(layoutAttribute) && attribute.ConstructorArguments.Length == 1)
+                RoslynDebug.Assert(attribute.AttributeClass is object);
+                if (attribute.AttributeClass.Equals(lazyLayoutAttribute) && attribute.ConstructorArguments.Length == 1)
                 {
                     var layoutValue = attribute.ConstructorArguments.Single().Value;
                     return (layoutValue is int ? (int)layoutValue :
@@ -2728,75 +2877,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
-        private INamedTypeSymbol TryGetPartnerType(SyntaxNode typeSyntax, Match<SyntaxNode> topMatch, SemanticModel partnerModel, CancellationToken cancellationToken)
+        private Func<SyntaxNode, SyntaxNode?> CreateSyntaxMapForEquivalentNodes(SyntaxNode oldRoot, SyntaxNode newRoot)
         {
-            SyntaxNode partner;
-            if (topMatch.OldRoot.SyntaxTree == typeSyntax.SyntaxTree)
-            {
-                topMatch.TryGetNewNode(typeSyntax, out partner);
-            }
-            else
-            {
-                topMatch.TryGetOldNode(typeSyntax, out partner);
-            }
-
-            if (partner == null)
-            {
-                return null;
-            }
-
-            Debug.Assert(partner.SyntaxTree == partnerModel.SyntaxTree);
-
-            return (INamedTypeSymbol)partnerModel.GetDeclaredSymbol(partner, cancellationToken);
+            return newNode => newRoot.FullSpan.Contains(newNode.SpanStart) ?
+                FindPartner(newRoot, oldRoot, newNode) : null;
         }
 
-        private Func<SyntaxNode, SyntaxNode> CreateSyntaxMapForEquivalentNodes(SyntaxNode oldRoot, SyntaxNode newRoot)
-        {
-            AreEquivalent(newRoot, oldRoot);
-            return newNode =>
-            {
-                if (!newRoot.FullSpan.Contains(newNode.SpanStart))
-                {
-                    return null;
-                }
+        private static Func<SyntaxNode, SyntaxNode?> CreateSyntaxMap(IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
+            => newNode => reverseMap.TryGetValue(newNode, out var oldNode) ? oldNode : null;
 
-                return FindPartner(newRoot, oldRoot, newNode);
-            };
-        }
-
-        private static Func<SyntaxNode, SyntaxNode> CreateSyntaxMap(IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
-        {
-            return newNode =>
-            {
-                return reverseMap.TryGetValue(newNode, out var oldNode) ? oldNode : null;
-            };
-        }
-
-        private Func<SyntaxNode, SyntaxNode> CreateSyntaxMapForPartialTypeConstructor(
-            INamedTypeSymbol oldType,
-            INamedTypeSymbol newType,
-            SemanticModel newModel,
-            Func<SyntaxNode, SyntaxNode> ctorSyntaxMapOpt)
-        {
-            return newNode => ctorSyntaxMapOpt?.Invoke(newNode) ?? FindPartnerInMemberInitializer(newModel, newType, newNode, oldType, default);
-        }
-
-        private Func<SyntaxNode, SyntaxNode> CreateAggregateSyntaxMap(
+        private Func<SyntaxNode, SyntaxNode?>? CreateAggregateSyntaxMap(
             IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseTopMatches,
-            IReadOnlyDictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode>> changedDeclarations)
+            IReadOnlyDictionary<SyntaxNode, Func<SyntaxNode, SyntaxNode?>?> changedDeclarations)
         {
             return newNode =>
             {
                 // containing declaration
-                var newDeclaration = FindMemberDeclaration(null, newNode);
+                var newDeclaration = FindMemberDeclaration(root: null, newNode);
+
+                // the syntax map is only used for nodes that are contained in a declaration
+                Contract.ThrowIfNull(newDeclaration);
+
                 // The node is in a field, property or constructor declaration that has been changed:
-                if (changedDeclarations.TryGetValue(newDeclaration, out var syntaxMapOpt))
+                if (changedDeclarations.TryGetValue(newDeclaration, out var syntaxMap))
                 {
                     // If syntax map is not available the declaration was either
                     // 1) updated but is not active
                     // 2) inserted
-                    return syntaxMapOpt?.Invoke(newNode);
+                    return syntaxMap?.Invoke(newNode);
                 }
+
                 // The node is in a declaration that hasn't been changed:
                 if (reverseTopMatches.TryGetValue(newDeclaration, out var oldDeclaration))
                 {
@@ -2809,131 +2919,96 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Constructors and Initializers
 
-        private static IMethodSymbol AsParameterlessConstructor(ISymbol symbol)
-        {
-            if (symbol.Kind != SymbolKind.Method)
-            {
-                return null;
-            }
-
-            var method = (IMethodSymbol)symbol;
-            var kind = method.MethodKind;
-            if (kind != MethodKind.Constructor && kind != MethodKind.StaticConstructor)
-            {
-                return null;
-            }
-
-            return method.Parameters.Length == 0 ? method : null;
-        }
-
-        private bool DeferConstructorEdit(
+        /// <summary>
+        /// Called when a body of a constructor or an initializer of a member is updated or inserted.
+        /// </summary>
+        private static void DeferConstructorEdit(
             INamedTypeSymbol oldType,
             INamedTypeSymbol newType,
-            SemanticEditKind editKind,
-            SyntaxNode newDeclaration,
-            ISymbol newSymbol,
-            SemanticModel newModel,
-            bool isConstructor,
-            ref Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
-            ref Dictionary<INamedTypeSymbol, ConstructorEdit> instanceConstructorEdits,
-            ref Dictionary<INamedTypeSymbol, ConstructorEdit> staticConstructorEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
-            CancellationToken cancellationToken)
+            SyntaxNode? newDeclaration,
+            Func<SyntaxNode, SyntaxNode?>? syntaxMap,
+            bool isStatic,
+            ref PooledDictionary<INamedTypeSymbol, ConstructorEdit>? instanceConstructorEdits,
+            ref PooledDictionary<INamedTypeSymbol, ConstructorEdit>? staticConstructorEdits)
         {
-            Debug.Assert(oldType != null);
-            Debug.Assert(newType != null);
-
-            if (IsPartial(newType))
-            {
-                // Since we don't calculate match across partial declarations we need to disallow
-                // adding and updating fields/properties with initializers of a partial type declaration.
-                // Assuming this restriction we can allow editing all constructors of partial types. 
-                // The ones that include initializers won't differ in the field initialization.
-
-                if (!isConstructor)
-                {
-                    // rude edit: Editing a field/property initializer of a partial type.
-                    diagnostics.Add(new RudeEditDiagnostic(
-                                        RudeEditKind.PartialTypeInitializerUpdate,
-                                        newDeclaration.Span,
-                                        newDeclaration,
-                                        new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
-                    return false;
-                }
-
-                // TODO (bug https://github.com/dotnet/roslyn/issues/2504)
-                if (editKind == SemanticEditKind.Insert && HasMemberInitializerContainingLambda(oldType, newSymbol.IsStatic, cancellationToken))
-                {
-                    // rude edit: Adding a constructor to a type with a field or property initializer that contains an anonymous function
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, GetDiagnosticSpan(newDeclaration, EditKind.Insert)));
-                    return false;
-                }
-
-                syntaxMapOpt = CreateSyntaxMapForPartialTypeConstructor(oldType, newType, newModel, syntaxMapOpt);
-                return false;
-            }
-
             Dictionary<INamedTypeSymbol, ConstructorEdit> constructorEdits;
-            if (newSymbol.IsStatic)
+            if (isStatic)
             {
-                constructorEdits = staticConstructorEdits ??
-                    (staticConstructorEdits = new Dictionary<INamedTypeSymbol, ConstructorEdit>());
+                constructorEdits = staticConstructorEdits ??= PooledDictionary<INamedTypeSymbol, ConstructorEdit>.GetInstance();
             }
             else
             {
-                constructorEdits = instanceConstructorEdits ??
-                    (instanceConstructorEdits = new Dictionary<INamedTypeSymbol, ConstructorEdit>());
+                constructorEdits = instanceConstructorEdits ??= PooledDictionary<INamedTypeSymbol, ConstructorEdit>.GetInstance();
             }
 
-            if (!constructorEdits.TryGetValue(newType, out var edit))
+            if (!constructorEdits.TryGetValue(newType, out var constructorEdit))
             {
-                constructorEdits.Add(newType, edit = new ConstructorEdit(oldType));
+                constructorEdits.Add(newType, constructorEdit = new ConstructorEdit(oldType));
             }
 
-            edit.ChangedDeclarations.Add(newDeclaration, syntaxMapOpt);
-
-            return true;
+            if (newDeclaration != null)
+            {
+                constructorEdit.ChangedDeclarations.Add(newDeclaration, syntaxMap);
+            }
         }
 
         private void AddConstructorEdits(
-            Dictionary<INamedTypeSymbol, ConstructorEdit> updatedTypes,
+            IReadOnlyDictionary<INamedTypeSymbol, ConstructorEdit> updatedTypes,
             Match<SyntaxNode> topMatch,
-            SemanticModel oldModel,
-            HashSet<ISymbol> newSymbolsWithEdit,
+            SemanticModel? oldModel,
+            Compilation oldCompilation,
+            IReadOnlySet<ISymbol> processedSymbols,
             bool isStatic,
-            [Out]List<SemanticEdit> semanticEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] ArrayBuilder<SemanticEditInfo> semanticEdits,
+            [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
-            foreach (var updatedType in updatedTypes)
+            var oldSyntaxTree = topMatch.OldRoot.SyntaxTree;
+            var newSyntaxTree = topMatch.NewRoot.SyntaxTree;
+
+            foreach (var (newType, updatesInCurrentDocument) in updatedTypes)
             {
-                var newType = updatedType.Key;
-                var update = updatedType.Value;
-                var oldType = update.OldType;
+                var oldType = updatesInCurrentDocument.OldType;
 
-                Debug.Assert(!IsPartial(oldType));
-                Debug.Assert(!IsPartial(newType));
+                var anyInitializerUpdatesInCurrentDocument = updatesInCurrentDocument.ChangedDeclarations.Keys.Any(IsDeclarationWithInitializer);
 
-                var anyInitializerUpdates = update.ChangedDeclarations.Keys.Any(IsDeclarationWithInitializer);
+                // If any of the partial declarations of the new or the old type are in another document
+                // the edit will need to be merged with other partial edits with matching partial type
+                static bool IsNotInDocument(SyntaxReference reference, SyntaxTree syntaxTree)
+                    => reference.SyntaxTree != syntaxTree;
+
+                var isPartialEdit =
+                    oldType.DeclaringSyntaxReferences.Any(IsNotInDocument, oldSyntaxTree) ||
+                    newType.DeclaringSyntaxReferences.Any(IsNotInDocument, newSyntaxTree);
+
+                // Create a syntax map that aggregates syntax maps of the constructor body and all initializers in this document.
+                // Use syntax maps stored in update.ChangedDeclarations and fallback to 1:1 map for unchanged members.
+                //
+                // This aggregated map will be combined with similar maps capturing members declared in partial type declarations
+                // located in other documents when the semantic edits are merged across all changed documents of the project.
+                //
+                // We will create an aggregate syntax map even in cases when we don't necessarily need it,
+                // for example if none of the edited declarations are active. It's ok to have a map that we don't need.
+                // This is simpler than detecting whether or not some of the initializers/constructors contain active statements.
+                var aggregateSyntaxMap = CreateAggregateSyntaxMap(topMatch.ReverseMatches, updatesInCurrentDocument.ChangedDeclarations);
 
                 bool? lazyOldTypeHasMemberInitializerContainingLambda = null;
 
                 foreach (var newCtor in isStatic ? newType.StaticConstructors : newType.InstanceConstructors)
                 {
-                    if (newSymbolsWithEdit.Contains(newCtor))
+                    if (processedSymbols.Contains(newCtor))
                     {
                         // we already have an edit for the new constructor
                         continue;
                     }
 
-                    ISymbol oldCtor;
+                    var newCtorKey = SymbolKey.Create(newCtor, cancellationToken);
+
+                    ISymbol? oldCtor;
                     if (!newCtor.IsImplicitlyDeclared)
                     {
                         // Constructors have to have a single declaration syntax, they can't be partial
-                        var newDeclaration = FindMemberDeclaration(null, GetSymbolSyntax(newCtor, cancellationToken));
-
-                        // Partial types were filtered out previously and rude edits reported.
-                        Debug.Assert(newDeclaration.SyntaxTree == topMatch.NewRoot.SyntaxTree);
+                        var newDeclaration = GetSymbolDeclarationSyntax(newCtor.DeclaringSyntaxReferences.Single(), cancellationToken);
 
                         // Constructor that doesn't contain initializers had a corresponding semantic edit produced previously 
                         // or was not edited. In either case we should not produce a semantic edit for it.
@@ -2944,23 +3019,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // If no initializer updates were made in the type we only need to produce semantic edits for constructors
                         // whose body has been updated, otherwise we need to produce edits for all constructors that include initializers.
-                        if (!anyInitializerUpdates && !update.ChangedDeclarations.ContainsKey(newDeclaration))
+                        // If changes were made to initializers or constructors of a partial type in another document they will be merged
+                        // when aggregating semantic edits from all changed documents. Rude edits resulting from those changes, if any, will
+                        // be reported in the document they were made in.
+                        if (!anyInitializerUpdatesInCurrentDocument && !updatesInCurrentDocument.ChangedDeclarations.ContainsKey(newDeclaration))
                         {
                             continue;
                         }
 
+                        // To avoid costly SymbolKey resolution we first try to match the constructor in the current document
+                        // and special case parameter-less constructor.
                         if (topMatch.TryGetOldNode(newDeclaration, out var oldDeclaration))
                         {
-                            // If the constructor wasn't explicitly edited and its body edit is disallowed report an error.
-                            var diagnosticCount = diagnostics.Count;
-                            ReportMemberUpdateRudeEdits(diagnostics, newDeclaration, span: null);
-                            if (diagnostics.Count > diagnosticCount)
-                            {
-                                continue;
-                            }
-
+                            Contract.ThrowIfNull(oldModel);
                             oldCtor = oldModel.GetDeclaredSymbol(oldDeclaration, cancellationToken);
-                            Debug.Assert(oldCtor != null);
+                            Contract.ThrowIfNull(oldCtor);
                         }
                         else if (newCtor.Parameters.Length == 0)
                         {
@@ -2968,38 +3041,67 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
                         else
                         {
-                            // TODO (bug https://github.com/dotnet/roslyn/issues/2504)
-                            if (HasMemberInitializerContainingLambda(oldType, isStatic, ref lazyOldTypeHasMemberInitializerContainingLambda, cancellationToken))
-                            {
-                                // rude edit: Adding a constructor to a type with a field or property initializer that contains an anonymous function
-                                diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, GetDiagnosticSpan(newDeclaration, EditKind.Insert)));
-                                continue;
-                            }
+                            var resolution = newCtorKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken);
 
-                            // no initializer contains lambdas => we don't need a syntax map
-                            oldCtor = null;
+                            // There may be semantic errors in the compilation that result in multiple candidates.
+                            // Pick the first candidate.
+
+                            oldCtor = resolution.Symbol;
+                        }
+
+                        if (oldCtor == null && HasMemberInitializerContainingLambda(oldType, isStatic, ref lazyOldTypeHasMemberInitializerContainingLambda, cancellationToken))
+                        {
+                            // TODO (bug https://github.com/dotnet/roslyn/issues/2504)
+                            // rude edit: Adding a constructor to a type with a field or property initializer that contains an anonymous function
+                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, GetDiagnosticSpan(newDeclaration, EditKind.Insert)));
+                            continue;
+                        }
+
+                        // Report an error if the updated constructor's declaration is in the current document 
+                        // and its body edit is disallowed (e.g. contains stackalloc).
+                        if (oldCtor != null && newDeclaration?.SyntaxTree == newSyntaxTree && anyInitializerUpdatesInCurrentDocument)
+                        {
+                            // attribute rude edit to one of the modified members
+                            var firstSpan = updatesInCurrentDocument.ChangedDeclarations.Keys.Where(IsDeclarationWithInitializer).Aggregate(
+                                (min: int.MaxValue, span: default(TextSpan)),
+                                (accumulate, node) => (node.SpanStart < accumulate.min) ? (node.SpanStart, node.Span) : accumulate).span;
+
+                            Contract.ThrowIfTrue(firstSpan.IsEmpty);
+                            ReportMemberUpdateRudeEdits(diagnostics, newDeclaration, firstSpan);
                         }
                     }
                     else
                     {
+                        // New constructor is implicitly declared so it must be parameterless.
+                        //
+                        // Instance constructor:
+                        //   Its presence indicates there are no other instance constructors in the new type and therefore
+                        //   there must be a single parameterless instance constructor in the old type (constructors with parameters can't be removed).
+                        //
+                        // Static constructor:
+                        //    Static constructor is always parameterless and not implicitly generated if there are no static initializers.
                         oldCtor = TryGetParameterlessConstructor(oldType, isStatic);
+                        Contract.ThrowIfFalse(isStatic || oldCtor != null);
                     }
 
-                    // We assume here that the type is not partial and thus we collected all changed
-                    // field and property initializers in update.ChangedDeclarations and we only need 
-                    // the current top match to map nodes from all unchanged initializers.
-                    //
-                    // We will create an aggregate syntax map even in cases when we don't necessarily need it,
-                    // for example if none of the edited declarations are active. It's ok to have a map that we don't need.
-                    var aggregateSyntaxMap = (oldCtor != null && update.ChangedDeclarations.Count > 0) ?
-                        CreateAggregateSyntaxMap(topMatch.ReverseMatches, update.ChangedDeclarations) : null;
-
-                    semanticEdits.Add(new SemanticEdit(
-                        (oldCtor == null) ? SemanticEditKind.Insert : SemanticEditKind.Update,
-                        oldCtor,
-                        newCtor,
-                        aggregateSyntaxMap,
-                        preserveLocalVariables: aggregateSyntaxMap != null));
+                    if (oldCtor != null)
+                    {
+                        semanticEdits.Add(new SemanticEditInfo(
+                            SemanticEditKind.Update,
+                            newCtorKey,
+                            aggregateSyntaxMap,
+                            syntaxMapTree: isPartialEdit ? newSyntaxTree : null,
+                            partialType: isPartialEdit ? SymbolKey.Create(newType, cancellationToken) : null));
+                    }
+                    else
+                    {
+                        semanticEdits.Add(new SemanticEditInfo(
+                            SemanticEditKind.Insert,
+                            newCtorKey,
+                            syntaxMap: null,
+                            syntaxMapTree: null,
+                            partialType: null));
+                    }
                 }
             }
         }
@@ -3025,7 +3127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     (member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property) &&
                     member.DeclaringSyntaxReferences.Length > 0) // skip generated fields (e.g. VB auto-property backing fields)
                 {
-                    var syntax = GetSymbolSyntax(member, cancellationToken);
+                    var syntax = GetSymbolDeclarationSyntax(member.DeclaringSyntaxReferences.Single(), cancellationToken);
                     if (IsDeclarationWithInitializer(syntax) && ContainsLambda(syntax))
                     {
                         return true;
@@ -3036,7 +3138,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        private static ISymbol TryGetParameterlessConstructor(INamedTypeSymbol type, bool isStatic)
+        private static ISymbol? TryGetParameterlessConstructor(INamedTypeSymbol type, bool isStatic)
         {
             var oldCtors = isStatic ? type.StaticConstructors : type.InstanceConstructors;
             if (isStatic)
@@ -3059,29 +3161,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel newModel,
             SyntaxNode newMemberBody,
             ISymbol newMember,
-            IReadOnlyDictionary<SyntaxNode, LambdaInfo> matchedLambdasOpt,
+            IReadOnlyDictionary<SyntaxNode, LambdaInfo>? matchedLambdas,
             BidirectionalMap<SyntaxNode> map,
-            List<RudeEditDiagnostic> diagnostics,
-            out bool newBodyHasLambdas,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
+            out bool syntaxMapRequired,
             CancellationToken cancellationToken)
         {
-            if (matchedLambdasOpt != null)
+            syntaxMapRequired = false;
+
+            if (matchedLambdas != null)
             {
                 var anySignatureErrors = false;
-                foreach (var entry in matchedLambdasOpt)
+                foreach (var (oldLambdaBody, newLambdaInfo) in matchedLambdas)
                 {
-                    var oldLambdaBody = entry.Key;
-                    var newLambdaBody = entry.Value.NewBody;
-                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out var hasErrors, cancellationToken);
+                    // Any unmatched lambdas would have contained an active statement and a rude edit would be reported in syntax analysis phase.
+                    // Skip the rest of lambda and closure analysis if such lambdas are present.
+                    if (newLambdaInfo.Match == null || newLambdaInfo.NewBody == null)
+                    {
+                        return;
+                    }
+
+                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, out var hasErrors, cancellationToken);
                     anySignatureErrors |= hasErrors;
                 }
 
-                ArrayBuilder<SyntaxNode> lazyNewErroneousClauses = null;
-                foreach (var entry in map.Forward)
+                ArrayBuilder<SyntaxNode>? lazyNewErroneousClauses = null;
+                foreach (var (oldQueryClause, newQueryClause) in map.Forward)
                 {
-                    var oldQueryClause = entry.Key;
-                    var newQueryClause = entry.Value;
-
                     if (!QueryClauseLambdasTypeEquivalent(oldModel, oldQueryClause, newModel, newQueryClause, cancellationToken))
                     {
                         lazyNewErroneousClauses ??= ArrayBuilder<SyntaxNode>.GetInstance();
@@ -3110,7 +3216,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // only dig into captures if lambda signatures match
                 if (anySignatureErrors)
                 {
-                    newBodyHasLambdas = true;
                     return;
                 }
             }
@@ -3122,11 +3227,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var reverseCapturesMap = ArrayBuilder<int>.GetInstance(newCaptures.Length, 0);
 
             // { new capture index -> new closure scope or null for "this" }
-            var newCapturesToClosureScopes = ArrayBuilder<SyntaxNode>.GetInstance(newCaptures.Length, null);
+            var newCapturesToClosureScopes = ArrayBuilder<SyntaxNode?>.GetInstance(newCaptures.Length, null);
 
             // Can be calculated from other maps but it's simpler to just calculate it upfront.
             // { old capture index -> old closure scope or null for "this" }
-            var oldCapturesToClosureScopes = ArrayBuilder<SyntaxNode>.GetInstance(oldCaptures.Length, null);
+            var oldCapturesToClosureScopes = ArrayBuilder<SyntaxNode?>.GetInstance(oldCaptures.Length, null);
 
             CalculateCapturedVariablesMaps(
                 oldCaptures,
@@ -3144,7 +3249,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (anyCaptureErrors)
             {
-                newBodyHasLambdas = true;
                 return;
             }
 
@@ -3157,19 +3261,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // - Lambda methods are generated to the same frame as before, so they can be updated in-place.
             // - "Parent" links between closure scopes are preserved.
 
-            var oldCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
-            var newCapturesIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var oldCapturesIndex);
+            using var _2 = PooledDictionary<ISymbol, int>.GetInstance(out var newCapturesIndex);
 
             BuildIndex(oldCapturesIndex, oldCaptures);
             BuildIndex(newCapturesIndex, newCaptures);
 
-            if (matchedLambdasOpt != null)
+            if (matchedLambdas != null)
             {
                 var mappedLambdasHaveErrors = false;
-                foreach (var entry in matchedLambdasOpt)
+                foreach (var (oldLambdaBody, newLambdaInfo) in matchedLambdas)
                 {
-                    var oldLambdaBody = entry.Key;
-                    var newLambdaBody = entry.Value.NewBody;
+                    var newLambdaBody = newLambdaInfo.NewBody;
+
+                    // The map now contains only matched lambdas. Any unmatched ones would have contained an active statement and 
+                    // a rude edit would be reported in syntax analysis phase.
+                    RoslynDebug.Assert(newLambdaInfo.Match != null && newLambdaBody != null);
 
                     var accessedOldCaptures = GetAccessedCaptures(oldLambdaBody, oldModel, oldCaptures, oldCapturesIndex);
                     var accessedNewCaptures = GetAccessedCaptures(newLambdaBody, newModel, newCaptures, newCapturesIndex);
@@ -3213,7 +3320,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (mappedLambdasHaveErrors)
                 {
-                    newBodyHasLambdas = true;
                     return;
                 }
             }
@@ -3241,8 +3347,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // We currently allow #1, #2, and #3 and report a rude edit for the other cases.
             // In future we might be able to enable more.
 
-            newBodyHasLambdas = false;
-
             var containingTypeDeclaration = TryGetContainingTypeDeclaration(newMemberBody);
             var isInInterfaceDeclaration = containingTypeDeclaration != null && IsInterfaceDeclaration(containingTypeDeclaration);
 
@@ -3268,7 +3372,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
                     }
 
-                    newBodyHasLambdas = true;
+                    syntaxMapRequired = true;
                 }
             }
 
@@ -3290,8 +3394,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             reverseCapturesMap.Free();
             newCapturesToClosureScopes.Free();
             oldCapturesToClosureScopes.Free();
-            oldCapturesIndex.Free();
-            newCapturesIndex.Free();
         }
 
         private void ReportMultiScopeCaptures(
@@ -3299,10 +3401,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel model,
             ImmutableArray<ISymbol> captures,
             ImmutableArray<ISymbol> newCaptures,
-            ArrayBuilder<SyntaxNode> newCapturesToClosureScopes,
+            ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,
             PooledDictionary<ISymbol, int> capturesIndex,
             ArrayBuilder<int> reverseCapturesMap,
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             bool isInsert,
             CancellationToken cancellationToken)
         {
@@ -3385,6 +3487,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static void BuildIndex<TKey>(Dictionary<TKey, int> index, ImmutableArray<TKey> array)
+            where TKey : notnull
         {
             for (var i = 0; i < array.Length; i++)
             {
@@ -3392,17 +3495,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected SyntaxNode GetSymbolSyntax(ISymbol local, CancellationToken cancellationToken)
-        {
-            return local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-        }
+        /// <summary>
+        /// Returns node that represents a declaration of the symbol whose <paramref name="reference"/> is passed in.
+        /// </summary>
+        protected abstract SyntaxNode GetSymbolDeclarationSyntax(SyntaxReference reference, CancellationToken cancellationToken);
 
-        private TextSpan GetThisParameterDiagnosticSpan(ISymbol member)
-        {
-            return member.Locations.First().SourceSpan;
-        }
+        private static TextSpan GetThisParameterDiagnosticSpan(ISymbol member)
+            => member.Locations.First().SourceSpan;
 
-        private TextSpan GetVariableDiagnosticSpan(ISymbol local)
+        private static TextSpan GetVariableDiagnosticSpan(ISymbol local)
         {
             // Note that in VB implicit value parameter in property setter doesn't have a location.
             // In C# its location is the location of the setter.
@@ -3410,25 +3511,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return local.Locations.FirstOrDefault()?.SourceSpan ?? local.ContainingSymbol.Locations.First().SourceSpan;
         }
 
-        private ValueTuple<SyntaxNode, int> GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
+        private static (SyntaxNode? Node, int Ordinal) GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
         {
             var containingLambda = parameter.ContainingSymbol as IMethodSymbol;
             if (containingLambda?.MethodKind == MethodKind.LambdaMethod ||
                 containingLambda?.MethodKind == MethodKind.LocalFunction)
             {
-                var oldContainingLambdaSyntax = GetSymbolSyntax(containingLambda, cancellationToken);
-                return ValueTuple.Create(oldContainingLambdaSyntax, parameter.Ordinal);
+                var oldContainingLambdaSyntax = containingLambda.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
+                return (oldContainingLambdaSyntax, parameter.Ordinal);
             }
             else
             {
-                return ValueTuple.Create(default(SyntaxNode), parameter.Ordinal);
+                return (Node: null, parameter.Ordinal);
             }
         }
 
-        private bool TryMapParameter(ValueTuple<SyntaxNode, int> parameterKey, IReadOnlyDictionary<SyntaxNode, SyntaxNode> map, out ValueTuple<SyntaxNode, int> mappedParameterKey)
+        private static bool TryMapParameter((SyntaxNode? Node, int Ordinal) parameterKey, IReadOnlyDictionary<SyntaxNode, SyntaxNode> map, out (SyntaxNode? Node, int Ordinal) mappedParameterKey)
         {
-            var containingLambdaSyntax = parameterKey.Item1;
-            var ordinal = parameterKey.Item2;
+            var containingLambdaSyntax = parameterKey.Node;
 
             if (containingLambdaSyntax == null)
             {
@@ -3440,7 +3540,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (map.TryGetValue(containingLambdaSyntax, out var mappedContainingLambdaSyntax))
             {
                 // parameter of an existing lambda: same ordinal (can't change since lambda signatures must match), 
-                mappedParameterKey = ValueTuple.Create(mappedContainingLambdaSyntax, ordinal);
+                mappedParameterKey = (mappedContainingLambdaSyntax, parameterKey.Ordinal);
                 return true;
             }
 
@@ -3456,10 +3556,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newMember,
             SyntaxNode newMemberBody,
             BidirectionalMap<SyntaxNode> map,
-            [Out]ArrayBuilder<int> reverseCapturesMap,                 // {new capture index -> old capture index}
-            [Out]ArrayBuilder<SyntaxNode> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
-            [Out]ArrayBuilder<SyntaxNode> oldCapturesToClosureScopes,  // {old capture index -> old closure scope}
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] ArrayBuilder<int> reverseCapturesMap,                  // {new capture index -> old capture index}
+            [Out] ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
+            [Out] ArrayBuilder<SyntaxNode?> oldCapturesToClosureScopes,  // {old capture index -> old closure scope}
+            [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {
@@ -3494,8 +3594,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //   the closure tree of the previous version and then map 
             //   closure scopes in the new version to the previous ones, keeping empty closures around.
 
-            var oldLocalCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
-            var oldParameterCapturesByLambdaAndOrdinal = PooledDictionary<ValueTuple<SyntaxNode, int>, int>.GetInstance();
+            using var _1 = PooledDictionary<SyntaxNode, int>.GetInstance(out var oldLocalCapturesBySyntax);
+            using var _2 = PooledDictionary<(SyntaxNode? Node, int Ordinal), int>.GetInstance(out var oldParameterCapturesByLambdaAndOrdinal);
 
             for (var i = 0; i < oldCaptures.Length; i++)
             {
@@ -3507,7 +3607,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    oldLocalCapturesBySyntax.Add(GetSymbolSyntax(oldCapture, cancellationToken), i);
+                    oldLocalCapturesBySyntax.Add(oldCapture.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken), i);
                 }
             }
 
@@ -3540,7 +3640,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    var newCaptureSyntax = GetSymbolSyntax(newCapture, cancellationToken);
+                    var newCaptureSyntax = newCapture.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
 
                     // variable doesn't exists in the old method or has not been captured prior the edit:
                     if (!map.Reverse.TryGetValue(newCaptureSyntax, out var mappedOldSyntax) ||
@@ -3650,11 +3750,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var newMemberParametersWithSyntax = newMember.GetParameters();
 
                 // uncaptured parameters:
-                foreach (var entry in oldParameterCapturesByLambdaAndOrdinal)
+                foreach (var ((oldContainingLambdaSyntax, ordinal), oldCaptureIndex) in oldParameterCapturesByLambdaAndOrdinal)
                 {
-                    var ordinal = entry.Key.Item2;
-                    var oldContainingLambdaSyntax = entry.Key.Item1;
-                    var oldCaptureIndex = entry.Value;
                     var oldCapture = oldCaptures[oldCaptureIndex];
 
                     TextSpan span;
@@ -3717,8 +3814,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 hasErrors = true;
             }
-
-            oldLocalCapturesBySyntax.Free();
         }
 
         protected virtual void ReportLambdaSignatureRudeEdits(
@@ -3726,7 +3821,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {
@@ -3771,19 +3866,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static ITypeSymbol GetType(ISymbol localOrParameter)
-        {
-            switch (localOrParameter.Kind)
+            => localOrParameter.Kind switch
             {
-                case SymbolKind.Parameter:
-                    return ((IParameterSymbol)localOrParameter).Type;
-
-                case SymbolKind.Local:
-                    return ((ILocalSymbol)localOrParameter).Type;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(localOrParameter.Kind);
-            }
-        }
+                SymbolKind.Parameter => ((IParameterSymbol)localOrParameter).Type,
+                SymbolKind.Local => ((ILocalSymbol)localOrParameter).Type,
+                _ => throw ExceptionUtilities.UnexpectedValue(localOrParameter.Kind),
+            };
 
         private SyntaxNode GetCapturedVariableScope(ISymbol localOrParameter, SyntaxNode memberBody, CancellationToken cancellationToken)
         {
@@ -3796,7 +3884,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // lambda parameters and C# constructor parameters are lifted to their own scope:
                 if ((member as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction || HasParameterClosureScope(member))
                 {
-                    var result = GetSymbolSyntax(localOrParameter, cancellationToken);
+                    var result = localOrParameter.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
                     Debug.Assert(IsLambda(result));
                     return result;
                 }
@@ -3804,9 +3892,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return memberBody;
             }
 
-            var node = GetSymbolSyntax(localOrParameter, cancellationToken);
+            var node = localOrParameter.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
             while (true)
             {
+                RoslynDebug.Assert(node is object);
                 if (IsClosureScope(node))
                 {
                     return node;
@@ -3816,7 +3905,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private bool AreEquivalentClosureScopes(SyntaxNode oldScopeOpt, SyntaxNode newScopeOpt, IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
+        private static bool AreEquivalentClosureScopes(SyntaxNode oldScopeOpt, SyntaxNode newScopeOpt, IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
         {
             if (oldScopeOpt == null || newScopeOpt == null)
             {
@@ -3832,18 +3921,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void ReportStateMachineRudeEdits(
             Compilation oldCompilation,
-            UpdatedMemberInfo updatedInfo,
             ISymbol oldMember,
-            List<RudeEditDiagnostic> diagnostics)
+            SyntaxNode newBody,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
-            if (!updatedInfo.OldHasStateMachineSuspensionPoint)
-            {
-                return;
-            }
-
             // Only methods, local functions and anonymous functions can be async/iterators machines, 
             // but don't assume so to be resiliant against errors in code.
-            if (!(oldMember is IMethodSymbol oldMethod))
+            if (oldMember is not IMethodSymbol oldMethod)
             {
                 return;
             }
@@ -3854,12 +3938,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // We assume that the attributes, if exist, are well formed.
             // If not an error will be reported during EnC delta emit.
+
+            // Report rude edit if the type is not found in the compilation.
+            // Consider: This diagnostic is cached in the document analysis,
+            // so it could happen that the attribute type is added later to
+            // the compilation and we continue to report the diagnostic.
+            // We could report rude edit when adding these types or flush all
+            // (or specific) document caches. This is not a common scenario though,
+            // since the attribute has been long defined in the BCL.
             if (oldCompilation.GetTypeByMetadataName(stateMachineAttributeQualifiedName) == null)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.UpdatingStateMachineMethodMissingAttribute,
-                    GetBodyDiagnosticSpan(updatedInfo.NewBody, EditKind.Update),
-                    updatedInfo.NewBody,
+                    GetBodyDiagnosticSpan(newBody, EditKind.Update),
+                    newBody,
                     new[] { stateMachineAttributeQualifiedName }));
             }
         }
@@ -3870,10 +3962,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Helpers 
 
-        private static SyntaxNode TryGetNode(SyntaxNode root, int position)
-        {
-            return root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
-        }
+        private static SyntaxNode? TryGetNode(SyntaxNode root, int position)
+            => root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
 
         private static bool TryGetTextSpan(TextLineCollection lines, LinePositionSpan lineSpan, out TextSpan span)
         {
@@ -3889,55 +3979,59 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
+        internal static void AddNodes<T>(ArrayBuilder<SyntaxNode> nodes, SyntaxList<T> list)
+            where T : SyntaxNode
+        {
+            foreach (var node in list)
+            {
+                nodes.Add(node);
+            }
+        }
+
+        internal static void AddNodes<T>(ArrayBuilder<SyntaxNode> nodes, SeparatedSyntaxList<T>? list)
+            where T : SyntaxNode
+        {
+            if (list.HasValue)
+            {
+                foreach (var node in list.Value)
+                {
+                    nodes.Add(node);
+                }
+            }
+        }
+
         #endregion
 
         #region Testing
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
             private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer;
 
             public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
-            {
-                _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
-            }
+                => _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
 
-            internal void AnalyzeSyntax(
-                EditScript<SyntaxNode> script,
-                Dictionary<SyntaxNode, EditKind> editMap,
-                SourceText oldText,
-                SourceText newText,
-                DocumentId documentId,
-                IActiveStatementTrackingService trackingServiceOpt,
-                ImmutableArray<ActiveStatement> oldActiveStatements,
-                [Out] ActiveStatement[] newActiveStatements,
-                [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-                [Out] List<UpdatedMemberInfo> updatedMethods,
-                [Out] List<RudeEditDiagnostic> diagnostics)
-            {
-                _abstractEditAndContinueAnalyzer.AnalyzeSyntax(script, editMap, oldText, newText, documentId, trackingServiceOpt, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
-            }
+            internal void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
+                => _abstractEditAndContinueAnalyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
             internal void AnalyzeUnchangedDocument(
                 ImmutableArray<ActiveStatement> oldActiveStatements,
                 SourceText newText,
                 SyntaxNode newRoot,
-                DocumentId documentId,
-                IActiveStatementTrackingService trackingServiceOpt,
-                [In, Out] ActiveStatement[] newActiveStatements,
-                [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegionsOpt)
+                [In, Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
+                [In, Out] ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions)
             {
-                _abstractEditAndContinueAnalyzer.AnalyzeUnchangedDocument(oldActiveStatements, newText, newRoot, documentId, trackingServiceOpt, newActiveStatements, newExceptionRegionsOpt);
+                _abstractEditAndContinueAnalyzer.AnalyzeUnchangedDocument(oldActiveStatements, newText, newRoot, newActiveStatements, newExceptionRegions);
             }
 
             internal BidirectionalMap<SyntaxNode> ComputeMap(
                 Match<SyntaxNode> bodyMatch,
                 ActiveNode[] activeNodes,
-                ref Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
-                List<RudeEditDiagnostic> diagnostics)
+                ref Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas,
+                ArrayBuilder<RudeEditDiagnostic> diagnostics)
             {
                 return _abstractEditAndContinueAnalyzer.ComputeMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, diagnostics);
             }
@@ -3946,7 +4040,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SyntaxNode oldBody,
                 SyntaxNode newBody,
                 ActiveNode[] activeNodes,
-                List<RudeEditDiagnostic> diagnostics,
+                ArrayBuilder<RudeEditDiagnostic> diagnostics,
                 out bool oldHasStateMachineSuspensionPoint,
                 out bool newHasStateMachineSuspensionPoint)
             {
@@ -3957,30 +4051,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SourceText oldSource,
                 SourceText newSource,
                 Match<SyntaxNode> topMatch,
-                Dictionary<SyntaxNode, EditKind> editMap,
-                [Out] List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-                [Out] List<LineChange> lineEdits,
-                [Out] List<RudeEditDiagnostic> diagnostics,
+                IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
+                [Out] ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
+                [Out] ArrayBuilder<SourceLineUpdate> lineEdits,
+                [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
                 CancellationToken cancellationToken)
             {
                 _abstractEditAndContinueAnalyzer.AnalyzeTrivia(oldSource, newSource, topMatch, editMap, triviaEdits, lineEdits, diagnostics, cancellationToken);
-            }
-
-            internal void AnalyzeSemantics(
-                EditScript<SyntaxNode> editScript,
-                Dictionary<SyntaxNode, EditKind> editMap,
-                SourceText oldText,
-                ImmutableArray<ActiveStatement> oldActiveStatements,
-                List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-                List<UpdatedMemberInfo> updatedMembers,
-                SemanticModel oldModel,
-                SemanticModel newModel,
-                [Out] List<SemanticEdit> semanticEdits,
-                [Out] List<RudeEditDiagnostic> diagnostics,
-                out Diagnostic firstDeclarationErrorOpt,
-                CancellationToken cancellationToken)
-            {
-                _abstractEditAndContinueAnalyzer.AnalyzeSemantics(editScript, editMap, oldText, oldActiveStatements, triviaEdits, updatedMembers, oldModel, newModel, semanticEdits, diagnostics, out firstDeclarationErrorOpt, cancellationToken);
             }
         }
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Runtime.InteropServices;
@@ -23,7 +27,7 @@ using Goo = System.Data;")
             return (CodeImport)GetCodeElement(path);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name()
         {
@@ -31,7 +35,7 @@ using Goo = System.Data;")
             Assert.Throws<COMException>(() => { var value = import.Name; });
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FullName()
         {
@@ -39,7 +43,7 @@ using Goo = System.Data;")
             Assert.Throws<COMException>(() => { var value = import.FullName; });
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
@@ -48,7 +52,7 @@ using Goo = System.Data;")
             Assert.Equal(vsCMElement.vsCMElementImportStmt, import.Kind);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Namespace()
         {
@@ -57,7 +61,7 @@ using Goo = System.Data;")
             Assert.Equal("System", import.Namespace);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Alias()
         {
@@ -66,7 +70,7 @@ using Goo = System.Data;")
             Assert.Equal("Goo", import.Alias);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
@@ -74,7 +78,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
@@ -82,7 +86,7 @@ using Goo = System.Data;")
             Assert.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
@@ -90,7 +94,7 @@ using Goo = System.Data;")
             Assert.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
@@ -98,7 +102,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
@@ -106,7 +110,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
@@ -114,7 +118,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
@@ -122,7 +126,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
@@ -133,7 +137,7 @@ using Goo = System.Data;")
             Assert.Equal(13, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
@@ -141,7 +145,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
@@ -152,7 +156,7 @@ using Goo = System.Data;")
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
@@ -160,7 +164,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
@@ -168,7 +172,7 @@ using Goo = System.Data;")
             Assert.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
@@ -176,7 +180,7 @@ using Goo = System.Data;")
             Assert.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
@@ -184,7 +188,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
@@ -192,7 +196,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
@@ -200,7 +204,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
@@ -208,7 +212,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
@@ -220,7 +224,7 @@ using Goo = System.Data;")
             Assert.Equal(24, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
@@ -228,7 +232,7 @@ using Goo = System.Data;")
             Assert.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
@@ -240,7 +244,7 @@ using Goo = System.Data;")
             Assert.Equal(25, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
@@ -252,7 +256,7 @@ using Goo = System.Data;")
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {

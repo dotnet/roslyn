@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var id = projectId.CreateDocumentId(name, folders);
             var oldSolution = workspace.CurrentSolution;
-            var newSolution = oldSolution.AddDocument(id, name, initialText, folders).GetDocument(id).WithSourceCodeKind(sourceCodeKind).Project.Solution;
+            var newSolution = oldSolution.AddDocument(id, name, initialText, folders).GetDocument(id)!.WithSourceCodeKind(sourceCodeKind).Project.Solution;
             workspace.TryApplyChanges(newSolution);
             return id;
         }
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             workspace.TryApplyChanges(newSolution);
         }
 
-        public static void Updatedocument(this Workspace workspace, DocumentId documentId, SourceText newText)
+        public static void UpdateDocument(this Workspace workspace, DocumentId documentId, SourceText newText)
         {
             var oldSolution = workspace.CurrentSolution;
             var newSolution = oldSolution.WithDocumentText(documentId, newText);
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// <summary>
         /// Create a new DocumentId based on a name and optional folders
         /// </summary>
-        public static DocumentId CreateDocumentId(this ProjectId projectId, string name, IEnumerable<string> folders = null)
+        public static DocumentId CreateDocumentId(this ProjectId projectId, string name, IEnumerable<string>? folders = null)
         {
             if (folders != null)
             {
@@ -50,21 +52,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public static IEnumerable<Project> GetProjectsByName(this Solution solution, string name)
-        {
-            return solution.Projects.Where(p => string.Compare(p.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
-        }
+            => solution.Projects.Where(p => string.Compare(p.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
 
         internal static EventWaiter VerifyWorkspaceChangedEvent(this Workspace workspace, Action<WorkspaceChangeEventArgs> action)
         {
             var wew = new EventWaiter();
             workspace.WorkspaceChanged += wew.Wrap<WorkspaceChangeEventArgs>((sender, args) => action(args));
-            return wew;
-        }
-
-        internal static EventWaiter VerifyWorkspaceFailedEvent(this Workspace workspace, Action<WorkspaceDiagnosticEventArgs> action)
-        {
-            var wew = new EventWaiter();
-            workspace.WorkspaceFailed += wew.Wrap<WorkspaceDiagnosticEventArgs>((sender, args) => action(args));
             return wew;
         }
     }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -27,14 +31,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return _workspace;
         }
 
-        public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null)
+        public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null, string workspaceKind = null)
         {
-            if (TryParseXElement(markup, out var workspaceElement) && workspaceElement.Name == "Workspace")
+            // If it looks like XML, we'll treat it as XML; any parse error would be rejected and will throw.
+            // We'll do a case insensitive search here so if somebody has a lowercase W it'll be tried (and
+            // rejected by the XML parser) rather than treated as regular text.
+            if (markup.TrimStart().StartsWith("<Workspace>", StringComparison.OrdinalIgnoreCase))
             {
-                _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider);
+                CloseTextView();
+                _workspace?.Dispose();
+
+                _workspace = TestWorkspace.CreateWorkspace(XElement.Parse(markup), exportProvider: exportProvider, workspaceKind: workspaceKind);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;
-                Code = _currentDocument.TextBuffer.CurrentSnapshot.GetText();
+                Code = _currentDocument.GetTextBuffer().CurrentSnapshot.GetText();
                 return _workspace;
             }
             else
@@ -46,17 +56,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public TestWorkspaceFixture()
-        {
-        }
-
         protected abstract TestWorkspace CreateWorkspace(ExportProvider exportProvider);
 
         public void Dispose()
         {
-            if (_workspace != null)
+            if (_workspace is null)
+                return;
+
+            try
             {
-                throw new InvalidOperationException($"Tests which use {nameof(TestWorkspaceFixture)}.{nameof(GetWorkspace)} must call {nameof(DisposeAfterTest)} after each test.");
+                CloseTextView();
+                _currentDocument = null;
+                Code = null;
+                Position = 0;
+                _workspace?.Dispose();
+            }
+            finally
+            {
+                _workspace = null;
             }
         }
 
@@ -67,11 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // clear the document
             if (cleanBeforeUpdate)
             {
-                UpdateText(hostDocument.TextBuffer, string.Empty);
+                UpdateText(hostDocument.GetTextBuffer(), string.Empty);
             }
 
             // and set the content
-            UpdateText(hostDocument.TextBuffer, text);
+            UpdateText(hostDocument.GetTextBuffer(), text);
 
             GetWorkspace().OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 
@@ -84,22 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 edit.Replace(0, textBuffer.CurrentSnapshot.Length, text);
                 edit.Apply();
-            }
-        }
-
-        public void DisposeAfterTest()
-        {
-            try
-            {
-                CloseTextView();
-                _currentDocument = null;
-                Code = null;
-                Position = 0;
-                _workspace?.Dispose();
-            }
-            finally
-            {
-                _workspace = null;
             }
         }
 
@@ -122,20 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var existingPropertiesField = textFormattingRunPropertiesType.GetField("ExistingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var existingProperties = (List<VisualStudio.Text.Formatting.TextFormattingRunProperties>)existingPropertiesField.GetValue(null);
             existingProperties.Clear();
-        }
-
-        private static bool TryParseXElement(string input, out XElement output)
-        {
-            try
-            {
-                output = XElement.Parse(input);
-                return true;
-            }
-            catch (XmlException)
-            {
-                output = null;
-                return false;
-            }
         }
     }
 }

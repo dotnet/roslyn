@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
@@ -20,12 +22,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Throw New NotImplementedException()
         End Sub
 
-        Public Function StartSearch(title As String, alwaysShowDeclarations As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
+        Public Function StartSearch(title As String, alwaysShowDeclarations As Boolean, cancellationToken As CancellationToken) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
             _action()
             Return Context
         End Function
 
-        Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
+        Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean, cancellationToken As CancellationToken) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
             Return Context
         End Function
     End Class

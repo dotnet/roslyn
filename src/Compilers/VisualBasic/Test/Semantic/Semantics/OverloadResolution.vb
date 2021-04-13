@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -49,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 Return OverloadResolution.MethodInvocationOverloadResolution(
                         methodGroup, arguments, argumentNames, binder, includeEliminatedCandidates:=includeEliminatedCandidates, lateBindingIsAllowed:=lateBindingIsAllowed, callerInfoOpt:=Nothing,
-                        useSiteDiagnostics:=Nothing)
+                        useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             End Function
         End Module
     End Namespace
@@ -3062,7 +3064,7 @@ End Class
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
                 syntaxTrees:={Parse(SemanticResourceUtil.OverloadResolutionTestSource), optionStrictOffTree},
-                references:={TestReferences.NetFx.v4_0_21006.mscorlib},
+                references:={TestMetadata.Net40.mscorlib},
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)

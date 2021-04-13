@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1299,7 +1303,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
             Value: 
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
   Declarators:
       IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
         Initializer: 
@@ -1356,7 +1360,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Arms(1):
                     ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                       Pattern: 
-                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                       Value: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                       Locals: Local_1: System.Int32 z
@@ -1791,7 +1795,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 Arms(1):
                     ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                       Pattern: 
-                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                       Value: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                       Locals: Local_1: System.Int32 z
@@ -2311,7 +2315,7 @@ class C
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2333,7 +2337,7 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/){}
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[y switch { int z => 42 }] x = new int[0]").WithArguments("int[]").WithLocation(7, 25),
                 // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -2373,7 +2377,7 @@ class C
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2395,7 +2399,7 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[y switch { int z => 42 }] x = new int[0]").WithArguments("int[]").WithLocation(7, 25),
                 // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -2432,7 +2436,7 @@ class C
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
                   Pattern:
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
                   Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
@@ -2454,7 +2458,7 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,8): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // file.cs(7,8): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //        using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;").WithArguments("int[]").WithLocation(7, 8),
                 // file.cs(7,27): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -2842,7 +2846,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
         Arms(1):
             ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
               Pattern: 
-                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
               Value: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
               Locals: Local_1: System.Int32 z

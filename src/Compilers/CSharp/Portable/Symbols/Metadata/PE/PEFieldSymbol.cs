@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
@@ -71,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
         private Tuple<CultureInfo, string> _lazyDocComment;
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
@@ -105,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = String.Empty;
                 }
 
-                _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
             }
         }
 
@@ -250,12 +255,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyType == null)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
-                bool isVolatile;
                 ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                TypeSymbol typeSymbol = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
+                TypeSymbol typeSymbol = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out customModifiers);
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
 
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
+                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, _handle, moduleSymbol);
 
                 // We start without annotations
                 var type = TypeWithAnnotations.Create(typeSymbol, customModifiers: customModifiersArray);
@@ -265,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol, accessSymbol: this, nullableContext: _containingType);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
-                _lazyIsVolatile = isVolatile;
+                _lazyIsVolatile = customModifiersArray.Any(m => !m.IsOptional && m.Modifier.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile);
 
                 TypeSymbol fixedElementType;
                 int fixedSize;
@@ -549,16 +554,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            AssemblySymbol primaryDependency = PrimaryDependency;
+
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                DiagnosticInfo result = null;
+                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData

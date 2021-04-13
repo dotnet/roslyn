@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis
@@ -46,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             If type.TypeKind = TypeKind.Enum AndAlso value IsNot Nothing Then
-                Return DirectCast(VisualBasicFlagsEnumGenerator.Instance.CreateEnumConstantValue(DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
+                Return DirectCast(VisualBasicFlagsEnumGenerator.Instance.TryCreateEnumConstantValue(DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
             End If
 
             Return GenerateNonEnumValueExpression(type, value, canUseFieldReference)
@@ -354,7 +356,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.FloatingLiteralToken(
                 literal, typeSuffix, value))
         End Function
-
 
         Private Function GenerateCharLiteralExpression(c As Char) As ExpressionSyntax
             Dim pieces = StringPiece.Split(c.ToString())

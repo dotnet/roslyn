@@ -1,21 +1,27 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.GoToBase
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     Public MustInherit Class GoToBaseTestsBase
-        Protected Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Task
+        Protected Shared Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True,
+                                           Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
+                testHost:=TestHost.InProcess,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext)
                     Dim gotoBaseService = document.GetLanguageService(Of IGoToBaseService)
                     Await gotoBaseService.FindBasesAsync(document, position, context)
                 End Function,
-                shouldSucceed)
+                shouldSucceed, metadataDefinitions)
         End Function
 
-        Protected Async Function TestAsync(source As String, language As String, Optional shouldSucceed As Boolean = True) As Task
+        Protected Shared Async Function TestAsync(source As String, language As String, Optional shouldSucceed As Boolean = True,
+                                           Optional metadataDefinitions As String() = Nothing) As Task
             Await TestAsync(
                    <Workspace>
                        <Project Language=<%= language %> CommonReferences="true">
@@ -24,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
                            </Document>
                        </Project>
                    </Workspace>,
-                shouldSucceed)
+                shouldSucceed, metadataDefinitions)
         End Function
     End Class
 End Namespace

@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -733,7 +738,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
         }
 
 
@@ -811,8 +816,8 @@ public class C<T>
 
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
-            var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
-            Assert.Equal(SpecialType.System_Char, method.TypeArgumentsWithAnnotations.Single().SpecialType);
+            var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+            Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2)", method.ToTestDisplayString());
         }
 
@@ -841,8 +846,8 @@ public class C<T>
 
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
-            var method = (MethodSymbol)model.GetSymbolInfo(syntax).Symbol;
-            Assert.Equal(SpecialType.System_Char, method.TypeArgumentsWithAnnotations.Single().SpecialType);
+            var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+            Assert.Equal(SpecialType.System_Char, method.TypeArguments.Single().SpecialType);
             Assert.Equal("void C<System.Char>.M<System.Char>(System.Func<System.Char, System.Char> f1, System.Func<System.Int64, System.Char> f2, params System.Int32[] a)", method.ToTestDisplayString());
         }
 

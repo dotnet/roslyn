@@ -1,13 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
@@ -15,7 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class AsyncAwaitHighlighter : AbstractKeywordHighlighter
     {
+        private static readonly ObjectPool<Stack<SyntaxNode>> s_stackPool
+            = SharedPools.Default<Stack<SyntaxNode>>();
+
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AsyncAwaitHighlighter()
         {
         }
@@ -23,96 +34,96 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         protected override bool IsHighlightableNode(SyntaxNode node)
             => node.IsReturnableConstruct();
 
-        protected override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
+        protected override void AddHighlightsForNode(SyntaxNode node, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
-            HighlightRelatedKeywords(node, spans);
-            return spans;
+            foreach (var current in WalkChildren(node))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                HighlightRelatedKeywords(current, highlights);
+            }
         }
 
-        private static void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
+        private static IEnumerable<SyntaxNode> WalkChildren(SyntaxNode node)
         {
-            // Highlight async keyword
-            switch (node)
+            using var pooledObject = s_stackPool.GetPooledObject();
+
+            var stack = pooledObject.Object;
+            stack.Push(node);
+
+            while (stack.Count > 0)
             {
-                case MethodDeclarationSyntax methodDeclaration:
-                    {
-                        var asyncModifier = methodDeclaration.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
-                        if (asyncModifier.Kind() != SyntaxKind.None)
-                        {
-                            spans.Add(asyncModifier.Span);
-                        }
-                        break;
-                    }
-                case LocalFunctionStatementSyntax localFunction:
-                    {
-                        var asyncModifier = localFunction.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
-                        if (asyncModifier.Kind() != SyntaxKind.None)
-                        {
-                            spans.Add(asyncModifier.Span);
-                        }
-                        break;
-                    }
-                case AnonymousFunctionExpressionSyntax anonymousFunction:
-                    if (anonymousFunction.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
-                    {
-                        spans.Add(anonymousFunction.AsyncKeyword.Span);
-                    }
-                    break;
+                var current = stack.Pop();
+                yield return current;
 
-                case AwaitExpressionSyntax awaitExpression:
-                    // Note if there is already a highlight for the previous token, merge it
-                    // with this span. That way, we highlight nested awaits with a single span.
-                    var handled = false;
-                    var awaitToken = awaitExpression.AwaitKeyword;
-                    var previousToken = awaitToken.GetPreviousToken();
-                    if (!previousToken.Span.IsEmpty)
-                    {
-                        var index = spans.FindIndex(s => s.Contains(previousToken.Span));
-                        if (index >= 0)
-                        {
-                            var span = spans[index];
-                            spans[index] = TextSpan.FromBounds(span.Start, awaitToken.Span.End);
-                            handled = true;
-                        }
-                    }
-
-                    if (!handled)
-                    {
-                        spans.Add(awaitToken.Span);
-                    }
-                    break;
-
-                case UsingStatementSyntax usingStatement:
-                    if (usingStatement.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword)
-                    {
-                        spans.Add(usingStatement.AwaitKeyword.Span);
-                    }
-                    break;
-
-                case LocalDeclarationStatementSyntax localDeclaration:
-                    if (localDeclaration.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword && localDeclaration.UsingKeyword.Kind() == SyntaxKind.UsingKeyword)
-                    {
-                        spans.Add(localDeclaration.AwaitKeyword.Span);
-                    }
-                    break;
-
-                case CommonForEachStatementSyntax forEachStatement:
-                    if (forEachStatement.AwaitKeyword.Kind() == SyntaxKind.AwaitKeyword)
-                    {
-                        spans.Add(forEachStatement.AwaitKeyword.Span);
-                    }
-                    break;
-            }
-
-            foreach (var child in node.ChildNodes())
-            {
-                // Only recurse if we have anything to do
-                if (!child.IsReturnableConstruct())
+                // 'Reverse' isn't really necessary, but it means we walk the nodes in document
+                // order, which is nicer when debugging and understanding the results produced.
+                foreach (var child in current.ChildNodesAndTokens().Reverse())
                 {
-                    HighlightRelatedKeywords(child, spans);
+                    if (child.IsNode)
+                    {
+                        var childNode = child.AsNode();
+
+                        // Only process children if they're not the start of another construct
+                        // that async/await would be related to.
+                        if (!childNode.IsReturnableConstruct())
+                        {
+                            stack.Push(childNode);
+                        }
+                    }
                 }
             }
+        }
+
+        private static bool HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
+            => node switch
+            {
+                MethodDeclarationSyntax methodDeclaration => TryAddAsyncModifier(methodDeclaration.Modifiers, spans),
+                LocalFunctionStatementSyntax localFunction => TryAddAsyncModifier(localFunction.Modifiers, spans),
+                AnonymousFunctionExpressionSyntax anonymousFunction => TryAddAsyncOrAwaitKeyword(anonymousFunction.AsyncKeyword, spans),
+                UsingStatementSyntax usingStatement => TryAddAsyncOrAwaitKeyword(usingStatement.AwaitKeyword, spans),
+                LocalDeclarationStatementSyntax localDeclaration =>
+                    localDeclaration.UsingKeyword.Kind() == SyntaxKind.UsingKeyword && TryAddAsyncOrAwaitKeyword(localDeclaration.AwaitKeyword, spans),
+                CommonForEachStatementSyntax forEachStatement => TryAddAsyncOrAwaitKeyword(forEachStatement.AwaitKeyword, spans),
+                AwaitExpressionSyntax awaitExpression => TryAddAsyncOrAwaitKeyword(awaitExpression.AwaitKeyword, spans),
+                _ => false,
+            };
+
+        private static bool TryAddAsyncModifier(SyntaxTokenList modifiers, List<TextSpan> spans)
+        {
+            foreach (var mod in modifiers)
+            {
+                if (TryAddAsyncOrAwaitKeyword(mod, spans))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TryAddAsyncOrAwaitKeyword(SyntaxToken mod, List<TextSpan> spans)
+        {
+            if (mod.IsKind(SyntaxKind.AsyncKeyword, SyntaxKind.AwaitKeyword))
+            {
+                // Note if there is already a highlight for the previous token, merge it with this
+                // span. That way, we highlight nested awaits with a single span.
+
+                if (spans.Count > 0)
+                {
+                    var previousToken = mod.GetPreviousToken();
+                    var lastSpan = spans[^1];
+                    if (lastSpan == previousToken.Span)
+                    {
+                        spans[^1] = TextSpan.FromBounds(lastSpan.Start, mod.Span.End);
+                        return true;
+                    }
+                }
+
+                spans.Add(mod.Span);
+                return true;
+            }
+
+            return false;
         }
     }
 }

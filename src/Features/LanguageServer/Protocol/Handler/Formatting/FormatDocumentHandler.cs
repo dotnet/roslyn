@@ -1,20 +1,34 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentFormattingName)]
-    internal class FormatDocumentHandler : FormatDocumentHandlerBase, IRequestHandler<LSP.DocumentFormattingParams, LSP.TextEdit[]>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentFormattingName)]
+    internal class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
-        public async Task<LSP.TextEdit[]> HandleRequestAsync(Solution solution, LSP.DocumentFormattingParams request, LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken, bool keepThreadContext = false)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FormatDocumentHandler()
         {
-            return await GetTextEdits(solution, request.TextDocument.Uri, keepThreadContext, cancellationToken).ConfigureAwait(keepThreadContext);
         }
+
+        public override string Method => LSP.Methods.TextDocumentFormattingName;
+
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
+
+        public override Task<LSP.TextEdit[]> HandleRequestAsync(
+            LSP.DocumentFormattingParams request,
+            RequestContext context,
+            CancellationToken cancellationToken)
+            => GetTextEditsAsync(context, request.Options, cancellationToken);
     }
 }

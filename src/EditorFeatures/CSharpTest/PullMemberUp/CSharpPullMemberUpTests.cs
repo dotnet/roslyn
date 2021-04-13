@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -126,7 +130,6 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(eventTest);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestNoRefactoringProvidedInNestedTypesViaQuickAction()
         {
@@ -219,7 +222,6 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullGenericsUpToInterfaceViaQuickAction()
@@ -1233,7 +1235,7 @@ namespace Destination
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullMethodUpToVBClassViaQuickAction()
         {
-            // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in 
+            // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in
             // AbstractCodeGenerationService will return null.
             var input = @"
 <Workspace>
@@ -1431,14 +1433,13 @@ public class TestClass : VBInterface
             IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
-            CodeActionPriority? priority = null,
             TestParameters parameters = default)
         {
             var service = new TestPullMemberUpService(selection, destinationName);
 
             return TestInRegularAndScript1Async(
                 initialMarkUp, expectedResult,
-                index, priority,
+                index,
                 parameters.WithFixProviderData(service));
         }
 
@@ -1485,6 +1486,60 @@ namespace PushUpTest
     public partial class TestClass
     {
         partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullExtendedPartialMethodUpToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void Bar[||]Bar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+        void BarBar();
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void BarBar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
         {}
     }
 
@@ -1699,6 +1754,39 @@ namespace PushUpTest
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullAsyncMethod()
+        {
+            var testText = @"
+using System.Threading.Tasks;
+
+internal interface IPullUp { }
+
+internal class PullUp : IPullUp
+{
+    internal async Task PullU[||]pAsync()
+    {
+        await Task.Delay(1000);
+    }
+}";
+            var expectedText = @"
+using System.Threading.Tasks;
+
+internal interface IPullUp
+{
+    Task PullUpAsync();
+}
+
+internal class PullUp : IPullUp
+{
+    public async Task PullUpAsync()
+    {
+        await Task.Delay(1000);
+    }
+}";
+            await TestWithPullMemberDialogAsync(testText, expectedText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2885,7 +2973,6 @@ namespace PushUpTest
 
             await TestInRegularAndScriptAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]

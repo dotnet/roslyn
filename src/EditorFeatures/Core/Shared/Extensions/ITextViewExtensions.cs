@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -66,21 +69,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 : default;
         }
 
-        public static ITextBuffer GetBufferContainingCaret(this ITextView textView, string contentType = ContentTypeNames.RoslynContentType)
+        public static ITextBuffer? GetBufferContainingCaret(this ITextView textView, string contentType = ContentTypeNames.RoslynContentType)
         {
             var point = GetCaretPoint(textView, s => s.ContentType.IsOfType(contentType));
             return point.HasValue ? point.Value.Snapshot.TextBuffer : null;
         }
 
         public static SnapshotPoint? GetPositionInView(this ITextView textView, SnapshotPoint point)
-        {
-            return textView.BufferGraph.MapUpToSnapshot(point, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
-        }
+            => textView.BufferGraph.MapUpToSnapshot(point, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
 
         public static NormalizedSnapshotSpanCollection GetSpanInView(this ITextView textView, SnapshotSpan span)
-        {
-            return textView.BufferGraph.MapUpToSnapshot(span, SpanTrackingMode.EdgeInclusive, textView.TextSnapshot);
-        }
+            => textView.BufferGraph.MapUpToSnapshot(span, SpanTrackingMode.EdgeInclusive, textView.TextSnapshot);
 
         public static void SetSelection(
             this ITextView textView, VirtualSnapshotPoint anchorPoint, VirtualSnapshotPoint activePoint)
@@ -109,12 +108,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             textView.GetMultiSelectionBroker().SetSelectionRange(spansInView, spansInView.Last());
         }
 
-        public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point, IOutliningManagerService outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
-        {
-            return textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
-        }
+        public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
+            => textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
 
-        public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, VirtualSnapshotPoint point, IOutliningManagerService outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
+        public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, VirtualSnapshotPoint point, IOutliningManagerService? outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
         {
             if (textView.IsClosed)
             {
@@ -220,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             this TTextView textView,
             ITextBuffer subjectBuffer,
             object key,
-            out TProperty value) where TTextView : class, ITextView
+            [MaybeNullWhen(false)] out TProperty value) where TTextView : class, ITextView
         {
             Contract.ThrowIfNull(textView);
             Contract.ThrowIfNull(subjectBuffer);
@@ -314,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var targetSpan = textView.BufferGraph.MapUpToSnapshot(
                 virtualSnapshotSpan.SnapshotSpan,
                 SpanTrackingMode.EdgeExclusive,
-                textView.TextSnapshot).FirstOrNullable();
+                textView.TextSnapshot).FirstOrNull();
 
             if (targetSpan.HasValue)
             {
@@ -380,5 +377,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             return span;
         }
+
+        /// <summary>
+        /// Determines if the textbuffer passed in matches the buffer for the textview.
+        /// </summary>
+        public static bool IsNotSurfaceBufferOfTextView(this ITextView textView, ITextBuffer textBuffer)
+            => textBuffer != textView.TextBuffer;
     }
 }

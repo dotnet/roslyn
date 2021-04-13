@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -10,11 +14,17 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 {
     public class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public FullyQualifyTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpFullyQualifyCodeFixProvider());
 
@@ -1407,6 +1417,84 @@ class C
         return ImmutableArray.CreateRange();
     }
 }");
+        }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_Type()
+        {
+            await TestInRegularAndScriptAsync(
+@"using [|Math|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using static System.Math;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
+        }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_Namespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using [|Collections|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using System.Collections;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
+        }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_UsingStatic()
+        {
+            await TestInRegularAndScriptAsync(
+@"using static [|Math|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using static System.Math;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
+        }
+
+        [WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_UsingAlias()
+        {
+            await TestInRegularAndScriptAsync(
+@"using M = [|Math|]",
+@"using M = System.Math");
         }
     }
 }

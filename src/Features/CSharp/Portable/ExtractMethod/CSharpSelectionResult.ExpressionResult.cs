@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable 
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,29 +34,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             public override bool ContainingScopeHasAsyncKeyword()
+                => false;
+
+            public override SyntaxNode? GetContainingScope()
             {
-                return false;
+                Contract.ThrowIfNull(SemanticDocument);
+                Contract.ThrowIfFalse(SelectionInExpression);
+
+                var firstToken = GetFirstTokenInSelection();
+                var lastToken = GetLastTokenInSelection();
+                var scope = firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                if (scope == null)
+                    return null;
+
+                return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
             }
 
-            public override SyntaxNode GetContainingScope()
+            public override ITypeSymbol? GetContainingScopeType()
             {
-                Contract.ThrowIfNull(this.SemanticDocument);
-                Contract.ThrowIfFalse(this.SelectionInExpression);
-
-                var firstToken = this.GetFirstTokenInSelection();
-                var lastToken = this.GetLastTokenInSelection();
-                return firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
-            }
-
-            public override ITypeSymbol GetContainingScopeType()
-            {
-                var node = this.GetContainingScope();
-                var model = this.SemanticDocument.SemanticModel;
-
-                if (!node.IsExpression())
+                if (!(GetContainingScope() is ExpressionSyntax node))
                 {
-                    Contract.Fail("this shouldn't happen");
+                    throw ExceptionUtilities.Unreachable;
                 }
+
+                var model = SemanticDocument.SemanticModel;
 
                 // special case for array initializer and explicit cast
                 if (node.IsArrayInitializer())
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
                     if (variableDeclExpression != null)
                     {
-                        return model.GetTypeInfo(variableDeclExpression.Type).GetTypeWithAnnotatedNullability();
+                        return model.GetTypeInfo(variableDeclExpression.Type).Type;
                     }
                 }
 
@@ -74,21 +77,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // 2. if it doesn't, even if the cast itself wasn't included in the selection, we will treat it 
                     //    as it was in the selection
                     var regularType = GetRegularExpressionType(model, node);
-                    if (regularType != null && !regularType.IsObjectType())
+                    if (regularType != null)
                     {
                         return regularType;
                     }
 
                     if (node.Parent is CastExpressionSyntax castExpression)
                     {
-                        return model.GetTypeInfo(castExpression.Type).GetTypeWithAnnotatedNullability();
+                        return model.GetTypeInfo(castExpression).Type;
                     }
                 }
 
                 return GetRegularExpressionType(model, node);
             }
 
-            private static ITypeSymbol GetRegularExpressionType(SemanticModel semanticModel, SyntaxNode node)
+            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, ExpressionSyntax node)
             {
                 // regular case. always use ConvertedType to get implicit conversion right.
                 var expression = node.GetUnparenthesizedExpression();
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // use FormattableString if conversion between String and FormattableString
                 if (info.Type?.SpecialType == SpecialType.System_String &&
-                    info.ConvertedType?.IsFormattableString() == true)
+                    info.ConvertedType?.IsFormattableStringOrIFormattable() == true)
                 {
                     return info.GetConvertedTypeWithAnnotatedNullability();
                 }
@@ -137,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // let's see whether this interface has coclass attribute
-            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass.Equals(coclassSymbol));
+            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass?.Equals(coclassSymbol) == true);
         }
     }
 }

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -45,9 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var matchToMetadata = new CSharpSymbolMatcher(metadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly);
 
-            CSharpSymbolMatcher matchToPrevious = null;
+            CSharpSymbolMatcher? matchToPrevious = null;
             if (previousGeneration.Ordinal > 0)
             {
+                RoslynDebug.AssertNotNull(previousGeneration.Compilation);
+                RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+
                 var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
                 var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
@@ -62,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious);
             _previousGeneration = previousGeneration;
-            _changes = new SymbolChanges(_previousDefinitions, edits, isAddedSymbol);
+            _changes = new CSharpSymbolChanges(_previousDefinitions, edits, isAddedSymbol);
 
             // Workaround for https://github.com/dotnet/roslyn/issues/3192.
             // When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -139,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
                         var key = new AnonymousTypeKey(builder.ToImmutable());
-                        var value = new AnonymousTypeValue(name, index, type);
+                        var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
                         result.Add(key, value);
                     }
                     builder.Free();
@@ -213,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _changes.GetTopLevelSourceTypeDefinitions(context);
         }
 
-        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
+        internal override VariableSlotAllocator? TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics);
         }
@@ -228,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _previousGeneration.GetNextAnonymousTypeIndex();
         }
 
-        internal override bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
+        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
             return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
@@ -246,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 foreach (var embeddedType in embeddedTypesManager.EmbeddedTypesMap.Keys)
                 {
-                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoPIAReference, embeddedType), Location.None);
+                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoPIAReference, embeddedType.AdaptedSymbol), Location.None);
                 }
             }
         }

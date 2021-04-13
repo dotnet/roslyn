@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,13 +25,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToMethod
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertLocalFunctionToMethodCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertLocalFunctionToMethod), Shared]
     internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly SyntaxAnnotation s_delegateToReplaceAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpConvertLocalFunctionToMethodCodeRefactoringProvider()
         {
         }
@@ -77,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
             // First, create a parameter per each capture so that we can pass them as arguments to the final method
             // Filter out `this` because it doesn't need a parameter, we will just make a non-static method for that
-            // We also make a `ref` parameter here for each capture that is being written into inside the funciton
+            // We also make a `ref` parameter here for each capture that is being written into inside the function
             var capturesAsParameters = captures
                 .Where(capture => !capture.IsThisParameter())
                 .Select(capture => CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -101,13 +107,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var containerSymbol = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
 
+            // GetSymbolModifiers actually checks if the local function needs to be unsafe, not whether
+            // it is declared as such, so this check we don't need to worry about whether the containing method
+            // is unsafe, this will just work regardless.
+            var needsUnsafe = declaredSymbol.GetSymbolModifiers().IsUnsafe;
+
             var methodName = GenerateUniqueMethodName(declaredSymbol);
             var parameters = declaredSymbol.Parameters;
             var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                 containingType: declaredSymbol.ContainingType,
                 attributes: default,
                 accessibility: Accessibility.Private,
-                modifiers: new DeclarationModifiers(isStatic, isAsync: declaredSymbol.IsAsync),
+                modifiers: new DeclarationModifiers(isStatic, isAsync: declaredSymbol.IsAsync, isUnsafe: needsUnsafe),
                 returnType: declaredSymbol.ReturnType,
                 refKind: default,
                 explicitInterfaceImplementations: default,
@@ -115,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 typeParameters: typeParameters.ToImmutableArray(),
                 parameters: parameters.AddRange(capturesAsParameters));
 
-            var defaultOptions = CodeGenerationOptions.Default;
-            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified,
-                document.Project.Solution.Workspace, defaultOptions, root.SyntaxTree.Options);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var defaultOptions = new CodeGenerationOptions(options: options);
+            var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, defaultOptions, root.SyntaxTree.Options);
 
             var generator = s_generator;
             var editor = new SyntaxEditor(root, generator);
@@ -253,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private static ParameterSyntax GenerateParameter(IParameterSymbol p, string name)
         {
             return SyntaxFactory.Parameter(name.ToIdentifierToken())
-                .WithModifiers(CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind))
+                .WithModifiers(CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind))
                 .WithType(p.Type.GenerateTypeSyntax());
         }
 

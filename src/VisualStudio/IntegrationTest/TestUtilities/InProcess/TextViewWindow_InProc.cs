@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -253,20 +257,47 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 action(view);
             };
 
-        public string GetQuickInfo()
-            => ExecuteOnActiveView(view =>
+        public void InvokeQuickInfo()
+        {
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
+                await broker.TriggerQuickInfoAsync(GetActiveTextView());
+            });
+        }
+
+        public string GetQuickInfo()
+        {
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
                 var session = broker.GetSession(view);
+
+                using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+                while (session.State != QuickInfoSessionState.Visible)
+                {
+                    cts.Token.ThrowIfCancellationRequested();
+                    await Task.Delay(50, cts.Token).ConfigureAwait(true);
+                }
+
                 return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
             });
+        }
 
         public void VerifyTags(string tagTypeName, int expectedCount)
             => ExecuteOnActiveView(view =>
         {
-            Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
-            bool filterTag(IMappingTagSpan<ITag> tag) { return tag.Tag.GetType().Equals(type); }
+            var type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
+            bool filterTag(IMappingTagSpan<ITag> tag)
+            {
+                return tag.Tag.GetType().Equals(type);
+            }
             var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
             var aggregator = service.CreateTagAggregator<ITag>(view);
             var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
@@ -483,6 +514,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
                 broker.DismissSession(view);
+            });
+
+        public void DismissCompletionSessions()
+            => ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ICompletionBroker>();
+                broker.DismissAllSessions(view);
             });
 
         protected abstract bool HasActiveTextView();

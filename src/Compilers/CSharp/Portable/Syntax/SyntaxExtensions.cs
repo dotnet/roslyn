@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -17,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the expression-body syntax from an expression-bodied member. The
         /// given syntax must be for a member which could contain an expression-body.
         /// </summary>
-        internal static ArrowExpressionClauseSyntax GetExpressionBodySyntax(this CSharpSyntaxNode node)
+        internal static ArrowExpressionClauseSyntax? GetExpressionBodySyntax(this CSharpSyntaxNode node)
         {
-            ArrowExpressionClauseSyntax arrowExpr = null;
+            ArrowExpressionClauseSyntax? arrowExpr = null;
             switch (node.Kind())
             {
                 // The ArrowExpressionClause is the declaring syntax for the
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.UnknownAccessorDeclaration:
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxToken NormalizeWhitespace(this SyntaxToken token, string indentation, bool elasticTrivia)
         {
-            return SyntaxNormalizer.Normalize(token, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
+            return SyntaxNormalizer.Normalize(token, indentation, CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
         }
 
         /// <summary>
@@ -85,8 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="eol">An optional sequence of whitespace characters used for end of line.</param>
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxToken NormalizeWhitespace(this SyntaxToken token,
-            string indentation = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
-            string eol = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
+            string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
+            string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
             bool elasticTrivia = false)
         {
             return SyntaxNormalizer.Normalize(token, indentation, eol, elasticTrivia);
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxTriviaList NormalizeWhitespace(this SyntaxTriviaList list, string indentation, bool elasticTrivia)
         {
-            return SyntaxNormalizer.Normalize(list, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
+            return SyntaxNormalizer.Normalize(list, indentation, CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
         }
 
         /// <summary>
@@ -114,8 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="eol">An optional sequence of whitespace characters used for end of line.</param>
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
         public static SyntaxTriviaList NormalizeWhitespace(this SyntaxTriviaList list,
-            string indentation = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
-            string eol = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
+            string indentation = CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
+            string eol = CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
             bool elasticTrivia = false)
         {
             return SyntaxNormalizer.Normalize(list, indentation, eol, elasticTrivia);
@@ -128,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static XmlNameAttributeElementKind GetElementKind(this XmlNameAttributeSyntax attributeSyntax)
         {
+            Debug.Assert(attributeSyntax.Parent is object);
             CSharpSyntaxNode parentSyntax = attributeSyntax.Parent;
             SyntaxKind parentKind = parentSyntax.Kind();
 
@@ -136,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parent = (XmlEmptyElementSyntax)parentSyntax;
                 parentName = parent.Name.LocalName.ValueText;
-                Debug.Assert((object)parent.Name.Prefix == null);
+                Debug.Assert(parent.Name.Prefix is null);
             }
             else if (parentKind == SyntaxKind.XmlElementStartTag)
             {
                 var parent = (XmlElementStartTagSyntax)parentSyntax;
                 parentName = parent.Name.LocalName.ValueText;
-                Debug.Assert((object)parent.Name.Prefix == null);
+                Debug.Assert(parent.Name.Prefix is null);
             }
             else
             {
@@ -196,9 +199,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
-        internal static SyntaxNode SkipParens(this SyntaxNode expression)
+        internal static ExpressionSyntax SkipParens(this ExpressionSyntax expression)
         {
-            while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
+            while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {
                 expression = ((ParenthesizedExpressionSyntax)expression).Expression;
             }
@@ -245,6 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventFieldDeclaration:
                 case SyntaxKind.BaseList:
                 case SyntaxKind.SimpleBaseType:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
 
                 case SyntaxKind.Block:
@@ -277,8 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 thisKeyword,
                 parameterList,
                 accessorList,
-                default(ArrowExpressionClauseSyntax),
-                default(SyntaxToken));
+                expressionBody: null,
+                semicolonToken: default);
         }
 
         public static OperatorDeclarationSyntax Update(
@@ -300,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operatorToken,
                 parameterList,
                 block,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 semicolonToken);
         }
 
@@ -327,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 constraintClauses,
                 block,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 semicolonToken);
         }
 
@@ -336,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If found, returns either an assignment expression or a foreach variable statement.
         /// Returns null otherwise.
         /// </summary>
-        internal static CSharpSyntaxNode GetContainingDeconstruction(this ExpressionSyntax expr)
+        internal static CSharpSyntaxNode? GetContainingDeconstruction(this ExpressionSyntax expr)
         {
             var kind = expr.Kind();
             if (kind != SyntaxKind.TupleExpression && kind != SyntaxKind.DeclarationExpression && kind != SyntaxKind.IdentifierName)
@@ -388,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation && p.IsOutDeclaration();
         }
 
+#nullable enable
         /// <summary>
         /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn.
         /// </summary>
@@ -396,73 +401,87 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="argument">The argument that is passed to the action whenever it is invoked</param>
         internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, in TArg argument)
         {
-recurse:
-            switch (type.Kind())
+            // Use a manual stack here to avoid deeply nested recursion which can blow the real stack
+            var stack = ArrayBuilder<SyntaxNode>.GetInstance();
+            stack.Push(type);
+
+            while (stack.Count > 0)
             {
-                case SyntaxKind.ArrayType:
-                    var arrayTypeSyntax = (ArrayTypeSyntax)type;
-                    arrayTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
-                    foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
-                    {
-                        action(rankSpecifier, argument);
-                    }
-                    break;
-                case SyntaxKind.NullableType:
-                    var nullableTypeSyntax = (NullableTypeSyntax)type;
-                    type = nullableTypeSyntax.ElementType;
-                    goto recurse;
-                case SyntaxKind.PointerType:
-                    var pointerTypeSyntax = (PointerTypeSyntax)type;
-                    type = pointerTypeSyntax.ElementType;
-                    goto recurse;
-                case SyntaxKind.TupleType:
-                    var tupleTypeSyntax = (TupleTypeSyntax)type;
-                    var elementsCount = tupleTypeSyntax.Elements.Count;
-                    if (elementsCount == 0)
+                var current = stack.Pop();
+                if (current is ArrayRankSpecifierSyntax rankSpecifier)
+                {
+                    action(rankSpecifier, argument);
+                    continue;
+                }
+                else
+                {
+                    type = (TypeSyntax)current;
+                }
+
+                switch (type.Kind())
+                {
+                    case SyntaxKind.ArrayType:
+                        var arrayTypeSyntax = (ArrayTypeSyntax)type;
+                        for (int i = arrayTypeSyntax.RankSpecifiers.Count - 1; i >= 0; i--)
+                        {
+                            stack.Push(arrayTypeSyntax.RankSpecifiers[i]);
+                        }
+                        stack.Push(arrayTypeSyntax.ElementType);
                         break;
-
-                    for (int index = 0; index < elementsCount - 1; index++)
-                    {
-                        var element = tupleTypeSyntax.Elements[index];
-                        element.Type.VisitRankSpecifiers(action, argument);
-                    }
-
-                    type = tupleTypeSyntax.Elements[elementsCount - 1].Type;
-                    goto recurse;
-                case SyntaxKind.RefType:
-                    var refTypeSyntax = (RefTypeSyntax)type;
-                    type = refTypeSyntax.Type;
-                    goto recurse;
-                case SyntaxKind.GenericName:
-                    var genericNameSyntax = (GenericNameSyntax)type;
-                    var argsCount = genericNameSyntax.TypeArgumentList.Arguments.Count;
-                    if (argsCount == 0)
+                    case SyntaxKind.NullableType:
+                        var nullableTypeSyntax = (NullableTypeSyntax)type;
+                        stack.Push(nullableTypeSyntax.ElementType);
                         break;
-
-                    for (int index = 0; index < argsCount - 1; index++)
-                    {
-                        var typeArgument = genericNameSyntax.TypeArgumentList.Arguments[index];
-                        typeArgument.VisitRankSpecifiers(action, argument);
-                    }
-
-                    type = genericNameSyntax.TypeArgumentList.Arguments[argsCount - 1];
-                    goto recurse;
-                case SyntaxKind.QualifiedName:
-                    var qualifiedNameSyntax = (QualifiedNameSyntax)type;
-                    qualifiedNameSyntax.Left.VisitRankSpecifiers(action, argument);
-                    type = qualifiedNameSyntax.Right;
-                    goto recurse;
-                case SyntaxKind.AliasQualifiedName:
-                    var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)type;
-                    type = aliasQualifiedNameSyntax.Name;
-                    goto recurse;
-                case SyntaxKind.IdentifierName:
-                case SyntaxKind.OmittedTypeArgument:
-                case SyntaxKind.PredefinedType:
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(type.Kind());
+                    case SyntaxKind.PointerType:
+                        var pointerTypeSyntax = (PointerTypeSyntax)type;
+                        stack.Push(pointerTypeSyntax.ElementType);
+                        break;
+                    case SyntaxKind.FunctionPointerType:
+                        var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)type;
+                        for (int i = functionPointerTypeSyntax.ParameterList.Parameters.Count - 1; i >= 0; i--)
+                        {
+                            TypeSyntax? paramType = functionPointerTypeSyntax.ParameterList.Parameters[i].Type;
+                            Debug.Assert(paramType is object);
+                            stack.Push(paramType);
+                        }
+                        break;
+                    case SyntaxKind.TupleType:
+                        var tupleTypeSyntax = (TupleTypeSyntax)type;
+                        for (int i = tupleTypeSyntax.Elements.Count - 1; i >= 0; i--)
+                        {
+                            stack.Push(tupleTypeSyntax.Elements[i].Type);
+                        }
+                        break;
+                    case SyntaxKind.RefType:
+                        var refTypeSyntax = (RefTypeSyntax)type;
+                        stack.Push(refTypeSyntax.Type);
+                        break;
+                    case SyntaxKind.GenericName:
+                        var genericNameSyntax = (GenericNameSyntax)type;
+                        for (int i = genericNameSyntax.TypeArgumentList.Arguments.Count - 1; i >= 0; i--)
+                        {
+                            stack.Push(genericNameSyntax.TypeArgumentList.Arguments[i]);
+                        }
+                        break;
+                    case SyntaxKind.QualifiedName:
+                        var qualifiedNameSyntax = (QualifiedNameSyntax)type;
+                        stack.Push(qualifiedNameSyntax.Right);
+                        stack.Push(qualifiedNameSyntax.Left);
+                        break;
+                    case SyntaxKind.AliasQualifiedName:
+                        var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)type;
+                        stack.Push(aliasQualifiedNameSyntax.Name);
+                        break;
+                    case SyntaxKind.IdentifierName:
+                    case SyntaxKind.OmittedTypeArgument:
+                    case SyntaxKind.PredefinedType:
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.Kind());
+                }
             }
+
+            stack.Free();
         }
     }
 }

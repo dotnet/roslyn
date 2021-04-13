@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,10 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             _info = info;
         }
 
-        public static void AddAll(bool isNullableEnabled, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
+        public static void AddAll(bool isNullableEnabled, bool isGeneratedCode, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
         {
             var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
-            GetRawDiagnosticInfos(isNullableEnabled, (CSharpSyntaxTree)location.SourceTree, rawInfos);
+            GetRawDiagnosticInfos(isNullableEnabled, isGeneratedCode, (CSharpSyntaxTree)location.SourceTree, rawInfos);
             foreach (var rawInfo in rawInfos)
             {
                 diagnostics.Add(new LazyMissingNonNullTypesContextDiagnosticInfo(type, rawInfo), location);
@@ -32,10 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             rawInfos.Free();
         }
 
-        private static void GetRawDiagnosticInfos(bool isNullableEnabled, CSharpSyntaxTree tree, ArrayBuilder<DiagnosticInfo> infos)
+#nullable enable
+        private static void GetRawDiagnosticInfos(bool isNullableEnabled, bool isGeneratedCode, CSharpSyntaxTree tree, ArrayBuilder<DiagnosticInfo> infos)
         {
             const MessageID featureId = MessageID.IDS_FeatureNullableReferenceTypes;
-            var info = featureId.GetFeatureAvailabilityDiagnosticInfoOpt(tree.Options);
+            var info = featureId.GetFeatureAvailabilityDiagnosticInfo(tree.Options);
             if (info is object)
             {
                 infos.Add(info);
@@ -43,10 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isNullableEnabled && info?.Severity != DiagnosticSeverity.Error)
             {
-                var code = tree.IsGeneratedCode() ? ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode : ErrorCode.WRN_MissingNonNullTypesContextForAnnotation;
+                var code = isGeneratedCode
+                    ? ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode
+                    : ErrorCode.WRN_MissingNonNullTypesContextForAnnotation;
                 infos.Add(new CSDiagnosticInfo(code));
             }
         }
+#nullable disable
 
         private static bool IsNullableReference(TypeSymbol type)
             => type is null || !(type.IsValueType || type.IsErrorType());
@@ -58,18 +66,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - an error before C# 8.0
         /// - a warning outside of a NonNullTypes context
         /// </summary>
-        public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
+        public static void ReportNullableReferenceTypesIfNeeded(
+            bool isNullableEnabled,
+            bool isGeneratedCode,
+            TypeWithAnnotations type,
+            Location location,
+            DiagnosticBag diagnostics)
         {
             if (IsNullableReference(type.Type))
             {
-                ReportNullableReferenceTypesIfNeeded(isNullableEnabled, location, diagnostics);
+                ReportNullableReferenceTypesIfNeeded(isNullableEnabled, isGeneratedCode, location, diagnostics);
             }
         }
 
-        public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, Location location, DiagnosticBag diagnostics)
+        public static void ReportNullableReferenceTypesIfNeeded(
+            bool isNullableEnabled,
+            bool isGeneratedCode,
+            Location location,
+            DiagnosticBag diagnostics)
         {
             var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
-            GetRawDiagnosticInfos(isNullableEnabled, (CSharpSyntaxTree)location.SourceTree, rawInfos);
+            GetRawDiagnosticInfos(isNullableEnabled, isGeneratedCode, (CSharpSyntaxTree)location.SourceTree, rawInfos);
             foreach (var rawInfo in rawInfos)
             {
                 diagnostics.Add(rawInfo, location);

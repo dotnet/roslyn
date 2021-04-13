@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     break;
 
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
@@ -177,21 +180,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         public static bool Any(TypeParameterListSyntax listOpt)
-        {
-            return listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
-        }
+            => listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
 
         public static SyntaxNode TryGetEffectiveGetterBody(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.PropertyDeclaration))
+            if (declaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax property))
             {
-                var property = (PropertyDeclarationSyntax)declaration;
                 return TryGetEffectiveGetterBody(property.ExpressionBody, property.AccessorList);
             }
 
-            if (declaration.IsKind(SyntaxKind.IndexerDeclaration))
+            if (declaration.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer))
             {
-                var indexer = (IndexerDeclarationSyntax)declaration;
                 return TryGetEffectiveGetterBody(indexer.ExpressionBody, indexer.AccessorList);
             }
 
@@ -216,27 +215,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.FieldDeclaration))
-            {
-                return ((FieldDeclarationSyntax)node).Modifiers;
-            }
+            if (node.IsKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax fieldDecl))
+                return fieldDecl.Modifiers;
 
-            if (node.IsKind(SyntaxKind.PropertyDeclaration))
-            {
-                return ((PropertyDeclarationSyntax)node).Modifiers;
-            }
+            if (node.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
+                return propertyDecl.Modifiers;
 
             return null;
         }
 
         public static bool IsParameterlessConstructor(SyntaxNode declaration)
         {
-            if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration))
+            if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax ctor))
             {
                 return false;
             }
 
-            var ctor = (ConstructorDeclarationSyntax)declaration;
             return ctor.ParameterList.Parameters.Count == 0;
         }
 
@@ -305,8 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             // each declarator in the declaration translates to a suspension point: await DisposeAsync
             if (node.IsKind(SyntaxKind.VariableDeclarator) &&
-                node.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) &&
-                ((LocalDeclarationStatementSyntax)node.Parent.Parent).AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
+                node.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax localDecl) &&
+                localDecl.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
             {
                 return true;
             }

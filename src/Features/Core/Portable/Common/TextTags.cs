@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis
 {
@@ -39,6 +43,7 @@ namespace Microsoft.CodeAnalysis
         public const string EnumMember = nameof(EnumMember);
         public const string ExtensionMethod = nameof(ExtensionMethod);
         public const string Constant = nameof(Constant);
+        public const string Record = nameof(Record);
 
         /// <summary>
         /// Indicates the start of a text container. The elements after <see cref="ContainerStart"/> through (but not

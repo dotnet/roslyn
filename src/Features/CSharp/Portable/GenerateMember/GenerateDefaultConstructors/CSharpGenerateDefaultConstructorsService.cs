@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -17,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
     internal class CSharpGenerateDefaultConstructorsService : AbstractGenerateDefaultConstructorsService<CSharpGenerateDefaultConstructorsService>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGenerateDefaultConstructorsService()
         {
         }
@@ -27,11 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Offer the feature if we're on the header for the class/struct, or if we're on the 
-            // first base-type of a class.
+            // Offer the feature if we're on the header / between members of the class/struct,
+            // or if we're on the first base-type of a class
 
             var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out var typeDeclaration))
+            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out var typeDeclaration) ||
+                syntaxFacts.IsBetweenTypeMembers(semanticDocument.Text, semanticDocument.Root, textSpan.Start, out typeDeclaration))
             {
                 classType = semanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
                 return classType?.TypeKind == TypeKind.Class;
@@ -41,12 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
             var node = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor<TypeSyntax>();
             if (node != null)
             {
-                if (node.Parent is BaseTypeSyntax && node.Parent.IsParentKind(SyntaxKind.BaseList))
+                if (node.Parent is BaseTypeSyntax && node.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList))
                 {
-                    var baseList = (BaseListSyntax)node.Parent.Parent;
                     if (baseList.Types.Count > 0 &&
                         baseList.Types[0].Type == node &&
-                        baseList.IsParentKind(SyntaxKind.ClassDeclaration))
+                        baseList.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration))
                     {
                         var semanticModel = semanticDocument.SemanticModel;
                         classType = semanticModel.GetDeclaredSymbol(baseList.Parent, cancellationToken) as INamedTypeSymbol;

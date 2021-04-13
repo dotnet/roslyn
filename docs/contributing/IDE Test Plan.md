@@ -1,1 +1,1 @@
-This resource has moved to https://github.com/dotnet/roslyn/wiki/Manual-Testing
+This resource has moved to [../wiki/Manual-Testing.md](../wiki/Manual-Testing.md)

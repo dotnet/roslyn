@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -17,11 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbols.Length == 1)
                 {
-                    return new SymbolInfo(symbols[0], CandidateReason.LateBound);
+                    return new SymbolInfo(symbols[0].GetPublicSymbol(), CandidateReason.LateBound);
                 }
                 else
                 {
-                    return new SymbolInfo(StaticCast<ISymbol>.From(symbols), CandidateReason.LateBound);
+                    return new SymbolInfo(symbols.GetPublicSymbols(), CandidateReason.LateBound);
                 }
             }
             else if (resultKind == LookupResultKind.Viable)
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbols.Length > 0)
                 {
                     Debug.Assert(symbols.Length == 1);
-                    return new SymbolInfo(symbols[0]);
+                    return new SymbolInfo(symbols[0].GetPublicSymbol());
                 }
                 else
                 {
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return new SymbolInfo(StaticCast<ISymbol>.From(symbols), (symbols.Length > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
+                return new SymbolInfo(symbols.GetPublicSymbols(), (symbols.Length > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
             }
         }
     }

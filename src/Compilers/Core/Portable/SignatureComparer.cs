@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// 
         /// Signature should be in format described in MemberDescriptor.
         /// </summary>
-        private bool MatchType(TypeSymbol type, ImmutableArray<byte> signature, ref int position)
+        private bool MatchType(TypeSymbol? type, ImmutableArray<byte> signature, ref int position)
         {
             if (type == null)
             {
@@ -248,12 +250,12 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// <summary>
         /// Should return null in case of error.
         /// </summary>
-        protected abstract TypeSymbol GetGenericTypeArgument(TypeSymbol type, int argumentIndex);
+        protected abstract TypeSymbol? GetGenericTypeArgument(TypeSymbol type, int argumentIndex);
 
         /// <summary>
         /// Should return null in case of error.
         /// </summary>
-        protected abstract TypeSymbol GetGenericTypeDefinition(TypeSymbol type);
+        protected abstract TypeSymbol? GetGenericTypeDefinition(TypeSymbol type);
 
         protected abstract bool IsGenericMethodTypeParam(TypeSymbol type, int paramPosition);
 
@@ -263,12 +265,12 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// Should only accept Pointer types.
         /// Should return null in case of error.
         /// </summary>
-        protected abstract TypeSymbol GetPointedToType(TypeSymbol type);
+        protected abstract TypeSymbol? GetPointedToType(TypeSymbol type);
 
         /// <summary>
         /// Should return null in case of error.
         /// </summary>
-        protected abstract TypeSymbol GetSZArrayElementType(TypeSymbol type);
+        protected abstract TypeSymbol? GetSZArrayElementType(TypeSymbol type);
 
         /// <summary>
         /// Should only accept multi-dimensional arrays.
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// Should only accept multi-dimensional arrays.
         /// Should return null in case of error.
         /// </summary>
-        protected abstract TypeSymbol GetMDArrayElementType(TypeSymbol type);
+        protected abstract TypeSymbol? GetMDArrayElementType(TypeSymbol type);
 
         protected abstract bool MatchTypeToTypeId(TypeSymbol type, int typeId);
 

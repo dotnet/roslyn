@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -10,41 +14,6 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CommonCompletionItem
     {
-        [Obsolete("This is a compatibility shim for FSharp; please do not use it.", error: true)]
-        public static CompletionItem Create(
-            string displayText,
-            CompletionItemRules rules,
-            Glyph? glyph = null,
-            ImmutableArray<SymbolDisplayPart> description = default,
-            string sortText = null,
-            string filterText = null,
-            bool showsWarningIcon = false,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
-        {
-            return Create(
-                displayText, displayTextSuffix: string.Empty, rules,
-                glyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription: null);
-        }
-
-        // Back compat overload for FSharp
-        public static CompletionItem Create(
-            string displayText,
-            string displayTextSuffix,
-            CompletionItemRules rules,
-            Glyph? glyph,
-            ImmutableArray<SymbolDisplayPart> description,
-            string sortText,
-            string filterText,
-            bool showsWarningIcon,
-            ImmutableDictionary<string, string> properties,
-            ImmutableArray<string> tags)
-        {
-            return Create(
-                  displayText, displayTextSuffix, rules,
-                  glyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription: null);
-        }
-
         public static CompletionItem Create(
             string displayText,
             string displayTextSuffix,
@@ -56,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Completion
             bool showsWarningIcon = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
-            string inlineDescription = null)
+            string inlineDescription = null,
+            string displayTextPrefix = null,
+            bool isComplexTextEdit = false)
         {
             tags = tags.NullToEmpty();
 
@@ -80,18 +51,18 @@ namespace Microsoft.CodeAnalysis.Completion
             return CompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,
                 tags: tags,
                 rules: rules,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit);
         }
 
         public static bool HasDescription(CompletionItem item)
-        {
-            return item.Properties.ContainsKey("Description");
-        }
+            => item.Properties.ContainsKey("Description");
 
         public static CompletionDescription GetDescription(CompletionItem item)
         {
@@ -108,9 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly char[] s_descriptionSeparators = new char[] { '|' };
 
         private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
-        {
-            return EncodeDescription(description.ToTaggedText());
-        }
+            => EncodeDescription(description.ToTaggedText());
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)
         {

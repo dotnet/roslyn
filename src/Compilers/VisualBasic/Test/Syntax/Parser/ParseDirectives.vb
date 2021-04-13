@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -3214,13 +3216,13 @@ End Module
         Dim analyzers = {analyzer}
         Dim expectedId = analyzer.SupportedDiagnostics.Single.Id
         Dim expectedMsg = analyzer.SupportedDiagnostics.Single.MessageFormat
-        CreateCompilationWithMscorlib40AndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+        CreateCompilationWithMscorlib40AndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15))
 
         Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
         diagOptions.Add("ｓｏＭｅＩｄ", ReportDiagnostic.Error)
         Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-        CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+        CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
         diagOptions = New Dictionary(Of String, ReportDiagnostic)
@@ -3229,7 +3231,7 @@ End Module
         CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
 
         compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-        CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+        CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
         compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
@@ -3321,13 +3323,13 @@ End Module
         Dim analyzers = {analyzer}
         Dim expectedId = analyzer.SupportedDiagnostics.Single.Id
         Dim expectedMsg = analyzer.SupportedDiagnostics.Single.MessageFormat
-        CreateCompilationWithMscorlib40AndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+        CreateCompilationWithMscorlib40AndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15))
 
         Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
         diagOptions.Add("__someThing_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", ReportDiagnostic.Error)
         Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-        CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+        CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
         diagOptions = New Dictionary(Of String, ReportDiagnostic)
@@ -3336,7 +3338,7 @@ End Module
         CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
 
         compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-        CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+        CreateCompilationWithMscorlib40AndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
         compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)

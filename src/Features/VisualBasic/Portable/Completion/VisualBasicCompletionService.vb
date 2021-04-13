@@ -1,18 +1,16 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.VisualBasic), [Shared]>
@@ -20,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -32,39 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Inherits CommonCompletionService
 
         Private ReadOnly _workspace As Workspace
-        Private ReadOnly _completionProviders As ImmutableArray(Of CompletionProvider)
 
-        Public Sub New(workspace As Workspace,
-                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider)? = Nothing)
-            MyBase.New(workspace, exclusiveProviders)
+        Public Sub New(workspace As Workspace)
+            MyBase.New(workspace)
             _workspace = workspace
-
-            Dim completionProviders = ImmutableArray.Create(Of CompletionProvider)(
-                New KeywordCompletionProvider(),
-                New SymbolCompletionProvider(),
-                New ObjectInitializerCompletionProvider(),
-                New ObjectCreationCompletionProvider(),
-                New EnumCompletionProvider(),
-                New NamedParameterCompletionProvider(),
-                New VisualBasicSuggestionModeCompletionProvider(),
-                New ImplementsClauseCompletionProvider(),
-                New HandlesClauseCompletionProvider(),
-                New PartialTypeCompletionProvider(),
-                New CrefCompletionProvider(),
-                New CompletionListTagCompletionProvider(),
-                New OverrideCompletionProvider(),
-                New XmlDocCommentCompletionProvider(),
-                New InternalsVisibleToCompletionProvider())
-
-            Dim languageServices = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic)
-            Dim languagesProvider = languageServices.GetService(Of IEmbeddedLanguagesProvider)()
-            If languagesProvider IsNot Nothing Then
-                completionProviders = completionProviders.Add(New EmbeddedLanguageCompletionProvider(languagesProvider))
-            End If
-
-            completionProviders = completionProviders.Add(New TypeImportCompletionProvider())
-
-            _completionProviders = completionProviders
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -101,11 +71,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Interlocked.Exchange(_latestRules, newRules)
 
             Return newRules
-        End Function
-
-
-        Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
-            Return _completionProviders
         End Function
 
         Protected Overrides Function GetBetterItem(item As CompletionItem, existingItem As CompletionItem) As CompletionItem

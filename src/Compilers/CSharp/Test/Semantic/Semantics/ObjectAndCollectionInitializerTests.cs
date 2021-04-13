@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -385,7 +389,6 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
             string source = @"
 using System;
 using System.Collections.Generic;
-using System.Collections;
 
 class Test
 {
@@ -436,13 +439,8 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            // TODO: This should produce no diagnostics.
-            // The 'info' message is ONLY used for IDE (NOT show up in console)
             CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }).
-                VerifyDiagnostics(
-                // (4,1): info CS8019: Unnecessary using directive.
-                // using System.Collections;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
+                VerifyDiagnostics();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1200,7 +1198,7 @@ class MemberInitializerTest
             Initializers(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         var i = /*<bind>*/new I() { }/*</bind>*/; // CS0144
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { }").WithArguments("I").WithLocation(7, 27)
             };
@@ -1341,7 +1339,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         var i = /*<bind>*/new MemberInitializerTest() { x = 1 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "x").WithLocation(12, 57)
             };
@@ -3958,7 +3956,7 @@ interface I : IEnumerable<int>
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,15): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (8,15): error CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         I i = new I() { 1, 2 }
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { 1, 2 }").WithArguments("I").WithLocation(8, 15),
                 // (8,31): error CS1002: ; expected

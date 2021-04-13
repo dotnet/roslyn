@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,11 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name)
         {
-            DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
             TypeSymbol discardedExplicitInterfaceType;
             string discardedAliasOpt;
-            string methodName = GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, discardedDiagnostics, out discardedExplicitInterfaceType, out discardedAliasOpt);
-            discardedDiagnostics.Free();
+            string methodName = GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, BindingDiagnosticBag.Discarded, out discardedExplicitInterfaceType, out discardedAliasOpt);
 
             return methodName;
         }
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out TypeSymbol explicitInterfaceTypeOpt,
             out string aliasQualifierOpt)
         {
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfaceMethodName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             return (MethodSymbol)FindExplicitlyImplementedMember(implementingMethod, explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfacePropertyName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             return (PropertySymbol)FindExplicitlyImplementedMember(implementingProperty, explicitInterfaceType, interfacePropertyName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfaceEventName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             return (EventSymbol)FindExplicitlyImplementedMember(implementingEvent, explicitInterfaceType, interfaceEventName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfaceMemberName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if ((object)explicitInterfaceType == null)
             {
@@ -207,13 +209,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // interface in its base class list that contains a member ..."
             MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[explicitInterfaceNamedType];
             int setCount = set.Count;
-            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsObliviousNullableModifierMatchesAny))
+            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, Symbols.SymbolEqualityComparer.ObliviousNullableModifierMatchesAny))
             {
                 //we'd like to highlight just the type part of the name
                 var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
                 var location = new SourceLocation(explicitInterfaceSyntax);
 
-                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsIgnoringNullableComparer))
+                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, Symbols.SymbolEqualityComparer.IgnoringNullable))
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, location);
                 }
@@ -223,6 +225,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 //do a lookup anyway
+            }
+
+            // Do not look in itself
+            if (containingType == (object)explicitInterfaceNamedType.OriginalDefinition)
+            {
+                // An error will be reported elsewhere.
+                // Either the interface is not implemented, or it causes a cycle in the interface hierarchy.
+                return null;
             }
 
             var hasParamsParam = implementingMember.HasParamsParameter();
@@ -280,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Make sure implemented member is accessible
             if ((object)implementedMember != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, implementingMember.ContainingAssembly);
 
-                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteInfo, throughTypeOpt: null))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
                 }
@@ -306,14 +316,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     void checkAccessorIsAccessibleIfImplementable(MethodSymbol accessor)
                     {
                         if (accessor.IsImplementable() &&
-                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteInfo, throughTypeOpt: null))
                         {
                             diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
                         }
                     }
                 }
 
-                diagnostics.Add(memberLocation, useSiteDiagnostics);
+                diagnostics.Add(memberLocation, useSiteInfo);
             }
 
             return implementedMember;
@@ -322,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void FindExplicitlyImplementedMemberVerification(
             this Symbol implementingMember,
             Symbol implementedMember,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if ((object)implementedMember == null)
             {
@@ -347,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Given a member, look for other members contained in the same type with signatures that will
         /// not be distinguishable by the runtime.
         /// </summary>
-        private static void FindExplicitImplementationCollisions(Symbol implementingMember, Symbol implementedMember, DiagnosticBag diagnostics)
+        private static void FindExplicitImplementationCollisions(Symbol implementingMember, Symbol implementedMember, BindingDiagnosticBag diagnostics)
         {
             if ((object)implementedMember == null)
             {

@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -14,14 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ObjectInitializerCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new ObjectInitializerCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(ObjectAndWithInitializerCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingToInitialize()
@@ -42,6 +41,25 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        public async Task ImplicitObjectCreation_NothingToInitialize()
+        {
+            var markup = @"
+class C { }
+
+class D
+{
+    void goo()
+    {
+       C goo = new() { $$
+    }
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OneItem1()
         {
             var markup = @"
@@ -52,6 +70,45 @@ class D
     void goo()
     {
        C goo = new C { v$$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "value");
+            await VerifyItemIsAbsentAsync(markup, "<value>k__BackingField");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(46397, "https://github.com/dotnet/roslyn/issues/46397")]
+        public async Task ImplicitObjectCreation_OneItem1()
+        {
+            var markup = @"
+class C { public int value {set; get; }}
+
+class D
+{
+    void goo()
+    {
+       C goo = new() { v$$
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "value");
+            await VerifyItemIsAbsentAsync(markup, "<value>k__BackingField");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ImplicitObjectCreation_NullableStruct_OneItem1()
+        {
+            var markup = @"
+struct S { public int value {set; get; }}
+
+class D
+{
+    void goo()
+    {
+       S? goo = new() { v$$
     }
 }";
 
@@ -570,13 +627,13 @@ class D
     }
 }";
 
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider);
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
             var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
             var item = completionList.Items.First();
 
@@ -585,9 +642,7 @@ class D
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestTrigger()
-        {
-            TestCommonIsTextualTriggerCharacter();
-        }
+            => TestCommonIsTextualTriggerCharacter();
 
         [WorkItem(530828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530828")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1138,13 +1193,13 @@ class Program
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider);
             var hostDocument = workspace.Documents.Single();
             var position = hostDocument.CursorPosition.Value;
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
             var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
             if (completionList != null)

@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
@@ -15,17 +18,14 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
         private readonly ITextBufferCloneService _singleton;
 
         [ImportingConstructor]
-        public TextBufferCloneServiceFactory(
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TextBufferCloneServiceFactory(ITextBufferCloneService textBufferCloneService)
         {
-            _singleton = new TextBufferCloneService((ITextBufferFactoryService3)textBufferFactoryService, contentTypeRegistryService);
+            _singleton = textBufferCloneService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
 
         [Export(typeof(ITextBufferCloneService)), Shared]
         private class TextBufferCloneService : ITextBufferCloneService
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
             private readonly IContentType _unknownContentType;
 
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TextBufferCloneService(ITextBufferFactoryService3 textBufferFactoryService, IContentTypeRegistryService contentTypeRegistryService)
             {
                 _textBufferFactoryService = textBufferFactoryService;

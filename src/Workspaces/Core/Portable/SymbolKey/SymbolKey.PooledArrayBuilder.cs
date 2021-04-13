@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis
             public int Count => Builder.Count;
             public T this[int index] => Builder[index];
 
-            public void AddIfNotNull(T value)
+            public void AddIfNotNull(T? value)
             {
                 if (value != null)
                 {
@@ -34,10 +36,10 @@ namespace Microsoft.CodeAnalysis
             public ArrayBuilder<T>.Enumerator GetEnumerator() => Builder.GetEnumerator();
 
             public static PooledArrayBuilder<T> GetInstance()
-                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance());
+                => new(ArrayBuilder<T>.GetInstance());
 
             public static PooledArrayBuilder<T> GetInstance(int capacity)
-                => new PooledArrayBuilder<T>(ArrayBuilder<T>.GetInstance(capacity));
+                => new(ArrayBuilder<T>.GetInstance(capacity));
 
             public void AddValuesIfNotNull(IEnumerable<T> values)
             {

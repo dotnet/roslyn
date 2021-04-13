@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="tempPath">Path to use for any temporary file generation.</param>
         /// <param name="keyFileSearchPaths">An ordered set of fully qualified paths which are searched when locating a cryptographic key file.</param>
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default, string tempPath = null)
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default, string? tempPath = null)
            : this(keyFileSearchPaths, tempPath == null ? StrongNameFileSystem.Instance : new StrongNameFileSystem(tempPath))
         {
 
@@ -60,17 +62,17 @@ namespace Microsoft.CodeAnalysis
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
         }
 
-        internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
+        internal override StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
         {
             var keyPair = default(ImmutableArray<byte>);
             var publicKey = default(ImmutableArray<byte>);
-            string container = null;
+            string? container = null;
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
                 try
                 {
-                    string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath, FileSystem, _keyFileSearchPaths);
+                    string? resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath, FileSystem, _keyFileSearchPaths);
                     if (resolvedKeyFile == null)
                     {
                         return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, CodeAnalysisResources.FileNotFound));
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis
         /// Resolves assembly strong name key file path.
         /// </summary>
         /// <returns>Normalized key file path or null if not found.</returns>
-        internal static string ResolveStrongNameKeyFile(string path, StrongNameFileSystem fileSystem, ImmutableArray<string> keyFileSearchPaths)
+        internal static string? ResolveStrongNameKeyFile(string path, StrongNameFileSystem fileSystem, ImmutableArray<string> keyFileSearchPaths)
         {
             // Dev11: key path is simply appended to the search paths, even if it starts with the current (parent) directory ("." or "..").
             // This is different from PathUtilities.ResolveRelativePath.
@@ -127,13 +129,13 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var searchPath in keyFileSearchPaths)
             {
-                string combinedPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
+                string? combinedPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
 
                 Debug.Assert(combinedPath == null || PathUtilities.IsAbsolute(combinedPath));
 
                 if (fileSystem.FileExists(combinedPath))
                 {
-                    return FileUtilities.TryNormalizeAbsolutePath(combinedPath);
+                    return FileUtilities.TryNormalizeAbsolutePath(combinedPath!);
                 }
             }
 
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                Sign(filePath, keys.KeyContainer);
+                Sign(filePath, keys.KeyContainer!);
             }
         }
 
@@ -210,7 +212,7 @@ namespace Microsoft.CodeAnalysis
             IntPtr keyBlob;
             int keyBlobByteCount;
 
-            strongName.StrongNameGetPublicKey(keyContainer, default(IntPtr), 0, out keyBlob, out keyBlobByteCount);
+            strongName.StrongNameGetPublicKey(keyContainer, pbKeyBlob: default, 0, out keyBlob, out keyBlobByteCount);
 
             byte[] pubKey = new byte[keyBlobByteCount];
             Marshal.Copy(keyBlob, pubKey, 0, keyBlobByteCount);
@@ -225,9 +227,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 IClrStrongName strongName = GetStrongNameInterface();
-
-                int unused;
-                strongName.StrongNameSignatureGeneration(filePath, keyName, IntPtr.Zero, 0, null, out unused);
+                strongName.StrongNameSignatureGeneration(filePath, keyName, IntPtr.Zero, 0, null, pcbSignatureBlob: out _);
             }
             catch (ClrStrongNameMissingException)
             {
@@ -248,8 +248,7 @@ namespace Microsoft.CodeAnalysis
 
                 fixed (byte* pinned = keyPair.ToArray())
                 {
-                    int unused;
-                    strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, out unused);
+                    strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, pcbSignatureBlob: out _);
                 }
             }
             catch (ClrStrongNameMissingException)
@@ -268,7 +267,7 @@ namespace Microsoft.CodeAnalysis
             return Hash.CombineValues(_keyFileSearchPaths, StringComparer.Ordinal);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null || GetType() != obj.GetType())
             {

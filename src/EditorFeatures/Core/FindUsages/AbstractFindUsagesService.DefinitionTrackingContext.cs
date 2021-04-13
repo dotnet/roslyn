@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -21,30 +27,32 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private class DefinitionTrackingContext : IFindUsagesContext
         {
             private readonly IFindUsagesContext _underlyingContext;
-            private readonly object _gate = new object();
-            private readonly List<DefinitionItem> _definitions = new List<DefinitionItem>();
+            private readonly object _gate = new();
+            private readonly List<DefinitionItem> _definitions = new();
 
             public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
-            {
-                _underlyingContext = underlyingContext;
-            }
+                => _underlyingContext = underlyingContext;
 
             public CancellationToken CancellationToken
                 => _underlyingContext.CancellationToken;
 
-            public Task ReportMessageAsync(string message)
+            public IStreamingProgressTracker ProgressTracker
+                => _underlyingContext.ProgressTracker;
+
+            public ValueTask ReportMessageAsync(string message)
                 => _underlyingContext.ReportMessageAsync(message);
 
-            public Task SetSearchTitleAsync(string title)
+            public ValueTask SetSearchTitleAsync(string title)
                 => _underlyingContext.SetSearchTitleAsync(title);
 
-            public Task OnReferenceFoundAsync(SourceReferenceItem reference)
+            public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
                 => _underlyingContext.OnReferenceFoundAsync(reference);
 
-            public Task ReportProgressAsync(int current, int maximum)
+            [Obsolete("Use ProgressTracker instead", error: false)]
+            public ValueTask ReportProgressAsync(int current, int maximum)
                 => _underlyingContext.ReportProgressAsync(current, maximum);
 
-            public Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (_gate)
                 {

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -10,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class LocalRewriter
+    Partial Friend Class LocalRewriter
 
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
 
@@ -95,11 +97,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim binder = node.Binder
 
             Dim lookup = LookupResult.GetInstance()
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
 
-            binder.LookupMember(lookup, factoryType, factoryMethodName, 0, LookupOptions.MustNotBeInstance Or LookupOptions.MethodsOnly Or LookupOptions.AllMethodsOfAnyArity, useSiteDiagnostics)
+            binder.LookupMember(lookup, factoryType, factoryMethodName, 0, LookupOptions.MustNotBeInstance Or LookupOptions.MethodsOnly Or LookupOptions.AllMethodsOfAnyArity, useSiteInfo)
 
-            _diagnostics.Add(node, useSiteDiagnostics)
+            _diagnostics.Add(node, useSiteInfo)
 
             If lookup.Kind = LookupResultKind.Inaccessible Then
                 hasErrors = True

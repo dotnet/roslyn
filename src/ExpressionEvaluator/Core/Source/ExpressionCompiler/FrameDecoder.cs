@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -22,10 +25,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// </remarks>
     internal abstract class FrameDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> : IDkmLanguageFrameDecoder
         where TCompilation : Compilation
-        where TMethodSymbol : class, IMethodSymbol
-        where TModuleSymbol : class, IModuleSymbol
-        where TTypeSymbol : class, ITypeSymbol
-        where TTypeParameterSymbol : class, ITypeParameterSymbol
+        where TMethodSymbol : class, IMethodSymbolInternal
+        where TModuleSymbol : class, IModuleSymbolInternal
+        where TTypeSymbol : class, ITypeSymbolInternal
+        where TTypeParameterSymbol : class, ITypeParameterSymbolInternal
     {
         private readonly InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol> _instructionDecoder;
 
@@ -46,8 +49,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Debug.Assert((argumentFlags & (DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Values)) == argumentFlags,
                     $"Unexpected argumentFlags '{argumentFlags}'");
 
-                GetNameWithGenericTypeArguments(inspectionContext, workList, frame,
-                    onSuccess: method => GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine, method),
+                GetNameWithGenericTypeArguments(workList, frame, onSuccess: method => GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine, method),
                     onFailure: e => completionRoutine(DkmGetFrameNameAsyncResult.CreateErrorResult(e)));
             }
             catch (NotImplementedMetadataException)
@@ -68,8 +70,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
-                GetNameWithGenericTypeArguments(inspectionContext, workList, frame,
-                    onSuccess: method => completionRoutine(new DkmGetFrameReturnTypeAsyncResult(_instructionDecoder.GetReturnTypeName(method))),
+                GetNameWithGenericTypeArguments(workList, frame, onSuccess: method => completionRoutine(new DkmGetFrameReturnTypeAsyncResult(_instructionDecoder.GetReturnTypeName(method))),
                     onFailure: e => completionRoutine(DkmGetFrameReturnTypeAsyncResult.CreateErrorResult(e)));
             }
             catch (NotImplementedMetadataException)
@@ -83,7 +84,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private void GetNameWithGenericTypeArguments(
-            DkmInspectionContext inspectionContext,
             DkmWorkList workList,
             DkmStackWalkFrame frame,
             Action<TMethodSymbol> onSuccess,
@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var argumentValues = (result.ErrorCode == 0) ? result.Arguments : null;
                         try
                         {
-                            ArrayBuilder<string> builder = null;
+                            ArrayBuilder<string?>? builder = null;
                             if (argumentValues != null)
                             {
-                                builder = ArrayBuilder<string>.GetInstance();
+                                builder = ArrayBuilder<string?>.GetInstance();
                                 foreach (var argument in argumentValues)
                                 {
                                     var formattedArgument = argument as DkmSuccessEvaluationResult;

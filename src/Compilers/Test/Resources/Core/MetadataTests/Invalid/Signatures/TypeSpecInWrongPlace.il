@@ -1,7 +1,7 @@
 //
 // Example #5 -- using (CLASS | VALUETYPE) TypeSpec instead of embedding the type in to the signature.
 //
-// build.bat will change the siganture of User::X to use a TypeSpec for List<int> instead of embedding GENERICINST in the signature.
+// build.bat will change the signature of User::X to use a TypeSpec for List<int> instead of embedding GENERICINST in the signature.
 //
 // * peverify correctly identifies error:
 //    [MD]: Error: Signature has token following ELEMENT_TYPE_CLASS (_VALUETYPE) that is not a TypeDef or TypeRef (token: 0x1b000001; offset: 0x00000005). [token:0x06000002]

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -120,16 +123,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 {
                                     // The user is left shifting ones, stick with that pattern
                                     var shiftValue = IntegerUtilities.LogBase2(value);
+
+                                    // Re-use the numericLiteral text so type suffixes match too
                                     return SyntaxFactory.BinaryExpression(
                                         SyntaxKind.LeftShiftExpression,
-                                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal("1", 1)),
+                                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(numericLiteral.Token.Text, 1)),
                                         SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(shiftValue.ToString(), shiftValue)));
                                 }
                             }
                         }
-                        else if (lastExpression.Kind() == SyntaxKind.NumericLiteralExpression)
+                        else if (lastExpression.IsKind(SyntaxKind.NumericLiteralExpression, out LiteralExpressionSyntax numericLiteral))
                         {
-                            var numericLiteral = (LiteralExpressionSyntax)lastExpression;
                             var numericToken = numericLiteral.Token;
                             var numericText = numericToken.ToString();
 

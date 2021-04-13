@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -60,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)
             _previousGeneration = previousGeneration
-            _changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+            _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
             ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -129,12 +131,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousTypeKey(type)
-                    Dim value = New AnonymousTypeValue(name, index, type)
+                    Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
                     result.Add(key, value)
                 ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
-                    Dim value = New AnonymousTypeValue(name, index, type)
+                    Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
                     result.Add(key, value)
                 End If
             Next
@@ -226,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
-        Friend Overrides Function TryGetAnonymousTypeName(template As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
+        Friend Overrides Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
@@ -255,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim embeddedTypesManager = Me.EmbeddedTypesManagerOpt
             If embeddedTypesManager IsNot Nothing Then
                 For Each embeddedType In embeddedTypesManager.EmbeddedTypesMap.Keys
-                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_EncNoPIAReference, embeddedType), Location.None)
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_EncNoPIAReference, embeddedType.AdaptedNamedTypeSymbol), Location.None)
                 Next
             End If
         End Sub

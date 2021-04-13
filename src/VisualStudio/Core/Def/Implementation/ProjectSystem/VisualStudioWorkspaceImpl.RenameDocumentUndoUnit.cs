@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -36,14 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public void GetDescription(out string pBstr)
-            {
-                pBstr = string.Format(ServicesVSResources.Rename_0_to_1, _fromName, _toName);
-            }
+                => pBstr = string.Format(ServicesVSResources.Rename_0_to_1, _fromName, _toName);
 
             public void GetUnitType(out Guid pClsid, out int plID)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public void OnNextAdd()
             {

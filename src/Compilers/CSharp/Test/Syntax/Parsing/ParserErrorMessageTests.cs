@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -48,9 +52,18 @@ class Test : Itest
                 // (9,20): error CS8124: Tuple must contain at least two elements.
                 //    event D ITest.E()   // CS0071
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 20),
-                // (10,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (10,4): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(10, 4),
+                // (12,4): error CS8803: Top-level statements must precede namespace and type declarations.
+                //    public static int Main()
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"public static int Main()
+   {
+       return 1;
+   }").WithLocation(12, 4),
+                // (12,4): error CS0106: The modifier 'public' is not valid for this item
+                //    public static int Main()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(12, 4),
                 // (16,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(16, 1)
@@ -177,21 +190,9 @@ public class C
 }";
             // Extra errors
             ParseAndValidate(test,
-                // (1,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(1, 1),
-                // (3,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(3, 5),
-                // (2,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,8): error CS1002: ; expected
                 //     get
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "get").WithLocation(2, 5),
-                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 8)
                 );
         }
 
@@ -608,7 +609,7 @@ public class Test
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial public class C  // CS0267
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
@@ -621,10 +622,10 @@ partial enum E { }
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
         }
@@ -637,8 +638,8 @@ partial delegate E { }
 ";
 
             // Extra errors
-            CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,20): error CS1001: Identifier expected
@@ -653,13 +654,10 @@ partial delegate E { }
                 // (2,20): error CS1002: ; expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
-                // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
+                // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 20),
-                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
-                // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 22),
-                // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
+                // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
                 // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
@@ -676,10 +674,10 @@ partial delegate void E();
 
             // Extra errors
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate void E();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
-                // (2,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate void E();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
         }
@@ -872,7 +870,7 @@ class MyClass
         }
 
         [Fact]
-        public void CS0449ERR_RefValBoundMustBeFirst()
+        public void CS0449ERR_TypeConstraintsMustBeUniqueAndFirst()
         {
             var test = @"
 interface I {}
@@ -888,12 +886,15 @@ class C4
 }
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,41): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "struct").WithLocation(5, 41),
-                // (6,37): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "struct").WithLocation(6, 37),
-                // (7,37): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
-                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "class").WithLocation(7, 37));
+                // (5,41): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //    public void F1<T>() where T : class, struct, I {}   // CS0449
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(5, 41),
+                // (6,37): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //    public void F2<T>() where T : I, struct {}   // CS0449
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(6, 37),
+                // (7,37): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //    public void F3<T>() where T : I, class {}   // CS0449
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(7, 37));
         }
 
         [Fact]
@@ -2440,15 +2441,20 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
         {
             var test = @" > Roslyn.Utilities.dll!  Basic";
 
-            CreateCompilation(test).VerifyDiagnostics(
-                // (1,2): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, ">").WithLocation(1, 2),
-                // (1,21): error CS0116: A namespace does not directly contain members such as fields or methods
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "dll").WithLocation(1, 21),
-                // (1,24): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, "!").WithLocation(1, 24),
-                // (1,27): error CS0116: A namespace does not directly contain members such as fields or methods
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27));
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,2): error CS1525: Invalid expression term '>'
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 2),
+                // (1,4): error CS0103: The name 'Roslyn' does not exist in the current context
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Roslyn").WithArguments("Roslyn").WithLocation(1, 4),
+                // (1,27): error CS1002: ; expected
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
+                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
+                );
         }
 
         [Fact]
@@ -2693,19 +2699,13 @@ namespace x
 ";
 
             ParseAndValidate(text, TestOptions.Regular,
-                // (7,21): error CS1031: Type expected
-                //             e = new base;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                // (7,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
                 // (7,21): error CS1002: ; expected
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-                // (8,21): error CS1031: Type expected
-                //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                // (8,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
@@ -2728,19 +2728,10 @@ namespace x
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (7,26): error CS8124: Tuple must contain at least two elements.
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (7,21): error CS8400: Feature 'target-typed object creation' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2760,19 +2751,13 @@ namespace x
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
             ParseAndValidate(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
-                // (7,21): error CS1031: Type expected
-                //             e = new base;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                // (7,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
                 // (7,21): error CS1002: ; expected
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-                // (8,21): error CS1031: Type expected
-                //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                // (8,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
@@ -2795,21 +2780,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
+                // (7,21): error CS8059: Feature 'target-typed object creation' is not available in C# 6. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
-                // (7,26): error CS8124: Tuple must contain at least two elements.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [Fact]
@@ -2827,18 +2800,9 @@ namespace x
 }
 ";
             CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
-                // (7,26): error CS8124: Tuple must contain at least two elements.
+                // (7,21): error CS8107: Feature 'target-typed object creation' is not available in C# 7.0. Please use language version 9.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")"),
-                // (7,27): error CS1526: A new expression requires (), [], or {} after type
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";"),
-                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2"),
-                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             var e = new ();
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "new").WithArguments("target-typed object creation", "9.0").WithLocation(7, 21));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -3917,22 +3881,26 @@ namespace x
             ParseAndValidate(test,
    // (1,15): error CS1514: { expected
    // public class S.D 
-   Diagnostic(ErrorCode.ERR_LbraceExpected, "."),
+   Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(1, 15),
    // (1,15): error CS1513: } expected
    // public class S.D 
-   Diagnostic(ErrorCode.ERR_RbraceExpected, "."),
+   Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(1, 15),
    // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
    // public class S.D 
-   Diagnostic(ErrorCode.ERR_EOFExpected, "."),
-   // (1,16): error CS0116: A namespace does not directly contain members such as fields or methods
+   Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
+   // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
    // public class S.D 
-   Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D"),
-   // (2,1): error CS1022: Type or namespace definition, or end-of-file expected
+   Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
+   // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
    // {
-   Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
+   Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
+").WithLocation(2, 1),
+   // (2,2): error CS1513: } expected
+   // {
+   Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
    // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
    // }
-   Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
+   Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
         }
 
         [WorkItem(535932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535932")]
@@ -4071,19 +4039,19 @@ struct s1
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (4,5): error CS1519: Invalid token 'goto' in class, struct, or interface member declaration
+    // (4,5): error CS1519: Invalid token 'goto' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "goto").WithArguments("goto"),
-    // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
-    // (4,14): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    // (4,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
     //     goto Labl; // Invalid
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";"),
-    // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
+    // (6,9): error CS1519: Invalid token ':' in class, record, struct, or interface member declaration
     //     Lab1:
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":"),
-    // (6,9): error CS1519: Invalid token ':' in class, struct, or interface member declaration
+    // (6,9): error CS1519: Invalid token ':' in class, record, struct, or interface member declaration
     //     Lab1:
     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":"));
         }
@@ -4816,10 +4784,7 @@ unsafe public class Test
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (4,14): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(4, 14),
-                // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
-                //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(4, 14)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(4, 14)
                 );
         }
 
@@ -4839,10 +4804,7 @@ unsafe public class Test
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (6,33): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //         int*[] p = new int*[] { stackalloc int[1] };
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 33),
-                // (6,33): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
-                //         int*[] p = new int*[] { stackalloc int[1] };
-                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 33)
                 );
         }
 
@@ -4859,7 +4821,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15)
@@ -4905,10 +4867,7 @@ public class Test
             CreateCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (6,39): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //         using (System.IDisposable v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 39),
-                // (6,39): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'IDisposable' is not possible.
-                //         using (System.IDisposable v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "System.IDisposable").WithLocation(6, 39)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 39)
              );
         }
 
@@ -5772,7 +5731,7 @@ class TestClass { }";
                                 N(SyntaxKind.IdentifierToken, "One");
                             }
                         }
-                        N(SyntaxKind.CommaToken, ""); // missing
+                        M(SyntaxKind.CommaToken);
                         N(SyntaxKind.Attribute);
                         {
                             N(SyntaxKind.IdentifierName);
@@ -5954,7 +5913,7 @@ class MyClass
                 // (6,15): error CS1513: } expected
                 //         if (b)
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15),
-                // (9,1): error CS1519: Invalid token '' in class, struct, or interface member declaration
+                // (9,1): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
                 // 
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
                 // (8,11): error CS1513: } expected
@@ -5974,15 +5933,11 @@ public class Class1
     int Meth2 (int parm) {[Goo(5)]return 0;}
 }
 ";
-            ParseAndValidate(test,
-                // (4,27): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(4, 27),
-                // (4,35): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(4, 35),
-                // (4,35): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(4, 35),
-                // (5,1): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 1));
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (4,27): error CS7014: Attributes are not valid in this context.
+                //     int Meth2 (int parm) {[Goo(5)]return 0;}
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[Goo(5)]").WithLocation(4, 27)
+            );
         }
 
         // Preprocessor:
@@ -6502,7 +6457,7 @@ class Program
     {
 ");
 
-            const int depth = 10000;
+            const int depth = 100000;
             for (int i = 0; i < depth; i++)
             {
                 var line = string.Format("Action a{0} = delegate d{0} {{", i);

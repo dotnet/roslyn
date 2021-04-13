@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Options;
 
@@ -10,6 +14,12 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// This option can be passed to the <see cref="IDocumentNavigationService"/> APIs to request that a provisional (or preview) tab 
         /// be used for any document that needs to be opened, if one is available.
         /// </summary>
-        public static readonly Option<bool> PreferProvisionalTab = new Option<bool>(nameof(NavigationOptions), nameof(PreferProvisionalTab), defaultValue: false);
+        public static readonly Option2<bool> PreferProvisionalTab = new(nameof(NavigationOptions), nameof(PreferProvisionalTab), defaultValue: false);
+
+        /// <summary>
+        /// This option can be passed to the <see cref="IDocumentNavigationService"/> APIs to request that the navigation should activate the tab.
+        /// The default for the platform is to activate the tab, so turning the option off tells the platform to not activate the tab.
+        /// </summary>
+        public static readonly Option2<bool> ActivateTab = new(nameof(NavigationOptions), nameof(ActivateTab), defaultValue: true);
     }
 }

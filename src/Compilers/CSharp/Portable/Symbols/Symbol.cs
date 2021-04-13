@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -23,8 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, ISymbolInternal, IFormattable
+    internal abstract partial class Symbol : ISymbolInternal, IFormattable
     {
+        private ISymbol _lazyISymbol;
+
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
         // Do not make any changes to the public interface without making the corresponding change
@@ -195,6 +201,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         Compilation ISymbolInternal.DeclaringCompilation
             => DeclaringCompilation;
 
+        string ISymbolInternal.Name => this.Name;
+
+        string ISymbolInternal.MetadataName => this.MetadataName;
+
+        ISymbolInternal ISymbolInternal.ContainingSymbol => this.ContainingSymbol;
+
+        IModuleSymbolInternal ISymbolInternal.ContainingModule => this.ContainingModule;
+
+        IAssemblySymbolInternal ISymbolInternal.ContainingAssembly => this.ContainingAssembly;
+
+        ImmutableArray<Location> ISymbolInternal.Locations => this.Locations;
+
+        INamespaceSymbolInternal ISymbolInternal.ContainingNamespace => this.ContainingNamespace;
+
+        bool ISymbolInternal.IsImplicitlyDeclared => this.IsImplicitlyDeclared;
+
+        INamedTypeSymbolInternal ISymbolInternal.ContainingType
+        {
+            get
+            {
+                return this.ContainingType;
+            }
+        }
+
+        ISymbol ISymbolInternal.GetISymbol() => this.ISymbol;
+
         /// <summary>
         /// Returns the module containing this symbol. If this symbol is shared across multiple
         /// modules, or doesn't belong to a module, returns null.
@@ -318,18 +350,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (Location location in locations)
             {
                 // Location may be null. See https://github.com/dotnet/roslyn/issues/28862.
-                if (location == null)
+                if (location == null || !location.IsInSource)
                 {
                     continue;
                 }
-                if (location.IsInSource)
+
+                if (location.SourceSpan.Length != 0)
                 {
-                    SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
+                    SyntaxToken token = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
                     if (token.Kind() != SyntaxKind.None)
                     {
                         CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
                         if (node != null)
+                        {
                             builder.Add(node.GetReference());
+                        }
+                    }
+                }
+                else
+                {
+                    // Since the location we're interested in can't contain a token, we'll inspect the whole tree,
+                    // pruning away branches that don't contain that location. We'll pick the narrowest node of the type
+                    // we're looking for.
+                    // eg: finding the ParameterSyntax from the empty location of a blank identifier
+                    SyntaxNode parent = location.SourceTree.GetRoot();
+                    SyntaxNode found = null;
+                    foreach (var descendant in parent.DescendantNodesAndSelf(c => c.Location.SourceSpan.Contains(location.SourceSpan)))
+                    {
+                        if (descendant is TNode && descendant.Location.SourceSpan.Contains(location.SourceSpan))
+                        {
+                            found = descendant;
+                        }
+                    }
+
+                    if (found is object)
+                    {
+                        builder.Add(found.GetReference());
                     }
                 }
             }
@@ -482,6 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.ArrayType:
                     case SymbolKind.PointerType:
+                    case SymbolKind.FunctionPointerType:
                     case SymbolKind.Assembly:
                     case SymbolKind.DynamicType:
                     case SymbolKind.NetModule:
@@ -537,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform additional checks after the member has been
         /// added to the member list of the containing type.
         /// </summary>
-        internal virtual void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal virtual void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
         }
 
@@ -598,17 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        bool IEquatable<ISymbol>.Equals(ISymbol other)
-        {
-            return this.Equals(other as Symbol, SymbolEqualityComparer.Default.CompareKind);
-        }
-
-        bool ISymbol.Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
-        {
-            return equalityComparer.Equals(this, other);
-        }
-
-        bool ISymbolInternal.Equals(ISymbol other, TypeCompareKind compareKind)
+        bool ISymbolInternal.Equals(ISymbolInternal other, TypeCompareKind compareKind)
         {
             return this.Equals(other as Symbol, compareKind);
         }
@@ -795,21 +842,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
-            SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+            SymbolDisplayFormat.TestFormat
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+                    | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         internal virtual string GetDebuggerDisplay()
         {
             return $"{this.Kind} {this.ToDisplayString(s_debuggerDisplayFormat)}";
         }
 
-        internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+        internal virtual void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
         {
-            if (!diagnostics.IsEmptyWithoutResolution)
+#if DEBUG
+            if (ContainingSymbol is SourceMemberContainerTypeSymbol container)
+            {
+                container.AssertMemberExposure(this, forDiagnostics: true);
+            }
+#endif
+            if (diagnostics.DiagnosticBag?.IsEmptyWithoutResolution == false || diagnostics.DependenciesBag?.Count > 0)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
                 Debug.Assert(compilation != null);
-                compilation.DeclarationDiagnostics.AddRange(diagnostics);
+
+                compilation.AddUsedAssemblies(diagnostics.DependenciesBag);
+
+                if (diagnostics.DiagnosticBag?.IsEmptyWithoutResolution == false)
+                {
+                    compilation.DeclarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
+                }
             }
         }
 
@@ -822,17 +883,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var diagnostic = GetUseSiteDiagnostic();
-                return diagnostic != null && diagnostic.Severity == DiagnosticSeverity.Error;
+                var info = GetUseSiteInfo();
+                return info.DiagnosticInfo?.Severity == DiagnosticSeverity.Error;
             }
         }
 
         /// <summary>
         /// Returns diagnostic info that should be reported at the use site of the symbol, or null if there is none.
         /// </summary>
-        internal virtual DiagnosticInfo GetUseSiteDiagnostic()
+        internal virtual UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return null;
+            return default;
+        }
+
+        protected AssemblySymbol PrimaryDependency
+        {
+            get
+            {
+                AssemblySymbol dependency = this.ContainingAssembly;
+                if (dependency is object && dependency.CorLibrary == dependency)
+                {
+                    return null;
+                }
+
+                return dependency;
+            }
         }
 
         /// <summary>
@@ -874,17 +949,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
-        {
-            var info = this.GetUseSiteDiagnostic();
-            if (info != null && info.Severity == DiagnosticSeverity.Error)
-            {
-                return info;
-            }
-
-            return this.ContainingType.GetUseSiteDiagnostic() ?? info;
-        }
-
         /// <summary>
         /// Merges given diagnostic to the existing result diagnostic.
         /// </summary>
@@ -914,6 +978,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Merges given diagnostic and dependencies to the existing result.
+        /// </summary>
+        internal bool MergeUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result, UseSiteInfo<AssemblySymbol> info)
+        {
+            DiagnosticInfo diagnosticInfo = result.DiagnosticInfo;
+
+            bool retVal = MergeUseSiteDiagnostics(ref diagnosticInfo, info.DiagnosticInfo);
+
+            if (diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                result = new UseSiteInfo<AssemblySymbol>(diagnosticInfo);
+                return retVal;
+            }
+
+            var secondaryDependencies = result.SecondaryDependencies;
+            var primaryDependency = result.PrimaryDependency;
+
+            info.MergeDependencies(ref primaryDependency, ref secondaryDependencies);
+
+            result = new UseSiteInfo<AssemblySymbol>(diagnosticInfo, primaryDependency, secondaryDependencies);
+            Debug.Assert(!retVal);
+            return retVal;
+        }
+
+        /// <summary>
         /// Reports specified use-site diagnostic to given diagnostic bag. 
         /// </summary>
         /// <remarks>
@@ -938,48 +1027,65 @@ namespace Microsoft.CodeAnalysis.CSharp
             return info.Severity == DiagnosticSeverity.Error;
         }
 
-        /// <summary>
-        /// Derive error info from a type symbol.
-        /// </summary>
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbol type)
+        internal static bool ReportUseSiteDiagnostic(DiagnosticInfo info, BindingDiagnosticBag diagnostics, Location location)
         {
-            DiagnosticInfo info = type.GetUseSiteDiagnostic();
-            if (info != null)
+            return diagnostics.ReportUseSiteDiagnostic(info, location);
+        }
+
+        /// <summary>
+        /// Derive use-site info from a type symbol.
+        /// </summary>
+        internal bool DeriveUseSiteInfoFromType(ref UseSiteInfo<AssemblySymbol> result, TypeSymbol type)
+        {
+            UseSiteInfo<AssemblySymbol> info = type.GetUseSiteInfo();
+            if (info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType)
             {
-                if (info.Code == (int)ErrorCode.ERR_BogusType)
-                {
-                    switch (this.Kind)
-                    {
-                        case SymbolKind.Field:
-                        case SymbolKind.Method:
-                        case SymbolKind.Property:
-                        case SymbolKind.Event:
-                            info = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
-                            break;
-                    }
-                }
+                GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(ref info);
             }
 
-            return MergeUseSiteDiagnostics(ref result, info);
+            return MergeUseSiteInfo(ref result, info);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type)
+        private void GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(ref UseSiteInfo<AssemblySymbol> info)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
+            switch (this.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                    info = info.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                    break;
+            }
         }
 
-        internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
+        private UseSiteInfo<AssemblySymbol> GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo()
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
+            var useSiteInfo = new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty));
+            GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(ref useSiteInfo);
+            return useSiteInfo;
         }
 
-        internal bool DeriveUseSiteDiagnosticFromParameters(ref DiagnosticInfo result, ImmutableArray<ParameterSymbol> parameters)
+        internal bool DeriveUseSiteInfoFromType(ref UseSiteInfo<AssemblySymbol> result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
+        {
+            return DeriveUseSiteInfoFromType(ref result, type.Type) ||
+                   DeriveUseSiteInfoFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
+        }
+
+        internal bool DeriveUseSiteInfoFromParameter(ref UseSiteInfo<AssemblySymbol> result, ParameterSymbol param)
+        {
+            return DeriveUseSiteInfoFromType(ref result, param.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
+                   DeriveUseSiteInfoFromCustomModifiers(ref result, param.RefCustomModifiers,
+                                                              this is MethodSymbol method && method.MethodKind == MethodKind.FunctionPointerSignature ?
+                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute | AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute :
+                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute);
+        }
+
+        internal bool DeriveUseSiteInfoFromParameters(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<ParameterSymbol> parameters)
         {
             foreach (ParameterSymbol param in parameters)
             {
-                if (DeriveUseSiteDiagnosticFromParameter(ref result, param))
+                if (DeriveUseSiteInfoFromParameter(ref result, param))
                 {
                     return true;
                 }
@@ -988,11 +1094,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool DeriveUseSiteDiagnosticFromCustomModifiers(ref DiagnosticInfo result, ImmutableArray<CustomModifier> customModifiers)
+
+        [Flags]
+        internal enum AllowedRequiredModifierType
         {
+            None = 0,
+            System_Runtime_CompilerServices_Volatile = 1,
+            System_Runtime_InteropServices_InAttribute = 1 << 1,
+            System_Runtime_CompilerServices_IsExternalInit = 1 << 2,
+            System_Runtime_CompilerServices_OutAttribute = 1 << 3,
+        }
+
+        internal bool DeriveUseSiteInfoFromCustomModifiers(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<CustomModifier> customModifiers, AllowedRequiredModifierType allowedRequiredModifierType)
+        {
+            AllowedRequiredModifierType requiredModifiersFound = AllowedRequiredModifierType.None;
+            bool checkRequiredModifiers = true;
+
             foreach (CustomModifier modifier in customModifiers)
             {
-                var modifierType = (NamedTypeSymbol)modifier.Modifier;
+                NamedTypeSymbol modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
+
+                if (checkRequiredModifiers && !modifier.IsOptional)
+                {
+                    AllowedRequiredModifierType current = AllowedRequiredModifierType.None;
+
+                    if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) != 0 &&
+                        modifierType.IsWellKnownTypeInAttribute())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile) != 0 &&
+                        modifierType.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile)
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0 &&
+                        modifierType.IsWellKnownTypeIsExternalInit())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
+                    }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute) != 0 &&
+                        modifierType.IsWellKnownTypeOutAttribute())
+                    {
+                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+                    }
+
+                    if (current == AllowedRequiredModifierType.None ||
+                        (current != requiredModifiersFound && requiredModifiersFound != AllowedRequiredModifierType.None)) // At the moment we don't support applying different allowed modreqs to the same target.
+                    {
+                        if (MergeUseSiteInfo(ref result, GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo()))
+                        {
+                            return true;
+                        }
+
+                        checkRequiredModifiers = false;
+                    }
+
+                    requiredModifiersFound |= current;
+                }
 
                 // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
                 if (modifierType.IsUnboundGenericType)
@@ -1000,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     modifierType = modifierType.OriginalDefinition;
                 }
 
-                if (DeriveUseSiteDiagnosticFromType(ref result, modifierType))
+                if (DeriveUseSiteInfoFromType(ref result, modifierType))
                 {
                     return true;
                 }
@@ -1039,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var modifier in modifiers)
             {
-                if (((TypeSymbol)modifier.Modifier).GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
+                if (((CSharpCustomModifier)modifier).ModifierSymbol.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
                 {
                     return true;
                 }
@@ -1107,7 +1266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         /// <summary>
         /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
         /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
@@ -1138,12 +1296,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToDisplayString(this, format);
+            return SymbolDisplay.ToDisplayString(ISymbol, format);
         }
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToDisplayParts(this, format);
+            return SymbolDisplay.ToDisplayParts(ISymbol, format);
         }
 
         public string ToMinimalDisplayString(
@@ -1151,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToMinimalDisplayString(this, semanticModel, position, format);
+            return SymbolDisplay.ToMinimalDisplayString(ISymbol, semanticModel, position, format);
         }
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
@@ -1159,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat format = null)
         {
-            return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
+            return SymbolDisplay.ToMinimalDisplayParts(ISymbol, semanticModel, position, format);
         }
 
         internal static void ReportErrorIfHasConstraints(
@@ -1177,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode block,
             CSharpSyntaxNode expression,
             CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if (block != null && expression != null)
             {
@@ -1185,10 +1343,89 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportExplicitUseOfNullabilityAttribute(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, AttributeDescription attributeDescription)
+        [Flags]
+        internal enum ReservedAttributes
         {
-            // Attribute should not be set explicitly.
-            arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
+            DynamicAttribute = 1 << 1,
+            IsReadOnlyAttribute = 1 << 2,
+            IsUnmanagedAttribute = 1 << 3,
+            IsByRefLikeAttribute = 1 << 4,
+            TupleElementNamesAttribute = 1 << 5,
+            NullableAttribute = 1 << 6,
+            NullableContextAttribute = 1 << 7,
+            NullablePublicOnlyAttribute = 1 << 8,
+            NativeIntegerAttribute = 1 << 9,
+            CaseSensitiveExtensionAttribute = 1 << 10,
+        }
+
+        internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
+        {
+            var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+
+            if ((reserved & ReservedAttributes.DynamicAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+            {
+                // DynamicAttribute should not be set explicitly.
+                diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.IsReadOnlyAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsReadOnlyAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.IsUnmanagedAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsUnmanagedAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.IsByRefLikeAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsByRefLikeAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.TupleElementNamesAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.NullableAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.NullableContextAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NullableContextAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.NullablePublicOnlyAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NullablePublicOnlyAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.NativeIntegerAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.NativeIntegerAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.CaseSensitiveExtensionAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
+            {
+                // ExtensionAttribute should not be set explicitly.
+                diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+            }
+            else
+            {
+                return false;
+            }
+            return true;
+
+            bool reportExplicitUseOfReservedAttribute(CSharpAttributeData attribute, in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, in AttributeDescription attributeDescription)
+            {
+                if (attribute.IsTargetAttribute(this, attributeDescription))
+                {
+                    // Do not use '{FullName}'. This is reserved for compiler usage.
+                    diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
+                    return true;
+                }
+                return false;
+            }
         }
 
         internal virtual byte? GetNullableContextValue()
@@ -1218,9 +1455,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case SymbolKind.Field:
-                    if (compilation.ShouldEmitNullableAttributes(this))
+                    var field = (FieldSymbol)this;
+                    if (field is TupleElementFieldSymbol tupleElement)
                     {
-                        builder.AddValue(((FieldSymbol)this).TypeWithAnnotations);
+                        field = tupleElement.TupleUnderlyingField;
+                    }
+
+                    if (compilation.ShouldEmitNullableAttributes(field))
+                    {
+                        builder.AddValue(field.TypeWithAnnotations);
                     }
                     break;
                 case SymbolKind.Method:
@@ -1327,110 +1570,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        #region ISymbol Members
-
-        public string Language
-        {
-            get
-            {
-                return LanguageNames.CSharp;
-            }
-        }
-
-        string ISymbol.Name
-        {
-            get { return this.Name; }
-        }
-
-        string ISymbol.ToDisplayString(SymbolDisplayFormat format)
-        {
-            return SymbolDisplay.ToDisplayString(this, format);
-        }
-
-        ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat format)
-        {
-            return SymbolDisplay.ToDisplayParts(this, format);
-        }
-
-        string ISymbol.ToMinimalDisplayString(
-            SemanticModel semanticModel,
-            int position,
-            SymbolDisplayFormat format)
-        {
-            var csharpModel = semanticModel as CSharpSemanticModel;
-            if (csharpModel == null)
-            {
-                throw new ArgumentException(CSharpResources.WrongSemanticModelType, this.Language);
-            }
-
-            return SymbolDisplay.ToMinimalDisplayString(this, csharpModel, position, format);
-        }
-
-        ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(
-            SemanticModel semanticModel,
-            int position,
-            SymbolDisplayFormat format)
-        {
-            var csharpModel = semanticModel as CSharpSemanticModel;
-            if (csharpModel == null)
-            {
-                throw new ArgumentException(CSharpResources.WrongSemanticModelType, this.Language);
-            }
-
-            return SymbolDisplay.ToMinimalDisplayParts(this, csharpModel, position, format);
-        }
-
-        bool ISymbol.IsImplicitlyDeclared
-        {
-            get { return this.IsImplicitlyDeclared; }
-        }
-
-        ISymbol ISymbol.ContainingSymbol
-        {
-            get { return this.ContainingSymbol; }
-        }
-
-        IAssemblySymbol ISymbol.ContainingAssembly
-        {
-            get { return this.ContainingAssembly; }
-        }
-
-        IModuleSymbol ISymbol.ContainingModule
-        {
-            get { return this.ContainingModule; }
-        }
-
-        INamedTypeSymbol ISymbol.ContainingType
-        {
-            get { return this.ContainingType; }
-        }
-
-        INamespaceSymbol ISymbol.ContainingNamespace
-        {
-            get { return this.ContainingNamespace; }
-        }
-
-        bool ISymbol.IsDefinition
-        {
-            get { return this.IsDefinition; }
-        }
-
-        bool ISymbol.IsStatic
+        bool ISymbolInternal.IsStatic
         {
             get { return this.IsStatic; }
         }
 
-        bool ISymbol.IsVirtual
+        bool ISymbolInternal.IsVirtual
         {
             get { return this.IsVirtual; }
         }
 
-        bool ISymbol.IsOverride
+        bool ISymbolInternal.IsOverride
         {
             get { return this.IsOverride; }
         }
 
-        bool ISymbol.IsAbstract
+        bool ISymbolInternal.IsAbstract
         {
             get
             {
@@ -1438,36 +1593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool ISymbol.IsSealed
-        {
-            get
-            {
-                return this.IsSealed;
-            }
-        }
-
-        ImmutableArray<Location> ISymbol.Locations
-        {
-            get
-            {
-                return this.Locations;
-            }
-        }
-
-        ImmutableArray<SyntaxReference> ISymbol.DeclaringSyntaxReferences
-        {
-            get
-            {
-                return this.DeclaringSyntaxReferences;
-            }
-        }
-
-        ImmutableArray<AttributeData> ISymbol.GetAttributes()
-        {
-            return StaticCast<AttributeData>.From(this.GetAttributes());
-        }
-
-        Accessibility ISymbol.DeclaredAccessibility
+        Accessibility ISymbolInternal.DeclaredAccessibility
         {
             get
             {
@@ -1475,62 +1601,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ISymbol ISymbol.OriginalDefinition
-        {
-            get
-            {
-                return this.OriginalDefinition;
-            }
-        }
-
-        public abstract void Accept(SymbolVisitor visitor);
-
-        public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
-
         public abstract void Accept(CSharpSymbolVisitor visitor);
 
         public abstract TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor);
 
-        #endregion
-
-        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ITypeSymbol[] typeArguments)
-        {
-            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArguments.Length);
-            foreach (var typeArg in typeArguments)
-            {
-                var type = typeArg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
-                builder.Add(TypeWithAnnotations.Create(type));
-            }
-            return builder.ToImmutableAndFree();
-        }
-
-        protected static ImmutableArray<TypeWithAnnotations> ConstructTypeArguments(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
-        {
-            if (typeArguments.IsDefault)
-            {
-                throw new ArgumentException(nameof(typeArguments));
-            }
-
-            int n = typeArguments.Length;
-            if (!typeArgumentNullableAnnotations.IsDefault && typeArgumentNullableAnnotations.Length != n)
-            {
-                throw new ArgumentException(nameof(typeArgumentNullableAnnotations));
-            }
-
-            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
-            for (int i = 0; i < n; i++)
-            {
-                var type = typeArguments[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(typeArguments));
-                var annotation = typeArgumentNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : typeArgumentNullableAnnotations[i].ToInternalAnnotation();
-                builder.Add(TypeWithAnnotations.Create(type, annotation));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {
             return ToString();
+        }
+
+        protected abstract ISymbol CreateISymbol();
+
+        internal ISymbol ISymbol
+        {
+            get
+            {
+                if (_lazyISymbol is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyISymbol, CreateISymbol(), null);
+                }
+
+                return _lazyISymbol;
+            }
         }
     }
 }

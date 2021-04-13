@@ -1,26 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Module SpecialTypeExtensions
-        <Extension>
-        Public Function IsIntegralType(this As SpecialType) As Boolean
-            Select Case this
-                Case SpecialType.System_Byte,
-                     SpecialType.System_SByte,
-                     SpecialType.System_Int16,
-                     SpecialType.System_UInt16,
-                     SpecialType.System_Int32,
-                     SpecialType.System_UInt32,
-                     SpecialType.System_Int64,
-                     SpecialType.System_UInt64
-                    Return True
-                Case Else
-                    Return False
-            End Select
-        End Function
-
         <Extension>
         Public Function IsFloatingType(this As SpecialType) As Boolean
             Select Case this
