@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// Context passed to the callback provided as part of <see cref="ValueSourceExtensions.GenerateSource{T}(IncrementalValueSource{T}, Action{SourceProductionContext, T})"/>
+    /// Context passed to the callback provided as part of producing sources
     /// </summary>
     public readonly struct SourceProductionContext
     {
