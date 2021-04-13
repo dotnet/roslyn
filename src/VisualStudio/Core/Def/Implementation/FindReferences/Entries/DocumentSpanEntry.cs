@@ -127,8 +127,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // collapse things down to only show a single entry for each unique file/span pair.
                 var winningEntry = definitionBucket.GetOrAddEntry(documentSpan, entry);
 
-                // If we were the one that successfully added this entry to the bucket, then pass out to
-                // be put in the ui.
+                // If we were the one that successfully added this entry to the bucket, then pass us
+                // back out to be put in the ui.
                 if (winningEntry == entry)
                     return entry;
 
