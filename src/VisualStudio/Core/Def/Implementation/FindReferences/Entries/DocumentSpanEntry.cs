@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly ImmutableDictionary<string, string> _customColumnsData;
 
             private readonly string _rawProjectName;
-            private readonly List<string> _flavors = new();
+            private readonly List<string> _projectFlavors = new();
 
             private string? _cachedProjectName;
 
@@ -75,13 +75,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected override string GetProjectName()
             {
-                lock (_flavors)
+                // Check if we have any flavors.  If we have at least 2, combine with the project name
+                // so the user can know htat in the UI.
+                lock (_projectFlavors)
                 {
                     if (_cachedProjectName == null)
                     {
-                        _cachedProjectName = _flavors.Count < 2
+                        _cachedProjectName = _projectFlavors.Count < 2
                             ? _rawProjectName
-                            : $"{_rawProjectName} ({string.Join(", ", _flavors)})";
+                            : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
                     }
 
                     return _cachedProjectName;
@@ -93,12 +95,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 if (projectFlavor == null)
                     return;
 
-                lock (_flavors)
+                lock (_projectFlavors)
                 {
-                    if (_flavors.Contains(projectFlavor))
+                    if (_projectFlavors.Contains(projectFlavor))
                         return;
 
-                    _flavors.Add(projectFlavor);
+                    _projectFlavors.Add(projectFlavor);
                     _cachedProjectName = null;
                 }
             }
