@@ -3983,25 +3983,53 @@ class Program
 @"using System;
 class Program
 {
-    static void Report(Delegate d)
+    static void Report(Action a)
     {
-        foreach (var attribute in d.Method.GetCustomAttributes(inherit: false))
+        foreach (var attribute in a.Method.GetCustomAttributes(inherit: false))
             Console.Write(attribute);
     }
     static void Main()
     {
-        Report((Action)([Obsolete] () => { }));
+        Report([Obsolete] () => { });
     }
 }";
-
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "System.ObsoleteAttribute");
+
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var expr = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
             var symbol = model.GetSymbolInfo(expr).Symbol;
             Assert.Equal("System.ObsoleteAttribute", symbol.GetAttributes().Single().ToString());
+        }
 
-            CompileAndVerify(comp, expectedOutput: "System.ObsoleteAttribute");
+        [Fact]
+        public void LambdaParameterAttributes_Conditional()
+        {
+            var source =
+@"using System;
+using System.Diagnostics;
+class Program
+{
+    static void Report(Action a)
+    {
+    }
+    static void Main()
+    {
+        Report([Conditional(""DEBUG"")] static () => { });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (10,17): error CS0577: The Conditional attribute is not valid on 'lambda expression' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
+                //         Report([Conditional("DEBUG")] static () => { });
+                Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional(""DEBUG"")").WithArguments("lambda expression").WithLocation(10, 17));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => GetLambdaSymbol(model, e)).Single();
+            Assert.Equal(new[] { "DEBUG" }, lambda.GetAppliedConditionalSymbols());
         }
 
         [Fact]

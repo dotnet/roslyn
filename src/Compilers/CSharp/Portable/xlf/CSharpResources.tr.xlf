@@ -5091,8 +5091,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
-        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</source>
-        <target state="translated">Oluşturucu, yıkıcı, işleç veya açık arabirim uygulaması olduğundan Conditional özniteliği '{0}' üzerinde geçerli değil</target>
+        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
+        <target state="needs-review-translation">Oluşturucu, yıkıcı, işleç veya açık arabirim uygulaması olduğundan Conditional özniteliği '{0}' üzerinde geçerli değil</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">

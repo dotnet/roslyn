@@ -5091,8 +5091,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
-        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</source>
-        <target state="translated">Atrybut Conditional jest nieprawidłowy w elemencie „{0}”, ponieważ jest to konstruktor, destruktor, operator lub jawna implementacja interfejsu</target>
+        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
+        <target state="needs-review-translation">Atrybut Conditional jest nieprawidłowy w elemencie „{0}”, ponieważ jest to konstruktor, destruktor, operator lub jawna implementacja interfejsu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">

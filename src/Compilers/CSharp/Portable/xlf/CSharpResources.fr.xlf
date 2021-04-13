@@ -5091,8 +5091,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
-        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</source>
-        <target state="translated">L'attribut Conditional n'est pas valide sur '{0}', car il s'agit d'un constructeur, d'un destructeur, d'un opérateur ou d'une implémentation d'interface explicite</target>
+        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
+        <target state="needs-review-translation">L'attribut Conditional n'est pas valide sur '{0}', car il s'agit d'un constructeur, d'un destructeur, d'un opérateur ou d'une implémentation d'interface explicite</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">

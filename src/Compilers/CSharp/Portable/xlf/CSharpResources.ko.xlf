@@ -5090,8 +5090,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
-        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</source>
-        <target state="translated">'{0}'에는 생성자, 소멸자, 연산자 또는 명시적 인터페이스 구현이기 때문에 Conditional 특성이 유효하지 않습니다.</target>
+        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
+        <target state="needs-review-translation">'{0}'에는 생성자, 소멸자, 연산자 또는 명시적 인터페이스 구현이기 때문에 Conditional 특성이 유효하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">
