@@ -39,10 +39,16 @@ namespace Microsoft.CodeAnalysis.Remote
             => Equals(obj as SerializableSymbolAndProjectId);
 
         public bool Equals(SerializableSymbolAndProjectId other)
-            => (this == other) || this.SymbolKeyData == other?.SymbolKeyData;
+        {
+            if (this == other)
+                return true;
+
+            return this.ProjectId == other.ProjectId &&
+                   this.SymbolKeyData == other?.SymbolKeyData;
+        }
 
         public override int GetHashCode()
-            => this.SymbolKeyData.GetHashCode();
+            => Hash.Combine(this.SymbolKeyData, this.ProjectId.GetHashCode());
 
         public static SerializableSymbolAndProjectId Dehydrate(
             IAliasSymbol alias, Document document, CancellationToken cancellationToken)
