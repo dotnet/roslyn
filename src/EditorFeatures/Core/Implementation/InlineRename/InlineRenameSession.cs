@@ -231,7 +231,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                     Contract.ThrowIfNull(textSnapshot.TextBuffer);
 
-                    openBuffers.Add(textSnapshot.TextBuffer);
+                    // TS creates generated documents to back script blocks in razor generated files.
+                    // These files are opened in the roslyn workspace but are not valid to rename
+                    // as they do not have an undo history.  So we do not include any document that
+                    // we cannot find an undo history for.
+                    var textUndoHistoryService = _workspace.Services.GetService<ITextUndoHistoryWorkspaceService>();
+                    if (textUndoHistoryService.TryGetTextUndoHistory(_workspace, textSnapshot.TextBuffer, out var _))
+                    {
+                        openBuffers.Add(textSnapshot.TextBuffer);
+                    }
                 }
 
                 foreach (var buffer in openBuffers)
