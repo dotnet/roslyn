@@ -961,11 +961,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            Debug.Assert(!IsConditionalState);
-            VisitRvalue(node.Expression);
-
             bool negated = node.Pattern.IsNegated(out var pattern);
             Debug.Assert(negated == node.IsNegated);
+
+            Debug.Assert(!IsConditionalState);
+            if (VisitPossibleConditionalAccess(node.Expression, out var stateWhenNotNull))
+            {
+                switch (GetTopLevelNullTest(pattern))
+                {
+                    case true:
+                        SetConditionalState(stateWhenNotNull, State);
+                        break;
+                    case false:
+                        SetConditionalState(State, stateWhenNotNull);
+                        break;
+                }
+            }
 
             VisitPattern(pattern);
             var reachableLabels = node.DecisionDag.ReachableLabels;
@@ -986,6 +997,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return node;
+        }
+
+        /// <returns>
+        /// <see langword="true"/> if the pattern only matches if the top-level input is not null.
+        /// <see langword="false"/> if the pattern only matches if the top-level input is null.
+        /// Otherwise, <see langword="null"/>.
+        /// </returns>
+        private bool? GetTopLevelNullTest(BoundPattern pattern)
+        {
+            switch (pattern)
+            {
+                case BoundTypePattern:
+                case BoundRecursivePattern:
+                case BoundITuplePattern:
+                case BoundRelationalPattern:
+                case BoundDeclarationPattern { IsVar: false }:
+                case BoundConstantPattern { ConstantValue: { IsNull: false } }:
+                    return true;
+                case BoundConstantPattern { ConstantValue: { IsNull: true } }:
+                    return false;
+                case BoundNegatedPattern negated:
+                    return !GetTopLevelNullTest(negated.Negated);
+                case BoundBinaryPattern binary:
+                    if (binary.Disjunction)
+                    {
+                        // `a?.b(out x) is C or null`
+                        // both subpatterns must have the same null test for the test to propagate out
+                        var leftNullTest = GetTopLevelNullTest(binary.Left);
+                        return leftNullTest == GetTopLevelNullTest(binary.Right)
+                            ? leftNullTest
+                            : null;
+                    }
+
+                    // `a?.b(out x) is C and _`
+                    // if any pattern performs a test, we know that test applies at the top level
+                    // note that if the tests are different, e.g. `null and not null`,
+                    // the pattern is a contradiction, so we expect an error diagnostic
+                    return GetTopLevelNullTest(binary.Left) ?? GetTopLevelNullTest(binary.Right);
+            }
+
+            return null;
         }
 
         public virtual void VisitPattern(BoundPattern pattern)
@@ -2510,7 +2562,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIsOperator(BoundIsOperator node)
         {
-            VisitRvalue(node.Operand);
+            if (VisitPossibleConditionalAccess(node.Operand, out var stateWhenNotNull))
+            {
+                Debug.Assert(!IsConditionalState);
+                SetConditionalState(stateWhenNotNull, State);
+            }
+            else
+            {
+                // `(a && b.M(out x)) is bool` should discard conditional state from LHS
+                // PROTOTYPE(improved-definite-assignment): test this
+                Unsplit();
+            }
             return null;
         }
 
