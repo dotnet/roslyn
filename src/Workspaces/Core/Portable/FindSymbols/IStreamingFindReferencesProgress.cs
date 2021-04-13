@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public SymbolGroup(ISymbol symbol, ImmutableArray<ISymbol> symbols)
         {
             Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty);
+            Contract.ThrowIfFalse(symbols.Contains(symbol));
             Symbol = symbol;
             Symbols = ImmutableHashSet.CreateRange(
                 MetadataUnifyingEquivalenceComparer.Instance, symbols);
