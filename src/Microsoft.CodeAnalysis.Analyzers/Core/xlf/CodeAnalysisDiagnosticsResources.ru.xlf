@@ -259,22 +259,22 @@
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
-        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <target state="translated">При проверке видов синтаксиса предпочтение отдается "syntax.IsKind(kind)" вместо "syntax.Kind() == kind". Код с использованием "IsKind" имеет чуть большее быстродействие во время выполнения, поэтому регулярное применение этого формата где возможно помогает повысить производительность в сложных сценариях анализа.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindFix">
         <source>Use 'IsKind' instead of 'Kind'</source>
-        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <target state="translated">Использование "IsKind" вместо "Kind"</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindMessage">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Предпочтение "IsKind" для проверки видов синтаксиса</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindTitle">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Предпочтение "IsKind" для проверки видов синтаксиса</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
@@ -557,7 +557,7 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">CodeFixProvider должен предоставлять поддержку FixAll, чтобы пользователи могли исправить несколько экземпляров базовых диагностических данных с помощью одного исправления кода. Дополнительные сведения см. в документации по адресу https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md.</target>
+        <target state="translated">CodeFixProvider должен предоставлять поддержку FixAll, чтобы пользователи могли исправить несколько экземпляров базовых диагностических данных с помощью одного исправления кода. Дополнительные сведения см. в документации на странице https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">

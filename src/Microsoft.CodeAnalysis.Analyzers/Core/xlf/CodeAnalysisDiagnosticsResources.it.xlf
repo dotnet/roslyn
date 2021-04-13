@@ -259,22 +259,22 @@
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
-        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <target state="translated">Preferire 'syntax.IsKind(kind)' a 'syntax.Kind() == kind' durante la verifica dei tipi di sintassi. Il codice che usa 'IsKind' è leggermente più efficiente in fase di runtime, di conseguenza l'uso coerente di questo formato dove possibile contribuisce a migliorare le prestazioni in scenari di analisi complessi.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindFix">
         <source>Use 'IsKind' instead of 'Kind'</source>
-        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <target state="translated">Usare 'IsKind' invece di 'Kind'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindMessage">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Preferire 'IsKind' per la verifica dei tipi di sintassi</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindTitle">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Preferire 'IsKind' per la verifica dei tipi di sintassi</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
