@@ -159,14 +159,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     {
                         // Once we can make the new entry, add it to the appropriate list.
                         if (addToEntriesWhenGroupingByDefinition)
-                        {
                             EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
-                        }
 
                         if (addToEntriesWhenNotGroupingByDefinition)
-                        {
                             EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
-                        }
                     }
 
                     CurrentVersionNumber++;
