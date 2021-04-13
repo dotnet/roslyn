@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
@@ -93,6 +91,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
+        public void Node_Table_Compaction_Occurs_Only_Once()
+        {
+            var builder = new NodeStateTable<int>.Builder();
+            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Removed);
+            builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added);
+            var table = builder.ToImmutableAndFree();
+
+            var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added), (4, EntryState.Removed), (5, EntryState.Removed), (6, EntryState.Removed), (7, EntryState.Added), (8, EntryState.Added), (9, EntryState.Added));
+            AssertTableEntries(table, expected);
+
+            var compactedTable = (NodeStateTable<int>)table.Compact();
+            expected = ImmutableArray.Create((1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (7, EntryState.Cached), (8, EntryState.Cached), (9, EntryState.Cached));
+            AssertTableEntries(compactedTable, expected);
+
+            // calling compact a second time just returns the same instance
+            var compactedTable2 = (NodeStateTable<int>)compactedTable.Compact();
+            Assert.Same(compactedTable, compactedTable2);
+        }
+
+        [Fact]
         public void Driver_Table_Calls_Into_Node_With_Self()
         {
             DriverStateTable.Builder? passedIn = null;
@@ -148,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             DriverStateTable.Builder builder2 = new DriverStateTable.Builder(builder.ToImmutable());
             builder2.GetLatestStateTableForNode(callbackNode);
 
+            Debug.Assert(passedIn is object);
             AssertTableEntries(passedIn, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached) });
         }
 
@@ -178,6 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             builder2.GetLatestStateTableForNode(callbackNode);
 
             // table returned from the first instance was compacted by the builder
+            Debug.Assert(passedIn is object);
             AssertTableEntries(passedIn, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (5, EntryState.Cached), (6, EntryState.Cached) });
         }
 

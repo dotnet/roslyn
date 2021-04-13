@@ -55,18 +55,21 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T"></typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, exception: null);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: true, exception: null);
 
         //PROTOTYPE: there is no need to store the state per item
         //           we can instead store one state per input, with
         //           an optional set for modified states.
         readonly ImmutableArray<ImmutableArray<(T item, EntryState state)>> _states;
 
+        private readonly bool _isCompacted;
+
         readonly Exception? _exception;
 
-        private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, Exception? exception)
+        private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted, Exception? exception)
         {
             _states = states;
+            _isCompacted = isCompacted;
             _exception = exception;
         }
 
@@ -79,6 +82,9 @@ namespace Microsoft.CodeAnalysis
 
         public IStateTable Compact()
         {
+            if (_isCompacted)
+                return this;
+
             var compacted = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
             foreach (var entry in _states)
             {
@@ -89,13 +95,13 @@ namespace Microsoft.CodeAnalysis
                     compacted.Add(entry.SelectAsArray(e => (e.item, EntryState.Cached)));
                 }
             }
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), _exception);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true, _exception);
         }
 
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
         {
             Debug.Assert(table.IsFaulted);
-            return new NodeStateTable<T>(Empty._states, table._exception);
+            return new NodeStateTable<T>(Empty._states, isCompacted: true, table._exception);
         }
 
         public class Builder
@@ -121,7 +127,7 @@ namespace Microsoft.CodeAnalysis
                 _exception = e;
             }
 
-            public NodeStateTable<T> ToImmutableAndFree() => new NodeStateTable<T>(_states.ToImmutableAndFree(), exception: _exception);
+            public NodeStateTable<T> ToImmutableAndFree() => new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: false, exception: _exception);
         }
     }
 }
