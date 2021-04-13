@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis
 
         internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
             => (_additionalSources.ToImmutableAndFree(), _diagnostics.ToReadOnlyAndFree());
+
+        internal void Free()
+        {
+            _additionalSources.Free();
+            _diagnostics.Free();
+        }
     }
 
     /// <summary>

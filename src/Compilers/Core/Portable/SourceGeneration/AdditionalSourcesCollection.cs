@@ -103,6 +103,10 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
 
+        internal ImmutableArray<GeneratedSourceText> ToImmutable() => _sourcesAdded.ToImmutable();
+
+        internal void Free() => _sourcesAdded.Free();
+
         private string AppendExtensionIfRequired(string hintName)
         {
             if (!hintName.EndsWith(_fileExtension, _hintNameComparison))

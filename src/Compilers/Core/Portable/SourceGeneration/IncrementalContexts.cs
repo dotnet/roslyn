@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -53,10 +54,14 @@ namespace Microsoft.CodeAnalysis
 
     public readonly struct IncrementalGeneratorPipelineContext
     {
-        public void RegisterOutput(IncrementalGeneratorOutput output)
+        private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputBuilder;
+
+        internal IncrementalGeneratorPipelineContext(ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
         {
-            // PROTOTYPE(source-generators): public api stub
+            _outputBuilder = outputBuilder;
         }
+
+        public void RegisterOutput(IncrementalGeneratorOutput output) => _outputBuilder.Add(output.node);
     }
 
     /// <summary>

@@ -199,8 +199,31 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, ParseAdditionalSources(sourceGenerator, sourcesCollection.ToImmutableAndFree(), cancellationToken))
+                                         ? new GeneratorState(generatorState.Info, ParseAdditionalSources(sourceGenerator, sourcesCollection.ToImmutable(), cancellationToken))
                                          : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
+
+                        sourcesCollection.Free();
+                    }
+
+                    // create the execution pipline
+                    if (ex is null && generatorState.Info.PipelineCallback is object)
+                    {
+                        var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
+                        var pipelineContext = new IncrementalGeneratorPipelineContext(outputBuilder);
+                        try
+                        {
+                            generatorState.Info.PipelineCallback(pipelineContext);
+                        }
+                        catch (Exception e)
+                        {
+                            ex = e;
+                        }
+
+                        generatorState = ex is null
+                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, outputBuilder.ToImmutable())
+                                         : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
+
+                        outputBuilder.Free();
                     }
                 }
 
@@ -292,13 +315,14 @@ namespace Microsoft.CodeAnalysis
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     stateBuilder[i] = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
+                    context.Free();
                     continue;
                 }
 
                 (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
                 generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
-                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, ParseAdditionalSources(generator, sources, cancellationToken), generatorDiagnostics);
+                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.OutputNodes, ParseAdditionalSources(generator, sources, cancellationToken), generatorDiagnostics);
             }
             state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
             return state;
