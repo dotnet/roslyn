@@ -1465,6 +1465,7 @@ class C { }
             void verifyDiagnosticsWithSource(string source, (Diagnostic, TextSpan)[] reportDiagnostics, params DiagnosticDescription[] expected)
             {
                 var parseOptions = TestOptions.Regular;
+                source = source.Replace(Environment.NewLine, "\r\n");
                 Compilation compilation = CreateCompilation(source, sourceFileName: "sourcefile.cs", options: TestOptions.DebugDll, parseOptions: parseOptions);
                 compilation.VerifyDiagnostics();
                 Assert.Single(compilation.SyntaxTrees);
