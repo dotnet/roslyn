@@ -53,9 +53,7 @@ using System.Collections.Generic;
                 "Delete [using D = System.Diagnostics;]@2",
                 "Delete [using System.Collections;]@33");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.using_directive),
-                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -75,9 +73,7 @@ using System.Collections.Generic;
                 "Insert [using D = System.Diagnostics;]@2",
                 "Insert [using System.Collections;]@33");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "using D = System.Diagnostics;", CSharpFeaturesResources.using_directive),
-                Diagnostic(RudeEditKind.Insert, "using System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -98,8 +94,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using System.Collections;]@29 -> [using X = System.Collections;]@29");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using X = System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -120,8 +115,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using X1 = System.Collections;]@29 -> [using X2 = System.Collections;]@29");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using X2 = System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -142,8 +136,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using System.Diagnostics;]@2 -> [using System;]@2");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using System;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -216,6 +209,172 @@ namespace N
             edits.VerifyEdits(
                 "Insert [using System.Collections;]@2",
                 "Delete [using System.Collections;]@22");
+        }
+
+        [Fact]
+        public void Using_Delete_ChangesCodeMeaning()
+        {
+            // This test specifically validates the scenario we _don't_ support, namely when inserting or deleting
+            // a using directive, if existing code changes in meaning as a result, we don't issue edits for that code.
+            // If this ever regresses then please buy a lottery ticket because the feature has magically fixed itself.
+            var src1 = @"
+using System.IO;
+using DirectoryInfo = N.C;
+
+namespace N
+{
+    public class C
+    {
+        public C(string a) { }
+        public FileAttributes Attributes { get; set; }
+    }
+
+    public class D
+    {
+        public void M()
+        {
+            var d = new DirectoryInfo(""aa"");
+            var x = directoryInfo.Attributes;
+        }
+    }
+}";
+            var src2 = @"
+using System.IO;
+
+namespace N
+{
+    public class C
+    {
+        public C(string a) { }
+        public FileAttributes Attributes { get; set; }
+    }
+
+    public class D
+    {
+        public void M()
+        {
+            var d = new DirectoryInfo(""aa"");
+            var x = directoryInfo.Attributes;
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Delete [using DirectoryInfo = N.C;]@20");
+
+            edits.VerifySemantics();
+        }
+
+        [Fact]
+        public void Using_Insert_ForNewCode()
+        {
+            // As distinct from the above, this test validates a real world scenario of inserting a using directive
+            // and changing code that utilizes the new directive to some effect.
+            var src1 = @"
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+    }
+}";
+            var src2 = @"
+using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(""Hello World!"");
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("N.Program.Main")));
+        }
+
+        [Fact]
+        public void Using_Delete_ForOldCode()
+        {
+            var src1 = @"
+using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(""Hello World!"");
+        }
+    }
+}";
+            var src2 = @"
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("N.Program.Main")));
+        }
+
+        [Fact]
+        public void Using_Insert_CreatesAmbiguousCode()
+        {
+            // This test validates that we still issue edits for changed valid code, even when unchanged
+            // code has ambiguities after adding a using.
+            var src1 = @"
+using System.Threading;
+
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            // Timer exists in System.Threading and System.Timers
+            var t = new Timer(s => System.Console.WriteLine(s));
+        }
+    }
+}";
+            var src2 = @"
+using System.Threading;
+using System.Timers;
+
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            // Timer exists in System.Threading and System.Timers
+            var t = new Timer(s => System.Console.WriteLine(s));
+        }
+
+        void M2()
+        {
+             // TimersDescriptionAttribute only exists in System.Timers
+            System.Console.WriteLine(new TimersDescriptionAttribute(""""));
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C.M2")));
         }
 
         #endregion
@@ -427,6 +586,87 @@ namespace N
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public class C", FeaturesResources.class_));
         }
 
+        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        public void Class_ModifiersUpdate_IgnoreUnsafe()
+        {
+            var src1 = "public class C { }";
+            var src2 = "public unsafe class C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public class C { }]@0 -> [public unsafe class C { }]@0");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        public void ModifiersUpdate_IgnoreUnsafe()
+        {
+            var src1 = @"
+using System;
+unsafe delegate void D();
+class C
+{
+    unsafe class N { }
+    public unsafe event Action<int> A { add { } remove { } }
+    unsafe int F() => 0;
+    unsafe int X;
+    unsafe int Y { get; }
+    unsafe C() {}
+    unsafe ~C() {}
+}
+";
+            var src2 = @"
+using System;
+delegate void D();
+class C
+{
+    class N { }
+    public event Action<int> A { add { } remove { } }
+    int F() => 0;
+    int X;
+    int Y { get; }
+    C() {}
+    ~C() {}
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [unsafe delegate void D();]@17 -> [delegate void D();]@17",
+                "Update [unsafe class N { }]@60 -> [class N { }]@53",
+                "Update [public unsafe event Action<int> A { add { } remove { } }]@84 -> [public event Action<int> A { add { } remove { } }]@70",
+                "Update [unsafe int F() => 0;]@146 -> [int F() => 0;]@125",
+                "Update [unsafe int X;]@172 -> [int X;]@144",
+                "Update [unsafe int Y { get; }]@191 -> [int Y { get; }]@156",
+                "Update [unsafe C() {}]@218 -> [C() {}]@176",
+                "Update [unsafe ~C() {}]@237 -> [~C() {}]@188");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        public void ModifiersUpdate_IgnoreUnsafe2()
+        {
+            var srcA1 = "partial class C { unsafe void F() { } }";
+            var srcB1 = "partial class C { }";
+            var srcA2 = "partial class C { }";
+            var srcB2 = "partial class C { void F() { } }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits: new[]
+                    {
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F"))
+                    }),
+                });
+        }
+
         [Fact]
         public void Struct_Modifiers_Ref_Update1()
         {
@@ -528,8 +768,7 @@ namespace N
             edits.VerifyEdits(
                 "Update [unsafe struct C { }]@0 -> [struct C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "struct C", CSharpFeaturesResources.struct_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -9217,8 +9456,7 @@ class C
 
             edits.VerifyEdits("Update [unsafe Node* left;]@14 -> [Node* left;]@14");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Node* left", FeaturesResources.field));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -9234,7 +9472,6 @@ class C
                 "Update [Node* left]@21 -> [Node left]@14");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Node left", FeaturesResources.field),
                 Diagnostic(RudeEditKind.TypeUpdate, "Node left", FeaturesResources.field));
         }
 
@@ -9334,8 +9571,7 @@ class C
 
             edits.VerifyEdits("Update [int P => 1;]@10 -> [unsafe int P => 1;]@10");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "unsafe int P", FeaturesResources.property_));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]

@@ -78,6 +78,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return SpecializedTasks.EmptyImmutableArray(Of SymbolDisplayPart)
             End Function
 
+            Protected Overrides Function ToMinimalDisplayParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer, format As SymbolDisplayFormat) As ImmutableArray(Of SymbolDisplayPart)
+                Return CodeAnalysis.VisualBasic.ToMinimalDisplayParts(symbol, semanticModel, position, format)
+            End Function
+
+            Protected Overrides Function GetNavigationHint(symbol As ISymbol) As String
+                Return If(symbol Is Nothing, Nothing, CodeAnalysis.VisualBasic.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat))
+            End Function
+
             Private Async Function GetFirstDeclarationAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of T)
                 For Each syntaxRef In symbol.DeclaringSyntaxReferences
                     Dim syntax = Await syntaxRef.GetSyntaxAsync(Me.CancellationToken).ConfigureAwait(False)

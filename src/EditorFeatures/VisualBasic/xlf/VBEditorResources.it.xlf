@@ -42,11 +42,6 @@
         <target state="translated">Rientro automatico</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Formatta documento</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">Formattazione del documento...</target>

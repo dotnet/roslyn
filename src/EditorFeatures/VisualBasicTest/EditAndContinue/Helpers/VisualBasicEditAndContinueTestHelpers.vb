@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
         Public Overrides ReadOnly Property TopSyntaxComparer As TreeComparer(Of SyntaxNode)
             Get
-                Return CodeAnalysis.VisualBasic.EditAndContinue.TopSyntaxComparer.Instance
+                Return CodeAnalysis.VisualBasic.EditAndContinue.SyntaxComparer.TopLevel
             End Get
         End Property
 

@@ -345,7 +345,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
             IEnumerable<MetadataReference> referencedAssemblies = null,
             IEnumerable<Compilation> referencedCompilations = null,
-            Encoding encoding = null)
+            Encoding encoding = null,
+            string sourceFileName = null)
         {
             if (assemblyName == null)
             {
@@ -362,6 +363,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 compilationOptions = new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             }
 
+            compilationOptions = compilationOptions.WithParseOptions(parseOptions);
             var references = new List<MetadataReference>();
             if (referencedAssemblies == null)
             {
@@ -379,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = VisualBasic.VisualBasicSyntaxTree.ParseText(code, options: parseOptions, encoding: encoding);
+            var tree = VisualBasic.VisualBasicSyntaxTree.ParseText(code, options: parseOptions, encoding: encoding, path: sourceFileName);
 
             return VisualBasic.VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
         }
