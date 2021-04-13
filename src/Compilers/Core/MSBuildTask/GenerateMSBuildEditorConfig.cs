@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             foreach (var c in value)
             {
-                if (c is '*' or '?' or '{' or ',' or ';' or '}' or '[' or ']' or '#')
+                if (c is '*' or '?' or '{' or ',' or ';' or '}' or '[' or ']' or '#' or '!')
                 {
                     builder.Append("\\");
                 }
