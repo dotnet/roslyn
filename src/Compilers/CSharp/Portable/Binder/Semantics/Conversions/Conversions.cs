@@ -53,10 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
+            Debug.Assert(destination.SpecialType == SpecialType.System_Delegate || methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
+
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
-                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, (destination.SpecialType == SpecialType.System_Delegate ? methodSymbol : ((NamedTypeSymbol)destination).DelegateInvokeMethod).ParameterCount);
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol.ParameterCount);
             resolution.Free();
             return conversion;
         }
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var delegateType = (type.SpecialType == SpecialType.System_Delegate) ?
                 // PROTOTYPE: We're resolving the method group multiple times in the code path for a single conversion.
-                _binder.GetMethodGroupDelegateType(methodGroup, diagnostics).Item1 :
+                _binder.GetMethodGroupDelegateType(methodGroup, diagnostics) :
                 type.GetDelegateType();
 
             if ((object)delegateType == null)

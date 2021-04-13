@@ -8301,14 +8301,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal (NamedTypeSymbol?, MethodSymbol?) GetMethodGroupDelegateType(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
+        internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
         {
             if (GetUniqueMethodGroupMethod(node, diagnostics) is { } method &&
                 GetMethodGroupOrLambdaDelegateType(method.RefKind, method.ReturnsVoid ? default : method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations, diagnostics) is { } delegateType)
             {
-                return (delegateType, method);
+                return delegateType;
             }
-            return default;
+            return null;
         }
 
         private MethodSymbol? GetUniqueMethodGroupMethod(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
@@ -8324,25 +8324,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionMethodScopes(this))
                 {
                     var methodGroup = MethodGroup.GetInstance();
-                    try
+                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, diagnostics);
+                    foreach (var m in methodGroup.Methods)
                     {
-                        PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, diagnostics);
-                        foreach (var m in methodGroup.Methods)
+                        if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced)
                         {
-                            if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced)
+                            if (method is { })
                             {
-                                if (method is { })
-                                {
-                                    return null;
-                                }
-                                method = reduced;
+                                methodGroup.Free();
+                                return null;
                             }
+                            method = reduced;
                         }
                     }
-                    finally
-                    {
-                        methodGroup.Free();
-                    }
+                    methodGroup.Free();
                 }
             }
             if (method is { } && !node.TypeArgumentsOpt.IsDefault)

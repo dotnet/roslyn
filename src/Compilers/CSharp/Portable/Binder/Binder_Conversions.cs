@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 // PROTOTYPE: We're resolving the method group multiple times in the code path for a single conversion.
-                var (delegateType, _) = GetMethodGroupDelegateType(group, BindingDiagnosticBag.Discarded); // PROTOTYPE: Report use-site diagnostics.
+                var delegateType = GetMethodGroupDelegateType(group, BindingDiagnosticBag.Discarded); // PROTOTYPE: Report use-site diagnostics.
                 var expr = createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, delegateType!, hasErrors);
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);

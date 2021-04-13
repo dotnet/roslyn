@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         d = Main;
         d = () => { };
         d = delegate () { };
+        System.Linq.Expressions.Expression e = () => 1;
     }
 }";
 
@@ -39,14 +40,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(7, 13),
                 // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         d = delegate () { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { }").WithArguments("inferred delegate type").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { }").WithArguments("inferred delegate type").WithLocation(8, 13),
+                // (9,48): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Linq.Expressions.Expression e = () => 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(9, 48));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void LambdaConversions_01()
+        public void MethodGroupConversions()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        object o = Main;
+        System.ICloneable c = Main;
+        System.Delegate d = Main;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0428: Cannot convert method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object o = Main;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "object").WithLocation(5, 20),
+                // (6,31): error CS0428: Cannot convert method group 'Main' to non-delegate type 'ICloneable'. Did you intend to invoke the method?
+                //         System.ICloneable c = Main;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.ICloneable").WithLocation(6, 31));
+        }
+
+        [Fact]
+        public void LambdaConversions()
         {
             var source =
 @"class Program
@@ -145,9 +172,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                // (6,20): error CS0030: Cannot convert type 'method' to 'Delegate'
-                //         object o = (System.Delegate)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Delegate)F").WithArguments("method", "System.Delegate").WithLocation(6, 20));
+                    // (6,20): error CS0030: Cannot convert type 'method' to 'Delegate'
+                    //         object o = (System.Delegate)F;
+                    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Delegate)F").WithArguments("method", "System.Delegate").WithLocation(6, 20));
             }
             else
             {
