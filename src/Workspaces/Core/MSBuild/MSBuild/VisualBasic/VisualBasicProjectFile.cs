@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 {
     internal class VisualBasicProjectFile : ProjectFile
     {
-        public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, ProjectBuildManager buildManager, DiagnosticLog log)
+        public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project? loadedProject, ProjectBuildManager buildManager, DiagnosticLog log)
             : base(loader, loadedProject, buildManager, log)
         {
         }
