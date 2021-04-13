@@ -97,6 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         return;
 
                     _projectFlavors.Add(projectFlavor);
+                    _projectFlavors.Sort();
                     _cachedProjectName = null;
                 }
             }
