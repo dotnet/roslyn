@@ -5,12 +5,15 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -80,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
             result = new SerializableSymbolAndProjectId(SymbolKey.CreateString(symbol, cancellationToken), project.Id);
             return true;
         }
+
         public async Task<ISymbol> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
@@ -189,6 +193,72 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var symbol = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
             return symbol as IAliasSymbol;
+        }
+    }
+
+    [DataContract]
+    internal class SerializableSymbolGroup : IEquatable<SerializableSymbolGroup>, IEqualityComparer<SerializableSymbolAndProjectId>
+    {
+        [DataMember(Order = 0)]
+        public readonly SerializableSymbolAndProjectId Symbol;
+        [DataMember(Order = 1)]
+        public readonly HashSet<SerializableSymbolAndProjectId> Symbols;
+
+        private int _hashCode;
+
+        public SerializableSymbolGroup(
+            SerializableSymbolAndProjectId symbol,
+            HashSet<SerializableSymbolAndProjectId> symbols)
+        {
+            Symbol = symbol;
+            Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols, this);
+        }
+
+        bool IEqualityComparer<SerializableSymbolAndProjectId>.Equals(SerializableSymbolAndProjectId x, SerializableSymbolAndProjectId y)
+            => y.SymbolKeyData.Equals(x.SymbolKeyData);
+
+        int IEqualityComparer<SerializableSymbolAndProjectId>.GetHashCode(SerializableSymbolAndProjectId obj)
+            => obj.SymbolKeyData.GetHashCode();
+
+        public override bool Equals(object obj)
+            => obj is SerializableSymbolGroup group && Equals(group);
+
+        public bool Equals(SerializableSymbolGroup other)
+        {
+            if (this == other)
+                return true;
+
+            return other != null && this.Symbols.SetEquals(other.Symbols);
+        }
+
+        public override int GetHashCode()
+        {
+            if (_hashCode == 0)
+            {
+                foreach (var symbol in Symbols)
+                    _hashCode += symbol.SymbolKeyData.GetHashCode();
+            }
+
+            return _hashCode;
+        }
+
+        public async Task<SymbolGroup> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var symbol = await this.Symbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            if (symbol == null)
+                return null;
+
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+            foreach (var symbolAndProjectId in this.Symbols)
+            {
+                symbol = await symbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (symbol == null)
+                    return null;
+
+                symbols.Add(symbol);
+            }
+
+            return new SymbolGroup(symbol, symbols.ToImmutable());
         }
     }
 

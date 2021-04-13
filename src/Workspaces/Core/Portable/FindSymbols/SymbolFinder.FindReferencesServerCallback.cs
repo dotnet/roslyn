@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -17,14 +18,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        internal sealed class FindReferencesServerCallback : IEqualityComparer<SerializableSymbolAndProjectId>
+        internal sealed class FindReferencesServerCallback
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
             private readonly CancellationToken _cancellationToken;
 
             private readonly object _gate = new();
-            private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap;
+            private readonly Dictionary<SerializableSymbolGroup, SymbolGroup> _groupMap = new();
+            private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap = new();
 
             public FindReferencesServerCallback(
                 Solution solution,
@@ -34,7 +36,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _solution = solution;
                 _progress = progress;
                 _cancellationToken = cancellationToken;
-                _definitionMap = new Dictionary<SerializableSymbolAndProjectId, ISymbol>(this);
             }
 
             public ValueTask AddItemsAsync(int count)
@@ -61,25 +62,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return _progress.OnFindInDocumentCompletedAsync(document);
             }
 
-            public async ValueTask OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
+            public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup serializableSymbolGroup)
             {
-                var symbol = await definition.TryRehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
-
-                if (symbol == null)
+                var symbolGroup = await serializableSymbolGroup.TryRehydrateAsync(_solution, _cancellationToken).ConfigureAwait(false);
+                if (symbolGroup == null)
                     return;
 
                 lock (_gate)
                 {
-                    _definitionMap[definition] = symbol;
+                    _groupMap[serializableSymbolGroup] = symbolGroup;
                 }
 
-                await _progress.OnDefinitionFoundAsync(symbol).ConfigureAwait(false);
+                await _progress.OnDefinitionFoundAsync(symbolGroup).ConfigureAwait(false);
             }
 
             public async ValueTask OnReferenceFoundAsync(
-                SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
+                SerializableSymbolGroup serializableSymbolGroup,
+                SerializableSymbolAndProjectId serializableSymbol,
+                SerializableReferenceLocation reference)
             {
+                SymbolGroup symbolGroup;
                 ISymbol symbol;
                 lock (_gate)
                 {
@@ -90,21 +92,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     //    definition so we can track down that issue.
                     // 2. NFE'ing and failing to show a result, is much better than NFE'ing and then crashing
                     //    immediately afterwards.
-                    if (!_definitionMap.TryGetValue(definition, out symbol))
+                    if (!_groupMap.TryGetValue(serializableSymbolGroup, out symbolGroup) ||
+                        !_definitionMap.TryGetValue(serializableSymbol, out symbol))
+                    {
                         return;
+                    }
                 }
 
                 var referenceLocation = await reference.RehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
 
-                await _progress.OnReferenceFoundAsync(symbol, referenceLocation).ConfigureAwait(false);
+                await _progress.OnReferenceFoundAsync(symbolGroup, symbol, referenceLocation).ConfigureAwait(false);
             }
-
-            bool IEqualityComparer<SerializableSymbolAndProjectId>.Equals(SerializableSymbolAndProjectId x, SerializableSymbolAndProjectId y)
-                => y.SymbolKeyData.Equals(x.SymbolKeyData);
-
-            int IEqualityComparer<SerializableSymbolAndProjectId>.GetHashCode(SerializableSymbolAndProjectId obj)
-                => obj.SymbolKeyData.GetHashCode();
         }
     }
 }
