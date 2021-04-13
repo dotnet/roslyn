@@ -23,9 +23,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // PROTOTYPE: we'll call initialize on the underlying generator and pull out any info that is needed
-            //            then we'll set PostInit etc on our context and register a pipleine that
-            //            executes the old generator in the new framework
+            // PROTOTYPE(source-generators):
+            // we'll call initialize on the underlying generator and pull out any info that is needed
+            // then we'll set PostInit etc on our context and register a pipleine that
+            // executes the old generator in the new framework
 
             GeneratorInitializationContext oldContext = new GeneratorInitializationContext(context.CancellationToken);
             try
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             }
             catch (Exception)
             {
-                // PROTOTYPE 
+                // PROTOTYPE(source-generators):
                 // wrap in a user func exception?
                 throw;
             }

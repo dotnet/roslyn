@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration.Nodes
             return source.TransformMany((item) => (IEnumerable<T>)(filter(item) ? new[] { item } : Array.Empty<T>()));
         }
 
-        // PROTOTYPE: naming. Does GenerateSource make it sound like you can't have multiple IncrementalGeneratorOutputs?
+        // PROTOTYPE(source-generators): naming. Does GenerateSource make it sound like you can't have multiple IncrementalGeneratorOutputs?
 
         // 1 => 1 production
         internal static IncrementalGeneratorOutput GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => default;
