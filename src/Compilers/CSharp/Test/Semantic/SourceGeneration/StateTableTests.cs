@@ -93,9 +93,119 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        public void Driver_Table_Entries_Can_Be_Looked_Up()
+        public void Driver_Table_Calls_Into_Node_With_Self()
         {
+            DriverStateTable.Builder? passedIn = null;
+            CallbackNode<int> callbackNode = new CallbackNode<int>((b, s) =>
+            {
+                passedIn = b;
+                return s;
+            });
 
+            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            builder.GetLatestStateTableForNode(callbackNode);
+
+            Assert.Same(builder, passedIn);
+        }
+
+        [Fact]
+        public void Driver_Table_Calls_Into_Node_With_EmptyState_FirstTime()
+        {
+            NodeStateTable<int>? passedIn = null;
+            CallbackNode<int> callbackNode = new CallbackNode<int>((b, s) =>
+            {
+                passedIn = s;
+                return s;
+            });
+
+            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            builder.GetLatestStateTableForNode(callbackNode);
+
+            Assert.Same(NodeStateTable<int>.Empty, passedIn);
+        }
+
+        [Fact]
+        public void Driver_Table_Calls_Into_Node_With_PreviousTable()
+        {
+            var nodeBuilder = new NodeStateTable<int>.Builder();
+            nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Cached);
+            var newTable = nodeBuilder.ToImmutableAndFree();
+
+            NodeStateTable<int>? passedIn = null;
+            CallbackNode<int> callbackNode = new CallbackNode<int>((b, s) =>
+            {
+                passedIn = s;
+                return newTable;
+            });
+
+            // empty first time
+            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            builder.GetLatestStateTableForNode(callbackNode);
+
+            Assert.Same(NodeStateTable<int>.Empty, passedIn);
+
+            // gives the returned table the second time around
+            DriverStateTable.Builder builder2 = new DriverStateTable.Builder(builder.ToImmutable());
+            builder2.GetLatestStateTableForNode(callbackNode);
+
+            AssertTableEntries(passedIn, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached) });
+        }
+
+        [Fact]
+        public void Driver_Table_Compacts_State_Tables_When_Made_Immutable()
+        {
+            var nodeBuilder = new NodeStateTable<int>.Builder();
+            nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
+            nodeBuilder.AddEntries(ImmutableArray.Create(4), EntryState.Removed);
+            nodeBuilder.AddEntries(ImmutableArray.Create(5, 6), EntryState.Modified);
+
+            var newTable = nodeBuilder.ToImmutableAndFree();
+
+            NodeStateTable<int>? passedIn = null;
+            CallbackNode<int> callbackNode = new CallbackNode<int>((b, s) =>
+            {
+                passedIn = s;
+                return newTable;
+            });
+
+            // empty first time
+            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            builder.GetLatestStateTableForNode(callbackNode);
+            Assert.Same(NodeStateTable<int>.Empty, passedIn);
+
+            // gives the returned table the second time around
+            DriverStateTable.Builder builder2 = new DriverStateTable.Builder(builder.ToImmutable());
+            builder2.GetLatestStateTableForNode(callbackNode);
+
+            // table returned from the first instance was compacted by the builder
+            AssertTableEntries(passedIn, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (5, EntryState.Cached), (6, EntryState.Cached) });
+        }
+
+        [Fact]
+        public void Driver_Table_Builder_Doesnt_Build_Twice()
+        {
+            int callCount = 0;
+            CallbackNode<int> callbackNode = new CallbackNode<int>((b, s) =>
+            {
+                callCount++;
+                return s;
+            });
+
+            // multiple gets will only call it once
+            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            builder.GetLatestStateTableForNode(callbackNode);
+            builder.GetLatestStateTableForNode(callbackNode);
+            builder.GetLatestStateTableForNode(callbackNode);
+
+            Assert.Equal(1, callCount);
+
+            // second time around we'll call it once, but no more
+            DriverStateTable.Builder builder2 = new DriverStateTable.Builder(builder.ToImmutable());
+            builder2.GetLatestStateTableForNode(callbackNode);
+            builder2.GetLatestStateTableForNode(callbackNode);
+            builder2.GetLatestStateTableForNode(callbackNode);
+
+            Assert.Equal(2, callCount);
         }
 
         private void AssertTableEntries<T>(NodeStateTable<T> table, IList<(T item, EntryState state)> expected)
@@ -107,6 +217,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 Assert.Equal(expected[index].state, entry.state);
                 index++;
             }
+        }
+
+        private class CallbackNode<T> : IIncrementalGeneratorNode<T>
+        {
+            private readonly Func<DriverStateTable.Builder, NodeStateTable<T>, NodeStateTable<T>> _callback;
+
+            public CallbackNode(Func<DriverStateTable.Builder, NodeStateTable<T>, NodeStateTable<T>> callback)
+            {
+                _callback = callback;
+            }
+
+            public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable)
+            {
+                return _callback(graphState, previousTable);
+            }
+
+            public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
         }
     }
 }
