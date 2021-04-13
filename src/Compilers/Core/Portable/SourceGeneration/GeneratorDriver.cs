@@ -393,6 +393,7 @@ namespace Microsoft.CodeAnalysis
             return generators.SelectAsArray(g => g switch
             {
                 IncrementalGeneratorWrapper igw => igw.Generator,
+                IIncrementalGenerator ig => ig,
                 _ => new SourceGeneratorAdaptor(g)
             });
         }

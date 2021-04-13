@@ -1249,7 +1249,7 @@ class C { }
 
             // ran the combined generator only as an IIncrementalGenerator
             Assert.Equal(0, dualInitCount);
-            Assert.Equal(0, dualExecuteCount);
+            Assert.Equal(1, dualExecuteCount);
             Assert.Equal(1, dualIncrementalInitCount);
         }
 
