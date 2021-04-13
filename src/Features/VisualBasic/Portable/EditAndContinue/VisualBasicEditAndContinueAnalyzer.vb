@@ -996,7 +996,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
-        Friend Overrides Function IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(declaration As SyntaxNode, ByRef isFirstAccessor As Boolean) As Boolean
+        Friend Overrides Function IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(declaration As SyntaxNode, newContainingType As INamedTypeSymbol, ByRef isFirstAccessor As Boolean) As Boolean
             Return False
         End Function
 

@@ -1119,16 +1119,32 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsRecordPrimaryConstructorParameter(SyntaxNode declaration)
             => declaration is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } };
 
-        private static bool IsPropertyDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration)
-            => declaration is PropertyDeclarationSyntax { Parent: RecordDeclarationSyntax record, Identifier: { ValueText: var name } }
-            && record.ParameterList is not null
-            && record.ParameterList.Parameters.Any(p => p.Identifier.ValueText.Equals(name));
+        private static bool IsPropertyDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, INamedTypeSymbol newContainingType)
+        {
+            if (newContainingType.IsRecord &&
+                declaration is PropertyDeclarationSyntax { Identifier: { ValueText: var name } })
+            {
+                // We need to use symbol information to find the primary constructor, because it could be in another file if the type is partial
+                foreach (var reference in newContainingType.DeclaringSyntaxReferences)
+                {
+                    // Since users can define as many constructors as they like, going back to syntax to find the parameter list
+                    // in the record declaration is the simplest way to check if there is a matching parameter
+                    if (reference.GetSyntax() is RecordDeclarationSyntax record &&
+                        record.ParameterList is not null &&
+                        record.ParameterList.Parameters.Any(p => p.Identifier.ValueText.Equals(name)))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
-        internal override bool IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, out bool isFirstAccessor)
+        internal override bool IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, INamedTypeSymbol newContainingType, out bool isFirstAccessor)
         {
             isFirstAccessor = false;
             if (declaration is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: PropertyDeclarationSyntax property } list } &&
-                IsPropertyDeclarationMatchingPrimaryConstructorParameter(property))
+                IsPropertyDeclarationMatchingPrimaryConstructorParameter(property, newContainingType))
             {
                 isFirstAccessor = list.Accessors[0] == declaration;
                 return true;

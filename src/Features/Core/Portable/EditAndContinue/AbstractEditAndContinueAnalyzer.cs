@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Return true if the declaration is a property accessor for a property that represents one of the parameters in a records primary constructor.
         /// </summary>
-        internal abstract bool IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, out bool isFirstAccessor);
+        internal abstract bool IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, INamedTypeSymbol newContainingType, out bool isFirstAccessor);
 
         /// <summary>
         /// Return true if the declaration is a constructor declaration to which field/property initializers are emitted. 
@@ -2313,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // their accessors below.
                                         continue;
                                     }
-                                    else if (IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(edit.OldNode, out var isFirst))
+                                    else if (IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(edit.OldNode, newSymbol.ContainingType, out var isFirst))
                                     {
                                         // Defer a constructor edit to cover the property initializer changing
                                         DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration: null, syntaxMap, oldSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
@@ -2438,7 +2438,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                             ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol);
 
-                                            if (IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(newNode, out var isFirst))
+                                            if (IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(newNode, newSymbol.ContainingType, out var isFirst))
                                             {
                                                 // If there is no body declared we can skip it entirely because for a property accessor
                                                 // it matches what the compiler would have previously implicitly implemented.
