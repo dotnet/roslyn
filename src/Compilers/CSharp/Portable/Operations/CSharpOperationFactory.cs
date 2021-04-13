@@ -2157,6 +2157,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new SwitchExpressionOperation(
                 value,
                 arms,
+                boundSwitchExpression.ReportedNotExhaustive,
                 _semanticModel,
                 boundSwitchExpression.Syntax,
                 boundSwitchExpression.GetPublicTypeSymbol(),
