@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConstantPattern(BoundConstantPattern node)
         {
-            Visit(node.Value);
+            VisitRvalue(node.Value);
             return null;
         }
 

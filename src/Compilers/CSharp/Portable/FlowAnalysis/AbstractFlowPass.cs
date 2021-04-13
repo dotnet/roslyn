@@ -977,6 +977,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
+            else if (IsConditionalState)
+            {
+                // Note that propagation of conditional state here is intentionally performed only on "simple" constant patterns, not on negated or binary patterns.
+                if (node.Pattern is BoundConstantPattern { ConstantValue: { IsBoolean: true, BooleanValue: var value } })
+                {
+                    if (!value)
+                    {
+                        SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    }
+                }
+                else
+                {
+                    Unsplit();
+                }
+            }
 
             VisitPattern(pattern);
             var reachableLabels = node.DecisionDag.ReachableLabels;
@@ -1022,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundBinaryPattern binary:
                     if (binary.Disjunction)
                     {
-                        // `a?.b(out x) is C or null`
+                        // `a?.b(out x) is null or C`
                         // both subpatterns must have the same null test for the test to propagate out
                         var leftNullTest = GetTopLevelNullTest(binary.Left);
                         return leftNullTest == GetTopLevelNullTest(binary.Right)
@@ -1030,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             : null;
                     }
 
-                    // `a?.b(out x) is C and _`
+                    // `a?.b(out x) is not null and var c`
                     // if any pattern performs a test, we know that test applies at the top level
                     // note that if the tests are different, e.g. `null and not null`,
                     // the pattern is a contradiction, so we expect an error diagnostic
@@ -2570,7 +2585,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // `(a && b.M(out x)) is bool` should discard conditional state from LHS
-                // PROTOTYPE(improved-definite-assignment): test this
                 Unsplit();
             }
             return null;

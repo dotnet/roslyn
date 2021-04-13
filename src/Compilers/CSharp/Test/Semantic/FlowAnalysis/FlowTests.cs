@@ -4005,6 +4005,161 @@ class C
         }
 
         [Fact]
+        public void IsBool()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    bool M0(object obj) => false;
+
+    void M1(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is bool // 1
+            ? x.ToString() // 2
+            : y.ToString(); // 3
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,13): warning CS0183: The given expression is always of the provided ('bool') type
+                //         _ = (b && M0(x = y = 0)) is bool // 1
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "(b && M0(x = y = 0)) is bool").WithArguments("bool").WithLocation(11, 13),
+                // (12,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 15),
+                // (13,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(13, 15)
+                );
+        }
+
+        [Theory]
+        [InlineData("true", "false")]
+        [InlineData("!false", "!true")]
+        [InlineData("(true || false)", "(true && false)")]
+        public void IsBoolConstant_01(string @true, string @false)
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    bool M0(object obj) => false;
+
+    void M1(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is " + @true + @"
+            ? x.ToString()
+            : y.ToString(); // 1
+    }
+
+    void M2(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is " + @false + @"
+            ? x.ToString() // 2
+            : y.ToString();
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (13,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(13, 15),
+                // (20,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(20, 15)
+                );
+        }
+
+        [Fact]
+        public void IsBoolConstant_02()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    bool M0(object obj) => false;
+
+    void M1(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is var z
+            ? x.ToString() // 1
+            : y.ToString(); // unreachable
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void IsBoolConstant_03()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    bool M0(object obj) => false;
+
+    void M1(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is not true
+            ? x.ToString() // 1
+            : y.ToString(); // 2
+    }
+
+    void M2(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is true or false // 3
+            ? x.ToString() // 4
+            : y.ToString(); // unreachable
+    }
+
+    void M3(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is true and false // 5
+            ? x.ToString() // unreachable
+            : y.ToString(); // 6
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 15),
+                // (13,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(13, 15),
+                // (19,13): warning CS8794: An expression of type 'bool' always matches the provided pattern.
+                //         _ = (b && M0(x = y = 0)) is true or false // 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "(b && M0(x = y = 0)) is true or false").WithArguments("bool").WithLocation(19, 13),
+                // (20,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(20, 15),
+                // (27,13): error CS8518: An expression of type 'bool' can never match the provided pattern.
+                //         _ = (b && M0(x = y = 0)) is true and false // 5
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "(b && M0(x = y = 0)) is true and false").WithArguments("bool").WithLocation(27, 13),
+                // (29,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 6
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 15)
+                );
+        }
+
+        [Fact]
         public void IsCondAccess_01()
         {
             var source = @"
