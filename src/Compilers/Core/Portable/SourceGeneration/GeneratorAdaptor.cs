@@ -31,10 +31,8 @@ namespace Microsoft.CodeAnalysis
             GeneratorInitializationContext oldContext = new GeneratorInitializationContext(context.CancellationToken);
             SourceGenerator.Initialize(oldContext);
 
-            if (oldContext.InfoBuilder.PostInitCallback is object)
-            {
-                context.RegisterForPostInitialization(oldContext.InfoBuilder.PostInitCallback);
-            }
+            context.InfoBuilder.PostInitCallback = oldContext.InfoBuilder.PostInitCallback;
+            context.InfoBuilder.SyntaxContextReceiverCreator = oldContext.InfoBuilder.SyntaxContextReceiverCreator;
 
             context.RegisterExecutionPipeline((ctx) =>
             {

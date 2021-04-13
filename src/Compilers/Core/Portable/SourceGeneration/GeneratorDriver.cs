@@ -161,15 +161,16 @@ namespace Microsoft.CodeAnalysis
             var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
             int receiverCount = 0;
 
-            for (int i = 0; i < state.Generators.Length; i++)
+            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
-                var generator = state.Generators[i];
+                var generator = state.IncrementalGenerators[i];
                 var generatorState = state.GeneratorStates[i];
+                var sourceGenerator = state.Generators[i];
 
                 // initialize the generator if needed
                 if (!generatorState.Info.Initialized)
                 {
-                    var context = new GeneratorInitializationContext(cancellationToken);
+                    var context = new IncrementalGeneratorInitializationContext(cancellationToken);
                     Exception? ex = null;
                     try
                     {
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     generatorState = ex is null
                                      ? new GeneratorState(context.InfoBuilder.ToImmutable())
-                                     : SetGeneratorException(MessageProvider, GeneratorState.Uninitialized, generator, ex, diagnosticsBag, isInit: true);
+                                     : SetGeneratorException(MessageProvider, GeneratorState.Uninitialized, sourceGenerator, ex, diagnosticsBag, isInit: true);
 
                     // invoke the post init callback if requested
                     if (generatorState.Info.PostInitCallback is object)
@@ -198,8 +199,8 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, ParseAdditionalSources(generator, sourcesCollection.ToImmutableAndFree(), cancellationToken))
-                                         : SetGeneratorException(MessageProvider, generatorState, generator, ex, diagnosticsBag, isInit: true);
+                                         ? new GeneratorState(generatorState.Info, ParseAdditionalSources(sourceGenerator, sourcesCollection.ToImmutableAndFree(), cancellationToken))
+                                         : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
                     }
                 }
 
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     catch (Exception e)
                     {
-                        generatorState = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
+                        generatorState = SetGeneratorException(MessageProvider, generatorState, sourceGenerator, e, diagnosticsBag);
                     }
 
                     if (rx is object)

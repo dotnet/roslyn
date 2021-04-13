@@ -12,6 +12,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct IncrementalGeneratorInitializationContext
     {
+        internal IncrementalGeneratorInitializationContext(CancellationToken cancellationToken)
+        {
+            this.CancellationToken = cancellationToken;
+            InfoBuilder = new GeneratorInfo.Builder();
+        }
+
+        internal GeneratorInfo.Builder InfoBuilder { get; }
+
         /// <summary>
         /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the initialization should be cancelled.
         /// </summary>
@@ -33,14 +41,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="callback">An <see cref="Action{T}"/> that accepts a <see cref="GeneratorPostInitializationContext"/> that will be invoked after initialization.</param>
         public void RegisterForPostInitialization(Action<GeneratorPostInitializationContext> callback)
         {
-            // PROTOTYPE(source-generators): should we share the post init context with the V1 api or make a duplicate context?
-            // PROTOTYPE(source-generators): public api stub
+            InfoBuilder.PostInitCallback = callback;
         }
 
         public void RegisterExecutionPipeline(Action<IncrementalGeneratorPipelineContext> callback)
         {
             // PROTOTYPE(source-generators): should this be a required method on the interface?
-            // PROTOTYPE(source-generators): public api stub
+            InfoBuilder.PipelineCallback = callback;
         }
     }
 
