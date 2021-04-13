@@ -7736,5 +7736,75 @@ class A {
                 format,
                 "delegate*<in Int32, ref readonly String>");
         }
+
+        [Theory, WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        [InlineData("byte", "byte")]
+        [InlineData("byte", "System.Byte")]
+        [InlineData("sbyte", "sbyte")]
+        [InlineData("sbyte", "System.SByte")]
+        [InlineData("short", "short")]
+        [InlineData("short", "System.Int16")]
+        [InlineData("ushort", "ushort")]
+        [InlineData("ushort", "System.UInt16")]
+        // int is the default type and is not shown
+        [InlineData("uint", "uint")]
+        [InlineData("uint", "System.UInt32")]
+        [InlineData("long", "long")]
+        [InlineData("long", "System.Int64")]
+        [InlineData("ulong", "ulong")]
+        [InlineData("ulong", "System.UInt64")]
+        public void TestEnumWithUnderlyingType_ShowForNonDefaultTypes(string displayTypeName, string underlyingTypeName)
+        {
+            var text = @$"
+enum E : {underlyingTypeName}
+{{
+    A, B
+}}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("E", 0).Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                $"enum E : {displayTypeName}",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Theory, WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        [InlineData("")]
+        [InlineData(": int")]
+        [InlineData(": System.Int32")]
+        public void TestEnumWithUnderlyingType_DontShowForDefaultType(string defaultType)
+        {
+            var text = @$"
+enum E {defaultType}
+{{
+    A, B
+}}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("E", 0).Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                $"enum E",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EnumName);
+        }
     }
 }
