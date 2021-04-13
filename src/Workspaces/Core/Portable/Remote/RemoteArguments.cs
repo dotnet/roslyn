@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
     #region FindReferences
 
     [DataContract]
-    internal sealed class SerializableSymbolAndProjectId
+    internal sealed class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
     {
         [DataMember(Order = 0)]
         public readonly string SymbolKeyData;
@@ -35,6 +35,15 @@ namespace Microsoft.CodeAnalysis.Remote
             SymbolKeyData = symbolKeyData;
             ProjectId = projectId;
         }
+
+        public override bool Equals(object obj)
+            => Equals(obj as SerializableSymbolAndProjectId);
+
+        public bool Equals(SerializableSymbolAndProjectId other)
+            => (this == other) || this.SymbolKeyData == other?.SymbolKeyData;
+
+        public override int GetHashCode()
+            => this.SymbolKeyData.GetHashCode();
 
         public static SerializableSymbolAndProjectId Dehydrate(
             IAliasSymbol alias, Document document, CancellationToken cancellationToken)
@@ -197,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Remote
     }
 
     [DataContract]
-    internal class SerializableSymbolGroup : IEquatable<SerializableSymbolGroup>, IEqualityComparer<SerializableSymbolAndProjectId>
+    internal class SerializableSymbolGroup : IEquatable<SerializableSymbolGroup>
     {
         [DataMember(Order = 0)]
         public readonly SerializableSymbolAndProjectId PrimarySymbol;
@@ -211,14 +220,8 @@ namespace Microsoft.CodeAnalysis.Remote
             HashSet<SerializableSymbolAndProjectId> symbols)
         {
             PrimarySymbol = primarySymbol;
-            Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols, this);
+            Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols);
         }
-
-        bool IEqualityComparer<SerializableSymbolAndProjectId>.Equals(SerializableSymbolAndProjectId x, SerializableSymbolAndProjectId y)
-            => y.SymbolKeyData.Equals(x.SymbolKeyData);
-
-        int IEqualityComparer<SerializableSymbolAndProjectId>.GetHashCode(SerializableSymbolAndProjectId obj)
-            => obj.SymbolKeyData.GetHashCode();
 
         public override bool Equals(object obj)
             => obj is SerializableSymbolGroup group && Equals(group);
