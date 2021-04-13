@@ -58,11 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SourceText lineText,
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData)
-                : base(context,
-                       definitionBucket,
-                       projectGuid,
-                       lineText,
-                       mappedSpanResult)
+                : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult)
             {
                 _spanKind = spanKind;
                 _excerptResult = excerptResult;
