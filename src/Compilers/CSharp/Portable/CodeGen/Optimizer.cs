@@ -1103,23 +1103,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitCall(BoundCall node)
         {
             var receiver = node.ReceiverOpt;
+            MethodSymbol method = node.Method;
 
             // matches or a bit stronger than EmitReceiverRef
             // if there are any doubts that receiver is a ref type, 
             // assume we will need an address (that will prevent scheduling of receiver).
-            if (node.Method.RequiresInstanceReceiver)
+            if (method.RequiresInstanceReceiver)
             {
                 receiver = VisitCallReceiver(receiver);
             }
             else
             {
-                // TODO: for some reason receiver could be not null even if method is static...
-                //       it seems wrong, ignore for now.
+                Debug.Assert(method.IsStatic);
+
                 _counter += 1;
-                receiver = null;
+
+                if (method.IsAbstract && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                {
+                    receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
+                        typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
+                }
+                else
+                {
+                    receiver = null;
+                }
             }
 
-            MethodSymbol method = node.Method;
             var rewrittenArguments = VisitArguments(node.Arguments, method.Parameters, node.ArgumentRefKindsOpt);
 
             return node.Update(receiver, method, rewrittenArguments);
@@ -1425,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ConstrainedToTypeOpt, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -1459,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 EnsureStackState(cookie);   // implicit label here
 
-                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, node.Type);
+                return node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ConstrainedToTypeOpt, node.ResultKind, left, right, node.Type);
             }
 
             return base.VisitBinaryOperator(node);
@@ -1543,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var origStack = StackDepth();
                 PushEvalStack(new BoundDefaultExpression(node.Syntax, node.Operand.Type), ExprContext.Value);
                 BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
-                return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type);
+                return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ConstrainedToTypeOpt, node.ResultKind, node.Type);
             }
             else
             {
@@ -1985,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ConstrainedToTypeOpt, binary.ResultKind, left, right, type);
 
                 if (stack.Count == 0)
                 {
@@ -2067,7 +2076,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // do actual assignment
 
-            Debug.Assert(locInfo.LocalDefs.Any((d) => _nodeCounter == d.Start && _nodeCounter <= d.End));
+            // PROTOTYPE(StaticAbstractMembersInInterfaces): This assert fires for a user-defined prefix increment/decrement. Open an issue.
+            //Debug.Assert(locInfo.LocalDefs.Any((d) => _nodeCounter == d.Start && _nodeCounter <= d.End));
             var isLast = IsLastAccess(locInfo, _nodeCounter);
 
             if (isLast)

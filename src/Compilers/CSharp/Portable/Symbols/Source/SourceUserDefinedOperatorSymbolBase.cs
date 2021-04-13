@@ -597,14 +597,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.Equals(this.ContainingType, ComparisonForUserDefinedOperators);
         }
 
-        private bool IsSelfConstrainedTypeParameter(TypeSymbol type)
+        public static bool IsSelfConstrainedTypeParameter(TypeSymbol type, NamedTypeSymbol containingType)
         {
+            Debug.Assert(containingType.IsDefinition);
             return type is TypeParameterSymbol p &&
                 // PROTOTYPE(StaticAbstractMembersInInterfaces): For now assuming the type parameter must belong to the containing type.
-                (object)p.ContainingSymbol == this.ContainingType &&
+                (object)p.ContainingSymbol == containingType &&
                 // PROTOTYPE(StaticAbstractMembersInInterfaces): For now assume containing type must be one of the directly specified constraints.
                 p.ConstraintTypesNoUseSiteDiagnostics.Any((typeArgument, containingType) => typeArgument.Type.Equals(containingType, ComparisonForUserDefinedOperators),
-                                                          this.ContainingType);
+                                                          containingType);
+        }
+
+        private bool IsSelfConstrainedTypeParameter(TypeSymbol type)
+        {
+            return IsSelfConstrainedTypeParameter(type, this.ContainingType);
         }
 
         private void CheckShiftSignature(BindingDiagnosticBag diagnostics)

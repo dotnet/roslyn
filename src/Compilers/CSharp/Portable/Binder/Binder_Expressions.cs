@@ -6151,8 +6151,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert((object)leftType != null);
                             if (leftType.TypeKind == TypeKind.TypeParameter)
                             {
-                                Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
-                                return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
+                                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                                this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstract);
+                                diagnostics.Add(right, useSiteInfo);
+                                if (lookupResult.IsMultiViable)
+                                {
+                                    // PROTOTYPE(StaticAbstractMembersInInterfaces): Check language version
+                                    return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
+                                }
+                                else if (lookupResult.IsClear)
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
+                                    return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
+                                }
                             }
                             else if (this.EnclosingNameofArgument == node)
                             {
@@ -6892,7 +6903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!IsBadBaseAccess(node, receiver, fieldSymbol, diagnostics))
             {
-                CheckRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
+                CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
             }
 
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).Type;
@@ -6968,25 +6979,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
         }
 
-        private void CheckRuntimeSupportForSymbolAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol symbol, BindingDiagnosticBag diagnostics)
+        private void CheckReceiverAndRuntimeSupportForSymbolAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol symbol, BindingDiagnosticBag diagnostics)
         {
-            if (symbol.ContainingType?.IsInterface == true && !Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+            if (symbol.ContainingType?.IsInterface == true)
             {
-                if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
-                    !symbol.IsImplementableInterfaceMember())
+                if (symbol.IsStatic && symbol.IsAbstract)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
-                }
-                else
-                {
-                    switch (symbol.DeclaredAccessibility)
-                    {
-                        case Accessibility.Protected:
-                        case Accessibility.ProtectedOrInternal:
-                        case Accessibility.ProtectedAndInternal:
+                    Debug.Assert(symbol is not TypeSymbol);
 
-                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, node);
-                            break;
+                    if (receiverOpt is BoundQueryClause { Value: var value })
+                    {
+                        receiverOpt = value;
+                    }
+
+                    if (receiverOpt is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadAbstractStaticMemberAccess, node);
+                        return;
+                    }
+
+                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces && Compilation.SourceModule != symbol.ContainingModule)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
+                        return;
+                    }
+                }
+
+                if (!Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+                {
+                    if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
+                        !symbol.IsImplementableInterfaceMember())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
+                    }
+                    else
+                    {
+                        switch (symbol.DeclaredAccessibility)
+                        {
+                            case Accessibility.Protected:
+                            case Accessibility.ProtectedOrInternal:
+                            case Accessibility.ProtectedAndInternal:
+
+                                Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, node);
+                                break;
+                        }
                     }
                 }
             }

@@ -6624,4 +6624,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadAbstractShiftOperatorSignature" xml:space="preserve">
     <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</value>
   </data>
+  <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
+    <value>A static abstract interface member can be accessed only on a type parameter.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsAbstractStaticMemberAccess" xml:space="preserve">
+    <value>An expression tree may not contain an access of static abstract interface member</value>
+  </data>
 </root>

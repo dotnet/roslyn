@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-                        condition = MakeBinaryOperator(node.Syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null);
+                        condition = MakeBinaryOperator(node.Syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null, constrainedToTypeOpt: null);
                     }
 
                     return MakeOptimizedGetValueOrDefault(tempOperand.Syntax, tempOperand);

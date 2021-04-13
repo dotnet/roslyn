@@ -1475,6 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Call,
             CallVirt,
+            ConstrainedCall,
             ConstrainedCallVirt,
         }
 
@@ -1508,7 +1509,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!method.RequiresInstanceReceiver)
             {
-                callKind = CallKind.Call;
+                Debug.Assert(method.IsStatic);
+
+                if (method.IsAbstract)
+                {
+                    if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
+                    callKind = CallKind.ConstrainedCall;
+                }
+                else
+                {
+                    callKind = CallKind.Call;
+                }
             }
             else
             {
@@ -1597,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // see bug 6156 for details.
 
             MethodSymbol actualMethodTargetedByTheCall = method;
-            if (method.IsOverride && callKind != CallKind.Call)
+            if (method.IsOverride && callKind is not (CallKind.Call or CallKind.ConstrainedCall))
             {
                 actualMethodTargetedByTheCall = method.GetConstructedLeastOverriddenMethod(_method.ContainingType, requireSameReturnType: true);
             }
@@ -1644,6 +1659,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (callKind)
             {
                 case CallKind.Call:
+                    _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
+                    break;
+
+                case CallKind.ConstrainedCall:
+                    _builder.EmitOpCode(ILOpCode.Constrained);
+                    EmitSymbolToken(receiver.Type, receiver.Syntax);
                     _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
                     break;
 
