@@ -4253,6 +4253,22 @@ class C
             ? x.ToString()
             : y.ToString(); // 6
     }
+
+    void M7(C? c)
+    {
+        int x, y;
+        _ = c?.M0(x = y = 0) is not C
+            ? x.ToString() // 7
+            : y.ToString();
+    }
+
+    void M8(C? c)
+    {
+        int x, y;
+        _ = c?.M0(x = y = 0) is null
+            ? x.ToString() // 8
+            : y.ToString();
+    }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
@@ -4273,7 +4289,13 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(45, 15),
                 // (53,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 6
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(53, 15)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(53, 15),
+                // (60,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 7
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(60, 15),
+                // (68,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 8
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(68, 15)
                 );
         }
 
