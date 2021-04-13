@@ -77,6 +77,11 @@
         <target state="translated">特性“{0}”对事件访问器无效。它仅对“{1}”声明有效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes require a lambda expression with a parenthesized parameter list.</source>
+        <target state="new">Attributes require a lambda expression with a parenthesized parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">无法将自动实现的属性 "{0}" 标记为 "readonly"，因为它具有 "set" 访问器。</target>

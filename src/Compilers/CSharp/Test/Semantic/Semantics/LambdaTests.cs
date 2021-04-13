@@ -598,9 +598,9 @@ class Program
                 // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
                 //         const string message = "The parameter is obsolete";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22),
-                // (9,35): error CS7014: Attributes are not valid in this context.
+                // (9,35): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
                 //         Action<int> a = delegate ([ObsoleteAttribute(message)] int x) { };
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(9, 35));
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[ObsoleteAttribute(message)]").WithLocation(9, 35));
         }
 
         [WorkItem(540263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540263")]
@@ -3645,18 +3645,18 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (8,56): error CS7014: Attributes are not valid in this context.
+                // (8,56): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
                 //         Action<object, object> a = delegate (object x, [A][B] object y) { };
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(8, 56),
-                // (8,59): error CS7014: Attributes are not valid in this context.
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[A]").WithLocation(8, 56),
+                // (8,59): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
                 //         Action<object, object> a = delegate (object x, [A][B] object y) { };
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[B]").WithLocation(8, 59),
-                // (9,34): error CS7014: Attributes are not valid in this context.
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[B]").WithLocation(8, 59),
+                // (9,34): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
                 //         Func<object, object> f = [A][B] x => x;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(9, 34),
-                // (9,37): error CS7014: Attributes are not valid in this context.
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[A]").WithLocation(9, 34),
+                // (9,37): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
                 //         Func<object, object> f = [A][B] x => x;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[B]").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[B]").WithLocation(9, 37)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -3847,9 +3847,9 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (13,34): error CS7014: Attributes are not valid in this context.
+                // (13,34): error CS8916: Attributes require a lambda expression with a parenthesized parameter list.
                 //         Func<object, object> d = [D] x => x;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[D]").WithLocation(13, 34));
+                Diagnostic(ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, "[D]").WithLocation(13, 34));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -4166,6 +4166,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            // PROTOTYPE: Report nullability mismatch warning assigning lambda to a2.
             comp.VerifyDiagnostics(
                 // (8,50): warning CS8602: Dereference of a possibly null reference.
                 //         Action<object> a1 = ([AllowNull] x) => { x.ToString(); };
@@ -4187,6 +4188,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, DoesNotReturnAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            // PROTOTYPE: Report warning that lambda expression in a1 initializer returns.
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

@@ -77,6 +77,11 @@
         <target state="translated">屬性 '{0}' 在事件存取子上無效。其只有在 '{1}' 宣告上才有效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes require a lambda expression with a parenthesized parameter list.</source>
+        <target state="new">Attributes require a lambda expression with a parenthesized parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">因為自動實作屬性 '{0}' 有 'set' 存取子，所以無法將其標記為 'readonly'。</target>

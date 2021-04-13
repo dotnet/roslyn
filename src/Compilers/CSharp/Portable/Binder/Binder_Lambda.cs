@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return discardsBuilder.ToImmutableAndFree();
             }
 
-            static void checkAttributes(AnonymousFunctionExpressionSyntax syntax, SyntaxList< AttributeListSyntax> attributeLists, BindingDiagnosticBag diagnostics)
+            static void checkAttributes(AnonymousFunctionExpressionSyntax syntax, SyntaxList<AttributeListSyntax> attributeLists, BindingDiagnosticBag diagnostics)
             {
                 foreach (var attributeList in attributeLists)
                 {
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                        Error(diagnostics, ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression, attributeList);
                     }
                 }
             }

@@ -77,6 +77,11 @@
         <target state="translated">属性 '{0}' はイベント アクセサーでは無効です。'{1}' 宣言でのみ有効です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes require a lambda expression with a parenthesized parameter list.</source>
+        <target state="new">Attributes require a lambda expression with a parenthesized parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">'set' アクセサーがあるため、自動実装プロパティ '{0}' を 'readonly' とマークすることはできません。</target>

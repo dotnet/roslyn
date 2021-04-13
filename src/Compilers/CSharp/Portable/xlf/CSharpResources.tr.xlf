@@ -77,6 +77,11 @@
         <target state="translated">'{0}' özniteliği olay erişimcilerinde geçerli değil. Bu öznitelik yalnızca '{1}' bildirimlerinde geçerlidir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes require a lambda expression with a parenthesized parameter list.</source>
+        <target state="new">Attributes require a lambda expression with a parenthesized parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Otomatik olarak uygulanan '{0}' özelliği 'set' erişimcisine sahip olduğundan 'readonly' olarak işaretlenemez.</target>

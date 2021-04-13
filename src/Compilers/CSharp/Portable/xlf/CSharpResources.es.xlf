@@ -77,6 +77,11 @@
         <target state="translated">El atributo "{0}" no es válido en descriptores de acceso de eventos. Solo es válido en declaraciones "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes require a lambda expression with a parenthesized parameter list.</source>
+        <target state="new">Attributes require a lambda expression with a parenthesized parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">La propiedad implementada automáticamente "{0}" no se puede marcar como "readonly" porque tiene un descriptor de acceso "set".</target>

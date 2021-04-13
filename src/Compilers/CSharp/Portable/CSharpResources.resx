@@ -3941,6 +3941,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_AttributesNotAllowed" xml:space="preserve">
     <value>Attributes are not valid in this context.</value>
   </data>
+  <data name="ERR_AttributesRequireParenthesizedLambdaExpression" xml:space="preserve">
+    <value>Attributes require a lambda expression with a parenthesized parameter list.</value>
+  </data>
   <data name="ERR_ExternAliasNotAllowed" xml:space="preserve">
     <value>'extern alias' is not valid in this context</value>
   </data>
