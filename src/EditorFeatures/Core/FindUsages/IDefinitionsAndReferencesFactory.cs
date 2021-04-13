@@ -147,24 +147,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         private static Task<DefinitionItem> ToDefinitionItemAsync(
-            ISymbol definition,
-            Solution solution,
-            bool isPrimary,
-            bool includeHiddenLocations,
-            bool includeClassifiedSpans,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+            ISymbol definition, Solution solution, bool isPrimary, bool includeHiddenLocations, bool includeClassifiedSpans, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return ToDefinitionItemAsync(
-                definition,
-                definition.Locations,
-                ImmutableArray<TaggedText>.Empty,
-                solution,
-                isPrimary,
-                includeHiddenLocations,
-                includeClassifiedSpans,
-                options,
-                cancellationToken);
+                definition, definition.Locations, ImmutableArray<TaggedText>.Empty, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans, options, cancellationToken);
         }
 
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
