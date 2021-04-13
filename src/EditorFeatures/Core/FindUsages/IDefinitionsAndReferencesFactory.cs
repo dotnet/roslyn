@@ -86,17 +86,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
-            this SymbolGroup group,
-            Solution solution,
-            bool isPrimary,
-            bool includeHiddenLocations,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+            this SymbolGroup group, Solution solution, bool isPrimary, bool includeHiddenLocations, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return ToDefinitionItemAsync(
-                group, solution, isPrimary,
-                includeHiddenLocations, includeClassifiedSpans: true,
-                options, cancellationToken);
+            return ToDefinitionItemAsync(group, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
         }
 
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
