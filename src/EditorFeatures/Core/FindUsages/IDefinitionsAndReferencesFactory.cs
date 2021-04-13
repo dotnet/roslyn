@@ -244,11 +244,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         var document = solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
-                            // If we have linked symbols, they may provide locations collide with what we already have
-                            // entries for.  Specifically, they're the same *file*/*span*, but not the same *doc*/*span.
-                            if (CollidesWithLinkedLocation(sourceLocations, document, location.SourceSpan))
-                                continue;
-
                             var documentLocation = !includeClassifiedSpans
                                 ? new DocumentSpan(document, location.SourceSpan)
                                 : await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
@@ -275,20 +270,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return DefinitionItem.Create(
                 tags, displayParts, sourceLocations.ToImmutable(),
                 nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
-
-            static bool CollidesWithLinkedLocation(ArrayBuilder<DocumentSpan> sourceLocations, Document document, TextSpan sourceSpan)
-            {
-                foreach (var existingLoc in sourceLocations)
-                {
-                    if (sourceSpan == existingLoc.SourceSpan &&
-                        existingLoc.Document.FilePath == document.FilePath)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
         }
 
         private static ImmutableDictionary<string, string> GetProperties(ISymbol definition, bool isPrimary)
