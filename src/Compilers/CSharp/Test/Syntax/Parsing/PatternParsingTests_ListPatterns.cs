@@ -1266,5 +1266,256 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        [Fact]
+        public void SlicePattern_13()
+        {
+            UsingExpression(@"c is {{}..}",
+                // (1,9): error CS1003: Syntax error, ',' expected
+                // c is {{}..}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",", "..").WithLocation(1, 9));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.ListPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PropertyPatternClause);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.SlicePattern);
+                            {
+                                N(SyntaxKind.DotDotToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_14()
+        {
+            UsingExpression(@"c is not p ..",
+                // (1,13): error CS1001: Identifier expected
+                // c is not p ..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 13),
+                // (1,14): error CS1001: Identifier expected
+                // c is not p ..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 14));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.NotPattern);
+                {
+                    N(SyntaxKind.NotKeyword);
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "p");
+                                }
+                                N(SyntaxKind.DotToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_15()
+        {
+            UsingExpression(@"c is not ..");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.NotPattern);
+                {
+                    N(SyntaxKind.NotKeyword);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_16()
+        {
+            UsingExpression(@"c is [..] ..",
+                // (1,11): error CS1073: Unexpected token '..'
+                // c is [..] ..
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments("..").WithLocation(1, 11));
+
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.LengthPatternClause);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.SlicePattern);
+                            {
+                                N(SyntaxKind.DotDotToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_17()
+        {
+            UsingExpression(@"c is a .. or b ..",
+                // (1,9): error CS1001: Identifier expected
+                // c is a .. or b ..
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 9),
+                // (1,16): error CS1073: Unexpected token '..'
+                // c is a .. or b ..
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments("..").WithLocation(1, 16));
+
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IsPatternExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.DotToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "or");
+                            }
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_18()
+        {
+            UsingExpression(@"c is (var x) .. > 0",
+                // (1,14): error CS1073: Unexpected token '..'
+                // c is (var x) .. > 0
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments("..").WithLocation(1, 14));
+
+            N(SyntaxKind.GreaterThanExpression);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.ParenthesizedPattern);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.VarPattern);
+                            {
+                                N(SyntaxKind.VarKeyword);
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.DotDotToken);
+                }
+                N(SyntaxKind.GreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            EOF();
+        }
     }
 }
