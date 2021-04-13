@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ExplicitInterfaceMethod,
                 Field,
                 Label,
-                // LinkedFiles,
                 Local,
                 MethodTypeParameter,
                 NamedType,
