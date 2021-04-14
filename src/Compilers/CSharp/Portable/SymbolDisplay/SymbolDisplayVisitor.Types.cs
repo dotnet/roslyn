@@ -395,7 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddDelegateParameters(symbol);
             }
 
-            AddUnderlyingEnumType(symbol);
             // Only the compiler can set the internal option and the compiler doesn't use other implementations of INamedTypeSymbol.
             if (underlyingTypeSymbol?.OriginalDefinition is MissingMetadataTypeSymbol &&
                 format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes))
@@ -404,17 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.OpenBracketToken);
                 builder.Add(CreatePart(InternalSymbolDisplayPartKind.Other, symbol, "missing"));
                 AddPunctuation(SyntaxKind.CloseBracketToken);
-            }
-        }
-
-        private void AddUnderlyingEnumType(INamedTypeSymbol symbol)
-        {
-            if (symbol.TypeKind == TypeKind.Enum && symbol.EnumUnderlyingType.SpecialType != SpecialType.System_Int32)
-            {
-                AddSpace();
-                AddPunctuation(SyntaxKind.ColonToken);
-                AddSpace();
-                AddSpecialTypeKeyword(symbol.EnumUnderlyingType);
             }
         }
 
