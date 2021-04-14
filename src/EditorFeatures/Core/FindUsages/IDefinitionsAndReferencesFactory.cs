@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
             // root definition node for it.  That node won't be navigable.
-            using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
+            using var sourceLocations = TemporaryArray<DocumentSpan>.Empty;
             if (definition.Kind != SymbolKind.Namespace)
             {
                 foreach (var location in locations)
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutable(),
+                tags, displayParts, sourceLocations.ToImmutableAndClear(),
                 nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
