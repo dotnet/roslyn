@@ -59,8 +59,11 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputBuilder;
 
-        internal IncrementalGeneratorPipelineContext(ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
+        public ValueSources Sources { get; }
+
+        internal IncrementalGeneratorPipelineContext(ValueSources sources, ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
         {
+            Sources = sources;
             _outputBuilder = outputBuilder;
         }
 
@@ -123,5 +126,11 @@ namespace Microsoft.CodeAnalysis
 
         internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
                 => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree());
+
+        internal void Free()
+        {
+            Sources.Free();
+            Diagnostics.Free();
+        }
     }
 }

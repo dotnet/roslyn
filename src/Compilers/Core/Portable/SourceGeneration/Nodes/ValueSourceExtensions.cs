@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         // PROTOTYPE(source-generators): naming. Does GenerateSource make it sound like you can't have multiple IncrementalGeneratorOutputs?
 
         // 1 => 1 production
-        internal static IncrementalGeneratorOutput GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => default;
+        internal static IncrementalGeneratorOutput GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => new IncrementalGeneratorOutput(new SourceOutputNode<T>(source.node, action.WrapUserAction()));
 
         // single => 1 production
         internal static IncrementalGeneratorOutput GenerateSourceBatch<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, IEnumerable<T>> action) => default;

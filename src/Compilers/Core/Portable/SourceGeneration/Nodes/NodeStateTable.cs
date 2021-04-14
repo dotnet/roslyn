@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         IStateTable IStateTable.Compact() => Compact();
+        public Builder ToBuilder()
+        {
+            Debug.Assert(!this.IsFaulted);
+            return new Builder(this);
+        }
 
         // PROTOTYPE: this will be called to allow exceptions to flow through the graph
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
@@ -111,6 +116,13 @@ namespace Microsoft.CodeAnalysis
             private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
 
             private Exception? _exception = null;
+
+            public Builder() { }
+
+            public Builder(NodeStateTable<T> previous)
+            {
+                _states.AddRange(previous._states);
+            }
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
             {

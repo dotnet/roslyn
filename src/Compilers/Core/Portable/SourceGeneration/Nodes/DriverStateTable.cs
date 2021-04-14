@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis
             _tables = tables;
         }
 
+        internal NodeStateTable<T> GetStateTable<T>(IIncrementalGeneratorNode<T> input) => _tables.ContainsKey(input) ? (NodeStateTable<T>)_tables[input] : NodeStateTable<T>.Empty;
+
+        internal DriverStateTable SetStateTable<T>(IIncrementalGeneratorNode<T> input, NodeStateTable<T> table) => new DriverStateTable(_tables.SetItem(input, table));
+
         public sealed class Builder
         {
             private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
@@ -47,9 +51,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // get the previous table, if there was one for this node
-                NodeStateTable<T> previousTable = _previousTable._tables.ContainsKey(source)
-                                                  ? (NodeStateTable<T>)_previousTable._tables[source]
-                                                  : NodeStateTable<T>.Empty;
+                NodeStateTable<T> previousTable = _previousTable.GetStateTable(source);
 
                 // request the node update its state based on the current driver table and store the new result
                 var newTable = source.UpdateStateTable(this, previousTable);
