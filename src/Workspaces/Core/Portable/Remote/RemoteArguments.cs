@@ -214,17 +214,12 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SerializableSymbolGroup : IEquatable<SerializableSymbolGroup>
     {
         [DataMember(Order = 0)]
-        public readonly SerializableSymbolAndProjectId PrimarySymbol;
-        [DataMember(Order = 1)]
         public readonly HashSet<SerializableSymbolAndProjectId> Symbols;
 
         private int _hashCode;
 
-        public SerializableSymbolGroup(
-            SerializableSymbolAndProjectId primarySymbol,
-            HashSet<SerializableSymbolAndProjectId> symbols)
+        public SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols)
         {
-            PrimarySymbol = primarySymbol;
             Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols);
         }
 
@@ -252,11 +247,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static SerializableSymbolGroup Dehydrate(Solution solution, SymbolGroup group, CancellationToken cancellationToken)
         {
-            return new SerializableSymbolGroup(
-                SerializableSymbolAndProjectId.Dehydrate(solution, group.PrimarySymbol, cancellationToken),
-                new HashSet<SerializableSymbolAndProjectId>(
-                    group.Symbols.Select(
-                        s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))));
+            return new SerializableSymbolGroup(new HashSet<SerializableSymbolAndProjectId>(
+                group.Symbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))));
         }
     }
 

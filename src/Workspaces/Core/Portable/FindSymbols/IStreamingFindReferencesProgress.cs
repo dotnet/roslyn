@@ -22,27 +22,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal class SymbolGroup : IEquatable<SymbolGroup>
     {
         /// <summary>
-        /// The main symbol of the group (normally the symbol that was searched for).
-        /// </summary>
-        public ISymbol PrimarySymbol { get; }
-
-        /// <summary>
-        /// All the symbols in the group.  Will include <see cref="PrimarySymbol"/>.
+        /// All the symbols in the group.
         /// </summary>
         public ImmutableHashSet<ISymbol> Symbols { get; }
 
         private int _hashCode;
 
-        public SymbolGroup(ISymbol primarySymbol, ImmutableArray<ISymbol> symbols)
+        public SymbolGroup(ImmutableArray<ISymbol> symbols)
         {
             Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty);
-            Contract.ThrowIfFalse(symbols.Contains(primarySymbol));
 
             // We should only get an actual group of symbols if these were from source.
             // Metadata symbols never form a group.
             Contract.ThrowIfTrue(symbols.Length >= 2 && symbols.Any(s => s.Locations.Any(loc => loc.IsInMetadata)));
 
-            PrimarySymbol = primarySymbol;
             Symbols = ImmutableHashSet.CreateRange(
                 MetadataUnifyingEquivalenceComparer.Instance, symbols);
         }

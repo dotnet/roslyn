@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // If we had symbols from different project flavors, add the project flavor info into the definition
             // item name to show the user.
             var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
-            return ToDefinitionItemAsync(group.PrimarySymbol, allLocations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
+            return ToDefinitionItemAsync(group.Symbols.First(), allLocations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
         }
 
         private static Task<DefinitionItem> ToDefinitionItemAsync(

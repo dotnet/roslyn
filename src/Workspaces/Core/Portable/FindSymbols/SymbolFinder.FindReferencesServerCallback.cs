@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     pairs[symbolAndProjectId] = symbol;
                 }
 
-                var primarySymbol = pairs[dehydrated.PrimarySymbol];
-
-                var symbolGroup = new SymbolGroup(primarySymbol, symbols.ToImmutable());
+                var symbolGroup = new SymbolGroup(symbols.ToImmutable());
                 lock (_gate)
                 {
                     _groupMap[dehydrated] = symbolGroup;
