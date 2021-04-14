@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                             ' ERRID_SourceInterfaceMustBeInterface/ERR_MissingSourceInterface
                             EmbeddedTypesManager.ReportDiagnostic(diagnostics, ERRID.ERR_SourceInterfaceMustBeInterface, syntaxNodeOpt, underlyingContainingType.AdaptedNamedTypeSymbol, UnderlyingEvent.AdaptedEventSymbol)
                         Else
-                            Dim useSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies
+                            Dim useSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies
                             sourceInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                             diagnostics.Add(If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation()), useSiteInfo.Diagnostics)
 

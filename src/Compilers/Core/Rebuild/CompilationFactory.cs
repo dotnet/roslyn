@@ -40,22 +40,42 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
         public abstract SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText);
 
+        public Compilation CreateCompilation(IRebuildArtifactResolver resolver)
+        {
+            var tuple = OptionsReader.ResolveArtifacts(resolver, CreateSyntaxTree);
+            return CreateCompilation(tuple.SyntaxTrees, tuple.MetadataReferences);
+        }
+
         public abstract Compilation CreateCompilation(
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> metadataReferences);
 
         public EmitResult Emit(
             Stream rebuildPeStream,
+            Stream? rebuildPdbStream,
+            IRebuildArtifactResolver rebuildArtifactResolver,
+            CancellationToken cancellationToken)
+            => Emit(
+                rebuildPeStream,
+                rebuildPdbStream,
+                CreateCompilation(rebuildArtifactResolver),
+                cancellationToken);
+
+        public EmitResult Emit(
+            Stream rebuildPeStream,
+            Stream? rebuildPdbStream,
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> metadataReferences,
             CancellationToken cancellationToken)
             => Emit(
                 rebuildPeStream,
+                rebuildPdbStream,
                 CreateCompilation(syntaxTrees, metadataReferences),
                 cancellationToken);
 
         public EmitResult Emit(
             Stream rebuildPeStream,
+            Stream? rebuildPdbStream,
             Compilation rebuildCompilation,
             CancellationToken cancellationToken)
         {
@@ -67,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
             return Emit(
                 rebuildPeStream,
+                rebuildPdbStream,
                 rebuildCompilation,
                 embeddedTexts,
                 cancellationToken);
@@ -74,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
         public unsafe EmitResult Emit(
             Stream rebuildPeStream,
+            Stream? rebuildPdbStream,
             Compilation rebuildCompilation,
             ImmutableArray<EmbeddedText> embeddedTexts,
             CancellationToken cancellationToken)
@@ -87,16 +109,41 @@ namespace Microsoft.CodeAnalysis.Rebuild
             var sourceLink = OptionsReader.GetSourceLinkUTF8();
 
             var debugEntryPoint = getDebugEntryPoint();
+            string? pdbFilePath;
+            DebugInformationFormat debugInformationFormat;
+            if (OptionsReader.HasEmbeddedPdb)
+            {
+                if (rebuildPdbStream is object)
+                {
+                    throw new ArgumentException("PDB stream must be null because the compilation has an embedded PDB", nameof(rebuildPdbStream));
+                }
+
+                debugInformationFormat = DebugInformationFormat.Embedded;
+                pdbFilePath = null;
+            }
+            else
+            {
+                if (rebuildPdbStream is null)
+                {
+                    throw new ArgumentException("A non-null PDB stream must be provided because the compilation does not have an embedded PDB", nameof(rebuildPdbStream));
+                }
+
+                debugInformationFormat = DebugInformationFormat.PortablePdb;
+                var codeViewEntry = OptionsReader.PeReader.ReadDebugDirectory().Single(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+                var codeView = OptionsReader.PeReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
+                pdbFilePath = codeView.Path ?? throw new InvalidOperationException("Could not get PDB file path");
+            }
 
             var emitResult = rebuildCompilation.Emit(
                 peStream: rebuildPeStream,
-                pdbStream: null,
+                pdbStream: rebuildPdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: win32ResourceStream,
                 useRawWin32Resources: true,
                 manifestResources: OptionsReader.GetManifestResources(),
                 options: new EmitOptions(
-                    debugInformationFormat: DebugInformationFormat.Embedded,
+                    debugInformationFormat: debugInformationFormat,
+                    pdbFilePath: pdbFilePath,
                     highEntropyVirtualAddressSpace: (peHeader.DllCharacteristics & DllCharacteristics.HighEntropyVirtualAddressSpace) != 0,
                     subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
                 debugEntryPoint: debugEntryPoint,

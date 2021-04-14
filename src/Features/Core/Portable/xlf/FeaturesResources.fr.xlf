@@ -2312,13 +2312,13 @@ Bien qu'il soit possible d'afficher les dix millièmes d'un deuxième composant 
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">Le spécificateur de format personnalisé "f" représente le chiffre le plus significatif de la fraction de seconde. En d'autres termes, il représente les dixièmes de seconde d'une valeur de date et d'heure.
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="needs-review-translation">Le spécificateur de format personnalisé "f" représente le chiffre le plus significatif de la fraction de seconde. En d'autres termes, il représente les dixièmes de seconde d'une valeur de date et d'heure.
 
 Si le spécificateur de format "f" est utilisé sans autres spécificateurs de format, il est interprété en tant que spécificateur de format de date et d'heure standard : "f".
 
 Quand vous utilisez les spécificateurs de format "f" dans le cadre d'une chaîne de format fournie à la méthode ParseExact, TryParseExact, ParseExact ou TryParseExact, le nombre de spécificateurs de format "f" indique le nombre de chiffres les plus significatifs de la fraction de seconde qui doivent être présents pour permettre une analyse correcte de la chaîne.</target>
-        <note />
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
