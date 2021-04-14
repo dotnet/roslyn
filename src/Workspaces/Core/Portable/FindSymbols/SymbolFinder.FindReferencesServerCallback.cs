@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 Contract.ThrowIfTrue(dehydrated.Symbols.Count == 0);
 
-                using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
-                using var _2 = PooledDictionary<SerializableSymbolAndProjectId, ISymbol>.GetInstance(out var pairs);
+                using var _1 = PooledDictionary<SerializableSymbolAndProjectId, ISymbol>.GetInstance(out var map);
 
                 foreach (var symbolAndProjectId in dehydrated.Symbols)
                 {
@@ -77,15 +76,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (symbol == null)
                         return;
 
-                    symbols.Add(symbol);
-                    pairs[symbolAndProjectId] = symbol;
+                    map[symbolAndProjectId] = symbol;
                 }
 
-                var symbolGroup = new SymbolGroup(symbols.ToImmutable());
+                var symbolGroup = new SymbolGroup(map.Values.ToImmutableArray());
                 lock (_gate)
                 {
                     _groupMap[dehydrated] = symbolGroup;
-                    foreach (var pair in pairs)
+                    foreach (var pair in map)
                         _definitionMap[pair.Key] = pair.Value;
                 }
 
