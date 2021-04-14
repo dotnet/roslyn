@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (this == other)
                 return true;
 
-            return this.ProjectId == other.ProjectId &&
+            return this.ProjectId == other?.ProjectId &&
                    this.SymbolKeyData == other?.SymbolKeyData;
         }
 
