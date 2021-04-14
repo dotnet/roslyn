@@ -1724,7 +1724,22 @@ private void M()
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
-        public async Task EnumNonDefaultUnderlyingType_NotOnMemberAccess()
+        public async Task EnumNonDefaultUnderlyingType_OnMemberAccessOnType()
+        {
+            await TestInClassAsync(@"
+enum E : byte { A, B }
+
+private void M()
+{
+    var ea = E$$.A;
+}
+",
+                MainDescription("enum C.E : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_NotOnMemberAccessOnMember()
         {
             await TestInClassAsync(@"
 enum E : byte { A, B }
@@ -1735,6 +1750,46 @@ private void M()
 }
 ",
                 MainDescription("E.A = 0"));
+        }
+
+        [Theory, WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        [InlineData("byte", "byte")]
+        [InlineData("byte", "System.Byte")]
+        [InlineData("sbyte", "sbyte")]
+        [InlineData("sbyte", "System.SByte")]
+        [InlineData("short", "short")]
+        [InlineData("short", "System.Int16")]
+        [InlineData("ushort", "ushort")]
+        [InlineData("ushort", "System.UInt16")]
+        // int is the default type and is not shown
+        [InlineData("uint", "uint")]
+        [InlineData("uint", "System.UInt32")]
+        [InlineData("long", "long")]
+        [InlineData("long", "System.Int64")]
+        [InlineData("ulong", "ulong")]
+        [InlineData("ulong", "System.UInt64")]
+        public async Task EnumNonDefaultUnderlyingType_ShowForNonDefaultTypes(string displayTypeName, string underlyingTypeName)
+        {
+            await TestInClassAsync(@$"
+enum E$$ : {underlyingTypeName}
+{{
+    A, B
+}}",
+                MainDescription($"enum C.E : {displayTypeName}"));
+        }
+
+        [Theory, WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        [InlineData("")]
+        [InlineData(": int")]
+        [InlineData(": System.Int32")]
+        public async Task EnumNonDefaultUnderlyingType_DontShowForDefaultType(string defaultType)
+        {
+            await TestInClassAsync(@$"
+enum E$$ {defaultType}
+{{
+    A, B
+}}",
+                MainDescription("enum C.E"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
