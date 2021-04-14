@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
 {
@@ -49,13 +48,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
         }
 
         public ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken)
-        {
-            return new();
-        }
+            => new();
 
         public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            return new();
-        }
+            => new();
     }
 }
