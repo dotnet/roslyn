@@ -51,20 +51,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 using var clientConnection = await clientConnectionTask.ConfigureAwait(false);
                 var request = await clientConnection.ReadBuildRequestAsync(cancellationToken).ConfigureAwait(false);
-
-                if (request.ProtocolVersion != BuildProtocolConstants.ProtocolVersion)
-                {
-                    return await WriteBuildResponseAsync(
-                        clientConnection,
-                        new MismatchedVersionBuildResponse(),
-                        CompletionData.RequestError,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                Logger.Log($"Received request {request.RequestId} of type {request.GetType()}");
 
                 if (!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
                 {
                     return await WriteBuildResponseAsync(
                         clientConnection,
+                        request.RequestId,
                         new IncorrectHashBuildResponse(),
                         CompletionData.RequestError,
                         cancellationToken).ConfigureAwait(false);
@@ -74,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     return await WriteBuildResponseAsync(
                         clientConnection,
+                        request.RequestId,
                         new ShutdownBuildResponse(Process.GetCurrentProcess().Id),
                         new CompletionData(CompletionReason.RequestCompleted, shutdownRequested: true),
                         cancellationToken).ConfigureAwait(false);
@@ -83,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     return await WriteBuildResponseAsync(
                         clientConnection,
+                        request.RequestId,
                         new RejectedBuildResponse("Compilation not allowed at this time"),
                         CompletionData.RequestCompleted,
                         cancellationToken).ConfigureAwait(false);
@@ -92,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     return await WriteBuildResponseAsync(
                         clientConnection,
+                        request.RequestId,
                         new RejectedBuildResponse("Not enough resources to accept connection"),
                         CompletionData.RequestError,
                         cancellationToken).ConfigureAwait(false);
@@ -101,12 +97,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
+        private async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, Guid requestId, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
         {
             var message = response switch
             {
-                RejectedBuildResponse r => $"Writing {r.Type} response '{r.Reason}' for {clientConnection.LoggingIdentifier}",
-                _ => $"Writing {response.Type} response for {clientConnection.LoggingIdentifier}"
+                RejectedBuildResponse r => $"Writing {r.Type} response '{r.Reason}' for {requestId}",
+                _ => $"Writing {response.Type} response for {requestId}"
             };
             Logger.Log(message);
             await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
@@ -143,13 +139,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     {
                         // The compilation task should never throw. If it does we need to assume that the compiler is
                         // in a bad state and need to issue a RequestError
-                        Logger.LogException(ex, $"Exception running compilation for {clientConnection.LoggingIdentifier}");
+                        Logger.LogException(ex, $"Exception running compilation for {request.RequestId}");
                         response = new RejectedBuildResponse($"Exception during compilation: {ex.Message}");
                         completionData = CompletionData.RequestError;
                     }
 
                     return await WriteBuildResponseAsync(
                         clientConnection,
+                        request.RequestId,
                         response,
                         completionData,
                         cancellationToken).ConfigureAwait(false);
