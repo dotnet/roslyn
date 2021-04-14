@@ -18,15 +18,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal readonly struct EmitSolutionUpdateResults
     {
-        public static readonly EmitSolutionUpdateResults Empty =
-            new(new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty),
-                ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)>.Empty,
-                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
-
-        public readonly ManagedModuleUpdates ModuleUpdates;
-        public readonly ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)> Diagnostics;
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits;
-
         [DataContract]
         internal readonly struct Data
         {
@@ -49,6 +40,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 RudeEdits = rudeEdits;
             }
         }
+
+        public static readonly EmitSolutionUpdateResults Empty =
+            new(new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty),
+                ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)>.Empty,
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
+
+        public readonly ManagedModuleUpdates ModuleUpdates;
+        public readonly ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)> Diagnostics;
+        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits;
 
         public EmitSolutionUpdateResults(
             ManagedModuleUpdates moduleUpdates,
