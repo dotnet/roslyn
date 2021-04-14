@@ -49,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 member.Glyph.GetImageMoniker(),
                 displayName,
                 member.TargetItems.GroupBy(target => target.RelationToMember)
-                    .SelectAsArray(grouping => InheritanceMarginHelpers.CreateMenuItemsWithSeparator(grouping.SelectAsArray(g => g), grouping.Key))
+                    .Select((grouping, index) => InheritanceMarginHelpers.CreateMenuItemsWithSeparator(grouping.SelectAsArray(g => g), grouping.Key, index == 0))
+                    .ToImmutableArray()
                     .CastArray<MenuItemViewModel>());
         }
     }

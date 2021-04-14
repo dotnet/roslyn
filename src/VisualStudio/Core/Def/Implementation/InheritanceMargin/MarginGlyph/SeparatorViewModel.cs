@@ -12,8 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     /// </summary>
     internal class SeparatorViewModel : MenuItemViewModel
     {
-        public SeparatorViewModel(ImageMoniker imageMoniker) : base(imageMoniker)
+        public bool IsFirstMenuItem { get; }
+
+        public SeparatorViewModel(bool isFirstMenuItem, ImageMoniker imageMoniker) : base(imageMoniker)
         {
+            IsFirstMenuItem = isFirstMenuItem;
         }
     }
 }

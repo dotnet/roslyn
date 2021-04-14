@@ -22,12 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             //  If there are multiple targets and we have the corresponding compound image, use it
             if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverriding))
             {
-                return KnownMonikers.Implementing;
+                return KnownMonikers.ImplementingOverriding;
             }
 
             if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverridden))
             {
-                return KnownMonikers.Implementing;
+                return KnownMonikers.ImplementingOverridden;
             }
 
             // Otherwise, show the image based on this preference
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // Otherwise, it means these targets has different relationship,
                 // the targets would be shown in group, and a separator should be shown as the first item to indicate the relationship to user.
                 return targetsByRelationship
-                    .SelectMany(grouping => CreateMenuItemsWithSeparator(grouping.SelectAsArray(g => g), grouping.Key))
+                    .SelectMany((grouping, index) => CreateMenuItemsWithSeparator(grouping.SelectAsArray(g => g), grouping.Key, index == 0))
                     .ToImmutableArray();
             }
         }
@@ -96,10 +96,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithSeparator(ImmutableArray<InheritanceTargetItem> targets, InheritanceRelationship relationship)
+        public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithSeparator(
+            ImmutableArray<InheritanceTargetItem> targets,
+            InheritanceRelationship relationship,
+            bool isTheSeparatorTheFirstItem)
         {
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
-            var separatorViewModel = new SeparatorViewModel(GetMoniker(relationship));
+            var separatorViewModel = new SeparatorViewModel(isTheSeparatorTheFirstItem, GetMoniker(relationship));
             builder.Add(separatorViewModel);
             foreach (var targetItem in targets)
             {
