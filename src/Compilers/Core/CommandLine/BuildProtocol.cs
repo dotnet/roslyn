@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Parse the request into the Request data structure.
             using var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode);
-            var requestId = ReadGuid(reader);
+            var requestId = readGuid(reader);
             var language = (RequestLanguage)reader.ReadUInt32();
             var compilerHash = reader.ReadString();
             uint argumentCount = reader.ReadUInt32();
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                     argumentsBuilder,
                                     requestId);
 
-            static Guid ReadGuid(BinaryReader reader)
+            static Guid readGuid(BinaryReader reader)
             {
                 const int size = 16;
                 var bytes = new byte[size];
@@ -176,37 +176,35 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         public async Task WriteAsync(Stream outStream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var memoryStream = new MemoryStream())
-            using (var writer = new BinaryWriter(memoryStream, Encoding.Unicode))
+            using var memoryStream = new MemoryStream();
+            using var writer = new BinaryWriter(memoryStream, Encoding.Unicode);
+            writer.Write(RequestId.ToByteArray());
+            writer.Write((uint)Language);
+            writer.Write(CompilerHash);
+            writer.Write(Arguments.Count);
+            foreach (Argument arg in Arguments)
             {
-                writer.Write(RequestId.ToByteArray());
-                writer.Write((uint)Language);
-                writer.Write(CompilerHash);
-                writer.Write(Arguments.Count);
-                foreach (Argument arg in Arguments)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    arg.WriteToBinaryWriter(writer);
-                }
-                writer.Flush();
-
                 cancellationToken.ThrowIfCancellationRequested();
-
-                // Write the length of the request
-                int length = checked((int)memoryStream.Length);
-
-                // Back out if the request is > 1 MB
-                if (memoryStream.Length > 0x100000)
-                {
-                    throw new ArgumentOutOfRangeException("Request is over 1MB in length");
-                }
-
-                await outStream.WriteAsync(BitConverter.GetBytes(length), 0, 4,
-                                           cancellationToken).ConfigureAwait(false);
-
-                memoryStream.Position = 0;
-                await memoryStream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
+                arg.WriteToBinaryWriter(writer);
             }
+            writer.Flush();
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Write the length of the request
+            int length = checked((int)memoryStream.Length);
+
+            // Back out if the request is > 1 MB
+            if (memoryStream.Length > 0x100000)
+            {
+                throw new ArgumentOutOfRangeException("Request is over 1MB in length");
+            }
+
+            await outStream.WriteAsync(BitConverter.GetBytes(length), 0, 4,
+                                       cancellationToken).ConfigureAwait(false);
+
+            memoryStream.Position = 0;
+            await memoryStream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
