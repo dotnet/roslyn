@@ -16,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     public abstract class WorkspaceBase : AbstractEditorTest
     {
-        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
+        protected WorkspaceBase(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
             : base(instanceFactory, nameof(WorkspaceBase), projectTemplate)
         {
             DefaultProjectTemplate = projectTemplate;
