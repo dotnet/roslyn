@@ -841,16 +841,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal void Complete(SourceNamespaceSymbol declaringSymbol, SyntaxReference declarationSyntax, CancellationToken cancellationToken)
             {
-                var externAliasesAndDiagnostics = _lazyExternAliases ?? GetExternAliasesAndDiagnostics(declaringSymbol, (CSharpSyntaxNode)declarationSyntax.GetSyntax());
+                var externAliasesAndDiagnostics = _lazyExternAliases ?? GetExternAliasesAndDiagnostics(declaringSymbol, (CSharpSyntaxNode)declarationSyntax.GetSyntax(cancellationToken));
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var globalUsingsAndDiagnostics = _lazyGlobalUsings ??
                                                 (declaringSymbol.IsGlobalNamespace ?
-                                                     GetGlobalUsingsAndDiagnostics(declaringSymbol, (CSharpSyntaxNode)declarationSyntax.GetSyntax(), basesBeingResolved: null) :
+                                                     GetGlobalUsingsAndDiagnostics(declaringSymbol, (CSharpSyntaxNode)declarationSyntax.GetSyntax(cancellationToken), basesBeingResolved: null) :
                                                      UsingsAndDiagnostics.Empty);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var usingsAndDiagnostics = _lazyUsings ?? GetUsingsAndDiagnostics(declaringSymbol, (CSharpSyntaxNode)declarationSyntax.GetSyntax(), basesBeingResolved: null);
+                var usingsAndDiagnostics = _lazyUsings ?? GetUsingsAndDiagnostics(declaringSymbol, (CSharpSyntaxNode)declarationSyntax.GetSyntax(cancellationToken), basesBeingResolved: null);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 while (true)
