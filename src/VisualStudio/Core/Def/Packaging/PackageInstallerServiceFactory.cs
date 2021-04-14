@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return true;
         }
 
-        private async ValueTask<IVsPackageSourceProvider> GetPackageSourceProviderAsync(CancellationToken cancellationToken)
+        private async ValueTask<IVsPackageSourceProvider> GetPackageSourceProviderAsync()
         {
             Contract.ThrowIfFalse(IsEnabled);
 
@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             // Continue on captured context since EnableServiceAsync is part of a UI thread initialization sequence
-            var packageSourceProvider = await GetPackageSourceProviderAsync(cancellationToken).ConfigureAwait(true);
+            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(true);
 
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
