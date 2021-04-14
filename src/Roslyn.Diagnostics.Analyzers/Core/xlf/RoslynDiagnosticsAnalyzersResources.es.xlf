@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="AddSharedAttribute">
         <source>Add 'Shared' attribute</source>
-        <target state="new">Add 'Shared' attribute</target>
+        <target state="translated">Agregar el atributo "Shared"</target>
         <note>{Locked="Shared"}</note>
       </trans-unit>
       <trans-unit id="ApplyTraitToContainingType">
         <source>Apply trait to containing type</source>
-        <target state="new">Apply trait to containing type</target>
+        <target state="translated">Aplicar rasgo al tipo contenedor</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
@@ -109,12 +109,12 @@
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
         <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
-        <target state="new">Auto-properties always copy values, so they cannot be declared with non-copyable types.</target>
+        <target state="translated">Las propiedades automáticas siempre copian los valores, por lo que no pueden declararse con tipos que no se puedan copiar.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
         <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
-        <target state="new">Auto-property '{1}' cannot have non-copyable type '{0}'</target>
+        <target state="translated">La propiedad automática "{1}" no puede tener el tipo "{0}" que no se puede copiar.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
@@ -129,12 +129,12 @@
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
         <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
-        <target state="new">A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</target>
+        <target state="translated">Un campo con un tipo que no se pueda copiar no puede ser miembro de un tipo que pueda copiarse. El tipo contenedor puede hacerse no copiable o convertirse en un tipo de referencia, o bien el campo puede quitarse o convertirse en un tipo que se pueda copiar.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
         <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
-        <target state="new">Copyable field '{1}' cannot have non-copyable type '{0}'</target>
+        <target state="translated">El campo "{1}" que se puede copiar no puede tener el tipo "{0}" que no puede copiarse.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">

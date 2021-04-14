@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
     internal sealed class GlobalFlowStateAnalysisValueSet : CacheBasedEquatable<GlobalFlowStateAnalysisValueSet>
     {
-        public static readonly GlobalFlowStateAnalysisValueSet Unset = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Unset = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Unset);
-        public static readonly GlobalFlowStateAnalysisValueSet Empty = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Empty = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Empty);
-        public static readonly GlobalFlowStateAnalysisValueSet Unknown = new GlobalFlowStateAnalysisValueSet(
+        public static readonly GlobalFlowStateAnalysisValueSet Unknown = new(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Unknown);
 
         private GlobalFlowStateAnalysisValueSet(

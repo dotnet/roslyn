@@ -63,7 +63,7 @@ namespace Analyzer.Utilities.Lightup
             var parameter = Expression.Parameter(typeof(T), parameterName);
             Expression instance =
                 type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
-                ? (Expression)parameter
+                ? parameter
                 : Expression.Convert(parameter, type);
 
             Expression result = Expression.Call(instance, property.GetMethod);
@@ -115,11 +115,11 @@ namespace Analyzer.Utilities.Lightup
             var valueParameter = Expression.Parameter(typeof(TProperty), methodInfo.GetParameters()[0].Name);
             Expression instance =
                 type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
-                ? (Expression)parameter
+                ? parameter
                 : Expression.Convert(parameter, type);
             Expression value =
                 property.PropertyType.GetTypeInfo().IsAssignableFrom(typeof(TProperty).GetTypeInfo())
-                ? (Expression)valueParameter
+                ? valueParameter
                 : Expression.Convert(valueParameter, property.PropertyType);
 
             Expression<Func<T, TProperty, T>> expression =
@@ -159,11 +159,11 @@ namespace Analyzer.Utilities.Lightup
             var argument = Expression.Parameter(typeof(TArg), argumentName);
             Expression instance =
                 type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
-                ? (Expression)parameter
+                ? parameter
                 : Expression.Convert(parameter, type);
             Expression convertedArgument =
                 argumentType.GetTypeInfo().IsAssignableFrom(typeof(TArg).GetTypeInfo())
-                ? (Expression)argument
+                ? argument
                 : Expression.Convert(argument, type);
 
             Expression result = Expression.Call(instance, method, convertedArgument);

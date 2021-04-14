@@ -259,22 +259,22 @@
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
-        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <target state="translated">Preferuj formę „syntax.IsKind(kind)” zamiast „syntax.Kind() == kind” podczas sprawdzania rodzajów składni. Kod używający elementu „IsKind” jest nieco bardziej wydajny w środowisku uruchomieniowym, więc konsekwentne używanie tej formy w stosownych przypadkach pomaga zwiększyć wydajność w złożonych scenariuszach analizy.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindFix">
         <source>Use 'IsKind' instead of 'Kind'</source>
-        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <target state="translated">Użyj elementu „IsKind” zamiast elementu „Kind”</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindMessage">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Preferuj metodę „IsKind” do sprawdzania rodzajów składni</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindTitle">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Preferuj metodę „IsKind” do sprawdzania rodzajów składni</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
