@@ -516,6 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundConversion createAnonymousFunctionConversion(SyntaxNode syntax, UnboundLambda unboundLambda, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
             {
 #if DEBUG
+                // Test inferring a delegate type for all callers.
                 if (destination.SpecialType != SpecialType.System_Delegate)
                 {
                     _ = unboundLambda.Bind(Compilation.GetSpecialType(SpecialType.System_Delegate));
@@ -574,6 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 #if DEBUG
+            // Test inferring a delegate type for all callers.
             _ = GetMethodGroupDelegateType(group, BindingDiagnosticBag.Discarded);
 #endif
             return createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, destination, hasErrors);

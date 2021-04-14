@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         object o = Main;
         System.ICloneable c = Main;
         System.Delegate d = Main;
+        System.MulticastDelegate m = Main;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -69,7 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "object").WithLocation(5, 20),
                 // (6,31): error CS0428: Cannot convert method group 'Main' to non-delegate type 'ICloneable'. Did you intend to invoke the method?
                 //         System.ICloneable c = Main;
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.ICloneable").WithLocation(6, 31));
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.ICloneable").WithLocation(6, 31),
+                // (8,38): error CS0428: Cannot convert method group 'Main' to non-delegate type 'MulticastDelegate'. Did you intend to invoke the method?
+                //         System.MulticastDelegate m = Main;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.MulticastDelegate").WithLocation(8, 38));
         }
 
         [Fact]
@@ -83,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         object o = () => { };
         System.ICloneable c = () => { };
         System.Delegate d = () => { };
+        System.MulticastDelegate m = () => { };
         d = x => x;
     }
 }";
@@ -94,14 +99,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,31): error CS1660: Cannot convert lambda expression to type 'ICloneable' because it is not a delegate type
                 //         System.ICloneable c = () => { };
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.ICloneable").WithLocation(6, 31),
-                // (8,13): error CS8915: The delegate type could not be inferred.
+                // (8,38): error CS1660: Cannot convert lambda expression to type 'MulticastDelegate' because it is not a delegate type
+                //         System.MulticastDelegate m = () => { };
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.MulticastDelegate").WithLocation(8, 38),
+                // (9,13): error CS8915: The delegate type could not be inferred.
                 //         d = x => x;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(9, 13));
         }
 
         public static IEnumerable<object?[]> GetMethodGroupData()
         {
+            yield return getData("static int F() => 0;", "Program.F", "System.Func<System.Int32>", "Func`1");
             yield return getData("static int F() => 0;", "F", "System.Func<System.Int32>", "Func`1");
+            yield return getData("int F() => 0;", "(new Program()).F", "System.Func<System.Int32>", "Func`1");
+            yield return getData("static T F<T>() => default;", "Program.F<int>", "System.Func<System.Int32>", "Func`1");
+            yield return getData("T F<T>() => default;", "(new Program()).F<int>", "System.Func<System.Int32>", "Func`1");
             yield return getData("static ref int F() => throw null;", "F", null, null);
             yield return getData("static ref readonly int F() => throw null;", "F", null, null);
             yield return getData("static void F() { }", "F", "System.Action", "Action");
@@ -113,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "F", null, null);
             yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => null;", "F", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Object>", "Func`17");
             yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => null;", "F", null, null);
-            yield return getData("T F<T>() => default;", "(new Program()).F<int>", "System.Func<System.Int32>", "Func`1");
 
             static object?[] getData(string methodDeclaration, string methodGroupExpression, string? expectedType, string? expectedName) =>
                 new object?[] { methodDeclaration, methodGroupExpression, expectedType, expectedName };
@@ -416,7 +427,7 @@ class Program
         }
 
         [Fact]
-        public void InstanceMethods()
+        public void InstanceMethods_01()
         {
             var source =
 @"using System;
@@ -436,6 +447,90 @@ class Program
     }
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Func`1, Action`2");
+        }
+
+        [Fact]
+        public void InstanceMethods_02()
+        {
+            var source =
+@"using System;
+class A
+{
+    protected virtual void F() { Console.WriteLine(nameof(A)); }
+}
+class B : A
+{
+    protected override void F() { Console.WriteLine(nameof(B)); }
+    static void Invoke(Delegate d) { d.DynamicInvoke(); }
+    void M()
+    {
+        Invoke(F);
+        Invoke(this.F);
+        Invoke(base.F);
+    }
+    static void Main()
+    {
+        new B().M();
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"B
+B
+A");
+        }
+
+        [Fact]
+        public void InstanceMethods_03()
+        {
+            var source =
+@"using System;
+class A
+{
+    protected void F() { Console.WriteLine(nameof(A)); }
+}
+class B : A
+{
+    protected new void F() { Console.WriteLine(nameof(B)); }
+    static void Invoke(Delegate d) { d.DynamicInvoke(); }
+    void M()
+    {
+        Invoke(F);
+        Invoke(this.F);
+        Invoke(base.F);
+    }
+    static void Main()
+    {
+        new B().M();
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"B
+B
+A");
+        }
+
+        [Fact]
+        public void InstanceMethods_04()
+        {
+            var source =
+@"class Program
+{
+    T F<T>() => default;
+    static void Main()
+    {
+        var p = new Program();
+        System.Delegate d = p.F;
+        object o = (System.Delegate)p.F;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,29): error CS0411: The type arguments for method 'Program.F<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         System.Delegate d = p.F;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "p.F").WithArguments("Program.F<T>()").WithLocation(7, 29),
+                // (8,20): error CS0030: Cannot convert type 'method' to 'Delegate'
+                //         object o = (System.Delegate)p.F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Delegate)p.F").WithArguments("method", "System.Delegate").WithLocation(8, 20));
         }
 
         [Fact]
@@ -469,7 +564,8 @@ class Program
         public void ExtensionMethods_02()
         {
             var source =
-@"static class E
+@"using System;
+static class E
 {
     internal static void F(this System.Type x, int y) { }
     internal static void F(this string x) { }
@@ -478,13 +574,25 @@ class Program
 {
     static void Main()
     {
-        System.Delegate d;
-        d = typeof(Program).F;
-        d = """".F;
+        Delegate d1 = typeof(Program).F;
+        Delegate d2 = """".F;
+        Console.WriteLine(""{0}, {1}"", d1.GetType().Name, d2.GetType().Name);
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Action`1, Action");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => d.Initializer!.Value).ToArray();
+            Assert.Equal(2, exprs.Length);
+
+            foreach (var expr in exprs)
+            {
+                var typeInfo = model.GetTypeInfo(expr);
+                Assert.Null(typeInfo.Type);
+                Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+            }
         }
 
         [Fact]
@@ -555,6 +663,38 @@ static class Program
         public void ExtensionMethods_05()
         {
             var source =
+@"using System;
+static class E
+{
+    internal static void F(this A a) { }
+}
+class A
+{
+}
+class B : A
+{
+    static void Invoke(Delegate d) { }
+    void M()
+    {
+        Invoke(F);
+        Invoke(this.F);
+        Invoke(base.F);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (14,16): error CS0103: The name 'F' does not exist in the current context
+                //         Invoke(F);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "F").WithArguments("F").WithLocation(14, 16),
+                // (16,21): error CS0117: 'A' does not contain a definition for 'F'
+                //         Invoke(base.F);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F").WithArguments("A", "F").WithLocation(16, 21));
+        }
+
+        [Fact]
+        public void ExtensionMethods_06()
+        {
+            var source =
 @"static class E
 {
     internal static void F1<T>(this object x, T y) { }
@@ -565,6 +705,8 @@ class Program
     static void F<T>(T t) where T : class
     {
         System.Delegate d;
+        d = t.F1;
+        d = t.F2;
         d = t.F1<int>;
         d = t.F1<T>;
         d = t.F2<T, object>;
@@ -572,7 +714,37 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,13): error CS0411: The type arguments for method 'E.F2<T, U>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         d = t.F2;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "t.F2").WithArguments("E.F2<T, U>(T)").WithLocation(12, 13));
+        }
+
+        // Method group with dynamic receiver does not use method group conversion.
+        [Fact]
+        public void DynamicReceiver()
+        {
+            var source =
+@"using System;
+class Program
+{
+    void F() { }
+    static void Main()
+    {
+        dynamic d = new Program();
+        object obj;
+        try
+        {
+            obj = d.F;
+        }
+        catch (Exception e)
+        {
+            obj = e;
+        }
+        Console.WriteLine(obj.GetType().FullName);
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, references: new[] { CSharpRef }, expectedOutput: "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException");
         }
 
         [Fact]

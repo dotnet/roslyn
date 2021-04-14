@@ -436,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public UnboundLambdaState(Binder binder, bool includeCache)
         {
             Debug.Assert(binder != null);
+            Debug.Assert(binder.ContainingMemberOrLambda != null);
 
             if (includeCache)
             {
