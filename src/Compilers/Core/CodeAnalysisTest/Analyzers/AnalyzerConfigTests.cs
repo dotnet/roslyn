@@ -63,30 +63,30 @@ my_prop = my_val
         {
             var config = ParseConfigFile(@"is_global = true
 
-[c:/\{file1\}.cs]
+[c:/\{f\*i\?le1\}.cs]
 build_metadata.Compile.ToRetrieve = abc123
 
-[c:/file\#2.cs]
+[c:/f\,ile\#2.cs]
 build_metadata.Compile.ToRetrieve = def456
 
-[c:/file\[3\].cs]
+[c:/f\;i\!le\[3\].cs]
 build_metadata.Compile.ToRetrieve = ghi789
 ");
 
             var namedSections = config.NamedSections;
-            Assert.Equal("c:/\\{file1\\}.cs", namedSections[0].Name);
+            Assert.Equal("c:/\\{f\\*i\\?le1\\}.cs", namedSections[0].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "abc123") },
                 namedSections[0].Properties
             );
 
-            Assert.Equal("c:/file\\#2.cs", namedSections[1].Name);
+            Assert.Equal("c:/f\\,ile\\#2.cs", namedSections[1].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "def456") },
                 namedSections[1].Properties
             );
 
-            Assert.Equal("c:/file\\[3\\].cs", namedSections[2].Name);
+            Assert.Equal("c:/f\\;i\\!le\\[3\\].cs", namedSections[2].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "ghi789") },
                 namedSections[2].Properties

@@ -101,9 +101,9 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
         [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
         public void MultipleSpecialCharacterItemMetaDataCreatesSections()
         {
-            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/{file1}.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
-            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/file#2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
-            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:/file[3].cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/{f*i?le1}.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/f,ile#2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:/f;i!le[3].cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
@@ -115,13 +115,13 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
 
             Assert.Equal(@"is_global = true
 
-[c:/\{file1\}.cs]
+[c:/\{f\*i\?le1\}.cs]
 build_metadata.Compile.ToRetrieve = abc123
 
-[c:/file\#2.cs]
+[c:/f\,ile\#2.cs]
 build_metadata.Compile.ToRetrieve = def456
 
-[c:/file\[3\].cs]
+[c:/f\;i\!le\[3\].cs]
 build_metadata.Compile.ToRetrieve = ghi789
 ", result);
         }
