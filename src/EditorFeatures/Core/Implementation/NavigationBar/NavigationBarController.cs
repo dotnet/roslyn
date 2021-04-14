@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
         {
+            AssertIsForeground();
             if (args.Solution.Workspace != _workspace)
                 return;
 
