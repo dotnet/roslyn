@@ -295,6 +295,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
+        /// <summary>
+        /// Gets the capabilities of the runtime with respect to applying code changes.
+        /// </summary>
+        public async Task<ManagedEditAndContinueCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
+        {
+            var runtimeCapabiltiies = await DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+            return new ManagedEditAndContinueCapabilities(runtimeCapabiltiies);
+        }
+
         private static unsafe bool TryCreateInitialBaseline(
             CompilationOutputs compilationOutputs,
             out ImmutableArray<Diagnostic> diagnostics,

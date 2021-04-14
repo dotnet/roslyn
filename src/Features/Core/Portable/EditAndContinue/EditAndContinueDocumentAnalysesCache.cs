@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _baseActiveStatements = baseActiveStatements;
         }
 
-        public async ValueTask<ImmutableArray<ActiveStatement>> GetActiveStatementsAsync(Document baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ActiveStatement>> GetActiveStatementsAsync(Document baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapabilities capabilities, CancellationToken cancellationToken)
         {
             try
             {
-                var results = await GetDocumentAnalysisAsync(baseDocument.Project, document, activeStatementSpans, cancellationToken).ConfigureAwait(false);
+                var results = await GetDocumentAnalysisAsync(baseDocument.Project, document, activeStatementSpans, capabilities, cancellationToken).ConfigureAwait(false);
                 return results.ActiveStatements;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<ImmutableArray<DocumentAnalysisResults>> GetDocumentAnalysesAsync(
             Project oldProject,
             IReadOnlyList<(Document newDocument, ImmutableArray<TextSpan> newActiveStatementSpans)> documentInfos,
+            ManagedEditAndContinueCapabilities capabilities,
             CancellationToken cancellationToken)
         {
             try
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<DocumentAnalysisResults>.Empty;
                 }
 
-                var tasks = documentInfos.Select(info => Task.Run(() => GetDocumentAnalysisAsync(oldProject, info.newDocument, info.newActiveStatementSpans, cancellationToken).AsTask(), cancellationToken));
+                var tasks = documentInfos.Select(info => Task.Run(() => GetDocumentAnalysisAsync(oldProject, info.newDocument, info.newActiveStatementSpans, capabilities, cancellationToken).AsTask(), cancellationToken));
                 var allResults = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 return allResults.ToImmutableArray();
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <param name="baseProject">Base project.</param>
         /// <param name="document">Document snapshot to analyze.</param>
         /// <param name="activeStatementSpans">Active statement spans tracked by the editor.</param>
-        public async ValueTask<DocumentAnalysisResults> GetDocumentAnalysisAsync(Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans, CancellationToken cancellationToken)
+        public async ValueTask<DocumentAnalysisResults> GetDocumentAnalysisAsync(Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapabilities capabilities, CancellationToken cancellationToken)
         {
             try
             {
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 lock (_guard)
                 {
-                    lazyResults = GetDocumentAnalysisNoLock(baseProject, document, activeStatementSpans);
+                    lazyResults = GetDocumentAnalysisNoLock(baseProject, document, activeStatementSpans, capabilities);
                 }
 
                 return await lazyResults.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans)
+        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapabilities capabilities)
         {
             // Do not reuse an analysis of the document unless its snasphot is exactly the same as was used to calculate the results.
             // Note that comparing document snapshots in effect compares the entire solution snapshots (when another document is changed a new solution snapshot is created
@@ -104,6 +105,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // For example, when analyzing a partial class we can record all documents its declaration spans. However, in other cases the analysis
             // checks for absence of a top-level type symbol. Adding a symbol to any document thus invalidates such analysis. It'd be possible
             // to keep track of which type symbols an analysis is conditional upon, if it was worth the extra complexity.
+            // 
+            // Note that this doesn't check the runtime capabilities on the asusmption that they can't change without at least a project change,
+            // though possibly they can't change at all.
             if (_analyses.TryGetValue(document.Id, out var analysis) &&
                 analysis.baseProject == baseProject &&
                 analysis.document == document &&
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
                         }
 
-                        return await analyzer.AnalyzeDocumentAsync(baseProject, documentBaseActiveStatements, document, activeStatementSpans, cancellationToken).ConfigureAwait(false);
+                        return await analyzer.AnalyzeDocumentAsync(baseProject, documentBaseActiveStatements, document, activeStatementSpans, capabilities, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {

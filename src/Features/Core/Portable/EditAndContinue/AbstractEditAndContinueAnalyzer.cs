@@ -439,6 +439,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatement> oldActiveStatements,
             Document newDocument,
             ImmutableArray<TextSpan> newActiveStatementSpans,
+            ManagedEditAndContinueCapabilities capabilities,
             CancellationToken cancellationToken)
         {
             DocumentAnalysisResults.Log.Write("Analyzing document {0}", newDocument.Name);
