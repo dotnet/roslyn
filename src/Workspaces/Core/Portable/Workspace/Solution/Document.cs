@@ -155,9 +155,10 @@ namespace Microsoft.CodeAnalysis
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned syntax tree can be <see langword="null"/> if the <see
-        /// cref="SupportsSyntaxTree"/> returns <see langword="false"/>. This function will return
-        /// the same value if called multiple times.
+        /// The returned syntax tree can be <see langword="null"/> if the <see cref="SupportsSyntaxTree"/> returns <see
+        /// langword="false"/>. This function will return the same value if called multiple times. Specifically, the
+        /// same Task instance will be returned, which will always return the same underlying <see cref="SyntaxTree"/>
+        /// instance.
         /// </returns>
         public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
