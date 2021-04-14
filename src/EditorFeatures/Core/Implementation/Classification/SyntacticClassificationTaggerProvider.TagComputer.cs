@@ -218,18 +218,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var changedSpan = currentSnapshot.GetFullSpan();
                 if (service != null)
                 {
-                    var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
-                    using (latencyTracker)
-                    {
-                        // preemptively allow the classification service to compute and cache data for this file.  For
-                        // example, in C# and VB we will parse the file so that are called from tagger from UI thread,
-                        // we have the root of the tree ready to go.
-                        currentCachedData = await service.GetDataToCacheAsync(currentDocument, cancellationToken).ConfigureAwait(false);
+                    using var _ = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
 
-                        // Query the service to determine waht span of the document actually changed and should be
-                        // reclassified in the host editor.
-                        changedSpan = await GetChangedSpanAsync(currentDocument, currentSnapshot, service, cancellationToken).ConfigureAwait(false);
-                    }
+                    // preemptively allow the classification service to compute and cache data for this file.  For
+                    // example, in C# and VB we will parse the file so that are called from tagger from UI thread,
+                    // we have the root of the tree ready to go.
+                    currentCachedData = await service.GetDataToCacheAsync(currentDocument, cancellationToken).ConfigureAwait(false);
+
+                    // Query the service to determine waht span of the document actually changed and should be
+                    // reclassified in the host editor.
+                    changedSpan = await GetChangedSpanAsync(currentDocument, currentSnapshot, service, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Once we're past this point, we're mutating our internal state so we cannot cancel past that.
