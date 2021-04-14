@@ -172,10 +172,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (!_options.Cascade)
                 return new SymbolGroup(ImmutableArray.Create(searchSymbol));
 
-            var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(
-                searchSymbol, _solution, _cancellationToken).ConfigureAwait(false);
-
-            return new SymbolGroup(linkedSymbols);
+            return new SymbolGroup(
+                await SymbolFinder.FindLinkedSymbolsAsync(searchSymbol, _solution, _cancellationToken).ConfigureAwait(false));
         }
 
         private void AddSymbolTasks(
