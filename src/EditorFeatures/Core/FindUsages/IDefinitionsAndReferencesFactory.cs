@@ -18,8 +18,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
@@ -93,47 +91,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // item name to show the user.
             var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
             return ToDefinitionItemAsync(
-                group.PrimarySymbol, allLocations, GetAdditionalDisplayParts(), solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
-
-            ImmutableArray<TaggedText> GetAdditionalDisplayParts()
-            {
-                // For linked symbols, add a suffix to the symbol display to say all the projects it was defined in.
-                if (group.Symbols.Count >= 2)
-                {
-                    var primarySourceLocation = group.PrimarySymbol.Locations.FirstOrDefault(loc => loc.IsInSource);
-                    var primaryDocument = solution.GetDocument(primarySourceLocation?.SourceTree);
-                    var primaryProject = primaryDocument?.Project;
-                    if (primaryProject != null)
-                    {
-                        var allProjectIds = allLocations.Where(loc => loc.IsInSource)
-                                                        .Select(loc => solution.GetDocument(loc.SourceTree))
-                                                        .Select(d => d?.Project.Id)
-                                                        .WhereNotNull()
-                                                        .ToImmutableArray();
-
-                        using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
-                        primaryProject.GetAllFlavors(allProjectIds, flavors);
-                        return flavors.Count > 1
-                            ? ImmutableArray.Create(new TaggedText(TextTags.Text, $" ({string.Join(", ", flavors)})"))
-                            : ImmutableArray<TaggedText>.Empty;
-                    }
-                }
-
-                return ImmutableArray<TaggedText>.Empty;
-            }
+                group.PrimarySymbol, allLocations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
         }
 
         private static Task<DefinitionItem> ToDefinitionItemAsync(
             ISymbol definition, Solution solution, bool isPrimary, bool includeHiddenLocations, bool includeClassifiedSpans, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return ToDefinitionItemAsync(
-                definition, definition.Locations, ImmutableArray<TaggedText>.Empty, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans, options, cancellationToken);
+            return ToDefinitionItemAsync(definition, definition.Locations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans, options, cancellationToken);
         }
 
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
             ISymbol definition,
             ImmutableArray<Location> locations,
-            ImmutableArray<TaggedText> additionalDisplayParts,
             Solution solution,
             bool isPrimary,
             bool includeHiddenLocations,
@@ -154,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 definition = definition.OriginalDefinition;
             }
 
-            var displayParts = GetDisplayParts(definition).AddRange(additionalDisplayParts);
+            var displayParts = GetDisplayParts(definition);
             var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
