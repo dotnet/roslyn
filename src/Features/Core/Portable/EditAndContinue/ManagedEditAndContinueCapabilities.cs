@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Net.Http.Headers;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal ManagedEditAndContinueCapabilities(string capabilities)
+        internal ManagedEditAndContinueCapabilities(string? capabilities)
         {
             _capabilities = new bool[(int)ManagedEditAndContinueCapability.Count];
 
