@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
@@ -75,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 
         internal static void ValidateItem(ValueTrackedItem item, int line, string? text = null)
         {
-            Assert.Equal(line, item.LineSpan.Start);
+            item.SourceText.GetLineAndOffset(item.Span.Start, out var lineStart, out var _);
+            Assert.Equal(line, lineStart);
 
             if (text is not null)
             {

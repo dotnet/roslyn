@@ -8,12 +8,14 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ValueTracking;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text.Classification;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
@@ -30,28 +32,30 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ValueTrackedTreeItemViewModel(
             ValueTrackedItem trackedItem,
             Solution solution,
-            IClassificationFormatMap classificationFormatMap,
-            ClassificationTypeMap classificationTypeMap,
+            ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
+            IThreadingContext threadingContext,
             ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
             : base(
                   trackedItem.Document,
-                  trackedItem.LineSpan.Start,
+                  trackedItem.Span,
                   trackedItem.SourceText,
                   trackedItem.Symbol,
                   trackedItem.ClassifiedSpans,
-                  classificationFormatMap,
-                  classificationTypeMap,
-                  glyphService)
+                  treeViewModel,
+                  glyphService,
+                  threadingContext,
+                  children: children)
         {
 
             _trackedItem = trackedItem;
             _solution = solution;
-            _classificationFormatMap = classificationFormatMap;
-            _classificationTypeMap = classificationTypeMap;
             _glyphService = glyphService;
             _valueTrackingService = valueTrackingService;
+
+            _classificationFormatMap = treeViewModel.ClassificationFormatMap;
+            _classificationTypeMap = treeViewModel.ClassificationTypeMap;
 
             if (children.IsDefaultOrEmpty)
             {
@@ -107,6 +111,23 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                  TaskScheduler.FromCurrentSynchronizationContext());
         }
 
+        public override void Select()
+        {
+            var workspace = Document.Project.Solution.Workspace;
+            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+            if (navigationService is null)
+            {
+                return;
+            }
+
+            // While navigating do not activate the tab, which will change focus from the tool window
+            var options = workspace.Options
+                .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
+                .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
+
+            navigationService.TryNavigateToSpan(workspace, Document.Id, _trackedItem.Span, options, ThreadingContext.DisposalToken);
+        }
+
         private async Task<ImmutableArray<ValueTrackingTreeItemViewModel>> CalculateChildrenAsync(CancellationToken cancellationToken)
         {
             var valueTrackedItems = await _valueTrackingService.TrackValueSourceAsync(
@@ -120,10 +141,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 builder.Add(new ValueTrackedTreeItemViewModel(
                     valueTrackedItem,
                     _solution,
-                    _classificationFormatMap,
-                    _classificationTypeMap,
+                    TreeViewModel,
                     _glyphService,
-                    _valueTrackingService));
+                    _valueTrackingService,
+                    ThreadingContext));
             }
 
             return builder.ToImmutableArray();

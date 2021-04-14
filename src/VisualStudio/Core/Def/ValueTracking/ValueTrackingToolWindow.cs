@@ -4,38 +4,76 @@
 
 using System;
 using System.Linq;
+using System.Windows.Controls;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     [Guid(Guids.ValueTrackingToolWindowIdString)]
     internal class ValueTrackingToolWindow : ToolWindowPane
     {
+        private readonly Grid _rootGrid = new();
+
         public static ValueTrackingToolWindow? Instance { get; set; }
-        private readonly ValueTrackingTreeViewModel _viewModel;
 
-        public ValueTrackingToolWindow(ValueTrackingTreeItemViewModel root)
-            : base(null)
+        private ValueTrackingTreeViewModel? _viewModel;
+        public ValueTrackingTreeViewModel? ViewModel
         {
-            if (Instance is not null)
-            {
-                throw new Exception("Cannot initialize the window more than once");
-            }
-
-            this.Caption = "Value Tracking";
-
-            _viewModel = new ValueTrackingTreeViewModel(root);
-            Content = new ValueTrackingTree(_viewModel);
-        }
-
-        public ValueTrackingTreeItemViewModel Root
-        {
-            get => _viewModel.Roots.Single();
+            get => _viewModel;
             set
             {
-                _viewModel.Roots.Clear();
-                _viewModel.Roots.Add(value);
+                if (value is null)
+                {
+                    throw new ArgumentNullException(nameof(ViewModel));
+                }
+
+                _viewModel = value;
+                _rootGrid.Children.Clear();
+                _rootGrid.Children.Add(new ValueTrackingTree(_viewModel));
+            }
+        }
+
+        /// <summary>
+        /// This paramterless constructor is used when
+        /// the tool window is initialized on open without any
+        /// context. If the tool window is left open across shutdown/restart
+        /// of VS for example, then this gets called. 
+        /// </summary>
+        public ValueTrackingToolWindow() : base(null)
+        {
+            Caption = ServicesVSResources.Value_Tracking;
+
+            _rootGrid.Children.Add(new TextBlock()
+            {
+                Text = "Select an appropriate symbol to start value tracking"
+            });
+
+            Content = _rootGrid;
+        }
+
+        public ValueTrackingToolWindow(ValueTrackingTreeViewModel viewModel)
+            : base(null)
+        {
+            Content = _rootGrid;
+            ViewModel = viewModel;
+        }
+
+        public ValueTrackingTreeItemViewModel? Root
+        {
+            get => ViewModel?.Roots.Single();
+            set
+            {
+                if (value is null)
+                {
+                    return;
+                }
+
+                Contract.ThrowIfNull(ViewModel);
+
+                ViewModel.Roots.Clear();
+                ViewModel.Roots.Add(value);
             }
         }
     }

@@ -6,26 +6,77 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     internal class ValueTrackingTreeViewModel : INotifyPropertyChanged
     {
-        public ValueTrackingTreeViewModel(params ValueTrackingTreeItemViewModel[] roots)
+        private Brush? _highlightBrush;
+        public Brush? HighlightBrush
         {
-            foreach (var root in roots)
-            {
-                Roots.Add(root);
-            }
+            get => _highlightBrush;
+            set => SetProperty(ref _highlightBrush, value);
         }
 
-        public ValueTrackingTreeViewModel()
-            : this(GetSample())
-        { }
-
+        public IClassificationFormatMap ClassificationFormatMap { get; }
+        public ClassificationTypeMap ClassificationTypeMap { get; }
+        public IEditorFormatMapService FormatMapService { get; }
         public ObservableCollection<ValueTrackingTreeItemViewModel> Roots { get; } = new();
 
+        private ValueTrackingTreeItemViewModel? _selectedItem;
+        public ValueTrackingTreeItemViewModel? SelectedItem
+        {
+            get => _selectedItem;
+            set => SetProperty(ref _selectedItem, value);
+        }
+
+        private string _selectedItemFile = "";
+        public string SelectedItemFile
+        {
+            get => _selectedItemFile;
+            set => SetProperty(ref _selectedItemFile, value);
+        }
+
+        private int _selectedItemLine;
+        public int SelectedItemLine
+        {
+            get => _selectedItemLine;
+            set => SetProperty(ref _selectedItemLine, value);
+        }
+
+        public bool ShowDetails => SelectedItem is not null;
+
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        public ValueTrackingTreeViewModel(IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap, IEditorFormatMapService _formatMapService)
+        {
+            ClassificationFormatMap = classificationFormatMap;
+            ClassificationTypeMap = classificationTypeMap;
+            FormatMapService = _formatMapService;
+
+            var properties = FormatMapService.GetEditorFormatMap("text")
+                                          .GetProperties(ReferenceHighlightTag.TagId);
+
+            HighlightBrush = properties["Background"] as Brush;
+
+            PropertyChanged += Self_PropertyChanged;
+        }
+
+        private void Self_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SelectedItem))
+            {
+                SelectedItemFile = SelectedItem?.FileName ?? "";
+                SelectedItemLine = SelectedItem?.LineNumber ?? 0;
+                NotifyPropertyChanged(nameof(ShowDetails));
+
+                SelectedItem?.Select();
+            }
+        }
 
         private void SetProperty<T>(ref T field, T value, [CallerMemberName] string name = "")
         {
@@ -40,10 +91,5 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         private void NotifyPropertyChanged(string name)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        public static ValueTrackingTreeItemViewModel[] GetSample()
-        {
-            return new ValueTrackingTreeItemViewModel[0];
-        }
     }
 }

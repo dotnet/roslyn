@@ -31,5 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             DataContext = _viewModel = viewModel;
             InitializeComponent();
         }
+
+        private void ValueTrackingTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            _viewModel.SelectedItem = (ValueTrackingTreeItemViewModel)e.NewValue;
+        }
     }
 }

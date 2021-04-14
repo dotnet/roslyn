@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         public TextSpan Span { get; }
         public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
         public SourceText SourceText { get; }
-        public LineSpan LineSpan { get; }
 
         private ValueTrackedItem(
             ISymbol symbol,
@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             ImmutableArray<ClassifiedSpan> classifiedSpans,
             TextSpan textSpan,
             Document document,
-            LineSpan lineSpan,
             ValueTrackedItem? parent = null)
         {
             Symbol = symbol;
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             Span = textSpan;
             ClassifiedSpans = classifiedSpans;
             SourceText = sourceText;
-            LineSpan = lineSpan;
             Document = document;
         }
 
@@ -76,17 +74,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 sourceText = await location.SourceTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            sourceText.GetLineAndOffset(location.SourceSpan.Start, out var lineStart, out var _);
-            sourceText.GetLineAndOffset(location.SourceSpan.End, out var lineEnd, out var _);
-            var lineSpan = LineSpan.FromBounds(lineStart, lineEnd);
-
             return new ValueTrackedItem(
                         symbol,
                         sourceText,
                         classifiedSpans,
                         location.SourceSpan,
                         document,
-                        lineSpan,
                         parent: parent);
         }
     }
