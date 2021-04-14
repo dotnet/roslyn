@@ -1652,6 +1652,7 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
         public async Task EnumNonDefaultUnderlyingType()
         {
             await TestInClassAsync(@"enum E$$ : byte { A, B }",
