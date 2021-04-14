@@ -119,7 +119,43 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             private string ComputeCombinedProjectName()
-                => _document.Project.GetNameWithAllFlavors(_item.AdditionalMatchingProjects);
+            {
+                // If there aren't any additional matches in other projects, we don't need to merge anything.
+                if (_item.AdditionalMatchingProjects.Length > 0)
+                {
+                    // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
+                    // figure this out, we can't create a merged name.
+                    var firstProject = _document.Project;
+                    var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
+
+                    if (firstProjectName != null)
+                    {
+                        var solution = firstProject.Solution;
+
+                        using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
+                        flavors.Add(firstProjectFlavor!);
+
+                        // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
+                        // simple name/flavor, or if the simple project name doesn't match the simple project name we started
+                        // with then we can't merge these.
+                        foreach (var additionalProjectId in _item.AdditionalMatchingProjects)
+                        {
+                            var additionalProject = solution.GetRequiredProject(additionalProjectId);
+                            var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
+                            if (projectName == firstProjectName)
+                                flavors.Add(projectFlavor!);
+                        }
+
+                        flavors.RemoveDuplicates();
+                        flavors.Sort();
+
+                        return $"{firstProjectName} ({string.Join(", ", flavors)})";
+                    }
+                }
+
+                // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
+                return _document.Project.Name;
+            }
 
             string INavigateToSearchResult.AdditionalInformation => _additionalInformation;
 
