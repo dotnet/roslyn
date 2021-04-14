@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports EnvDTE
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 
@@ -64,9 +65,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             End Get
         End Property
 
-        Public Function get_CodeElement(Scope As EnvDTE.vsCMElement) As EnvDTE.CodeElement Implements EnvDTE.TextPoint.get_CodeElement
-            Throw New NotImplementedException
-        End Function
+        Public ReadOnly Property CodeElement(Scope As EnvDTE.vsCMElement) As EnvDTE.CodeElement Implements EnvDTE.TextPoint.CodeElement
+            Get
+                Throw New NotImplementedException
+            End Get
+        End Property
 
         Public Function CreateEditPoint() As EnvDTE.EditPoint Implements EnvDTE.TextPoint.CreateEditPoint
             Throw New NotImplementedException
@@ -126,8 +129,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             End Get
         End Property
 
-        Public Function TryToShow(How As EnvDTE.vsPaneShowHow, Optional PointOrCount As Object = Nothing) As Boolean Implements EnvDTE.TextPoint.TryToShow
-            Throw New NotImplementedException
+        Public Function TryToShow(Optional How As vsPaneShowHow = vsPaneShowHow.vsPaneShowCentered, Optional PointOrCount As Object = Nothing) As Boolean Implements TextPoint.TryToShow
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

@@ -73,6 +73,11 @@
     <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
   
+  <!-- We are using unsigned VS pacakges temporarily -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NU3027;NU3018</NoWarn>
+  </PropertyGroup>
+  
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>

@@ -22,6 +22,7 @@ using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LogHub;
+using Microsoft.VisualStudio.RpcContracts.Logging;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -158,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var service = serviceContainer.GetFullAccessServiceBroker();
 
             var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
-            var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
+            var traceSource = await configuration.RegisterLogSourceAsync(logId, new RpcContracts.Logging.LoggerOptions(), cancellationToken).ConfigureAwait(false);
 
             traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
 
