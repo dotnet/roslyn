@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
         IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction = MessageBase + 12793,
-        IDS_FeatureSealedToStringInRecord = MessageBase + 12794
+        IDS_FeatureSealedToStringInRecord = MessageBase + 12794,
         IDS_FeatureGlobalUsing = MessageBase + 12795,
     }
 
