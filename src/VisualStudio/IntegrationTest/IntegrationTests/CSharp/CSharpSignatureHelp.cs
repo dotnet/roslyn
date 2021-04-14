@@ -217,5 +217,55 @@ class C
 
             VisualStudio.Editor.Verify.CurrentSignature("void C.Test(int x)");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void NavigationKeys()
+        {
+            SetUpEditor(@"
+using System;
+class C
+{
+    void M()
+    {
+       A(null$$, null, null);
+       A(null, B(null), null);
+    }
+    
+    void A(object a1, object a2, object a3)
+    {
+    }
+
+    void B(object b)
+    {
+    }
+}");
+
+            VisualStudio.Editor.InvokeSignatureHelp();
+            VisualStudio.Editor.Verify.CurrentSignature("void C.A(object a1, object a2, object a3)");
+            VisualStudio.Editor.Verify.CurrentParameter("a1", "");
+            VisualStudio.Editor.Verify.Parameters(
+                ("a1", ""),
+                ("a2", ""),
+                ("a3", ""));
+
+            // Right arrow should change the parameter highlighted
+            VisualStudio.Editor.SendKeys(new object[] { VirtualKey.Right });
+
+            Assert.True(VisualStudio.Editor.IsSignatureHelpActive());
+            VisualStudio.Editor.Verify.CurrentSignature("void C.A(object a1, object a2, object a3)");
+            VisualStudio.Editor.Verify.CurrentParameter("a2", "");
+
+            // Down arrow should dismiss because the caret is out of the method call
+            VisualStudio.Editor.SendKeys(new object[] { VirtualKey.Down });
+
+            Assert.False(VisualStudio.Editor.IsSignatureHelpActive());
+
+            // Right arrow shouldn't change to the nested method call
+            VisualStudio.Editor.InvokeSignatureHelp();
+            VisualStudio.Editor.SendKeys(new object[] { VirtualKey.Right, VirtualKey.Right, VirtualKey.Right, VirtualKey.Right });
+            Assert.True(VisualStudio.Editor.IsSignatureHelpActive());
+            VisualStudio.Editor.Verify.CurrentSignature("void C.A(object a1, object a2, object a3)");
+            VisualStudio.Editor.Verify.CurrentParameter("a2", "");
+        }
     }
 }
