@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public class CompilationOptionsReader
     {
@@ -147,11 +147,6 @@ namespace BuildValidator
             return _metadataReferenceInfo;
         }
 
-        public OutputKind GetOutputKind() =>
-            (PdbReader.DebugMetadataHeader is { } header && !header.EntryPoint.IsNil)
-            ? OutputKind.ConsoleApplication
-            : OutputKind.DynamicallyLinkedLibrary;
-
         public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
 
         public (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
@@ -233,6 +228,11 @@ namespace BuildValidator
         public byte[]? GetPublicKey()
         {
             var metadataReader = PeReader.GetMetadataReader();
+            if (!metadataReader.IsAssembly)
+            {
+                return null;
+            }
+
             var blob = metadataReader.GetAssemblyDefinition().PublicKey;
             if (blob.IsNil)
             {
@@ -340,16 +340,34 @@ namespace BuildValidator
                 var imageSize = blobReader.ReadInt32();
                 var mvid = blobReader.ReadGuid();
 
-                yield return new MetadataReferenceInfo(
-                    timestamp,
-                    imageSize,
-                    name,
-                    mvid,
-                    string.IsNullOrEmpty(externAliases)
-                        ? ImmutableArray<string>.Empty
-                        : externAliases.Split(',').ToImmutableArray(),
-                    kind,
-                    embedInteropTypes);
+                if (string.IsNullOrEmpty(externAliases))
+                {
+                    yield return new MetadataReferenceInfo(
+                        timestamp,
+                        imageSize,
+                        name,
+                        mvid,
+                        externAlias: null,
+                        kind,
+                        embedInteropTypes);
+                }
+                else
+                {
+                    foreach (var alias in externAliases.Split(','))
+                    {
+                        // The "global" alias is an invention of the tooling on top of the compiler. 
+                        // The compiler itself just sees "global" as a reference without any aliases
+                        // and we need to mimic that here.
+                        yield return new MetadataReferenceInfo(
+                            timestamp,
+                            imageSize,
+                            name,
+                            mvid,
+                            alias == "global" ? null : alias,
+                            kind,
+                            embedInteropTypes);
+                    }
+                }
             }
         }
 
@@ -369,6 +387,8 @@ namespace BuildValidator
             blobReader = default;
             return false;
         }
+
+        public bool HasEmbeddedPdb => PeReader.ReadDebugDirectory().Any(entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
 
         private static ImmutableArray<(string, string)> ParseCompilationOptions(BlobReader blobReader)
         {

@@ -227,6 +227,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string DocCommentFormatting = nameof(DocCommentFormatting);
             public const string DocumentationComments = nameof(DocumentationComments);
             public const string EditorConfig = nameof(EditorConfig);
+            public const string EditorConfigUI = nameof(EditorConfigUI);
             public const string EncapsulateField = nameof(EncapsulateField);
             public const string EndConstructGeneration = nameof(EndConstructGeneration);
             public const string ErrorList = nameof(ErrorList);
@@ -244,6 +245,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string GoToBase = nameof(GoToBase);
             public const string GoToDefinition = nameof(GoToDefinition);
             public const string GoToImplementation = nameof(GoToImplementation);
+            public const string InheritanceMargin = nameof(InheritanceMargin);
             public const string InlineHints = nameof(InlineHints);
             public const string Interactive = nameof(Interactive);
             public const string InteractiveHost = nameof(InteractiveHost);

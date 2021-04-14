@@ -35,7 +35,7 @@
     <VisualStudioEditorNewPackagesVersion>17.0.26-gd87317d344</VisualStudioEditorNewPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.10.139</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.10.161</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>16.10.0-preview-2-31112-292</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioNewShellPackagesVersion>17.0.0-preview-1-30928-1111</MicrosoftVisualStudioNewShellPackagesVersion>
     <MicrosoftBuildPackagesVersion>16.5.0</MicrosoftBuildPackagesVersion>
@@ -51,6 +51,7 @@
   <PropertyGroup>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <BenchmarkDotNetVersion>0.12.1</BenchmarkDotNetVersion>
+    <BenchmarkDotNetDiagnosticsWindowsVersion>0.12.1</BenchmarkDotNetDiagnosticsWindowsVersion>
     <DiffPlexVersion>1.4.4</DiffPlexVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>

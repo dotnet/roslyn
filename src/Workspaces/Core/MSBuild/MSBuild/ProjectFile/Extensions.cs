@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 
-            return !string.IsNullOrWhiteSpace(aliasesText)
+            return !RoslynString.IsNullOrWhiteSpace(aliasesText)
                 ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
                 : ImmutableArray<string>.Empty;
         }
@@ -55,12 +54,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var referenceOutputAssemblyText = item.GetMetadata(MetadataNames.ReferenceOutputAssembly);
 
-            return !string.IsNullOrWhiteSpace(referenceOutputAssemblyText)
+            return !RoslynString.IsNullOrWhiteSpace(referenceOutputAssemblyText)
                 ? !string.Equals(referenceOutputAssemblyText, bool.FalseString, StringComparison.OrdinalIgnoreCase)
                 : true;
         }
 
-        public static string ReadPropertyString(this MSB.Execution.ProjectInstance executedProject, string propertyName)
+        public static string? ReadPropertyString(this MSB.Execution.ProjectInstance executedProject, string propertyName)
             => executedProject.GetProperty(propertyName)?.EvaluatedValue;
 
         public static bool ReadPropertyBool(this MSB.Execution.ProjectInstance executedProject, string propertyName)

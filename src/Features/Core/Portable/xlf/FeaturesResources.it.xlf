@@ -2312,13 +2312,13 @@ Anche se è possibile visualizzare i decimillesimi di un componente relativo ai 
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">L'identificatore di formato personalizzato "f" rappresenta la cifra più significativa della frazione di secondi, ovvero i decimi di secondo in un valore di data e ora.
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="needs-review-translation">L'identificatore di formato personalizzato "f" rappresenta la cifra più significativa della frazione di secondi, ovvero i decimi di secondo in un valore di data e ora.
 
 Se l'identificatore di formato "f" viene usato senza altri identificatori di formato, viene interpretato come l'identificatore di formato di data e ora standard "f".
 
 Quando si usano identificatori di formato "f" come parte di una stringa di formato fornita al metodo ParseExact, TryParseExact, ParseExact o TryParseExact, il numero di identificatori di formato "f" indica il numero di cifre più significative della frazione di secondi che deve essere presente per analizzare correttamente la stringa.</target>
-        <note />
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
