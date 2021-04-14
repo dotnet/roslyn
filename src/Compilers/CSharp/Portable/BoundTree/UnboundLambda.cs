@@ -342,13 +342,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax,
             Binder binder,
             bool withDependencies,
+            ImmutableArray<SyntaxList<AttributeListSyntax>> attributes,
             ImmutableArray<RefKind> refKinds,
             ImmutableArray<TypeWithAnnotations> types,
             ImmutableArray<string> names,
             ImmutableArray<bool> discardsOpt,
             bool isAsync,
             bool isStatic)
-            : this(syntax, new PlainUnboundLambdaState(binder, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true), withDependencies, !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
+            : this(syntax, new PlainUnboundLambdaState(binder, attributes, names, discardsOpt, types, refKinds, isAsync, isStatic, includeCache: true), withDependencies, !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -407,6 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool GenerateSummaryErrors(BindingDiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
         public bool IsAsync { get { return Data.IsAsync; } }
         public bool IsStatic => Data.IsStatic;
+        public SyntaxList<AttributeListSyntax> ParameterAttributes(int index) { return Data.ParameterAttributes(index); }
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
@@ -470,6 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract MessageID MessageID { get; }
         public abstract string ParameterName(int index);
         public abstract bool ParameterIsDiscard(int index);
+        public abstract SyntaxList<AttributeListSyntax> ParameterAttributes(int index);
         public abstract bool HasSignature { get; }
         public abstract bool HasExplicitlyTypedParameterList { get; }
         public abstract int ParameterCount { get; }
@@ -584,8 +587,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterTypes = parameterTypesBuilder.ToImmutableAndFree();
 
             var lambdaSymbol = new LambdaSymbol(
+                Binder,
                 compilation,
-                Binder.ContainingMemberOrLambda,
+                Binder.ContainingMemberOrLambda!,
                 _unboundLambda,
                 parameterTypes,
                 parameterRefKinds,
@@ -661,6 +665,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
 
+            // PROTOTYPE: Test that we're reporting diagnostics even in the case where we re-used the lambda above.
+            lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
+
             if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
             {
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
@@ -735,6 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind)
             => new LambdaSymbol(
+                Binder,
                 Binder.Compilation,
                 containingSymbol,
                 _unboundLambda,
@@ -1221,6 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed class PlainUnboundLambdaState : UnboundLambdaState
     {
+        private readonly ImmutableArray<SyntaxList<AttributeListSyntax>> _parameterAttributes;
         private readonly ImmutableArray<string> _parameterNames;
         private readonly ImmutableArray<bool> _parameterIsDiscardOpt;
         private readonly ImmutableArray<TypeWithAnnotations> _parameterTypesWithAnnotations;
@@ -1230,6 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal PlainUnboundLambdaState(
             Binder binder,
+            ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes,
             ImmutableArray<string> parameterNames,
             ImmutableArray<bool> parameterIsDiscardOpt,
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
@@ -1239,6 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool includeCache)
             : base(binder, includeCache)
         {
+            _parameterAttributes = parameterAttributes;
             _parameterNames = parameterNames;
             _parameterIsDiscardOpt = parameterIsDiscardOpt;
             _parameterTypesWithAnnotations = parameterTypesWithAnnotations;
@@ -1287,6 +1298,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsExpressionLambda { get { return Body.Kind() != SyntaxKind.Block; } }
 
+        public override SyntaxList<AttributeListSyntax> ParameterAttributes(int index)
+        {
+            return _parameterAttributes.IsDefault ? default : _parameterAttributes[index];
+        }
+
         public override string ParameterName(int index)
         {
             Debug.Assert(!_parameterNames.IsDefault && 0 <= index && index < _parameterNames.Length);
@@ -1313,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, _isStatic, includeCache);
+            return new PlainUnboundLambdaState(Binder, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, _isStatic, includeCache);
         }
 
         protected override BoundExpression? GetLambdaExpressionBody(BoundBlock body)

@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# preview features.
                 case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction:
-                case MessageID.IDS_FeatureLambdaAttributes:
+                case MessageID.IDS_FeatureLambdaAttributes: // semantic check
                 case MessageID.IDS_FeatureInferredDelegateType: // semantic check
                     return LanguageVersion.Preview;
 

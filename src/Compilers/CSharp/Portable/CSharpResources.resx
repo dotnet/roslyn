@@ -1725,7 +1725,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Alias '{0}' conflicts with {1} definition</value>
   </data>
   <data name="ERR_ConditionalOnSpecialMethod" xml:space="preserve">
-    <value>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</value>
+    <value>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</value>
   </data>
   <data name="ERR_ConditionalMustReturnVoid" xml:space="preserve">
     <value>The Conditional attribute is not valid on '{0}' because its return type is not void</value>
@@ -3940,6 +3940,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   </data>
   <data name="ERR_AttributesNotAllowed" xml:space="preserve">
     <value>Attributes are not valid in this context.</value>
+  </data>
+  <data name="ERR_AttributesRequireParenthesizedLambdaExpression" xml:space="preserve">
+    <value>Attributes on lambda expressions require a parenthesized parameter list.</value>
   </data>
   <data name="ERR_ExternAliasNotAllowed" xml:space="preserve">
     <value>'extern alias' is not valid in this context</value>
