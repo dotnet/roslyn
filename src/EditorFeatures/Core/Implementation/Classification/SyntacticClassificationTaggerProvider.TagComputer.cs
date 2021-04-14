@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private object _lastProcessedCachedData;
 
             private Workspace _workspace;
-            private CancellationTokenSource _reportChangeCancellationSource;
+            private readonly CancellationTokenSource _reportChangeCancellationSource = new();
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly IForegroundNotificationService _notificationService;
@@ -196,9 +196,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private async Task EnqueueProcessSnapshotWorkerAsync(Document currentDocument, CancellationToken cancellationToken)
             {
-                // we will enqueue new one soon, cancel pending refresh right away
-                _reportChangeCancellationSource.Cancel();
-
                 var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var currentSnapshot = currentText.FindCorrespondingEditorTextSnapshot();
                 if (currentSnapshot == null)
@@ -235,7 +232,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     _lastProcessedCachedData = currentCachedData;
                 }
 
-                _reportChangeCancellationSource = new CancellationTokenSource();
                 _notificationService.RegisterNotification(() =>
                     {
                         _workQueue.AssertIsForeground();
