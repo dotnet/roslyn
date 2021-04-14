@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.Testing
             await VerifyDiagnosticsAsync(new EvaluatedProjectState(testState, ReferenceAssemblies).WithAdditionalDiagnostics(diagnostics), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), testState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
         }
 
+        protected override async Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
+        {
+            var (finalProject, diagnostics) = await ApplySourceGeneratorAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
+            return (await finalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+        }
+
         /// <summary>
         /// Called to test a C# source generator when applied on the input source as a string.
         /// </summary>
@@ -83,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     var actual = await GetSourceTextFromDocumentAsync(updatedDocuments[i], cancellationToken).ConfigureAwait(false);
                     verifier.EqualOrDiff(expectedSources[i].content.ToString(), actual.ToString(), $"content of '{expectedSources[i].filename}' did not match. Diff shown with expected as baseline:");
-                    verifier.Equal(expectedSources[i].content.Encoding, actual.Encoding, $"encoding of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.Encoding}' but was '{actual.Encoding}'");
+                    verifier.Equal(expectedSources[i].content.Encoding, actual.Encoding, $"encoding of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                     verifier.Equal(expectedSources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
                     verifier.Equal(expectedSources[i].filename, updatedDocuments[i].Name, $"file name was expected to be '{expectedSources[i].filename}' but was '{updatedDocuments[i].Name}'");
                 }
