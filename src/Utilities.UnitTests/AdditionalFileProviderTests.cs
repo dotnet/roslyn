@@ -19,10 +19,10 @@ namespace Analyzers.Utilities.UnitTests
     public sealed class AdditionalFileProviderTests
     {
         [Theory]
-        [InlineData]
-        [InlineData("b.txt")]
-        [InlineData("a.bat")]
-        public void DesiredFileMissing_GetFile_ReturnsNull(params string[] fileNames)
+        [InlineData(new object[] { new string[] { } })]
+        [InlineData(new object[] { new string[] { "b.txt" } })]
+        [InlineData(new object[] { new string[] { "a.bat" } })]
+        public void DesiredFileMissing_GetFile_ReturnsNull(string[] fileNames)
         {
             var fileProvider = new AdditionalFileProvider(CreateAdditionalFiles(fileNames));
 
