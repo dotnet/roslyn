@@ -2337,13 +2337,13 @@ Although it's possible to display the ten thousandths of a second component of a
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">Описатель пользовательского формата "f" представляет наиболее значащую цифру в дробной части секунды, то есть представляет десятые доли секунды в значении даты и времени.
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="needs-review-translation">Описатель пользовательского формата "f" представляет наиболее значащую цифру в дробной части секунды, то есть представляет десятые доли секунды в значении даты и времени.
 
 Если описатель формата "f" используется без других описателей формата, он интерпретируется как описатель стандартного формата даты и времени "f".
 
 При использовании описателей формата "f" в качестве части строки формата, передаваемой методу ParseExact, TryParseExact, ParseExact или TryParseExact, число описателей формата "f" указывает количество наиболее значащих цифр в дробной части секунды, которые должны присутствовать для успешного анализа строки.</target>
-        <note />
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.ElementAccessExpression:
+                case SyntaxKind.SwitchExpressionArm:
                     // Direct parent kind checks.
                     return true;
             }

@@ -2337,13 +2337,13 @@ Although it's possible to display the ten thousandths of a second component of a
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">"f" 自訂格式規範代表秒小數部分的最大有效位數; 換句話說，其代表日期與時間值中的十分之一秒。
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="needs-review-translation">"f" 自訂格式規範代表秒小數部分的最大有效位數; 換句話說，其代表日期與時間值中的十分之一秒。
 
 如果在使用 "f" 格式規範時沒有其他格式規範，則會將其解譯為 "f" 標準日期與時間格式規範。
 
 對 ParseExact、TryParseExact、ParseExact 或 TryParseExact 方法所提供的格式字串包含 "f" 格式規範時，"f" 格式規範的數字，代表成功剖析字串所必須出現的秒小數部分最大有效位數。</target>
-        <note />
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

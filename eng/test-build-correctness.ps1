@@ -12,6 +12,7 @@
 [CmdletBinding(PositionalBinding=$false)]
 param(
   [string]$configuration = "Debug",
+  [switch]$enableDumps = $false,
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -32,6 +33,14 @@ try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
+
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    New-Item -Path $key -ErrorAction SilentlyContinue
+    New-ItemProperty -Path $key -Name 'DumpType' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpCount' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
+  }
 
   # Verify no PROTOTYPE marker left in main
   if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
@@ -67,5 +76,11 @@ catch [exception] {
   exit 1
 }
 finally {
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    Remove-ItemProperty -Path $key -Name 'DumpType'
+    Remove-ItemProperty -Path $key -Name 'DumpCount'
+    Remove-ItemProperty -Path $key -Name 'DumpFolder'
+  }
   Pop-Location
 }

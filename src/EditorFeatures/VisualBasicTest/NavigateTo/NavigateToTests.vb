@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
@@ -680,8 +681,8 @@ End Sub
 End Class", Async Function(w)
                 Dim expectedItems = New List(Of NavigateToItem) From
                     {
-                        New NavigateToItem("Goo", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
-                        New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                        New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Goo", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
                     }
 
                 Dim items As List(Of NavigateToItem) = (Await _aggregator.GetItemsAsync("Goo")).ToList()
@@ -840,7 +841,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, createTrackingService:=Nothing)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -875,7 +876,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, createTrackingService:=Nothing)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -908,7 +909,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, createTrackingService:=Nothing)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -938,7 +939,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, createTrackingService:=Nothing)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -974,7 +975,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, createTrackingService:=Nothing)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1000,7 +1001,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, createTrackingService:=Nothing)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1027,7 +1028,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, createTrackingService:=Nothing)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(

@@ -11,6 +11,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -312,12 +313,12 @@ namespace Roslyn.Utilities
         private struct ReaderReferenceMap<T> : IDisposable
             where T : class
         {
-            private readonly List<T> _values;
+            private readonly SegmentedList<T> _values;
 
-            private static readonly ObjectPool<List<T>> s_objectListPool
-                = new(() => new List<T>(20));
+            private static readonly ObjectPool<SegmentedList<T>> s_objectListPool
+                = new(() => new SegmentedList<T>(20));
 
-            private ReaderReferenceMap(List<T> values)
+            private ReaderReferenceMap(SegmentedList<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()

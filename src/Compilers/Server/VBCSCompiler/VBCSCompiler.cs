@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         public static int Main(string[] args)
         {
-            using var logger = new CompilerServerLogger();
+            using var logger = new CompilerServerLogger("VBCSCompiler");
 
             NameValueCollection appSettings;
             try

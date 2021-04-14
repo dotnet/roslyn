@@ -4,7 +4,7 @@ Guidelines for contributing to the Roslyn repo.
 
 ## Submitting Pull Requests
 
-- **DO** ensure submissions pass all Jenkins legs and are merge conflict free.
+- **DO** ensure submissions pass all Azure DevOps legs and are merge conflict free.
 - **DO** follow the [.editorconfig](http://editorconfig.org/) settings for each directory. 
 - **DO** submit language feature requests as issues in the [C# language](https://github.com/dotnet/csharplang#discussion) / [VB language](https://github.com/dotnet/vblang) repos.  Once a feature is championed and validated by LDM, a developer will be assigned to help begin a prototype on this repo inside a feature branch.
 - **DO NOT** submit language features as PRs to this repo first, or they will likely be declined.

@@ -2337,13 +2337,13 @@ Bir saat değerinin saniyenin on binde birlik bileşenini görüntülemek mümk�
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">"f" özel biçim belirticisi, saniye kesirinin en anlamlı basamağını; yani bir tarih ve saat değerinde saniyenin onda birini temsil eder.
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="needs-review-translation">"f" özel biçim belirticisi, saniye kesirinin en anlamlı basamağını; yani bir tarih ve saat değerinde saniyenin onda birini temsil eder.
 
 "f" biçim belirticisi başka biçim belirticileri olmadan kullanılırsa, standart tarih ve saat biçim belirticisi "f" olarak yorumlanır.
 
 "f" biçim belirticisi Parse, TryParse, ParseExact veya TryParseExact yöntemine geçilen bir biçim dizesinde kullanıldığında, "f" biçim belirticilerinin sayısı, dizenin başarıyla ayrıştırılması için saniye kesirinde bulunması gereken anlamlı basamak sayısını gösterir.</target>
-        <note />
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

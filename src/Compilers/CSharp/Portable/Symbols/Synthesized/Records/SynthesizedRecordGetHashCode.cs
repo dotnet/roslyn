@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _equalityContract = equalityContract;
         }
 
+        protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__GetHashCode;
+
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
