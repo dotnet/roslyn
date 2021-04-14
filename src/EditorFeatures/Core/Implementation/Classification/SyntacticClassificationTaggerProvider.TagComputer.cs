@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -14,15 +13,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
@@ -213,25 +209,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                var service = TryGetClassificationService(currentSnapshot);
-                object currentCachedData = null;
-                var changedSpan = currentSnapshot.GetFullSpan();
-                if (service is not null)
+                object currentCachedData;
+                SnapshotSpan changedSpan;
+
+                using (var _ = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger))
                 {
-                    using var _ = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
+                    var service = TryGetClassificationService(currentSnapshot);
 
                     // preemptively allow the classification service to compute and cache data for this file.  For
                     // example, in C# and VB we will parse the file so that are called from tagger from UI thread,
                     // we have the root of the tree ready to go.
-                    currentCachedData = await service.GetDataToCacheAsync(currentDocument, cancellationToken).ConfigureAwait(false);
+                    currentCachedData = service == null
+                        ? null
+                        : await service.GetDataToCacheAsync(currentDocument, cancellationToken).ConfigureAwait(false);
 
                     // Query the service to determine waht span of the document actually changed and should be
                     // reclassified in the host editor.
-                    changedSpan = await GetChangedSpanAsync(currentDocument, currentSnapshot, service, cancellationToken).ConfigureAwait(false);
+                    changedSpan = await GetChangedSpanAsync(currentDocument, currentSnapshot, cancellationToken).ConfigureAwait(false);
                 }
-
-                // Once we're past this point, we're mutating our internal state so we cannot cancel past that.
-                cancellationToken = CancellationToken.None;
 
                 lock (_gate)
                 {
@@ -252,8 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             private async Task<SnapshotSpan> GetChangedSpanAsync(
-                Document currentDocument, ITextSnapshot currentSnapshot,
-                IClassificationService service, CancellationToken cancellationToken)
+                Document currentDocument, ITextSnapshot currentSnapshot, CancellationToken cancellationToken)
             {
                 // We don't need to grab _lastProcessedDocument in a lock.  We don't care which version of the previous
                 // doc we grab, just that we grab some prior version.  This is only used to narrow down the changed range we 
@@ -261,10 +255,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var previousDocument = _lastProcessedDocument;
                 if (previousDocument != null)
                 {
-                    var changeRange = await service.ComputeSyntacticChangeRangeAsync(
-                        previousDocument, currentDocument, _diffTimeout, cancellationToken).ConfigureAwait(false);
-                    if (changeRange != null)
-                        return currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
+                    var service = TryGetClassificationService(currentSnapshot);
+                    if (service != null)
+                    {
+                        var changeRange = await service.ComputeSyntacticChangeRangeAsync(
+                            previousDocument, currentDocument, _diffTimeout, cancellationToken).ConfigureAwait(false);
+                        if (changeRange != null)
+                            return currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
+                    }
                 }
 
                 // Couldn't compute a narrower range.  Just the mark the entire file as changed.
