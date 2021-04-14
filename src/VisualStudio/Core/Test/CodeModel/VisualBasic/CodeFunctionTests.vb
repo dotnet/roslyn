@@ -2882,7 +2882,7 @@ End Class
 #End Region
 
         Private Function GetPartialMethodExtender(codeElement As EnvDTE80.CodeFunction2) As IVBPartialMethodExtender
-            Return CType(codeElement.get_Extender(ExtenderNames.VBPartialMethodExtender), IVBPartialMethodExtender)
+            Return CType(codeElement.Extender(ExtenderNames.VBPartialMethodExtender), IVBPartialMethodExtender)
         End Function
 
         Protected Overrides Function PartialMethodExtender_GetIsPartial(codeElement As EnvDTE80.CodeFunction2) As Boolean
