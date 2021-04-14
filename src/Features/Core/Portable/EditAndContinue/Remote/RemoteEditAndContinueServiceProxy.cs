@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+            public async ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
             {
                 try
                 {
