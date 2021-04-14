@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -69,6 +72,56 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct SourceProductionContext
     {
-        public void AddSource(string name, string content) { }
+        private readonly ArrayBuilder<GeneratedSourceText> _sources;
+        private readonly DiagnosticBag _diagnostics;
+
+        internal SourceProductionContext(ArrayBuilder<GeneratedSourceText> sources, DiagnosticBag diagnostics)
+        {
+            _sources = sources;
+            _diagnostics = diagnostics;
+        }
+
+        /// <summary>
+        /// Adds source code in the form of a <see cref="string"/> to the compilation.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="source">The source code to add to the compilation</param>
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds a <see cref="SourceText"/> to the compilation
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        public void AddSource(string hintName, SourceText sourceText) => _sources.Add(new GeneratedSourceText(hintName, sourceText));
+
+        /// <summary>
+        /// Adds a <see cref="Diagnostic"/> to the users compilation 
+        /// </summary>
+        /// <param name="diagnostic">The diagnostic that should be added to the compilation</param>
+        /// <remarks>
+        /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
+        /// </remarks>
+        public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
+    }
+
+    // PROTOTYPE(source-generators): right now we only support generating source + diagnostics, but actively want to support generation of other things
+    internal struct IncrementalExecutionContext
+    {
+        internal readonly DiagnosticBag Diagnostics;
+
+        internal readonly AdditionalSourcesCollection Sources;
+
+        internal readonly DriverStateTable.Builder TableBuilder;
+
+        public IncrementalExecutionContext(DriverStateTable.Builder tableBuilder, AdditionalSourcesCollection sources)
+        {
+            TableBuilder = tableBuilder;
+            Sources = sources;
+            Diagnostics = DiagnosticBag.GetInstance();
+        }
+
+        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
+                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree());
     }
 }

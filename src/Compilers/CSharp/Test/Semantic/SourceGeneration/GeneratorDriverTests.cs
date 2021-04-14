@@ -1276,6 +1276,73 @@ class C { }
         }
 
         [Fact]
+        public void Incremental_Generators_Exception_During_Initialization()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var e = new InvalidOperationException("abc");
+            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => throw e));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Single(runResults.Diagnostics);
+            Assert.Single(runResults.Results);
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_With_No_Pipeline_Callback_Is_Valid()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => { }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            outputCompilation.VerifyDiagnostics();
+            Assert.Empty(diagnostics);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Can_Add_PostInit_Source()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"))));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+            Assert.Empty(diagnostics);
+        }
+
+        [Fact]
         public void User_WrappedFunc_Throw_Exceptions()
         {
             Func<int, int> func = (input) => input;

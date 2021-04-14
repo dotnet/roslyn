@@ -32,5 +32,20 @@ namespace Microsoft.CodeAnalysis
                 }
             };
         }
+
+        internal static Action<TInput1, TInput2> WrapUserAction<TInput1, TInput2>(this Action<TInput1, TInput2> userFunction)
+        {
+            return (input1, input2) =>
+            {
+                try
+                {
+                    userFunction(input1, input2);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                {
+                    throw new UserFunctionException(e);
+                }
+            };
+        }
     }
 }

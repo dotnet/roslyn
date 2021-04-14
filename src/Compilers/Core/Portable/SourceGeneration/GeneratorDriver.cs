@@ -293,45 +293,52 @@ namespace Microsoft.CodeAnalysis
             }
             walkerBuilder.Free();
 
-            // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
-            for (int i = 0; i < state.Generators.Length; i++)
-            {
-                var generator = state.Generators[i];
-                var generatorState = stateBuilder[i];
+            // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
 
-                // don't try and generate if initialization or syntax walk failed
+            var driverStateBuilder = new DriverStateTable.Builder(state.StateTable);
+            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+            {
+                var generatorState = stateBuilder[i];
                 if (generatorState.Exception is object)
                 {
                     continue;
                 }
-                Debug.Assert(generatorState.Info.Initialized);
 
-                // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
-                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver, CreateSourcesCollection(), cancellationToken);
-                try
+                IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());
+                foreach (var output in generatorState.OutputNodes)
                 {
-                    generator.Execute(context);
+                    try
+                    {
+                        // PROTOTYPE(source-generators):
+                        // right now, we always run all output types. We'll add a mechanism to allow the host
+                        // to control what types they care about in the future
+                        output.AppendOutputs(context);
+                    }
+                    catch (UserFunctionException ufe) when (ufe.InnerException is object)
+                    {
+                        stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], ufe.InnerException, diagnosticsBag);
+                        break;
+                    }
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+
+                if (stateBuilder[i].Exception is null)
                 {
-                    stateBuilder[i] = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
-                    context.Free();
-                    continue;
+                    (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
+                    generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
+
+                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
+                    diagnosticsBag?.AddRange(diagnostics);
                 }
-
-                (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
-                generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
-
-                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.OutputNodes, ParseAdditionalSources(generator, sources, cancellationToken), generatorDiagnostics);
             }
-            state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
+
+            state = state.With(stateTable: driverStateBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree());
             return state;
         }
 
         private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(generatedSources.Length);
-            var type = generator.GetType();
+            var type = GetGeneratorType(generator);
             var prefix = GetFilePathPrefixForGenerator(generator);
             foreach (var source in generatedSources)
             {
