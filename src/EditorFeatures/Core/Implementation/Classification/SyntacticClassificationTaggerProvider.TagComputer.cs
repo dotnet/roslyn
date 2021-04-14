@@ -256,7 +256,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 IClassificationService service, CancellationToken cancellationToken)
             {
                 // We don't need to grab _lastProcessedDocument in a lock.  We don't care which version of the previous
-                // doc we grab, just that we grab some prior version.  This is only used 
+                // doc we grab, just that we grab some prior version.  This is only used to narrow down the changed range we 
+                // specify, so it's ok if it's slightly larger because we read in a change from a couple of edits ago.
                 var previousDocument = _lastProcessedDocument;
                 if (previousDocument != null)
                 {
