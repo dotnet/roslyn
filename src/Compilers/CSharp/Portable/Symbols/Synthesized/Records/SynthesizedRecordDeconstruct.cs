@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -50,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 param.Ordinal,
                                                 RefKind.Out,
                                                 param.Name,
-                                                isDiscard: false,
                                                 locations),
                                         arg: Locations),
                     IsVararg: false,

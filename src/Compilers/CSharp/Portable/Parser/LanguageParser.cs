@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool checkLambdaAttributesFeature = false)
+        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations()
         {
             var attributes = _pool.Allocate<AttributeListSyntax>();
             try
@@ -818,10 +818,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 while (this.IsPossibleAttributeDeclaration())
                 {
                     var attribute = this.ParseAttributeDeclaration();
-                    if (checkLambdaAttributesFeature)
-                    {
-                        attribute = CheckFeatureAvailability(attribute, MessageID.IDS_FeatureLambdaAttributes);
-                    }
                     attributes.Add(attribute);
                 }
 
@@ -12289,7 +12285,7 @@ tryAgain:
 
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
-            var attributes = ParseAttributeDeclarations(checkLambdaAttributesFeature: true);
+            var attributes = ParseAttributeDeclarations();
             var parentScopeIsInAsync = this.IsInAsync;
             var result = parseLambdaExpressionWorker();
             this.IsInAsync = parentScopeIsInAsync;
@@ -12427,7 +12423,7 @@ tryAgain:
 
         private ParameterSyntax ParseLambdaParameter()
         {
-            var attributes = ParseAttributeDeclarations(checkLambdaAttributesFeature: true);
+            var attributes = ParseAttributeDeclarations();
 
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
