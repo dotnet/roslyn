@@ -88,18 +88,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this SymbolGroup group, Solution solution, bool isPrimary, bool includeHiddenLocations, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return ToDefinitionItemAsync(group, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
-        }
-
-        private static async Task<DefinitionItem> ToDefinitionItemAsync(
-            this SymbolGroup group, Solution solution, bool isPrimary, bool includeHiddenLocations, bool includeClassifiedSpans, FindReferencesSearchOptions options, CancellationToken cancellationToken)
-        {
             // Make a single definition item that knows about all the locations of all the symbols in the group.
             // If we had symbols from different project flavors, add the project flavor info into the definition
             // item name to show the user.
             var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
-            return await ToDefinitionItemAsync(
-                group.PrimarySymbol, allLocations, GetAdditionalDisplayParts(), solution, isPrimary, includeHiddenLocations, includeClassifiedSpans, options, cancellationToken).ConfigureAwait(false);
+            return ToDefinitionItemAsync(
+                group.PrimarySymbol, allLocations, GetAdditionalDisplayParts(), solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
 
             ImmutableArray<TaggedText> GetAdditionalDisplayParts()
             {
