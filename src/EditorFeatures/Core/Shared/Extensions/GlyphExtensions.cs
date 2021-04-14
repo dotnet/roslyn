@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // so we need to expose ImageId instead of ImageMoniker here
             // and expose ImageMoniker in the EditorFeatures.wpf.dll
             // The use of constants here is okay because the compiler inlines their values, so no runtime reference is needed.
-            // There are tests in AssemblyReferenceTests.cs to ensure we don't regress that.
+            // There are tests in src\EditorFeatures\Test\AssemblyReferenceTests.cs to ensure we don't regress that.
             switch (glyph)
             {
                 case Glyph.None:
