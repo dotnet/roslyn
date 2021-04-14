@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(oldModel);
                 Contract.ThrowIfNull(newModel);
 
-                var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, CancellationToken.None).Result;
+                var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, ManagedEditAndContinueCapabilities.Net5CoreCLR, CancellationToken.None).Result;
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 
