@@ -970,7 +970,7 @@ class C2
     }
 }
 ",
-                hasTypeReferensesInUsing: false);
+                hasTypeReferencesInUsing: false);
 
             verify(comp0Ref, comp1Ref,
 @"
@@ -1040,7 +1040,7 @@ class C2
     }
 }
 ",
-                hasTypeReferensesInUsing: false);
+                hasTypeReferencesInUsing: false);
 
             verify(comp0Ref, comp1Ref,
 @"
@@ -1084,13 +1084,13 @@ class C2
 }
 ");
 
-            void verify(MetadataReference reference0, MetadataReference reference1, string source, bool hasTypeReferensesInUsing = true)
+            void verify(MetadataReference reference0, MetadataReference reference1, string source, bool hasTypeReferencesInUsing = true)
             {
                 var references = new[] { reference0, reference1 };
                 Compilation comp2 = CreateCompilation(source, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
-                AssertUsedAssemblyReferences(comp2, hasTypeReferensesInUsing ? references : new MetadataReference[] { }, references);
+                AssertUsedAssemblyReferences(comp2, hasTypeReferencesInUsing ? references : new MetadataReference[] { }, references);
 
-                var expected = hasTypeReferensesInUsing ? references : new[] { reference1 };
+                var expected = hasTypeReferencesInUsing ? references : new[] { reference1 };
 
                 Compilation comp3 = CreateCompilation(source, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
                 AssertUsedAssemblyReferences(comp3, expected);
@@ -3744,7 +3744,7 @@ class C2
     }
 }
 ",
-                hasTypeReferensesInUsing: false);
+                hasTypeReferencesInUsing: false);
 
             verify(comp0Ref, comp1Ref,
 @"
@@ -3808,13 +3808,13 @@ class C2
                                                            options: TestOptions.DebugDll.WithUsings("C0")),
                                          comp0Ref);
 
-            void verify(MetadataReference reference0, MetadataReference reference1, string source, bool hasTypeReferensesInUsing = true)
+            void verify(MetadataReference reference0, MetadataReference reference1, string source, bool hasTypeReferencesInUsing = true)
             {
                 var references = new[] { reference0, reference1 };
                 Compilation comp2 = CreateCompilation(source, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
-                AssertUsedAssemblyReferences(comp2, hasTypeReferensesInUsing ? references : new MetadataReference[] { }, references);
+                AssertUsedAssemblyReferences(comp2, hasTypeReferencesInUsing ? references : new MetadataReference[] { }, references);
 
-                var expected = hasTypeReferensesInUsing ? references : new[] { reference1 };
+                var expected = hasTypeReferencesInUsing ? references : new[] { reference1 };
 
                 Compilation comp3 = CreateCompilation(source, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
                 AssertUsedAssemblyReferences(comp3, expected);
@@ -3861,7 +3861,7 @@ class C2
     void M(int x) {}
 }
 ",
-                hasTypeReferensesInUsing: false);
+                hasTypeReferencesInUsing: false);
 
             verify(comp0Ref, comp1Ref,
 @"
@@ -3911,11 +3911,11 @@ class C2
 }
 ");
 
-            void verify(MetadataReference reference0, MetadataReference reference1, string source, bool hasTypeReferensesInUsing = true)
+            void verify(MetadataReference reference0, MetadataReference reference1, string source, bool hasTypeReferencesInUsing = true)
             {
                 var references = new[] { reference0, reference1 };
                 Compilation comp2 = CreateCompilation(source, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
-                AssertUsedAssemblyReferences(comp2, hasTypeReferensesInUsing ? references : new MetadataReference[] { }, references);
+                AssertUsedAssemblyReferences(comp2, hasTypeReferencesInUsing ? references : new MetadataReference[] { }, references);
 
                 Compilation comp3 = CreateCompilation(source, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
                 AssertUsedAssemblyReferences(comp3, references);

@@ -216,7 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
         IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction = MessageBase + 12793,
-        IDS_FeatureGlobalUsing = MessageBase + 12794,
+        IDS_FeatureSealedToStringInRecord = MessageBase + 12794,
+        IDS_FeatureGlobalUsing = MessageBase + 12795,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -325,6 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# preview features.
                 case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction:
+                case MessageID.IDS_FeatureSealedToStringInRecord: // semantic check
                 case MessageID.IDS_FeatureGlobalUsing:
                     return LanguageVersion.Preview;
                 // C# 9.0 features.
