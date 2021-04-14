@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// </summary>
         internal partial class TagComputer
         {
-            // This is how long we will wait after completing a parse before we tell the editor to
-            // re-classify the file. We do this, since the edit may have non-local changes, or the user
-            // may have made a change that introduced text that we didn't classify because we hadn't
-            // parsed it yet, and we want to get back to a known state.
-            private const int ReportChangeDelayInMilliseconds = TaggerConstants.ShortDelay;
-
             private readonly ITextBuffer _subjectBuffer;
             private readonly WorkspaceRegistration _workspaceRegistration;
             private readonly AsynchronousSerialWorkQueue _workQueue;
@@ -237,8 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         _workQueue.AssertIsForeground();
                         ReportChangedSpan(changedSpan);
                     },
-                    ReportChangeDelayInMilliseconds,
-                    _listener.BeginAsyncOperation("ReportEntireFileChanged"),
+                    _listener.BeginAsyncOperation("EnqueueProcessSnapshotWorkerAsync.ReportChangedSpan"),
                     _reportChangeCancellationSource.Token);
             }
 
