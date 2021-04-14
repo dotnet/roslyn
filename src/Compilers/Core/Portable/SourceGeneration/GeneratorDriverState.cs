@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray<ISourceGenerator> sourceGenerators,
                                       ImmutableArray<IIncrementalGenerator> incrementalGenerators,
                                       ImmutableArray<AdditionalText> additionalTexts,
-                                      ImmutableArray<GeneratorState> generatorStates)
+                                      ImmutableArray<GeneratorState> generatorStates,
+                                      DriverStateTable stateTable)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis
             AdditionalTexts = additionalTexts;
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
+            StateTable = stateTable;
 
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
@@ -71,11 +73,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal readonly ParseOptions ParseOptions;
 
+
+        internal readonly DriverStateTable StateTable;
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
-            ImmutableArray<AdditionalText>? additionalTexts = null)
+            ImmutableArray<AdditionalText>? additionalTexts = null,
+            DriverStateTable? stateTable = null)
         {
             return new GeneratorDriverState(
                 this.ParseOptions,
@@ -83,7 +89,8 @@ namespace Microsoft.CodeAnalysis
                 sourceGenerators ?? this.Generators,
                 incrementalGenerators ?? this.IncrementalGenerators,
                 additionalTexts ?? this.AdditionalTexts,
-                generatorStates ?? this.GeneratorStates
+                generatorStates ?? this.GeneratorStates,
+                stateTable ?? this.StateTable
                 );
         }
     }
