@@ -32,10 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return handled;
         }
 
-        internal bool TryHandleLeftOrRightKey()
+        internal void TryHandleLeftOrRightKey()
         {
             _caretMoveFromArrowKeys = true;
-            return false;
         }
 
         private bool ChangeSelection(Action computationAction)

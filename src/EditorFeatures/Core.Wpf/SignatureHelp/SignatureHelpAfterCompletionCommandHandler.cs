@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public void ExecuteCommand(LeftKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            if (TryGetController(args, out var controller) && controller.TryHandleLeftOrRightKey())
+            if (TryGetController(args, out var controller))
             {
-                return;
+                controller.TryHandleLeftOrRightKey();
             }
 
             nextHandler();
@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public void ExecuteCommand(RightKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            if (TryGetController(args, out var controller) && controller.TryHandleLeftOrRightKey())
+            if (TryGetController(args, out var controller))
             {
-                return;
+                controller.TryHandleLeftOrRightKey();
             }
 
             nextHandler();
