@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 Contract.ThrowIfTrue(dehydrated.Symbols.Count == 0);
 
-                using var _1 = PooledDictionary<SerializableSymbolAndProjectId, ISymbol>.GetInstance(out var map);
+                using var _ = PooledDictionary<SerializableSymbolAndProjectId, ISymbol>.GetInstance(out var map);
 
                 foreach (var symbolAndProjectId in dehydrated.Symbols)
                 {
