@@ -50,8 +50,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (_hashCode == 0)
             {
+                var hashCode = 0;
                 foreach (var symbol in Symbols)
-                    _hashCode += MetadataUnifyingEquivalenceComparer.Instance.GetHashCode(symbol);
+                    hashCode += MetadataUnifyingEquivalenceComparer.Instance.GetHashCode(symbol);
+                _hashCode = hashCode;
             }
 
             return _hashCode;

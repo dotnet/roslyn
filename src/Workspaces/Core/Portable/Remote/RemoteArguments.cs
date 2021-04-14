@@ -238,8 +238,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (_hashCode == 0)
             {
+                var hashCode = 0;
                 foreach (var symbol in Symbols)
-                    _hashCode += symbol.SymbolKeyData.GetHashCode();
+                    hashCode += symbol.SymbolKeyData.GetHashCode();
+                _hashCode = hashCode;
             }
 
             return _hashCode;
