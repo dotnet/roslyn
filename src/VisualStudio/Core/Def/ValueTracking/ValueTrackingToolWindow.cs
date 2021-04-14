@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     [Guid(Guids.ValueTrackingToolWindowIdString)]
     internal class ValueTrackingToolWindow : ToolWindowPane
     {
-        private Grid _rootGrid = new();
+        private readonly Grid _rootGrid = new();
 
         public static ValueTrackingToolWindow? Instance { get; set; }
 
