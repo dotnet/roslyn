@@ -88,8 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             this SymbolGroup group, Solution solution, bool isPrimary, bool includeHiddenLocations, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             // Make a single definition item that knows about all the locations of all the symbols in the group.
-            // If we had symbols from different project flavors, add the project flavor info into the definition
-            // item name to show the user.
             var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
             return ToDefinitionItemAsync(group.Symbols.First(), allLocations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
         }
