@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var service = TryGetClassificationService(currentSnapshot);
                 object currentCachedData = null;
                 var changedSpan = currentSnapshot.GetFullSpan();
-                if (service != null)
+                if (service is not null)
                 {
                     var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
                     using (latencyTracker)
