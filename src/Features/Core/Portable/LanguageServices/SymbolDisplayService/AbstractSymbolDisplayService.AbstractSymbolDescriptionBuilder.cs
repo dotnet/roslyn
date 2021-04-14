@@ -465,6 +465,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                     AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
                 }
+
+                if (symbol.IsEnumType() && symbol.EnumUnderlyingType.SpecialType != SpecialType.System_Int32)
+                {
+                    var underlyingTypeDisplayParts = symbol.EnumUnderlyingType.ToDisplayParts(s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
+                    AddToGroup(SymbolDescriptionGroups.MainDescription,
+                        Space(),
+                        Punctuation(":"),
+                        Space(),
+                        underlyingTypeDisplayParts);
+                }
             }
 
             private void AddSymbolDescription(INamedTypeSymbol symbol)
