@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determine whether this node is structurally equivalent to another.
         /// </summary>
-        public bool IsEquivalentTo([NotNullWhen(true)] SyntaxNode other)
+        public bool IsEquivalentTo([NotNullWhen(true)] SyntaxNode? other)
         {
             if (this == other)
             {
