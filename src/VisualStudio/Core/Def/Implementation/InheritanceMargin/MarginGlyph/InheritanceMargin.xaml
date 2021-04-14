@@ -216,30 +216,36 @@
                     </Setter>
                 </Style>
 
-                <ControlTemplate x:Key="ImageSeparatorWithBorderTemplate" TargetType="{x:Type Separator}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="1"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Rectangle Grid.Row="0" Fill="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuSeparatorBrushKey}}" />
-                        <imaging:CrispImage Grid.Row="1" Moniker="{Binding ImageMoniker}"/>
-                    </Grid>
-                </ControlTemplate>
+                <Style x:Key="HeaderMenuItemStyle" TargetType="{x:Type MenuItem}">
+                    <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
+                    <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="IsEnabled" Value="False"/>
+                    <Setter Property="HeaderTemplate">
+                        <Setter.Value>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayContent}"
+                                           Background="Transparent"
+                                           Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
+                            </DataTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
 
-                <ControlTemplate x:Key="ImageSeparatorTemplate" TargetType="{x:Type Separator}">
-                    <imaging:CrispImage Moniker="{Binding ImageMoniker}"/>
-                </ControlTemplate>
-
+                <!-- DataTemplate for the Separator between inheritance target groups -->
                 <!-- The key is referenced from code behind -->
-                <DataTemplate x:Key="TargetSeparatorDataTemplate" DataType="{x:Type marginGlyph:SeparatorViewModel}">
-                    <Separator Template="{StaticResource ImageSeparatorTemplate}"/>
+                <DataTemplate x:Key="SeparatorTemplate" DataType="{x:Type marginGlyph:SeparatorViewModel}">
+                    <Separator>
+                        <Separator.Template>
+                            <ControlTemplate>
+                                <Rectangle Height="1" Fill="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuSeparatorBrushKey}}" />
+                            </ControlTemplate>
+                        </Separator.Template>
+                    </Separator>
                 </DataTemplate>
 
-                <!-- DataTemplate for the Separator between inheritance target -->
-                <!-- The key is referenced from code behind -->
-                <DataTemplate x:Key="TargetSeparatorDataTemplateWithBorder" DataType="{x:Type marginGlyph:SeparatorViewModel}">
-                    <Separator Template="{StaticResource ImageSeparatorWithBorderTemplate}"/>
+                <DataTemplate x:Key="HeaderMenuItemTemplate" DataType="{x:Type marginGlyph:HeaderMenuItemViewModel}">
+                    <MenuItem Style="{StaticResource HeaderMenuItemStyle}" />
                 </DataTemplate>
 
                 <!-- DataTemplate for a member in the context menu -->

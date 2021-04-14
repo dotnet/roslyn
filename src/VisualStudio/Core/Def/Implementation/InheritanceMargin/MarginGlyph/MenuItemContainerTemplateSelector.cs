@@ -17,16 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     {
         public override DataTemplate SelectTemplate(object item, ItemsControl parentItemsControl)
         {
-            if (item is SeparatorViewModel separatorViewModel)
+            if (item is SeparatorViewModel)
             {
-                if (separatorViewModel.IsFirstMenuItem)
-                {
-                    return (DataTemplate)parentItemsControl.FindResource("TargetSeparatorDataTemplate");
-                }
-                else
-                {
-                    return (DataTemplate)parentItemsControl.FindResource("TargetSeparatorDataTemplateWithBorder");
-                }
+                return (DataTemplate)parentItemsControl.FindResource("SeparatorTemplate");
+            }
+
+            if (item is HeaderMenuItemViewModel)
+            {
+                return (DataTemplate)parentItemsControl.FindResource("HeaderMenuItemTemplate");
             }
 
             if (item is TargetMenuItemViewModel)

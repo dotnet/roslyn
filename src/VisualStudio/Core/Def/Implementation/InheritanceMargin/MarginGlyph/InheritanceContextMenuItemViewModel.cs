@@ -14,12 +14,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public string DisplayContent { get; }
 
         /// <summary>
+        /// ImageMoniker shown in the menu.
+        /// </summary>
+        public ImageMoniker ImageMoniker { get; }
+
+        /// <summary>
         /// AutomationName for the MenuItem.
         /// </summary>
         public string AutomationName { get; }
 
-        protected InheritanceMenuItemViewModel(string displayContent, ImageMoniker imageMoniker, string automationName) : base(imageMoniker)
+        protected InheritanceMenuItemViewModel(string displayContent, ImageMoniker imageMoniker, string automationName)
         {
+            ImageMoniker = imageMoniker;
             DisplayContent = displayContent;
             AutomationName = automationName;
         }

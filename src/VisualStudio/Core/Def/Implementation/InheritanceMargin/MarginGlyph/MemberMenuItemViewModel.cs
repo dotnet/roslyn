@@ -41,17 +41,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 member.TargetItems.SelectAsArray(TargetMenuItemViewModel.Create).CastArray<MenuItemViewModel>());
         }
 
-        public static MemberMenuItemViewModel CreateWithSeparator(InheritanceMarginItem member)
+        public static MemberMenuItemViewModel CreateWithHeader(InheritanceMarginItem member)
         {
             var displayName = member.DisplayTexts.JoinText();
+            var targetsByRelationship = member.TargetItems.GroupBy(target => target.RelationToMember).ToImmutableArray();
+
+            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
+            for (var i = 0; i < targetsByRelationship.Length; i++)
+            {
+                var (relationship, targetItems) = targetsByRelationship[i];
+                if (i != targetsByRelationship.Length - 1)
+                {
+                    builder.AddRange(InheritanceMarginHelpers.CreateMenuItemsWithHeader(targetItems, relationship));
+                    builder.Add(new SeparatorViewModel());
+                }
+                else
+                {
+                    builder.AddRange(InheritanceMarginHelpers.CreateMenuItemsWithHeader(targetItems, relationship));
+                }
+            }
+
             return new MemberMenuItemViewModel(
                 displayName,
                 member.Glyph.GetImageMoniker(),
                 displayName,
-                member.TargetItems.GroupBy(target => target.RelationToMember)
-                    .Select((grouping, index) => InheritanceMarginHelpers.CreateMenuItemsWithSeparator(grouping.SelectAsArray(g => g), grouping.Key, index == 0))
-                    .ToImmutableArray()
-                    .CastArray<MenuItemViewModel>());
+                builder.ToImmutable());
         }
     }
 }
