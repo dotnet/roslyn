@@ -53,5 +53,8 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             Worker.Classify(workspace, semanticModel, textSpan, result, getNodeClassifiers, getTokenClassifiers, cancellationToken);
         }
+
+        public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
+            => SyntacticChangeRangeComputer.ComputeSyntacticChangeRangeAsync(oldDocument, newDocument, timeout, cancellationToken);
     }
 }
