@@ -3748,23 +3748,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                          ImmutableArray<CustomModifier>.Empty,
                                                                          isStatic: false,
                                                                          ImmutableArray<PropertySymbol>.Empty);
-                    Symbol? inheritedMember = null;
-                    if (!memberSignatures.TryGetValue(targetProperty, out var existingMember))
+                    if (!memberSignatures.TryGetValue(targetProperty, out var existingMember)
+                        && !fieldsByName.TryGetValue(param.Name, out existingMember))
                     {
-                        inheritedMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetProperty, memberIsFromSomeCompilation: true);
-                        if (inheritedMember is not FieldSymbol)
-                        {
-                            existingMember = inheritedMember;
-                            isInherited = true;
-                        }
+                        existingMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetProperty, memberIsFromSomeCompilation: true);
+                        isInherited = true;
                     }
 
-                    if (existingMember is null
-                        && !fieldsByName.TryGetValue(param.Name, out existingMember)
-                        && inheritedMember is FieldSymbol)
-                    {
-                        existingMember = inheritedMember;
-                    }
+                    // There should be an error if we picked a member that is hidden
+                    // This will be fixed in C# 9 as part of 16.10. Tracked by https://github.com/dotnet/roslyn/issues/52630
 
                     if (existingMember is null)
                     {

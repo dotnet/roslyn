@@ -28594,6 +28594,88 @@ public sealed record(";
         }
 
         [Fact]
+        public void HiddenPositionalMember_Property()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { } // hiding
+}
+";
+            // There should be an error because we pick a hidden member as a positional member
+            // This will be fixed in 16.10. Tracked by https://github.com/dotnet/roslyn/issues/52630
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I() { } // hiding
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(13, 17)
+                );
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Base.I.get""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HiddenPositionalMember_Field()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { } // hiding
+}
+";
+            // There should be an error because we pick a hidden member as a positional member
+            // This will be fixed in 16.10. Tracked by https://github.com/dotnet/roslyn/issues/52630
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I() { } // hiding
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(13, 17)
+                );
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int Base.I""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
         public void FieldAsPositionalMember()
         {
             var source = @"
@@ -28719,28 +28801,27 @@ record A(int X)
         }
 
         [Fact]
-        public void FieldAsPositionalMember_PropertyComesFirst()
+        public void FieldAsPositionalMember_CurrentTypeComesFirst()
         {
             var source = @"
-var c = new C(0);
+var c = new C(42);
 c.Deconstruct(out int i);
 System.Console.Write(i);
 
 public record Base
 {
-    public int I { get; set; } = 42;
-    public Base(int ignored) { }
+    public int I { get; set; } = 0;
 }
-public record C(int I) : Base(I)
+public record C(int I) : Base
 {
-    public int I;
+    public int I = I;
 }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (13,16): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
-                //     public int I;
-                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(13, 16)
+                // (12,16): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public int I = I;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(12, 16)
                 );
 
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
@@ -28750,7 +28831,7 @@ public record C(int I) : Base(I)
   .maxstack  2
   IL_0000:  ldarg.1
   IL_0001:  ldarg.0
-  IL_0002:  call       ""int Base.I.get""
+  IL_0002:  ldfld      ""int C.I""
   IL_0007:  stind.i4
   IL_0008:  ret
 }
@@ -28758,7 +28839,7 @@ public record C(int I) : Base(I)
         }
 
         [Fact]
-        public void FieldAsPositionalMember_PropertyComesFirst_FieldInBase()
+        public void FieldAsPositionalMember_CurrentTypeComesFirst_FieldInBase()
         {
             var source = @"
 var c = new C(42);
