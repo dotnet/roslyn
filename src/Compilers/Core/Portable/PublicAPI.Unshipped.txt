@@ -22,6 +22,7 @@ Microsoft.CodeAnalysis.IncrementalGeneratorOutput.IncrementalGeneratorOutput() -
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.IncrementalGeneratorPipelineContext() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.RegisterOutput(Microsoft.CodeAnalysis.IncrementalGeneratorOutput output) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.Sources.get -> Microsoft.CodeAnalysis.ValueSources!
 Microsoft.CodeAnalysis.IncrementalValueSource<T>
 Microsoft.CodeAnalysis.IncrementalValueSource<T>.IncrementalValueSource() -> void
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
@@ -36,6 +37,10 @@ Microsoft.CodeAnalysis.IMethodSymbol.MethodImplementationFlags.get -> System.Ref
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void
+Microsoft.CodeAnalysis.SourceGeneration.Nodes.ValueSources
+Microsoft.CodeAnalysis.SourceGeneration.Nodes.ValueSources.AdditionalTexts.get -> Microsoft.CodeAnalysis.IncrementalValueSource<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.AdditionalText!>!>
+Microsoft.CodeAnalysis.SourceGeneration.Nodes.ValueSources.Compilation.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Compilation!>
+Microsoft.CodeAnalysis.SourceGeneration.Nodes.ValueSources.ValueSources() -> void
 Microsoft.CodeAnalysis.SourceProductionContext
 Microsoft.CodeAnalysis.SourceProductionContext.AddSource(string! hintName, Microsoft.CodeAnalysis.Text.SourceText! sourceText) -> void
 Microsoft.CodeAnalysis.SourceProductionContext.AddSource(string! hintName, string! source) -> void
@@ -49,6 +54,10 @@ Microsoft.CodeAnalysis.SyntaxNode.IsIncrementallyIdenticalTo(Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.SyntaxNodeOrToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNodeOrToken other) -> bool
 Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
+Microsoft.CodeAnalysis.ValueSources
+Microsoft.CodeAnalysis.ValueSources.AdditionalTexts.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.AdditionalText!>
+Microsoft.CodeAnalysis.ValueSources.Compilation.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Compilation!>
+Microsoft.CodeAnalysis.ValueSources.ValueSources() -> void
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>

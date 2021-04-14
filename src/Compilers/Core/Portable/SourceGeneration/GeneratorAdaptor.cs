@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -36,7 +38,65 @@ namespace Microsoft.CodeAnalysis
 
             context.RegisterExecutionPipeline((ctx) =>
             {
-                // PROTOTYPE(source-generators): this is where we'll build the actual emulation pipeline
+                var output = ctx.Sources.Compilation.GenerateSource((context, compilation) =>
+                {
+                    // PROTOTYPE(source-generators): VB extensions
+                    AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
+
+                    // PROTOTYPE(source-generators): cancellation token
+                    var oldContext = new GeneratorExecutionContext(compilation, compilation.SyntaxTrees.First().Options, ImmutableArray<AdditionalText>.Empty, Diagnostics.CompilerAnalyzerConfigOptionsProvider.Empty, null, asc);
+
+                    // PROTOTYPE(source-generators):If this throws, we'll wrap it in a user func as expected. We probably *should* do that for the rest of this code though
+                    // So we probably need an internal version that doesn't wrap it? Maybe we can just construct the nodes manually.
+                    SourceGenerator.Execute(oldContext);
+
+                    // PROTOTYPE(source-generators): we should make the internals visible so we can just add directly here
+                    (var source, var diagnostics) = oldContext.ToImmutableAndFree();
+                    foreach (var s in source)
+                    {
+                        context.AddSource(s.HintName, s.Text);
+                    }
+                    foreach (var d in diagnostics)
+                    {
+                        context.ReportDiagnostic(d);
+                    }
+                });
+                ctx.RegisterOutput(output);
+
+
+                //ctx.Sources.Compilation
+
+                //// https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
+                //for (int i = 0; i < state.Generators.Length; i++)
+                //{
+                //    var generator = state.Generators[i];
+                //    var generatorState = stateBuilder[i];
+
+                //    // don't try and generate if initialization or syntax walk failed
+                //    if (generatorState.Exception is object)
+                //    {
+                //        continue;
+                //    }
+                //    Debug.Assert(generatorState.Info.Initialized);
+
+                //    //// we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
+                //    //var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver, CreateSourcesCollection(), cancellationToken);
+                //    //try
+                //    //{
+                //    //    generator.Execute(context);
+                //    //}
+                //    //catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                //    //{
+                //    //    stateBuilder[i] = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
+                //    //    context.Free();
+                //    //    continue;
+                //    //}
+
+                //    //(var sources, var diagnostics) = context.ToImmutableAndFree();
+                //    //stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.OutputNodes, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
+                //    //diagnosticsBag?.AddRange(diagnostics);
+                //}
+                //state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
             });
         }
     }
