@@ -43,8 +43,8 @@ namespace Text.Analyzers
         private static readonly LocalizableString s_localizableMessageMethodTypeParameterMoreMeaningfulName = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyDescription), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
 
-        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_xmlDictionaryProvider = new SourceTextValueProvider<CodeAnalysisDictionary>(ParseXmlDictionary);
-        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_dicDictionaryProvider = new SourceTextValueProvider<CodeAnalysisDictionary>(ParseDicDictionary);
+        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_xmlDictionaryProvider = new(ParseXmlDictionary);
+        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_dicDictionaryProvider = new(ParseDicDictionary);
         private static readonly CodeAnalysisDictionary s_mainDictionary = GetMainDictionary();
 
         internal static DiagnosticDescriptor FileParseRule = DiagnosticDescriptorHelper.Create(

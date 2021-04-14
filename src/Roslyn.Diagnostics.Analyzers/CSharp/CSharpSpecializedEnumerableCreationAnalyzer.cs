@@ -64,7 +64,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             private bool ShouldAnalyzeExpression(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                return (expression.Kind()) switch
+                return expression.Kind() switch
                 {
                     SyntaxKind.ArrayCreationExpression
                     or SyntaxKind.ImplicitArrayCreationExpression => ShouldAnalyzeArrayCreationExpression(expression, semanticModel, cancellationToken),
