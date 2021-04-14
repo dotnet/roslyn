@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor
         internal ImmutableArray<ITrackingSpan> TrackingSpans { get; set; } = ImmutableArray<ITrackingSpan>.Empty;
 
         // Legacy constructor for TypeScript.
+        [Obsolete("Use the constructor that uses ImmutableArray")]
         public NavigationBarItem(string text, Glyph glyph, IList<TextSpan> spans, IList<NavigationBarItem>? childItems = null, int indent = 0, bool bolded = false, bool grayed = false)
             : this(text, glyph, spans.ToImmutableArrayOrEmpty(), childItems.ToImmutableArrayOrEmpty(), indent, bolded, grayed)
         {
