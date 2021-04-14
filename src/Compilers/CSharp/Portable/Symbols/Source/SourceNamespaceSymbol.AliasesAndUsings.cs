@@ -286,8 +286,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         {
                                             if (builder.ContainsKey(pair.Key))
                                             {
-                                                // PROTOTYPE(GlobalUsingDirective): Report more specific error?
-
                                                 // The using alias '{0}' appeared previously in this namespace
                                                 diagnostics.Add(ErrorCode.ERR_DuplicateAlias, pair.Value.Alias.Locations[0], pair.Key);
                                             }
@@ -322,7 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         {
                                             if (!uniqueUsings.Add(namespaceOrType.NamespaceOrType))
                                             {
-                                                // PROTOTYPE(GlobalUsingDirective): Report more specific error?
                                                 diagnostics.Add(ErrorCode.WRN_DuplicateUsing, namespaceOrType.UsingDirective!.Name.Location, namespaceOrType.NamespaceOrType);
                                             }
                                             else
@@ -358,8 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             !globalAliasesMap.ContainsKey(externAlias.Alias.Name) && // If we have a global alias with the same name declared in the same compilation unit, we already reported the conflict on the global alias.
                                             mergedAliases.ContainsKey(externAlias.Alias.Name))
                                         {
-                                            // PROTOTYPE(GlobalUsingDirective): Report more specific error?
-
                                             // The using alias '{0}' appeared previously in this namespace
                                             diagnostics.Add(ErrorCode.ERR_DuplicateAlias, externAlias.Alias.Locations[0], externAlias.Alias.Name);
                                         }
