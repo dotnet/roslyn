@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract void AddAwaitablePrefix();
             protected abstract void AddAwaitableExtensionPrefix();
             protected abstract void AddDeprecatedPrefix();
+            protected abstract void AddEnumUnderlyingTypeSeparator();
             protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
             protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
             protected abstract string GetNavigationHint(ISymbol symbol);
@@ -468,12 +469,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 if (symbol.IsEnumType() && symbol.EnumUnderlyingType.SpecialType != SpecialType.System_Int32)
                 {
+                    AddEnumUnderlyingTypeSeparator();
                     var underlyingTypeDisplayParts = symbol.EnumUnderlyingType.ToDisplayParts(s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
-                    AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        Space(),
-                        Punctuation(":"),
-                        Space(),
-                        underlyingTypeDisplayParts);
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, underlyingTypeDisplayParts);
                 }
             }
 
