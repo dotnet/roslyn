@@ -3460,6 +3460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             };
 
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
+            var fieldsByName = PooledDictionary<string, Symbol>.GetInstance();
             var membersSoFar = builder.GetNonTypeMembers(declaredMembersAndInitializers);
             var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
             foreach (var member in membersSoFar)
@@ -3468,6 +3469,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case EventSymbol:
                     case MethodSymbol { MethodKind: not (MethodKind.Ordinary or MethodKind.Constructor) }:
+                        continue;
+                    case FieldSymbol { Name: var fieldName }:
+                        if (!fieldsByName.ContainsKey(fieldName))
+                        {
+                            fieldsByName.Add(fieldName, member);
+                        }
                         continue;
                 }
 
@@ -3532,6 +3539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addToStringMethod(printMembers);
 
             memberSignatures.Free();
+            fieldsByName.Free();
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -3740,42 +3748,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                          ImmutableArray<CustomModifier>.Empty,
                                                                          isStatic: false,
                                                                          ImmutableArray<PropertySymbol>.Empty);
-
+                    Symbol? inheritedMember = null;
                     if (!memberSignatures.TryGetValue(targetProperty, out var existingMember))
                     {
-                        existingMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetProperty, memberIsFromSomeCompilation: true);
-                        if (existingMember is FieldSymbol)
+                        inheritedMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetProperty, memberIsFromSomeCompilation: true);
+                        if (inheritedMember is not FieldSymbol)
                         {
-                            // field from base type should not be considered before we look at fields from current type
-                            existingMember = null;
-                        }
-                        else
-                        {
+                            existingMember = inheritedMember;
                             isInherited = true;
                         }
                     }
 
-                    if (existingMember is null)
+                    if (existingMember is null
+                        && !fieldsByName.TryGetValue(param.Name, out existingMember)
+                        && inheritedMember is FieldSymbol)
                     {
-                        var targetField = new SignatureOnlyFieldSymbol(param.Name,
-                                                                       this,
-                                                                       param.TypeWithAnnotations);
-
-                        if (!memberSignatures.TryGetValue(targetField, out existingMember))
-                        {
-                            existingMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetField, memberIsFromSomeCompilation: true);
-                            if (existingMember is not FieldSymbol)
-                            {
-                                existingMember = null;
-                            }
-                        }
+                        existingMember = inheritedMember;
                     }
 
                     if (existingMember is null)
                     {
                         addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
                     }
-                    else if (existingMember is FieldSymbol { IsStatic: false } field)
+                    else if (existingMember is FieldSymbol { IsStatic: false } field
+                        && field.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                     {
                         Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeaturePositionalFieldsInRecords, diagnostics);
                         existingOrAddedMembers.Add(field);

@@ -14282,7 +14282,7 @@ record C(int X)
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (4,10): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record C(int X)
@@ -28758,6 +28758,44 @@ public record C(int I) : Base(I)
         }
 
         [Fact]
+        public void FieldAsPositionalMember_PropertyComesFirst_FieldInBase()
+        {
+            var source = @"
+var c = new C(42);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I = 0;
+}
+public record C(int I) : Base
+{
+    public int I { get; set; } = I;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,16): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public int I { get; set; } = I;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(12, 16)
+                );
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int C.I.get""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
         public void FieldAsPositionalMember_FieldFromBase()
         {
             var source = @"
@@ -28929,6 +28967,23 @@ record C3(int P)
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_WrongType()
+        {
+            var src = @"
+record C(int P)
+{
+    public string P = null;
+    public int Q = P;
+}";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'int' to match positional parameter 'P'.
+                // record C(int P)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "int", "P").WithLocation(2, 14)
+                );
         }
     }
 }

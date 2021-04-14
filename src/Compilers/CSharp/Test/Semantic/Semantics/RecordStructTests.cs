@@ -7338,9 +7338,51 @@ unsafe record struct C(int[] P)
 }";
             var comp = CreateCompilation(src, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
+                // (2,30): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'int[]' to match positional parameter 'P'.
+                // unsafe record struct C(int[] P)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "int[]", "P").WithLocation(2, 30),
                 // (4,22): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public fixed int P[2];
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P").WithArguments("int*").WithLocation(4, 22)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_WrongType()
+        {
+            var source = @"
+record struct A(int X)
+{
+    public string X = null;
+    public int Y = X;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS8866: Record member 'A.X' must be a readable instance property or field of type 'int' to match positional parameter 'X'.
+                // record struct A(int X)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(2, 21)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_DuplicateFields()
+        {
+            var source = @"
+record struct A(int X)
+{
+    public int X = 0;
+    public int X = 0;
+    public int Y = X;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0102: The type 'A' already contains a definition for 'X'
+                //     public int X = 0;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("A", "X").WithLocation(5, 16)
                 );
         }
 
