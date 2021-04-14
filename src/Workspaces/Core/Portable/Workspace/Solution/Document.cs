@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>
         /// The returned syntax tree can be <see langword="null"/> if the <see cref="SupportsSyntaxTree"/> returns <see
-        /// langword="false"/>. This function may cause computation to occurr the first time it is called, but will return
+        /// langword="false"/>. This function may cause computation to occur the first time it is called, but will return
         /// a cached result every subsequent time.  <see cref="SyntaxTree"/>'s can hold onto their roots lazily. So calls 
         /// to see <see cref="SyntaxTree.GetRoot"/> or <see cref="SyntaxTree.GetRootAsync"/> may end up causing computation
         /// to occur at that point.
