@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// <summary>
     /// A workspace that can be populated by opening MSBuild solution and project files.
     /// </summary>
-    public sealed class MSBuildWorkspace : Workspace
+    public sealed partial class MSBuildWorkspace : Workspace
     {
         // used to serialize access to public methods
         private readonly NonReentrantLock _serializationLock = new();
@@ -359,13 +358,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             using var _1 = ArrayBuilder<Project>.GetInstance(out var projectsToReload);
             foreach (var projectId in projectIds)
             {
+                this.CheckProjectIsInCurrentSolution(projectId);
                 var projectResult = this.CurrentSolution.GetProject(projectId);
-                if (projectResult is null)
-                {
-                    var message = string.Format(WorkspaceMSBuildResources.Project_0_is_not_a_part_of_the_current_Solution, projectId);
-                    throw new InvalidOperationException(message);
-                }
-
+                RoslynDebug.AssertNotNull(projectResult);
                 projectsToReload.Add(projectResult);
             }
 
@@ -373,16 +368,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectFilePaths = projectsToReload.SelectAsArray(p => p.FilePath);
             // None of the project file paths should be null
             var projectInfos = await _loader.LoadProjectInfoAsync(projectFilePaths!, targets, projectMap, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
-            projectsToReload.Clear();
-            foreach (var projectInfo in projectInfos)
-	        {
-                this.OnProjectReloaded(projectInfo);
-                var project = this.CurrentSolution.GetProject(projectInfo.Id);
-                projectsToReload.Add(project);
 
-            }
+            var updatedProjects = await UpdateProjectsAsync(projectInfos).ConfigureAwait(false);
 
-            return projectsToReload.ToImmutableAndFree();
+            UpdateReferencesAfterAdd();
+
+            return updatedProjects;
         }
 
         /// <summary>
@@ -755,6 +746,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _applyChangesProjectFile.RemoveAnalyzerReference(analyzerReference);
             this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
         }
+        #endregion
     }
-    #endregion
 }
