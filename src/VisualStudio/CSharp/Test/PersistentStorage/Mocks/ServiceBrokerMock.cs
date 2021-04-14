@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
         public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default)
             where T : class
         {
-            if (this.BrokeredServices.TryGetValue(serviceDescriptor.Moniker, out object? service))
+            if (this.BrokeredServices.TryGetValue(serviceDescriptor.Moniker, out var service))
             {
                 return new((T?)service);
             }
