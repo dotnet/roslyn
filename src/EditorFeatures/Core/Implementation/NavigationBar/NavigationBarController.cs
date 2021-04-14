@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
 
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
-            // Have to make sure we come back to the main thread for this.
+            // Have to make sure we're still on the main thread for this.
             AssertIsForeground();
             StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
         }
