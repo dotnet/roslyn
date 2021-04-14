@@ -229,7 +229,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 return new(updates, diagnostics, documentsWithRudeEdits);
             };
 
-            var updates = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, mockDiagnosticService, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            var (updates, _, _) = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, mockDiagnosticService, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document1.Id));
 
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
