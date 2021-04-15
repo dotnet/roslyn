@@ -431,7 +431,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
                 }
 
-                void AddSyntacticClassificationsForDocument(SnapshotSpan span, Document document, SyntaxNode? root)
+                void AddSyntacticClassificationsForDocument(
+                    SnapshotSpan span, Document document, SyntaxNode? root, List<ClassifiedSpan> classifiedSpans)
                 {
                     this.AssertIsForeground();
 
@@ -501,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     else
                     {
                         var tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-                        AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot);
+                        AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot, tempList);
 
                         var currentSnapshot = span.Snapshot;
                         var currentText = currentSnapshot.AsText();
