@@ -85,7 +85,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
 
-            var newSession = new DebuggingSession(solution, debuggerService, _compilationOutputsProvider, initialDocumentStates, _debuggingSessionTelemetry, _editSessionTelemetry);
+            var runtimeCapabilities = await debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+            var capabilities = new ManagedEditAndContinueCapabilities(runtimeCapabilities);
+
+            var newSession = new DebuggingSession(solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, _debuggingSessionTelemetry, _editSessionTelemetry);
             var previousSession = Interlocked.CompareExchange(ref _debuggingSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
@@ -172,9 +175,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var editSession = debuggingSession.EditSession;
-                var capabilities = await debuggingSession.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
                 var documentActiveStatementSpans = await activeStatementSpanProvider(cancellationToken).ConfigureAwait(false);
-                var analysis = await editSession.Analyses.GetDocumentAnalysisAsync(oldProject, document, documentActiveStatementSpans, capabilities, cancellationToken).ConfigureAwait(false);
+                var analysis = await editSession.Analyses.GetDocumentAnalysisAsync(oldProject, document, documentActiveStatementSpans, debuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
                 if (analysis.HasChanges)
                 {
                     // Once we detected a change in a document let the debugger know that the corresponding loaded module
@@ -285,7 +287,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var lastCommittedSolution = debuggingSession.LastCommittedSolution;
             var baseActiveStatements = await debuggingSession.EditSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            var capabilities = await debuggingSession.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>.GetInstance(out var spans);
 
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements,
                             document,
                             newActiveStatementSpans: ImmutableArray<TextSpan>.Empty,
-                            capabilities,
+                            debuggingSession.Capabilities,
                             cancellationToken).ConfigureAwait(false);
 
                         if (!analysis.ActiveStatements.IsDefault)
@@ -354,8 +355,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var documentActiveStatementSpans = await activeStatementSpanProvider(cancellationToken).ConfigureAwait(false);
-            var capabilities = await debuggingSession.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-            var activeStatements = await debuggingSession.EditSession.Analyses.GetActiveStatementsAsync(baseDocument, document, documentActiveStatementSpans, capabilities, cancellationToken).ConfigureAwait(false);
+            var activeStatements = await debuggingSession.EditSession.Analyses.GetActiveStatementsAsync(baseDocument, document, documentActiveStatementSpans, debuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
             if (activeStatements.IsDefault)
             {
                 return default;
@@ -400,8 +400,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var activeStatementSpans = await activeStatementSpanProvider(primaryDocument.Id, cancellationToken).ConfigureAwait(false);
-                var capabilities = await debuggingSession.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-                var currentActiveStatements = await debuggingSession.EditSession.Analyses.GetActiveStatementsAsync(oldPrimaryDocument, primaryDocument, activeStatementSpans, capabilities, cancellationToken).ConfigureAwait(false);
+                var currentActiveStatements = await debuggingSession.EditSession.Analyses.GetActiveStatementsAsync(oldPrimaryDocument, primaryDocument, activeStatementSpans, debuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
                 if (currentActiveStatements.IsDefault)
                 {
                     // The document has syntax errors.

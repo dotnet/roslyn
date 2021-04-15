@@ -98,12 +98,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
         private readonly DebuggingSessionTelemetry _telemetry;
-
+        private readonly ManagedEditAndContinueCapabilities _capabilities;
         internal EditSession EditSession;
 
         internal DebuggingSession(
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
+            ManagedEditAndContinueCapabilities capabilities,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
             DebuggingSessionTelemetry debuggingSessionTelemetry,
@@ -111,6 +112,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             _compilationOutputsProvider = compilationOutputsProvider;
             _telemetry = debuggingSessionTelemetry;
+            _capabilities = capabilities;
 
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
@@ -119,6 +121,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         internal CancellationToken CancellationToken => _cancellationSource.Token;
+
+        /// <summary>
+        /// Gets the capabilities of the runtime with respect to applying code changes.
+        /// </summary>
+        internal ManagedEditAndContinueCapabilities Capabilities => _capabilities;
 
         public void Dispose()
         {
@@ -293,15 +300,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             baseline = newBaseline;
             return true;
-        }
-
-        /// <summary>
-        /// Gets the capabilities of the runtime with respect to applying code changes.
-        /// </summary>
-        public async Task<ManagedEditAndContinueCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
-        {
-            var runtimeCapabilities = await DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-            return new ManagedEditAndContinueCapabilities(runtimeCapabilities);
         }
 
         private static unsafe bool TryCreateInitialBaseline(

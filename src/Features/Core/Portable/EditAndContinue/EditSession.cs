@@ -444,9 +444,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldProject = DebuggingSession.LastCommittedSolution.GetProject(newProject.Id);
             Contract.ThrowIfNull(oldProject);
 
-            var capabilities = await DebuggingSession.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-
-            var analyses = await Analyses.GetDocumentAnalysesAsync(oldProject, builder, capabilities, cancellationToken).ConfigureAwait(false);
+            var analyses = await Analyses.GetDocumentAnalysesAsync(oldProject, builder, DebuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
             return (analyses, documentDiagnostics.ToImmutable());
         }
 
