@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (oldNode != null) ?
                 oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ConstrainedToTypeOpt, oldNode.ResultKind, loweredLeft, loweredRight, type) :
-                new BoundBinaryOperator(syntax, operatorKind, null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, loweredLeft, loweredRight, type);
+                new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, loweredLeft, loweredRight, type);
         }
 
         private BoundExpression RewriteLiftedBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, MethodSymbol? method, TypeSymbol? constrainedToTypeOpt)

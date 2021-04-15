@@ -5614,17 +5614,17 @@ public interface I1
 
 class Test
 {
-    static void M02<T>() where T : I1
+    static void M02<T, U>() where T : U where U : I1
     {
         T.M01();
     }
 
-    static string M03<T>() where T : I1
+    static string M03<T, U>() where T : U where U : I1
     {
         return nameof(T.M01);
     }
 
-    static async void M05<T>() where T : I1
+    static async void M05<T, U>() where T : U where U : I1
     {
         T.M04(await System.Threading.Tasks.Task.FromResult(1));
     }
@@ -5636,7 +5636,7 @@ class Test
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("Test.M02<T>()",
+            verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
   // Code size       14 (0xe)
@@ -5649,7 +5649,7 @@ class Test
 }
 ");
 
-            verifier.VerifyIL("Test.M03<T>()",
+            verifier.VerifyIL("Test.M03<T, U>()",
 @"
 {
   // Code size       11 (0xb)
@@ -5850,12 +5850,12 @@ public interface I1<T> where T : I1<T>
 
 class Test
 {
-    static T M02<T>(T x) where T : I1<T>
+    static T M02<T, U>(T x) where T : U where U : I1<T>
     {
         return " + prefixOp + "x" + postfixOp + @";
     }
 
-    static T? M03<T>(T? y) where T : struct, I1<T>
+    static T? M03<T, U>(T? y) where T : struct, U where U : I1<T>
     {
         return " + prefixOp + "y" + postfixOp + @";
     }
@@ -5871,7 +5871,7 @@ class Test
             {
                 case ("++", ""):
                 case ("--", ""):
-                    verifier.VerifyIL("Test.M02<T>(T)",
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
   // Code size       22 (0x16)
@@ -5890,7 +5890,7 @@ class Test
   IL_0015:  ret
 }
 ");
-                    verifier.VerifyIL("Test.M03<T>(T?)",
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
 @"
 {
   // Code size       55 (0x37)
@@ -5926,7 +5926,7 @@ class Test
 
                 case ("", "++"):
                 case ("", "--"):
-                    verifier.VerifyIL("Test.M02<T>(T)",
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
   // Code size       22 (0x16)
@@ -5945,7 +5945,7 @@ class Test
   IL_0015:  ret
 }
 ");
-                    verifier.VerifyIL("Test.M03<T>(T?)",
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
 @"
 {
   // Code size       55 (0x37)
@@ -5980,7 +5980,7 @@ class Test
                     break;
 
                 default:
-                    verifier.VerifyIL("Test.M02<T>(T)",
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
   // Code size       18 (0x12)
@@ -5996,7 +5996,7 @@ class Test
   IL_0011:  ret
 }
 ");
-                    verifier.VerifyIL("Test.M03<T>(T?)",
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
 @"
 {
   // Code size       51 (0x33)
@@ -6186,7 +6186,7 @@ public interface I1<T> where T : I1<T>
 
 class Test
 {
-    static void M02<T>(T x) where T : I1<T>
+    static void M02<T, U>(T x) where T : U where U : I1<T>
     {
         _ = x ? true : false;
     }
@@ -6198,7 +6198,7 @@ class Test
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("Test.M02<T>(T)",
+            verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
   // Code size       18 (0x12)
@@ -6658,83 +6658,64 @@ class Test
         [InlineData(">>", "op_RightShift", "RightShift")]
         public void ConsumeAbstractBinaryOperator_03(string op, string metadataName, string operatorKind)
         {
+            bool isShiftOperator = op.Length == 2;
+
             var source1 =
 @"
 public interface I1<T0> where T0 : I1<T0>
 {
 ";
-            if (op.Length == 1)
+            if (!isShiftOperator)
             {
                 source1 += @"
     abstract static T0 operator" + op + @" (int a, T0 x);
-";
-            }
-
-            source1 += @"
-    abstract static T0 operator" + op + @" (T0 x, int a);
-";
-            if (op.Length == 1)
-            {
-                source1 += @"
     abstract static T0 operator" + op + @" (I1<T0> x, T0 a);
     abstract static T0 operator" + op + @" (T0 x, I1<T0> a);
 ";
             }
 
             source1 += @"
+    abstract static T0 operator" + op + @" (T0 x, int a);
 }
 
 class Test
 {
 ";
-            if (op.Length == 1)
+            if (!isShiftOperator)
             {
                 source1 += @"
-    static void M02<T>(T x) where T : I1<T>
+    static void M02<T, U>(T x) where T : U where U : I1<T>
     {
         _ = 1 " + op + @" x;
     }
-";
-            }
 
-            source1 += @"
-    static void M03<T>(T x) where T : I1<T>
-    {
-        _ = x " + op + @" 1;
-    }
-";
-            if (op.Length == 1)
-            {
-                source1 += @"
-    static void M04<T>(T? y) where T : struct, I1<T>
+    static void M04<T, U>(T? y) where T : struct, U where U : I1<T>
     {
         _ = 1 " + op + @" y;
     }
+
+    static void M06<T, U>(I1<T> x, T y) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" y;
+    }
+
+    static void M07<T, U>(T x, I1<T> y) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" y;
+    }
 ";
             }
 
             source1 += @"
-    static void M05<T>(T? y) where T : struct, I1<T>
+    static void M03<T, U>(T x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" 1;
+    }
+
+    static void M05<T, U>(T? y) where T : struct, U where U : I1<T>
     {
         _ = y " + op + @" 1;
     }
-";
-            if (op.Length == 1)
-            {
-                source1 += @"
-    static void M06<T>(I1<T> x, T y) where T : I1<T>
-    {
-        _ = x " + op + @" y;
-    }
-
-    static void M07<T>(T x, I1<T> y) where T : I1<T>
-    {
-        _ = x " + op + @" y;
-    }
-";
-            }
-
-            source1 += @"
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -6743,9 +6724,9 @@ class Test
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            if (op.Length == 1)
+            if (!isShiftOperator)
             {
-                verifier.VerifyIL("Test.M02<T>(T)",
+                verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
   // Code size       16 (0x10)
@@ -6759,26 +6740,7 @@ class Test
   IL_000f:  ret
 }
 ");
-            }
-
-            verifier.VerifyIL("Test.M03<T>(T)",
-@"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, int)""
-  IL_000e:  pop
-  IL_000f:  ret
-}
-");
-
-            if (op.Length == 1)
-            {
-                verifier.VerifyIL("Test.M04<T>(T?)",
+                verifier.VerifyIL("Test.M04<T, U>(T?)",
 @"
 {
   // Code size       35 (0x23)
@@ -6800,9 +6762,53 @@ class Test
   IL_0022:  ret
 }
 ");
+                verifier.VerifyIL("Test.M06<T, U>(I1<T>, T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""T I1<T>." + metadataName + @"(I1<T>, T)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+                verifier.VerifyIL("Test.M07<T, U>(T, I1<T>)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, I1<T>)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
             }
 
-            verifier.VerifyIL("Test.M05<T>(T?)",
+            verifier.VerifyIL("Test.M03<T, U>(T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, int)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M05<T, U>(T?)",
 @"
 {
   // Code size       35 (0x23)
@@ -6824,39 +6830,6 @@ class Test
   IL_0022:  ret
 }
 ");
-
-            if (op.Length == 1)
-            {
-                verifier.VerifyIL("Test.M06<T>(I1<T>, T)",
-@"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldarg.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""T I1<T>." + metadataName + @"(I1<T>, T)""
-  IL_000e:  pop
-  IL_000f:  ret
-}
-");
-
-                verifier.VerifyIL("Test.M07<T>(T, I1<T>)",
-@"
-{
-  // Code size       16 (0x10)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldarg.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, I1<T>)""
-  IL_000e:  pop
-  IL_000f:  ret
-}
-");
-            }
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
@@ -6909,9 +6882,21 @@ public interface I1<T0> where T0 : I1<T0>
     abstract static bool operator false (T0 x);
 }
 
+public interface I2<T0> where T0 : struct, I2<T0>
+{
+    abstract static T0 operator" + op + @" (T0 a, T0 x);
+    abstract static bool operator true (T0? x);
+    abstract static bool operator false (T0? x);
+}
+
 class Test
 {
-    static void M03<T>(T x, T y) where T : I1<T>
+    static void M03<T, U>(T x, T y) where T : U where U : I1<T>
+    {
+        _ = x " + op + op + @" y;
+    }
+
+    static void M04<T, U>(T? x, T? y) where T : struct, U where U : I2<T>
     {
         _ = x " + op + op + @" y;
     }
@@ -6922,7 +6907,7 @@ class Test
                                                      targetFramework: TargetFramework.NetCoreAppAndCSharp);
 
                 var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
-                verifier.VerifyIL("Test.M03<T>(T, T)",
+                verifier.VerifyIL("Test.M03<T, U>(T, T)",
 @"
 {
   // Code size       34 (0x22)
@@ -6944,10 +6929,47 @@ class Test
   IL_0021:  ret
 }
 ");
+                verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       69 (0x45)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1,
+                T? V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  constrained. ""T""
+  IL_000a:  call       ""bool I2<T>." + unaryMetadataName + @"(T?)""
+  IL_000f:  brtrue.s   IL_0044
+  IL_0011:  ldloc.0
+  IL_0012:  stloc.1
+  IL_0013:  ldarg.1
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""readonly bool T?.HasValue.get""
+  IL_001c:  ldloca.s   V_2
+  IL_001e:  call       ""readonly bool T?.HasValue.get""
+  IL_0023:  and
+  IL_0024:  brtrue.s   IL_0028
+  IL_0026:  br.s       IL_0042
+  IL_0028:  ldloca.s   V_1
+  IL_002a:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_002f:  ldloca.s   V_2
+  IL_0031:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0036:  constrained. ""T""
+  IL_003c:  call       ""T I2<T>." + binaryMetadataName + @"(T, T)""
+  IL_0041:  pop
+  IL_0042:  br.s       IL_0044
+  IL_0044:  ret
+}
+");
 
                 var tree = compilation1.SyntaxTrees.Single();
                 var model = compilation1.GetSemanticModel(tree);
-                var node1 = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(n => n.ToString() == "x " + op + op + " y").Single();
+                var node1 = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(n => n.ToString() == "x " + op + op + " y").First();
 
                 Assert.Equal("x " + op + op + " y", node1.ToString());
 
@@ -6977,7 +6999,12 @@ public interface I1
 
 class Test
 {
-    static void M03<T>(T x, T y) where T : I1
+    static void M03<T, U>(T x, T y) where T : U where U : I1
+    {
+        _ = x " + op + op + @" y;
+    }
+
+    static void M04<T, U>(T? x, T? y) where T : struct, U where U : I1
     {
         _ = x " + op + op + @" y;
     }
@@ -6992,7 +7019,7 @@ class Test
                 switch (binaryIsAbstract, unaryIsAbstract)
                 {
                     case (true, false):
-                        verifier.VerifyIL("Test.M03<T>(T, T)",
+                        verifier.VerifyIL("Test.M03<T, U>(T, T)",
 @"
 {
   // Code size       38 (0x26)
@@ -7015,10 +7042,33 @@ class Test
   IL_0025:  ret
 }
 ");
+                        verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (I1 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T?""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""bool I1." + unaryMetadataName + @"(I1)""
+  IL_000e:  brtrue.s   IL_0025
+  IL_0010:  ldloc.0
+  IL_0011:  ldarg.1
+  IL_0012:  box        ""T?""
+  IL_0017:  constrained. ""T""
+  IL_001d:  call       ""I1 I1." + binaryMetadataName + @"(I1, I1)""
+  IL_0022:  pop
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ret
+}
+");
                         break;
 
                     case (false, true):
-                        verifier.VerifyIL("Test.M03<T>(T, T)",
+                        verifier.VerifyIL("Test.M03<T, U>(T, T)",
 @"
 {
   // Code size       38 (0x26)
@@ -7041,6 +7091,29 @@ class Test
   IL_0025:  ret
 }
 ");
+                        verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (I1 V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T?""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  constrained. ""T""
+  IL_000f:  call       ""bool I1." + unaryMetadataName + @"(I1)""
+  IL_0014:  brtrue.s   IL_0025
+  IL_0016:  ldloc.0
+  IL_0017:  ldarg.1
+  IL_0018:  box        ""T?""
+  IL_001d:  call       ""I1 I1." + binaryMetadataName + @"(I1, I1)""
+  IL_0022:  pop
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ret
+}
+");
                         break;
 
                     default:
@@ -7050,7 +7123,7 @@ class Test
 
                 var tree = compilation1.SyntaxTrees.Single();
                 var model = compilation1.GetSemanticModel(tree);
-                var node1 = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(n => n.ToString() == "x " + op + op + " y").Single();
+                var node1 = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(n => n.ToString() == "x " + op + op + " y").First();
 
                 Assert.Equal("x " + op + op + " y", node1.ToString());
 
@@ -7087,83 +7160,64 @@ IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." +
         [InlineData(">>", "op_RightShift", "RightShift")]
         public void ConsumeAbstractCompoundBinaryOperator_03(string op, string metadataName, string operatorKind)
         {
+            bool isShiftOperator = op.Length == 2;
+
             var source1 =
 @"
 public interface I1<T0> where T0 : I1<T0>
 {
 ";
-            if (op.Length == 1)
+            if (!isShiftOperator)
             {
                 source1 += @"
     abstract static int operator" + op + @" (int a, T0 x);
-";
-            }
-
-            source1 += @"
-    abstract static T0 operator" + op + @" (T0 x, int a);
-";
-            if (op.Length == 1)
-            {
-                source1 += @"
     abstract static I1<T0> operator" + op + @" (I1<T0> x, T0 a);
     abstract static T0 operator" + op + @" (T0 x, I1<T0> a);
 ";
             }
 
             source1 += @"
+    abstract static T0 operator" + op + @" (T0 x, int a);
 }
 
 class Test
 {
 ";
-            if (op.Length == 1)
+            if (!isShiftOperator)
             {
                 source1 += @"
-    static void M02<T>(int a, T x) where T : I1<T>
+    static void M02<T, U>(int a, T x) where T : U where U : I1<T>
     {
         a " + op + @"= x;
     }
-";
-            }
 
-            source1 += @"
-    static void M03<T>(T x) where T : I1<T>
-    {
-        x " + op + @"= 1;
-    }
-";
-            if (op.Length == 1)
-            {
-                source1 += @"
-    static void M04<T>(int? a, T? y) where T : struct, I1<T>
+    static void M04<T, U>(int? a, T? y) where T : struct, U where U : I1<T>
     {
         a " + op + @"= y;
     }
+
+    static void M06<T, U>(I1<T> x, T y) where T : U where U : I1<T>
+    {
+        x " + op + @"= y;
+    }
+
+    static void M07<T, U>(T x, I1<T> y) where T : U where U : I1<T>
+    {
+        x " + op + @"= y;
+    }
 ";
             }
 
             source1 += @"
-    static void M05<T>(T? y) where T : struct, I1<T>
+    static void M03<T, U>(T x) where T : U where U : I1<T>
+    {
+        x " + op + @"= 1;
+    }
+
+    static void M05<T, U>(T? y) where T : struct, U where U : I1<T>
     {
         y " + op + @"= 1;
     }
-";
-            if (op.Length == 1)
-            {
-                source1 += @"
-    static void M06<T>(I1<T> x, T y) where T : I1<T>
-    {
-        x " + op + @"= y;
-    }
-
-    static void M07<T>(T x, I1<T> y) where T : I1<T>
-    {
-        x " + op + @"= y;
-    }
-";
-            }
-
-            source1 += @"
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -7172,9 +7226,9 @@ class Test
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            if (op.Length == 1)
+            if (!isShiftOperator)
             {
-                verifier.VerifyIL("Test.M02<T>(int, T)",
+                verifier.VerifyIL("Test.M02<T, U>(int, T)",
 @"
 {
   // Code size       17 (0x11)
@@ -7188,26 +7242,7 @@ class Test
   IL_0010:  ret
 }
 ");
-            }
-
-            verifier.VerifyIL("Test.M03<T>(T)",
-@"
-{
-  // Code size       17 (0x11)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, int)""
-  IL_000e:  starg.s    V_0
-  IL_0010:  ret
-}
-");
-
-            if (op.Length == 1)
-            {
-                verifier.VerifyIL("Test.M04<T>(int?, T?)",
+                verifier.VerifyIL("Test.M04<T, U>(int?, T?)",
 @"
 {
   // Code size       66 (0x42)
@@ -7241,9 +7276,53 @@ class Test
   IL_0041:  ret
 }
 ");
+                verifier.VerifyIL("Test.M06<T, U>(I1<T>, T)",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""I1<T> I1<T>." + metadataName + @"(I1<T>, T)""
+  IL_000e:  starg.s    V_0
+  IL_0010:  ret
+}
+");
+
+                verifier.VerifyIL("Test.M07<T, U>(T, I1<T>)",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, I1<T>)""
+  IL_000e:  starg.s    V_0
+  IL_0010:  ret
+}
+");
             }
 
-            verifier.VerifyIL("Test.M05<T>(T?)",
+            verifier.VerifyIL("Test.M03<T, U>(T)",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, int)""
+  IL_000e:  starg.s    V_0
+  IL_0010:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M05<T, U>(T?)",
 @"
 {
   // Code size       50 (0x32)
@@ -7270,39 +7349,6 @@ class Test
   IL_0031:  ret
 }
 ");
-
-            if (op.Length == 1)
-            {
-                verifier.VerifyIL("Test.M06<T>(I1<T>, T)",
-@"
-{
-  // Code size       17 (0x11)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldarg.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""I1<T> I1<T>." + metadataName + @"(I1<T>, T)""
-  IL_000e:  starg.s    V_0
-  IL_0010:  ret
-}
-");
-
-                verifier.VerifyIL("Test.M07<T>(T, I1<T>)",
-@"
-{
-  // Code size       17 (0x11)
-  .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldarg.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, I1<T>)""
-  IL_000e:  starg.s    V_0
-  IL_0010:  ret
-}
-");
-            }
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
@@ -7889,7 +7935,7 @@ public interface I1
 
 class Test
 {
-    static void M02<T>() where T : I1
+    static void M02<T, U>() where T : U where U : I1
     {
         _ = T.P01;
     }
@@ -7901,7 +7947,7 @@ class Test
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("Test.M02<T>()",
+            verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
   // Code size       14 (0xe)
@@ -7946,7 +7992,7 @@ public interface I1
 
 class Test
 {
-    static void M02<T>() where T : I1
+    static void M02<T, U>() where T : U where U : I1
     {
         T.P01 = 1;
     }
@@ -7958,7 +8004,7 @@ class Test
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("Test.M02<T>()",
+            verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
   // Code size       15 (0xf)
@@ -8004,12 +8050,12 @@ public interface I1
 
 class Test
 {
-    static void M02<T>() where T : I1
+    static void M02<T, U>() where T : U where U : I1
     {
         T.P01 += 1;
     }
 
-    static string M03<T>() where T : I1
+    static string M03<T, U>() where T : U where U : I1
     {
         return nameof(T.P01);
     }
@@ -8021,7 +8067,7 @@ class Test
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("Test.M02<T>()",
+            verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
   // Code size       27 (0x1b)
@@ -8038,7 +8084,7 @@ class Test
 }
 ");
 
-            verifier.VerifyIL("Test.M03<T>()",
+            verifier.VerifyIL("Test.M03<T, U>()",
 @"
 {
   // Code size       11 (0xb)
@@ -8500,13 +8546,13 @@ public interface I1
 
 class Test
 {
-    static void M02<T>() where T : I1
+    static void M02<T, U>() where T : U where U : I1
     {
         T.E01 += null;
         T.E01 -= null;
     }
 
-    static string M03<T>() where T : I1
+    static string M03<T, U>() where T : U where U : I1
     {
         return nameof(T.E01);
     }
@@ -8518,7 +8564,7 @@ class Test
 
             var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("Test.M02<T>()",
+            verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
   // Code size       28 (0x1c)
@@ -8536,7 +8582,7 @@ class Test
 }
 ");
 
-            verifier.VerifyIL("Test.M03<T>()",
+            verifier.VerifyIL("Test.M03<T, U>()",
 @"
 {
   // Code size       11 (0xb)

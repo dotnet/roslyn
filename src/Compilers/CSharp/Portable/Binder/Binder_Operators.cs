@@ -2199,10 +2199,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
+#nullable enable
         /// <summary>
         /// Returns false if reported an error, true otherwise.
         /// </summary>
-        private bool CheckConstraintAndRuntimeSupportForOperator(SyntaxNode node, MethodSymbol methodOpt, TypeSymbol constrainedToTypeOpt, BindingDiagnosticBag diagnostics)
+        private bool CheckConstraintAndRuntimeSupportForOperator(SyntaxNode node, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, BindingDiagnosticBag diagnostics)
         {
             if (methodOpt?.ContainingType?.IsInterface == true)
             {
@@ -2224,6 +2225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+#nullable disable
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
