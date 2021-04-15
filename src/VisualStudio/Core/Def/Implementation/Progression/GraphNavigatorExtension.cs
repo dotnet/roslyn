@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (symbolId != null)
             {
                 var symbolNavigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                var symbol = symbolId.Value.Resolve(project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)).Symbol;
+                var symbol = symbolId.Value.Resolve(project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), cancellationToken: cancellationToken).Symbol;
 
                 // Do not allow third party navigation to types or constructors
                 if (symbol != null &&
@@ -136,7 +136,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public int GetRank(GraphObject graphObject)
         {
-
             if (graphObject is GraphNode graphNode)
             {
                 var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);
