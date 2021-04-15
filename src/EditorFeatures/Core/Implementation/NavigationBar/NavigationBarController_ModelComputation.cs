@@ -164,11 +164,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // After we switch to the main thread, we may discover the previous work on the main thread canceled us and
-            // enqueued another task to determine the selected item.  Bail out and let that task proceed.
-            if (cancellationToken.IsCancellationRequested)
-                return;
-
             AssertIsForeground();
 
             // Update the UI to show *just* the type/member that was selected.  We don't need it to know about all items
