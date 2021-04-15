@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         // If it is for an older version, then classify that older version and translate
                         // the classifications forward.  Otherwise, just classify normally.
 
-                        if (lastProcessedSnapshot.Version.VersionNumber == span.Snapshot.Version.VersionNumber)
+                        if (lastProcessedSnapshot.Version.ReiteratedVersionNumber == span.Snapshot.Version.ReiteratedVersionNumber)
                         {
                             AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot);
                         }
