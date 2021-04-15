@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis
                 _cancellationToken = cancellationToken;
             }
 
+            public void SetInputState<T>(InputNode<T> source, NodeStateTable<T> state)
+            {
+                _tableBuilder[source] = state;
+            }
+
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
             {
                 // if we've already evaluated a node during this build, we can just return the existing result

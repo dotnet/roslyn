@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis
     {
         internal GeneratorDriverState(ParseOptions parseOptions,
                                       AnalyzerConfigOptionsProvider optionsProvider,
-                                      ValueSources valueSources,
                                       ImmutableArray<ISourceGenerator> sourceGenerators,
                                       ImmutableArray<IIncrementalGenerator> incrementalGenerators,
                                       ImmutableArray<AdditionalText> additionalTexts,
@@ -25,7 +24,6 @@ namespace Microsoft.CodeAnalysis
             AdditionalTexts = additionalTexts;
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
-            ValueSources = valueSources;
             StateTable = stateTable;
 
             Debug.Assert(Generators.Length == GeneratorStates.Length);
@@ -76,7 +74,6 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly DriverStateTable StateTable;
 
-        public ValueSources ValueSources { get; }
 
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
@@ -88,7 +85,6 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorDriverState(
                 this.ParseOptions,
                 this.OptionsProvider,
-                this.ValueSources,
                 sourceGenerators ?? this.Generators,
                 incrementalGenerators ?? this.IncrementalGenerators,
                 additionalTexts ?? this.AdditionalTexts,

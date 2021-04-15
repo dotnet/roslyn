@@ -38,6 +38,14 @@ namespace Microsoft.CodeAnalysis
 
             context.RegisterExecutionPipeline((ctx) =>
             {
+                ctx.RegisterOutput(
+                    ctx.Sources.SyntaxReceiver.GenerateSource((a, b) =>
+                    {
+                        var rx = b;
+                    })
+                );
+
+
                 var output = ctx.Sources.Compilation.GenerateSource((context, compilation) =>
                 {
                     // PROTOTYPE(source-generators): VB extensions

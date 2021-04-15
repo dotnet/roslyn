@@ -111,6 +111,11 @@ namespace Microsoft.CodeAnalysis
             return new NodeStateTable<T>(Empty._states, isCompacted: true, table._exception);
         }
 
+        public static NodeStateTable<T> WithSingleItem(T item, EntryState state)
+        {
+            return new NodeStateTable<T>(ImmutableArray.Create(ImmutableArray.Create((item, state))), isCompacted: false, exception: null);
+        }
+
         public sealed class Builder
         {
             private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();

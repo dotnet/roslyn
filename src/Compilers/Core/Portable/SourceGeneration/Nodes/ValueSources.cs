@@ -2,16 +2,67 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public sealed class ValueSources
+    public struct ValueSources
     {
-        public IncrementalValueSource<Compilation> Compilation { get; } = new IncrementalValueSource<Compilation>(new InputNode<Compilation>());
+        private readonly GeneratorValueSources.Builder _generatorSourceBuilder;
 
-        public IncrementalValueSource<AdditionalText> AdditionalTexts { get; } = new IncrementalValueSource<AdditionalText>(new InputNode<AdditionalText>());
+        internal ValueSources(GeneratorValueSources.Builder generatorSourceBuilder)
+        {
+            _generatorSourceBuilder = generatorSourceBuilder;
+        }
+
+        public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(CommonValueSources.Compilation);
+
+        public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(CommonValueSources.AdditionalTexts);
+
+        //only used for back compat in the adaptor
+        internal IncrementalValueSource<ISyntaxContextReceiver> SyntaxReceiver => new IncrementalValueSource<ISyntaxContextReceiver>(_generatorSourceBuilder.ReceiverNode);
+    }
+
+    /// <summary>
+    /// Holds value sources that are shared between generators and always exist
+    /// </summary>
+    internal static class CommonValueSources
+    {
+        // PROTOTYPE(source-generators):should this be called commonInputNodes?
+        public static readonly InputNode<Compilation> Compilation = new InputNode<Compilation>();
+
+        public static readonly InputNode<AdditionalText> AdditionalTexts = new InputNode<AdditionalText>();
+
+    }
+
+    /// <summary>
+    /// Holds value sources that are created per-generator
+    /// </summary>
+    internal sealed class GeneratorValueSources
+    {
+        public static GeneratorValueSources Empty = new GeneratorValueSources();
+
+        private GeneratorValueSources() { }
+
+        private GeneratorValueSources(InputNode<ISyntaxContextReceiver>? receiverNode)
+        {
+            this.ReceiverNode = receiverNode;
+        }
+
+        public InputNode<ISyntaxContextReceiver>? ReceiverNode { get; }
+
+        public class Builder
+        {
+            InputNode<ISyntaxContextReceiver>? _receiverNode;
+
+            public Builder()
+            {
+            }
+
+            public InputNode<ISyntaxContextReceiver> ReceiverNode => InterlockedOperations.Initialize(ref _receiverNode, new InputNode<ISyntaxContextReceiver>());
+
+            public GeneratorValueSources ToImmutable() => new GeneratorValueSources(_receiverNode);
+
+        }
     }
 }

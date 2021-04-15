@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, new ValueSources(), generators, GetIncrementalGenerators(generators), additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, GetIncrementalGenerators(generators), additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
-            var builder = _state.StateTable.GetStateTable(_state.ValueSources.AdditionalTexts.node).ToBuilder();
+            var builder = _state.StateTable.GetStateTable(CommonValueSources.AdditionalTexts).ToBuilder();
             foreach (var text in additionalTexts)
             {
                 builder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
             }
 
-            var stateTable = _state.StateTable.SetStateTable(_state.ValueSources.AdditionalTexts.node, builder.ToImmutableAndFree());
+            var stateTable = _state.StateTable.SetStateTable(CommonValueSources.AdditionalTexts, builder.ToImmutableAndFree());
 
             var newState = _state.With(additionalTexts: _state.AdditionalTexts.AddRange(additionalTexts), stateTable: stateTable);
             return FromState(newState);
@@ -217,7 +217,8 @@ namespace Microsoft.CodeAnalysis
                     if (ex is null && generatorState.Info.PipelineCallback is object)
                     {
                         var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
-                        var pipelineContext = new IncrementalGeneratorPipelineContext(state.ValueSources, outputBuilder);
+                        var sourcesBuilder = new GeneratorValueSources.Builder();
+                        var pipelineContext = new IncrementalGeneratorPipelineContext(sourcesBuilder, outputBuilder);
                         try
                         {
                             generatorState.Info.PipelineCallback(pipelineContext);
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, outputBuilder.ToImmutable())
+                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, sourcesBuilder.ToImmutable(), outputBuilder.ToImmutable())
                                          : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
 
                         outputBuilder.Free();
@@ -306,13 +307,19 @@ namespace Microsoft.CodeAnalysis
             var compilationState = new NodeStateTable<Compilation>.Builder();
             compilationState.AddEntries(ImmutableArray.Create(compilation), EntryState.Modified);
 
-            var driverStateBuilder = new DriverStateTable.Builder(state.StateTable.SetStateTable(state.ValueSources.Compilation.node, compilationState.ToImmutableAndFree()), cancellationToken);
+            var driverStateBuilder = new DriverStateTable.Builder(state.StateTable.SetStateTable(CommonValueSources.Compilation, compilationState.ToImmutableAndFree()), cancellationToken);
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
                 if (generatorState.Exception is object)
                 {
                     continue;
+                }
+
+                if (generatorState.SyntaxReceiver is object)
+                {
+                    Debug.Assert(generatorState.Sources.ReceiverNode is object);
+                    driverStateBuilder.SetInputState(generatorState.Sources.ReceiverNode, NodeStateTable<ISyntaxContextReceiver>.WithSingleItem(generatorState.SyntaxReceiver, EntryState.Modified));
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());
@@ -329,7 +336,7 @@ namespace Microsoft.CodeAnalysis
                     (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
-                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
+                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.Sources, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
                     diagnosticsBag?.AddRange(generatorDiagnostics);
                 }
                 catch (UserFunctionException ufe)
