@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -22,15 +22,15 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <param name="options">A set of options. If these options are not supplied the
         /// current set of options from the project's workspace will be used.</param>
         /// <param name="cancellationToken">The token to check for cancellation</param>
-        bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options = null, CancellationToken cancellationToken = default);
+        bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet? options = null, CancellationToken cancellationToken = default);
 
         /// <returns>True if the navigation was handled, indicating that the caller should not 
         /// perform the navigation.</returns>
-        bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken);
+        Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
         /// <returns>True if the navigation would be handled.</returns>
         bool WouldNavigateToSymbol(
             DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
-            out string filePath, out int lineNumber, out int charOffset);
+            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset);
     }
 }

@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Rebuild
         public bool HasMetadataCompilationOptions => TryGetMetadataCompilationOptions(out _);
 
         private MetadataCompilationOptions? _metadataCompilationOptions;
-        private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
         private byte[]? _sourceLinkUTF8;
 
         public CompilationOptionsReader(ILogger logger, MetadataReader pdbReader, PEReader peReader)
@@ -132,21 +131,6 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return _sourceLinkUTF8;
         }
 
-        public ImmutableArray<MetadataReferenceInfo> GetMetadataReferences()
-        {
-            if (_metadataReferenceInfo.IsDefault)
-            {
-                if (!TryGetCustomDebugInformationBlobReader(MetadataReferenceInfoGuid, out var referencesBlob))
-                {
-                    throw new InvalidOperationException();
-                }
-
-                _metadataReferenceInfo = ParseMetadataReferenceInfo(referencesBlob).ToImmutableArray();
-            }
-
-            return _metadataReferenceInfo;
-        }
-
         public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
 
         public (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
@@ -181,16 +165,45 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return (typeName, methodName);
         }
 
-        private (SourceText? embeddedText, byte[]? compressedHash) ResolveEmbeddedSource(DocumentHandle document, SourceHashAlgorithm hashAlgorithm, Encoding encoding)
+        private int GetSourceFileCount()
+            => int.Parse(GetMetadataCompilationOptions().GetUniqueOption(CompilationOptionNames.SourceFileCount));
+
+        public IEnumerable<EmbeddedSourceTextInfo> GetEmbeddedSourceTextInfo()
+            => GetSourceTextInfoCore()
+                .Select(x => ResolveEmbeddedSource(x.DocumentHandle, x.SourceTextInfo))
+                .WhereNotNull();
+
+        private IEnumerable<(DocumentHandle DocumentHandle, SourceTextInfo SourceTextInfo)> GetSourceTextInfoCore()
+        {
+            var encoding = GetEncoding();
+            var sourceFileCount = GetSourceFileCount();
+            foreach (var documentHandle in PdbReader.Documents.Take(sourceFileCount))
+            {
+                var document = PdbReader.GetDocument(documentHandle);
+                var name = PdbReader.GetString(document.Name);
+
+                var hashAlgorithmGuid = PdbReader.GetGuid(document.HashAlgorithm);
+                var hashAlgorithm =
+                    hashAlgorithmGuid == HashAlgorithmSha1 ? SourceHashAlgorithm.Sha1
+                    : hashAlgorithmGuid == HashAlgorithmSha256 ? SourceHashAlgorithm.Sha256
+                    : SourceHashAlgorithm.None;
+
+                var hash = PdbReader.GetBlobBytes(document.Hash);
+                var sourceTextInfo = new SourceTextInfo(name, hashAlgorithm, hash.ToImmutableArray(), encoding);
+                yield return (documentHandle, sourceTextInfo);
+            }
+        }
+
+        private EmbeddedSourceTextInfo? ResolveEmbeddedSource(DocumentHandle document, SourceTextInfo sourceTextInfo)
         {
             byte[] bytes = (from handle in PdbReader.GetCustomDebugInformation(document)
                             let cdi = PdbReader.GetCustomDebugInformation(handle)
                             where PdbReader.GetGuid(cdi.Kind) == EmbeddedSourceGuid
                             select PdbReader.GetBlobBytes(cdi.Value)).SingleOrDefault();
 
-            if (bytes == null)
+            if (bytes is null)
             {
-                return default;
+                return null;
             }
 
             int uncompressedSize = BitConverter.ToInt32(bytes, 0);
@@ -199,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             byte[]? compressedHash = null;
             if (uncompressedSize != 0)
             {
-                using var algorithm = CryptographicHashProvider.TryGetAlgorithm(hashAlgorithm) ?? throw new InvalidOperationException();
+                using var algorithm = CryptographicHashProvider.TryGetAlgorithm(sourceTextInfo.HashAlgorithm) ?? throw new InvalidOperationException();
                 compressedHash = algorithm.ComputeHash(bytes);
 
                 var decompressed = new MemoryStream(uncompressedSize);
@@ -220,8 +233,8 @@ namespace Microsoft.CodeAnalysis.Rebuild
             using (stream)
             {
                 // todo: IVT and EncodedStringText.Create?
-                var embeddedText = SourceText.From(stream, encoding: encoding, checksumAlgorithm: hashAlgorithm, canBeEmbedded: true);
-                return (embeddedText, compressedHash);
+                var embeddedText = SourceText.From(stream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: sourceTextInfo.HashAlgorithm, canBeEmbedded: true);
+                return new EmbeddedSourceTextInfo(sourceTextInfo, embeddedText, compressedHash?.ToImmutableArray() ?? ImmutableArray<byte>.Empty);
             }
         }
 
@@ -271,35 +284,75 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return result;
         }
 
-        public ImmutableArray<SourceFileInfo> GetSourceFileInfos(Encoding encoding)
+        public (ImmutableArray<SyntaxTree> SyntaxTrees, ImmutableArray<MetadataReference> MetadataReferences) ResolveArtifacts(
+            IRebuildArtifactResolver resolver,
+            Func<string, SourceText, SyntaxTree> createSyntaxTreeFunc)
         {
-            var sourceFileCount = int.Parse(
-                GetMetadataCompilationOptions()
-                    .GetUniqueOption(CompilationOptionNames.SourceFileCount));
+            var syntaxTrees = ResolveSyntaxTrees();
+            var metadataReferences = ResolveMetadataReferences();
+            return (syntaxTrees, metadataReferences);
 
-            var builder = ImmutableArray.CreateBuilder<SourceFileInfo>(sourceFileCount);
-            foreach (var documentHandle in PdbReader.Documents.Take(sourceFileCount))
+            ImmutableArray<SyntaxTree> ResolveSyntaxTrees()
             {
-                var document = PdbReader.GetDocument(documentHandle);
-                var name = PdbReader.GetString(document.Name);
+                var sourceFileCount = GetSourceFileCount();
+                var builder = ImmutableArray.CreateBuilder<SyntaxTree>(sourceFileCount);
+                foreach (var (documentHandle, sourceTextInfo) in GetSourceTextInfoCore())
+                {
+                    SourceText sourceText;
+                    if (ResolveEmbeddedSource(documentHandle, sourceTextInfo) is { } embeddedSourceTextInfo)
+                    {
+                        sourceText = embeddedSourceTextInfo.SourceText;
+                    }
+                    else
+                    {
+                        sourceText = resolver.ResolveSourceText(sourceTextInfo);
+                        if (!sourceText.GetChecksum().SequenceEqual(sourceTextInfo.Hash))
+                        {
+                            throw new InvalidOperationException();
+                        }
+                    }
 
-                var hashAlgorithmGuid = PdbReader.GetGuid(document.HashAlgorithm);
-                var hashAlgorithm =
-                    hashAlgorithmGuid == HashAlgorithmSha1 ? SourceHashAlgorithm.Sha1
-                    : hashAlgorithmGuid == HashAlgorithmSha256 ? SourceHashAlgorithm.Sha256
-                    : SourceHashAlgorithm.None;
+                    var syntaxTree = createSyntaxTreeFunc(sourceTextInfo.OriginalSourceFilePath, sourceText);
+                    builder.Add(syntaxTree);
+                }
 
-                var hash = PdbReader.GetBlobBytes(document.Hash);
-                var embeddedContent = ResolveEmbeddedSource(documentHandle, hashAlgorithm, encoding);
-
-                builder.Add(new SourceFileInfo(name, hashAlgorithm, hash, embeddedContent.embeddedText, embeddedContent.compressedHash));
+                return builder.MoveToImmutable();
             }
 
-            return builder.MoveToImmutable();
+            ImmutableArray<MetadataReference> ResolveMetadataReferences()
+            {
+                var builder = ImmutableArray.CreateBuilder<MetadataReference>();
+                foreach (var metadataReferenceInfo in GetMetadataReferenceInfo())
+                {
+                    var metadataReference = resolver.ResolveMetadataReference(metadataReferenceInfo);
+                    if (metadataReference.Properties.EmbedInteropTypes != metadataReferenceInfo.EmbedInteropTypes)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    if (!(
+                        (metadataReferenceInfo.ExternAlias is null && metadataReference.Properties.Aliases.IsEmpty) ||
+                        (metadataReferenceInfo.ExternAlias == metadataReference.Properties.Aliases.SingleOrDefault())
+                        ))
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    builder.Add(metadataReference);
+                }
+
+                return builder.ToImmutable();
+            }
         }
 
-        private static IEnumerable<MetadataReferenceInfo> ParseMetadataReferenceInfo(BlobReader blobReader)
+        public IEnumerable<MetadataReferenceInfo> GetMetadataReferenceInfo()
         {
+            if (!TryGetCustomDebugInformationBlobReader(MetadataReferenceInfoGuid, out var blobReader))
+            {
+                throw new InvalidOperationException();
+            }
+
+            var builder = ImmutableArray.CreateBuilder<MetadataReference>();
             while (blobReader.RemainingBytes > 0)
             {
                 // Order of information
@@ -343,13 +396,13 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 if (string.IsNullOrEmpty(externAliases))
                 {
                     yield return new MetadataReferenceInfo(
-                        timestamp,
-                        imageSize,
                         name,
                         mvid,
-                        externAlias: null,
+                        ExternAlias: null,
                         kind,
-                        embedInteropTypes);
+                        embedInteropTypes,
+                        timestamp,
+                        imageSize);
                 }
                 else
                 {
@@ -359,13 +412,13 @@ namespace Microsoft.CodeAnalysis.Rebuild
                         // The compiler itself just sees "global" as a reference without any aliases
                         // and we need to mimic that here.
                         yield return new MetadataReferenceInfo(
-                            timestamp,
-                            imageSize,
                             name,
                             mvid,
-                            alias == "global" ? null : alias,
+                            ExternAlias: alias == "global" ? null : alias,
                             kind,
-                            embedInteropTypes);
+                            embedInteropTypes,
+                            timestamp,
+                            imageSize);
                     }
                 }
             }
