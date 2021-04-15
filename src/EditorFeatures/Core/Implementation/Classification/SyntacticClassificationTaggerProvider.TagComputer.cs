@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     }
                     else
                     {
-                        var tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                        using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
                         AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot, tempList);
 
                         var currentSnapshot = span.Snapshot;
@@ -513,8 +513,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                             classifiedSpans.Add(currentClassifiedSpan);
                         }
-
-                        ClassificationUtilities.ReturnClassifiedSpanList(tempList);
                     }
                 }
             }
