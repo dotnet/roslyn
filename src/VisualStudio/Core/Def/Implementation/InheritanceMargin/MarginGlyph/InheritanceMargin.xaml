@@ -6,7 +6,7 @@
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
-        xmlns:marginGlyph="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph"
+        xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph"
         AutomationProperties.Name="{Binding AutomationName}"
         Background="Transparent"
         BorderBrush="Transparent"
@@ -34,6 +34,7 @@
                     </Setter>
                 </Style>
             </ControlTemplate.Resources>
+
             <Grid>
                 <Border Background="{DynamicResource VsBrush.CommandBarMenuBackgroundGradient}"
                         BorderBrush="{DynamicResource VsBrush.CommandBarMenuBorder}"
@@ -62,6 +63,7 @@
                 <!-- Style copied from editor -->
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
             <Setter Property="DockPanel.Dock" Value="Top"/>
+            <Setter Property="Margin" Value="{Binding Margin}" />
             <Setter Property="Padding" Value="0,2,0,2"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -119,7 +121,7 @@
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipTextBrushKey}}"/>
         </Style>
 
-        <marginGlyph:MenuItemContainerTemplateSelector x:Key="TemplateSelector"/>
+        <local:MenuItemContainerTemplateSelector x:Key="TemplateSelector"/>
     </Button.Resources>
 
     <!-- Control template only shows the image -->
@@ -219,22 +221,33 @@
                 <Style x:Key="HeaderMenuItemStyle" TargetType="{x:Type MenuItem}">
                     <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
                     <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
-                    <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="IsEnabled" Value="False"/>
-                    <Setter Property="HeaderTemplate">
+                    <!-- <Setter Property="HeaderTemplate"> -->
+                    <!--     <Setter.Value> -->
+                    <!--         <DataTemplate> -->
+                    <!--             <TextBlock Text="{Binding DisplayContent}" -->
+                    <!--                        FontWeight="Bold" -->
+                    <!--                        Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/> -->
+                    <!--         </DataTemplate> -->
+                    <!--     </Setter.Value> -->
+                    <!-- </Setter> -->
+                    <Setter Property="Template">
                         <Setter.Value>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding DisplayContent}"
-                                           Background="Transparent"
-                                           Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
-                            </DataTemplate>
+                            <ControlTemplate TargetType="{x:Type MenuItem}">
+                                <StackPanel FlowDirection="LeftToRight" Orientation="Horizontal">
+                                    <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" Moniker="{Binding ImageMoniker}"/>
+                                    <TextBlock Text="{Binding DisplayContent}"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextInactiveBrushKey}}"/>
+                                </StackPanel>
+                            </ControlTemplate>
                         </Setter.Value>
                     </Setter>
                 </Style>
 
                 <!-- DataTemplate for the Separator between inheritance target groups -->
                 <!-- The key is referenced from code behind -->
-                <DataTemplate x:Key="SeparatorTemplate" DataType="{x:Type marginGlyph:SeparatorViewModel}">
+                <DataTemplate x:Key="SeparatorTemplate" DataType="{x:Type local:SeparatorViewModel}">
                     <Separator>
                         <Separator.Template>
                             <ControlTemplate>
@@ -244,19 +257,19 @@
                     </Separator>
                 </DataTemplate>
 
-                <DataTemplate x:Key="HeaderMenuItemTemplate" DataType="{x:Type marginGlyph:HeaderMenuItemViewModel}">
+                <DataTemplate x:Key="HeaderMenuItemTemplate" DataType="{x:Type local:HeaderMenuItemViewModel}">
                     <MenuItem Style="{StaticResource HeaderMenuItemStyle}" />
                 </DataTemplate>
 
                 <!-- DataTemplate for a member in the context menu -->
                 <!-- The key is referenced from code behind -->
-                <DataTemplate x:Key="MemberDataTemplate" DataType="{x:Type marginGlyph:MemberMenuItemViewModel}">
+                <DataTemplate x:Key="MemberDataTemplate" DataType="{x:Type local:MemberMenuItemViewModel}">
                     <MenuItem Style="{StaticResource MemberMenuItemStyle}"/>
                 </DataTemplate>
 
                 <!-- DataTemplate for inheritance target in the context menu -->
                 <!-- The key is referenced from code behind -->
-                <DataTemplate x:Key="TargetDataTemplate" DataType="{x:Type marginGlyph:TargetMenuItemViewModel}">
+                <DataTemplate x:Key="TargetDataTemplate" DataType="{x:Type local:TargetMenuItemViewModel}">
                     <MenuItem Style="{StaticResource TargetMenuItemStyle}"/>
                 </DataTemplate>
             </ContextMenu.Resources>

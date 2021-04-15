@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -31,14 +32,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             Targets = targets;
         }
 
-        public static MemberMenuItemViewModel CreateWithNoSeparator(InheritanceMarginItem member)
+        public static MemberMenuItemViewModel CreateWithNoHeader(InheritanceMarginItem member)
         {
             var displayName = member.DisplayTexts.JoinText();
             return new MemberMenuItemViewModel(
                 displayName,
                 member.Glyph.GetImageMoniker(),
                 displayName,
-                member.TargetItems.SelectAsArray(TargetMenuItemViewModel.Create).CastArray<MenuItemViewModel>());
+                member.TargetItems
+                    .SelectAsArray(item => TargetMenuItemViewModel.Create(item, new Thickness(0, 0, 0, 0)))
+                    .CastArray<MenuItemViewModel>());
         }
 
         public static MemberMenuItemViewModel CreateWithHeader(InheritanceMarginItem member)

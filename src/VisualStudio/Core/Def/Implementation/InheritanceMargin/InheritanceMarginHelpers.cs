@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Windows;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -23,12 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             //  If there are multiple targets and we have the corresponding compound image, use it
             if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverriding))
             {
-                return KnownMonikers.Implementing;
+                return KnownMonikers.ImplementingOverriding;
             }
 
             if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverridden))
             {
-                return KnownMonikers.Implementing;
+                return KnownMonikers.ImplementingOverridden;
             }
 
             // Otherwise, show the image based on this preference
@@ -66,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // class A : IBar { void Bar() {} }
                 // class B : IBar { void Bar() {} }
                 // for 'IBar', the margin would be I↓. So header is not needed.
-                return targets.SelectAsArray(TargetMenuItemViewModel.Create).CastArray<MenuItemViewModel>();
+                return targets.SelectAsArray(target => TargetMenuItemViewModel.Create(target, new Thickness(0, 0, 0, 0))).CastArray<MenuItemViewModel>();
             }
             else
             {
@@ -103,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 .ToImmutableHashSet();
             if (set.Count == 1)
             {
-                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithNoSeparator).CastArray<MenuItemViewModel>();
+                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithNoHeader).CastArray<MenuItemViewModel>();
             }
             else
             {
@@ -129,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             builder.Add(headerViewModel);
             foreach (var targetItem in targets)
             {
-                builder.Add(TargetMenuItemViewModel.Create(targetItem));
+                builder.Add(TargetMenuItemViewModel.Create(targetItem, new Thickness(20, 0, 0, 0)));
             }
 
             return builder.ToImmutable();

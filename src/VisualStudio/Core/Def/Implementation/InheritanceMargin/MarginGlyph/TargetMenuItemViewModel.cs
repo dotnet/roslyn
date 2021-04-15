@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -20,21 +21,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public DefinitionItem DefinitionItem { get; }
 
+        public Thickness Margin { get; }
+
         private TargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
             string automationName,
-            DefinitionItem definitionItem) : base(displayContent, imageMoniker, automationName)
+            DefinitionItem definitionItem,
+            Thickness margin) : base(displayContent, imageMoniker, automationName)
         {
             DefinitionItem = definitionItem;
+            Margin = margin;
         }
 
-        public static TargetMenuItemViewModel Create(InheritanceTargetItem target)
+        public static TargetMenuItemViewModel Create(InheritanceTargetItem target, Thickness margin)
         {
             var targetName = target.DefinitionItem.DisplayParts.JoinText();
             var displayContent = string.Format(ServicesVSResources._0_in_1, targetName, target.DisplayNameForContainingType);
             var imageMoniker = target.Glyph.GetImageMoniker();
-            return new TargetMenuItemViewModel(displayContent, imageMoniker, displayContent, target.DefinitionItem);
+            return new TargetMenuItemViewModel(displayContent, imageMoniker, displayContent, target.DefinitionItem, margin);
         }
     }
 }
