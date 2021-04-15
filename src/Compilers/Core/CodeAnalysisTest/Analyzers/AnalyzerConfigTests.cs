@@ -327,6 +327,32 @@ RoOt = TruE");
         }
 
         [Fact]
+        public void TestWithDash()
+        {
+            var config = Parse(@"
+is_global = true
+
+[C:/sub-folder/Program.cs]
+my_prop = my_val
+", "/.globalconfig");
+
+            Assert.Equal("", config.GlobalSection.Name);
+            var properties = config.GlobalSection.Properties;
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("is_global", "true") },
+                properties);
+
+            var namedSections = config.NamedSections;
+            Assert.Equal("C:/sub-folder/Program.cs", namedSections[0].Name);
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("my_prop", "my_val") },
+                namedSections[0].Properties);
+
+            SectionNameMatcher matcher = TryCreateSectionNameMatcher(namedSections[0].Name).Value;
+            Assert.Equal("", matcher.Regex.ToString());
+        }
+
+        [Fact]
         public void StarOnlyMatch()
         {
             SectionNameMatcher matcher = TryCreateSectionNameMatcher("*").Value;
