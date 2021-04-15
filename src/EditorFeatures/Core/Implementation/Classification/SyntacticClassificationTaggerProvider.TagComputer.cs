@@ -118,16 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             private IClassificationService? TryGetClassificationService(ITextSnapshot snapshot)
-            {
-                if (_workspace is not { } workspace)
-                    return null;
-
-                var languageServices = workspace.Services.GetLanguageServices(snapshot.ContentType);
-                if (languageServices == null)
-                    return null;
-
-                return languageServices.GetService<IClassificationService>();
-            }
+                => _workspace?.Services.GetLanguageServices(snapshot.ContentType)?.GetService<IClassificationService>();
 
             #region Workspace Hookup
 
