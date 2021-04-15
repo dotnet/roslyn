@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var useSiteInfo = attributeTypeViabilityUseSiteInfo.AccumulatesDependencies || !diagnose ?
                                           new CompoundUseSiteInfo<AssemblySymbol>(attributeTypeViabilityUseSiteInfo) :
-                                          CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+                                          CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
                     Debug.Assert(!diagnose || useSiteInfo.AccumulatesDiagnostics);
 
                     if (Compilation.IsEqualOrDerivedFromWellKnownClass(namedType, WellKnownType.System_Attribute, ref useSiteInfo))
