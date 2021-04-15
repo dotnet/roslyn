@@ -127,6 +127,31 @@ build_metadata.Compile.ToRetrieve = ghi789
         }
 
         [Fact]
+        [WorkItem(52620, "https://github.com/dotnet/roslyn/issues/52620")]
+        public void DashInFileName()
+        {
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/a-z.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/sub-folder/Program.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                MetadataItems = new[] { item1, item2 }
+            };
+            configTask.Execute();
+
+            var result = configTask.ConfigFileContents;
+
+            Assert.Equal(@"is_global = true
+
+[c:/a\-z.cs]
+build_metadata.Compile.ToRetrieve = abc123
+
+[c:/sub\-folder/Program.cs.cs]
+build_metadata.Compile.ToRetrieve = def456
+", result);
+        }
+
+        [Fact]
         public void DuplicateItemSpecsAreCombinedInSections()
         {
             ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
