@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             return _service.AdjustStaleClassification(text, classifiedSpan);
         }
 
-        public void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             // F# does not support syntax.
         }
