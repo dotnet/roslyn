@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return project;
         }
 
-        private Project UpdateDocument(TextDocument document, DocumentInfo newDocumentInfo, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums)
+        private static Project UpdateDocument(TextDocument document, DocumentInfo newDocumentInfo, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums)
         {
             // changed info
             if (oldDocumentChecksums.Info != newDocumentChecksums.Info)
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return document.Project;
         }
 
-        private Dictionary<DocumentId, (DocumentInfo, DocumentStateChecksums)> GetDocumentMap(IReadOnlyList<DocumentInfo> documentInfos)
+        private static Dictionary<DocumentId, (DocumentInfo, DocumentStateChecksums)> GetDocumentMap(IReadOnlyList<DocumentInfo> documentInfos)
         {
             var map = new Dictionary<DocumentId, (DocumentInfo, DocumentStateChecksums)>();
             foreach (var documentInfo in documentInfos)
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return map;
         }
 
-        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
+        private static async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
         {
             var map = new Dictionary<DocumentId, DocumentStateChecksums>();
             foreach (var state in states)
