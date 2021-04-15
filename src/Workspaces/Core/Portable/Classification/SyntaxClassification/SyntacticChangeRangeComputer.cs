@@ -103,6 +103,13 @@ namespace Microsoft.CodeAnalysis.Classification
             Contract.ThrowIfTrue(commonRightWidth > oldRootWidth);
             Contract.ThrowIfTrue(commonRightWidth > newRootWidth);
 
+            // it's possible for the common left/right to overlap.  This can happen as some tokens
+            // in the parser have a true shared underlying state, so they may get consumed both on 
+            // a leftward and rightward walk.  Cap the right width so that it never overlaps hte left
+            // width in either the old or new tree.
+            commonRightWidth = Math.Min(commonRightWidth, oldRootWidth - commonLeftWidth.Value);
+            commonRightWidth = Math.Min(commonRightWidth, newRootWidth - commonLeftWidth.Value);
+
             return new TextChangeRange(
                 TextSpan.FromBounds(start: commonLeftWidth.Value, end: oldRootWidth - commonRightWidth),
                 newRootWidth - commonLeftWidth.Value - commonRightWidth);

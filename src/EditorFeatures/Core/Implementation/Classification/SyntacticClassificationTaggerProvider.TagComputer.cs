@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -325,9 +325,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 async ValueTask<SnapshotSpan> ComputeChangedSpanAsync()
                 {
                     var changeRange = await ComputeChangedRangeAsync().ConfigureAwait(false);
-                    return changeRange == null
-                        ? currentSnapshot.GetFullSpan()
-                        : currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
+                    if (changeRange != null)
+                    {
+                        var totalChangeSpan = ToSpan(changeRange);
+                        if (previousSnapshot != null && previousSnapshot != currentSnapshot)
+                        {
+                            // Even if the language thought there were no changes (for example because
+                            // it reused all tokens), we still want to report that any section of the 
+                            // snapshot that was edited should be retagged.
+                            var snapshotChangeSpan = ComputeSnapshotChangeSpan();
+                            totalChangeSpan = TextSpan.FromBounds(
+                                Math.Min(totalChangeSpan.Start, snapshotChangeSpan.Start),
+                                Math.Max(totalChangeSpan.End, snapshotChangeSpan.End));
+                        }
+
+                        return currentSnapshot.GetSpan(totalChangeSpan.ToSpan());
+                    }
+
+                    return currentSnapshot.GetFullSpan();
                 }
 
                 ValueTask<TextChangeRange?> ComputeChangedRangeAsync()
@@ -342,6 +357,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                     return new ValueTask<TextChangeRange?>();
                 }
+
+                TextSpan ComputeSnapshotChangeSpan()
+                {
+                    TextChangeRange? range = null;
+                    for (var version = previousSnapshot.Version; version != currentSnapshot.Version; version = version.Next)
+                        range = range.Accumulate(version.Changes.Select(tc => new TextChangeRange(tc.OldSpan.ToTextSpan(), tc.NewLength)));
+
+                    return ToSpan(range);
+                }
+            }
+
+            private static TextSpan ToSpan(TextChangeRange? changeRange)
+            {
+                Contract.ThrowIfNull(changeRange);
+                return new TextSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
             }
 
             private (ITextSnapshot? lastSnapshot, Document? lastDocument, SyntaxNode? lastRoot) GetLastProcessedData()
