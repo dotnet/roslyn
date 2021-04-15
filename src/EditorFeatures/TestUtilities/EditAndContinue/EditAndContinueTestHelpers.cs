@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal abstract class EditAndContinueTestHelpers
     {
+        public static readonly ManagedEditAndContinueCapabilities Net5RuntimeCapabilities = new(ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.AddDefinitionToExistingType | ManagedEditAndContinueCapability.NewTypeDefinition);
+
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
         public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
         public abstract SyntaxTree ParseText(string source);
@@ -185,7 +187,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(oldModel);
                 Contract.ThrowIfNull(newModel);
 
-                var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, ManagedEditAndContinueCapabilities.Net5CoreCLR, CancellationToken.None).Result;
+                var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, Net5RuntimeCapabilities, CancellationToken.None).Result;
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 

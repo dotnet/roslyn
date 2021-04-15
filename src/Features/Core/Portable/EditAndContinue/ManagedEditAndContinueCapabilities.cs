@@ -6,14 +6,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal class ManagedEditAndContinueCapabilities
     {
-        internal static readonly ManagedEditAndContinueCapabilities Net5CoreCLR = new(ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.AddDefinitionToExistingType | ManagedEditAndContinueCapability.NewTypeDefinition);
-        internal static readonly ManagedEditAndContinueCapabilities Net6CoreCLR = new(ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.AddDefinitionToExistingType | ManagedEditAndContinueCapability.NewTypeDefinition | ManagedEditAndContinueCapability.RuntimeEdits);
-        internal static readonly ManagedEditAndContinueCapabilities Net5MonoVM = new(ManagedEditAndContinueCapability.None);
-        internal static readonly ManagedEditAndContinueCapabilities Net6MonoVM = new(ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.RuntimeEdits);
-
         private readonly ManagedEditAndContinueCapability _capabilities;
 
-        private ManagedEditAndContinueCapabilities(ManagedEditAndContinueCapability capabilities)
+        // For testing purposes
+        internal ManagedEditAndContinueCapabilities(ManagedEditAndContinueCapability capabilities)
         {
             _capabilities = capabilities;
         }
