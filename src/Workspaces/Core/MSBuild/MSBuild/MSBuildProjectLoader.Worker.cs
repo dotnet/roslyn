@@ -471,16 +471,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var pathNames = logicalPath.Split(s_directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
                 if (pathNames.Length > 0)
                 {
-                    if (pathNames.Length > 1)
-                    {
-                        folders = pathNames.Take(pathNames.Length - 1).ToImmutableArray();
-                    }
-                    else
-                    {
-                        folders = ImmutableArray<string>.Empty;
-                    }
+                    folders = pathNames.Length > 1
+                        ? pathNames.Take(pathNames.Length - 1).ToImmutableArray()
+                        : ImmutableArray<string>.Empty;
 
-                    name = pathNames[pathNames.Length - 1];
+                    name = pathNames[^1];
                 }
                 else
                 {
