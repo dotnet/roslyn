@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }

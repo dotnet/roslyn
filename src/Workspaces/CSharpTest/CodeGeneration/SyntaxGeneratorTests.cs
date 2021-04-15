@@ -1804,7 +1804,7 @@ public class C { } // end").Members[0];
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
-@"public unsafe void *ToPointer()
+@"public unsafe void* ToPointer()
 {
 }");
         }

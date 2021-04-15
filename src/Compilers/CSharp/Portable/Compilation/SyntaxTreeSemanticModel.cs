@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol recordType = GetDeclaredType(node);
             var symbol = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
 
-            if (symbol?.GetSyntax() != node)
+            if (symbol?.SyntaxRef.SyntaxTree != node.SyntaxTree || symbol.GetSyntax() != node)
             {
                 return null;
             }

@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     continue;
                 }
 
-                result.Add($"{commentToken.Text}:{((int)commentToken.Priority).ToString()}");
+                result.Add($"{commentToken.Text}:{(int)commentToken.Priority}");
             }
 
             return string.Join("|", result);

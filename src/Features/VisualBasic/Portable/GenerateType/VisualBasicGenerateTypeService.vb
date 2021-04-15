@@ -431,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Dim containerList = New List(Of String)(containers)
                 Dim enclosingNamespace = GetDeclaringNamespace(containerList, 0, compilationUnit)
                 If enclosingNamespace IsNot Nothing Then
-                    Dim enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name)
+                    Dim enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name, cancellationToken)
                     If enclosingNamespaceSymbol.Symbol IsNot Nothing Then
                         Return (DirectCast(enclosingNamespaceSymbol.Symbol, INamespaceSymbol),
                                 namedTypeSymbol,

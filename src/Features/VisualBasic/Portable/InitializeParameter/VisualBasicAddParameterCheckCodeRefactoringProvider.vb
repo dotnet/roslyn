@@ -54,5 +54,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Protected Overrides Function EscapeResourceString(input As String) As String
             Return input.Replace("""", """""")
         End Function
+
+        Protected Overrides Function CreateParameterCheckIfStatement(options As DocumentOptionSet, condition As ExpressionSyntax, ifTrueStatement As StatementSyntax) As StatementSyntax
+            Return SyntaxFactory.MultiLineIfBlock(
+                ifStatement:=SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), condition, SyntaxFactory.Token(SyntaxKind.ThenKeyword)),
+                statements:=New SyntaxList(Of StatementSyntax)(ifTrueStatement),
+                elseIfBlocks:=Nothing,
+                elseBlock:=Nothing)
+        End Function
     End Class
 End Namespace

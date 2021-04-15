@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -1156,7 +1157,7 @@ class D
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
@@ -1229,7 +1230,7 @@ testHost, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1263,7 +1264,7 @@ testHost, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1296,7 +1297,7 @@ testHost, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1326,7 +1327,7 @@ testHost, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1361,7 +1362,7 @@ testHost, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1388,7 +1389,7 @@ testHost, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1415,7 +1416,7 @@ testHost, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(
@@ -1441,7 +1442,7 @@ testHost, @"class C
 </Workspace>
 ", composition: EditorTestCompositions.EditorFeatures);
 
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
             _aggregator = new NavigateToTestAggregator(_provider);
 
             VerifyNavigateToResultItems(

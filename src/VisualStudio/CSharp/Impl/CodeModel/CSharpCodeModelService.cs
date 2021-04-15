@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                     break;
 
-                case SyntaxKind.ClassDeclaration: // PROTOTYPE(record-structs): no sure what this is for (and elsewhere in this file)
+                case SyntaxKind.ClassDeclaration:
                     if (scope == EnvDTE.vsCMElement.vsCMElementClass)
                     {
                         return true;

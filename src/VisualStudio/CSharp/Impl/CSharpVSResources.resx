@@ -373,8 +373,8 @@
   <data name="Place_code_snippets_in_completion_lists" xml:space="preserve">
     <value>Place _code snippets in completion lists</value>
   </data>
-  <data name="Completion_Lists" xml:space="preserve">
-    <value>Completion Lists</value>
+  <data name="Completion" xml:space="preserve">
+    <value>Completion</value>
   </data>
   <data name="Selection_In_Completion_List" xml:space="preserve">
     <value>Selection In Completion List</value>
@@ -636,5 +636,8 @@
   </data>
   <data name="Allow_bank_line_after_colon_in_constructor_initializer" xml:space="preserve">
     <value>Allow blank line after colon in constructor initializer</value>
+  </data>
+  <data name="Automatically_complete_statement_on_semicolon" xml:space="preserve">
+    <value>Automatically complete statement on semicolon</value>
   </data>
 </root>

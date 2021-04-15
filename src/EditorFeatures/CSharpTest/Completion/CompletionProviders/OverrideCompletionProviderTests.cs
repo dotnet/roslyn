@@ -3146,5 +3146,10 @@ record Program : Base
     override $$
 }", "ToString()");
         }
+
+        private Task VerifyItemExistsAsync(string markup, string expectedItem)
+        {
+            return VerifyItemExistsAsync(markup, expectedItem, isComplexTextEdit: true);
+        }
     }
 }
