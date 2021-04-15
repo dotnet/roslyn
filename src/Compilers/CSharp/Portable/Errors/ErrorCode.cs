@@ -1939,6 +1939,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAbstractIncDecRetType = 9104,
         ERR_BadAbstractBinaryOperatorSignature = 9105,
         ERR_BadAbstractShiftOperatorSignature = 9106,
+        ERR_BadAbstractStaticMemberAccess = 9107,
+        ERR_ExpressionTreeContainsAbstractStaticMemberAccess = 9108,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

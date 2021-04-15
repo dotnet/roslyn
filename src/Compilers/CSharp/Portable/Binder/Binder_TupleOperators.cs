@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundBinaryOperator binary:
                     PrepareBoolConversionAndTruthOperator(binary.Type, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
-                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.MethodOpt, conversionIntoBoolOperator, boolOperator);
+                    // PROTOTYPE(StaticAbstractMembersInInterfaces): Ensure we have a unit-test for this code path.
+                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.MethodOpt, binary.ConstrainedToTypeOpt, conversionIntoBoolOperator, boolOperator);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(comparison);
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We'll want to dynamically invoke operators op_true (/op_false) for equality (/inequality) comparison, but we don't need
             // to prepare either a conversion or a truth operator. Those can just be synthesized during lowering.
             return new TupleBinaryOperatorInfo.Single(dynamicType, dynamicType, elementOperatorKind,
-                methodSymbolOpt: null, conversionForBool: Conversion.Identity, boolOperator: default);
+                methodSymbolOpt: null, constrainedToTypeOpt: null, conversionForBool: Conversion.Identity, boolOperator: default);
         }
 
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
