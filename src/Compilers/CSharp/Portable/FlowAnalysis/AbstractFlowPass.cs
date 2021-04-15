@@ -1040,9 +1040,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // `a?.b(out x) is null or C`
                         // both subpatterns must have the same null test for the test to propagate out
                         var leftNullTest = GetTopLevelNullTest(binary.Left);
-                        return leftNullTest == GetTopLevelNullTest(binary.Right)
-                            ? leftNullTest
-                            : null;
+                        return leftNullTest is null ? null :
+                            leftNullTest != GetTopLevelNullTest(binary.Right) ? null :
+                            leftNullTest;
                     }
 
                     // `a?.b(out x) is not null and var c`
