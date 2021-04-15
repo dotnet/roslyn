@@ -301,6 +301,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 GetLastProcessedData(out var previousSnapshot, out var previousDocument, out var previousRoot);
 
+                // Optionally pre-calculate the root of the doc so that it is ready to classify
+                // once GetTags is called.  Also, attempt to determine a smallwe change range span
+                // for this document so that we can avoid reporting the entire document as changed.
+
                 var currentRoot = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var changedSpan = await ComputeChangedSpanAsync().ConfigureAwait(false);
 
