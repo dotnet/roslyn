@@ -380,16 +380,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">메서드 추출</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_0">
-        <source>Extract method to invoke at all callsites for '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0">
-        <source>Extract method to invoke at all callsites for all occurrences of '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for all occurrences of '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">{0}의 데이터 흐름 분석 실패</target>
@@ -558,16 +548,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Introduce_local">
         <source>Introduce local</source>
         <target state="translated">로컬 소개</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_0">
-        <source>Introduce overload with new parameter for '{0}'</source>
-        <target state="new">Introduce overload with new parameter for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_all_occurrences_of_0">
-        <source>Introduce overload with new parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce overload with new parameter for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter">
@@ -2421,6 +2401,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">"HH" 사용자 지정 형식 지정자(및 임의 개수의 추가 "H" 지정자)는 시간을 00부터 23까지의 숫자로 나타냅니다. 즉, 시간은 자정부터 경과한 시간을 계산하는 0 기반 24시간제로 표현됩니다. 한 자릿수 시간은 앞에 0이 있는 형식으로 지정됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="code">
         <source>code</source>
         <target state="new">code</target>
@@ -2560,6 +2545,16 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">소스(특성)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload_of_0">
+        <source>into new overload of '{0}'</source>
+        <target state="new">into new overload of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

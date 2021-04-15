@@ -380,16 +380,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Extraer método</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_0">
-        <source>Extract method to invoke at all callsites for '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0">
-        <source>Extract method to invoke at all callsites for all occurrences of '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for all occurrences of '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">No se pudo analizar el flujo de datos para: {0}.</target>
@@ -558,16 +548,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Introduce_local">
         <source>Introduce local</source>
         <target state="translated">Introducir local</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_0">
-        <source>Introduce overload with new parameter for '{0}'</source>
-        <target state="new">Introduce overload with new parameter for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_all_occurrences_of_0">
-        <source>Introduce overload with new parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce overload with new parameter for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter">
@@ -2421,6 +2401,11 @@ Si el especificador de formato "H" se usa sin otros especificadores de formato p
         <target state="translated">El especificador de formato personalizado "HH" (más cualquier número de especificadores "H" adicionales) representa la hora como un número de 00 a 23, es decir, mediante un reloj de 24 horas de base cero que cuenta las horas desde la medianoche. El formato de una hora de un solo dígito es con un cero inicial.</target>
         <note />
       </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="code">
         <source>code</source>
         <target state="new">code</target>
@@ -2560,6 +2545,16 @@ El especificador de formato estándar "f" representa una combinación de los pat
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">en el origen (atributo)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload_of_0">
+        <source>into new overload of '{0}'</source>
+        <target state="new">into new overload of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

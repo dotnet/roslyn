@@ -126,8 +126,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsInstanceMemberReference(IOperation operation)
-                => operation is IMemberReferenceOperation memberReferenceOperation &&
-                    memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
+            => operation is IMemberReferenceOperation { Instance: { Kind: OperationKind.InstanceReference } };
 
         private static bool AreEquals(
             SemanticModel semanticModel1,

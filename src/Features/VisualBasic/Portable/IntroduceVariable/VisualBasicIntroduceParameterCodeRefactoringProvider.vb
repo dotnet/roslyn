@@ -33,9 +33,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Protected Overrides Function UpdateArgumentListSyntax(node As SyntaxNode, arguments As SeparatedSyntaxList(Of SyntaxNode)) As SyntaxNode
             Return TryCast(node, ArgumentListSyntax)?.WithArguments(arguments)
         End Function
-
-        Protected Overrides Function IsClassSpecificExpression(variable As SyntaxNode) As Boolean
-            Return variable.Kind() = SyntaxKind.MeExpression OrElse variable.Kind() = SyntaxKind.MyClassExpression OrElse variable.Kind() = SyntaxKind.MyBaseExpression
-        End Function
     End Class
 End Namespace

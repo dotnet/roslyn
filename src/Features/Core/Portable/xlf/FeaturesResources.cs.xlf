@@ -380,16 +380,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Extrahovat metodu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_0">
-        <source>Extract method to invoke at all callsites for '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0">
-        <source>Extract method to invoke at all callsites for all occurrences of '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for all occurrences of '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Nepovedlo se analyzovat tok dat pro: {0}</target>
@@ -558,16 +548,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Introduce_local">
         <source>Introduce local</source>
         <target state="translated">Zavést místní</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_0">
-        <source>Introduce overload with new parameter for '{0}'</source>
-        <target state="new">Introduce overload with new parameter for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_all_occurrences_of_0">
-        <source>Introduce overload with new parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce overload with new parameter for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter">
@@ -2421,6 +2401,11 @@ Pokud se specifikátor formátu H použije bez dalších specifikátorů vlastn�
         <target state="translated">Specifikátor vlastního formátu HH reprezentuje hodinu jako číslo od 00 do 23. To znamená, že hodina je reprezentována ve 24hodinovém formátu, který začíná na nule a počítá hodiny od půlnoci. Hodina s jednou číslicí se formátuje s nulou na začátku.</target>
         <note />
       </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="code">
         <source>code</source>
         <target state="new">code</target>
@@ -2560,6 +2545,16 @@ Specifikátor standardního formátu f představuje kombinaci vzorů dlouhého d
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">in Source (atribut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload_of_0">
+        <source>into new overload of '{0}'</source>
+        <target state="new">into new overload of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

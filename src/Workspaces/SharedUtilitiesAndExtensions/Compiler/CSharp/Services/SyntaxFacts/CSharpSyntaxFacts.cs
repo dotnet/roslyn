@@ -1269,10 +1269,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
 
         public SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
-            => (invocationExpression as InvocationExpressionSyntax)!.ArgumentList;
+            => ((InvocationExpressionSyntax)invocationExpression).ArgumentList;
 
         public SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode objectCreationExpression)
-            => (objectCreationExpression as ObjectCreationExpressionSyntax)!.ArgumentList;
+            => ((ObjectCreationExpressionSyntax)objectCreationExpression)!.ArgumentList;
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();

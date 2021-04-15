@@ -887,7 +887,7 @@ End Class"
     End Function
 
     Sub M1()
-        M(z:=0, m:=2 * 0, y:=2)
+        M(z:=0, num:=2 * 0, y:=2)
     End Sub
 End Class"
 

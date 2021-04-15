@@ -380,16 +380,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Estrai il metodo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_0">
-        <source>Extract method to invoke at all callsites for '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0">
-        <source>Extract method to invoke at all callsites for all occurrences of '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for all occurrences of '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Non è stato possibile analizzare il flusso di dati per: {0}</target>
@@ -558,16 +548,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Introduce_local">
         <source>Introduce local</source>
         <target state="translated">Introduci variabile locale</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_0">
-        <source>Introduce overload with new parameter for '{0}'</source>
-        <target state="new">Introduce overload with new parameter for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_all_occurrences_of_0">
-        <source>Introduce overload with new parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce overload with new parameter for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter">
@@ -2421,6 +2401,11 @@ Se l'identificatore di formato "H" viene usato senza altri identificatori di for
         <target state="translated">L'identificatore di formato personalizzato "HH" (più qualsiasi numero di identificatori "H" aggiuntivi) rappresenta l'ora come numero compreso tra 00 e 23, ovvero l'ora rappresentata nell'orario in formato 24 ore a base zero in base al quale il conteggio riparte da mezzanotte. Un'ora costituita da una singola cifra viene formattata con uno zero iniziale.</target>
         <note />
       </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="code">
         <source>code</source>
         <target state="new">code</target>
@@ -2560,6 +2545,16 @@ L'identificatore di formato standard "f" rappresenta una combinazione degli sche
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">nell'origine (attributo)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload_of_0">
+        <source>into new overload of '{0}'</source>
+        <target state="new">into new overload of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

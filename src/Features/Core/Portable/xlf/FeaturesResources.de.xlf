@@ -380,16 +380,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Methode extrahieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_0">
-        <source>Extract method to invoke at all callsites for '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0">
-        <source>Extract method to invoke at all callsites for all occurrences of '{0}'</source>
-        <target state="new">Extract method to invoke at all callsites for all occurrences of '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Fehler beim Analysieren des Datenflusses für: {0}</target>
@@ -558,16 +548,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Introduce_local">
         <source>Introduce local</source>
         <target state="translated">Lokale Variable einführen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_0">
-        <source>Introduce overload with new parameter for '{0}'</source>
-        <target state="new">Introduce overload with new parameter for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_overload_with_new_parameter_for_all_occurrences_of_0">
-        <source>Introduce overload with new parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce overload with new parameter for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter">
@@ -2421,6 +2401,11 @@ Bei Verwendung des Formatbezeichners "H" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Der benutzerdefinierte Formatbezeichner "HH" (plus beliebig viele zusätzliche H-Bezeichner) repräsentiert die Stunde als eine Zahl zwischen 00 und 23, d. h., die Stunde wird in einem nullbasierten 24-Stunden-Format dargestellt, bei dem die Stunden seit Mitternacht gezählt werden. Ein einstelliger Stundenwert wird mit einer führenden Null formatiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="code">
         <source>code</source>
         <target state="new">code</target>
@@ -2560,6 +2545,16 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">in Quelle (Attribut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload_of_0">
+        <source>into new overload of '{0}'</source>
+        <target state="new">into new overload of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
