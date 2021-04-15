@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     return await ComputeModelAsync(previousModel, textSnapshot, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                 }
             }
@@ -163,11 +166,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var currentSelectedItem = ComputeSelectedTypeAndMember(lastModel, caretPosition, cancellationToken);
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            // After we switch to the main thread, we may discover the previous work on the main thread canceled us and
-            // enqueued another task to determine the selected item.  Bail out and let that task proceed.
-            if (cancellationToken.IsCancellationRequested)
-                return;
 
             AssertIsForeground();
 

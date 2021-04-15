@@ -16,12 +16,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-    internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService2
+    internal abstract class AbstractEditorNavigationBarItemService : ForegroundThreadAffinitizedObject, INavigationBarItemService2
     {
-        protected readonly IThreadingContext ThreadingContext;
-
         protected AbstractEditorNavigationBarItemService(IThreadingContext threadingContext)
-            => ThreadingContext = threadingContext;
+            : base(threadingContext, assertIsForeground: false)
+        {
+        }
 
         protected abstract Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
         protected abstract Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
             // Do not allow third party navigation to types or constructors
             if (symbol != null &&
-                !(symbol is ITypeSymbol) &&
+                symbol is not ITypeSymbol &&
                 !symbol.IsConstructor() &&
-                symbolNavigationService.TrySymbolNavigationNotify(symbol, document.Project, cancellationToken))
+                await symbolNavigationService.TrySymbolNavigationNotifyAsync(symbol, document.Project, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
@@ -63,18 +63,17 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             var navigationPoint = await this.GetSymbolItemNavigationPointAsync(document, item, cancellationToken).ConfigureAwait(false);
             if (navigationPoint.HasValue)
             {
-                await NavigateToVirtualTreePointAsync(document.Project.Solution, navigationPoint.Value, cancellationToken).ConfigureAwait(false);
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                NavigateToVirtualTreePoint(document.Project.Solution, navigationPoint.Value, cancellationToken);
             }
         }
 
-        protected async Task NavigateToVirtualTreePointAsync(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
+        protected void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
         {
+            this.AssertIsForeground();
             var documentToNavigate = solution.GetRequiredDocument(navigationPoint.Tree);
             var workspace = solution.Workspace;
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-            // Have to move back to UI thread in order to navigate.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken))
             {

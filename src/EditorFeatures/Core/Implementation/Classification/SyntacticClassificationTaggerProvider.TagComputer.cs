@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// </summary>
         internal partial class TagComputer
         {
-            // This is how long we will wait after completing a parse before we tell the editor to
-            // re-classify the file. We do this, since the edit may have non-local changes, or the user
-            // may have made a change that introduced text that we didn't classify because we hadn't
-            // parsed it yet, and we want to get back to a known state.
-            private const int ReportChangeDelayInMilliseconds = TaggerConstants.ShortDelay;
-
             private readonly ITextBuffer _subjectBuffer;
             private readonly WorkspaceRegistration _workspaceRegistration;
             private readonly AsynchronousSerialWorkQueue _workQueue;
@@ -62,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private object _lastProcessedCachedData;
 
             private Workspace _workspace;
-            private CancellationTokenSource _reportChangeCancellationSource;
+            private readonly CancellationTokenSource _reportChangeCancellationSource = new();
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly IForegroundNotificationService _notificationService;
@@ -196,9 +190,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private async Task EnqueueProcessSnapshotWorkerAsync(Document currentDocument, CancellationToken cancellationToken)
             {
-                // we will enqueue new one soon, cancel pending refresh right away
-                _reportChangeCancellationSource.Cancel();
-
                 var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var currentSnapshot = currentText.FindCorrespondingEditorTextSnapshot();
                 if (currentSnapshot == null)
@@ -235,14 +226,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     _lastProcessedCachedData = currentCachedData;
                 }
 
-                _reportChangeCancellationSource = new CancellationTokenSource();
                 _notificationService.RegisterNotification(() =>
                     {
                         _workQueue.AssertIsForeground();
                         ReportChangedSpan(changedSpan);
                     },
-                    ReportChangeDelayInMilliseconds,
-                    _listener.BeginAsyncOperation("ReportEntireFileChanged"),
+                    _listener.BeginAsyncOperation("EnqueueProcessSnapshotWorkerAsync.ReportChangedSpan"),
                     _reportChangeCancellationSource.Token);
             }
 
