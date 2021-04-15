@@ -153,8 +153,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="needs-review-translation">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -970,6 +970,11 @@
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">Objekterstellung mit Zieltyp</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="new">positional fields in records</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">

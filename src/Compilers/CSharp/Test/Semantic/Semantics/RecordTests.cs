@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
         public void RecordLanguageVersion()
         {
-            // PROTOTYPE(record-structs): ported
             var src1 = @"
 class Point(int x, int y);
 ";
@@ -161,7 +160,6 @@ record Point(int x, int y);
         [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
         public void RecordLanguageVersion_Nested()
         {
-            // PROTOTYPE(record-structs): ported
             var src1 = @"
 class C
 {
@@ -487,7 +485,6 @@ record R3(R3 x) : Base
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor_WithPropertyInitializer()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(R X)
 {
@@ -803,7 +800,6 @@ public record C(int i)
         [Fact]
         public void PartialRecord_MixedWithClass()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 partial record C(int X, int Y)
 {
@@ -823,7 +819,6 @@ partial class C
         [Fact]
         public void PartialRecord_ParametersInScopeOfBothParts()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c = new C(2);
 System.Console.Write((c.P1, c.P2));
@@ -864,7 +859,6 @@ public partial record class C
         [Fact]
         public void PartialRecord_DuplicateMemberNames()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 public partial record C(int X)
 {
@@ -904,7 +898,6 @@ public partial record C
         [Fact]
         public void RecordInsideGenericType()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c = new C<int>.Nested(2);
 System.Console.Write(c.T);
@@ -922,7 +915,6 @@ public class C<T>
         [Fact]
         public void RecordProperties_01()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int X, int Y)
@@ -974,7 +966,6 @@ record C(int X, int Y)
         [Fact]
         public void RecordProperties_02()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int X, int Y)
@@ -1009,7 +1000,6 @@ record C(int X, int Y)
         [Fact]
         public void RecordProperties_03()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int X, int Y)
@@ -1035,7 +1025,6 @@ record C(int X, int Y)
         [Fact]
         public void RecordProperties_04()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int X, int Y)
@@ -1061,7 +1050,6 @@ record C(int X, int Y)
         [Fact, WorkItem(48947, "https://github.com/dotnet/roslyn/issues/48947")]
         public void RecordProperties_05()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C(int X, int X)
 {
@@ -1166,7 +1154,6 @@ record class C(int X, int X)
         [Fact]
         public void RecordProperties_06()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C(int X, int Y)
 {
@@ -1219,7 +1206,6 @@ record C(int X, int Y)
         [Fact]
         public void RecordProperties_07()
         {
-            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C1(object P, object get_P);
 record C2(object get_P, object P);");
@@ -1236,7 +1222,6 @@ record C2(object get_P, object P);");
         [Fact]
         public void RecordProperties_08()
         {
-            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C1(object O1)
 {
@@ -1249,7 +1234,6 @@ record C1(object O1)
         [Fact]
         public void RecordProperties_09()
         {
-            // PROTOTYPE(record-structs): ported
             var src =
 @"record C(object P1, object P2, object P3, object P4)
 {
@@ -1263,9 +1247,28 @@ record C1(object O1)
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P1'
                 // record C(object P1, object P2, object P3, object P4)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(1, 17),
-                // (4,12): error CS0102: The type 'C' already contains a definition for 'P2'
-                //     object P2 = 2;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(4, 12),
+                // (1,21): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object P2").WithArguments("positional fields in records").WithLocation(1, 21),
+                // (1,28): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28),
+                // (5,9): error CS0102: The type 'C' already contains a definition for 'P3'
+                //     int P3(object o) => 3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(5, 9),
+                // (6,9): error CS0102: The type 'C' already contains a definition for 'P4'
+                //     int P4<T>(T t) => 4;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(6, 9)
+                );
+
+            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,17): error CS0102: The type 'C' already contains a definition for 'P1'
+                // record C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(1, 17),
+                // (1,28): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // record C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28),
                 // (5,9): error CS0102: The type 'C' already contains a definition for 'P3'
                 //     int P3(object o) => 3;
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(5, 9),
@@ -1275,28 +1278,10 @@ record C1(object O1)
                 );
         }
 
-        [Fact]
-        public void RecordProperties_10()
-        {
-            // PROTOTYPE(record-structs): ported
-            var src =
-@"record C(object P)
-{
-    const int P = 4;
-}";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (3,15): error CS0102: The type 'C' already contains a definition for 'P'
-                //     const int P = 4;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(3, 15)
-                );
-        }
-
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 class C<T> { }
 static class C2 { }
@@ -1353,7 +1338,6 @@ unsafe record C( // 1
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_NominalMembers()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 public class C<T> { }
 public static class C2 { }
@@ -1406,7 +1390,6 @@ public unsafe record C
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_NominalMembers_AutoProperties()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 public class C<T> { }
 public static class C2 { }
@@ -1462,7 +1445,6 @@ public unsafe record C
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForParameterAndProperty()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 class C<T> { }
 
@@ -1511,7 +1493,6 @@ unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_StaticFields()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 public class C<T> { }
 public static class C2 { }
@@ -1550,7 +1531,6 @@ public unsafe record C
         [Fact, WorkItem(48584, "https://github.com/dotnet/roslyn/issues/48584")]
         public void RecordProperties_11_UnreadPositionalParameter()
         {
-            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C1(object O1, object O2, object O3) // 1, 2
 {
@@ -1600,7 +1580,6 @@ record C5(object O7) : Base((System.Func<object, object>)(_ => (O7 = 42) )) // 4
         [Fact, WorkItem(48584, "https://github.com/dotnet/roslyn/issues/48584")]
         public void RecordProperties_11_UnreadPositionalParameter_InRefOut()
         {
-            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C1(object O1, object O2, object O3) // 1
 {
@@ -1786,7 +1765,6 @@ class Program
         [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int x)
 {
@@ -1808,7 +1786,6 @@ record R(int x)
         [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor_ParameterlessPrimaryCtor()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R()
 {
@@ -1823,7 +1800,6 @@ record R()
         [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor_CopyCtor()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R()
 {
@@ -2840,7 +2816,6 @@ public sealed record C
         [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
         public void GetHashCodeIsDefinedButEqualsIsNot()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 public sealed record C
 {
@@ -2854,7 +2829,6 @@ public sealed record C
         [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
         public void EqualsIsDefinedButGetHashCodeIsNot()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 public sealed record C
 {
@@ -3249,7 +3223,6 @@ class C
         [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
         public void Clone_DisallowedInSource()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1(string Clone); // 1
 record C2
@@ -4992,7 +4965,6 @@ public record C : B {
         [Fact, WorkItem(47093, "https://github.com/dotnet/roslyn/issues/47093")]
         public void ToString_TopLevelRecord_Empty()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -5219,7 +5191,6 @@ record C2 : C1
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilder()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5242,7 +5213,6 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilderCtor()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5259,7 +5229,6 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilderAppendString()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5276,7 +5245,6 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_OneProperty_MissingStringBuilderAppendString()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1(int P);
 ";
@@ -5343,7 +5311,6 @@ sealed record C2(int I1, int I2) : C1(I1);
         [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
         public void ToString_RecordWithIndexer()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1(42);
 System.Console.Write(c1.ToString());
@@ -5386,7 +5353,6 @@ record C1(int I1)
         [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
         public void ToString_PrivateGetter()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -5601,7 +5567,6 @@ record C1
         [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ConstrainedValueType()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1<int>() { field = 42 };
 System.Console.Write(c1.ToString());
@@ -5644,7 +5609,6 @@ record C1<T> where T : struct
         [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ReferenceType()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1() { field = ""hello"" };
 System.Console.Write(c1.ToString());
@@ -5751,7 +5715,6 @@ record C1
         [Fact]
         public void ToString_TopLevelRecord_TwoFields_ReferenceType()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1() { field1 = ""hi"", field2 = null };
 System.Console.Write(c1.ToString());
@@ -7169,7 +7132,6 @@ public record B : A {
         [Fact]
         public void ToString_TopLevelRecord_UserDefinedToString()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -7191,7 +7153,6 @@ record C1
         [Fact]
         public void ToString_TopLevelRecord_UserDefinedToString_Sealed()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7224,7 +7185,6 @@ sealed record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WithNullableStringBuilder()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record C1
@@ -7240,7 +7200,6 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_ErrorReturnType()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7259,7 +7218,6 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WrongReturnType()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7348,7 +7306,6 @@ sealed record C
         [Fact]
         public void ToString_UserDefinedPrintMembers()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -7371,7 +7328,6 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WrongAccessibility()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7439,7 +7395,6 @@ record C1 : B
         [Fact]
         public void ToString_UserDefinedPrintMembers_New()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record B;
 record C1 : B
@@ -8894,7 +8849,6 @@ record B(int X)
         [Fact]
         public void WithExpr_NullableAnalysis_01()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(int X)
@@ -8915,7 +8869,6 @@ record B(int X)
         [Fact]
         public void WithExpr_NullableAnalysis_02()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string X)
@@ -8937,7 +8890,6 @@ record B(string X)
         [Fact]
         public void WithExpr_NullableAnalysis_03()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string? X)
@@ -9001,7 +8953,6 @@ record B(int X)
         [Fact, WorkItem(44763, "https://github.com/dotnet/roslyn/issues/44763")]
         public void WithExpr_NullableAnalysis_05()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string? X, string? Y)
@@ -9039,7 +8990,6 @@ record B(string? X, string? Y)
         [Fact]
         public void WithExpr_NullableAnalysis_06()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B
@@ -9456,7 +9406,6 @@ class D
         [Fact]
         public void WithExprAssignToRef1()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int Y)
@@ -9545,7 +9494,6 @@ record C(int Y)
         [Fact]
         public void WithExpressionSameLHS()
         {
-            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C(int X)
 {
@@ -9734,7 +9682,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
                 // (12,39): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P3").WithArguments("P3").WithLocation(12, 39),
-                // (12,50): error CS8866: Record member 'A.P4' must be a readable instance property of type 'object' to match positional parameter 'P4'.
+                // (12,50): error CS8866: Record member 'A.P4' must be a readable instance property or field of type 'object' to match positional parameter 'P4'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "object", "P4").WithLocation(12, 50),
                 // (12,50): warning CS8907: Parameter 'P4' is unread. Did you forget to use it to initialize the property with that name?
@@ -9743,7 +9691,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
                 // (12,61): warning CS8907: Parameter 'P5' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P5").WithArguments("P5").WithLocation(12, 61),
-                // (12,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
+                // (12,72): error CS8866: Record member 'A.P6' must be a readable instance property or field of type 'object' to match positional parameter 'P6'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(12, 72),
                 // (12,72): warning CS8907: Parameter 'P6' is unread. Did you forget to use it to initialize the property with that name?
@@ -9771,13 +9719,13 @@ record B(int P1, object P2) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,14): error CS8866: Record member 'A.P1' must be a readable instance property of type 'int' to match positional parameter 'P1'.
+                // (7,14): error CS8866: Record member 'A.P1' must be a readable instance property or field of type 'int' to match positional parameter 'P1'.
                 // record B(int P1, object P2) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "int", "P1").WithLocation(7, 14),
                 // (7,14): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(int P1, object P2) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(7, 14),
-                // (7,25): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // (7,25): error CS8866: Record member 'A.P2' must be a readable instance property or field of type 'object' to match positional parameter 'P2'.
                 // record B(int P1, object P2) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(7, 25),
                 // (7,25): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
@@ -9818,15 +9766,15 @@ class Program
                 // (7,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(int X, int Y, int Z) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 14),
-                // (7,21): error CS8866: Record member 'A.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
+                // (7,21): error CS8866: Record member 'A.Y' must be a readable instance property or field of type 'int' to match positional parameter 'Y'.
                 // record B(int X, int Y, int Z) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("A.Y", "int", "Y").WithLocation(7, 21),
                 // (7,21): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(int X, int Y, int Z) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(7, 21),
-                // (7,28): error CS8866: Record member 'A.Z' must be a readable instance property of type 'int' to match positional parameter 'Z'.
+                // (7,24): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record B(int X, int Y, int Z) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Z").WithArguments("A.Z", "int", "Z").WithLocation(7, 28),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int Z").WithArguments("positional fields in records").WithLocation(7, 24),
                 // (7,28): warning CS8907: Parameter 'Z' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(int X, int Y, int Z) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Z").WithArguments("Z").WithLocation(7, 28));
@@ -10133,7 +10081,7 @@ record C(object P1, int P2, object P3, int P4) : B
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (13,17): error CS8866: Record member 'B.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // (13,17): error CS8866: Record member 'B.P1' must be a readable instance property or field of type 'object' to match positional parameter 'P1'.
                 // record C(object P1, int P2, object P3, int P4) : B
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("B.P1", "object", "P1").WithLocation(13, 17),
                 // (13,17): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
@@ -10145,7 +10093,7 @@ record C(object P1, int P2, object P3, int P4) : B
                 // (13,36): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object P1, int P2, object P3, int P4) : B
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P3").WithArguments("P3").WithLocation(13, 36),
-                // (13,44): error CS8866: Record member 'A.P4' must be a readable instance property of type 'int' to match positional parameter 'P4'.
+                // (13,44): error CS8866: Record member 'A.P4' must be a readable instance property or field of type 'int' to match positional parameter 'P4'.
                 // record C(object P1, int P2, object P3, int P4) : B
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(13, 44),
                 // (13,44): warning CS8907: Parameter 'P4' is unread. Did you forget to use it to initialize the property with that name?
@@ -10166,13 +10114,13 @@ record C(object P1, int P2, object P3, int P4) : B
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (1,14): error CS8866: Record member 'C.P1' must be a readable instance property of type 'int' to match positional parameter 'P1'.
+                // (1,14): error CS8866: Record member 'C.P1' must be a readable instance property or field of type 'int' to match positional parameter 'P1'.
                 // record C(int P1, object P2)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("C.P1", "int", "P1").WithLocation(1, 14),
                 // (1,14): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(int P1, object P2)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(1, 14),
-                // (1,25): error CS8866: Record member 'C.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // (1,25): error CS8866: Record member 'C.P2' must be a readable instance property or field of type 'object' to match positional parameter 'P2'.
                 // record C(int P1, object P2)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("C.P2", "object", "P2").WithLocation(1, 25),
                 // (1,25): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
@@ -10209,13 +10157,13 @@ record B(object P1, int P2, object P3, int P4) : A
                 // (8,17): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(8, 17),
-                // (8,25): error CS8866: Record member 'B.P2' must be a readable instance property of type 'int' to match positional parameter 'P2'.
+                // (8,25): error CS8866: Record member 'B.P2' must be a readable instance property or field of type 'int' to match positional parameter 'P2'.
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "int", "P2").WithLocation(8, 25),
                 // (8,25): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(8, 25),
-                // (8,36): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // (8,36): error CS8866: Record member 'A.P3' must be a readable instance property or field of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(8, 36),
                 // (8,36): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
@@ -10252,7 +10200,7 @@ record B(object P1, int P2, object P3, int P4) : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,17): error CS8866: Record member 'B.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // (8,17): error CS8866: Record member 'B.P1' must be a readable instance property or field of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("B.P1", "object", "P1").WithLocation(8, 17),
                 // (8,17): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
@@ -10264,7 +10212,7 @@ record B(object P1, int P2, object P3, int P4) : A
                 // (8,36): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P3").WithArguments("P3").WithLocation(8, 36),
-                // (8,44): error CS8866: Record member 'A.P4' must be a readable instance property of type 'int' to match positional parameter 'P4'.
+                // (8,44): error CS8866: Record member 'A.P4' must be a readable instance property or field of type 'int' to match positional parameter 'P4'.
                 // record B(object P1, int P2, object P3, int P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(8, 44),
                 // (8,44): warning CS8907: Parameter 'P4' is unread. Did you forget to use it to initialize the property with that name?
@@ -10301,13 +10249,13 @@ record B(object P1, int P2, object P3, int P4) : A
                 // (1,28): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object P1, object P2, object P3, object P4, object P5)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28),
-                // (1,39): error CS8866: Record member 'C.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // (1,39): error CS8866: Record member 'C.P3' must be a readable instance property or field of type 'object' to match positional parameter 'P3'.
                 // record C(object P1, object P2, object P3, object P4, object P5)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("C.P3", "object", "P3").WithLocation(1, 39),
                 // (1,39): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object P1, object P2, object P3, object P4, object P5)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P3").WithArguments("P3").WithLocation(1, 39),
-                // (1,50): error CS8866: Record member 'C.P4' must be a readable instance property of type 'object' to match positional parameter 'P4'.
+                // (1,50): error CS8866: Record member 'C.P4' must be a readable instance property or field of type 'object' to match positional parameter 'P4'.
                 // record C(object P1, object P2, object P3, object P4, object P5)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("C.P4", "object", "P4").WithLocation(1, 50),
                 // (1,50): warning CS8907: Parameter 'P4' is unread. Did you forget to use it to initialize the property with that name?
@@ -10577,7 +10525,7 @@ record C(object P1, object P2) : B
                 // (11,17): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object P1, object P2) : B
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(11, 17),
-                // (11,28): error CS8866: Record member 'B.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // (11,28): error CS8866: Record member 'B.P2' must be a readable instance property or field of type 'object' to match positional parameter 'P2'.
                 // record C(object P1, object P2) : B
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "object", "P2").WithLocation(11, 28),
                 // (11,28): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
@@ -10679,19 +10627,19 @@ record C(object P)
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyDiagnostics(
-                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property or field of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
                 // (1,17): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(1, 17),
-                // (1,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
+                // (1,21): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(1, 28),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object P2").WithArguments("positional fields in records").WithLocation(1, 21),
                 // (1,28): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28),
-                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property or field of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39),
                 // (1,39): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
@@ -10709,13 +10657,13 @@ record C(object P)
             var refA = comp.EmitToImageReference();
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
+                // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property or field of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
                 // (1,17): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(1, 17),
-                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
+                // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property or field of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39),
                 // (1,39): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
@@ -10745,7 +10693,7 @@ record C(object P)
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyDiagnostics(
-                // (1,17): error CS8866: Record member 'A.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
+                // (1,17): error CS8866: Record member 'A.P' must be a readable instance property or field of type 'object' to match positional parameter 'P'.
                 // record B(object P) : A
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("A.P", "object", "P").WithLocation(1, 17),
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
@@ -11064,19 +11012,19 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
                 // (11,50): warning CS8907: Parameter 'P4' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P4").WithArguments("P4").WithLocation(11, 50),
-                // (11,61): error CS8866: Record member 'A.P5' must be a readable instance property of type 'object' to match positional parameter 'P5'.
+                // (11,61): error CS8866: Record member 'A.P5' must be a readable instance property or field of type 'object' to match positional parameter 'P5'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P5").WithArguments("A.P5", "object", "P5").WithLocation(11, 61),
                 // (11,61): warning CS8907: Parameter 'P5' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P5").WithArguments("P5").WithLocation(11, 61),
-                // (11,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
+                // (11,72): error CS8866: Record member 'A.P6' must be a readable instance property or field of type 'object' to match positional parameter 'P6'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(11, 72),
                 // (11,72): warning CS8907: Parameter 'P6' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P6").WithArguments("P6").WithLocation(11, 72),
-                // (11,83): error CS8866: Record member 'A.P7' must be a readable instance property of type 'object' to match positional parameter 'P7'.
+                // (11,83): error CS8866: Record member 'A.P7' must be a readable instance property or field of type 'object' to match positional parameter 'P7'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P7").WithArguments("A.P7", "object", "P7").WithLocation(11, 83),
                 // (11,83): warning CS8907: Parameter 'P7' is unread. Did you forget to use it to initialize the property with that name?
@@ -11122,13 +11070,13 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
                 // (10,50): error CS0507: 'B.P4.get': cannot change access modifiers when overriding 'protected' inherited member 'A.P4.get'
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
                 Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "P4").WithArguments("B.P4.get", "protected", "A.P4.get").WithLocation(10, 50),
-                // (10,61): error CS8866: Record member 'A.P5' must be a readable instance property of type 'object' to match positional parameter 'P5'.
+                // (10,61): error CS8866: Record member 'A.P5' must be a readable instance property or field of type 'object' to match positional parameter 'P5'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P5").WithArguments("A.P5", "object", "P5").WithLocation(10, 61),
                 // (10,61): warning CS8907: Parameter 'P5' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P5").WithArguments("P5").WithLocation(10, 61),
-                // (10,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
+                // (10,72): error CS8866: Record member 'A.P6' must be a readable instance property or field of type 'object' to match positional parameter 'P6'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(10, 72),
                 // (10,72): warning CS8907: Parameter 'P6' is unread. Did you forget to use it to initialize the property with that name?
@@ -11167,13 +11115,13 @@ record B(string P1, string P2) : A;
                 // (6,8): error CS0534: 'B' does not implement inherited abstract member 'A.P1.get'
                 // record B(string P1, string P2) : A;
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.P1.get").WithLocation(6, 8),
-                // (6,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'string' to match positional parameter 'P1'.
+                // (6,17): error CS8866: Record member 'A.P1' must be a readable instance property or field of type 'string' to match positional parameter 'P1'.
                 // record B(string P1, string P2) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "string", "P1").WithLocation(6, 17),
                 // (6,17): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(string P1, string P2) : A;
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(6, 17),
-                // (6,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'string' to match positional parameter 'P2'.
+                // (6,28): error CS8866: Record member 'A.P2' must be a readable instance property or field of type 'string' to match positional parameter 'P2'.
                 // record B(string P1, string P2) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "string", "P2").WithLocation(6, 28),
                 // (6,28): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
@@ -11971,13 +11919,13 @@ class Program
                 // (12,8): error CS0534: 'C' does not implement inherited abstract member 'A.Y.init'
                 // record C(object X, object Y) : B;
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.Y.init").WithLocation(12, 8),
-                // (12,17): error CS8866: Record member 'B.X' must be a readable instance property of type 'object' to match positional parameter 'X'.
+                // (12,17): error CS8866: Record member 'B.X' must be a readable instance property or field of type 'object' to match positional parameter 'X'.
                 // record C(object X, object Y) : B;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "object", "X").WithLocation(12, 17),
                 // (12,17): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object X, object Y) : B;
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(12, 17),
-                // (12,27): error CS8866: Record member 'B.Y' must be a readable instance property of type 'object' to match positional parameter 'Y'.
+                // (12,27): error CS8866: Record member 'B.Y' must be a readable instance property or field of type 'object' to match positional parameter 'Y'.
                 // record C(object X, object Y) : B;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "object", "Y").WithLocation(12, 27),
                 // (12,27): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
@@ -12085,7 +12033,7 @@ record CB(object P) : B;
                 // (2,8): error CS0534: 'CB' does not implement inherited abstract member 'A.P.init'
                 // record CB(object P) : B;
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "CB").WithArguments("CB", "A.P.init").WithLocation(2, 8),
-                // (2,18): error CS8866: Record member 'B.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
+                // (2,18): error CS8866: Record member 'B.P' must be a readable instance property or field of type 'object' to match positional parameter 'P'.
                 // record CB(object P) : B;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("B.P", "object", "P").WithLocation(2, 18),
                 // (2,18): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
@@ -13964,7 +13912,6 @@ record A(int X)
         [Fact]
         public void Deconstruct_Simple()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -14022,7 +13969,6 @@ record B(int X, int Y)
         [Fact]
         public void Deconstruct_PositionalAndNominalProperty()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -14056,7 +14002,6 @@ record B(int X)
         [Fact]
         public void Deconstruct_Nested()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -14120,7 +14065,6 @@ record C(B B, int Z)
         [Fact]
         public void Deconstruct_PropertyCollision()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -14160,7 +14104,6 @@ record B(int X, int Y)
         [Fact]
         public void Deconstruct_MethodCollision_01()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 record B(int X, int Y)
 {
@@ -14221,7 +14164,7 @@ record C(int X, int Y) : B
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,14): error CS8866: Record member 'B.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // (7,14): error CS8866: Record member 'B.X' must be a readable instance property or field of type 'int' to match positional parameter 'X'.
                 // record C(int X, int Y) : B
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(7, 14),
                 // (7,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
@@ -14316,7 +14259,6 @@ record C(int X, int Y)
         [Fact]
         public void Deconstruct_FieldCollision()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 using System;
 
@@ -14340,14 +14282,28 @@ record C(int X)
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS0102: The type 'C' already contains a definition for 'X'
-                //     int X;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 9),
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (4,10): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record C(int X)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int X").WithArguments("positional fields in records").WithLocation(4, 10),
+                // (4,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record C(int X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(4, 14),
                 // (6,9): warning CS0169: The field 'C.X' is never used
                 //     int X;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("C.X").WithLocation(6, 9));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("C.X").WithLocation(6, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record C(int X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(4, 14),
+                // (6,9): warning CS0169: The field 'C.X' is never used
+                //     int X;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("C.X").WithLocation(6, 9)
+                );
 
             Assert.Equal(
                 "void C.Deconstruct(out System.Int32 X)",
@@ -14426,7 +14382,7 @@ record C(int X) : B
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,14): error CS8866: Record member 'B.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // (9,14): error CS8866: Record member 'B.X' must be a readable instance property or field of type 'int' to match positional parameter 'X'.
                 // record C(int X) : B
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(9, 14),
                 // (9,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
@@ -14478,7 +14434,6 @@ record C(int X) : B
         [Fact]
         public void Deconstruct_Empty()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 record C
 {
@@ -14776,13 +14731,13 @@ record C(int X, int Y)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,14): error CS8866: Record member 'C.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // (4,14): error CS8866: Record member 'C.X' must be a readable instance property or field of type 'int' to match positional parameter 'X'.
                 // record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("C.X", "int", "X").WithLocation(4, 14),
                 // (4,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(int X, int Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(4, 14),
-                // (4,21): error CS8866: Record member 'C.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
+                // (4,21): error CS8866: Record member 'C.Y' must be a readable instance property or field of type 'int' to match positional parameter 'Y'.
                 // record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "int", "Y").WithLocation(4, 21),
                 // (4,21): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
@@ -14797,7 +14752,6 @@ record C(int X, int Y)
         [Fact]
         public void Deconstruct_Conversion_02()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 #nullable enable
 using System;
@@ -14872,13 +14826,13 @@ record C(Derived X, Base Y)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8866: Record member 'C.X' must be a readable instance property of type 'Derived' to match positional parameter 'X'.
+                // (7,18): error CS8866: Record member 'C.X' must be a readable instance property or field of type 'Derived' to match positional parameter 'X'.
                 // record C(Derived X, Base Y)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("C.X", "Derived", "X").WithLocation(7, 18),
                 // (7,18): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(Derived X, Base Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 18),
-                // (7,26): error CS8866: Record member 'C.Y' must be a readable instance property of type 'Base' to match positional parameter 'Y'.
+                // (7,26): error CS8866: Record member 'C.Y' must be a readable instance property or field of type 'Base' to match positional parameter 'Y'.
                 // record C(Derived X, Base Y)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "Base", "Y").WithLocation(7, 26),
                 // (7,26): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
@@ -14893,7 +14847,6 @@ record C(Derived X, Base Y)
         [Fact]
         public void Deconstruct_Empty_WithParameterList()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 record C()
 {
@@ -14927,7 +14880,6 @@ record C()
         [Fact]
         public void Deconstruct_Empty_WithParameterList_UserDefined_01()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -15095,7 +15047,6 @@ record C()
         [Fact]
         public void Deconstruct_UserDefined()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -15178,7 +15129,6 @@ record B(int X, int Y)
         [Fact]
         public void Deconstruct_UserDefined_DifferentSignature_02()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -15372,7 +15322,6 @@ record B(int X, int Y) : A(X)
         [InlineData("internal protected")]
         public void Deconstruct_UserDefined_Accessibility_07(string accessibility)
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 $@"
 record A(int X)
@@ -15444,7 +15393,7 @@ record A(int X)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,14): error CS8866: Record member 'A.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // (2,14): error CS8866: Record member 'A.X' must be a readable instance property or field of type 'int' to match positional parameter 'X'.
                 // record A(int X)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(2, 14),
                 // (2,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
@@ -15467,7 +15416,7 @@ record B(int X) : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS8866: Record member 'A.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // (7,14): error CS8866: Record member 'A.X' must be a readable instance property or field of type 'int' to match positional parameter 'X'.
                 // record B(int X) : A;
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(7, 14),
                 // (7,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
@@ -15579,7 +15528,7 @@ record B(int X, int Y)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,21): error CS8866: Record member 'B.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
+                // (4,21): error CS8866: Record member 'B.Y' must be a readable instance property or field of type 'int' to match positional parameter 'Y'.
                 // record B(int X, int Y)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "int", "Y").WithLocation(4, 21),
                 // (4,21): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
@@ -16211,7 +16160,6 @@ public record A {
         [Fact]
         public void ObjectEquals_06()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"record A
 {
@@ -17872,7 +17820,6 @@ record B : A
         [Fact]
         public void RecordEquals_01()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 abstract record A
@@ -18236,7 +18183,6 @@ True
         [InlineData("internal protected")]
         public void RecordEquals_10(string accessibility)
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 $@"
 record A
@@ -18263,7 +18209,6 @@ record A
         [InlineData("private")]
         public void RecordEquals_11(string accessibility)
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 $@"
 record A
@@ -18291,7 +18236,6 @@ record A
         [Fact]
         public void RecordEquals_12()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -18332,7 +18276,6 @@ True
         [Fact]
         public void RecordEquals_13()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -18357,7 +18300,6 @@ record A
         [Fact]
         public void RecordEquals_14()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -18569,7 +18511,6 @@ True
         [Fact]
         public void RecordEquals_19()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20162,7 +20103,6 @@ record R2 : R
         [Fact]
         public void EqualityOperators_01()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A(int X) 
@@ -20381,7 +20321,6 @@ False False True True
         [Fact]
         public void EqualityOperators_03()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20405,7 +20344,6 @@ record A
         [Fact]
         public void EqualityOperators_04()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20429,7 +20367,6 @@ record A
         [Fact]
         public void EqualityOperators_05()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20451,7 +20388,6 @@ record A
         [Fact]
         public void EqualityOperators_06()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20473,7 +20409,6 @@ record A
         [Fact]
         public void EqualityOperators_07()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20525,7 +20460,6 @@ record A
         [CombinatorialData]
         public void EqualityOperators_09(bool useImageReference)
         {
-            // PROTOTYPE(record-structs): ported
             var source1 =
 @"
 public record A(int X) 
@@ -20605,7 +20539,7 @@ False False True True
                 // (1,17): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object P, object Q)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(1, 17),
-                // (1,27): error CS8866: Record member 'C.Q' must be a readable instance property of type 'object' to match positional parameter 'Q'.
+                // (1,27): error CS8866: Record member 'C.Q' must be a readable instance property or field of type 'object' to match positional parameter 'Q'.
                 // record C(object P, object Q)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Q").WithArguments("C.Q", "object", "Q").WithLocation(1, 27),
                 // (1,27): warning CS8907: Parameter 'Q' is unread. Did you forget to use it to initialize the property with that name?
@@ -23686,7 +23620,6 @@ record C
         [Fact]
         public void IEquatableT_01()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"record A<T>;
 record B : A<int>;
@@ -23713,7 +23646,6 @@ class Program
         [Fact]
         public void IEquatableT_02()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 record A;
@@ -23744,7 +23676,6 @@ C").VerifyDiagnostics();
         [Fact]
         public void IEquatableT_03()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"#nullable enable
 using System;
@@ -24361,7 +24292,6 @@ class A<T>
         [Fact]
         public void InterfaceImplementation()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 interface I
 {
@@ -24390,7 +24320,6 @@ record R(int P1) : I
         [Fact]
         public void Initializers_01()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 
@@ -24430,7 +24359,6 @@ record C(int X)
         [Fact]
         public void Initializers_02()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C(int X)
 {
@@ -24462,7 +24390,6 @@ record C(int X)
         [Fact]
         public void Initializers_03()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record C(int X)
 {
@@ -24494,7 +24421,6 @@ record C(int X)
         [Fact]
         public void Initializers_04()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 
@@ -24565,7 +24491,6 @@ record C(int X) : Base(() => 100 + X++)
         [Fact]
         public void SynthesizedRecordPointerProperty()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P1, int* P2, delegate*<int> P3);";
 
@@ -24583,7 +24508,6 @@ record R(int P1, int* P2, delegate*<int> P3);";
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_RefOrOut()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(ref int P1, out int P2);
 ";
@@ -24624,7 +24548,6 @@ record R(ref int P1, out int P2) : Base(P2 = 1);
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_In()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(in int P1);
 
@@ -24656,7 +24579,6 @@ public class C
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_This()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(this int i);
 ";
@@ -24672,7 +24594,6 @@ record R(this int i);
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_Params()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(params int[] Array);
 
@@ -24703,7 +24624,6 @@ public class C
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P = 42)
 {
@@ -24723,7 +24643,6 @@ record R(int P = 42)
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithInitializer()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P = 1)
 {
@@ -24761,7 +24680,6 @@ record R(int P = 1)
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithoutInitializer()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P = 42)
 {
@@ -24796,7 +24714,6 @@ record R(int P = 42)
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithInitializer_CopyingParameter()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P = 42)
 {
@@ -24883,19 +24800,7 @@ public record Test(
 
             IEnumerable<string> getAttributeStrings(Symbol symbol)
             {
-                return GetAttributeStrings(symbol.GetAttributes().Where(a =>
-                {
-                    switch (a.AttributeClass!.Name)
-                    {
-                        case "A":
-                        case "B":
-                        case "C":
-                        case "D":
-                            return true;
-                    }
-
-                    return false;
-                }));
+                return GetAttributeStrings(symbol.GetAttributes().Where(a => a.AttributeClass!.Name is "A" or "B" or "C" or "D"));
             }
         }
 
@@ -25385,7 +25290,6 @@ class C
         [Fact]
         public void RecordWithConstraints_NullableWarning()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record R<T>(T P) where T : class;
@@ -25416,7 +25320,6 @@ public class C
         [Fact]
         public void RecordWithConstraints_ConstraintError()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record R<T>(T P) where T : class;
 record R2<T>(T P) where T : class { }
@@ -25501,7 +25404,6 @@ abstract record C
         [Fact]
         public void CyclicBases4()
         {
-            // PROTOTYPE(record-structs): ported
             var text =
 @"
 record A<T> : B<A<T>> { }
@@ -25632,7 +25534,6 @@ public partial record C3 : Base<(int a, int b)> { }
         [Fact]
         public void CS0267ERR_PartialMisplaced()
         {
-            // PROTOTYPE(record-structs): ported
             var test = @"
 partial public record C  // CS0267
 {
@@ -25693,7 +25594,6 @@ class C<T, U>
         [Fact]
         public void SealedStaticRecord()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 sealed static record R;
 ";
@@ -25707,7 +25607,6 @@ sealed static record R;
         [Fact]
         public void CS0513ERR_AbstractInConcreteClass02()
         {
-            // PROTOTYPE(record-structs): ported
             var text = @"
 record C
 {
@@ -25779,7 +25678,6 @@ public record D : B {}
         [Fact]
         public void CS0574ERR_BadDestructorName()
         {
-            // PROTOTYPE(record-structs): ported
             var test = @"
 namespace x
 {
@@ -25839,7 +25737,6 @@ public partial record C1
         [Fact]
         public void StaticRecordWithConstructorAndDestructor()
         {
-            // PROTOTYPE(record-structs): ported
             var text = @"
 static record R(int I)
 {
@@ -25858,7 +25755,6 @@ static record R(int I)
         [Fact]
         public void RecordWithPartialMethodExplicitImplementation()
         {
-            // PROTOTYPE(record-structs): ported
             var source =
 @"record R
 {
@@ -25919,7 +25815,6 @@ public record A;
         [Fact]
         public void AnalyzerActions_01()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1]int X = 0) : I1
 {}
@@ -26313,7 +26208,6 @@ class Attr3 : System.Attribute {}
         [Fact]
         public void AnalyzerActions_02()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A(int X = 0)
 {}
@@ -26399,7 +26293,6 @@ record C
         [Fact]
         public void AnalyzerActions_03()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A(int X = 0)
 {}
@@ -26548,7 +26441,6 @@ record C
         [Fact]
         public void AnalyzerActions_04()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -26765,7 +26657,6 @@ IInvocationOperation ( A..ctor([System.Int32 X = 0])) (OperationKind.Invocation,
         [Fact]
         public void AnalyzerActions_05()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -27080,7 +26971,6 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_07()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -27186,7 +27076,6 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_08()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1]int X = 0) : I1
 {}
@@ -27403,7 +27292,6 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_09()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -27524,7 +27412,6 @@ interface I1 {}
         [WorkItem(46657, "https://github.com/dotnet/roslyn/issues/46657")]
         public void CanDeclareIteratorInRecord()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 using System.Collections.Generic;
 
@@ -27758,7 +27645,6 @@ record C1(int I1)
         [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
         public void ToString_NestedRecord()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new Outer.C1(42);
 System.Console.Write(c1.ToString());
@@ -27826,7 +27712,6 @@ public sealed class Hamster : Document
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>
@@ -27910,7 +27795,6 @@ namespace System.Runtime.CompilerServices
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Cref()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for <see cref=""I1""/></param>
@@ -28706,6 +28590,480 @@ public sealed record(";
                 // (2,22): error CS1513: } expected
                 // public sealed record(
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 22)
+                );
+        }
+
+        [Fact]
+        public void HiddenPositionalMember_Property()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { } // hiding
+}
+";
+            // There should be an error because we pick a hidden member as a positional member
+            // This will be fixed in 16.10. Tracked by https://github.com/dotnet/roslyn/issues/52630
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I() { } // hiding
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(13, 17)
+                );
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Base.I.get""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void HiddenPositionalMember_Field()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { } // hiding
+}
+";
+            // There should be an error because we pick a hidden member as a positional member
+            // This will be fixed in 16.10. Tracked by https://github.com/dotnet/roslyn/issues/52630
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I() { } // hiding
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(13, 17)
+                );
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int Base.I""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember()
+        {
+            var source = @"
+var a = new A(42);
+System.Console.Write(a.X);
+System.Console.Write("" - "");
+a.Deconstruct(out int x);
+System.Console.Write(x);
+
+record A(int X)
+{
+    public int X = X;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,10): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record A(int X)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int X").WithArguments("positional fields in records").WithLocation(8, 10)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42 - 42");
+            verifier.VerifyIL("A.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int A.X""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_TwoParameters()
+        {
+            var source = @"
+var a = new A(42, 43);
+System.Console.Write(a.Y);
+System.Console.Write("" - "");
+a.Deconstruct(out int x, out int y);
+System.Console.Write(y);
+
+record A(int X, int Y)
+{
+    public int X = X;
+    public int Y = Y;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "43 - 43");
+            verifier.VerifyIL("A.Deconstruct", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int A.X""
+  IL_0007:  stind.i4
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  ldfld      ""int A.Y""
+  IL_000f:  stind.i4
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_Readonly()
+        {
+            var source = @"
+var a = new A(42);
+System.Console.Write(a.X);
+System.Console.Write("" - "");
+a.Deconstruct(out int x);
+System.Console.Write(x);
+
+record A(int X)
+{
+    public readonly int X = X;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42 - 42", verify: Verification.Skipped /* init-only */);
+            verifier.VerifyIL("A.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int A.X""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_UnusedParameter()
+        {
+            var source = @"
+record A(int X)
+{
+    public int X;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record A(int X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 14),
+                // (4,16): warning CS0649: Field 'A.X' is never assigned to, and will always have its default value 0
+                //     public int X;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "X").WithArguments("A.X", "0").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_CurrentTypeComesFirst()
+        {
+            var source = @"
+var c = new C(42);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I { get; set; } = 0;
+}
+public record C(int I) : Base
+{
+    public int I = I;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,16): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public int I = I;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(12, 16)
+                );
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int C.I""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_CurrentTypeComesFirst_FieldInBase()
+        {
+            var source = @"
+var c = new C(42);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I = 0;
+}
+public record C(int I) : Base
+{
+    public int I { get; set; } = I;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,16): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public int I { get; set; } = I;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(12, 16)
+                );
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int C.I.get""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_FieldFromBase()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int Base.I""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_FieldFromBase_StaticFieldInDerivedType()
+        {
+            var source = @"
+public record Base
+{
+    public int I = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public static int I = 42;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS8866: Record member 'C.I' must be a readable instance property or field of type 'int' to match positional parameter 'I'.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "I").WithArguments("C.I", "int", "I").WithLocation(7, 21),
+                // (9,23): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public static int I = 42;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 23)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS8866: Record member 'C.I' must be a readable instance property or field of type 'int' to match positional parameter 'I'.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "I").WithArguments("C.I", "int", "I").WithLocation(7, 21),
+                // (9,23): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public static int I = 42;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 23)
+                );
+
+            source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public static int I { get; set; } = 42;
+}
+";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS8866: Record member 'C.I' must be a readable instance property or field of type 'int' to match positional parameter 'I'.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "I").WithArguments("C.I", "int", "I").WithLocation(7, 21),
+                // (9,23): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public static int I { get; set; } = 42;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 23)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_Static()
+        {
+            var source = @"
+record A(int X)
+{
+    public static int X = 0;
+    public int Y = X;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): error CS8866: Record member 'A.X' must be a readable instance property or field of type 'int' to match positional parameter 'X'.
+                // record A(int X)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_Const()
+        {
+            var src = @"
+record C(int P)
+{
+    const int P = 4;
+}
+record C2(int P)
+{
+    const int P = P;
+}
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'int' to match positional parameter 'P'.
+                // record C(int P)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "int", "P").WithLocation(2, 14),
+                // (2,14): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // record C(int P)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(2, 14),
+                // (6,15): error CS8866: Record member 'C2.P' must be a readable instance property or field of type 'int' to match positional parameter 'P'.
+                // record C2(int P)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C2.P", "int", "P").WithLocation(6, 15),
+                // (6,15): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // record C2(int P)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(6, 15),
+                // (8,15): error CS0110: The evaluation of the constant value for 'C2.P' involves a circular definition
+                //     const int P = P;
+                Diagnostic(ErrorCode.ERR_CircConstValue, "P").WithArguments("C2.P").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_Volatile()
+        {
+            var src = @"
+record C(int P)
+{
+    public volatile int P = P;
+}";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_DifferentAccessibility()
+        {
+            var src = @"
+record C(int P)
+{
+    private int P = P;
+}
+record C2(int P)
+{
+    protected int P = P;
+}
+record C3(int P)
+{
+    internal int P = P;
+}
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_WrongType()
+        {
+            var src = @"
+record C(int P)
+{
+    public string P = null;
+    public int Q = P;
+}";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'int' to match positional parameter 'P'.
+                // record C(int P)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "int", "P").WithLocation(2, 14)
                 );
         }
     }

@@ -153,8 +153,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">'{0}' kayıt üyesi, '{2}' konumsal parametresi ile eşleşecek şekilde '{1}' türünde okunabilir bir örnek özelliği olmalıdır.</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="needs-review-translation">'{0}' kayıt üyesi, '{2}' konumsal parametresi ile eşleşecek şekilde '{1}' türünde okunabilir bir örnek özelliği olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -970,6 +970,11 @@
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">hedeflenen türde nesne oluşturma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="new">positional fields in records</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -458,6 +460,56 @@ record struct Point(int x, int y);
                     Assert.Equal("struct Point", point.ToDisplayString(SymbolDisplayFormat.TestFormat.AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword)));
                 }
             }
+        }
+
+        [Fact]
+        public void TypeDeclaration_IsStruct_InConstraints()
+        {
+            var src = @"
+record struct Point(int x, int y);
+
+class C<T> where T : struct
+{
+    void M(C<Point> c) { }
+}
+
+class C2<T> where T : new()
+{
+    void M(C2<Point> c) { }
+}
+
+class C3<T> where T : class
+{
+    void M(C3<Point> c) { } // 1
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (16,22): error CS0452: The type 'Point' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C3<T>'
+                //     void M(C3<Point> c) { } // 1
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c").WithArguments("C3<T>", "T", "Point").WithLocation(16, 22)
+                );
+        }
+
+        [Fact]
+        public void TypeDeclaration_IsStruct_Unmanaged()
+        {
+            var src = @"
+record struct Point(int x, int y);
+record struct Point2(string x, string y);
+
+class C<T> where T : unmanaged
+{
+    void M(C<Point> c) { }
+    void M2(C<Point2> c) { } // 1
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8377: The type 'Point2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //     void M2(C<Point2> c) { } // 1
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "c").WithArguments("C<T>", "T", "Point2").WithLocation(8, 23)
+                );
         }
 
         [Fact]
@@ -1890,9 +1942,9 @@ record struct C(object P1, object P2, object P3, object P4)
                 // (2,24): error CS0102: The type 'C' already contains a definition for 'P1'
                 // record struct C(object P1, object P2, object P3, object P4)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(2, 24),
-                // (5,12): error CS0102: The type 'C' already contains a definition for 'P2'
-                //     object P2 = 2;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(5, 12),
+                // (2,35): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(2, 35),
                 // (6,9): error CS0102: The type 'C' already contains a definition for 'P3'
                 //     int P3(object o) => 3;
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(6, 9),
@@ -1912,9 +1964,12 @@ record struct C(object P)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (4,15): error CS0102: The type 'C' already contains a definition for 'P'
-                //     const int P = 4;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 15)
+                // (2,24): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'object' to match positional parameter 'P'.
+                // record struct C(object P)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "object", "P").WithLocation(2, 24),
+                // (2,24): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(object P)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(2, 24)
                 );
         }
 
@@ -2123,7 +2178,7 @@ record struct C(bool X)
 ";
             var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview, references: new[] { corlibRef });
             comp.VerifyEmitDiagnostics(
-                // (2,22): error CS8866: Record member 'System.ValueType.X' must be a readable instance property of type 'bool' to match positional parameter 'X'.
+                // (2,22): error CS8866: Record member 'System.ValueType.X' must be a readable instance property or field of type 'bool' to match positional parameter 'X'.
                 // record struct C(bool X)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("System.ValueType.X", "bool", "X").WithLocation(2, 22),
                 // (2,22): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
@@ -3221,9 +3276,9 @@ record struct C(int X)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0102: The type 'C' already contains a definition for 'X'
-                //     int X = 0;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 9),
+                // (4,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(int X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(4, 21),
                 // (6,9): warning CS0414: The field 'C.X' is assigned but its value is never used
                 //     int X = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("C.X").WithLocation(6, 9));
@@ -6459,6 +6514,30 @@ public struct B
         }
 
         [Fact]
+        public void WithExprOnStruct_OnThis()
+        {
+            var src = @"
+record struct C
+{
+    public int X { get; set; }
+
+    C(string ignored)
+    {
+        _ = this with { X = 42 }; // 1
+        this = default;
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
+                //         _ = this with { X = 42 }; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
         public void WithExprOnStruct_OnTStructParameter()
         {
             var src = @"
@@ -7123,6 +7202,197 @@ record struct C(int X)
                 //         c = c with { X = 1, X = 2};
                 Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "X").WithArguments("X").WithLocation(7, 29)
             );
+        }
+
+        [Fact]
+        public void AttributesOnPrimaryConstructorParameters_01()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class C : System.Attribute
+{
+}
+
+[System.AttributeUsage(System.AttributeTargets.Parameter, AllowMultiple = true) ]
+public class D : System.Attribute
+{
+}
+
+public readonly record struct Test(
+    [field: A]
+    [property: B]
+    [param: C]
+    [D]
+    int P1)
+{
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+
+                var prop1 = @class.GetMember<PropertySymbol>("P1");
+                AssertEx.SetEqual(new[] { "B" }, getAttributeStrings(prop1));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P1>k__BackingField");
+                AssertEx.SetEqual(new[] { "A" }, getAttributeStrings(field1));
+
+                var param1 = @class.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "P1").Single().Parameters[0];
+                AssertEx.SetEqual(new[] { "C", "D" }, getAttributeStrings(param1));
+            };
+
+            var comp = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                parseOptions: TestOptions.RegularPreview,
+                // init-only is unverifiable
+                verify: Verification.Skipped,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            comp.VerifyDiagnostics();
+
+            IEnumerable<string> getAttributeStrings(Symbol symbol)
+            {
+                return GetAttributeStrings(symbol.GetAttributes().Where(a => a.AttributeClass!.Name is "A" or "B" or "C" or "D"));
+            }
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember()
+        {
+            var source = @"
+var a = new A(42);
+System.Console.Write(a.X);
+System.Console.Write("" - "");
+a.Deconstruct(out int x);
+System.Console.Write(x);
+
+record struct A(int X)
+{
+    public int X = X;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (8,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record struct A(int X)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(8, 8),
+                // (8,17): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record struct A(int X)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int X").WithArguments("positional fields in records").WithLocation(8, 17)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42 - 42");
+            verifier.VerifyIL("A.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int A.X""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_Readonly()
+        {
+            var source = @"
+readonly record struct A(int X)
+{
+    public int X = X; // 1
+}
+readonly record struct B(int X)
+{
+    public readonly int X = X;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS8340: Instance fields of readonly structs must be readonly.
+                //     public int X = X; // 1
+                Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "X").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_Fixed()
+        {
+            var src = @"
+unsafe record struct C(int[] P)
+{
+    public fixed int P[2];
+    public int[] X = P;
+}";
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (2,30): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'int[]' to match positional parameter 'P'.
+                // unsafe record struct C(int[] P)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "int[]", "P").WithLocation(2, 30),
+                // (4,22): error CS8908: The type 'int*' may not be used for a field of a record.
+                //     public fixed int P[2];
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P").WithArguments("int*").WithLocation(4, 22)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_WrongType()
+        {
+            var source = @"
+record struct A(int X)
+{
+    public string X = null;
+    public int Y = X;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS8866: Record member 'A.X' must be a readable instance property or field of type 'int' to match positional parameter 'X'.
+                // record struct A(int X)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("A.X", "int", "X").WithLocation(2, 21)
+                );
+        }
+
+        [Fact]
+        public void FieldAsPositionalMember_DuplicateFields()
+        {
+            var source = @"
+record struct A(int X)
+{
+    public int X = 0;
+    public int X = 0;
+    public int Y = X;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0102: The type 'A' already contains a definition for 'X'
+                //     public int X = 0;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("A", "X").WithLocation(5, 16)
+                );
+        }
+
+        [Fact]
+        public void SyntaxFactory_TypeDeclaration()
+        {
+            var expected = @"record struct Point
+{
+}";
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, SyntaxFactory.TypeDeclaration(SyntaxKind.RecordStructDeclaration, "Point").NormalizeWhitespace().ToString());
         }
     }
 }

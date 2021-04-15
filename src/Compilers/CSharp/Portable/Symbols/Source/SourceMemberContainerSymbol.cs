@@ -3460,15 +3460,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             };
 
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
+            var fieldsByName = PooledDictionary<string, Symbol>.GetInstance();
             var membersSoFar = builder.GetNonTypeMembers(declaredMembersAndInitializers);
             var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
             foreach (var member in membersSoFar)
             {
                 switch (member)
                 {
-                    case FieldSymbol:
                     case EventSymbol:
                     case MethodSymbol { MethodKind: not (MethodKind.Ordinary or MethodKind.Constructor) }:
+                        continue;
+                    case FieldSymbol { Name: var fieldName }:
+                        if (!fieldsByName.ContainsKey(fieldName))
+                        {
+                            fieldsByName.Add(fieldName, member);
+                        }
                         continue;
                 }
 
@@ -3533,6 +3539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addToStringMethod(printMembers);
 
             memberSignatures.Free();
+            fieldsByName.Free();
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -3542,8 +3549,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            void addDeconstruct(SynthesizedRecordConstructor ctor, ImmutableArray<PropertySymbol> properties)
+            void addDeconstruct(SynthesizedRecordConstructor ctor, ImmutableArray<Symbol> positionalMembers)
             {
+                Debug.Assert(positionalMembers.All(p => p is PropertySymbol or FieldSymbol));
+
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.DeconstructMethodName,
                     this,
@@ -3563,7 +3572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingDeconstructMethod))
                 {
-                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, properties, memberOffset: members.Count, diagnostics));
+                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, positionalMembers, memberOffset: members.Count, diagnostics));
                 }
                 else
                 {
@@ -3722,9 +3731,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ImmutableArray<PropertySymbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
+            ImmutableArray<Symbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                var existingOrAddedMembers = ArrayBuilder<PropertySymbol>.GetInstance(recordParameters.Length);
+                var existingOrAddedMembers = ArrayBuilder<Symbol>.GetInstance(recordParameters.Length);
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
@@ -3739,15 +3748,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                          ImmutableArray<CustomModifier>.Empty,
                                                                          isStatic: false,
                                                                          ImmutableArray<PropertySymbol>.Empty);
-
-                    if (!memberSignatures.TryGetValue(targetProperty, out var existingMember))
+                    if (!memberSignatures.TryGetValue(targetProperty, out var existingMember)
+                        && !fieldsByName.TryGetValue(param.Name, out existingMember))
                     {
                         existingMember = OverriddenOrHiddenMembersHelpers.FindFirstHiddenMemberIfAny(targetProperty, memberIsFromSomeCompilation: true);
                         isInherited = true;
                     }
+
+                    // There should be an error if we picked a member that is hidden
+                    // This will be fixed in C# 9 as part of 16.10. Tracked by https://github.com/dotnet/roslyn/issues/52630
+
                     if (existingMember is null)
                     {
                         addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
+                    }
+                    else if (existingMember is FieldSymbol { IsStatic: false } field
+                        && field.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeaturePositionalFieldsInRecords, diagnostics);
+                        existingOrAddedMembers.Add(field);
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
