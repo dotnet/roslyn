@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
                 token.Parent.IsKind(SyntaxKind.AttributeList))
             {
-                if (token.Parent.Parent is ParameterSyntax { Parent: ParameterListSyntax { Parent:  RecordDeclarationSyntax } } )
+                if (token.Parent.Parent is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } } )
                 {
                     return true;
                 }
