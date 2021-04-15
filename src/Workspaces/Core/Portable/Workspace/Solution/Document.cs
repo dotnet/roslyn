@@ -156,9 +156,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>
         /// The returned syntax tree can be <see langword="null"/> if the <see cref="SupportsSyntaxTree"/> returns <see
-        /// langword="false"/>. This function will return the same value if called multiple times. Specifically, the
-        /// same Task instance will be returned, which will always return the same underlying <see cref="SyntaxTree"/>
-        /// instance.
+        /// langword="false"/>. This function may cause computation to occur the first time it is called, but will return
+        /// a cached result every subsequent time.  <see cref="SyntaxTree"/>'s can hold onto their roots lazily. So calls 
+        /// to <see cref="SyntaxTree.GetRoot"/> or <see cref="SyntaxTree.GetRootAsync"/> may end up causing computation
+        /// to occur at that point.
         /// </returns>
         public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
