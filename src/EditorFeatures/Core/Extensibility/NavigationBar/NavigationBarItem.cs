@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor
         internal ImmutableArray<ITrackingSpan> TrackingSpans { get; set; } = ImmutableArray<ITrackingSpan>.Empty;
 
         // Legacy constructor for TypeScript.
-        [Obsolete("Use the constructor that uses ImmutableArray")]
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public NavigationBarItem(string text, Glyph glyph, IList<TextSpan> spans, IList<NavigationBarItem>? childItems = null, int indent = 0, bool bolded = false, bool grayed = false)
             : this(text, glyph, spans.ToImmutableArrayOrEmpty(), childItems.ToImmutableArrayOrEmpty(), indent, bolded, grayed)
         {
