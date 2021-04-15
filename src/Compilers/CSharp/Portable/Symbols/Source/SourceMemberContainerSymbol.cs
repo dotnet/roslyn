@@ -3497,7 +3497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingDeconstructMethod))
                 {
-                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, properties, memberOffset: members.Count, diagnostics));
+                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, properties, paramList, memberOffset: members.Count, diagnostics));
                 }
                 else
                 {
@@ -3721,7 +3721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     if (existingMember is null)
                     {
-                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
+                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics), param);
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
@@ -3729,7 +3729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // There already exists a member corresponding to the candidate synthesized property.
                         if (isInherited && prop.IsAbstract)
                         {
-                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics), param);
                         }
                         else
                         {
@@ -3745,23 +3745,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             param.TypeWithAnnotations,
                             param.Name);
                     }
-
-                    void addProperty(SynthesizedRecordPropertySymbol property)
-                    {
-                        existingOrAddedMembers.Add(property);
-                        members.Add(property);
-                        Debug.Assert(property.GetMethod is object);
-                        Debug.Assert(property.SetMethod is object);
-                        members.Add(property.GetMethod);
-                        members.Add(property.SetMethod);
-                        members.Add(property.BackingField);
-
-                        builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
-                        addedCount++;
-                    }
                 }
 
                 return existingOrAddedMembers.ToImmutableAndFree();
+
+                void addProperty(SynthesizedRecordPropertySymbol property, ParameterSymbol param)
+                {
+                    existingOrAddedMembers.Add(property);
+                    members.Add(property);
+                    Debug.Assert(property.GetMethod is object);
+                    Debug.Assert(property.SetMethod is object);
+                    members.Add(property.GetMethod);
+                    members.Add(property.SetMethod);
+                    members.Add(property.BackingField);
+
+                    builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
+                    addedCount++;
+                }
             }
 
             void addObjectEquals(MethodSymbol thisEquals)

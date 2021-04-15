@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using Microsoft.Cci;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -17,18 +15,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SynthesizedRecordConstructor _ctor;
         private readonly ImmutableArray<PropertySymbol> _properties;
+        private readonly ParameterListSyntax _parameters;
 
         public SynthesizedRecordDeconstruct(
             SourceMemberContainerTypeSymbol containingType,
             SynthesizedRecordConstructor ctor,
             ImmutableArray<PropertySymbol> properties,
+            ParameterListSyntax parameters,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.DeconstructMethodName, hasBody: true, memberOffset, diagnostics)
         {
             Debug.Assert(properties.All(prop => prop.GetMethod is object));
+            Debug.Assert(ctor.ParameterCount == parameters.ParameterCount);
             _ctor = ctor;
             _properties = properties;
+            _parameters = parameters;
         }
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
@@ -58,6 +60,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override int GetParameterCountFromSyntax() => _ctor.ParameterCount;
+
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.MethodChecks(diagnostics);
+
+            if (ParameterCount == _properties.Length)
+            {
+                for (int i = 0; i < _properties.Length; i++)
+                {
+                    var property = _properties[i];
+                    NamedTypeSymbol containingType = this.ContainingType;
+
+                    if (property.ContainingType != (object)containingType &&
+                        !containingType.GetMembers(property.Name).IsEmpty)
+                    {
+                        // The positional member was inherited but is hidden by a member of the current record type
+                        diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, _parameters.Parameters[i].Identifier.GetLocation(), property);
+                    }
+                }
+            }
+        }
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
