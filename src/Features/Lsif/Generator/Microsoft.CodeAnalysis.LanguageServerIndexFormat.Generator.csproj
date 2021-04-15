@@ -11,7 +11,7 @@
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
 
     <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <IsTool>true</IsTool>
     <ContentTargetFolders>tools</ContentTargetFolders>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
