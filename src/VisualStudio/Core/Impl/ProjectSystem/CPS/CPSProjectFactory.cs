@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string binOutputPath,
             CancellationToken cancellationToken)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var creationInfo = new VisualStudioProjectCreationInfo
             {
@@ -70,8 +70,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(
                 projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(true);
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             // At this point we've mutated the workspace.  So we're no longer cancellable.
             cancellationToken = CancellationToken.None;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             if (languageName == LanguageNames.FSharp)
             {

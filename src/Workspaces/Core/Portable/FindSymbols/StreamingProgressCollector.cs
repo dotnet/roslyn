@@ -59,24 +59,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ValueTask OnFindInDocumentCompletedAsync(Document document) => _underlyingProgress.OnFindInDocumentCompletedAsync(document);
         public ValueTask OnFindInDocumentStartedAsync(Document document) => _underlyingProgress.OnFindInDocumentStartedAsync(document);
 
-        public ValueTask OnDefinitionFoundAsync(ISymbol definition)
+        public ValueTask OnDefinitionFoundAsync(SymbolGroup group)
         {
             lock (_gate)
             {
-                _symbolToLocations[definition] = new List<ReferenceLocation>();
+                foreach (var definition in group.Symbols)
+                    _symbolToLocations[definition] = new List<ReferenceLocation>();
             }
 
-            return _underlyingProgress.OnDefinitionFoundAsync(definition);
+            return _underlyingProgress.OnDefinitionFoundAsync(group);
         }
 
-        public ValueTask OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
+        public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location)
         {
             lock (_gate)
             {
                 _symbolToLocations[definition].Add(location);
             }
 
-            return _underlyingProgress.OnReferenceFoundAsync(definition, location);
+            return _underlyingProgress.OnReferenceFoundAsync(group, definition, location);
         }
     }
 }

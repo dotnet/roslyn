@@ -211,16 +211,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return true;
         }
 
-        protected override void EnableService()
+        private async ValueTask<IVsPackageSourceProvider> GetPackageSourceProviderAsync()
+        {
+            Contract.ThrowIfFalse(IsEnabled);
+
+            if (!_packageSourceProvider.IsValueCreated)
+            {
+                // Switch to background thread for known assembly load
+                await TaskScheduler.Default;
+            }
+
+            return _packageSourceProvider.Value;
+        }
+
+        protected override async Task EnableServiceAsync(CancellationToken cancellationToken)
         {
             if (!IsEnabled)
             {
                 return;
             }
 
+            // Continue on captured context since EnableServiceAsync is part of a UI thread initialization sequence
+            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(true);
+
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _packageSourceProvider.Value.SourcesChanged += OnSourceProviderSourcesChanged;
+            packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
         }
 
         protected override void StartWorking()
@@ -552,7 +568,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 return new ProjectState(installedPackages.ToImmutableDictionary());
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }

@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
             ExitingTraceListener.Install();
 #endif
 
-            using var logger = new CompilerServerLogger();
-            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, logger);
+            var requestId = Guid.NewGuid();
+            using var logger = new CompilerServerLogger($"csc {requestId}");
+            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, logger, requestId);
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
