@@ -401,27 +401,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     {
                         // We don't have a syntax tree yet.  Just do a lexical classification of the document.
                         AddLexicalClassifications(span);
+                        return;
                     }
-                    else
+
+                    // If we have a document, we must have a snapshot as well.
+                    Contract.ThrowIfNull(lastProcessedSnapshot);
+
+                    // We have a tree.  However, the tree may be for an older version of the snapshot.
+                    // If it is for an older version, then classify that older version and translate
+                    // the classifications forward.  Otherwise, just classify normally.
+
+                    if (lastProcessedSnapshot.Version.ReiteratedVersionNumber != span.Snapshot.Version.ReiteratedVersionNumber)
                     {
-                        // If we have a document, we must have a snapshot as well.
-                        Contract.ThrowIfNull(lastProcessedSnapshot);
-
-                        // We have a tree.  However, the tree may be for an older version of the snapshot.
-                        // If it is for an older version, then classify that older version and translate
-                        // the classifications forward.  Otherwise, just classify normally.
-
-                        if (lastProcessedSnapshot.Version.ReiteratedVersionNumber == span.Snapshot.Version.ReiteratedVersionNumber)
-                        {
-                            AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot);
-                        }
-                        else
-                        {
-                            // Slightly more complicated.  We have a parse tree, it's just not for the snapshot
-                            // we're being asked for.
-                            AddClassifiedSpansForPreviousDocument(span, lastProcessedSnapshot, lastProcessedDocument, lastProcessedRoot);
-                        }
+                        // Slightly more complicated.  We have a parse tree, it's just not for the snapshot we're being asked for.
+                        AddClassifiedSpansForPreviousDocument(span, lastProcessedSnapshot, lastProcessedDocument, lastProcessedRoot);
+                        return;
                     }
+
+                    // Mainline case.  We have the corresponding document for the snapshot we're classifying.
+                    AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot, classifiedSpans);
                 }
 
                 void AddLexicalClassifications(SnapshotSpan span)
