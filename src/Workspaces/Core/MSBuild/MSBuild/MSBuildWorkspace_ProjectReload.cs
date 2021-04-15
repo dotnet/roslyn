@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -16,21 +17,36 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private async Task<ImmutableArray<Project>> UpdateProjectsAsync(ImmutableArray<ProjectInfo> newProjectInfos)
         {
-            var serialization = this.Services.GetRequiredService<ISerializerService>();
-            using var _1 = ArrayBuilder<Project>.GetInstance(out var updatedProjects);
-            foreach (var projectInfo in newProjectInfos)
+            using (_serializationLock.DisposableWait())
             {
-                var project = this.CurrentSolution.GetProject(projectInfo.Id);
-                RoslynDebug.AssertNotNull(project);
-                var oldCheckSum = await project.State.GetStateChecksumsAsync(default).ConfigureAwait(false);
-                var newCheckSum = projectInfo.GetCheckSum(serialization);
-                updatedProjects.Add(await UpdateProjectAsync(project, projectInfo, oldCheckSum, newCheckSum).ConfigureAwait(false));
-            }
+                var serialization = this.Services.GetRequiredService<ISerializerService>();
+                var updatedProjectIds = TemporaryArray<ProjectId>.Empty;
+                var oldSolution = this.CurrentSolution;
+                var solution = oldSolution;
+                foreach (var projectInfo in newProjectInfos)
+                {
+                    var projectToUpdate = solution.GetProject(projectInfo.Id);
+                    RoslynDebug.AssertNotNull(projectToUpdate);
+                    var oldCheckSum = await projectToUpdate.State.GetStateChecksumsAsync(default).ConfigureAwait(false);
+                    var newCheckSum = projectInfo.GetCheckSum(serialization);
+                    var newProject = await UpdateProjectAsync(projectToUpdate, projectInfo, oldCheckSum, newCheckSum).ConfigureAwait(false);
+                    solution = AdjustReloadedProject(projectToUpdate, newProject).Solution;
+                    updatedProjectIds.Add(newProject.Id);
+                }
 
-            return updatedProjects.ToImmutableAndFree();
+                this.SetCurrentSolution(solution);
+                using var _1 = ArrayBuilder<Project>.GetInstance(out var updatedProjects);
+                foreach (var projectId in updatedProjectIds)
+                {
+                    _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, solution, projectId);
+                    updatedProjects.Add(solution.GetProject(projectId)!);
+                }
+
+                return updatedProjects.ToImmutableAndFree();
+            }
         }
 
-        private async Task<Project> UpdateProjectAsync(Project project, ProjectInfo newProjectInfo, ProjectStateChecksums oldCheckSum, ProjectStateChecksums newCheckSum)
+        private static async Task<Project> UpdateProjectAsync(Project project, ProjectInfo newProjectInfo, ProjectStateChecksums oldCheckSum, ProjectStateChecksums newCheckSum)
         {
             // changed info
             if (oldCheckSum.Info != newCheckSum.Info)
@@ -71,7 +87,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // changed documents
             if (oldCheckSum.Documents.Checksum != newCheckSum.Documents.Checksum)
             {
-
                 project = await UpdateDocumentsAsync(
                     project,
                     newProjectInfo.Documents,
@@ -167,7 +182,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return project;
         }
 
-        private async Task<Project> UpdateDocumentsAsync(
+        private static async Task<Project> UpdateDocumentsAsync(
                 Project project,
                 IReadOnlyList<DocumentInfo> documentInfos,
                 IEnumerable<TextDocumentState> existingTextDocumentStates,
