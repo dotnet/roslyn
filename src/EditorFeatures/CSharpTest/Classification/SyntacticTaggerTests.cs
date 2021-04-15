@@ -38,15 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var checkpoint = new Checkpoint();
 
-            var notificationService = workspace.GetService<IForegroundNotificationService>();
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                 new SyntacticClassificationTaggerProvider(
                     workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                    notificationService,
                     typeMap: null,
                     AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
-                notificationService,
                 AsynchronousOperationListenerProvider.NullListener,
                 typeMap: null,
                 diffTimeout: TimeSpan.MaxValue);

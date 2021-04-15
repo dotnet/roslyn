@@ -26,6 +26,12 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </summary>
         void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
 
+        /// <inheritdoc cref="AddSyntacticClassificationsAsync"/>
+        /// <remarks>This method is optional and only should be implemented by languages that support
+        /// syntax.  If the language does not support syntax, callers should use
+        /// <see cref="AddSyntacticClassificationsAsync"/> instead.</remarks>
+        void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+
         /// <summary>
         /// Produce the classifications for the span of text specified.  The syntax of the document 
         /// can be accessed to provide more correct classifications.  For example, the syntax can
@@ -54,15 +60,6 @@ namespace Microsoft.CodeAnalysis.Classification
         ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
         /// <summary>
-        /// This method can be called into by hosts of the <see cref="IClassificationService"/>.  It allows instances to
-        /// pre-compute data that will be cached and preserved up through the calls to classification methods.
-        /// Implementations can use this to do things like preemptively parse the document in the background, without
-        /// concern that this might impact the UI thread later on when classifications are retrieved.  <see
-        /// langword="null"/> can be returned if not data needs to be cached.
-        /// </summary>
-        ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken);
-
-        /// <summary>
         /// Determines the range of the documents that should be considered syntactically changed after an edit.  In
         /// language systems that can reuse major parts of a document after an edit, and which would not need to
         /// recompute classifications for those reused parts, this can speed up processing on a host by not requiring
@@ -79,6 +76,15 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </para>
         /// </summary>
         ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
-            Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken);
+            Document oldDocument, Document newDocument,
+            TimeSpan timeout, CancellationToken cancellationToken);
+
+        /// <inheritdoc cref="ComputeSyntacticChangeRangeAsync"/>
+        /// <remarks>This method is optional and only should be implemented by languages that support
+        /// syntax.  If the language does not support syntax, callers should use
+        /// <see cref="ComputeSyntacticChangeRangeAsync"/> instead.</remarks>
+        TextChangeRange? ComputeSyntacticChangeRange(
+            Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot,
+            TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

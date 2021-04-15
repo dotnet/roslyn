@@ -38,47 +38,12 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         private static readonly ObjectPool<Stack<SyntaxNodeOrToken>> s_pool = new(() => new());
 
-        public static async ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
-            Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            // If they're the same doc, there is no change.
-            if (oldDocument == newDocument)
-                return new TextChangeRange();
-
-            var stopwatch = SharedStopwatch.StartNew();
-
-            var oldRoot = await oldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // If we ran out of time, we have to assume both are completely different.
-            if (stopwatch.Elapsed > timeout)
-                return null;
-
-            var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            if (stopwatch.Elapsed > timeout)
-                return null;
-
-            return ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, stopwatch, cancellationToken);
-        }
-
         public static TextChangeRange ComputeSyntacticChangeRange(SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
-            => ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, SharedStopwatch.StartNew(), cancellationToken);
-
-        private static TextChangeRange ComputeSyntacticChangeRange(
-            SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, SharedStopwatch stopwatch, CancellationToken cancellationToken)
         {
             if (oldRoot == newRoot)
                 return default;
 
-            using var leftOldStack = s_pool.GetPooledObject();
-            using var leftNewStack = s_pool.GetPooledObject();
-            using var rightOldStack = s_pool.GetPooledObject();
-            using var rightNewStack = s_pool.GetPooledObject();
-
-            leftOldStack.Object.Push(oldRoot);
-            leftNewStack.Object.Push(newRoot);
-            rightOldStack.Object.Push(oldRoot);
-            rightNewStack.Object.Push(newRoot);
+            var stopwatch = SharedStopwatch.StartNew();
 
             // We will be comparing the trees for two documents like so:
             //
@@ -117,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Classification
             //
             // The Span changed will go from `[CLW, Old_Width - CRW)`, and the NewLength will be `New_Width - CLW - CRW`
 
-            var commonLeftWidth = ComputeCommonLeftWidth(leftOldStack.Object, leftNewStack.Object);
+            var commonLeftWidth = ComputeCommonLeftWidth();
             if (commonLeftWidth == null)
             {
                 // The trees were effectively identical (even if the children were different).  Return that there was no
@@ -128,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Classification
             // Only compute the right side if we have time for it.  Otherwise, assume there is nothing in common there.
             var commonRightWidth = 0;
             if (stopwatch.Elapsed < timeout)
-                commonRightWidth = ComputeCommonRightWidth(rightOldStack.Object, rightNewStack.Object);
+                commonRightWidth = ComputeCommonRightWidth();
 
             var oldRootWidth = oldRoot.FullWidth();
             var newRootWidth = newRoot.FullWidth();
@@ -142,10 +107,17 @@ namespace Microsoft.CodeAnalysis.Classification
                 TextSpan.FromBounds(start: commonLeftWidth.Value, end: oldRootWidth - commonRightWidth),
                 newRootWidth - commonLeftWidth.Value - commonRightWidth);
 
-            int? ComputeCommonLeftWidth(
-                Stack<SyntaxNodeOrToken> oldStack,
-                Stack<SyntaxNodeOrToken> newStack)
+            int? ComputeCommonLeftWidth()
             {
+                using var leftOldStack = s_pool.GetPooledObject();
+                using var leftNewStack = s_pool.GetPooledObject();
+
+                var oldStack = leftOldStack.Object;
+                var newStack = leftNewStack.Object;
+
+                oldStack.Push(oldRoot);
+                newStack.Push(newRoot);
+
                 while (oldStack.Count > 0 && newStack.Count > 0)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -191,10 +163,17 @@ namespace Microsoft.CodeAnalysis.Classification
                 return null;
             }
 
-            int ComputeCommonRightWidth(
-                Stack<SyntaxNodeOrToken> oldStack,
-                Stack<SyntaxNodeOrToken> newStack)
+            int ComputeCommonRightWidth()
             {
+                using var rightOldStack = s_pool.GetPooledObject();
+                using var rightNewStack = s_pool.GetPooledObject();
+
+                var oldStack = rightOldStack.Object;
+                var newStack = rightNewStack.Object;
+
+                oldStack.Push(oldRoot);
+                newStack.Push(newRoot);
+
                 while (oldStack.Count > 0 && newStack.Count > 0)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
