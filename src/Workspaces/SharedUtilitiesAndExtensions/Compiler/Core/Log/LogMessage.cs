@@ -14,22 +14,22 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         public LogLevel LogLevel { get; protected set; } = LogLevel.Debug;
 
-        public static LogMessage Create(string message, LogLevel logLevel = LogLevel.Debug)
+        public static LogMessage Create(string message, LogLevel logLevel)
             => StaticLogMessage.Construct(message, logLevel);
 
-        public static LogMessage Create(Func<string> messageGetter, LogLevel logLevel = LogLevel.Debug)
+        public static LogMessage Create(Func<string> messageGetter, LogLevel logLevel)
             => LazyLogMessage.Construct(messageGetter, logLevel);
 
-        public static LogMessage Create<TArg>(Func<TArg, string> messageGetter, TArg arg, LogLevel logLevel = LogLevel.Debug)
+        public static LogMessage Create<TArg>(Func<TArg, string> messageGetter, TArg arg, LogLevel logLevel)
             => LazyLogMessage<TArg>.Construct(messageGetter, arg, logLevel);
 
-        public static LogMessage Create<TArg0, TArg1>(Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, LogLevel logLevel = LogLevel.Debug)
+        public static LogMessage Create<TArg0, TArg1>(Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, LogLevel logLevel)
             => LazyLogMessage<TArg0, TArg1>.Construct(messageGetter, arg0, arg1, logLevel);
 
-        public static LogMessage Create<TArg0, TArg1, TArg2>(Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, LogLevel logLevel = LogLevel.Debug)
+        public static LogMessage Create<TArg0, TArg1, TArg2>(Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, LogLevel logLevel)
             => LazyLogMessage<TArg0, TArg1, TArg2>.Construct(messageGetter, arg0, arg1, arg2, logLevel);
 
-        public static LogMessage Create<TArg0, TArg1, TArg2, TArg3>(Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, LogLevel logLevel = LogLevel.Debug)
+        public static LogMessage Create<TArg0, TArg1, TArg2, TArg3>(Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, LogLevel logLevel)
             => LazyLogMessage<TArg0, TArg1, TArg2, TArg3>.Construct(messageGetter, arg0, arg1, arg2, arg3, logLevel);
 
         // message will be either initially set or lazily set by caller
