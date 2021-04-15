@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
 
                 void AddSyntacticClassificationsForDocument(
-                    SnapshotSpan span, Document document, SyntaxNode? root, List<ClassifiedSpan> classifiedSpans)
+                    SnapshotSpan span, Document document, SyntaxNode? root, ArrayBuilder<ClassifiedSpan> classifiedSpans)
                 {
                     this.AssertIsForeground();
 
