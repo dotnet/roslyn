@@ -81,6 +81,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
+        internal static readonly DiagnosticDescriptor RemovedApiIsNotActuallyRemovedRule = new(
+           id: DiagnosticIds.RemovedApiIsNotActuallyRemovedRuleId,
+           title: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.RemovedApiIsNotActuallyRemovedTitle), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
+           messageFormat: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.RemovedApiIsNotActuallyRemovedMessage), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
+           category: "ApiDesign",
+           defaultSeverity: DiagnosticSeverity.Warning,
+           isEnabledByDefault: true,
+           helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+           customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
+
         internal static readonly DiagnosticDescriptor ExposedNoninstantiableType = new(
             id: DiagnosticIds.ExposedNoninstantiableTypeRuleId,
             title: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.ExposedNoninstantiableTypeTitle), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
@@ -198,7 +208,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(DeclareNewApiRule, AnnotateApiRule, ObliviousApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType,
                 PublicApiFilesInvalid, PublicApiFileMissing, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
-                OverloadWithOptionalParametersShouldHaveMostParameters, ShouldAnnotateApiFilesRule);
+                OverloadWithOptionalParametersShouldHaveMostParameters, ShouldAnnotateApiFilesRule, RemovedApiIsNotActuallyRemovedRule);
 
         public override void Initialize(AnalysisContext context)
         {
