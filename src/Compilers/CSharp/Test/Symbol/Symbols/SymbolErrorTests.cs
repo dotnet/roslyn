@@ -20772,5 +20772,18 @@ partial class C {
                 //     partial void M(in int i) {}  
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));
         }
+
+        [Fact]
+        public void MethodWithNoReturnTypeShouldNotComplainAboutStaticCtor()
+        {
+            CreateCompilation(@"
+class X
+{
+    private static Y(int i) {}
+}").VerifyDiagnostics(
+                // (4,20): error CS1520: Method must have a return type
+                //     private static Y(int i) {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Y").WithLocation(4, 20));
+        }
     }
 }

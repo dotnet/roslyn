@@ -7,6 +7,7 @@
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -16,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public IntelliSenseOptionPageControl(OptionStore optionStore) : base(optionStore)
         {
             InitializeComponent();
+
+            BindToOption(Automatically_complete_statement_on_semicolon, FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
 
             BindToOption(Show_completion_item_filters, CompletionOptions.ShowCompletionItemFilters, LanguageNames.CSharp);
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);

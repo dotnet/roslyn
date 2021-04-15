@@ -21,10 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class EditSession : IDisposable
+    internal sealed class EditSession
     {
-        private readonly CancellationTokenSource _cancellationSource = new();
-
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
 
@@ -76,14 +74,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
         }
 
-        internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
-
-        internal CancellationToken CancellationToken => _cancellationSource.Token;
-        internal void Cancel() => _cancellationSource.Cancel();
-
-        public void Dispose()
-            => _cancellationSource.Dispose();
-
         /// <summary>
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
         /// </summary>
@@ -112,7 +102,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
                 return CreateActiveStatementsMap(await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return new ActiveStatementsMap(
                     SpecializedCollections.EmptyReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>>(),
@@ -284,7 +274,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return result;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ImmutableArray<ActiveStatementExceptionRegions>.Empty;
             }
@@ -492,7 +482,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // TODO: source generated files?
                 var projects = (sourceFilePath == null) ? solution.Projects :
                     from documentId in solution.GetDocumentIdsWithFilePath(sourceFilePath)
-                    select solution.GetDocument(documentId)!.Project;
+                    select solution.GetProject(documentId.ProjectId)!;
 
                 using var _ = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
 
@@ -543,7 +533,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return false;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -637,7 +627,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     addedSymbols,
                     activeStatementsInChangedDocuments.ToImmutable());
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -755,10 +745,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _1 = ArrayBuilder<ManagedModuleUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
                 using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
-                using var _4 = ArrayBuilder<IDisposable>.GetInstance(out var readers);
-                using var _5 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
-                using var _6 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
-                using var _7 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
+                using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
+                using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
+                using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
 
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
@@ -855,7 +844,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, readers, out var createBaselineDiagnostics, out var baseline))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
@@ -962,11 +951,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (isBlocked)
                 {
-                    foreach (var reader in readers)
-                    {
-                        reader.Dispose();
-                    }
-
                     return SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable());
                 }
 
@@ -975,12 +959,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
                         deltas.ToImmutable()),
                     nonRemappableRegions.ToImmutable(),
-                    readers.ToImmutable(),
+
                     emitBaselines.ToImmutable(),
                     diagnostics.ToImmutable(),
                     documentsWithRudeEdits.ToImmutable());
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1131,8 +1115,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 solution,
                 update.EmitBaselines,
                 update.ModuleUpdates.Updates,
-                update.NonRemappableRegions,
-                update.ModuleReaders));
+                update.NonRemappableRegions));
 
             // commit/discard was not called:
             Contract.ThrowIfFalse(previousPendingUpdate == null);
@@ -1143,6 +1126,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
             Contract.ThrowIfNull(pendingUpdate);
             return pendingUpdate;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly EditSession _instance;
+
+            internal TestAccessor(EditSession instance)
+                => _instance = instance;
+
+            public PendingSolutionUpdate? GetPendingSolutionUpdate() => _instance._pendingUpdate;
         }
     }
 }

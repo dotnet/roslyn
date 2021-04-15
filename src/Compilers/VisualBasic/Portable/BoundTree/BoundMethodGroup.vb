@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If _lazyMethods.IsDefault Then
                 Dim receiverOpt As BoundExpression = group.ReceiverOpt
                 Dim methods As ImmutableArray(Of MethodSymbol) = ImmutableArray(Of MethodSymbol).Empty
-                Dim localUseSiteInfo = If(_withDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(_lookupBinder.Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
+                Dim localUseSiteInfo = If(_withDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(_lookupBinder.Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)
 
                 If receiverOpt IsNot Nothing AndAlso receiverOpt.Type IsNot Nothing Then
                     Dim lookup = LookupResult.GetInstance()

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,18 +35,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Struct,
     }
 
+    [DataContract]
     internal readonly struct DeclaredSymbolInfo : IEquatable<DeclaredSymbolInfo>
     {
         /// <summary>
         /// The name to pattern match against, and to show in a final presentation layer.
         /// </summary>
-        public string Name { get; }
+        [DataMember(Order = 0)]
+        public readonly string Name;
 
         /// <summary>
         /// An optional suffix to be shown in a presentation layer appended to <see cref="Name"/>.
         /// Can be null.
         /// </summary>
-        public string NameSuffix { get; }
+        [DataMember(Order = 1)]
+        public readonly string NameSuffix;
 
         /// <summary>
         /// Container of the symbol that can be shown in a final presentation layer. 
@@ -54,7 +58,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// then be shown with something like "type System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"
         /// to indicate where the symbol is located.
         /// </summary>
-        public string ContainerDisplayName { get; }
+        [DataMember(Order = 2)]
+        public readonly string ContainerDisplayName;
 
         /// <summary>
         /// Dotted container name of the symbol, used for pattern matching.  For example
@@ -63,12 +68,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// This way someone can search for "D.KVP" and have the "D" part of the pattern
         /// match against this.  This should not be shown in a presentation layer.
         /// </summary>
-        public string FullyQualifiedContainerName { get; }
+        [DataMember(Order = 3)]
+        public readonly string FullyQualifiedContainerName;
 
-        public TextSpan Span { get; }
+        [DataMember(Order = 4)]
+        public readonly TextSpan Span;
+
+        /// <summary>
+        /// The names directly referenced in source that this type inherits from.
+        /// </summary>
+        [DataMember(Order = 5)]
+        public ImmutableArray<string> InheritanceNames { get; }
 
         // Store the kind (5 bits), accessibility (4 bits), parameter-count (4 bits), and type-parameter-count (4 bits)
         // in a single int.
+        [DataMember(Order = 6)]
         private readonly uint _flags;
 
         private const uint Lower4BitMask = 0b1111;
@@ -81,12 +95,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool IsNestedType => GetIsNestedType(_flags);
         public bool IsPartial => GetIsPartial(_flags);
 
-        /// <summary>
-        /// The names directly referenced in source that this type inherits from.
-        /// </summary>
-        public ImmutableArray<string> InheritanceNames { get; }
-
+        [Obsolete("Do not call directly.  Only around for serialization.  Use Create instead")]
         public DeclaredSymbolInfo(
+            string name,
+            string nameSuffix,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
+            TextSpan span,
+            ImmutableArray<string> inheritanceNames,
+            uint flags)
+        {
+            Name = name;
+            NameSuffix = nameSuffix;
+            ContainerDisplayName = containerDisplayName;
+            FullyQualifiedContainerName = fullyQualifiedContainerName;
+            Span = span;
+            InheritanceNames = inheritanceNames;
+            _flags = flags;
+        }
+
+        public static DeclaredSymbolInfo Create(
             StringTable stringTable,
             string name,
             string nameSuffix,
@@ -99,27 +127,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<string> inheritanceNames,
             bool isNestedType = false, int parameterCount = 0, int typeParameterCount = 0)
         {
-            Name = Intern(stringTable, name);
-            NameSuffix = Intern(stringTable, nameSuffix);
-            ContainerDisplayName = Intern(stringTable, containerDisplayName);
-            FullyQualifiedContainerName = Intern(stringTable, fullyQualifiedContainerName);
-            Span = span;
-            InheritanceNames = inheritanceNames;
-
             const uint MaxFlagValue5 = 0b10000;
             const uint MaxFlagValue4 = 0b1111;
+
             Contract.ThrowIfTrue((uint)accessibility > MaxFlagValue4);
             Contract.ThrowIfTrue((uint)kind > MaxFlagValue5);
+
             parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue4);
             typeParameterCount = Math.Min(typeParameterCount, (byte)MaxFlagValue4);
 
-            _flags =
+            var flags =
                 (uint)kind |
                 ((uint)accessibility << 5) |
                 ((uint)parameterCount << 9) |
                 ((uint)typeParameterCount << 13) |
                 ((isNestedType ? 1u : 0u) << 17) |
                 ((isPartial ? 1u : 0u) << 18);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new DeclaredSymbolInfo(
+                Intern(stringTable, name),
+                Intern(stringTable, nameSuffix),
+                Intern(stringTable, containerDisplayName),
+                Intern(stringTable, fullyQualifiedContainerName),
+                span,
+                inheritanceNames,
+                flags);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         [return: NotNullIfNotNull("name")]
@@ -175,7 +209,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 builder.Add(reader.ReadString());
 
             var span = new TextSpan(spanStart, spanLength);
-            return new DeclaredSymbolInfo(
+            return Create(
                 stringTable,
                 name: name,
                 nameSuffix: nameSuffix,

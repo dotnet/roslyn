@@ -487,6 +487,11 @@
         <target state="translated">No se pueden usar argumentos con el modificador "in" en expresiones distribuidas dinámicamente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
+        <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
+        <target state="new">Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">Los descriptores de acceso "init" no se pueden marcar como "readonly". Marque en su lugar "{0}" como readOnly.</target>
@@ -981,6 +986,11 @@
         <source>record structs</source>
         <target state="new">record structs</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="new">sealed ToString in record</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>

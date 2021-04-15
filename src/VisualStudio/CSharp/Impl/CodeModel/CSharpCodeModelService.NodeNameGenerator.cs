@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.RecordStructDeclaration: // PROTOTYPE(record-structs): not sure how to test
+                    case SyntaxKind.RecordStructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                         var typeDeclaration = (TypeDeclarationSyntax)node;
                         builder.Append(typeDeclaration.Identifier.ValueText);

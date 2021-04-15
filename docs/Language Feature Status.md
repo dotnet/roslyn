@@ -8,10 +8,11 @@ efforts behind them.
 
 # C# Next
 
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
+| Feature | Branch | State | Developer | Reviewer | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- |
 | [Record structs](https://github.com/dotnet/csharplang/issues/4334) | [record-structs](https://github.com/dotnet/roslyn/tree/features/record-structs) | [In Progress](https://github.com/dotnet/roslyn/issues/51199) | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [RikkiGibson](https://github.com/RikkiGibson) | [jcouv](https://github.com/jcouv) |
 | [Global Using Directive](https://github.com/dotnet/csharplang/issues/3428) | [GlobalUsingDirective](https://github.com/dotnet/roslyn/tree/features/GlobalUsingDirective) | [In Progress](https://github.com/dotnet/roslyn/issues/51307) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [cston](https://github.com/cston) | [AlekseyTs](https://github.com/AlekseyTs) |
+| [Static Abstract Members In Interfaces](https://github.com/dotnet/csharplang/issues/4436) | [StaticAbstractMembersInInterfaces](https://github.com/dotnet/roslyn/tree/features/StaticAbstractMembersInInterfaces) | [In Progress](https://github.com/dotnet/roslyn/issues/52221) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [File-scoped namespace](https://github.com/dotnet/csharplang/issues/137) | [FileScopedNamespaces](https://github.com/dotnet/roslyn/tree/features/FileScopedNamespaces) | In Progress | [chsienki](https://github.com/chsienki) | [cston](https://github.com/cston), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [Interpolated string improvements](https://github.com/dotnet/csharplang/issues/4487) | [interpolated-string](https://github.com/dotnet/roslyn/tree/features/interpolated-string) | [In Progress](https://github.com/dotnet/roslyn/issues/51499) | [333fred](https://github.com/333fred) | [AlekseyTs](https://github.com/AlekseyTs), [chsienki](https://github.com/chsienki) | [jaredpar](https://github.com/jaredpar) |
 | [Parameterless struct constructors](https://github.com/dotnet/csharplang/issues/99) | [struct-ctors](https://github.com/dotnet/roslyn/tree/features/struct-ctors) | [In Progress](https://github.com/dotnet/roslyn/issues/51698) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv), [333fred](https://github.com/333fred) | [jcouv](https://github.com/jouv) |
@@ -27,16 +28,17 @@ efforts behind them.
 | [Mix declarations and variables in deconstruction](https://github.com/dotnet/csharplang/issues/125) | main | [Merged into 16.10](https://github.com/dotnet/roslyn/issues/47746) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [jcouv](https://github.com/jcouv) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [List patterns](https://github.com/dotnet/csharplang/issues/3435) | [list-patterns](https://github.com/dotnet/roslyn/tree/features/list-patterns) | [In Progress](https://github.com/dotnet/roslyn/issues/51289) | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv), [333fred](https://github.com/333fred) | [333fred](https://github.com/333fred) |
 | [Extended property patterns](https://github.com/dotnet/csharplang/issues/4394) | [extended-property-patterns](https://github.com/dotnet/roslyn/tree/features/extended-property-patterns) | In Progress | [alrz](https://github.com/alrz) | [333fred](https://github.com/333fred) (Tentative) | [333fred](https://github.com/333fred) |
+| [Sealed record ToString](https://github.com/dotnet/csharplang/issues/4174) | main | [In Progress](https://github.com/dotnet/roslyn/issues/52031) | [thomaslevesque](https://github.com/thomaslevesque/) | [jcouv](https://github.com/jcouv) | [333fred](https://github.com/333fred) |
 
 # VB 16.9
 
-| Feature                                                                                   | Branch | State                                                            | Developers                                | Reviewer                          | LDM Champ |
+| Feature                                                                                   | Branch | State                                                            | Developer                                 | Reviewer                          | LDM Champ |
 |-------------------------------------------------------------------------------------------|--------|------------------------------------------------------------------|-------------------------------------------|-----------------------------------|-----------|
 | [Enable consumption of init-only properties](https://github.com/dotnet/roslyn/pull/50414) | main | [Merged (16.9p3)](https://github.com/dotnet/roslyn/issues/50792) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) | N/A       |
 
 # C# 9
 
-| Feature                                                                                            | Branch                                                                                                         | State                                                        | Developers                                                                   | Reviewer                                                                           | LDM Champ                               |
+| Feature                                                                                            | Branch                                                                                                         | State                                                        | Developer                                                                    | Reviewer                                                                           | LDM Champ                               |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------|-----------------------------------------|
 | [Target-typed new](https://github.com/dotnet/csharplang/issues/100)                                | [target-typed-new](https://github.com/dotnet/roslyn/tree/features/target-typed-new)                            | [Merged into 16.7p1](https://github.com/dotnet/roslyn/issues/28489)   | [alrz](https://github.com/alrz)                                     | [jcouv](https://github.com/jcouv)                                                  | [jcouv](https://github.com/jcouv)       |
 | [Skip locals init](https://github.com/dotnet/csharplang/issues/1738)                               | [localsinit](https://github.com/dotnet/roslyn/tree/features/localsinit)                                        | [Merged](https://github.com/dotnet/roslyn/issues/25780) | [t-camaia](https://github.com/t-camaia), [agocke](https://github.com/agocke)      | [jaredpar](https://github.com/jaredpar)                                            | [agocke](https://github.com/agocke)     |
@@ -56,8 +58,8 @@ efforts behind them.
 
 # C# 8.0
 
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
+| Feature | Branch | State | Developer | Reviewer | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- |
 | [Default Interface Methods](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/default-interface-methods.md) | main | [Merged to dev16.1 preview2](https://github.com/dotnet/roslyn/issues/19217) | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
 | [Nullable reference type](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/nullable-reference-types-specification.md) | main | [Merged to dev16.0 preview1](https://github.com/dotnet/roslyn/issues/22152) | [cston](https://github.com/cston), [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [333fred](https://github.com/333fred) | [mattwar](https://github.com/mattwar) |
 | [Recursive patterns](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/patterns.md) | main | [Merged to dev16.0 preview2](https://github.com/dotnet/roslyn/issues/25935) | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke), [cston](https://github.com/cston) | [gafter](https://github.com/gafter) |
@@ -73,15 +75,15 @@ efforts behind them.
 
 # VB 16.0
 
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
+| Feature | Branch | State | Developer | Reviewer | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- |
 | [Line continuation comments](https://github.com/dotnet/vblang/issues/65) | [continuation-comments](https://github.com/dotnet/roslyn/tree/features/continuation-comments) | Merged in 16.1 (preview2) | [paul1956](https://github.com/paul1956) | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) |
 | [Relax null-coalescing operator requirements](https://github.com/dotnet/vblang/issues/339) | [null-operator-enhancements](https://github.com/dotnet/roslyn/tree/features/null-operator-enhancements) | Merged in 16.0 | [333fred](https://github.com/333fred) | [cston](https://github.com/cston) | [gafter](https://github.com/gafter) |
 
 # C# 7.3
 
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
+| Feature | Branch | State | Developer | Reviewer | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- |
 | [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Merged | None | - | [jaredpar](https://github.com/jaredpar) |
 | [Support == and != for tuples](https://github.com/dotnet/csharplang/issues/190) | [tuple-equality](https://github.com/dotnet/roslyn/tree/features/tuple-equality) | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
 | strongname | main | Merged | [tyoverby](https://github.com/tyoverby) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
@@ -96,15 +98,15 @@ efforts behind them.
 
 # C# 7.2 fixes
 
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
+| Feature | Branch | State | Developer | Reviewer | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- |
 | [`ref` and `this` ordering in ref extension](https://github.com/dotnet/roslyn/pull/23643) | - | Merged | [alrz](https://github.com/alrz) | - | - |
 | [Tiebreaker for by-val and `in` overloads](https://github.com/dotnet/roslyn/pull/23122) | main | Merged | [OmarTawfik](https://github.com/OmarTawfik) | - | - |
 
 # C# 7.2
 
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
+| Feature | Branch | State | Developer | Reviewer | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- |
 | [ref readonly](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.2/readonly-ref.md) | main | Merged | [vsadov](https://github.com/vsadov), [OmarTawfik](https://github.com/OmarTawfik) | [cston](https://github.com/cston),[gafter](https://github.com/gafter) | [jaredpar](https://github.com/jaredpar) |
 | [interior pointer/Span<T>/ref struct](https://github.com/dotnet/csharplang/pull/264) | main | Merged | [vsadov](https://github.com/vsadov) | [gafter](https://github.com/gafter), [jaredpar](https://github.com/jaredpar) | [jaredpar](https://github.com/jaredpar) |
 | [non-trailing named arguments](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.2/non-trailing-named-arguments.md) | main | Merged | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
@@ -114,8 +116,8 @@ efforts behind them.
 
 # C# 7.1
 
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
+| Feature | Branch | State | Developer | Reviewer | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- |
 | [Async Main](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.1/async-main.md) | main | Merged | [tyoverby](https://github.com/tyoverby) | [vsadov](https://github.com/vsadov) | [stephentoub](https://github.com/stephentoub) |
 | [Default Expressions](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.1/target-typed-default.md) | main  | Merged | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv) |
 | [Ref Assemblies](https://github.com/dotnet/roslyn/blob/main/docs/features/refout.md) | main | Merged (IDE and project-system integrations ongoing) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | N/A |
