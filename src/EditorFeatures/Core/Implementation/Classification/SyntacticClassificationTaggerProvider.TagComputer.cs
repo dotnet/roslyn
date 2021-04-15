@@ -67,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // get called.
 
             private readonly object _gate = new();
-            private ITextSnapshot? _lastProcessedSnapshot;
-            private Document? _lastProcessedDocument;
-            private SyntaxNode? _lastProcessedRoot;
+            private (ITextSnapshot? lastSnapshot, Document? lastDocument, SyntaxNode? lastRoot) _lastProcessedData;
 
             // this will cache previous classification information for a span, so that we can avoid
             // digging into same tree again and again to find exactly same answer
@@ -201,9 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 lock (_gate)
                 {
-                    _lastProcessedDocument = null;
-                    _lastProcessedSnapshot = null;
-                    _lastProcessedRoot = null;
+                    _lastProcessedData = default;
                 }
 
                 if (_workspace != null)
@@ -293,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (currentDocument == null)
                     return;
 
-                GetLastProcessedData(out var previousSnapshot, out var previousDocument, out var previousRoot);
+                var (previousSnapshot, previousDocument, previousRoot) = GetLastProcessedData();
 
                 // Optionally pre-calculate the root of the doc so that it is ready to classify
                 // once GetTags is called.  Also, attempt to determine a smallwe change range span
@@ -304,9 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 lock (_gate)
                 {
-                    _lastProcessedSnapshot = currentSnapshot;
-                    _lastProcessedDocument = currentDocument;
-                    _lastProcessedRoot = currentRoot;
+                    _lastProcessedData = (currentSnapshot, currentDocument, currentRoot);
                 }
 
                 // Notify the editor now that there were changes.  Note: we do not need to go the
@@ -350,14 +344,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private void GetLastProcessedData(out ITextSnapshot? previousSnapshot, out Document? previousDocument, out SyntaxNode? previousRoot)
+            private (ITextSnapshot? lastSnapshot, Document? lastDocument, SyntaxNode? lastRoot) GetLastProcessedData()
             {
                 lock (_gate)
-                {
-                    previousSnapshot = _lastProcessedSnapshot;
-                    previousDocument = _lastProcessedDocument;
-                    previousRoot = _lastProcessedRoot;
-                }
+                    return _lastProcessedData;
             }
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
@@ -393,8 +383,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     this.AssertIsForeground();
 
-                    // First, get the tree and snapshot that we'll be operating over.  
-                    GetLastProcessedData(out var lastProcessedSnapshot, out var lastProcessedDocument, out var lastProcessedRoot);
+                    // First, get the tree and snapshot that we'll be operating over.
+                    var (lastProcessedSnapshot, lastProcessedDocument, lastProcessedRoot) = GetLastProcessedData();
 
                     if (lastProcessedDocument == null)
                     {
