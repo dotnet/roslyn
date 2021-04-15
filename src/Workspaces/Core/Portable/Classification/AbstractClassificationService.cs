@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            AddSyntacticClassifications(
-                document.Project.Solution.Workspace,
-                root, textSpan, result, cancellationToken);
+            AddSyntacticClassifications(document.Project.Solution.Workspace, root, textSpan, result, cancellationToken);
         }
 
         public void AddSyntacticClassifications(
