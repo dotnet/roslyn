@@ -117,14 +117,10 @@ namespace Microsoft.CodeAnalysis.Classification
 
         public TextChangeRange? ComputeSyntacticChangeRange(Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            if (oldRoot == null || newRoot == null)
-                return null;
-
             var classificationService = workspace.Services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
-            if (classificationService == null)
-                return null;
-
-            return classificationService.ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, cancellationToken);
+            return classificationService == null
+                ? null
+                : classificationService.ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, cancellationToken);
         }
     }
 }
