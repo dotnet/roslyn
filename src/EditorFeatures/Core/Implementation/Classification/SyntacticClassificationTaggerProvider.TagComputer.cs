@@ -188,7 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 _workspace = workspace;
                 _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-                _workspace.DocumentOpened += this.OnDocumentOpened;
                 _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
 
                 // Now that we've connected to the workspace, kick off work to reclassify this buffer.
@@ -209,7 +208,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (_workspace != null)
                 {
                     _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
-                    _workspace.DocumentOpened -= this.OnDocumentOpened;
                     _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
 
                     _workspace = null;
@@ -233,11 +231,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
             {
                 EnqueueWorkIfThisDocument(args.NewActiveContextDocumentId);
-            }
-
-            private void OnDocumentOpened(object? sender, DocumentEventArgs args)
-            {
-                EnqueueWorkIfThisDocument(args.Document.Id);
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
