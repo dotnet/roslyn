@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -375,7 +376,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (spans.Count == 0 || _workspace == null)
                     return null;
 
-                var cancellationToken = CancellationToken.None;
                 var snapshot = spans[0].Snapshot;
 
                 var classificationService = TryGetClassificationService(snapshot);
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     if (lastProcessedDocument == null)
                     {
                         // We don't have a syntax tree yet.  Just do a lexical classification of the document.
-                        AddLexicalClassifications(span);
+                        AddLexicalClassifications(classificationService, span, classifiedSpans);
                         return;
                     }
 
@@ -413,116 +413,98 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     if (lastProcessedSnapshot.Version.ReiteratedVersionNumber != span.Snapshot.Version.ReiteratedVersionNumber)
                     {
                         // Slightly more complicated.  We have a parse tree, it's just not for the snapshot we're being asked for.
-                        AddClassifiedSpansForPreviousDocument(span, lastProcessedSnapshot, lastProcessedDocument, lastProcessedRoot);
+                        AddClassifiedSpansForPreviousDocument(classificationService, span, lastProcessedSnapshot, lastProcessedDocument, lastProcessedRoot, classifiedSpans);
                         return;
                     }
 
                     // Mainline case.  We have the corresponding document for the snapshot we're classifying.
-                    AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot, classifiedSpans);
+                    AddSyntacticClassificationsForDocument(classificationService, span, lastProcessedDocument, lastProcessedRoot, classifiedSpans);
                 }
+            }
 
-                void AddLexicalClassifications(SnapshotSpan span)
+            private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, List<ClassifiedSpan> classifiedSpans)
+            {
+                this.AssertIsForeground();
+
+                classificationService.AddLexicalClassifications(
+                    span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
+            }
+
+            private void AddSyntacticClassificationsForDocument(
+                IClassificationService classificationService, SnapshotSpan span,
+                Document document, SyntaxNode? root, List<ClassifiedSpan> classifiedSpans)
+            {
+                this.AssertIsForeground();
+                var cancellationToken = CancellationToken.None;
+
+                if (!_lastLineCache.TryUseCache(span, out var tempList))
                 {
-                    this.AssertIsForeground();
+                    tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                    classificationService.AddLexicalClassifications(
-                        span.Snapshot.AsText(), span.Span.ToTextSpan(), classifiedSpans, CancellationToken.None);
-                }
-
-                void AddSyntacticClassificationsForDocument(
-                    SnapshotSpan span, Document document, SyntaxNode? root, List<ClassifiedSpan> classifiedSpans)
-                {
-                    this.AssertIsForeground();
-
-                    if (!_lastLineCache.TryUseCache(span, out var tempList))
-                    {
-                        tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-
-                        if (root != null)
-                        {
-                            classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
-                        }
-                        else
-                        {
-                            classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
-                        }
-
-                        _lastLineCache.Update(span, tempList);
-                    }
-
-                    // simple case.  They're asking for the classifications for a tree that we already have.
-                    // Just get the results from the tree and return them.
-
-                    classifiedSpans.AddRange(tempList);
-                }
-
-                void AddClassifiedSpansForPreviousDocument(
-                    SnapshotSpan span, ITextSnapshot lastProcessedSnapshot, Document lastProcessedDocument, SyntaxNode? lastProcessedRoot)
-                {
-                    this.AssertIsForeground();
-
-                    // Slightly more complicated case.  They're asking for the classifications for a
-                    // different snapshot than what we have a parse tree for.  So we first translate the span
-                    // that they're asking for so that is maps onto the tree that we have spans for.  We then
-                    // get the classifications from that tree.  We then take the results and translate them
-                    // back to the snapshot they want.  Finally, as some of the classifications may have
-                    // changed, we check for some common cases and touch them up manually so that things
-                    // look right for the user.
-
-                    // Note the handling of SpanTrackingModes here: We do EdgeExclusive while mapping back ,
-                    // and EdgeInclusive mapping forward. What I've convinced myself is that EdgeExclusive
-                    // is best when mapping back over a deletion, so that we don't end up classifying all of
-                    // the deleted code.  In most addition/modification cases, there will be overlap with
-                    // existing spans, and so we'll end up classifying well.  In the worst case, there is a
-                    // large addition that doesn't exist when we map back, and so we don't have any
-                    // classifications for it. That's probably okay, because: 
-
-                    // 1. If it's that large, it's likely that in reality there are multiple classification
-                    // spans within it.
-
-                    // 2.We'll eventually call ClassificationsChanged and re-classify that region anyway.
-
-                    // When mapping back forward, we use EdgeInclusive so that in the common typing cases we
-                    // don't end up with half a token colored differently than the other half.
-
-                    // See bugs like http://vstfdevdiv:8080/web/wi.aspx?id=6176 for an example of what can
-                    // happen when this goes wrong.
-
-                    // 1) translate the requested span onto the right span for the snapshot that corresponds
-                    //    to the syntax tree.
-                    var translatedSpan = span.TranslateTo(lastProcessedSnapshot, SpanTrackingMode.EdgeExclusive);
-                    if (translatedSpan.IsEmpty)
-                    {
-                        // well, there is no information we can get from previous tree, use lexer to
-                        // classify given span. soon we will re-classify the region.
-                        AddLexicalClassifications(span);
-                    }
+                    // If we have a syntax root ready, use the direct, non-async/non-blocking approach to getting classifications.
+                    if (root == null)
+                        classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
                     else
+                        classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+
+                    _lastLineCache.Update(span, tempList);
+                }
+
+                // simple case.  They're asking for the classifications for a tree that we already have.
+                // Just get the results from the tree and return them.
+
+                classifiedSpans.AddRange(tempList);
+            }
+
+            private void AddClassifiedSpansForPreviousDocument(
+                IClassificationService classificationService, SnapshotSpan span,
+                ITextSnapshot lastProcessedSnapshot, Document lastProcessedDocument, SyntaxNode? lastProcessedRoot,
+                List<ClassifiedSpan> classifiedSpans)
+            {
+                this.AssertIsForeground();
+
+                // Slightly more complicated case.  They're asking for the classifications for a
+                // different snapshot than what we have a parse tree for.  So we first translate the span
+                // that they're asking for so that is maps onto the tree that we have spans for.  We then
+                // get the classifications from that tree.  We then take the results and translate them
+                // back to the snapshot they want.  Finally, as some of the classifications may have
+                // changed, we check for some common cases and touch them up manually so that things
+                // look right for the user.
+
+                // 1) translate the requested span onto the right span for the snapshot that corresponds
+                //    to the syntax tree.
+                var translatedSpan = span.TranslateTo(lastProcessedSnapshot, SpanTrackingMode.EdgeExclusive);
+                if (translatedSpan.IsEmpty)
+                {
+                    // well, there is no information we can get from previous tree, use lexer to
+                    // classify given span. soon we will re-classify the region.
+                    AddLexicalClassifications(classificationService, span, classifiedSpans);
+                }
+                else
+                {
+                    var tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                    AddSyntacticClassificationsForDocument(classificationService, span, lastProcessedDocument, lastProcessedRoot, tempList);
+
+                    var currentSnapshot = span.Snapshot;
+                    var currentText = currentSnapshot.AsText();
+                    foreach (var lastClassifiedSpan in tempList)
                     {
-                        var tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-                        AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot, tempList);
+                        // 2) Translate those classifications forward so that they correspond to the true
+                        //    requested snapshot.
+                        var lastSnapshotSpan = lastClassifiedSpan.TextSpan.ToSnapshotSpan(lastProcessedSnapshot);
+                        var currentSnapshotSpan = lastSnapshotSpan.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                        var currentSnapshot = span.Snapshot;
-                        var currentText = currentSnapshot.AsText();
-                        foreach (var lastClassifiedSpan in tempList)
-                        {
-                            // 2) Translate those classifications forward so that they correspond to the true
-                            //    requested snapshot.
-                            var lastSnapshotSpan = lastClassifiedSpan.TextSpan.ToSnapshotSpan(lastProcessedSnapshot);
-                            var currentSnapshotSpan = lastSnapshotSpan.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive);
+                        var currentClassifiedSpan = new ClassifiedSpan(lastClassifiedSpan.ClassificationType, currentSnapshotSpan.Span.ToTextSpan());
 
-                            var currentClassifiedSpan = new ClassifiedSpan(lastClassifiedSpan.ClassificationType, currentSnapshotSpan.Span.ToTextSpan());
+                        // 3) The classifications may be incorrect due to changes in the text.  For example,
+                        //    if "clss" becomes "class", then we want to changes the classification from
+                        //    'identifier' to 'keyword'.
+                        currentClassifiedSpan = classificationService.AdjustStaleClassification(currentText, currentClassifiedSpan);
 
-                            // 3) The classifications may be incorrect due to changes in the text.  For example,
-                            //    if "clss" becomes "class", then we want to changes the classification from
-                            //    'identifier' to 'keyword'.
-                            currentClassifiedSpan = classificationService.AdjustStaleClassification(currentText, currentClassifiedSpan);
-
-                            classifiedSpans.Add(currentClassifiedSpan);
-                        }
-
-                        ClassificationUtilities.ReturnClassifiedSpanList(tempList);
+                        classifiedSpans.Add(currentClassifiedSpan);
                     }
+
+                    ClassificationUtilities.ReturnClassifiedSpanList(tempList);
                 }
             }
         }
