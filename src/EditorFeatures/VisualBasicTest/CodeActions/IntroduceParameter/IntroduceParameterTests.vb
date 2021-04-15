@@ -893,6 +893,45 @@ End Class"
 
             Await TestInRegularAndScriptAsync(source, expected, index:=0)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestInvocationInWithBlock() As Task
+            Dim source =
+"Class Program
+    Sub M1()
+        Dim a = New A()
+        With a
+            a.Mult(4, 7)
+        End With
+    End Sub
+End Class
+
+Class A
+    Sub Mult(x As Integer, y As Integer)
+        Dim m = [|x * y|]
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Sub M1()
+        Dim a = New A()
+        With a
+            a.Mult(4, 7, a.GetM(4, 7))
+        End With
+    End Sub
+End Class
+
+Class A
+    Public Function GetM(x As Integer, y As Integer) As Integer
+        Return x * y
+    End Function
+
+    Sub Mult(x As Integer, y As Integer, m As Integer)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
     End Class
 End Namespace
 
