@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -57,6 +58,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var result = new List<ITagSpan<IClassificationTag>>();
             Convert(typeMap, snapshot, classifiedSpans, result.Add);
             ReturnClassifiedSpanList(classifiedSpans);
+            return result;
+        }
+
+        public static List<ITagSpan<IClassificationTag>> Convert(ClassificationTypeMap typeMap, ITextSnapshot snapshot, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        {
+            var result = new List<ITagSpan<IClassificationTag>>(capacity: classifiedSpans.Count);
+            foreach (var span in classifiedSpans)
+                result.Add(Convert(typeMap, snapshot, span));
+
             return result;
         }
     }

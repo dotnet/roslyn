@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Classification
         /// (i.e. identifiers being classified as keywords).  These incorrect results will be patched
         /// up when the lexical results are superseded by the calls to AddSyntacticClassifications.
         /// </summary>
-        void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <inheritdoc cref="AddSyntacticClassificationsAsync"/>
         /// <remarks>This method is optional and only should be implemented by languages that support
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="AddSyntacticClassificationsAsync"/> instead.</remarks>
-        void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  The syntax of the document 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// be used to determine if a piece of text that looks like a keyword should actually be
         /// considered an identifier in its current context.
         /// </summary>
-        Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+        Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  Semantics of the language
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// For example, semantic information can be used to determine if an identifier should be
         /// classified as a type, structure, or something else entirely. 
         /// </summary>
-        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+        Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Adjust a classification from a previous version of text accordingly based on the current

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -382,12 +383,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (classificationService == null)
                     return null;
 
-                var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
                 foreach (var span in spans)
                     AddClassifications(span);
 
-                return ClassificationUtilities.ConvertAndReturnList(_typeMap, snapshot, classifiedSpans);
+                return ClassificationUtilities.Convert(_typeMap, snapshot, classifiedSpans);
 
                 void AddClassifications(SnapshotSpan span)
                 {
@@ -435,25 +436,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     this.AssertIsForeground();
 
-                    if (!_lastLineCache.TryUseCache(span, out var tempList))
-                    {
-                        tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                    if (_lastLineCache.TryUseCache(span, classifiedSpans))
+                        return;
 
-                        if (root != null)
-                        {
-                            classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
-                        }
-                        else
-                        {
-                            classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
-                        }
+                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
 
-                        _lastLineCache.Update(span, tempList);
-                    }
+                    if (root == null)
+                        classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
+                    else
+                        classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
 
-                    // simple case.  They're asking for the classifications for a tree that we already have.
-                    // Just get the results from the tree and return them.
-
+                    _lastLineCache.Update(span, tempList);
                     classifiedSpans.AddRange(tempList);
                 }
 
