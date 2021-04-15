@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static TargetMenuItemViewModel Create(InheritanceTargetItem target, Thickness margin)
         {
             var targetName = target.DefinitionItem.DisplayParts.JoinText();
-            var displayContent = string.Format(ServicesVSResources._0_in_1, targetName, target.DisplayNameForContainingType);
+            var displayContent = target.DisplayName;
             var imageMoniker = target.Glyph.GetImageMoniker();
             return new TargetMenuItemViewModel(displayContent, imageMoniker, displayContent, target.DefinitionItem, margin);
         }

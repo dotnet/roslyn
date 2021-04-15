@@ -63,7 +63,7 @@
                 <!-- Style copied from editor -->
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
             <Setter Property="DockPanel.Dock" Value="Top"/>
-            <Setter Property="Margin" Value="{Binding Margin}" />
+            <!-- <Setter Property="Margin" Value="{Binding Margin}" /> -->
             <Setter Property="Padding" Value="0,2,0,2"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -222,24 +222,18 @@
                     <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
                     <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
                     <Setter Property="IsEnabled" Value="False"/>
-                    <!-- <Setter Property="HeaderTemplate"> -->
-                    <!--     <Setter.Value> -->
-                    <!--         <DataTemplate> -->
-                    <!--             <TextBlock Text="{Binding DisplayContent}" -->
-                    <!--                        FontWeight="Bold" -->
-                    <!--                        Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/> -->
-                    <!--         </DataTemplate> -->
-                    <!--     </Setter.Value> -->
-                    <!-- </Setter> -->
+                    <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.TitleBarInactiveBrushKey}}"/>
+                    <!-- <Setter Property="Background" Value="Transparent"/> -->
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="{x:Type MenuItem}">
-                                <StackPanel FlowDirection="LeftToRight" Orientation="Horizontal">
-                                    <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" Moniker="{Binding ImageMoniker}"/>
-                                    <TextBlock Text="{Binding DisplayContent}"
-                                               FontWeight="Bold"
-                                               Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextInactiveBrushKey}}"/>
-                                </StackPanel>
+                                <Grid Background="{TemplateBinding Background}">
+                                    <StackPanel FlowDirection="LeftToRight" Orientation="Horizontal" HorizontalAlignment="Left" >
+                                        <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" Moniker="{Binding ImageMoniker}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding DisplayContent}"
+                                               Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
+                                    </StackPanel>
+                                </Grid>
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>

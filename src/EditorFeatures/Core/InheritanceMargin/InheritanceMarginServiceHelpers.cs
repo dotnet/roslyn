@@ -18,6 +18,24 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal static class InheritanceMarginServiceHelper
     {
+        private static readonly SymbolDisplayFormat s_displayFormat = new(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeType,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
         public static async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemAsync(
             Solution solution,
             ProjectId projectId,
@@ -207,17 +225,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 includeHiddenLocations: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var containingSymbol = targetSymbol.ContainingSymbol;
-            var containingSymbolName = containingSymbol is INamespaceSymbol { IsGlobalNamespace: true }
-                ? FeaturesResources.Global_Namespace
-                : containingSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            var displayName = targetSymbol.ToDisplayString(s_displayFormat);
 
             return new SerializableInheritanceTargetItem(
                 inheritanceRelationship,
                 // Id is used by FAR service for caching, it is not used in inheritance margin
                 SerializableDefinitionItem.Dehydrate(id: 0, definition),
                 targetSymbol.GetGlyph(),
-                containingSymbolName);
+                displayName);
         }
 
         private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberInfoForMemberAsync(
