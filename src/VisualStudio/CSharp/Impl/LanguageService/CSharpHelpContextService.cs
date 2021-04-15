@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
+            if (syntaxFacts.IsOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
             {
                 text = Keyword(syntaxFacts.GetText(token.RawKind));
                 return true;
