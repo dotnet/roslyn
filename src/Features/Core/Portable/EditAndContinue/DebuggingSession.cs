@@ -300,8 +300,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public async Task<ManagedEditAndContinueCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
         {
-            var runtimeCapabiltiies = await DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-            return new ManagedEditAndContinueCapabilities(runtimeCapabiltiies);
+            var runtimeCapabilities = await DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+            return new ManagedEditAndContinueCapabilities(runtimeCapabilities);
         }
 
         private static unsafe bool TryCreateInitialBaseline(
