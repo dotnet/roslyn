@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            if (!(logMessage is KeyValueLogMessage kvLogMessage))
+            if (logMessage.LogLevel < LogLevel.Information)
             {
                 return;
             }
