@@ -610,6 +610,55 @@ C.Method() -> void
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(3329, "https://github.com/dotnet/roslyn-analyzers/issues/3329")]
+        public async Task RemovedPrefixForNonRemovedApi(bool includeInShipped)
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+    public void Method() { }
+}
+";
+
+            var shippedText = @"
+C
+C.C() -> void
+C.Field -> int
+C.Property.get -> int
+C.Property.set -> void
+";
+
+            if (includeInShipped)
+            {
+                shippedText += @"C.Method() -> void
+";
+            }
+
+            string unshippedText = $@"
+{DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+";
+
+            if (includeInShipped)
+            {
+                await VerifyCSharpAsync(source, shippedText, unshippedText,
+                    // PublicAPI.Unshipped.txt(2,1): warning RS0050: Symbol 'C.Method() -> void' is marked as removed but it isn't deleted in source code
+                    GetAdditionalFileResultAt(2, 1, DeclarePublicApiAnalyzer.UnshippedFileName, DeclarePublicApiAnalyzer.RemovedApiIsNotActuallyRemovedRule, "C.Method() -> void"));
+            }
+            else
+            {
+                await VerifyCSharpAsync(source, shippedText, unshippedText,
+                    // PublicAPI.Unshipped.txt(2,1): warning RS0050: Symbol 'C.Method() -> void' is marked as removed but it isn't deleted in source code
+                    GetAdditionalFileResultAt(2, 1, DeclarePublicApiAnalyzer.UnshippedFileName, DeclarePublicApiAnalyzer.RemovedApiIsNotActuallyRemovedRule, "C.Method() -> void"),
+                    // /0/Test0.cs(6,17): warning RS0016: Symbol 'Method' is not part of the declared API
+                    GetCSharpResultAt(6, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method")
+                    );
+            }
+        }
+
         [Fact]
         public async Task ApiFileShippedWithRemoved()
         {

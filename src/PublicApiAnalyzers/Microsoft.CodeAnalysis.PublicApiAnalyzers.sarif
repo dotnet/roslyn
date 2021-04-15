@@ -221,6 +221,26 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0050": {
+          "id": "RS0050",
+          "shortDescription": "Public API is marked as removed but it exists in source code",
+          "fullDescription": "Symbol '{0}' is marked as removed but it isn't deleted in source code",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
         }
       }
     },
