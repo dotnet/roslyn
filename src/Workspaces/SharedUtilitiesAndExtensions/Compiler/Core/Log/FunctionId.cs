@@ -514,5 +514,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Intellicode_UnknownIntent = 485,
 
         LSP_CompletionListCacheMiss = 486,
+
+        VS_ErrorReportingService_ShowGlobalErrorInfo = 487,
     }
 }
