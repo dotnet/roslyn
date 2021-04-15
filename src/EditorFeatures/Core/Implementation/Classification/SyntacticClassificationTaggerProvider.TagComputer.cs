@@ -57,10 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private Workspace? _workspace;
 
-            /// <summary>
-            /// The latest data about the document being classified that we've cached.  objects can 
-            /// be accessed from both threads, and must be obtained when this lock is held.
-            /// </summary>
+            // The latest data about the document being classified that we've cached.  objects can 
+            // be accessed from both threads, and must be obtained when this lock is held. 
+            //
+            // _lastProcessedRoot is optional and is held onto for languages that support syntax.
+            // it allows computing the root, and changed-spans, in the background so that we can
+            // report a smaller change range, and have the data ready for classifying with GetTags
+            // get called.
+
             private readonly object _gate = new();
             private ITextSnapshot? _lastProcessedSnapshot;
             private Document? _lastProcessedDocument;
