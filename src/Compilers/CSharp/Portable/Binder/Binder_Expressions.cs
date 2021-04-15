@@ -6243,7 +6243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(right, useSiteInfo);
                     if (lookupResult.IsMultiViable)
                     {
-                        // PROTOTYPE(StaticAbstractMembersInInterfaces): Check language version
+                        CheckFeatureAvailability(boundLeft.Syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
                         return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
                     }
                     else if (lookupResult.IsClear)

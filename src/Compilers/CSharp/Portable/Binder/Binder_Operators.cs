@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorSignature bestSignature = best.Signature;
 
             CheckNativeIntegerFeatureAvailability(bestSignature.Kind, node, diagnostics);
-            CheckConstraintAndRuntimeSupportForOperator(node, bestSignature.Method, bestSignature.ConstrainedToTypeOpt, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, bestSignature.Method, bestSignature.ConstrainedToTypeOpt, diagnostics);
 
             if (CheckOverflowAtRuntime)
             {
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(left.Type is not TypeParameterSymbol);
-                    CheckConstraintAndRuntimeSupportForOperator(node, userDefinedOperator, constrainedToTypeOpt: null, diagnostics);
+                    CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, userDefinedOperator, constrainedToTypeOpt: null, diagnostics);
                 }
 
                 diagnostics.Add(node, useSiteInfo);
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
-            CheckConstraintAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
             TypeSymbol resultType = signature.ReturnType;
             BoundExpression resultLeft = left;
@@ -882,8 +882,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(trueOperator != null && falseOperator != null);
 
-                        _ = CheckConstraintAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics) &&
-                            CheckConstraintAndRuntimeSupportForOperator(node, kind == BinaryOperatorKind.LogicalAnd ? falseOperator : trueOperator, signature.ConstrainedToTypeOpt, diagnostics);
+                        _ = CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics) &&
+                            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, kind == BinaryOperatorKind.LogicalAnd ? falseOperator : trueOperator, signature.ConstrainedToTypeOpt, diagnostics);
 
                         return new BoundUserDefinedConditionalLogicalOperator(
                             node,
@@ -2158,7 +2158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var signature = best.Signature;
 
             CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
-            CheckConstraintAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteInfo);
@@ -2203,8 +2203,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns false if reported an error, true otherwise.
         /// </summary>
-        private bool CheckConstraintAndRuntimeSupportForOperator(SyntaxNode node, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, BindingDiagnosticBag diagnostics)
+        private bool CheckConstraintLanguageVersionAndRuntimeSupportForOperator(SyntaxNode node, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, BindingDiagnosticBag diagnostics)
         {
+            bool result = true;
+
             if (methodOpt?.ContainingType?.IsInterface == true)
             {
                 if (methodOpt.IsStatic && methodOpt.IsAbstract)
@@ -2215,15 +2217,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces && Compilation.SourceModule != methodOpt.ContainingModule)
+                    if (Compilation.SourceModule != methodOpt.ContainingModule)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
-                        return false;
+                        result = CheckFeatureAvailability(node, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
+
+                        if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
+                            return false;
+                        }
                     }
                 }
             }
 
-            return true;
+            return result;
         }
 #nullable disable
 
@@ -2561,7 +2568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType.SpecialType, diagnostics);
 
             CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
-            CheckConstraintAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
             return new BoundUnaryOperator(
                 node,
