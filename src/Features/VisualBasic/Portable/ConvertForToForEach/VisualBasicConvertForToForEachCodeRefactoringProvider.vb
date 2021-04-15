@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
                     Dim subtraction = TryCast(forStatement.ToValue, BinaryExpressionSyntax)
                     If subtraction?.Kind() = SyntaxKind.SubtractExpression Then
                         Dim subtractionRight = TryCast(subtraction.Right, LiteralExpressionSyntax)
-                        If TypeOf subtractionRight.Token.Value Is Integer AndAlso
+                        If TypeOf subtractionRight?.Token.Value Is Integer AndAlso
                            DirectCast(subtractionRight.Token.Value, Integer) = 1 Then
 
                             memberAccess = TryCast(subtraction.Left, MemberAccessExpressionSyntax)

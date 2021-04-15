@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -48,5 +46,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
         {
             return _service.AdjustStaleClassification(text, classifiedSpan);
         }
+
+        public ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken)
+            => new();
+
+        public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
+            => new();
     }
 }
