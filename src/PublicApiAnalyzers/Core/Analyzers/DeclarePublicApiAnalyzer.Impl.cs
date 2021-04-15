@@ -670,6 +670,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 if (attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                                 {
                                     var obsoleteAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
+                                    if (forwardedType.IsUnboundGenericType)
+                                    {
+                                        forwardedType = forwardedType.ConstructedFrom;
+                                    }
+
                                     VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, obsoleteAttribute, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
                                 }
                             }
