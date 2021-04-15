@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis
                     // PROTOTYPE(source-generators): VB extensions
                     AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
 
-                    // PROTOTYPE(source-generators): cancellation token
-                    var oldContext = new GeneratorExecutionContext(compilation, compilation.SyntaxTrees.First().Options, ImmutableArray<AdditionalText>.Empty, Diagnostics.CompilerAnalyzerConfigOptionsProvider.Empty, null, asc);
+                    // PROTOTYPE(source-generators): options/additionaltexts
+                    var oldContext = new GeneratorExecutionContext(compilation, compilation.SyntaxTrees.First().Options, ImmutableArray<AdditionalText>.Empty, Diagnostics.CompilerAnalyzerConfigOptionsProvider.Empty, null, asc, context.CancellationToken);
 
                     // PROTOTYPE(source-generators):If this throws, we'll wrap it in a user func as expected. We probably *should* do that for the rest of this code though
                     // So we probably need an internal version that doesn't wrap it? Maybe we can just construct the nodes manually.

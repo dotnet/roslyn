@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -37,9 +38,12 @@ namespace Microsoft.CodeAnalysis
 
             private readonly DriverStateTable _previousTable;
 
-            public Builder(DriverStateTable previousTable)
+            private readonly CancellationToken _cancellationToken;
+
+            public Builder(DriverStateTable previousTable, CancellationToken cancellationToken = default)
             {
                 _previousTable = previousTable;
+                _cancellationToken = cancellationToken;
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
@@ -54,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                 NodeStateTable<T> previousTable = _previousTable.GetStateTable(source);
 
                 // request the node update its state based on the current driver table and store the new result
-                var newTable = source.UpdateStateTable(this, previousTable);
+                var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);
                 _tableBuilder[source] = newTable;
                 return newTable;
             }

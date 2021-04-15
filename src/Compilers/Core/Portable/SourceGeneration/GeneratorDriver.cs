@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis
             var compilationState = new NodeStateTable<Compilation>.Builder();
             compilationState.AddEntries(ImmutableArray.Create(compilation), EntryState.Modified);
 
-            var driverStateBuilder = new DriverStateTable.Builder(state.StateTable.SetStateTable(state.ValueSources.Compilation.node, compilationState.ToImmutableAndFree()));
+            var driverStateBuilder = new DriverStateTable.Builder(state.StateTable.SetStateTable(state.ValueSources.Compilation.node, compilationState.ToImmutableAndFree()), cancellationToken);
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];

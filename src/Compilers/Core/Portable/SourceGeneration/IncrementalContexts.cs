@@ -78,11 +78,14 @@ namespace Microsoft.CodeAnalysis
         private readonly ArrayBuilder<GeneratedSourceText> _sources;
         private readonly DiagnosticBag _diagnostics;
 
-        internal SourceProductionContext(ArrayBuilder<GeneratedSourceText> sources, DiagnosticBag diagnostics)
+        internal SourceProductionContext(ArrayBuilder<GeneratedSourceText> sources, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
+            CancellationToken = cancellationToken;
             _sources = sources;
             _diagnostics = diagnostics;
         }
+
+        public CancellationToken CancellationToken { get; }
 
         /// <summary>
         /// Adds source code in the form of a <see cref="string"/> to the compilation.

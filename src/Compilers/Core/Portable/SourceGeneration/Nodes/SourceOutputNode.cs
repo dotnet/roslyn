@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             _action = action;
         }
 
-        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable)
+        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
             //TODO: fault handling + all cached optimization. A lot of this seems common across all node types?
             // yes. except for join. Thats why in the prototype we had a shared base class. Got it.
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis
                     var sourcesBuilder = ArrayBuilder<GeneratedSourceText>.GetInstance();
                     var diagnostics = DiagnosticBag.GetInstance();
 
-                    SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics);
+                    SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, cancellationToken);
                     try
                     {
                         _action(context, entry.item);

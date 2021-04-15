@@ -44,6 +44,7 @@ Microsoft.CodeAnalysis.SourceGeneration.Nodes.ValueSources.ValueSources() -> voi
 Microsoft.CodeAnalysis.SourceProductionContext
 Microsoft.CodeAnalysis.SourceProductionContext.AddSource(string! hintName, Microsoft.CodeAnalysis.Text.SourceText! sourceText) -> void
 Microsoft.CodeAnalysis.SourceProductionContext.AddSource(string! hintName, string! source) -> void
+Microsoft.CodeAnalysis.SourceProductionContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.SourceProductionContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> void
 Microsoft.CodeAnalysis.SourceProductionContext.SourceProductionContext() -> void
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind

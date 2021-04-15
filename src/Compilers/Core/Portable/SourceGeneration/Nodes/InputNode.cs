@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T"></typeparam>
     internal class InputNode<T> : IIncrementalGeneratorNode<T>
     {
-        public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable)
+        public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
             // the input node doesn't change the table. 
             // instead the driver manipulates the previous table to contain the current state of the node.
