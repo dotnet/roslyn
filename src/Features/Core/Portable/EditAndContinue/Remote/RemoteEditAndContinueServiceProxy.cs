@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _documentProvider(cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<TextSpan>.Empty;
                 }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _solutionProvider(documentId, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<TextSpan>.Empty;
                 }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
                 }
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.InternalError, e.Message);
                 }
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     // nop
                 }

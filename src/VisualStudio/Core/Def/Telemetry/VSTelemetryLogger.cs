@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         }
 
         public bool IsEnabled(FunctionId functionId)
-            => true;
+            => _session.IsOptedIn;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {

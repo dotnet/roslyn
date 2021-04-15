@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap = new();
 
-        public AbstractDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
+        protected AbstractDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
            : base(logger)
         {
         }
