@@ -106,13 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 // Prefer to hear about text changes in the BG so we can use as little 
                 if (_subjectBuffer is ITextBuffer2 textBuffer2)
-                {
                     textBuffer2.ChangedOnBackground += this.OnSubjectBufferChanged;
-                }
                 else
-                {
                     _subjectBuffer.Changed += this.OnSubjectBufferChanged;
-                }
             }
 
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
@@ -176,13 +172,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     _disposalCancellationSource.Cancel();
 
                     if (_subjectBuffer is ITextBuffer2 textBuffer2)
-                    {
                         textBuffer2.ChangedOnBackground -= this.OnSubjectBufferChanged;
-                    }
                     else
-                    {
                         _subjectBuffer.Changed -= this.OnSubjectBufferChanged;
-                    }
 
                     DisconnectFromWorkspace();
                     _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
