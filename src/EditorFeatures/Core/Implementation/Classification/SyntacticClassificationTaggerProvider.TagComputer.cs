@@ -344,9 +344,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 ValueTask<TextChangeRange?> ComputeChangedRangeAsync()
                 {
+                    // If we have syntax available fast path the change computation without async or blocking.
                     if (previousRoot != null && currentRoot != null)
                         return new(classificationService.ComputeSyntacticChangeRange(currentDocument.Project.Solution.Workspace, previousRoot, currentRoot, _diffTimeout, cancellationToken));
 
+                    // Otherwise, fall back to the language to compute the difference based on the document contents.
                     if (previousDocument != null)
                         return classificationService.ComputeSyntacticChangeRangeAsync(previousDocument, currentDocument, _diffTimeout, cancellationToken);
 
