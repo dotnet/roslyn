@@ -500,7 +500,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     }
                     else
                     {
-
                         var tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
                         AddSyntacticClassificationsForDocument(span, lastProcessedDocument, lastProcessedRoot);
 
