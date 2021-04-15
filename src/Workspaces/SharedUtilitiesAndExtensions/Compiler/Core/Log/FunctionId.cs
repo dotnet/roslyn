@@ -517,5 +517,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         InheritanceMargin_TargetsMenuOpen = 487,
         InheritanceMargin_NavigateToTarget = 488,
+
+        VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
     }
 }
