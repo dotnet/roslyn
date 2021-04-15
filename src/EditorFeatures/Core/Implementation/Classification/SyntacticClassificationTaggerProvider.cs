@@ -9,7 +9,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             if (!_tagComputers.TryGetValue(buffer, out var tagComputer))
             {
-                tagComputer = new TagComputer(buffer, _notificationService, _listener, _typeMap, this);
+                tagComputer = new TagComputer(this, buffer, _notificationService, _listener, _typeMap, TaggerDelay.NearImmediate.ComputeTimeDelay());
                 _tagComputers.Add(buffer, tagComputer);
             }
 
@@ -62,16 +64,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             var tagger = new Tagger(tagComputer);
 
-            if (!(tagger is ITagger<T> typedTagger))
-            {
-                // Oops, we can't actually return this tagger, so just clean up
-                tagger.Dispose();
-                return null;
-            }
-            else
-            {
+            if (tagger is ITagger<T> typedTagger)
                 return typedTagger;
-            }
+
+            // Oops, we can't actually return this tagger, so just clean up
+            tagger.Dispose();
+            return null;
         }
 
         private void DisconnectTagComputer(ITextBuffer buffer)

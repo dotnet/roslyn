@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Add a source document to a project file.
         /// </summary>
-        void AddDocument(string filePath, string logicalPath = null);
+        void AddDocument(string filePath, string? logicalPath = null);
 
         /// <summary>
         /// Remove a source document from a project file.

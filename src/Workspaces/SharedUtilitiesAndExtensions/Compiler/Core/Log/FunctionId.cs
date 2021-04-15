@@ -510,5 +510,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSP_RequestCounter = 482,
         LSP_RequestDuration = 483,
         LSP_TimeInQueue = 484,
+
+        Intellicode_UnknownIntent = 485,
+
+        LSP_CompletionListCacheMiss = 486,
+
+        VS_ErrorReportingService_ShowGlobalErrorInfo = 487,
     }
 }

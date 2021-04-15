@@ -174,7 +174,7 @@ jobs:
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
 
-    - script: eng/test-build-correctness.cmd -configuration Release
+    - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
       displayName: Build - Validate correctness
 
     - template: eng/pipelines/publish-logs.yml

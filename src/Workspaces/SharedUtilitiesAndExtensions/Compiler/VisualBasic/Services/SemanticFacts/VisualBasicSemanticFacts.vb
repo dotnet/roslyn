@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
                    Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
 
-                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor)
+                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken)
 
                     If symbol IsNot Nothing Then
                         If symbol.Locations.Contains(location) Then

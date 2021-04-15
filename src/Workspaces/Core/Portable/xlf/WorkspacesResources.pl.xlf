@@ -87,6 +87,11 @@
         <target state="translated">Opcje nie pochodziły z określonego rozwiązania</target>
         <note />
       </trans-unit>
+      <trans-unit id="Predefined_conversion_from_0_to_1">
+        <source>Predefined conversion from {0} to {1}.</source>
+        <target state="new">Predefined conversion from {0} to {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
         <source>Project does not contain specified reference</source>
         <target state="translated">Projekt nie zawiera określonego odwołania</target>

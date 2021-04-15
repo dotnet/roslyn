@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     internal class MetadataCompilationOptions
     {
@@ -56,5 +56,11 @@ namespace BuildValidator
 
             return optionValues[0].value;
         }
+
+        public string? OptionToString(string option) => TryGetUniqueOption(option, out var value) ? value : null;
+        public bool? OptionToBool(string option) => TryGetUniqueOption(option, out var value) ? ToBool(value) : null;
+        public T? OptionToEnum<T>(string option) where T : struct => TryGetUniqueOption(option, out var value) ? ToEnum<T>(value) : null;
+        public static bool? ToBool(string value) => bool.TryParse(value, out var boolValue) ? boolValue : null;
+        public static T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
     }
 }

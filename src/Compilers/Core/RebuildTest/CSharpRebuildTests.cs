@@ -5,9 +5,9 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.PortableExecutable;
-using BuildValidator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -19,33 +19,27 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void TopLevelStatements()
         {
-            const string path = "test";
-
             var original = CreateCompilation(
                 @"System.Console.WriteLine(""I'm using top-level statements!"");",
                 options: TestOptions.DebugExe);
-
             original.VerifyDiagnostics();
 
             var originalBytes = original.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
-            var peReader = new PEReader(originalBytes);
-            Assert.True(peReader.TryOpenAssociatedPortablePdb(path, path => null, out var provider, out _));
-            var pdbReader = provider!.GetMetadataReader();
-
+            var originalPeReader = new PEReader(originalBytes);
+            var originalPdbReader = originalPeReader.GetEmbeddedPdbMetadataReader()!;
             var factory = LoggerFactory.Create(configure => { });
-            var logger = factory.CreateLogger(path);
-            var bc = new BuildConstructor(logger);
+            var logger = factory.CreateLogger("Test");
 
-            var optionsReader = new CompilationOptionsReader(logger, pdbReader, peReader);
+            var optionsReader = new CompilationOptionsReader(logger, originalPdbReader, originalPeReader);
+            var compilationFactory = CompilationFactory.Create("test.exe", optionsReader);
 
-            var sources = original.SyntaxTrees.Select(st =>
-            {
-                var text = st.GetText();
-                return new SyntaxTreeInfo(path, text);
-            }).ToImmutableArray();
+            var sources = original
+                .SyntaxTrees
+                .Select(x => compilationFactory.CreateSyntaxTree(x.FilePath, x.GetText()))
+                .ToImmutableArray();
             var references = original.References.ToImmutableArray();
-            var compilation = bc.CreateCompilation("test.exe", optionsReader, sources, references);
-            compilation.VerifyEmitDiagnostics();
+            var rebuild = compilationFactory.CreateCompilation(sources, original.References.ToImmutableArray());
+            rebuild.VerifyEmitDiagnostics();
         }
     }
 }

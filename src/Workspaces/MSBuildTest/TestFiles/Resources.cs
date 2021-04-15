@@ -76,6 +76,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
         public static byte[] Key_snk => GetBytes("key.snk");
         public static string NuGet_Config => GetText("NuGet.Config");
 
+        public static class SolutionFilters
+        {
+            public static string Invalid => GetText("SolutionFilters.InvalidSolutionFilter.slnf");
+            public static string CSharp => GetText("SolutionFilters.CSharpSolutionFilter.slnf");
+        }
+
         public static class SolutionFiles
         {
             public static string AnalyzerReference => GetText("SolutionFiles.AnalyzerReference.sln");
