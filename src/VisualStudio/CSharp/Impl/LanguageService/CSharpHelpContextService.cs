@@ -215,8 +215,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            // Workaround IsPredefinedOperator returning true for '<' in generics.
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent is not BinaryExpressionSyntax)
+            {
+                text = null;
+                return false;
+            }
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
+            if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
             {
                 text = Keyword(syntaxFacts.GetText(token.RawKind));
                 return true;
