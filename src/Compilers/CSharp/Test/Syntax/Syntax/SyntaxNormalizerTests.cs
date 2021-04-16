@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 => ""one"", 2 => ""two"", 3 => ""three"", {} => ""> 4"" };",
-                @"var x = (int)1 switch {
+                @"var x = (int)1 switch
+{
   1 => ""one"",
   2 => ""two"",
   3 => ""three"",
