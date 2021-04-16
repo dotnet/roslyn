@@ -19,7 +19,7 @@ prepare_machine=false
 extra_args=''
 
 while (($# > 0)); do
-  lowerI="$(echo $1 | tr "[:upper:]" "[:lower:]")"
+  lowerI="$(echo $1 | awk '{print tolower($0)}')"
   case $lowerI in
     --verbosity)
       verbosity=$2

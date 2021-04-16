@@ -48,7 +48,7 @@ function DownloadAndExtract {
                                            -Verbose:$Verbose
 
   if ($DownloadStatus -Eq $False) {
-    Write-Error "Download failed from $Uri"
+    Write-Error "Download failed"
     return $False
   }
 
@@ -145,12 +145,9 @@ function Get-File {
     New-Item -path $DownloadDirectory -force -itemType "Directory" | Out-Null
   }
 
-  $TempPath = "$Path.tmp"
   if (Test-Path -IsValid -Path $Uri) {
-    Write-Verbose "'$Uri' is a file path, copying temporarily to '$TempPath'"
-    Copy-Item -Path $Uri -Destination $TempPath
-    Write-Verbose "Moving temporary file to '$Path'"
-    Move-Item -Path $TempPath -Destination $Path
+    Write-Verbose "'$Uri' is a file path, copying file to '$Path'"
+    Copy-Item -Path $Uri -Destination $Path
     return $?
   }
   else {
@@ -160,10 +157,8 @@ function Get-File {
     while($Attempt -Lt $DownloadRetries)
     {
       try {
-        Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $TempPath
-        Write-Verbose "Downloaded to temporary location '$TempPath'"
-        Move-Item -Path $TempPath -Destination $Path
-        Write-Verbose "Moved temporary file to '$Path'"
+        Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $Path
+        Write-Verbose "Downloaded to '$Path'"
         return $True
       }
       catch {
@@ -364,21 +359,16 @@ function Expand-Zip {
         return $False
       }
     }
-
-    $TempOutputDirectory = Join-Path "$(Split-Path -Parent $OutputDirectory)" "$(Split-Path -Leaf $OutputDirectory).tmp"
-    if (Test-Path $TempOutputDirectory) {
-      Remove-Item $TempOutputDirectory -Force -Recurse
+    if (-Not (Test-Path $OutputDirectory)) {
+      New-Item -path $OutputDirectory -Force -itemType "Directory" | Out-Null
     }
-    New-Item -Path $TempOutputDirectory -Force -ItemType "Directory" | Out-Null
 
     Add-Type -assembly "system.io.compression.filesystem"
-    [io.compression.zipfile]::ExtractToDirectory("$ZipPath", "$TempOutputDirectory")
+    [io.compression.zipfile]::ExtractToDirectory("$ZipPath", "$OutputDirectory")
     if ($? -Eq $False) {
       Write-Error "Unable to extract '$ZipPath'"
       return $False
     }
-
-    Move-Item -Path $TempOutputDirectory -Destination $OutputDirectory
   }
   catch {
     Write-Host $_
