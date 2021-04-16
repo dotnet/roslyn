@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal partial class TagComputer : ForegroundThreadAffinitizedObject
         {
             private readonly SyntacticClassificationTaggerProvider _taggerProvider;
-            private readonly ITextBuffer _subjectBuffer;
+            private readonly ITextBuffer2 _subjectBuffer;
             private readonly IAsynchronousOperationListener _listener;
             private readonly ClassificationTypeMap _typeMap;
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             public TagComputer(
                 SyntacticClassificationTaggerProvider taggerProvider,
-                ITextBuffer subjectBuffer,
+                ITextBuffer2 subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
                 ClassificationTypeMap typeMap,
                 TimeSpan diffTimeout)
@@ -103,11 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (_workspaceRegistration.Workspace != null)
                     ConnectToWorkspace(_workspaceRegistration.Workspace);
 
-                // Prefer to hear about text changes in the BG so we can use as little 
-                if (_subjectBuffer is ITextBuffer2 textBuffer2)
-                    textBuffer2.ChangedOnBackground += this.OnSubjectBufferChanged;
-                else
-                    _subjectBuffer.Changed += this.OnSubjectBufferChanged;
+                _subjectBuffer.ChangedOnBackground += this.OnSubjectBufferChanged;
             }
 
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
@@ -170,10 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     // stop any bg work we're doing.
                     _disposalCancellationSource.Cancel();
 
-                    if (_subjectBuffer is ITextBuffer2 textBuffer2)
-                        textBuffer2.ChangedOnBackground -= this.OnSubjectBufferChanged;
-                    else
-                        _subjectBuffer.Changed -= this.OnSubjectBufferChanged;
+                    _subjectBuffer.ChangedOnBackground -= this.OnSubjectBufferChanged;
 
                     DisconnectFromWorkspace();
                     _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;

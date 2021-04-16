@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             if (!_tagComputers.TryGetValue(buffer, out var tagComputer))
             {
-                tagComputer = new TagComputer(this, buffer, _listener, _typeMap, TaggerDelay.NearImmediate.ComputeTimeDelay());
+                tagComputer = new TagComputer(this, (ITextBuffer2)buffer, _listener, _typeMap, TaggerDelay.NearImmediate.ComputeTimeDelay());
                 _tagComputers.Add(buffer, tagComputer);
             }
 
