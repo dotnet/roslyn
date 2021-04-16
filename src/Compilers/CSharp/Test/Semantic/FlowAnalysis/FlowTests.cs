@@ -4530,15 +4530,17 @@ class C
                 );
         }
 
-        [Fact]
-        public void IsCondAccess_05()
+        [Theory]
+        [InlineData("int")]
+        [InlineData("int?")]
+        public void IsCondAccess_05(string returnType)
         {
             var source = @"
 #nullable enable
 
 class C
 {
-    int M0(object obj) => 1;
+    " + returnType + @" M0(object obj) => 1;
 
     void M1(C? c)
     {
@@ -4563,6 +4565,30 @@ class C
             ? x.ToString()
             : y.ToString(); // 3
     }
+
+    void M4(C? c)
+    {
+        int x, y;
+        _ = c?.M0(x = y = 0) is 1 or 2
+            ? x.ToString()
+            : y.ToString(); // 4
+    }
+
+    void M5(C? c)
+    {
+        int x, y;
+        _ = c?.M0(x = y = 0) is null
+            ? x.ToString() // 5
+            : y.ToString();
+    }
+
+    void M6(C? c)
+    {
+        int x, y;
+        _ = c?.M0(x = y = 0) is not null
+            ? x.ToString()
+            : y.ToString(); // 6
+    }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
@@ -4574,7 +4600,16 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(21, 15),
                 // (29,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 3
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 15)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 15),
+                // (37,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(37, 15),
+                // (44,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 5
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(44, 15),
+                // (53,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 6
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(53, 15)
                 );
         }
 
