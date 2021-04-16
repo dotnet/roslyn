@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis
     internal static class IncrementalValueSourceExtensions
     {
         // 1 => 1 transform 
-        internal static IncrementalValueSource<U> Transform<T, U>(this IncrementalValueSource<T> source, Func<T, U> func) => default;
+        internal static IncrementalValueSource<U> Transform<T, U>(this IncrementalValueSource<T> source, Func<T, U> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.node, func.WrapUserFunction()));
 
         // 1 => many (or none) transform
-        internal static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, IEnumerable<U>> func) => default;
+        internal static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, IEnumerable<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.node, func.WrapUserFunction()));
 
         // collection => collection
-        internal static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, U> func) => default;
+        internal static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, U> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.node, func.WrapUserFunction()));
 
         // single
-        internal static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, IEnumerable<U>> func) => default;
+        internal static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, IEnumerable<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.node, func.WrapUserFunction()));
 
         // join many => many ((source1[0], source2), (source1[0], source2) ...)
         internal static IncrementalValueSource<(T, IEnumerable<U>)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => new IncrementalValueSource<(T, IEnumerable<U>)>(new JoinNode<T, U>(source1.node, source2.node));

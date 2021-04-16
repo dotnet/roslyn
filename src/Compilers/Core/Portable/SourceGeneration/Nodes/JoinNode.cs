@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis
             _input2 = input2;
         }
 
-
         public NodeStateTable<(TInput1, IEnumerable<TInput2>)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, IEnumerable<TInput2>)> previousTable, CancellationToken cancellationToken)
         {
             // PROTOTYPE(source-generators): all cached, faulted handling etc.
@@ -41,20 +40,8 @@ namespace Microsoft.CodeAnalysis
             //  - modified otherwise
             // State of input[i] otherwise.
 
-            bool isInput2Cached = false; //TODO:
-
             // gather the input2 items
-            ArrayBuilder<TInput2> input2Builder = ArrayBuilder<TInput2>.GetInstance();
-            foreach(var entry2 in input2Table)
-            {
-                // we don't return removed entries to the user.
-                // we're creating a new state table as part of this node, so they're no longer needed
-                if (entry2.state != EntryState.Removed)
-                {
-                    input2Builder.Add(entry2.item);
-                }
-            }
-            IEnumerable<TInput2> input2 = input2Builder.ToImmutableAndFree();
+            IEnumerable<TInput2> input2 = input2Table.Batch(out var isInput2Cached);
 
             // append the input2 items to each item in input1 
             foreach (var entry1 in input1Table)

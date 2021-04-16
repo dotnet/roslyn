@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsFaulted { get => _exception is not null; }
 
+        public bool IsEmpty { get => _states.Length == 0; }
+
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
             return _states.SelectMany(s => s).GetEnumerator();
@@ -98,6 +100,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         IStateTable IStateTable.Compact() => Compact();
+        public ImmutableArray<T> Batch(out bool allCached)
+        {
+            allCached = true;
+            var sourceBuilder = ArrayBuilder<T>.GetInstance();
+            foreach (var entry in this)
+            {
+                allCached &= entry.state == EntryState.Cached;
+
+                // we don't return removed entries to the downstream node.
+                // we're creating a new state table as part of this call, so they're no longer needed
+                if (entry.state != EntryState.Removed)
+                {
+                    sourceBuilder.Add(entry.item);
+                }
+            }
+            return sourceBuilder.ToImmutableAndFree();
+        }
+
         public Builder ToBuilder()
         {
             Debug.Assert(!this.IsFaulted);
@@ -142,6 +162,55 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(previousTable._states.Length > _states.Count);
                 var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
                 _states.Add(previousEntries);
+            }
+
+            public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs)
+            {
+                // Semantics:
+                // For every slot in the previous table, we compare the new value.
+                // - Cached when the same
+                // - Modified when different
+                // - Removed when i > outputs.length
+                // - Added when i < previousTable.length
+
+                var previousEntries = previousTable._states[_states.Count];
+                var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
+
+                var previousEnumerator = previousEntries.GetEnumerator();
+                var outputEnumerator = outputs.GetEnumerator();
+
+                bool previousHasItems = previousEnumerator.MoveNext();
+                bool outputHasItems = outputEnumerator.MoveNext();
+
+                // cached or modified items
+                while (previousHasItems && outputHasItems)
+                {
+                    var previous = previousEnumerator.Current;
+                    var replacement = outputEnumerator.Current;
+
+                    // PROTOTYPE(source-generators): support custom IEqualityComparer
+                    var cached = EqualityComparer<T>.Default.Equals(previous.item, replacement);
+                    modifiedEntries.Add((replacement, cached ? EntryState.Cached : EntryState.Modified));
+
+                    previousHasItems = previousEnumerator.MoveNext();
+                    outputHasItems = outputEnumerator.MoveNext();
+                }
+
+                // removed
+                while (previousHasItems)
+                {
+                    modifiedEntries.Add((previousEnumerator.Current.item, EntryState.Removed));
+                    previousHasItems = previousEnumerator.MoveNext();
+                }
+
+                // added
+                while (outputHasItems)
+                {
+                    modifiedEntries.Add((outputEnumerator.Current, EntryState.Added));
+                    outputHasItems = outputEnumerator.MoveNext();
+                }
+
+                _states.Add(modifiedEntries.ToImmutableAndFree());
             }
 
             public void SetFaulted(Exception e)
