@@ -281,5 +281,55 @@ public class C
 }
 ")
         End Function
+
+        <Fact>
+        Public Async Function TestInsertDuplicateLineBelow() As Task
+            Await TestCSharp(
+"
+using X;
+
+public class C
+{
+    void M1()
+    {
+    }
+
+    void M2()
+    {
+        throw new NotImplementedException();[||]
+{|changed:|}    }
+
+    void M3()
+    {
+    }
+}
+", "
+        throw new NotImplementedException();")
+        End Function
+
+        <Fact>
+        Public Async Function TestInsertDuplicateLineAbove() As Task
+            Await TestCSharp(
+"
+using X;
+
+public class C
+{
+    void M1()
+    {
+    }
+
+    void M2()
+    {[||]
+        throw new NotImplementedException();
+{|changed:|}    }
+
+    void M3()
+    {
+    }
+}
+", "
+        throw new NotImplementedException();")
+        End Function
     End Class
 End Namespace
