@@ -32,13 +32,8 @@ namespace Microsoft.CodeAnalysis
         public SourceCodeKind SpecifiedKind { get; protected set; }
 
         /// <summary>
-        /// Gets a value indicating whether the documentation comments are parsed and can produce diagnostics, parsed only, or treated as regular comments.
+        /// Gets a value indicating whether the documentation comments are parsed and analyzed.
         /// </summary>
-        /// <value>
-        /// <para><see cref="DocumentationMode.Diagnose"/> if documentation comments are parsed and can produce diagnostics.</para>
-        /// <para><see cref="DocumentationMode.Parse"/> if documentation comments are parsed without producing diagnostics.</para>
-        /// <para><see cref="DocumentationMode.None"/> if documentation comments are treated as regular comments.</para>
-        /// </value>
         public DocumentationMode DocumentationMode { get; protected set; }
 
         internal ParseOptions(SourceCodeKind kind, DocumentationMode documentationMode)
