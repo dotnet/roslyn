@@ -4107,6 +4107,7 @@ class C
         {
             var source = @"
 #nullable enable
+#pragma warning disable 8794 // An expression always matches the provided pattern
 
 class C
 {
@@ -4117,45 +4118,108 @@ class C
         int x, y;
         _ = (b && M0(x = y = 0)) is not true
             ? x.ToString() // 1
-            : y.ToString(); // 2
+            : y.ToString();
     }
 
     void M2(bool b)
     {
         int x, y;
-        _ = (b && M0(x = y = 0)) is true or false // 3
-            ? x.ToString() // 4
+        _ = (b && M0(x = y = 0)) is true or false
+            ? x.ToString() // 2
             : y.ToString(); // unreachable
     }
 
     void M3(bool b)
     {
         int x, y;
-        _ = (b && M0(x = y = 0)) is true and false // 5
+        _ = (b && M0(x = y = 0)) is true and false // 3
             ? x.ToString() // unreachable
+            : y.ToString(); // 4
+    }
+
+    void M4(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is true or true
+            ? x.ToString()
+            : y.ToString(); // 5
+    }
+
+    void M5(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is true and true
+            ? x.ToString()
             : y.ToString(); // 6
+    }
+
+    void M6(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is false or false
+            ? x.ToString() // 7
+            : y.ToString();
+    }
+
+    void M7(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is false and var z
+            ? x.ToString() // 8
+            : y.ToString();
+    }
+
+    void M8(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is var z or true // 9
+            ? x.ToString() // 10
+            : y.ToString(); // unreachable
+    }
+
+    void M9(bool b)
+    {
+        int x, y;
+        _ = (b && M0(x = y = 0)) is not (false and false)
+            ? x.ToString()
+            : y.ToString(); // 11
     }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,15): error CS0165: Use of unassigned local variable 'x'
+                // (13,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 15),
-                // (13,15): error CS0165: Use of unassigned local variable 'y'
-                //             : y.ToString(); // 2
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(13, 15),
-                // (19,13): warning CS8794: An expression of type 'bool' always matches the provided pattern.
-                //         _ = (b && M0(x = y = 0)) is true or false // 3
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "(b && M0(x = y = 0)) is true or false").WithArguments("bool").WithLocation(19, 13),
-                // (20,15): error CS0165: Use of unassigned local variable 'x'
-                //             ? x.ToString() // 4
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(20, 15),
-                // (27,13): error CS8518: An expression of type 'bool' can never match the provided pattern.
-                //         _ = (b && M0(x = y = 0)) is true and false // 5
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "(b && M0(x = y = 0)) is true and false").WithArguments("bool").WithLocation(27, 13),
-                // (29,15): error CS0165: Use of unassigned local variable 'y'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(13, 15),
+                // (21,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(21, 15),
+                // (28,13): error CS8518: An expression of type 'bool' can never match the provided pattern.
+                //         _ = (b && M0(x = y = 0)) is true and false // 3
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "(b && M0(x = y = 0)) is true and false").WithArguments("bool").WithLocation(28, 13),
+                // (30,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(30, 15),
+                // (38,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 5
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(38, 15),
+                // (46,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 6
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 15)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(46, 15),
+                // (53,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 7
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(53, 15),
+                // (61,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 8
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(61, 15),
+                // (68,41): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         _ = (b && M0(x = y = 0)) is var z or true // 9
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(68, 41),
+                // (69,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 10
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(69, 15),
+                // (78,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 11
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(78, 15)
                 );
         }
 

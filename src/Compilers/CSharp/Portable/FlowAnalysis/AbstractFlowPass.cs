@@ -961,13 +961,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
+            Debug.Assert(!IsConditionalState);
+
             bool negated = node.Pattern.IsNegated(out var pattern);
             Debug.Assert(negated == node.IsNegated);
 
-            Debug.Assert(!IsConditionalState);
             if (VisitPossibleConditionalAccess(node.Expression, out var stateWhenNotNull))
             {
-                switch (GetTopLevelNullTest(pattern))
+                switch (isTopLevelNullTest(pattern))
                 {
                     case true:
                         SetConditionalState(stateWhenNotNull, State);
@@ -979,8 +980,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (IsConditionalState)
             {
-                // Note that propagation of conditional state here is intentionally performed only on "simple" constant patterns, not on negated or binary patterns.
-                if (node.Pattern is BoundConstantPattern { ConstantValue: { IsBoolean: true, BooleanValue: var value } })
+                // Patterns which only match a single boolean value should propagate conditional state
+                // for example, `(a != null && a.M(out x)) is true` should have the same conditional state as `(a != null && a.M(out x))`.
+                if (isBoolTest(pattern) is bool value)
                 {
                     if (!value)
                     {
@@ -989,6 +991,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // Patterns which match more than a single boolean value cannot propagate conditional state
+                    // for example, `(a != null && a.M(out x)) is bool b` should not have conditional state
                     Unsplit();
                 }
             }
@@ -1012,47 +1016,87 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return node;
-        }
 
-        /// <returns>
-        /// <see langword="true"/> if the pattern only matches if the top-level input is not null.
-        /// <see langword="false"/> if the pattern only matches if the top-level input is null.
-        /// Otherwise, <see langword="null"/>.
-        /// </returns>
-        private bool? GetTopLevelNullTest(BoundPattern pattern)
-        {
-            switch (pattern)
+            // Returns `true` if the pattern only matches if the top-level input is not null.
+            // Returns `false` if the pattern only matches if the top-level input is null.
+            // Otherwise, returns `null`.
+            static bool? isTopLevelNullTest(BoundPattern pattern)
             {
-                case BoundTypePattern:
-                case BoundRecursivePattern:
-                case BoundITuplePattern:
-                case BoundRelationalPattern:
-                case BoundDeclarationPattern { IsVar: false }:
-                case BoundConstantPattern { ConstantValue: { IsNull: false } }:
-                    return true;
-                case BoundConstantPattern { ConstantValue: { IsNull: true } }:
-                    return false;
-                case BoundNegatedPattern negated:
-                    return !GetTopLevelNullTest(negated.Negated);
-                case BoundBinaryPattern binary:
-                    if (binary.Disjunction)
-                    {
-                        // `a?.b(out x) is null or C`
-                        // both subpatterns must have the same null test for the test to propagate out
-                        var leftNullTest = GetTopLevelNullTest(binary.Left);
-                        return leftNullTest is null ? null :
-                            leftNullTest != GetTopLevelNullTest(binary.Right) ? null :
-                            leftNullTest;
-                    }
+                switch (pattern)
+                {
+                    case BoundTypePattern:
+                    case BoundRecursivePattern:
+                    case BoundITuplePattern:
+                    case BoundRelationalPattern:
+                    case BoundDeclarationPattern { IsVar: false }:
+                    case BoundConstantPattern { ConstantValue: { IsNull: false } }:
+                        return true;
+                    case BoundConstantPattern { ConstantValue: { IsNull: true } }:
+                        return false;
+                    case BoundNegatedPattern negated:
+                        return !isTopLevelNullTest(negated.Negated);
+                    case BoundBinaryPattern binary:
+                        if (binary.Disjunction)
+                        {
+                            // `a?.b(out x) is null or C`
+                            // both subpatterns must have the same null test for the test to propagate out
+                            var leftNullTest = isTopLevelNullTest(binary.Left);
+                            return leftNullTest is null ? null :
+                                leftNullTest != isTopLevelNullTest(binary.Right) ? null :
+                                leftNullTest;
+                        }
 
-                    // `a?.b(out x) is not null and var c`
-                    // if any pattern performs a test, we know that test applies at the top level
-                    // note that if the tests are different, e.g. `null and not null`,
-                    // the pattern is a contradiction, so we expect an error diagnostic
-                    return GetTopLevelNullTest(binary.Left) ?? GetTopLevelNullTest(binary.Right);
+                        // `a?.b(out x) is not null and var c`
+                        // if any pattern performs a test, we know that test applies at the top level
+                        // note that if the tests are different, e.g. `null and not null`,
+                        // the pattern is a contradiction, so we expect an error diagnostic
+                        return isTopLevelNullTest(binary.Left) ?? isTopLevelNullTest(binary.Right);
+                    case BoundDeclarationPattern { IsVar: true }:
+                    case BoundDiscardPattern:
+                        return null;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(pattern);
+                }
             }
 
-            return null;
+            // Returns `true` if the pattern only matches a `true` input.
+            // Returns `false` if the pattern only matches a `false` input.
+            // Otherwise, returns `null`.
+            static bool? isBoolTest(BoundPattern pattern)
+            {
+                switch (pattern)
+                {
+                    case BoundConstantPattern { ConstantValue: { IsBoolean: true, BooleanValue: var boolValue } }:
+                        return boolValue;
+                    case BoundNegatedPattern negated:
+                        return !isBoolTest(negated.Negated);
+                    case BoundBinaryPattern binary:
+                        if (binary.Disjunction)
+                        {
+                            // `(a != null && a.b(out x)) is true or true` matches `true`
+                            // `(a != null && a.b(out x)) is true or false` matches any boolean
+                            // both subpatterns must have the same bool test for the test to propagate out
+                            var leftNullTest = isBoolTest(binary.Left);
+                            return leftNullTest is null ? null :
+                                leftNullTest != isBoolTest(binary.Right) ? null :
+                                leftNullTest;
+                        }
+
+                        // `(a != null && a.b(out x)) is true and true` matches `true`
+                        // `(a != null && a.b(out x)) is true and var x` matches `true`
+                        // `(a != null && a.b(out x)) is true and false` never matches and is a compile error
+                        return isBoolTest(binary.Left) ?? isBoolTest(binary.Right);
+                    case BoundDiscardPattern:
+                    case BoundTypePattern:
+                    case BoundRecursivePattern:
+                    case BoundITuplePattern:
+                    case BoundRelationalPattern:
+                    case BoundDeclarationPattern:
+                        return null;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(pattern);
+                }
+            }
         }
 
         public virtual void VisitPattern(BoundPattern pattern)
