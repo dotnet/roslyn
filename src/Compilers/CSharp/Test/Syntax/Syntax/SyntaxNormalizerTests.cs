@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizeSwitchExpression()
         {
-            TestNormalizeExpression(
+            TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 => ""one"", 2 => ""two"", 3 => ""three"", {} => ""> 4"" };",
                 @"var x = (int)1 switch {
   1 => ""one"",
