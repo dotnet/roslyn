@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   1 => ""one"",
   2 => ""two"",
   3 => ""three"",
-  {} => "">= 4""
+  { } => "">= 4""
 };"
             );
         }
@@ -36,24 +36,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeStatement(
                 @"var x = (object)1 switch {
-		int {} => ""two"",
-		{} t when t.GetHashCode() == 42 => ""42"",
+		int { } => ""two"",
+		{ } t when t.GetHashCode() == 42 => ""42"",
 		System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
 		System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
 		System.ValueType {} => ""not null value"",
 		object {} i when i is not 42 => ""not 42"",
-		{} => ""not null"",
+		{ } => ""not null"",
 		null => ""null"",
 };",
                 @"var x = (object)1 switch
 {
-  int {} => ""two"",
-  {} t when t.GetHashCode() == 42 => ""42"",
+  int { } => ""two"",
+  { } t when t.GetHashCode() == 42 => ""42"",
   System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
   System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
-  System.ValueType {} => ""not null value"",
-  object {} i when i is not 42 => ""not 42"",
-  {} => ""not null"",
+  System.ValueType { } => ""not null value"",
+  object { } i when i is not 42 => ""not 42"",
+  { } => ""not null"",
   null => ""null"",
 };"
             );

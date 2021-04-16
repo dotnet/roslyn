@@ -415,11 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             //inner
             if (tokenIsOpenBrace)
             {
-                if (nextIsCloseBrace)
-                {
-                    //text: {}
-                    return false;
-                }
                 return true;
             }
             if (nextIsCloseBrace)
