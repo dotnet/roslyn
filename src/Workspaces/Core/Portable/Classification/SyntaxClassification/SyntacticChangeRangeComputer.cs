@@ -125,13 +125,13 @@ namespace Microsoft.CodeAnalysis.Classification
                 return default;
             }
 
-            var oldRootWidth = oldRoot.FullWidth();
-            var newRootWidth = newRoot.FullWidth();
-
             // Only compute the right side if we have time for it.  Otherwise, assume there is nothing in common there.
             var commonRightWidth = 0;
             if (stopwatch.Elapsed < timeout)
                 commonRightWidth = ComputeCommonRightWidth(rightOldStack.Object, rightNewStack.Object);
+
+            var oldRootWidth = oldRoot.FullWidth();
+            var newRootWidth = newRoot.FullWidth();
 
             Contract.ThrowIfTrue(commonLeftWidth > oldRootWidth);
             Contract.ThrowIfTrue(commonLeftWidth > newRootWidth);
