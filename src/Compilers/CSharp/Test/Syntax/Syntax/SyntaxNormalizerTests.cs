@@ -16,6 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchExpression()
+        {
+            TestNormalizeExpression(
+                @"var x = (int)1 switch { 1 => ""one"", 2 => ""two"", 3 => ""three"", {} => ""> 4"" };",
+                @"var x = (int)1 switch {
+	1 => ""one"",
+	2 => ""two"",
+	3 => ""three"",
+	{} => "">4""
+};"
+            );
+        }
+
         [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestLineBreakInterpolations()
         {
