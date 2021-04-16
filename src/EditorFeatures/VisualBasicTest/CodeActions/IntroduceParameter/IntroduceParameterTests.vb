@@ -828,7 +828,6 @@ End Class"
         Dim prod = [|1 * 5|]
     End Sub
 End Class"
-
             Await TestMissingInRegularAndScriptAsync(source)
         End Function
 

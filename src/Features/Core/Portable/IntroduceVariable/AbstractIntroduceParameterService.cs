@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
+            if (methodSymbol.Language.Equals("Visual Basic") && methodSymbol.Name.Equals("Finalize") && methodSymbol.IsOverride)
+            {
+                return;
+            }
+
             var actions = await GetActionsAsync(document, expression, methodSymbol, containingMethod, cancellationToken).ConfigureAwait(false);
 
             if (actions is null)
