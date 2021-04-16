@@ -28697,7 +28697,7 @@ public record C(int I) : Base(I) // 1
 ";
             var expected = new[]
             {
-                // (7,21): error CS8913: The positional member `Base.I` found corresponding to this parameter is hidden.
+                // (7,21): error CS8913: The positional member `Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I) // 1
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
                 // (9,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
@@ -28728,7 +28728,7 @@ public record C(int I) : Base(I) // 1
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8913: The positional member `Base.I` found corresponding to this parameter is hidden.
+                // (7,21): error CS8913: The positional member `Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I) // 1
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21)
                 );
@@ -28755,7 +28755,7 @@ public record C(int I) : Base(I)
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (11,21): error CS8913: The positional member `Base.I` found corresponding to this parameter is hidden.
+                // (11,21): error CS8913: The positional member `Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(11, 21),
                 // (13,17): warning CS0108: 'C.I<T>()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
@@ -28783,7 +28783,7 @@ public record C(int I) : Base(I) // 1
 ";
             var expected = new[]
             {
-                // (10,21): error CS8913: The positional member `GrandBase.I` found corresponding to this parameter is hidden.
+                // (10,21): error CS8913: The positional member `GrandBase.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I) // 1
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("GrandBase.I").WithLocation(10, 21),
                 // (12,17): warning CS0108: 'C.I()' hides inherited member 'GrandBase.I'. Use the new keyword if hiding was intended.
@@ -28885,7 +28885,7 @@ public record C(int I) : Base(I)
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8913: The positional member `Base.I` found corresponding to this parameter is hidden.
+                // (7,21): error CS8913: The positional member `Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
                 // (9,18): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
@@ -28911,7 +28911,7 @@ public record C(int I) : Base(I)
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8913: The positional member `Base.I` found corresponding to this parameter is hidden.
+                // (7,21): error CS8913: The positional member `Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
                 // (9,32): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
@@ -28940,7 +28940,7 @@ public record C(int I) : Base(I)
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8913: The positional member `Base.I` found corresponding to this parameter is hidden.
+                // (7,21): error CS8913: The positional member `Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
                 // (9,25): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
