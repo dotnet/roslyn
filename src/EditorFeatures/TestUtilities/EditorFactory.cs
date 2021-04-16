@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.IO;
-using System.Threading;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -16,7 +15,7 @@ namespace Roslyn.Test.EditorUtilities
 {
     public static class EditorFactory
     {
-        public static ITextBuffer CreateBuffer(
+        public static ITextBuffer2 CreateBuffer(
             ExportProvider exportProvider,
             params string[] lines)
         {
