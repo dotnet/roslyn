@@ -220,6 +220,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return LineBreaksAfterCloseBrace(currentToken, nextToken);
 
                 case SyntaxKind.CloseParenToken:
+                    if (currentToken.Parent is PositionalPatternClauseSyntax)
+                    {
+                        return 0;
+                    }
                     // Note: the `where` case handles constraints on method declarations
                     //  and also `where` clauses (consistently with other LINQ cases below)
                     return (((currentToken.Parent is StatementSyntax) && nextToken.Parent != currentToken.Parent)
@@ -293,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             Debug.Assert(openBraceToken.IsKind(SyntaxKind.OpenBraceToken));
             if (openBraceToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                openBraceToken.Parent is InitializerExpressionSyntax ||
+                openBraceToken.Parent is InitializerExpressionSyntax or PropertyPatternClauseSyntax ||
                 IsAccessorListWithoutAccessorsWithBlockBody(openBraceToken.Parent))
             {
                 return 0;
@@ -308,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             Debug.Assert(closeBraceToken.IsKind(SyntaxKind.CloseBraceToken));
             if (closeBraceToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                closeBraceToken.Parent is InitializerExpressionSyntax)
+                closeBraceToken.Parent is InitializerExpressionSyntax or PropertyPatternClauseSyntax)
             {
                 return 0;
             }
@@ -391,6 +395,128 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return 1;
             }
+        }
+
+        private static bool? TryNeedsSeparatorForPropertyPattern(SyntaxToken token, SyntaxToken next)
+        {
+            PropertyPatternClauseSyntax? propPattern =
+                token.Parent as PropertyPatternClauseSyntax ??
+                next.Parent as PropertyPatternClauseSyntax;
+            if (propPattern is null)
+            {
+                return null;
+            }
+
+            var tokenIsOpenBrace = token.IsKind(SyntaxKind.OpenBraceToken);
+            var nextIsOpenBrace = next.IsKind(SyntaxKind.OpenBraceToken);
+            var tokenIsCloseBrace = token.IsKind(SyntaxKind.CloseBraceToken);
+            var nextIsCloseBrace = next.IsKind(SyntaxKind.CloseBraceToken);
+
+            //inner
+            if (tokenIsOpenBrace)
+            {
+                if (nextIsCloseBrace)
+                {
+                    //text: {}
+                    return false;
+                }
+                return true;
+            }
+            if (nextIsCloseBrace)
+            {
+                return true;
+            }
+
+            if (propPattern.Parent is RecursivePatternSyntax rps)
+            {
+                //outer
+                if (nextIsOpenBrace)
+                {
+                    if (rps.Type != null || rps.PositionalPatternClause != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                if (tokenIsCloseBrace)
+                {
+                    if (rps.Designation is null)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static bool? TryNeedsSeparatorForPositionalPattern(SyntaxToken token, SyntaxToken next)
+        {
+            PositionalPatternClauseSyntax? posPattern =
+                token.Parent as PositionalPatternClauseSyntax ??
+                next.Parent as PositionalPatternClauseSyntax;
+            if (posPattern is null)
+            {
+                return null;
+            }
+
+            var tokenIsOpenParen = token.IsKind(SyntaxKind.OpenParenToken);
+            var nextIsOpenParen = next.IsKind(SyntaxKind.OpenParenToken);
+            var tokenIsCloseParen = token.IsKind(SyntaxKind.CloseParenToken);
+            var nextIsCloseParen = next.IsKind(SyntaxKind.CloseParenToken);
+
+            //inner
+            if (tokenIsOpenParen)
+            {
+                if (nextIsCloseParen)
+                {
+                    //text: () //invalid - but?
+                    return false;
+                }
+                return true;
+            }
+            if (nextIsCloseParen)
+            {
+                return true;
+            }
+
+            if (posPattern.Parent is RecursivePatternSyntax rps)
+            {
+                //outer
+                if (nextIsOpenParen)
+                {
+                    if (rps.Type != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                if (tokenIsCloseParen)
+                {
+                    if (rps.PropertyPatternClause is not null)
+                    {
+                        return false;
+                    }
+                    if (rps.Designation is null)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+            }
+            return null;
         }
 
         private static bool NeedsSeparator(SyntaxToken token, SyntaxToken next)
@@ -655,6 +781,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 if (tokenLastChar == nextFirstChar && TokenCharacterCanBeDoubled(tokenLastChar))
                 {
                     return true;
+                }
+            }
+
+            switch (next.Kind())
+            {
+                case SyntaxKind.AndKeyword:
+                case SyntaxKind.OrKeyword:
+                    return true;
+            }
+
+            switch (token.Kind())
+            {
+                case SyntaxKind.AndKeyword:
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.NotKeyword:
+                    return true;
+            }
+            {
+                if (TryNeedsSeparatorForPropertyPattern(token, next) is { } result)
+                {
+                    return result;
+                }
+            }
+            {
+                if (TryNeedsSeparatorForPositionalPattern(token, next) is { } result)
+                {
+                    return result;
                 }
             }
 
