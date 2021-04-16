@@ -17,6 +17,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SyntaxNormalizerTests
     {
         [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizePatternInIf()
+        {
+            TestNormalizeStatement(
+                @"{object x = 1;
+                if (x is {})
+                {
+                }
+                if (x is {} t)
+                {
+                }
+                if (x is int {} t2)
+                {
+                }
+                if (x is System.ValueTuple<int, int>(_, _) { Item1: > 10 } t3)
+                {
+                }
+                if (x is System.ValueTuple<int, int>(_, _) { Item1: > 10, Item2: < 20 })
+                {
+                }
+}",
+                @"{
+  object x = 1;
+  if (x is { })
+  {
+  }
+
+  if (x is { } t)
+  {
+  }
+
+  if (x is int { } t2)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10 } t3)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10, Item2: < 20 })
+  {
+  }
+}"
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
         public void TestNormalizeSwitchExpression()
         {
             TestNormalizeStatement(
