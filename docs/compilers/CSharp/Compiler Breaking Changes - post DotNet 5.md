@@ -41,10 +41,12 @@ record Base
 {
     public int I { get; init; }
 }
-record Derived(int I) // error: The positional member `Base.I` found corresponding to parameter `I` is hidden.
-    : Base
+record Derived(int I) : Base
 {
-    public int I() { return 0; }
+    public int I()// error: 'Derived.I()' hides positional member 'Base.I' for record 'Derived'.
+    {
+        return 0;
+    }
 }
 ```
 
