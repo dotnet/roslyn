@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.IntroduceVariable;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceParameter), Shared]
     internal partial class CSharpIntroduceParameterCodeRefactoringProvider : AbstractIntroduceParameterService<
         ExpressionSyntax,
         InvocationExpressionSyntax,

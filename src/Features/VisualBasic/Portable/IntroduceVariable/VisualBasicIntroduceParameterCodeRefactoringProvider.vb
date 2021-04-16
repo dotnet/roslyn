@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceParameter), [Shared]>
     Friend Class VisualBasicIntroduceParameterCodeRefactoringProvider
         Inherits AbstractIntroduceParameterService(Of ExpressionSyntax, InvocationExpressionSyntax, ObjectCreationExpressionSyntax, IdentifierNameSyntax)
 
