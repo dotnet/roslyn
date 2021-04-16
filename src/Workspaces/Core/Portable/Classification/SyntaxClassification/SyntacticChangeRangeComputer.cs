@@ -206,8 +206,19 @@ namespace Microsoft.CodeAnalysis.Classification
                                           (newRoot.FullSpan.End - currentNew.FullSpan.End));
 
                     // If the two nodes/tokens were the same just skip past them.  They're part of the common right width.
-                    if (currentOld.IsIncrementallyIdenticalTo(currentNew))
+                    // Critically though, we can only skip past if this wasn't already something we consumed when determining
+                    // the common left width.  If this was common the left side, we can't consider it common to the right,
+                    // otherwise we could end up with overlapping regions of commonality.
+                    //
+                    // This can occur in incremental settings when the similar tokens are written successsively.
+                    // Because the parser can reuse underlying token data, it may end up with many incrementally
+                    // identical tokens in a row.
+                    if (currentOld.IsIncrementallyIdenticalTo(currentNew) &&
+                        currentOld.FullSpan.Start >= commonLeftWidth &&
+                        currentNew.FullSpan.Start >= commonLeftWidth)
+                    {
                         continue;
+                    }
 
                     // if we reached a token for either of these, then we can't break things down any further, and we hit
                     // the furthest point they are common.
