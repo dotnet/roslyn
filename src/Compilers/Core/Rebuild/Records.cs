@@ -31,3 +31,8 @@ namespace Microsoft.CodeAnalysis.Rebuild
         int Timestamp,
         int ImageSize);
 }
+
+namespace System.Runtime.CompilerServices
+{
+    public class IsExternalInit{}
+}

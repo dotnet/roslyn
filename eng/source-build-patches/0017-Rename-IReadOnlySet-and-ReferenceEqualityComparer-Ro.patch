@@ -71,6 +71,7 @@ Subject: [PATCH] Rename IReadOnlySet and ReferenceEqualityComparer Roslyn
  .../TypeInference/TypeArgumentInference.vb         |  2 +-
  .../EmbeddedSymbolManager.SymbolsCollection.vb     |  4 +--
  .../Source/SourceMemberContainerTypeSymbol.vb      |  6 ++--
+ .../Retargeting/RetargetingNamedTypeSymbol.cs      |  2 +-
  .../Portable/Symbols/Source/SourceModuleSymbol.vb  |  2 +-
  .../Portable/Symbols/Tuples/TupleTypeSymbol.vb     |  4 +--
  .../Symbol/SymbolsTests/InstantiatingGenerics.vb   |  8 ++---
@@ -278,6 +279,19 @@ index 9b5bb89..352a203 100644
              ImmutableDictionary<MetadataReference, ImmutableArray<MetadataReference>> mergedAssemblyReferencesMap = GetBoundReferenceManager().MergedAssemblyReferencesMap;
  
              foreach (var reference in References)
+diff --git a/src/Compilers/CSharp/Portable/Symbols/Retargeting/RetargetingNamedTypeSymbol.cs b/src/Compilers/CSharp/Portable/Symbols/Retargeting/RetargetingNamedTypeSymbol.cs
+index d4ed3f7..5a42ec9 100644
+--- a/src/Compilers/CSharp/Portable/Symbols/Retargeting/RetargetingNamedTypeSymbol.cs
++++ b/src/Compilers/CSharp/Portable/Symbols/Retargeting/RetargetingNamedTypeSymbol.cs
+@@ -140,7 +140,7 @@ public override void InitializeTupleFieldDefinitionsToIndexMap()
+             Debug.Assert(this.IsTupleType);
+             Debug.Assert(this.IsDefinition); // we only store a map for definitions
+ 
+-            var retargetedMap = new SmallDictionary<FieldSymbol, int>(ReferenceEqualityComparer.Instance);
++            var retargetedMap = new SmallDictionary<FieldSymbol, int>(ReferenceEqualityRoslynComparer.Instance);
+             foreach ((FieldSymbol field, int index) in _underlyingType.TupleFieldDefinitionsToIndexMap)
+             {
+                 retargetedMap.Add(this.RetargetingTranslator.Retarget(field), index);
 diff --git a/src/Compilers/CSharp/Portable/Symbols/Source/SourceMemberContainerSymbol.cs b/src/Compilers/CSharp/Portable/Symbols/Source/SourceMemberContainerSymbol.cs
 index f5cab51..5ffb578 100644
 --- a/src/Compilers/CSharp/Portable/Symbols/Source/SourceMemberContainerSymbol.cs
@@ -317,6 +331,15 @@ diff --git a/src/Compilers/CSharp/Portable/Symbols/Tuples/TupleTypeSymbol.cs b/s
 index b697e7d..1fdc22a 100644
 --- a/src/Compilers/CSharp/Portable/Symbols/Tuples/TupleTypeSymbol.cs
 +++ b/src/Compilers/CSharp/Portable/Symbols/Tuples/TupleTypeSymbol.cs
+@@ -613,7 +613,7 @@ protected ArrayBuilder<Symbol> AddOrWrapTupleMembers(ImmutableArray<Symbol> curr
+
+             // For tuple fields that aren't TupleElementFieldSymbol or TupleErrorFieldSymbol, we cache/map their tuple element index
+             // corresponding to their definition. We only need to do that for the definition of ValueTuple types.
+-            var fieldDefinitionsToIndexMap = IsDefinition ? new SmallDictionary<FieldSymbol, int>(ReferenceEqualityComparer.Instance) : null;
++            var fieldDefinitionsToIndexMap = IsDefinition ? new SmallDictionary<FieldSymbol, int>(ReferenceEqualityRoslynComparer.Instance) : null;
+
+             NamedTypeSymbol currentValueTuple = this;
+             int currentNestingLevel = 0;
 @@ -605,7 +605,7 @@ protected ArrayBuilder<Symbol> AddOrWrapTupleMembers(ImmutableArray<Symbol> curr
                              }
  
@@ -328,13 +351,13 @@ index b697e7d..1fdc22a 100644
                                  // We will re-add all necessary error field symbols below.
 @@ -1061,7 +1061,7 @@ ImmutableArray<FieldSymbol> collectTupleElementFields(NamedTypeSymbol tuple)
  
-             private SmallDictionary<Symbol, Symbol> ComputeDefinitionToMemberMap()
-             {
--                var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
-+                var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityRoslynComparer.Instance);
-                 var members = TupleUnderlyingType.GetMembers();
+                     SmallDictionary<Symbol, Symbol> computeDefinitionToMemberMap()
+                     {
+-                        var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
++                        var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityRoslynComparer.Instance);
+                         var members = TupleUnderlyingType.GetMembers();
  
-                 // Go in reverse because we want members with default name, which precede the ones with
+                         // Go in reverse because we want members with default name, which precede the ones with
 diff --git a/src/Compilers/CSharp/Portable/Symbols/TypeMap.cs b/src/Compilers/CSharp/Portable/Symbols/TypeMap.cs
 index 942a2c8..2468012 100644
 --- a/src/Compilers/CSharp/Portable/Symbols/TypeMap.cs
@@ -613,8 +636,8 @@ index b71fde5..1b554aa 100644
 -        public IReadOnlySet<string> EmbeddedSourcePaths { get; }
 +        public IRoslynReadOnlySet<string> EmbeddedSourcePaths { get; }
  
-         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
- 
+         /// <summary>
+         /// The <see cref="ICommonCompilerFileSystem"/> used to access the file system inside this instance.
 @@ -477,7 +477,7 @@ private static FileStream OpenFileForReadWithSmallBufferOptimization(string file
              OrderedSet<string> embeddedFiles,
              DiagnosticBag diagnostics);
@@ -647,7 +670,7 @@ index 04b651c..dd84e12 100644
              _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
 -            _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
 +            _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityRoslynComparer.Instance) : null;
-             _lazyAnalyzerGateMap = ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
+             _lazyAnalyzerGateMap = ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
          }
  
 diff --git a/src/Compilers/Core/Portable/DiagnosticAnalyzer/DiagnosticAnalyzer.cs b/src/Compilers/Core/Portable/DiagnosticAnalyzer/DiagnosticAnalyzer.cs
@@ -937,12 +960,12 @@ index 296221f..7c8d2c5 100644
 @@ -386,7 +386,7 @@ private struct WriterReferenceMap
              private int _nextId;
  
-             private static readonly ObjectPool<Dictionary<object, int>> s_referenceDictionaryPool =
--                new(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
-+                new(() => new Dictionary<object, int>(128, ReferenceEqualityRoslynComparer.Instance));
+             private static readonly ObjectPool<SegmentedDictionary<object, int>> s_referenceDictionaryPool =
+-                new(() => new SegmentedDictionary<object, int>(128, ReferenceEqualityComparer.Instance));
++                new(() => new SegmentedDictionary<object, int>(128, ReferenceEqualityRoslynComparer.Instance));
  
-             private static readonly ObjectPool<Dictionary<object, int>> s_valueDictionaryPool =
-                 new(() => new Dictionary<object, int>(128));
+             private static readonly ObjectPool<SegmentedDictionary<object, int>> s_valueDictionaryPool =
+                 new(() => new SegmentedDictionary<object, int>(128));
 diff --git a/src/Compilers/Test/Core/Assert/AssertXml.cs b/src/Compilers/Test/Core/Assert/AssertXml.cs
 index 295f63f..409d5c9 100644
 --- a/src/Compilers/Test/Core/Assert/AssertXml.cs
