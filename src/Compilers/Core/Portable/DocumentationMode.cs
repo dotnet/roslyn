@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Specifies the different documentation comment processing modes.
     /// </summary>
-    /// <remarks>
+    /// <devremarks>
     /// Order matters: least processing to most processing.
-    /// </remarks>
+    /// </devremarks>
     public enum DocumentationMode : byte
     {
         /// <summary>
