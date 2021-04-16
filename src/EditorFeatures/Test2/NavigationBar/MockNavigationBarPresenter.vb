@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
@@ -35,11 +36,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
         End Sub
 
-        Public Sub PresentItems(projects As IList(Of NavigationBarProjectItem),
-                         selectedProject As NavigationBarProjectItem,
-                         typesWithMembers As IList(Of NavigationBarItem),
-                         selectedType As NavigationBarItem,
-                         selectedMember As NavigationBarItem) Implements INavigationBarPresenter.PresentItems
+        Public Sub PresentItems(
+                projects As ImmutableArray(Of NavigationBarProjectItem),
+                selectedProject As NavigationBarProjectItem,
+                typesWithMembers As ImmutableArray(Of NavigationBarItem),
+                selectedType As NavigationBarItem,
+                selectedMember As NavigationBarItem) Implements INavigationBarPresenter.PresentItems
             If _presentItemsCallback IsNot Nothing Then
                 _presentItemsCallback()
             End If
