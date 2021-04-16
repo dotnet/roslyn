@@ -246,6 +246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return 1;
                     }
                     break;
+                case SyntaxKind.SwitchKeyword when currentToken.Parent is SwitchExpressionSyntax:
+                    return 1;
             }
 
             if ((nextToken.IsKind(SyntaxKind.FromKeyword) && nextToken.Parent.IsKind(SyntaxKind.FromClause)) ||
@@ -318,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
-            if (currentToken.Parent is InitializerExpressionSyntax or RecursivePatternSyntax ||
+            if (currentToken.Parent is InitializerExpressionSyntax or PropertyPatternClauseSyntax ||
                 currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
                 IsAccessorListWithoutAccessorsWithBlockBody(currentToken.Parent))
             {
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterCloseBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
-            if (currentToken.Parent is InitializerExpressionSyntax or SwitchExpressionSyntax or RecursivePatternSyntax ||
+            if (currentToken.Parent is InitializerExpressionSyntax or SwitchExpressionSyntax or PropertyPatternClauseSyntax ||
                 currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
                 currentToken.Parent?.Parent is AnonymousFunctionExpressionSyntax ||
                 IsAccessorListFollowedByInitializer(currentToken.Parent))
@@ -448,6 +450,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (token.Kind() == SyntaxKind.SemicolonToken
                 && !(next.Kind() == SyntaxKind.SemicolonToken || next.Kind() == SyntaxKind.CloseParenToken))
+            {
+                return true;
+            }
+
+            if (next.IsKind(SyntaxKind.SwitchKeyword) && next.Parent is SwitchExpressionSyntax)
             {
                 return true;
             }
