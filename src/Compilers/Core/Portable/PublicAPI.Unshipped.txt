@@ -22,7 +22,7 @@ Microsoft.CodeAnalysis.IncrementalGeneratorOutput.IncrementalGeneratorOutput() -
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.IncrementalGeneratorPipelineContext() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.RegisterOutput(Microsoft.CodeAnalysis.IncrementalGeneratorOutput output) -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.Sources.get -> Microsoft.CodeAnalysis.ValueSources!
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.Sources.get -> Microsoft.CodeAnalysis.ValueSources
 Microsoft.CodeAnalysis.IncrementalValueSource<T>
 Microsoft.CodeAnalysis.IncrementalValueSource<T>.IncrementalValueSource() -> void
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
@@ -57,6 +57,7 @@ Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnal
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 Microsoft.CodeAnalysis.ValueSources
 Microsoft.CodeAnalysis.ValueSources.AdditionalTexts.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.AdditionalText!>
+Microsoft.CodeAnalysis.ValueSources.AnalyzerConfigOptions.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
 Microsoft.CodeAnalysis.ValueSources.Compilation.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Compilation!>
 Microsoft.CodeAnalysis.ValueSources.ValueSources() -> void
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int

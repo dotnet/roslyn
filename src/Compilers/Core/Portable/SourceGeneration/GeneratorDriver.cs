@@ -304,10 +304,18 @@ namespace Microsoft.CodeAnalysis
 
             // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
 
-            var compilationState = new NodeStateTable<Compilation>.Builder();
-            compilationState.AddEntries(ImmutableArray.Create(compilation), EntryState.Modified);
+            var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
+            driverStateBuilder.SetInputState(CommonValueSources.Compilation, NodeStateTable<Compilation>.WithSingleItem(compilation, EntryState.Added));
+            driverStateBuilder.SetInputState(CommonValueSources.AnalzerConfigOptions, NodeStateTable<AnalyzerConfigOptionsProvider>.WithSingleItem(_state.OptionsProvider, EntryState.Added));
 
-            var driverStateBuilder = new DriverStateTable.Builder(state.StateTable.SetStateTable(CommonValueSources.Compilation, compilationState.ToImmutableAndFree()), cancellationToken);
+            var additionalBuiilder = new NodeStateTable<AdditionalText>.Builder();
+            foreach (var text in _state.AdditionalTexts)
+            {
+                additionalBuiilder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
+            }
+            driverStateBuilder.SetInputState(CommonValueSources.AdditionalTexts, additionalBuiilder.ToImmutableAndFree());
+
+
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
@@ -319,7 +327,9 @@ namespace Microsoft.CodeAnalysis
                 if (generatorState.SyntaxReceiver is object)
                 {
                     Debug.Assert(generatorState.Sources.ReceiverNode is object);
-                    driverStateBuilder.SetInputState(generatorState.Sources.ReceiverNode, NodeStateTable<ISyntaxContextReceiver>.WithSingleItem(generatorState.SyntaxReceiver, EntryState.Modified));
+
+                    // PROTOTYPE(source-generators): if we can somehow compare the syntax walkers (maybe just enough to overload equals?) then this can be made to be incremental
+                    driverStateBuilder.SetInputState(generatorState.Sources.ReceiverNode, NodeStateTable<ISyntaxContextReceiver>.WithSingleItem(generatorState.SyntaxReceiver, EntryState.Added));
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());

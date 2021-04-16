@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(CommonValueSources.AdditionalTexts);
 
+        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(CommonValueSources.AnalzerConfigOptions);
+
         //only used for back compat in the adaptor
         internal IncrementalValueSource<ISyntaxContextReceiver> SyntaxReceiver => new IncrementalValueSource<ISyntaxContextReceiver>(_generatorSourceBuilder.ReceiverNode);
     }
@@ -33,6 +36,7 @@ namespace Microsoft.CodeAnalysis
 
         public static readonly InputNode<AdditionalText> AdditionalTexts = new InputNode<AdditionalText>();
 
+        public static readonly InputNode<AnalyzerConfigOptionsProvider> AnalzerConfigOptions = new InputNode<AnalyzerConfigOptionsProvider>();
     }
 
     /// <summary>

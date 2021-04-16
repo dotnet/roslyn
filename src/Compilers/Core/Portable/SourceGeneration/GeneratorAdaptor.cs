@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -38,18 +40,22 @@ namespace Microsoft.CodeAnalysis
 
             context.RegisterExecutionPipeline((ctx) =>
             {
-                var combined = ctx.Sources.Compilation.Join(ctx.Sources.SyntaxReceiver);
+                var context = ctx.Sources.Compilation
+                                         .Transform(c => new GeneratorContextBuilder(c))
+                                         .Transform(c => c with { Options = c.Compilation.SyntaxTrees.First().Options }) // PROTOTYPE(source-generators): we should make an input source for the parse options
+                                         .Join(ctx.Sources.AnalyzerConfigOptions).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
+                                         .Join(ctx.Sources.SyntaxReceiver).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
+                                         .Join(ctx.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2.ToImmutableArray() });
 
-                var output = combined.GenerateSource((context, pair) =>
+
+                var output = context.GenerateSource((context, contextBuilder) =>
                 {
-                    var compilation = pair.Item1;
-                    var receiver = pair.Item2.SingleOrDefault();
 
                     // PROTOTYPE(source-generators): VB extensions
                     AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
 
                     // PROTOTYPE(source-generators): options/additionaltexts/configoptions
-                    var oldContext = new GeneratorExecutionContext(compilation, compilation.SyntaxTrees.First().Options, ImmutableArray<AdditionalText>.Empty, Diagnostics.CompilerAnalyzerConfigOptionsProvider.Empty, receiver, asc, context.CancellationToken);
+                    var oldContext = contextBuilder.ToExecutionContext(asc, context.CancellationToken);
 
                     // PROTOTYPE(source-generators):If this throws, we'll wrap it in a user func as expected. We probably *should* do that for the rest of this code though
                     // So we probably need an internal version that doesn't wrap it? Maybe we can just construct the nodes manually.
@@ -103,6 +109,25 @@ namespace Microsoft.CodeAnalysis
                 //}
                 //state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
             });
+        }
+
+        record GeneratorContextBuilder(Compilation Compilation)
+        {
+            public ParseOptions? Options;
+
+            public ImmutableArray<AdditionalText> AdditionalTexts;
+
+            public Diagnostics.AnalyzerConfigOptionsProvider? ConfigOptions;
+
+            public ISyntaxContextReceiver? Receiver;
+
+            public GeneratorExecutionContext ToExecutionContext(AdditionalSourcesCollection asc, CancellationToken cancellationToken)
+            {
+                Debug.Assert(Options is object && ConfigOptions is object);
+                return new GeneratorExecutionContext(Compilation, Options, AdditionalTexts, ConfigOptions, Receiver, asc, cancellationToken);
+
+            }
+
         }
     }
 }

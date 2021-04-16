@@ -800,6 +800,67 @@ class C
         }
 
         [Fact]
+        public void AdditionalFiles_Are_Passed_To_Generator()
+        {
+            var source = @"
+class C 
+{
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var texts = ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a", "abc"), new InMemoryAdditionalText("b", "def"));
+
+            ImmutableArray<AdditionalText> passedIn = default;
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => { },
+                onExecute: (e) => passedIn = e.AdditionalFiles
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions, additionalTexts: texts);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.Equal(2, passedIn.Length);
+            AssertEx.SetEqual(texts, passedIn);
+        }
+
+        [Fact]
+        public void AnalyzerConfigOptions_Are_Passed_To_Generator()
+        {
+            var source = @"
+class C 
+{
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
+
+            AnalyzerConfigOptionsProvider? passedIn = null;
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => { },
+                onExecute: (e) => passedIn = e.AnalyzerConfigOptions
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions, optionsProvider: options);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.NotNull(passedIn);
+
+            Assert.True(passedIn!.GlobalOptions.TryGetValue("a", out var item1));
+            Assert.Equal("abc", item1);
+
+            Assert.True(passedIn!.GlobalOptions.TryGetValue("b", out var item2));
+            Assert.Equal("def", item2);
+        }
+
+        [Fact]
         public void Generator_Can_Provide_Source_In_PostInit()
         {
             var source = @"
@@ -1249,7 +1310,7 @@ class C { }
 
             // ran the combined generator only as an IIncrementalGenerator
             Assert.Equal(0, dualInitCount);
-            Assert.Equal(1, dualExecuteCount);
+            Assert.Equal(0, dualExecuteCount);
             Assert.Equal(1, dualIncrementalInitCount);
         }
 
