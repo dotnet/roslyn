@@ -5764,6 +5764,55 @@ class Test
                 );
         }
 
+        [Fact]
+        public void ConsumeAbstractStaticMethod_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        T.M01();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.M01();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.M01();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
+                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
+                );
+        }
+
         [Theory]
         [InlineData("+", "")]
         [InlineData("-", "")]
@@ -6119,6 +6168,60 @@ class Test
                 );
         }
 
+        [Theory]
+        [InlineData("+", "")]
+        [InlineData("-", "")]
+        [InlineData("!", "")]
+        [InlineData("~", "")]
+        [InlineData("++", "")]
+        [InlineData("--", "")]
+        [InlineData("", "++")]
+        [InlineData("", "--")]
+        public void ConsumeAbstractUnaryOperator_06(string prefixOp, string postfixOp)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator" + prefixOp + postfixOp + @" (T x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>(T x) where T : I1<T>
+    {
+        _ = " + prefixOp + "x" + postfixOp + @";
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = -x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static T operator- (T x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments("abstract", "9.0", "preview").WithLocation(12, 31)
+                );
+        }
+
         [Fact]
         public void ConsumeAbstractTrueOperator_01()
         {
@@ -6282,6 +6385,56 @@ class Test
                 // (13,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static bool operator false (I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(13, 35)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractTrueOperator_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>(T x) where T : I1
+    {
+        _ = x ? true : false;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x ? true : false;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator true (I1 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments("abstract", "9.0", "preview").WithLocation(12, 35),
+                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator false (I1 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments("abstract", "9.0", "preview").WithLocation(13, 35)
                 );
         }
 
@@ -7570,6 +7723,206 @@ class Test
                 );
         }
 
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        [InlineData("%")]
+        [InlineData("&")]
+        [InlineData("|")]
+        [InlineData("^")]
+        [InlineData("<<")]
+        [InlineData(">>")]
+        public void ConsumeAbstractBinaryOperator_06(string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator" + op + @" (I1 x, int y);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>(T x, int y) where T : I1
+    {
+        _ = x " + op + @" y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x - y;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static I1 operator- (I1 x, int y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
+                );
+        }
+
+        [Theory]
+        [InlineData("&", true, false, false, false)]
+        [InlineData("|", true, false, false, false)]
+        [InlineData("&", false, false, true, false)]
+        [InlineData("|", false, true, false, false)]
+        [InlineData("&", true, false, true, false)]
+        [InlineData("|", true, true, false, false)]
+        [InlineData("&", false, true, false, true)]
+        [InlineData("|", false, false, true, true)]
+        public void ConsumeAbstractLogicalBinaryOperator_06(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool success)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    " + (binaryIsAbstract ? "abstract " : "") + @"static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? ";" : " => throw null;") + @"
+    " + (trueIsAbstract ? "abstract " : "") + @"static bool operator true (I1 x)" + (trueIsAbstract ? ";" : " => throw null;") + @"
+    " + (falseIsAbstract ? "abstract " : "") + @"static bool operator false (I1 x)" + (falseIsAbstract ? ";" : " => throw null;") + @"
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>(T x, T y) where T : I1
+    {
+        _ = x " + op + op + @" y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreAppAndCSharp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            if (success)
+            {
+                compilation2.VerifyDiagnostics();
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = x && y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                    );
+            }
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+
+            if (binaryIsAbstract)
+            {
+                builder.Add(
+                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static I1 operator& (I1 x, I1 y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
+                    );
+            }
+
+            if (trueIsAbstract)
+            {
+                builder.Add(
+                    // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static bool operator true (I1 x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments("abstract", "9.0", "preview").WithLocation(13, 35)
+                    );
+            }
+
+            if (falseIsAbstract)
+            {
+                builder.Add(
+                    // (14,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static bool operator false (I1 x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments("abstract", "9.0", "preview").WithLocation(14, 35)
+                    );
+            }
+
+            compilation3.VerifyDiagnostics(builder.ToArrayAndFree());
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        [InlineData("%")]
+        [InlineData("&")]
+        [InlineData("|")]
+        [InlineData("^")]
+        [InlineData("<<")]
+        [InlineData(">>")]
+        public void ConsumeAbstractCompoundBinaryOperator_06(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator" + op + @" (T x, int y);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>(T x, int y) where T : I1<T>
+    {
+        x " + op + @"= y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         x <<= y;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static T operator<< (T x, int y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 31)
+                );
+        }
+
         [Fact]
         public void ConsumeAbstractStaticPropertyGet_01()
         {
@@ -8270,6 +8623,153 @@ class Test
         }
 
         [Fact]
+        public void ConsumeAbstractStaticPropertyGet_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int P01 { get; set; }
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        _ = T.P01;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = T.P01;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = T.P01;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 13),
+                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 25)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticPropertySet_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int P01 { get; set; }
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        T.P01 = 1;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.P01 = 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.P01 = 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
+                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 25)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticPropertyCompound_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int P01 { get; set; }
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        T.P01 += 1;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.P01 += 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.P01 += 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
+                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 25)
+                );
+        }
+
+        [Fact]
         public void ConsumeAbstractStaticEventAdd_01()
         {
             var source1 =
@@ -8618,7 +9118,7 @@ IEventReferenceOperation: event System.Action I1.E01 (Static) (OperationKind.Eve
         }
 
         [Fact]
-        public void ConsumeAbstractStaticPropertyAdd_04()
+        public void ConsumeAbstractStaticEventAdd_04()
         {
             var source1 =
 @"
@@ -8664,7 +9164,7 @@ class Test
         }
 
         [Fact]
-        public void ConsumeAbstractStaticPropertyRemove_04()
+        public void ConsumeAbstractStaticEventRemove_04()
         {
             var source1 =
 @"
@@ -8706,6 +9206,104 @@ class Test
                 // (12,41): error CS9100: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static event System.Action P01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "P01").WithLocation(12, 41)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticEventAdd_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static event System.Action P01;
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        T.P01 += null;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.P01 += null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.P01 += null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
+                // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static event System.Action P01;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 41)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticEventRemove_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static event System.Action P01;
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        T.P01 -= null;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.P01 -= null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         T.P01 -= null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
+                // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static event System.Action P01;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 41)
                 );
         }
 
