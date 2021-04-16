@@ -5664,6 +5664,33 @@ class Test
 }
 ");
 
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  0
+  IL_0000:  constrained. ""T""
+  IL_0006:  call       ""void I1.M01()""
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M03<T, U>()",
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldstr      ""M01""
+  IL_0005:  ret
+}
+");
+
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
@@ -5923,7 +5950,7 @@ class Test
                     verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
-  // Code size       22 (0x16)
+  // Code size       21 (0x15)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  nop
@@ -5932,17 +5959,16 @@ class Test
   IL_0008:  call       ""T I1<T>." + metadataName + @"(T)""
   IL_000d:  dup
   IL_000e:  starg.s    V_0
-  IL_0010:  dup
-  IL_0011:  stloc.0
-  IL_0012:  br.s       IL_0014
-  IL_0014:  ldloc.0
-  IL_0015:  ret
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_0013
+  IL_0013:  ldloc.0
+  IL_0014:  ret
 }
 ");
                     verifier.VerifyIL("Test.M03<T, U>(T?)",
 @"
 {
-  // Code size       55 (0x37)
+  // Code size       54 (0x36)
   .maxstack  2
   .locals init (T? V_0,
                 T? V_1,
@@ -5964,11 +5990,10 @@ class Test
   IL_0029:  newobj     ""T?..ctor(T)""
   IL_002e:  dup
   IL_002f:  starg.s    V_0
-  IL_0031:  dup
-  IL_0032:  stloc.2
-  IL_0033:  br.s       IL_0035
-  IL_0035:  ldloc.2
-  IL_0036:  ret
+  IL_0031:  stloc.2
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.2
+  IL_0035:  ret
 }
 ");
                     break;
@@ -5978,7 +6003,7 @@ class Test
                     verifier.VerifyIL("Test.M02<T, U>(T)",
 @"
 {
-  // Code size       22 (0x16)
+  // Code size       21 (0x15)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  nop
@@ -5987,17 +6012,16 @@ class Test
   IL_0003:  constrained. ""T""
   IL_0009:  call       ""T I1<T>." + metadataName + @"(T)""
   IL_000e:  starg.s    V_0
-  IL_0010:  dup
-  IL_0011:  stloc.0
-  IL_0012:  br.s       IL_0014
-  IL_0014:  ldloc.0
-  IL_0015:  ret
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_0013
+  IL_0013:  ldloc.0
+  IL_0014:  ret
 }
 ");
                     verifier.VerifyIL("Test.M03<T, U>(T?)",
 @"
 {
-  // Code size       55 (0x37)
+  // Code size       54 (0x36)
   .maxstack  2
   .locals init (T? V_0,
                 T? V_1,
@@ -6019,11 +6043,10 @@ class Test
   IL_0025:  call       ""T I1<T>." + metadataName + @"(T)""
   IL_002a:  newobj     ""T?..ctor(T)""
   IL_002f:  starg.s    V_0
-  IL_0031:  dup
-  IL_0032:  stloc.2
-  IL_0033:  br.s       IL_0035
-  IL_0035:  ldloc.2
-  IL_0036:  ret
+  IL_0031:  stloc.2
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.2
+  IL_0035:  ret
 }
 ");
                     break;
@@ -6072,6 +6095,139 @@ class Test
   IL_002f:  br.s       IL_0031
   IL_0031:  ldloc.2
   IL_0032:  ret
+}
+");
+                    break;
+            }
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            switch ((prefixOp, postfixOp))
+            {
+                case ("++", ""):
+                case ("--", ""):
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_000c:  dup
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
+}
+");
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_002d
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001d:  constrained. ""T""
+  IL_0023:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_0028:  newobj     ""T?..ctor(T)""
+  IL_002d:  dup
+  IL_002e:  starg.s    V_0
+  IL_0030:  ret
+}
+");
+                    break;
+
+                case ("", "++"):
+                case ("", "--"):
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
+}
+");
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""readonly bool T?.HasValue.get""
+  IL_000a:  brtrue.s   IL_0017
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  initobj    ""T?""
+  IL_0014:  ldloc.1
+  IL_0015:  br.s       IL_002e
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_0029:  newobj     ""T?..ctor(T)""
+  IL_002e:  starg.s    V_0
+  IL_0030:  ret
+}
+");
+                    break;
+
+                default:
+                    verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_000c:  ret
+}
+");
+                    verifier.VerifyIL("Test.M03<T, U>(T?)",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001c:  constrained. ""T""
+  IL_0022:  call       ""T I1<T>." + metadataName + @"(T)""
+  IL_0027:  newobj     ""T?..ctor(T)""
+  IL_002c:  ret
 }
 ");
                     break;
@@ -6313,6 +6469,25 @@ class Test
   IL_000d:  brtrue.s   IL_0011
   IL_000f:  br.s       IL_0011
   IL_0011:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""bool I1<T>.op_True(T)""
+  IL_000c:  pop
+  IL_000d:  ret
 }
 ");
 
@@ -6984,6 +7159,111 @@ class Test
 }
 ");
 
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (!isShiftOperator)
+            {
+                verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(int, T)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+                verifier.VerifyIL("Test.M04<T, U>(T?)",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (T? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brfalse.s  IL_001f
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0013:  constrained. ""T""
+  IL_0019:  call       ""T I1<T>." + metadataName + @"(int, T)""
+  IL_001e:  pop
+  IL_001f:  ret
+}
+");
+                verifier.VerifyIL("Test.M06<T, U>(I1<T>, T)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(I1<T>, T)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+
+                verifier.VerifyIL("Test.M07<T, U>(T, I1<T>)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(T, I1<T>)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+            }
+
+            verifier.VerifyIL("Test.M03<T, U>(T)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(T, int)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M05<T, U>(T?)",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (T? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brfalse.s  IL_001f
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0012:  ldc.i4.1
+  IL_0013:  constrained. ""T""
+  IL_0019:  call       ""T I1<T>." + metadataName + @"(T, int)""
+  IL_001e:  pop
+  IL_001f:  ret
+}
+");
+
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(n => n.ToString() == "x " + op + " 1").Single();
@@ -7117,6 +7397,66 @@ class Test
   IL_0041:  pop
   IL_0042:  br.s       IL_0044
   IL_0044:  ret
+}
+");
+
+                compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreAppAndCSharp);
+
+                verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+                verifier.VerifyIL("Test.M03<T, U>(T, T)",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""bool I1<T>." + unaryMetadataName + @"(T)""
+  IL_000e:  brtrue.s   IL_001e
+  IL_0010:  ldloc.0
+  IL_0011:  ldarg.1
+  IL_0012:  constrained. ""T""
+  IL_0018:  call       ""T I1<T>." + binaryMetadataName + @"(T, T)""
+  IL_001d:  pop
+  IL_001e:  ret
+}
+");
+                verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1,
+                T? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""bool I2<T>." + unaryMetadataName + @"(T?)""
+  IL_000e:  brtrue.s   IL_003f
+  IL_0010:  ldloc.0
+  IL_0011:  stloc.1
+  IL_0012:  ldarg.1
+  IL_0013:  stloc.2
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""readonly bool T?.HasValue.get""
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  call       ""readonly bool T?.HasValue.get""
+  IL_0022:  and
+  IL_0023:  brfalse.s  IL_003f
+  IL_0025:  ldloca.s   V_1
+  IL_0027:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_002c:  ldloca.s   V_2
+  IL_002e:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0033:  constrained. ""T""
+  IL_0039:  call       ""T I2<T>." + binaryMetadataName + @"(T, T)""
+  IL_003e:  pop
+  IL_003f:  ret
 }
 ");
 
@@ -7265,6 +7605,109 @@ class Test
   IL_0022:  pop
   IL_0023:  br.s       IL_0025
   IL_0025:  ret
+}
+");
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreAppAndCSharp);
+
+                verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+                switch (binaryIsAbstract, unaryIsAbstract)
+                {
+                    case (true, false):
+                        verifier.VerifyIL("Test.M03<T, U>(T, T)",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (I1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""bool I1." + unaryMetadataName + @"(I1)""
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  ldloc.0
+  IL_0010:  ldarg.1
+  IL_0011:  box        ""T""
+  IL_0016:  constrained. ""T""
+  IL_001c:  call       ""I1 I1." + binaryMetadataName + @"(I1, I1)""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
+                        verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (I1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T?""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""bool I1." + unaryMetadataName + @"(I1)""
+  IL_000d:  brtrue.s   IL_0022
+  IL_000f:  ldloc.0
+  IL_0010:  ldarg.1
+  IL_0011:  box        ""T?""
+  IL_0016:  constrained. ""T""
+  IL_001c:  call       ""I1 I1." + binaryMetadataName + @"(I1, I1)""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
+                        break;
+
+                    case (false, true):
+                        verifier.VerifyIL("Test.M03<T, U>(T, T)",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (I1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  constrained. ""T""
+  IL_000e:  call       ""bool I1." + unaryMetadataName + @"(I1)""
+  IL_0013:  brtrue.s   IL_0022
+  IL_0015:  ldloc.0
+  IL_0016:  ldarg.1
+  IL_0017:  box        ""T""
+  IL_001c:  call       ""I1 I1." + binaryMetadataName + @"(I1, I1)""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
+                        verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (I1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T?""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  constrained. ""T""
+  IL_000e:  call       ""bool I1." + unaryMetadataName + @"(I1)""
+  IL_0013:  brtrue.s   IL_0022
+  IL_0015:  ldloc.0
+  IL_0016:  ldarg.1
+  IL_0017:  box        ""T?""
+  IL_001c:  call       ""I1 I1." + binaryMetadataName + @"(I1, I1)""
+  IL_0021:  pop
+  IL_0022:  ret
 }
 ");
                         break;
@@ -7500,6 +7943,130 @@ class Test
   IL_002a:  newobj     ""T?..ctor(T)""
   IL_002f:  starg.s    V_0
   IL_0031:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (!isShiftOperator)
+            {
+                verifier.VerifyIL("Test.M02<T, U>(int, T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""int I1<T>." + metadataName + @"(int, T)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
+}
+");
+                verifier.VerifyIL("Test.M04<T, U>(int?, T?)",
+@"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (int? V_0,
+                T? V_1,
+                int? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  call       ""readonly bool int?.HasValue.get""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""readonly bool T?.HasValue.get""
+  IL_0012:  and
+  IL_0013:  brtrue.s   IL_0020
+  IL_0015:  ldloca.s   V_2
+  IL_0017:  initobj    ""int?""
+  IL_001d:  ldloc.2
+  IL_001e:  br.s       IL_003e
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""readonly int int?.GetValueOrDefault()""
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_002e:  constrained. ""T""
+  IL_0034:  call       ""int I1<T>." + metadataName + @"(int, T)""
+  IL_0039:  newobj     ""int?..ctor(int)""
+  IL_003e:  starg.s    V_0
+  IL_0040:  ret
+}
+");
+                verifier.VerifyIL("Test.M06<T, U>(I1<T>, T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""I1<T> I1<T>." + metadataName + @"(I1<T>, T)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
+}
+");
+
+                verifier.VerifyIL("Test.M07<T, U>(T, I1<T>)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(T, I1<T>)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
+}
+");
+            }
+
+            verifier.VerifyIL("Test.M03<T, U>(T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(T, int)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M05<T, U>(T?)",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_002e
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""T I1<T>." + metadataName + @"(T, int)""
+  IL_0029:  newobj     ""T?..ctor(T)""
+  IL_002e:  starg.s    V_0
+  IL_0030:  ret
 }
 ");
 
@@ -8313,6 +8880,24 @@ class Test
 }
 ");
 
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  constrained. ""T""
+  IL_0006:  call       ""int I1.P01.get""
+  IL_000b:  pop
+  IL_000c:  ret
+}
+");
+
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First().Right;
@@ -8368,6 +8953,24 @@ class Test
   IL_0008:  call       ""void I1.P01.set""
   IL_000d:  nop
   IL_000e:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""void I1.P01.set""
+  IL_000c:  ret
 }
 ");
 
@@ -8449,6 +9052,37 @@ class Test
   IL_0007:  br.s       IL_0009
   IL_0009:  ldloc.0
   IL_000a:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  constrained. ""T""
+  IL_0006:  call       ""int I1.P01.get""
+  IL_000b:  ldc.i4.1
+  IL_000c:  add
+  IL_000d:  constrained. ""T""
+  IL_0013:  call       ""void I1.P01.set""
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M03<T, U>()",
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldstr      ""P01""
+  IL_0005:  ret
 }
 ");
 
@@ -9097,6 +9731,37 @@ class Test
 }
 ");
 
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""void I1.E01.add""
+  IL_000c:  ldnull
+  IL_000d:  constrained. ""T""
+  IL_0013:  call       ""void I1.E01.remove""
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M03<T, U>()",
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldstr      ""E01""
+  IL_0005:  ret
+}
+");
+
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First().Left;
@@ -9501,6 +10166,785 @@ class Test
   IL_001c:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToDelegate_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static void M01();
+
+    static void M02()
+    {
+        _ = (System.Action)M01;
+        _ = (System.Action)M04;
+    }
+
+    void M03()
+    {
+        _ = (System.Action)this.M01;
+        _ = (System.Action)this.M04;
+    }
+
+    static void M04() {}
+
+    protected abstract static void M05();
+}
+
+class Test
+{
+    static void MT1(I1 x)
+    {
+        _ = (System.Action)I1.M01;
+        _ = (System.Action)x.M01;
+        _ = (System.Action)I1.M04;
+        _ = (System.Action)x.M04;
+    }
+
+    static void MT2<T>() where T : I1
+    {
+        _ = (System.Action)T.M03;
+        _ = (System.Action)T.M04;
+        _ = (System.Action)T.M00;
+        _ = (System.Action)T.M05;
+
+        _ = (System.Linq.Expressions.Expression<System.Action>)(() => ((System.Action)T.M01).ToString());
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (8,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = (System.Action)M01;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(System.Action)M01").WithLocation(8, 13),
+                // (14,28): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = (System.Action)this.M01;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M01").WithArguments("I1.M01()").WithLocation(14, 28),
+                // (15,28): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = (System.Action)this.M04;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M04").WithArguments("I1.M04()").WithLocation(15, 28),
+                // (27,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = (System.Action)I1.M01;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(System.Action)I1.M01").WithLocation(27, 13),
+                // (28,28): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = (System.Action)x.M01;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M01").WithArguments("I1.M01()").WithLocation(28, 28),
+                // (30,28): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = (System.Action)x.M04;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M04").WithArguments("I1.M04()").WithLocation(30, 28),
+                // (35,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = (System.Action)T.M03;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 28),
+                // (36,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = (System.Action)T.M04;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 28),
+                // (37,28): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = (System.Action)T.M00;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 28),
+                // (38,30): error CS0122: 'I1.M05()' is inaccessible due to its protection level
+                //         _ = (System.Action)T.M05;
+                Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 30),
+                // (40,87): error CS9108: An expression tree may not contain an access of static abstract interface member
+                //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => ((System.Action)T.M01).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.M01").WithLocation(40, 87)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToDelegate_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+
+class Test
+{
+    static System.Action M02<T, U>() where T : U where U : I1
+    {
+        return T.M01;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (System.Action V_0)
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  constrained. ""T""
+  IL_0008:  ldftn      ""void I1.M01()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0016
+  IL_0016:  ldloc.0
+  IL_0017:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  constrained. ""T""
+  IL_0007:  ldftn      ""void I1.M01()""
+  IL_000d:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0012:  ret
+}
+");
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+
+            Assert.Equal("T.M01", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                               to expose this information? 
+@"
+IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
+  Instance Receiver: 
+    null
+");
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToDelegate_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        _ = (System.Action)T.M01;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = (System.Action)T.M01;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "(System.Action)T.M01").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (12,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(12, 26)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToDelegate_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        _ = (System.Action)T.M01;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,28): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = (System.Action)T.M01;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 28)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,28): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = (System.Action)T.M01;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 28),
+                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_DelegateCreation_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static void M01();
+
+    static void M02()
+    {
+        _ = new System.Action(M01);
+        _ = new System.Action(M04);
+    }
+
+    void M03()
+    {
+        _ = new System.Action(this.M01);
+        _ = new System.Action(this.M04);
+    }
+
+    static void M04() {}
+
+    protected abstract static void M05();
+}
+
+class Test
+{
+    static void MT1(I1 x)
+    {
+        _ = new System.Action(I1.M01);
+        _ = new System.Action(x.M01);
+        _ = new System.Action(I1.M04);
+        _ = new System.Action(x.M04);
+    }
+
+    static void MT2<T>() where T : I1
+    {
+        _ = new System.Action(T.M03);
+        _ = new System.Action(T.M04);
+        _ = new System.Action(T.M00);
+        _ = new System.Action(T.M05);
+
+        _ = (System.Linq.Expressions.Expression<System.Action>)(() => new System.Action(T.M01).ToString());
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (8,31): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = new System.Action(M01);
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "M01").WithLocation(8, 31),
+                // (14,31): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = new System.Action(this.M01);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M01").WithArguments("I1.M01()").WithLocation(14, 31),
+                // (15,31): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = new System.Action(this.M04);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M04").WithArguments("I1.M04()").WithLocation(15, 31),
+                // (27,31): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = new System.Action(I1.M01);
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.M01").WithLocation(27, 31),
+                // (28,31): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = new System.Action(x.M01);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M01").WithArguments("I1.M01()").WithLocation(28, 31),
+                // (30,31): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = new System.Action(x.M04);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.M04").WithArguments("I1.M04()").WithLocation(30, 31),
+                // (35,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = new System.Action(T.M03);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 31),
+                // (36,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = new System.Action(T.M04);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 31),
+                // (37,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = new System.Action(T.M00);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 31),
+                // (38,33): error CS0122: 'I1.M05()' is inaccessible due to its protection level
+                //         _ = new System.Action(T.M05);
+                Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 33),
+                // (40,89): error CS9108: An expression tree may not contain an access of static abstract interface member
+                //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => new System.Action(T.M01).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.M01").WithLocation(40, 89)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_DelegateCreation_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+
+class Test
+{
+    static System.Action M02<T, U>() where T : U where U : I1
+    {
+        return new System.Action(T.M01);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (System.Action V_0)
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  constrained. ""T""
+  IL_0008:  ldftn      ""void I1.M01()""
+  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0016
+  IL_0016:  ldloc.0
+  IL_0017:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldnull
+  IL_0001:  constrained. ""T""
+  IL_0007:  ldftn      ""void I1.M01()""
+  IL_000d:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0012:  ret
+}
+");
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+
+            Assert.Equal("T.M01", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                               to expose this information? 
+@"
+IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
+  Instance Receiver: 
+    null
+");
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_DelegateCreation_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        _ = new System.Action(T.M01);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = new System.Action(T.M01);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.M01").WithLocation(6, 31)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (12,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(12, 26)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_DelegateCreation_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>() where T : I1
+    {
+        _ = new System.Action(T.M01);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = new System.Action(T.M01);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = new System.Action(T.M01);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31),
+                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_01()
+        {
+            var source1 =
+@"
+unsafe interface I1
+{
+    abstract static void M01();
+
+    static void M02()
+    {
+        _ = (delegate*<void>)&M01;
+        _ = (delegate*<void>)&M04;
+    }
+
+    void M03()
+    {
+        _ = (delegate*<void>)&this.M01;
+        _ = (delegate*<void>)&this.M04;
+    }
+
+    static void M04() {}
+
+    protected abstract static void M05();
+}
+
+unsafe class Test
+{
+    static void MT1(I1 x)
+    {
+        _ = (delegate*<void>)&I1.M01;
+        _ = (delegate*<void>)&x.M01;
+        _ = (delegate*<void>)&I1.M04;
+        _ = (delegate*<void>)&x.M04;
+    }
+
+    static void MT2<T>() where T : I1
+    {
+        _ = (delegate*<void>)&T.M03;
+        _ = (delegate*<void>)&T.M04;
+        _ = (delegate*<void>)&T.M00;
+        _ = (delegate*<void>)&T.M05;
+
+        _ = (System.Linq.Expressions.Expression<System.Action>)(() => ((System.IntPtr)((delegate*<void>)&T.M01)).ToString());
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (8,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = (delegate*<void>)&M01;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(delegate*<void>)&M01").WithLocation(8, 13),
+                // (14,13): error CS8757: No overload for 'M01' matches function pointer 'delegate*<void>'
+                //         _ = (delegate*<void>)&this.M01;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<void>)&this.M01").WithArguments("M01", "delegate*<void>").WithLocation(14, 13),
+                // (15,13): error CS8757: No overload for 'M04' matches function pointer 'delegate*<void>'
+                //         _ = (delegate*<void>)&this.M04;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<void>)&this.M04").WithArguments("M04", "delegate*<void>").WithLocation(15, 13),
+                // (27,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = (delegate*<void>)&I1.M01;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(delegate*<void>)&I1.M01").WithLocation(27, 13),
+                // (28,13): error CS8757: No overload for 'M01' matches function pointer 'delegate*<void>'
+                //         _ = (delegate*<void>)&x.M01;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<void>)&x.M01").WithArguments("M01", "delegate*<void>").WithLocation(28, 13),
+                // (30,13): error CS8757: No overload for 'M04' matches function pointer 'delegate*<void>'
+                //         _ = (delegate*<void>)&x.M04;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<void>)&x.M04").WithArguments("M04", "delegate*<void>").WithLocation(30, 13),
+                // (35,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = (delegate*<void>)&T.M03;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(35, 31),
+                // (36,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = (delegate*<void>)&T.M04;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(36, 31),
+                // (37,31): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         _ = (delegate*<void>)&T.M00;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(37, 31),
+                // (38,33): error CS0122: 'I1.M05()' is inaccessible due to its protection level
+                //         _ = (delegate*<void>)&T.M05;
+                Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 33),
+                // (40,88): error CS1944: An expression tree may not contain an unsafe pointer operation
+                //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => ((System.IntPtr)((delegate*<void>)&T.M01)).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "(delegate*<void>)&T.M01").WithLocation(40, 88),
+                // (40,106): error CS8810: '&' on method groups cannot be used in expression trees
+                //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => ((System.IntPtr)((delegate*<void>)&T.M01)).ToString());
+                Diagnostic(ErrorCode.ERR_AddressOfMethodGroupInExpressionTree, "T.M01").WithLocation(40, 106)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+
+unsafe class Test
+{
+    static delegate*<void> M02<T, U>() where T : U where U : I1
+    {
+        return &T.M01;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (delegate*<void> V_0)
+  IL_0000:  nop
+  IL_0001:  constrained. ""T""
+  IL_0007:  ldftn      ""void I1.M01()""
+  IL_000d:  stloc.0
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.0
+  IL_0011:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll.WithAllowUnsafe(true),
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>()",
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  constrained. ""T""
+  IL_0006:  ldftn      ""void I1.M01()""
+  IL_000c:  ret
+}
+");
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+
+            Assert.Equal("T.M01", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                               to expose this information? 
+@"
+IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
+  Instance Receiver: 
+    null
+");
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionFunctionPointer_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+";
+            var source2 =
+@"
+unsafe class Test
+{
+    static void M02<T>() where T : I1
+    {
+        _ = (delegate*<void>)&T.M01;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = (delegate*<void>)&T.M01;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "(delegate*<void>)&T.M01").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (12,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(12, 26)
+                );
+        }
+
+        [Fact]
+        public void ConsumeAbstractStaticMethod_ConversionToFunctionPointer_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+";
+            var source2 =
+@"
+unsafe class Test
+{
+    static void M02<T>() where T : I1
+    {
+        _ = (delegate*<void>)&T.M01;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = (delegate*<void>)&T.M01;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = (delegate*<void>)&T.M01;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31),
+                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
+                );
         }
     }
 }

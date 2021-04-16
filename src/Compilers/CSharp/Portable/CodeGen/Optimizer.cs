@@ -2076,8 +2076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // do actual assignment
 
-            // PROTOTYPE(StaticAbstractMembersInInterfaces): This assert fires for a user-defined prefix increment/decrement. Open an issue.
-            //Debug.Assert(locInfo.LocalDefs.Any((d) => _nodeCounter == d.Start && _nodeCounter <= d.End));
+            Debug.Assert(locInfo.LocalDefs.Any((d) => _nodeCounter == d.Start && _nodeCounter <= d.End));
             var isLast = IsLastAccess(locInfo, _nodeCounter);
 
             if (isLast)
@@ -2092,6 +2091,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return node.Update(left, right, node.IsRef, node.Type);
             }
         }
+
+#nullable enable
+        public override BoundNode VisitCall(BoundCall node)
+        {
+            BoundExpression? receiverOpt = node.ReceiverOpt;
+
+            if (node.Method.RequiresInstanceReceiver)
+            {
+                receiverOpt = (BoundExpression?)this.Visit(receiverOpt);
+            }
+            else
+            {
+                _nodeCounter++;
+
+                if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                {
+                    receiverOpt = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
+                        typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
+                }
+                else if (receiverOpt is not null)
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
+
+            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.OriginalMethodsOpt, type);
+        }
+#nullable disable
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {

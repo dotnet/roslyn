@@ -1525,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(method.IsStatic);
 
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
-            int stackBehavior = GetCallStackBehavior(call.Method, arguments);
+            int stackBehavior = GetCallStackBehavior(method, arguments);
 
             if (method.IsAbstract)
             {
@@ -1685,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
-            int stackBehavior = GetCallStackBehavior(call.Method, arguments);
+            int stackBehavior = GetCallStackBehavior(method, arguments);
             switch (callKind)
             {
                 case CallKind.Call:
@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(method.ContainingType.IsVerifierValue(), "this is not a value type");
 
-            if (!method.IsMetadataVirtual())
+            if (!method.IsMetadataVirtual() || method.IsStatic)
             {
                 return true;
             }
@@ -3519,6 +3519,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
+                if (load.TargetMethod.IsAbstract && load.TargetMethod.IsStatic)
+                {
+                    if (load.ConstrainedToTypeOpt is not { TypeKind: TypeKind.TypeParameter })
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
+                    _builder.EmitOpCode(ILOpCode.Constrained);
+                    EmitSymbolToken(load.ConstrainedToTypeOpt, load.Syntax);
+                }
+
                 _builder.EmitOpCode(ILOpCode.Ldftn);
                 EmitSymbolToken(load.TargetMethod, load.Syntax, optArgList: null);
             }
