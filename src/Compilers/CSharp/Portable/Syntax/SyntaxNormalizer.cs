@@ -474,16 +474,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             //inner
             if (tokenIsOpenParen)
             {
-                if (nextIsCloseParen)
-                {
-                    //text: () //invalid - but?
-                    return false;
-                }
-                return true;
+                return false;
             }
             if (nextIsCloseParen)
             {
-                return true;
+                return false;
             }
 
             if (posPattern.Parent is RecursivePatternSyntax rps)
@@ -782,6 +777,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     return true;
                 }
+            }
+
+            if (token.Parent is RelationalPatternSyntax)
+            {
+                //>, >=, <, <=
+                return true;
             }
 
             switch (next.Kind())
