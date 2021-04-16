@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis
         // single
         internal static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, IEnumerable<U>> func) => default;
 
-        // join many => many ((source1[0], source2), (source1[1], source2) ...)
-        internal static IncrementalValueSource<(T, U)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => default;
+        // join many => many ((source1[0], source2), (source1[0], source2) ...)
+        internal static IncrementalValueSource<(T, IEnumerable<U>)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => new IncrementalValueSource<(T, IEnumerable<U>)>(new JoinNode<T, U>(source1.node, source2.node));
 
         // helper for filtering
         internal static IncrementalValueSource<T> Filter<T>(this IncrementalValueSource<T> source, Func<T, bool> filter)
