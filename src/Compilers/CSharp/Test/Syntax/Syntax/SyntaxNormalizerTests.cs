@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 		{} => ""not null"",
 		null => ""null"",
 };",
-                @"var x = (object)1 switch {
+                @"var x = (object)1 switch
+{
   int {} => ""two"",
   {} t when t.GetHashCode() == 42 => ""42"",
   System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
