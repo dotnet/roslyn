@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return LineBreaksAfterSemicolon(currentToken, nextToken);
 
                 case SyntaxKind.CommaToken:
-                    return currentToken.Parent is EnumDeclarationSyntax ? 1 : 0;
+                    return currentToken.Parent is EnumDeclarationSyntax or SwitchExpressionSyntax ? 1 : 0;
                 case SyntaxKind.ElseKeyword:
                     return nextToken.Kind() != SyntaxKind.IfKeyword ? 1 : 0;
                 case SyntaxKind.ColonToken:
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
-            if (currentToken.Parent is InitializerExpressionSyntax ||
+            if (currentToken.Parent is InitializerExpressionSyntax or RecursivePatternSyntax ||
                 currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
                 IsAccessorListWithoutAccessorsWithBlockBody(currentToken.Parent))
             {
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterCloseBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
-            if (currentToken.Parent is InitializerExpressionSyntax ||
+            if (currentToken.Parent is InitializerExpressionSyntax or SwitchExpressionSyntax or RecursivePatternSyntax ||
                 currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
                 currentToken.Parent?.Parent is AnonymousFunctionExpressionSyntax ||
                 IsAccessorListFollowedByInitializer(currentToken.Parent))
@@ -1025,6 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         node is AccessorDeclarationSyntax ||
                         node is TypeParameterConstraintClauseSyntax ||
                         node is SwitchSectionSyntax ||
+                        node is SwitchExpressionArmSyntax ||
                         node is UsingDirectiveSyntax ||
                         node is ExternAliasDirectiveSyntax ||
                         node is QueryExpressionSyntax ||
