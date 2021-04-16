@@ -1086,6 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // `(a != null && a.b(out x)) is true and var x` matches `true`
                         // `(a != null && a.b(out x)) is true and false` never matches and is a compile error
                         return isBoolTest(binary.Left) ?? isBoolTest(binary.Right);
+                    case BoundConstantPattern { ConstantValue: { IsBoolean: false } }:
                     case BoundDiscardPattern:
                     case BoundTypePattern:
                     case BoundRecursivePattern:
