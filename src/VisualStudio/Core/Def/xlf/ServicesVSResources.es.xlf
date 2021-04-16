@@ -387,6 +387,11 @@
         <target state="translated">Indexado en el repositorio</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inheritance_Margin_experimental">
+        <source>Inheritance Margin (experimental)</source>
+        <target state="new">Inheritance Margin (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
         <source>Inline Hints (experimental)</source>
         <target state="translated">Sugerencias en línea (experimental)</target>
@@ -481,6 +486,16 @@
         <source>Move to Namespace</source>
         <target state="translated">Mover a espacio de nombres</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited">
+        <source>Multiple members are inherited</source>
+        <target state="new">Multiple members are inherited</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited_on_line_0">
+        <source>Multiple members are inherited on line {0}</source>
+        <target state="new">Multiple members are inherited on line {0}</target>
+        <note>Line number info is needed for accessibility purpose.</note>
       </trans-unit>
       <trans-unit id="Name_conflicts_with_an_existing_type_name">
         <source>Name conflicts with an existing type name.</source>
@@ -645,6 +660,11 @@
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">Reglas de nomenclatura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_0">
+        <source>Navigate to '{0}'</source>
+        <target state="new">Navigate to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -977,6 +997,11 @@
         <target state="translated">Mostrar sugerencias para las variables con tipos inferidos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_inheritance_margin">
+        <source>Show inheritance margin</source>
+        <target state="new">Show inheritance margin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Algunos de los colores de la combinación se reemplazan por los cambios realizados en la página de opciones de Entorno &gt; Fuentes y colores. Elija "Usar valores predeterminados" en la página Fuentes y colores para revertir todas las personalizaciones.</target>
@@ -1275,6 +1300,16 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">No es un valor válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_in_1">
+        <source>'{0}' in '{1}'</source>
+        <target state="new">'{0}' in '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_inherited">
+        <source>'{0}' is inherited</source>
+        <target state="new">'{0}' is inherited</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">

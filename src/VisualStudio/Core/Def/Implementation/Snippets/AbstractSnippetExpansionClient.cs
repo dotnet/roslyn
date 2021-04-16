@@ -151,23 +151,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // Formatting a snippet isn't cancellable.
             var cancellationToken = CancellationToken.None;
             // At this point, the $selection$ token has been replaced with the selected text and
-            // declarations have been replaced with their default text. We need to format the 
+            // declarations have been replaced with their default text. We need to format the
             // inserted snippet text while carefully handling $end$ position (where the caret goes
             // after Return is pressed). The IVsExpansionSession keeps a tracking point for this
-            // position but we do the tracking ourselves to properly deal with virtual space. To 
+            // position but we do the tracking ourselves to properly deal with virtual space. To
             // ensure the end location is correct, we take three extra steps:
-            // 1. Insert an empty comment ("/**/" or "'") at the current $end$ position (prior 
+            // 1. Insert an empty comment ("/**/" or "'") at the current $end$ position (prior
             //    to formatting), and keep a tracking span for the comment.
-            // 2. After formatting the new snippet text, find and delete the empty multiline 
-            //    comment (via the tracking span) and notify the IVsExpansionSession of the new 
+            // 2. After formatting the new snippet text, find and delete the empty multiline
+            //    comment (via the tracking span) and notify the IVsExpansionSession of the new
             //    $end$ location. If the line then contains only whitespace (due to the formatter
-            //    putting the empty comment on its own line), then delete the white space and 
+            //    putting the empty comment on its own line), then delete the white space and
             //    remember the indentation depth for that line.
             // 3. When the snippet is finally completed (via Return), and PositionCaretForEditing()
             //    is called, check to see if the end location was on a line containing only white
             //    space in the previous step. If so, and if that line is still empty, then position
             //    the caret in virtual space.
-            // This technique ensures that a snippet like "if($condition$) { $end$ }" will end up 
+            // This technique ensures that a snippet like "if($condition$) { $end$ }" will end up
             // as:
             //     if ($condition$)
             //     {
@@ -537,7 +537,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var methodName = dataBufferSpan.GetText();
                 var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
 
-                var doc = new DOMDocumentClass();
+                var doc = (DOMDocument)new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
                 {
                     if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
@@ -897,7 +897,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments);
-            var doc = new DOMDocumentClass();
+            var doc = (DOMDocument)new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
                 if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)

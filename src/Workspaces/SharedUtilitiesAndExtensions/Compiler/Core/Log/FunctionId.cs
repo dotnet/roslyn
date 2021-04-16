@@ -516,5 +516,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSP_CompletionListCacheMiss = 486,
 
         VS_ErrorReportingService_ShowGlobalErrorInfo = 487,
+
+        InheritanceMargin_TargetsMenuOpen = 488,
+        InheritanceMargin_NavigateToTarget = 489,
     }
 }
