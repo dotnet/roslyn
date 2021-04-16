@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal partial class TagComputer : ForegroundThreadAffinitizedObject
         {
             private readonly SyntacticClassificationTaggerProvider _taggerProvider;
-            private readonly ITextBuffer _subjectBuffer;
+            private readonly ITextBuffer2 _subjectBuffer;
             private readonly IAsynchronousOperationListener _listener;
             private readonly ClassificationTypeMap _typeMap;
 
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // The latest data about the document being classified that we've cached.  objects can 
             // be accessed from both threads, and must be obtained when this lock is held. 
             //
-            // _lastProcessedRoot is optional and is held onto for languages that support syntax.
+            // _lastProcessedData.lastRoot is optional and is held onto for languages that support syntax.
             // it allows computing the root, and changed-spans, in the background so that we can
             // report a smaller change range, and have the data ready for classifying with GetTags
             // get called.
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             public TagComputer(
                 SyntacticClassificationTaggerProvider taggerProvider,
-                ITextBuffer subjectBuffer,
+                ITextBuffer2 subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
                 ClassificationTypeMap typeMap,
                 TimeSpan diffTimeout)
@@ -103,11 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (_workspaceRegistration.Workspace != null)
                     ConnectToWorkspace(_workspaceRegistration.Workspace);
 
-                // Prefer to hear about text changes in the BG so we can use as little 
-                if (_subjectBuffer is ITextBuffer2 textBuffer2)
-                    textBuffer2.ChangedOnBackground += this.OnSubjectBufferChanged;
-                else
-                    _subjectBuffer.Changed += this.OnSubjectBufferChanged;
+                _subjectBuffer.ChangedOnBackground += this.OnSubjectBufferChanged;
             }
 
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
@@ -170,10 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     // stop any bg work we're doing.
                     _disposalCancellationSource.Cancel();
 
-                    if (_subjectBuffer is ITextBuffer2 textBuffer2)
-                        textBuffer2.ChangedOnBackground -= this.OnSubjectBufferChanged;
-                    else
-                        _subjectBuffer.Changed -= this.OnSubjectBufferChanged;
+                    _subjectBuffer.ChangedOnBackground -= this.OnSubjectBufferChanged;
 
                     DisconnectFromWorkspace();
                     _workspaceRegistration.WorkspaceChanged -= OnWorkspaceRegistrationChanged;
@@ -325,9 +319,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 async ValueTask<SnapshotSpan> ComputeChangedSpanAsync()
                 {
                     var changeRange = await ComputeChangedRangeAsync().ConfigureAwait(false);
-                    return changeRange == null
-                        ? currentSnapshot.GetFullSpan()
-                        : currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
+                    return changeRange != null
+                        ? currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength)
+                        : currentSnapshot.GetFullSpan();
                 }
 
                 ValueTask<TextChangeRange?> ComputeChangedRangeAsync()
