@@ -8303,7 +8303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
         {
-            if (GetUniqueMethodGroupMethod(node, diagnostics) is { } method &&
+            if (GetUniqueSignatureFromMethodGroup(node, diagnostics) is { } method &&
                 GetMethodGroupOrLambdaDelegateType(method.RefKind, method.ReturnsVoid ? default : method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations, diagnostics) is { } delegateType)
             {
                 return delegateType;
@@ -8311,13 +8311,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private MethodSymbol? GetUniqueMethodGroupMethod(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
+        private static readonly MemberSignatureComparer s_uniqueSignatureFromMethodGroupComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerRefKindDifferences: true,
+            considerCallingConvention: true,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+        /// <summary>
+        /// Returns one of the methods from the method group if all methods in the method group
+        /// have the same signature, ignoring parameter names and custom modifiers. The particular
+        /// method returned is not important since the caller is interested in the signature only.
+        /// </summary>
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
         {
-            if (node.Methods.Length > 1)
+            MethodSymbol? method = null;
+            foreach (var m in node.Methods)
             {
-                return null;
+                if (!getOrUpdateMethod(ref method, m))
+                {
+                    return null;
+                }
             }
-            var method = node.Methods.SingleOrDefault();
             if (node.SearchExtensionMethods)
             {
                 var receiver = node.ReceiverOpt!;
@@ -8327,24 +8344,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                     PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, diagnostics);
                     foreach (var m in methodGroup.Methods)
                     {
-                        if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced)
+                        if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
+                            !getOrUpdateMethod(ref method, reduced))
                         {
-                            if (method is { })
-                            {
-                                methodGroup.Free();
-                                return null;
-                            }
-                            method = reduced;
+                            methodGroup.Free();
+                            return null;
                         }
                     }
                     methodGroup.Free();
                 }
             }
-            if (method is { } && !node.TypeArgumentsOpt.IsDefault)
+            if (method is null)
+            {
+                return null;
+            }
+            int n = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
+            if (method.Arity != n)
+            {
+                return null;
+            }
+            else if (n > 0)
             {
                 method = method.ConstructedFrom.Construct(node.TypeArgumentsOpt);
             }
             return method;
+
+            static bool getOrUpdateMethod(ref MethodSymbol? method, MethodSymbol candidate)
+            {
+                if (method is null)
+                {
+                    method = candidate;
+                    return true;
+                }
+                if (s_uniqueSignatureFromMethodGroupComparer.Equals(method, candidate))
+                {
+                    return true;
+                }
+                method = null;
+                return false;
+            }
         }
 
         // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().

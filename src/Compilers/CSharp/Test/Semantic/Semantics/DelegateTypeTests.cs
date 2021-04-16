@@ -109,30 +109,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static IEnumerable<object?[]> GetMethodGroupData()
         {
-            yield return getData("static int F() => 0;", "Program.F", "System.Func<System.Int32>", "Func`1");
-            yield return getData("static int F() => 0;", "F", "System.Func<System.Int32>", "Func`1");
-            yield return getData("int F() => 0;", "(new Program()).F", "System.Func<System.Int32>", "Func`1");
-            yield return getData("static T F<T>() => default;", "Program.F<int>", "System.Func<System.Int32>", "Func`1");
-            yield return getData("T F<T>() => default;", "(new Program()).F<int>", "System.Func<System.Int32>", "Func`1");
-            yield return getData("static ref int F() => throw null;", "F", null, null);
-            yield return getData("static ref readonly int F() => throw null;", "F", null, null);
-            yield return getData("static void F() { }", "F", "System.Action", "Action");
-            yield return getData("static void F(int x, int y) { }", "F", "System.Action<System.Int32, System.Int32>", "Action`2");
-            yield return getData("static void F(out int x, int y) { x = 0; }", "F", null, null);
-            yield return getData("static void F(int x, ref int y) { }", "F", null, null);
-            yield return getData("static void F(int x, in int y) { }", "F", null, null);
-            yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "F", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>", "Action`16");
-            yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "F", null, null);
-            yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => null;", "F", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Object>", "Func`17");
-            yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => null;", "F", null, null);
+            yield return getData("static int F() => 0;", "Program.F", "F", "System.Func<System.Int32>", "Func`1");
+            yield return getData("static int F() => 0;", "F", "F", "System.Func<System.Int32>", "Func`1");
+            yield return getData("int F() => 0;", "(new Program()).F", "F", "System.Func<System.Int32>", "Func`1");
+            yield return getData("static T F<T>() => default;", "Program.F<int>", "F", "System.Func<System.Int32>", "Func`1");
+            yield return getData("static void F<T>() where T : class { }", "F<object>", "F", "System.Action", "Action");
+            yield return getData("static void F<T>() where T : struct { }", "F<int>", "F", "System.Action", "Action");
+            yield return getData("T F<T>() => default;", "(new Program()).F<int>", "F", "System.Func<System.Int32>", "Func`1");
+            yield return getData("T F<T>() => default;", "(new Program()).F", "F", null, null);
+            yield return getData("void F<T>(T t) { }", "(new Program()).F<string>", "F", "System.Action<System.String>", "Action`1");
+            yield return getData("void F<T>(T t) { }", "(new Program()).F", "F", null, null);
+            yield return getData("static ref int F() => throw null;", "F", "F", null, null);
+            yield return getData("static ref readonly int F() => throw null;", "F", "F", null, null);
+            yield return getData("static void F() { }", "F", "F", "System.Action", "Action");
+            yield return getData("static void F(int x, int y) { }", "F", "F", "System.Action<System.Int32, System.Int32>", "Action`2");
+            yield return getData("static void F(out int x, int y) { x = 0; }", "F", "F", null, null);
+            yield return getData("static void F(int x, ref int y) { }", "F", "F", null, null);
+            yield return getData("static void F(int x, in int y) { }", "F", "F", null, null);
+            yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "F", "F", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>", "Action`16");
+            yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "F", "F", null, null);
+            yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => null;", "F", "F", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Object>", "Func`17");
+            yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => null;", "F", "F", null, null);
 
-            static object?[] getData(string methodDeclaration, string methodGroupExpression, string? expectedType, string? expectedName) =>
-                new object?[] { methodDeclaration, methodGroupExpression, expectedType, expectedName };
+            static object?[] getData(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType, string? expectedName) =>
+                new object?[] { methodDeclaration, methodGroupExpression, methodGroupOnly, expectedType, expectedName };
         }
 
         [Theory]
         [MemberData(nameof(GetMethodGroupData))]
-        public void MethodGroup_ImplicitConversion(string methodDeclaration, string methodGroupExpression, string? expectedType, string? expectedName)
+        public void MethodGroup_ImplicitConversion(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType, string? expectedName)
         {
             var source =
 $@"class Program
@@ -147,10 +152,11 @@ $@"class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedType is null)
             {
+                int offset = methodGroupExpression.Length - methodGroupOnly.Length;
                 comp.VerifyDiagnostics(
                     // (6,29): error CS8915: The delegate type could not be inferred.
                     //         System.Delegate d = F;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupExpression).WithLocation(6, 29));
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset));
             }
             else
             {
@@ -167,7 +173,7 @@ $@"class Program
 
         [Theory]
         [MemberData(nameof(GetMethodGroupData))]
-        public void MethodGroup_ExplicitConversion(string methodDeclaration, string methodGroupExpression, string? expectedType, string? expectedName)
+        public void MethodGroup_ExplicitConversion(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType, string? expectedName)
         {
             var source =
 $@"class Program
@@ -185,7 +191,7 @@ $@"class Program
                 comp.VerifyDiagnostics(
                     // (6,20): error CS0030: Cannot convert type 'method' to 'Delegate'
                     //         object o = (System.Delegate)F;
-                    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Delegate)F").WithArguments("method", "System.Delegate").WithLocation(6, 20));
+                    Diagnostic(ErrorCode.ERR_NoExplicitConv, $"(System.Delegate){methodGroupExpression}").WithArguments("method", "System.Delegate").WithLocation(6, 20));
             }
             else
             {
@@ -426,6 +432,214 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(9, 53));
         }
 
+        public static IEnumerable<object?[]> GetBaseAndDerivedTypesData()
+        {
+            yield return getData("internal abstract void F(object x);", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>", "Action`1"); // override
+            yield return getData("internal virtual void F(object x) { }", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>", "Action`1"); // override
+            yield return getData("internal void F(object x) { }", "internal void F(object x) { }", "F", "F", null, "System.Action<System.Object>", "Action`1"); // hiding
+            yield return getData("internal void F(object x) { }", "internal new void F(object x) { }", "F", "F", null, "System.Action<System.Object>", "Action`1"); // hiding
+            yield return getData("internal void F(object x) { }", "internal new void F(object y) { }", "F", "F", null, "System.Action<System.Object>", "Action`1"); // different parameter name
+            yield return getData("internal void F(object x) { }", "internal void F(string x) { }", "F", "F"); // different parameter type
+            yield return getData("internal void F(object x) { }", "internal void F(object x, object y) { }", "F", "F"); // different number of parameters
+            yield return getData("internal void F(object x) { }", "internal void F(ref object x) { }", "F", "F"); // different parameter ref kind
+            yield return getData("internal void F(ref object x) { }", "internal void F(object x) { }", "F", "F"); // different parameter ref kind
+            yield return getData("internal abstract object F();", "internal override object F() => throw null;", "F", "F", null, "System.Func<System.Object>", "Func`1"); // override
+            yield return getData("internal virtual object F() => throw null;", "internal override object F() => throw null;", "F", "F", null, "System.Func<System.Object>", "Func`1"); // override
+            yield return getData("internal object F() => throw null;", "internal object F() => throw null;", "F", "F", null, "System.Func<System.Object>", "Func`1"); // hiding
+            yield return getData("internal object F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>", "Func`1"); // hiding
+            yield return getData("internal string F() => throw null;", "internal new object F() => throw null;", "F", "F"); // different return type
+            yield return getData("internal object F() => throw null;", "internal new ref object F() => throw null;", "F", "F"); // different return ref kind
+            yield return getData("internal ref object F() => throw null;", "internal new object F() => throw null;", "F", "F"); // different return ref kind
+            yield return getData("internal void F(object x) { }", "internal new void F(dynamic x) { }", "F", "F", null, "System.Action<System.Object>", "Action`1"); // object/dynamic
+            yield return getData("internal dynamic F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>", "Func`1"); // object/dynamic
+            yield return getData("internal void F((object, int) x) { }", "internal new void F((object a, int b) x) { }", "F", "F", null, "System.Action<System.Object>", "Action`1"); // tuple names
+            yield return getData("internal (object a, int b) F() => throw null;", "internal new (object, int) F() => throw null;", "F", "F", null, "System.Func<System.Object>", "Func`1"); // tuple names
+            yield return getData("internal void F(System.IntPtr x) { }", "internal new void F(nint x) { }", "F", "F", null, "System.Action<System.IntPtr>", "Action`1"); // System.IntPtr/nint
+            yield return getData("internal nint F() => throw null;", "internal new System.IntPtr F() => throw null;", "F", "F", null, "System.Func<System.IntPtr>", "Func`1"); // System.IntPtr/nint
+            yield return getData("internal void F(object x) { }",
+    @"#nullable enable
+internal new void F(object? x) { }
+#nullable disable", "F", "F", null, "System.Action<System.Object>", "Action`1"); // different nullability
+            yield return getData(
+    @"#nullable enable
+internal object? F() => throw null!;
+#nullable disable", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>", "Func`1"); // different nullability
+            yield return getData("internal void F() { }", "internal void F<T>() { }", "F", "F"); // different arity
+            yield return getData("internal void F() { }", "internal void F<T>() { }", "F<int>", "F<int>", null, "System.Action", "Action"); // different arity
+            yield return getData("internal void F<T>() { }", "internal void F() { }", "F", "F"); // different arity
+            yield return getData("internal void F<T>() { }", "internal void F() { }", "F<int>", "F<int>", null, "System.Action", "Action"); // different arity
+            yield return getData("internal void F<T>() { }", "internal void F<T, U>() { }", "F<int>", "F<int>", null, "System.Action", "Action"); // different arity
+            yield return getData("internal void F<T>() { }", "internal void F<T, U>() { }", "F<int, object>", "F<int, object>", null, "System.Action", "Action"); // different arity
+            yield return getData("internal void F<T>(T t) { }", "internal new void F<U>(U u) { }", "F<int>", "F<int>", null, "System.Action<System.Int32>", "Action`1"); // different type parameter names
+            yield return getData("internal void F<T>(T t) where T : class { }", "internal new void F<T>(T t) { }", "F<object>", "F<object>", null, "System.Action<System.Object>", "Action`1"); // different type parameter constraints
+            yield return getData("internal void F<T>(T t) { }", "internal new void F<T>(T t) where T : class { }", "F<object>", "F<object>", null, "System.Action<System.Object>", "Action`1"); // different type parameter constraints
+            yield return getData("internal void F<T>(T t) { }", "internal new void F<T>(T t) where T : class { }", "base.F<object>", "F<object>", null, "System.Action<System.Object>", "Action`1"); // different type parameter constraints
+            yield return getData("internal void F<T>(T t) where T : class { }", "internal new void F<T>(T t) where T : struct { }", "F<int>", "F<int>", null, "System.Action<System.Int32>", "Action`1"); // different type parameter constraints
+            // https://github.com/dotnet/roslyn/issues/52701: Assert failure: Unexpected value 'LessDerived' of type 'Microsoft.CodeAnalysis.CSharp.MemberResolutionKind'
+#if !DEBUG
+            yield return getData("internal void F<T>(T t) where T : class { }", "internal new void F<T>(T t) where T : struct { }", "F<object>", "F<object>",
+                new[]
+                {
+                    // (5,29): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                    //         System.Delegate d = F<object>;
+                    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(5, 29)
+                }); // different type parameter constraints
+#endif
+
+            static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedType = null, string? expectedName = null)
+            {
+                if (expectedDiagnostics is null && expectedType is null)
+                {
+                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                    expectedDiagnostics = new[]
+                    {
+                        // (5,29): error CS8915: The delegate type could not be inferred.
+                        //         System.Delegate d = F;
+                        Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(5, 29 + offset)
+                    };
+                }
+                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedType, expectedName };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetBaseAndDerivedTypesData))]
+        public void MethodGroup_BaseAndDerivedTypes(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedType, string? expectedName)
+        {
+            var source =
+$@"partial class B
+{{
+    void M()
+    {{
+        System.Delegate d = {methodGroupExpression};
+        System.Console.Write(d.GetType().Name);
+    }}
+    static void Main()
+    {{
+        new B().M();
+    }}
+}}
+abstract class A
+{{
+    {methodA}
+}}
+partial class B : A
+{{
+    {methodB}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            if (expectedDiagnostics is null)
+            {
+                CompileAndVerify(comp, expectedOutput: expectedName);
+            }
+            else
+            {
+                comp.VerifyDiagnostics(expectedDiagnostics);
+            }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+        }
+
+        public static IEnumerable<object?[]> GetExtensionMethodsSameScopeData()
+        {
+            //yield return getData("internal static void F(object x) { }", "internal static void F(object x) { }", "this.F", "F", "System.Action", "Action"); // hiding
+            //yield return getData("internal static void F(object x) { }", "internal static void F(object x) { }", "this.F", "F", "System.Action", "Action"); // hiding
+            //yield return getData("internal static void F(object x) { }", "internal static void F(object y) { }", "this.F", "F", "System.Action", "Action"); // different parameter name
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "string.Empty.F", "F", null, "System.Action<System.String>", "Action"); // different parameter type
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "this.F", "F", null, "System.Action", "Action"); // different parameter type
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different number of parameters
+            yield return getData("internal static void F(this object x, object y) { }", "internal static void F(this object x, ref object y) { }", "this.F", "F"); // different parameter ref kind
+            yield return getData("internal static void F(this object x, ref object y) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different parameter ref kind
+            yield return getData("internal static object F(this object x) => throw null;", "internal static ref object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
+            yield return getData("internal static ref object F(this object x) => throw null;", "internal static object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
+            //yield return getData("internal static void F(this object x) { }", "internal static void F(this dynamic x) { }", "this.F", "F", "System.Action", "Action"); // object/dynamic
+            //yield return getData("internal static dynamic F(this ) => throw null;", "internal static object F(this ) => throw null;", "this.F", "F", "System.Func", "Func`1"); // object/dynamic
+            //yield return getData("internal static void F(this System.IntPtr x) { }", "internal static void F(this nint x) { }", "this.F", "F", "System.Action<System.IntPtr>", "Action"); // System.IntPtr/nint
+            //yield return getData("internal static nint F(this ) => throw null;", "internal static System.IntPtr F(this ) => throw null;", "this.F", "F", "System.Func<System.IntPtr>", "Func`1"); // System.IntPtr/nint
+            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F", "F"); // different arity
+            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F<int>", "F<int>", null, "System.Action<System.Int32>", "Action`1"); // different arity
+            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F", "F"); // different arity
+            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "System.Action", "Action"); // different arity
+            yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>",
+            new[]
+            {
+                // (5,29): error CS0121: The call is ambiguous between the following methods or properties: 'A.F<T>(T)' and 'B.F<T>(T)'
+                //         System.Delegate d = this.F<object>;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<T>(T)", "B.F<T>(T)").WithLocation(5, 29)
+            }); // different type parameter constraints
+            yield return getData("internal static void F<T>(this T t) { }", "internal static void F<T>(this T t) where T : class { }", "this.F<object>", "F<object>",
+            new[]
+            {
+                // (5,29): error CS0121: The call is ambiguous between the following methods or properties: 'A.F<T>(T)' and 'B.F<T>(T)'
+                //         System.Delegate d = this.F<object>;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<T>(T)", "B.F<T>(T)").WithLocation(5, 29)
+            }); // different type parameter constraints
+            yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) where T : struct { }", "this.F<int>", "F<int>"); // different type parameter constraints
+
+            static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedType = null, string? expectedName = null)
+            {
+                if (expectedDiagnostics is null && expectedType is null)
+                {
+                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                    expectedDiagnostics = new[]
+                    {
+                        // (5,29): error CS8915: The delegate type could not be inferred.
+                        //         System.Delegate d = F;
+                        Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(5, 29 + offset)
+                    };
+                }
+                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedType, expectedName };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetExtensionMethodsSameScopeData))]
+        public void MethodGroup_ExtensionMethodsSameScope(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedType, string? expectedName)
+        {
+            var source =
+$@"class Program
+{{
+    void M()
+    {{
+        System.Delegate d = {methodGroupExpression};
+        System.Console.Write(d.GetType().Name);
+    }}
+    static void Main()
+    {{
+        new Program().M();
+    }}
+}}
+static class A
+{{
+    {methodA}
+}}
+static class B
+{{
+    {methodB}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            if (expectedDiagnostics is null)
+            {
+                CompileAndVerify(comp, expectedOutput: expectedName);
+            }
+            else
+            {
+                comp.VerifyDiagnostics(expectedDiagnostics);
+            }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+        }
+
         [Fact]
         public void InstanceMethods_01()
         {
@@ -525,12 +739,45 @@ A");
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,29): error CS0411: The type arguments for method 'Program.F<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (7,31): error CS8915: The delegate type could not be inferred.
                 //         System.Delegate d = p.F;
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "p.F").WithArguments("Program.F<T>()").WithLocation(7, 29),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(7, 31),
                 // (8,20): error CS0030: Cannot convert type 'method' to 'Delegate'
                 //         object o = (System.Delegate)p.F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Delegate)p.F").WithArguments("method", "System.Delegate").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void MethodGroup_IncorrectArity()
+        {
+            var source =
+@"class Program
+{
+    static void F0(object o) { }
+    static void F0<T>(object o) { }
+    static void F1(object o) { }
+    static void F1<T, U>(object o) { }
+    static void F2<T>(object o) { }
+    static void F2<T, U>(object o) { }
+    static void Main()
+    {
+        System.Delegate d;
+        d = F0<int, object>;
+        d = F1<int>;
+        d = F2;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS0308: The non-generic method 'Program.F0(object)' cannot be used with type arguments
+                //         d = F0<int, object>;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "F0<int, object>").WithArguments("Program.F0(object)", "method").WithLocation(12, 13),
+                // (13,13): error CS0308: The non-generic method 'Program.F1(object)' cannot be used with type arguments
+                //         d = F1<int>;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "F1<int>").WithArguments("Program.F1(object)", "method").WithLocation(13, 13),
+                // (14,13): error CS8915: The delegate type could not be inferred.
+                //         d = F2;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(14, 13));
         }
 
         [Fact]
@@ -715,9 +962,12 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0411: The type arguments for method 'E.F2<T, U>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (11,15): error CS8915: The delegate type could not be inferred.
+                //         d = t.F1;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(11, 15),
+                // (12,15): error CS8915: The delegate type could not be inferred.
                 //         d = t.F2;
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "t.F2").WithArguments("E.F2<T, U>(T)").WithLocation(12, 13));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(12, 15));
         }
 
         // Method group with dynamic receiver does not use method group conversion.
@@ -745,6 +995,74 @@ class Program
     }
 }";
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, references: new[] { CSharpRef }, expectedOutput: "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException");
+        }
+
+        // Custom modifiers should not affect delegate signature.
+        [Fact]
+        public void CustomModifiers_01()
+        {
+            var sourceA =
+@".class public A
+{
+  .method public static void F1(object modopt(int32) x) { ldnull throw }
+  .method public static object modopt(int32) F2() { ldnull throw }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using System;
+class B
+{
+    static void Report(Delegate d)
+    {
+        Console.WriteLine(d.GetType().Name);
+    }
+    static void Main()
+    {
+        Report(A.F1);
+        Report(A.F2);
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"Action`1
+Func`1");
+        }
+
+        // Custom modifiers should not affect delegate signature.
+        [Fact]
+        public void CustomModifiers_02()
+        {
+            var sourceA =
+@".class public A
+{
+  .method public static void F1(object modreq(int32) x) { ldnull throw }
+  .method public static object modreq(int32) F2() { ldnull throw }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using System;
+class B
+{
+    static void Report(Delegate d)
+    {
+        Console.WriteLine(d.GetType().Name);
+    }
+    static void Main()
+    {
+        Report(A.F1);
+        Report(A.F2);
+    }
+}";
+            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                //         Report(A.F1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "A.F1").WithArguments("1", "method group", "System.Delegate").WithLocation(10, 16),
+                // (11,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                //         Report(A.F2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "A.F2").WithArguments("1", "method group", "System.Delegate").WithLocation(11, 16));
         }
 
         [Fact]
