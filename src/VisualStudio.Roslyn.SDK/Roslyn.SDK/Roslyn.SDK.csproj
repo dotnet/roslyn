@@ -10,6 +10,7 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <!-- VS Insertion -->
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.SDK</VisualStudioInsertionComponent>
+    <SetupProductArch>Neutral</SetupProductArch>
     <Ngen>false</Ngen>
   </PropertyGroup>
   <ItemGroup>

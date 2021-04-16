@@ -15,6 +15,7 @@
     <VisualStudioInsertionComponent>Roslyn.SyntaxVisualizer.Extension</VisualStudioInsertionComponent>
     <Ngen>false</Ngen>
     <UseCodeBase>true</UseCodeBase>
+    <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
 
   <!-- References -->
