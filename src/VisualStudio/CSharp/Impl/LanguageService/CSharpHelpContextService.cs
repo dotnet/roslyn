@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             // Workaround IsPredefinedOperator returning true for '<' in generics.
-            if (token is { Kind: (int)SyntaxKind.LessThanToken, Parent: not BinaryExpressionSyntax })
+            if (token is { RawKind: (int)SyntaxKind.LessThanToken, Parent: not BinaryExpressionSyntax })
             {
                 text = null;
                 return false;
