@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return null;
             }
 
-            using var actionsBuilder = TemporaryArray<CodeAction>.Empty; // .CreateBuilder<CodeAction>();
+            using var actionsBuilder = TemporaryArray<CodeAction>.Empty;
             using var actionsBuilderAllOccurrences = TemporaryArray<CodeAction>.Empty;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var singleLineExpression = syntaxFacts.ConvertToSingleLine(expression);
