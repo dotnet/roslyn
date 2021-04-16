@@ -200,24 +200,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                object currentCachedData;
-                SnapshotSpan changedSpan;
+                var service = TryGetClassificationService(currentSnapshot);
 
-                using (var _ = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger))
-                {
-                    var service = TryGetClassificationService(currentSnapshot);
+                // preemptively allow the classification service to compute and cache data for this file.  For
+                // example, in C# and VB we will parse the file so that are called from tagger from UI thread,
+                // we have the root of the tree ready to go.
+                var currentCachedData = service == null
+                    ? null
+                    : await service.GetDataToCacheAsync(currentDocument, cancellationToken).ConfigureAwait(false);
 
-                    // preemptively allow the classification service to compute and cache data for this file.  For
-                    // example, in C# and VB we will parse the file so that are called from tagger from UI thread,
-                    // we have the root of the tree ready to go.
-                    currentCachedData = service == null
-                        ? null
-                        : await service.GetDataToCacheAsync(currentDocument, cancellationToken).ConfigureAwait(false);
-
-                    // Query the service to determine waht span of the document actually changed and should be
-                    // reclassified in the host editor.
-                    changedSpan = await GetChangedSpanAsync(currentDocument, currentSnapshot, cancellationToken).ConfigureAwait(false);
-                }
+                // Query the service to determine waht span of the document actually changed and should be
+                // reclassified in the host editor.
+                var changedSpan = await GetChangedSpanAsync(currentDocument, currentSnapshot, cancellationToken).ConfigureAwait(false);
 
                 lock (_gate)
                 {

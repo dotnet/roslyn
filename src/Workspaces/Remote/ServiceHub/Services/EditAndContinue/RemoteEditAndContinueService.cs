@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics, ImmutableArray<DocumentId> DocumentsWithRudeEdits)> EmitSolutionUpdateAsync(
+        public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
             PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     var results = await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
-                    return (results.ModuleUpdates, results.GetDiagnosticData(solution), results.DocumentsWithRudeEdits.SelectAsArray(d => d.DocumentId));
+                    return results.Dehydrate(solution);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
                     var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
 
-                    return (updates, diagnostics, ImmutableArray<DocumentId>.Empty);
+                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
                 }
             }, cancellationToken);
         }
