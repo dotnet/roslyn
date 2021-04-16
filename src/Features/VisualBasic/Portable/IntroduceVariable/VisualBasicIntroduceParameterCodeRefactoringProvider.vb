@@ -2,13 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.IntroduceVariable
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -31,7 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         End Function
 
         Protected Overrides Function UpdateArgumentListSyntax(node As SyntaxNode, arguments As SeparatedSyntaxList(Of SyntaxNode)) As SyntaxNode
-            Return TryCast(node, ArgumentListSyntax)?.WithArguments(arguments)
+            Return DirectCast(node, ArgumentListSyntax).WithArguments(arguments)
+        End Function
+
+        Protected Overrides Function IsDestructor(methodSymbol As IMethodSymbol) As Boolean
+            Return methodSymbol.Name.Equals(WellKnownMemberNames.DestructorName)
         End Function
     End Class
 End Namespace

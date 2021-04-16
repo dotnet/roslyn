@@ -2,18 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceVariable;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
@@ -40,7 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return variableDecl.Parent?.Parent as LocalDeclarationStatementSyntax;
         }
 
+        protected override bool IsDestructor(IMethodSymbol methodSymbol)
+        {
+            return false;
+        }
+
         protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments)
-            => (argumentList as ArgumentListSyntax)!.WithArguments(arguments);
+            => ((ArgumentListSyntax)argumentList).WithArguments(arguments);
     }
 }

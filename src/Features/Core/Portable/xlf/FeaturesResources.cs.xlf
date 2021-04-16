@@ -2577,9 +2577,9 @@ Specifikátor standardního formátu f představuje kombinaci vzorů dlouhého d
         <target state="new">into extracted method to invoke at call sites</target>
         <note />
       </trans-unit>
-      <trans-unit id="into_new_overload_of_0">
-        <source>into new overload of '{0}'</source>
-        <target state="new">into new overload of '{0}'</target>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="new">into new overload</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
