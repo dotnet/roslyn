@@ -15,22 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SynthesizedRecordConstructor _ctor;
         private readonly ImmutableArray<PropertySymbol> _properties;
-        private readonly ParameterListSyntax _parameters;
 
         public SynthesizedRecordDeconstruct(
             SourceMemberContainerTypeSymbol containingType,
             SynthesizedRecordConstructor ctor,
             ImmutableArray<PropertySymbol> properties,
-            ParameterListSyntax parameters,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.DeconstructMethodName, hasBody: true, memberOffset, diagnostics)
         {
             Debug.Assert(properties.All(prop => prop.GetMethod is object));
-            Debug.Assert(ctor.ParameterCount == parameters.ParameterCount);
             _ctor = ctor;
             _properties = properties;
-            _parameters = parameters;
         }
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
@@ -60,27 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected override int GetParameterCountFromSyntax() => _ctor.ParameterCount;
-
-        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
-        {
-            base.MethodChecks(diagnostics);
-
-            if (ParameterCount == _properties.Length)
-            {
-                for (int i = 0; i < _properties.Length; i++)
-                {
-                    var property = _properties[i];
-                    NamedTypeSymbol containingType = this.ContainingType;
-
-                    if (property.ContainingType != (object)containingType &&
-                        !containingType.GetMembers(property.Name).IsEmpty)
-                    {
-                        // The positional member was inherited but is hidden by a member of the current record type
-                        diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, _parameters.Parameters[i].Identifier.GetLocation(), property);
-                    }
-                }
-            }
-        }
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {

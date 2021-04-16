@@ -934,6 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal readonly bool HaveIndexers;
             internal readonly bool IsNullableEnabledForInstanceConstructorsAndFields;
             internal readonly bool IsNullableEnabledForStaticConstructorsAndFields;
+            internal readonly ImmutableArray<PropertySymbol> PositionalMembersOpt;
 
             public MembersAndInitializers(
                 ImmutableArray<Symbol> nonTypeMembers,
@@ -941,7 +942,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> instanceInitializers,
                 bool haveIndexers,
                 bool isNullableEnabledForInstanceConstructorsAndFields,
-                bool isNullableEnabledForStaticConstructorsAndFields)
+                bool isNullableEnabledForStaticConstructorsAndFields,
+                ImmutableArray<PropertySymbol> positionalMembersOpt)
             {
                 Debug.Assert(!nonTypeMembers.IsDefault);
                 Debug.Assert(!staticInitializers.IsDefault);
@@ -951,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
                 Debug.Assert(haveIndexers == nonTypeMembers.Any(s => s.IsIndexer()));
+                Debug.Assert(positionalMembersOpt.IsDefault || positionalMembersOpt.All(m => m is not null));
 
                 this.NonTypeMembers = nonTypeMembers;
                 this.StaticInitializers = staticInitializers;
@@ -958,6 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.HaveIndexers = haveIndexers;
                 this.IsNullableEnabledForInstanceConstructorsAndFields = isNullableEnabledForInstanceConstructorsAndFields;
                 this.IsNullableEnabledForStaticConstructorsAndFields = isNullableEnabledForStaticConstructorsAndFields;
+                this.PositionalMembersOpt = positionalMembersOpt;
             }
         }
 
@@ -1544,9 +1548,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
+            MembersAndInitializers membersAndInitializers = this.GetMembersAndInitializers();
             if (IsInterface)
             {
-                CheckInterfaceMembers(this.GetMembersAndInitializers().NonTypeMembers, diagnostics);
+                CheckInterfaceMembers(membersAndInitializers.NonTypeMembers, diagnostics);
             }
 
             CheckMemberNamesDistinctFromType(diagnostics);
@@ -1555,6 +1560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSpecialMemberErrors(diagnostics);
             CheckTypeParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
+            CheckHiddenPositionalMembers(membersAndInitializers, diagnostics);
 
             bool unused = KnownCircularStruct;
 
@@ -2005,6 +2011,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, dup.Locations[0], this, tp.Name);
                     }
+                }
+            }
+        }
+        private void CheckHiddenPositionalMembers(MembersAndInitializers membersAndInitializers, BindingDiagnosticBag diagnostics)
+        {
+            ImmutableArray<PropertySymbol> positionalMembers = membersAndInitializers.PositionalMembersOpt;
+            if (positionalMembers.IsDefault)
+            {
+                return;
+            }
+
+            for (int i = 0; i < positionalMembers.Length; i++)
+            {
+                PropertySymbol positionalMember = positionalMembers[i];
+                if (positionalMember.ContainingType == (object)this)
+                {
+                    continue;
+                }
+
+                ImmutableArray<Symbol> hidingSymbols = this.GetMembers(positionalMember.Name);
+                if (!hidingSymbols.IsEmpty)
+                {
+                    // The positional member was inherited but is hidden by a member of the current record type
+                    var hidingSymbol = hidingSymbols.First();
+                    diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, hidingSymbol.Locations.FirstOrNone(), hidingSymbol, positionalMember, this.Name);
                 }
             }
         }
@@ -2613,6 +2644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private ArrayBuilder<FieldOrPropertyInitializer>? InstanceInitializersForPositionalMembers;
             private bool IsNullableEnabledForInstanceConstructorsAndFields;
             private bool IsNullableEnabledForStaticConstructorsAndFields;
+            private ImmutableArray<PropertySymbol> positionalMembersOpt;
 
             public MembersAndInitializersBuilder(DeclaredMembersAndInitializers declaredMembersAndInitializers)
             {
@@ -2636,7 +2668,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     instanceInitializers,
                     declaredMembers.HaveIndexers,
                     isNullableEnabledForInstanceConstructorsAndFields: IsNullableEnabledForInstanceConstructorsAndFields,
-                    isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields);
+                    isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields,
+                    positionalMembersOpt);
 
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> mergeInitializers()
                 {
@@ -2742,6 +2775,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private ref bool GetIsNullableEnabledForConstructorsAndFields(bool useStatic)
             {
                 return ref useStatic ? ref IsNullableEnabledForStaticConstructorsAndFields : ref IsNullableEnabledForInstanceConstructorsAndFields;
+            }
+
+            public void SetPositionalMembers(ImmutableArray<PropertySymbol> positionalMembers)
+            {
+                Debug.Assert(positionalMembersOpt.IsDefault);
+                positionalMembersOpt = positionalMembers;
             }
 
             internal static ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> ToReadOnlyAndFree(ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>> initializers)
@@ -3441,6 +3480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ctor.ParameterCount != 0)
                 {
                     var existingOrAddedMembers = addProperties(ctor.Parameters);
+                    builder.SetPositionalMembers(existingOrAddedMembers);
                     addDeconstruct(ctor, existingOrAddedMembers);
                 }
 
@@ -3497,7 +3537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingDeconstructMethod))
                 {
-                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, properties, paramList, memberOffset: members.Count, diagnostics));
+                    members.Add(new SynthesizedRecordDeconstruct(this, ctor, properties, memberOffset: members.Count, diagnostics));
                 }
                 else
                 {
