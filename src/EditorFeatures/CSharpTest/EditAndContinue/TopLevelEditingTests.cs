@@ -9430,6 +9430,19 @@ class C
         }
 
         [Fact]
+        public void FieldInsert_NotSupportedByRuntime()
+        {
+            var src1 = "class C {  }";
+            var src2 = "class C { public int a = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.Insert, "a = 1", "field"));
+        }
+
+        [Fact]
         public void FieldDelete1()
         {
             var src1 = "class C { int a = 1; }";

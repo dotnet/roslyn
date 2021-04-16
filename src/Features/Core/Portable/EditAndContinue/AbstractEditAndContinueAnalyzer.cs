@@ -600,6 +600,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     diagnostics,
                     newActiveStatements,
                     newExceptionRegions,
+                    capabilities,
                     cancellationToken).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -2183,6 +2184,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             ImmutableArray<ActiveStatement>.Builder newActiveStatements,
             ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions,
+            ManagedEditAndContinueCapabilities capabilities,
             CancellationToken cancellationToken)
         {
             if (editScript.Edits.Length == 0 && triviaEdits.Count == 0)
@@ -2496,6 +2498,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                     var containingSymbolKey = SymbolKey.Create(newContainingType, cancellationToken);
                                     oldContainingType = containingSymbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
+
+                                    if (oldContainingType != null && !capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType))
+                                    {
+                                        diagnostics.Add(new RudeEditDiagnostic(
+                                            RudeEditKind.Insert,
+                                            GetDiagnosticSpan(edit.NewNode, EditKind.Insert),
+                                            edit.NewNode,
+                                            arguments: new[] { GetDisplayName(edit.NewNode, EditKind.Insert) }));
+                                    }
 
                                     // Check rude edits for each member even if it is inserted into a new type.
                                     ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol, edit.NewNode, insertingIntoExistingContainingType: oldContainingType != null);
