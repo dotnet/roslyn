@@ -213,8 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               instanceInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
                                               haveIndexers: false,
                                               isNullableEnabledForInstanceConstructorsAndFields: false,
-                                              isNullableEnabledForStaticConstructorsAndFields: false,
-                                              positionalMembersOpt: default);
+                                              isNullableEnabledForStaticConstructorsAndFields: false);
         }
 
         public override bool IsImplicitlyDeclared => false;

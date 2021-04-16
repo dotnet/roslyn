@@ -448,8 +448,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_HiddenPositionalMember">
-        <source>'{0}' hides positional member '{1}' for record '{2}'.</source>
-        <target state="new">'{0}' hides positional member '{1}' for record '{2}'.</target>
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
