@@ -67,18 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _workQueue.CancelCurrentWork();
         }
 
-        public event EventHandler UIUpdatesPaused
-        {
-            add { _underlyingSource.UIUpdatesPaused += value; }
-            remove { _underlyingSource.UIUpdatesPaused -= value; }
-        }
-
-        public event EventHandler UIUpdatesResumed
-        {
-            add { _underlyingSource.UIUpdatesResumed += value; }
-            remove { _underlyingSource.UIUpdatesResumed -= value; }
-        }
-
         private void OnEventSourceChanged(object? sender, TaggerEventArgs args)
         {
             // First, notify anyone listening to us that something definitely changed.

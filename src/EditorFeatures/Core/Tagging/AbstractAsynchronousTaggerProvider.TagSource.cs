@@ -65,11 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly ITaggerEventSource _eventSource;
 
             /// <summary>
-            /// During the time that we are paused from updating the UI, we will use these tags instead.
-            /// </summary>
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _previousCachedTagTrees;
-
-            /// <summary>
             /// accumulated text changes since last tag calculation
             /// </summary>
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
@@ -80,9 +75,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             #endregion
 
             public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>, bool> TagsChangedForBuffer;
-
-            public event EventHandler Paused;
-            public event EventHandler Resumed;
 
             /// <summary>
             /// A cancellation source we use for the initial tagging computation.  We only cancel
@@ -228,8 +220,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _workQueue.AssertIsForeground();
 
                 _eventSource.Changed += OnEventSourceChanged;
-                _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
-                _eventSource.UIUpdatesPaused += OnUIUpdatesPaused;
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
                 {
@@ -269,8 +259,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _subjectBuffer.Changed -= OnSubjectBufferChanged;
                 }
 
-                _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
-                _eventSource.UIUpdatesResumed -= OnUIUpdatesResumed;
                 _eventSource.Changed -= OnEventSourceChanged;
             }
 
@@ -293,12 +281,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 TagsChangedForBuffer?.Invoke(collection, initialTags);
             }
-
-            private void RaisePaused()
-                => this.Paused?.Invoke(this, EventArgs.Empty);
-
-            private void RaiseResumed()
-                => this.Resumed?.Invoke(this, EventArgs.Empty);
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : default;
