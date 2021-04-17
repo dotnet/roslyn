@@ -1255,9 +1255,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private SynthesizedRecordConstructor TryGetSynthesizedRecordConstructor(TypeDeclarationSyntax node)
+        private SynthesizedRecordConstructor TryGetSynthesizedRecordConstructor(RecordDeclarationSyntax node)
         {
-            Debug.Assert(node is RecordDeclarationSyntax or RecordStructDeclarationSyntax);
             NamedTypeSymbol recordType = GetDeclaredType(node);
             var symbol = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
 
@@ -2027,10 +2026,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 method = TryGetSynthesizedRecordConstructor(recordDecl);
             }
-            else if (memberDecl is RecordStructDeclarationSyntax recordStructDecl && recordStructDecl.ParameterList == paramList)
-            {
-                method = TryGetSynthesizedRecordConstructor(recordStructDecl);
-            }
             else
             {
                 method = (GetDeclaredSymbol(memberDecl, cancellationToken) as IMethodSymbol).GetSymbol();
@@ -2435,33 +2430,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case RecordStructDeclarationSyntax recordStructDeclaration when TryGetSynthesizedRecordConstructor(recordStructDeclaration) is SynthesizedRecordConstructor ctor:
-                    switch (declaredSymbol.Kind)
-                    {
-                        case SymbolKind.Method:
-                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
-                            return (node) =>
-                            {
-                                // Accept only nodes that either match, or above/below of a 'parameter list'.
-                                if (node.Parent == recordStructDeclaration)
-                                {
-                                    return node == recordStructDeclaration.ParameterList;
-                                }
-
-                                return true;
-                            };
-
-                        case SymbolKind.NamedType:
-                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
-                            // Accept nodes that do not match a 'parameter list'.
-                            return (node) => node != recordStructDeclaration.ParameterList;
-
-                        default:
-                            ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
-                            break;
-                    }
-                    break;
-
                 case PrimaryConstructorBaseTypeSyntax { Parent: BaseListSyntax { Parent: RecordDeclarationSyntax recordDeclaration } } baseType
                         when recordDeclaration.PrimaryConstructorBaseType == declaredNode && TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
                     if ((object)declaredSymbol.GetSymbol() == (object)ctor)
@@ -2472,10 +2440,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ParameterSyntax param when declaredSymbol.Kind == SymbolKind.Property && param.Parent?.Parent is RecordDeclarationSyntax recordDeclaration && recordDeclaration.ParameterList == param.Parent:
-                    Debug.Assert(declaredSymbol.GetSymbol() is SynthesizedRecordPropertySymbol);
-                    return (node) => false;
-
-                case ParameterSyntax param when declaredSymbol.Kind == SymbolKind.Property && param.Parent?.Parent is RecordStructDeclarationSyntax recordStructDeclaration && recordStructDeclaration.ParameterList == param.Parent:
                     Debug.Assert(declaredSymbol.GetSymbol() is SynthesizedRecordPropertySymbol);
                     return (node) => false;
             }

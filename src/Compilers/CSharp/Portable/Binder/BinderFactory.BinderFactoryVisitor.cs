@@ -758,9 +758,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
-            public override Binder VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
-                => VisitTypeDeclarationCore(node);
-
             public override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
             {
                 if (!LookupPosition.IsInNamespaceDeclaration(_position, parent))
@@ -1142,8 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
 
-                if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } }
-                    or RecordStructDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
+                if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
                 {
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);

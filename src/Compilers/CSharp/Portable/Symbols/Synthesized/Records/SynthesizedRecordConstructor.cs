@@ -33,22 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override ParameterListSyntax GetParameterList()
         {
-            return GetSyntax() switch
-            {
-                RecordDeclarationSyntax record => record.ParameterList!,
-                RecordStructDeclarationSyntax recordStruct => recordStruct.ParameterList!,
-                _ => throw ExceptionUtilities.Unreachable
-            };
+            var record = (RecordDeclarationSyntax)GetSyntax();
+            return record.ParameterList!;
         }
 
         protected override CSharpSyntaxNode? GetInitializer()
         {
-            return GetSyntax() switch
-            {
-                RecordDeclarationSyntax record => record.PrimaryConstructorBaseType,
-                RecordStructDeclarationSyntax => null,
-                _ => throw ExceptionUtilities.Unreachable
-            };
+            var record = (RecordDeclarationSyntax)GetSyntax();
+            Debug.Assert(record.Kind() == SyntaxKind.RecordDeclaration || record.PrimaryConstructorBaseType is null);
+            return record.PrimaryConstructorBaseType;
         }
 
         protected override bool AllowRefOrOut => false;

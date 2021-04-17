@@ -2384,7 +2384,7 @@ record struct C(int X)
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
 
-            var recordDeclaration = tree.GetRoot().DescendantNodes().OfType<RecordStructDeclarationSyntax>().Single();
+            var recordDeclaration = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().Single();
             Assert.Equal("C", recordDeclaration.Identifier.ValueText);
             Assert.Null(model.GetOperation(recordDeclaration));
         }
@@ -5587,7 +5587,8 @@ class Attr1 : System.Attribute {}
 
             protected void Handle6(SyntaxNodeAnalysisContext context)
             {
-                var record = (RecordStructDeclarationSyntax)context.Node;
+                var record = (RecordDeclarationSyntax)context.Node;
+                Assert.Equal(SyntaxKind.RecordStructDeclaration, record.Kind());
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
@@ -6121,7 +6122,7 @@ interface I1 {}
 
                         switch (context.CodeBlock)
                         {
-                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
                                 Interlocked.Increment(ref FireCount1);
                                 break;
                             default:
@@ -6214,7 +6215,7 @@ interface I1 {}
                     case "A..ctor([System.Int32 X = 0])":
                         switch (context.CodeBlock)
                         {
-                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
                                 Interlocked.Increment(ref FireCount100);
                                 break;
                             default:
@@ -6272,7 +6273,7 @@ interface I1 {}
 
                         switch (context.CodeBlock)
                         {
-                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
                                 Interlocked.Increment(ref FireCount1000);
                                 break;
                             default:

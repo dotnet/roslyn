@@ -3056,7 +3056,7 @@ $@"public {typeKind} C
             var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
             var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
 
-            VerifySyntax<RecordStructDeclarationSyntax>(
+            VerifySyntax<RecordDeclarationSyntax>(
                 Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
 @"public record struct C
 {

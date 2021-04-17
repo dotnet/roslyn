@@ -1283,13 +1283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     .WithOpenBraceToken(recordDeclaration.OpenBraceToken == default ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken) : recordDeclaration.OpenBraceToken)
                     .WithCloseBraceToken(recordDeclaration.CloseBraceToken == default ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken) : recordDeclaration.CloseBraceToken);
             }
-            else if (declaration is RecordStructDeclarationSyntax recordStructDeclaration)
-            {
-                return recordStructDeclaration
-                    .WithSemicolonToken(default)
-                    .WithOpenBraceToken(recordStructDeclaration.OpenBraceToken == default ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken) : recordStructDeclaration.OpenBraceToken)
-                    .WithCloseBraceToken(recordStructDeclaration.CloseBraceToken == default ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken) : recordStructDeclaration.CloseBraceToken);
-            }
 
             return declaration;
         }

@@ -2491,7 +2491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _recordDeclarationWithParameters; }
                 set
                 {
-                    Debug.Assert(value is RecordDeclarationSyntax or RecordStructDeclarationSyntax);
+                    Debug.Assert(value is RecordDeclarationSyntax);
                     _recordDeclarationWithParameters = value;
                 }
             }
@@ -2588,7 +2588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
                 Debug.Assert(recordDeclarationWithParameters is object == recordPrimaryConstructor is object);
-                Debug.Assert(recordDeclarationWithParameters is null or RecordDeclarationSyntax or RecordStructDeclarationSyntax);
+                Debug.Assert(recordDeclarationWithParameters is null or RecordDeclarationSyntax);
 
                 this.NonTypeMembers = nonTypeMembers;
                 this.StaticInitializers = staticInitializers;
@@ -2956,20 +2956,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         var recordDecl = (RecordDeclarationSyntax)syntax;
                         noteRecordParameters(recordDecl, recordDecl.ParameterList, builder, diagnostics);
                         AddNonTypeMembers(builder, recordDecl.Members, diagnostics);
-                        break;
-
-                    case SyntaxKind.RecordStructDeclaration:
-                        var recordStructDecl = (RecordStructDeclarationSyntax)syntax;
-                        var parameterList = recordStructDecl.ParameterList;
-                        noteRecordParameters(recordStructDecl, parameterList, builder, diagnostics);
-                        AddNonTypeMembers(builder, recordStructDecl.Members, diagnostics);
 
                         // We will allow declaring parameterless constructors
                         // Tracking issue https://github.com/dotnet/roslyn/issues/52240
-                        if (parameterList?.ParameterCount == 0)
+                        var parameterList = recordDecl.ParameterList;
+                        if (syntax.Kind() == SyntaxKind.RecordStructDeclaration && parameterList?.ParameterCount == 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, parameterList.Location);
                         }
@@ -3431,7 +3426,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (builder.RecordDeclarationWithParameters is not null)
             {
-                Debug.Assert(builder.RecordDeclarationWithParameters is RecordStructDeclarationSyntax { ParameterList: not null });
+                Debug.Assert(builder.RecordDeclarationWithParameters is RecordDeclarationSyntax { ParameterList: not null } record
+                    && record.Kind() == SyntaxKind.RecordStructDeclaration);
                 return;
             }
 
@@ -3452,12 +3448,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            ParameterListSyntax? paramList = declaredMembersAndInitializers.RecordDeclarationWithParameters switch
-            {
-                RecordDeclarationSyntax recordDecl => recordDecl.ParameterList,
-                RecordStructDeclarationSyntax recordStructDecl => recordStructDecl.ParameterList,
-                _ => null
-            };
+            ParameterListSyntax? paramList = declaredMembersAndInitializers.RecordDeclarationWithParameters is RecordDeclarationSyntax recordDecl
+                ? recordDecl.ParameterList
+                : null;
 
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
             var fieldsByName = PooledDictionary<string, Symbol>.GetInstance();
