@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Do this in a fire and forget manner, but ensure we notify the test harness of this so that it
                     // doesn't try to acquire tag results prior to this work finishing.
                     var asyncToken = this._asyncListener.BeginAsyncOperation(nameof(ProcessNewTagTrees));
-                    Task.Run(async () =>
+                    _ = Task.Run(async () =>
                     {
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
@@ -618,19 +618,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseTagsChanged(bufferToChanges, initialTags);
             }
 
-            private DiffResult ComputeDifference(
-                ITextSnapshot snapshot,
-                TagSpanIntervalTree<TTag> latestSpans,
-                TagSpanIntervalTree<TTag> previousSpans)
-            {
-                return Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot));
-            }
-
             /// <summary>
-            /// Return all the spans that appear in only one of "latestSpans" or "previousSpans".
+            /// Return all the spans that appear in only one of <paramref name="latestTree"/> or <paramref name="previousTree"/>.
             /// </summary>
-            private static DiffResult Difference(IEnumerable<ITagSpan<TTag>> latestSpans, IEnumerable<ITagSpan<TTag>> previousSpans)
+            private static DiffResult ComputeDifference(
+                ITextSnapshot snapshot,
+                TagSpanIntervalTree<TTag> latestTree,
+                TagSpanIntervalTree<TTag> previousTree)
             {
+                var latestSpans = latestTree.GetSpans(snapshot);
+                var previousSpans = previousTree.GetSpans(snapshot);
+
                 using var addedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
                 using var removedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
                 using var latestEnumerator = latestSpans.GetEnumerator();
