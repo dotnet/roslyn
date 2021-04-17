@@ -382,7 +382,7 @@ breaks
         {
             var node = SyntaxFactory.ParseStatement(text);
             var actual = node.NormalizeWhitespace("  ").ToFullString();
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
 
         [Fact]
