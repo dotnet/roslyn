@@ -204,6 +204,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
+        {
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
+            {
+                return default;
+            }
+
+            Contract.ThrowIfNull(documentId);
+            return project.GetTextDocumentAsync(documentId, cancellationToken);
+        }
+
+        /// <summary>
         /// Gets the additional document in this solution with the specified document ID.
         /// </summary>
         public TextDocument? GetAdditionalDocument(DocumentId? documentId)

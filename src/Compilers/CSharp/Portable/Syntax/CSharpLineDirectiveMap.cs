@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -163,6 +165,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             isHiddenPosition = entry.State == PositionState.Hidden;
 
             return TranslateSpan(entry, treeFilePath, unmappedStartPos, unmappedEndPos);
+        }
+
+        public IEnumerable<LineMapping> GetLineMappings(TextLineCollection lines)
+        {
+            Debug.Assert(Entries.Length > 1);
+
+            var current = Entries[0];
+
+            // the first entry is always initialized to unmapped:
+            Debug.Assert(current.State is PositionState.Unmapped && current.UnmappedLine == 0 && current.MappedLine == 0 && current.MappedPathOpt == null);
+
+            for (int i = 1; i < Entries.Length; i++)
+            {
+                var next = Entries[i];
+
+                int unmappedEndLine = next.UnmappedLine - 2;
+
+                // If the first #line is on the first line the first entry is zero-width, so skip it:
+                if (unmappedEndLine == -1)
+                {
+                    current = next;
+                    continue;
+                }
+
+                var endLine = lines[unmappedEndLine];
+                int lineLength = endLine.EndIncludingLineBreak - endLine.Start;
+
+                // span ends just at the start of the line containing #line directive
+                // #line Current "file1"
+                // [|....\n
+                // ...........\n|]
+                // #line Next "file2"
+                var unmapped = new LinePositionSpan(
+                    new LinePosition(current.UnmappedLine, character: 0),
+                    new LinePosition(unmappedEndLine, lineLength));
+
+                var mapped = current.IsHidden ? default : new FileLinePositionSpan(
+                    current.MappedPathOpt ?? string.Empty,
+                    new LinePositionSpan(
+                        new LinePosition(current.MappedLine, character: 0),
+                        new LinePosition(current.MappedLine + unmappedEndLine - current.UnmappedLine, lineLength)),
+                    hasMappedPath: current.MappedPathOpt != null);
+
+                yield return new LineMapping(unmapped, mapped);
+
+                current = next;
+            }
+
+            var lastLine = lines[^1];
+
+            // last span (unless the last #line is on the last line):
+            // #line Current "file1"
+            // [|....\n
+            // ...........\n|]
+            if (current.UnmappedLine <= lastLine.LineNumber)
+            {
+                int lineLength = lastLine.EndIncludingLineBreak - lastLine.Start;
+
+                var unmapped = new LinePositionSpan(
+                    new LinePosition(current.UnmappedLine, character: 0),
+                    new LinePosition(lastLine.LineNumber, lineLength));
+
+                var mapped = current.IsHidden ? default : new FileLinePositionSpan(
+                    current.MappedPathOpt ?? string.Empty,
+                    new LinePositionSpan(
+                        new LinePosition(current.MappedLine, character: 0),
+                        new LinePosition(current.MappedLine + lastLine.LineNumber - current.UnmappedLine, lineLength)),
+                    hasMappedPath: current.MappedPathOpt != null);
+
+                yield return new LineMapping(unmapped, mapped);
+            }
         }
     }
 }

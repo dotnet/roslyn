@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -158,21 +159,21 @@ class C
 
             encService.GetBaseActiveStatementSpansImpl = (_, documentIds) => ImmutableArray.Create(
                 ImmutableArray.Create(
-                    (span11, ActiveStatementFlags.IsNonLeafFrame),
-                    (span12, ActiveStatementFlags.IsLeafFrame)),
-                ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>.Empty);
+                    new ActiveStatementSpan(span11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
+                    new ActiveStatementSpan(span12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)),
+                ImmutableArray<ActiveStatementSpan>.Empty);
 
             encService.GetAdjustedActiveStatementSpansImpl = (document, _) => document.Name switch
             {
                 "1.cs" => ImmutableArray.Create(
-                    (span21, ActiveStatementFlags.IsNonLeafFrame),
-                    (span22, ActiveStatementFlags.IsLeafFrame)),
-                "2.cs" => ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>.Empty,
+                    new ActiveStatementSpan(span21, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
+                    new ActiveStatementSpan(span22, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)),
+                "2.cs" => ImmutableArray<ActiveStatementSpan>.Empty,
                 _ => throw ExceptionUtilities.Unreachable
             };
 
-            var testDocument1 = new TestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider);
-            var testDocument2 = new TestHostDocument(text: source2, displayName: "2.cs", exportProvider: workspace.ExportProvider);
+            var testDocument1 = new TestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider, filePath: "1.cs");
+            var testDocument2 = new TestHostDocument(text: source2, displayName: "2.cs", exportProvider: workspace.ExportProvider, filePath: "2.cs");
             workspace.AddTestProject(new TestHostProject(workspace, documents: new[] { testDocument1, testDocument2 }));
 
             // opens the documents
@@ -199,12 +200,12 @@ class C
                 {
                     $"V0 →←@[10..15): IsNonLeafFrame",
                     $"V0 →←@[20..25): IsLeafFrame"
-                }, spans1[document1.Id].Select(s => $"{s.Span}: {s.Flags}"));
+                }, spans1[document1.FilePath].Select(s => $"{s.Span}: {s.Flags}"));
 
-                var spans2 = await trackingSession.GetSpansAsync(document1, CancellationToken.None);
-                AssertEx.Equal(new[] { "[10..15)", "[20..25)" }, spans2.Select(s => s.ToString()));
+                var spans2 = await trackingSession.GetSpansAsync(solution, document1.Id, document1.FilePath, CancellationToken.None);
+                AssertEx.Equal(new[] { "(0,10)-(0,15)", "(0,20)-(0,25)" }, spans2.Select(s => s.LineSpan.ToString()));
 
-                var spans3 = await trackingSession.GetSpansAsync(document2, CancellationToken.None);
+                var spans3 = await trackingSession.GetSpansAsync(solution, document2.Id, document2.FilePath, CancellationToken.None);
                 Assert.Empty(spans3);
             }
 
@@ -226,7 +227,7 @@ class C
                 {
                     $"V0 →←@[11..16): IsNonLeafFrame",
                     $"V0 →←@[21..26): IsLeafFrame"
-                }, spans5[document1.Id].Select(s => $"{s.Span}: {s.Flags}"));
+                }, spans5[document1.FilePath].Select(s => $"{s.Span}: {s.Flags}"));
             }
 
             // we are not able to determine active statements in a document:

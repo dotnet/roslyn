@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -154,8 +155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             End Select
         End Function
 
-        Friend Shared Function GetActiveStatements(oldSource As String, newSource As String) As ActiveStatementsDescription
-            Return New ActiveStatementsDescription(oldSource, newSource)
+        Friend Shared Function GetActiveStatements(oldSource As String, newSource As String, Optional flags As ActiveStatementFlags() = Nothing) As ActiveStatementsDescription
+            Return New ActiveStatementsDescription(oldSource, SyntaxFactory.ParseSyntaxTree(oldSource), newSource, SyntaxFactory.ParseSyntaxTree(newSource), flags)
         End Function
 
         Friend Shared Function GetSyntaxMap(oldSource As String, newSource As String) As SyntaxMapDescription

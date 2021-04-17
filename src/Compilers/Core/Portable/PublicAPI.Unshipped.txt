@@ -1,4 +1,5 @@
 *REMOVED*Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNode! other) -> bool
+abstract Microsoft.CodeAnalysis.SyntaxTree.GetLineMappings(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.LineMapping>!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string! firstLanguage, params string![]! additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string![]!
@@ -20,6 +21,17 @@ Microsoft.CodeAnalysis.GeneratorPostInitializationContext.CancellationToken.get 
 Microsoft.CodeAnalysis.GeneratorPostInitializationContext.GeneratorPostInitializationContext() -> void
 Microsoft.CodeAnalysis.IMethodSymbol.MethodImplementationFlags.get -> System.Reflection.MethodImplAttributes
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
+Microsoft.CodeAnalysis.LineMapping
+Microsoft.CodeAnalysis.LineMapping.Deconstruct(out Microsoft.CodeAnalysis.Text.LinePositionSpan span, out Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
+Microsoft.CodeAnalysis.LineMapping.Equals(Microsoft.CodeAnalysis.LineMapping other) -> bool
+Microsoft.CodeAnalysis.LineMapping.IsHidden.get -> bool
+Microsoft.CodeAnalysis.LineMapping.LineMapping() -> void
+Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LinePositionSpan span, Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
+Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
+Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
+override Microsoft.CodeAnalysis.LineMapping.ToString() -> string?
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
@@ -36,6 +48,10 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.DefaultVisit(Microsoft.CodeAnalysis.IOperation! operation, TArgument argument) -> object?
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.Visit(Microsoft.CodeAnalysis.IOperation? operation, TArgument argument) -> object?
+static Microsoft.CodeAnalysis.FileLinePositionSpan.operator !=(Microsoft.CodeAnalysis.FileLinePositionSpan left, Microsoft.CodeAnalysis.FileLinePositionSpan right) -> bool
+static Microsoft.CodeAnalysis.FileLinePositionSpan.operator ==(Microsoft.CodeAnalysis.FileLinePositionSpan left, Microsoft.CodeAnalysis.FileLinePositionSpan right) -> bool
+static Microsoft.CodeAnalysis.LineMapping.operator !=(Microsoft.CodeAnalysis.LineMapping left, Microsoft.CodeAnalysis.LineMapping right) -> bool
+static Microsoft.CodeAnalysis.LineMapping.operator ==(Microsoft.CodeAnalysis.LineMapping left, Microsoft.CodeAnalysis.LineMapping right) -> bool
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>

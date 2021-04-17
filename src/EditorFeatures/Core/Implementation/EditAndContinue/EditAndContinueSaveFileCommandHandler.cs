@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 var documentId = workspace.GetDocumentIdInCurrentContext(textContainer);
                 if (documentId != null)
                 {
+                    // ignoring source-generated files since they shouldn't be modified and saved:
                     var currentDocument = workspace.CurrentSolution.GetDocument(documentId);
                     if (currentDocument != null)
                     {

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal interface IEditAndContinueAnalyzer : ILanguageService
     {
-        Task<DocumentAnalysisResults> AnalyzeDocumentAsync(Project baseProject, ImmutableArray<ActiveStatement> baseActiveStatements, Document document, ImmutableArray<TextSpan> newActiveStatementSpans, EditAndContinueCapabilities capabilities, CancellationToken cancellationToken);
-        ImmutableArray<LinePositionSpan> GetExceptionRegions(SourceText text, SyntaxNode syntaxRoot, LinePositionSpan activeStatementSpan, bool isLeaf, out bool isCovered);
+        Task<DocumentAnalysisResults> AnalyzeDocumentAsync(Project baseProject, ActiveStatementsMap baseActiveStatements, Document document, ImmutableArray<LinePositionSpan> newActiveStatementSpans, EditAndContinueCapabilities capabilities, CancellationToken cancellationToken);
+        ActiveStatementExceptionRegions GetExceptionRegions(SyntaxNode syntaxRoot, TextSpan unmappedActiveStatementSpan, bool isNonLeaf, CancellationToken cancellationToken);
     }
 }
