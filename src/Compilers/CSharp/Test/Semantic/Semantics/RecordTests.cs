@@ -28980,5 +28980,53 @@ public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 25)
                 );
         }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_AbstractInBase()
+        {
+            var source = @"
+abstract record Base
+{
+    public abstract int I { get; init; }
+}
+record Derived(int I) : Base
+{
+    public int I() { return 0; }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,16): warning CS0108: 'Derived.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("Derived.I()", "Base.I").WithLocation(8, 16),
+                // (8,16): error CS0102: The type 'Derived' already contains a definition for 'I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("Derived", "I").WithLocation(8, 16)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_AbstractInBase_AbstractInDerived()
+        {
+            var source = @"
+abstract record Base
+{
+    public abstract int I { get; init; }
+}
+abstract record Derived(int I) : Base
+{
+    public int I() { return 0; }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0533: 'Derived.I()' hides inherited abstract member 'Base.I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "I").WithArguments("Derived.I()", "Base.I").WithLocation(8, 16),
+                // (8,16): error CS0102: The type 'Derived' already contains a definition for 'I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("Derived", "I").WithLocation(8, 16)
+                );
+        }
     }
 }
