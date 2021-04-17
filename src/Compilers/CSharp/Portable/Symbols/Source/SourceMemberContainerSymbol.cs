@@ -3413,10 +3413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var memberNames = PooledHashSet<string>.GetInstance();
             foreach (var member in membersSoFar)
             {
-                if (!memberNames.Contains(member.Name))
-                {
-                    memberNames.Add(member.Name);
-                }
+                memberNames.Add(member.Name);
 
                 switch (member)
                 {
