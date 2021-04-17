@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,
   DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,
   DeliveryTruck t => 10.00m,
-  {} => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
+  { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
   null => 0 //throw new ArgumentNullException(nameof(vehicle))
 };";
             TestNormalizeStatement(a, b);
