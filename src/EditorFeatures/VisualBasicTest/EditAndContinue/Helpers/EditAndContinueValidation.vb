@@ -16,13 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Friend Sub VerifyUnchangedDocument(
             source As String,
             description As ActiveStatementsDescription)
-
+#If TODO Then
             Dim validator = New VisualBasicEditAndContinueTestHelpers()
             validator.VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldStatements,
                 description.NewSpans,
                 description.NewRegions)
+#End If
         End Sub
 
         <Extension>

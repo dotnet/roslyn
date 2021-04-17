@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             }
         }
 
-        private static readonly SolutionActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-            (_, _) => ValueTaskFactory.FromResult(ImmutableArray<TextSpan>.Empty);
+        private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
+            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
         private readonly IEditAndContinueWorkspaceService _encService;
 
