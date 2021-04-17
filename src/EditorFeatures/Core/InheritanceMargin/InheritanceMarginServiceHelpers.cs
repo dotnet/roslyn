@@ -179,6 +179,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             InheritanceRelationship inheritanceRelationship,
             CancellationToken cancellationToken)
         {
+            var symbolInSource = await SymbolFinder.FindSourceDefinitionAsync(targetSymbol, solution, cancellationToken).ConfigureAwait(false);
+            targetSymbol = symbolInSource ?? targetSymbol;
+
             // Right now the targets are not shown in a classified way.
             var definition = await targetSymbol.ToNonClassifiedDefinitionItemAsync(
                 solution,
