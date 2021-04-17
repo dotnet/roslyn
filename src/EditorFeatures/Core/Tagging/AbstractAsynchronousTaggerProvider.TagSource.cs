@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
 
-            private readonly IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
-
             /// <summary>
             /// async operation notifier
             /// </summary>
@@ -112,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
                 _notificationService = notificationService;
-                _tagSpanComparer = new TagSpanComparer(_dataSource.TagComparer);
 
                 DebugRecordInitialStackTrace();
 
@@ -302,80 +299,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : default;
-
-            /// <summary>
-            /// Return all the spans that appear in only one of "latestSpans" or "previousSpans".
-            /// </summary>
-            private static DiffResult Difference<T>(IEnumerable<ITagSpan<T>> latestSpans, IEnumerable<ITagSpan<T>> previousSpans, IEqualityComparer<T> comparer)
-                where T : ITag
-            {
-                using var addedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
-                using var removedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
-                using var latestEnumerator = latestSpans.GetEnumerator();
-                using var previousEnumerator = previousSpans.GetEnumerator();
-
-                var added = addedPool.Object;
-                var removed = removedPool.Object;
-
-                var latest = NextOrDefault(latestEnumerator);
-                var previous = NextOrDefault(previousEnumerator);
-
-                while (latest != null && previous != null)
-                {
-                    var latestSpan = latest.Span;
-                    var previousSpan = previous.Span;
-
-                    if (latestSpan.Start < previousSpan.Start)
-                    {
-                        added.Add(latestSpan);
-                        latest = NextOrDefault(latestEnumerator);
-                    }
-                    else if (previousSpan.Start < latestSpan.Start)
-                    {
-                        removed.Add(previousSpan);
-                        previous = NextOrDefault(previousEnumerator);
-                    }
-                    else
-                    {
-                        // If the starts are the same, but the ends are different, report the larger
-                        // region to be conservative.
-                        if (previousSpan.End > latestSpan.End)
-                        {
-                            removed.Add(previousSpan);
-                            latest = NextOrDefault(latestEnumerator);
-                        }
-                        else if (latestSpan.End > previousSpan.End)
-                        {
-                            added.Add(latestSpan);
-                            previous = NextOrDefault(previousEnumerator);
-                        }
-                        else
-                        {
-                            if (!comparer.Equals(latest.Tag, previous.Tag))
-                            {
-                                added.Add(latestSpan);
-                            }
-
-                            latest = NextOrDefault(latestEnumerator);
-                            previous = NextOrDefault(previousEnumerator);
-                        }
-                    }
-                }
-
-                while (latest != null)
-                {
-                    added.Add(latest.Span);
-                    latest = NextOrDefault(latestEnumerator);
-                }
-
-                while (previous != null)
-                {
-                    removed.Add(previous.Span);
-                    previous = NextOrDefault(previousEnumerator);
-                }
-
-                return new DiffResult(added, removed);
-            }
         }
     }
 }
