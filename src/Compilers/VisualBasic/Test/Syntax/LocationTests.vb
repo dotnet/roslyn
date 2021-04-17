@@ -59,6 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return New TextSpan(index, textToFind.Length)
         End Function
 
+        Private Shared Function InspectLineMapping(tree As SyntaxTree) As IEnumerable(Of String)
+            Dim text = tree.GetText()
+            Return tree.GetLineMappings().Select(Function(mapping) $"[|{text.GetSubText(text.Lines.GetTextSpan(mapping.Span))}|] -> {If(mapping.IsHidden, "<hidden>", mapping.MappedSpan.ToString())}")
+        End Function
+
         <Fact>
         Public Sub TestGetSourceLocationInFile()
             Dim sampleProgram = "Class X" + vbCrLf + "Public x As Integer" + vbCrLf + "End Class" + vbCrLf
@@ -106,7 +111,7 @@ public a as integer
 #End ExternalSource
 #End If
 End Class
-"
+".NormalizeLineEndings()
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
 
             AssertMappedSpanEqual(tree, "ports Sy", "c:\goo.vb", 0, 2, 0, 10, hasMappedPath:=False)
@@ -116,22 +121,139 @@ End Class
             AssertMappedSpanEqual(tree, "w as", "c:\goo.vb", 9, 7, 9, 11, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "q as", "c:\goo.vb", 10, 7, 10, 11, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "a as", "c:\goo.vb", 14, 7, 14, 11, hasMappedPath:=False)
+
+            AssertEx.Equal(
+            {
+                "[|Imports System" & vbCrLf & "Class X" & vbCrLf & "|] -> <hidden>",
+                "[|public x as integer" & vbCrLf & "public y as integer" & vbCrLf & "|] -> banana.vb: (19,0)-(20,21)",
+                "[|public z as integer" & vbCrLf & "|] -> banana.vb: (43,0)-(43,21)",
+                "[|public w as integer" & vbCrLf &
+                "public q as integer" & vbCrLf &
+                "#If False Then" & vbCrLf &
+                "#ExternalSource(""apple.vb"", 101)" & vbCrLf &
+                "#End If" & vbCrLf &
+                "public a as integer" & vbCrLf &
+                "#If False Then" & vbCrLf &
+                "#End ExternalSource" & vbCrLf &
+                "#End If" & vbCrLf &
+                "End Class" & vbCrLf & "|] -> <hidden>"
+            }, InspectLineMapping(tree))
         End Sub
 
-        <Fact()>
+        <Fact>
+        Public Sub TestLineMapping_Invalid_MissingStartDirective1()
+            Dim sampleProgram As String =
+"Class X
+#End ExternalSource
+End Class
+"
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
+
+            AssertMappedSpanEqual(tree, "Class X", "c:\goo.vb", 0, 0, 0, 7, hasMappedPath:=False)
+            AssertMappedSpanEqual(tree, "End Class", "c:\goo.vb", 2, 0, 2, 9, hasMappedPath:=False)
+
+            AssertEx.Equal(
+            {
+                "[|Class X" & vbCrLf & "|] -> : (0,0)-(0,9)",
+                "[|End Class" & vbCrLf & "|] -> : (2,0)-(3,0)"
+            }, InspectLineMapping(tree))
+        End Sub
+
+        <Fact>
+        Public Sub TestLineMapping_Invalid_MissingStartDirective3()
+            Dim sampleProgram As String =
+"Class X
+#End ExternalSource
+Class Y
+#End ExternalSource
+Class Z
+End Class
+End Class
+End Class
+"
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
+
+            AssertMappedSpanEqual(tree, "Class X", "c:\goo.vb", 0, 0, 0, 7, hasMappedPath:=False)
+            AssertMappedSpanEqual(tree, "Class Y", "c:\goo.vb", 2, 0, 2, 7, hasMappedPath:=False)
+            AssertMappedSpanEqual(tree, "Class Z", "c:\goo.vb", 4, 0, 4, 7, hasMappedPath:=False)
+
+            AssertEx.Equal(
+            {
+                "[|Class X" & vbCrLf & "|] -> : (0,0)-(0,9)",
+                "[|Class Y" & vbCrLf & "|] -> : (2,0)-(2,9)",
+                "[|Class Z" & vbCrLf & "End Class" & vbCrLf & "End Class" & vbCrLf & "End Class" & vbCrLf & "|] -> : (4,0)-(8,0)"
+            }, InspectLineMapping(tree))
+        End Sub
+
+        <Fact>
+        Public Sub TestLineMapping_Invalid_MissingEndDirective1()
+            Dim sampleProgram As String =
+"Class X
+#ExternalSource(""a.vb"", 20)
+End Class
+"
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
+
+            AssertMappedSpanEqual(tree, "Class X", "c:\goo.vb", 0, 0, 0, 7, hasMappedPath:=False)
+            AssertMappedSpanEqual(tree, "End Class", "a.vb", 19, 0, 19, 9, hasMappedPath:=True)
+
+            AssertEx.Equal(
+            {
+                "[|Class X" & vbCrLf & "|] -> : (0,0)-(0,9)",
+                "[|End Class" & vbCrLf & "|] -> a.vb: (19,0)-(20,0)"
+            }, InspectLineMapping(tree))
+        End Sub
+
+        <Fact>
+        Public Sub TestLineMapping_Invalid_MissingEndDirective2()
+            Dim sampleProgram As String =
+"Class X
+#ExternalSource(""a.vb"", 20)
+Class Y
+End Class
+#ExternalSource(""b.vb"", 20)
+Class Z
+End Class
+End Class
+"
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
+
+            AssertMappedSpanEqual(tree, "Class X", "c:\goo.vb", 0, 0, 0, 7, hasMappedPath:=False)
+            AssertMappedSpanEqual(tree, "Class Y", "a.vb", 19, 0, 19, 7, hasMappedPath:=True)
+            AssertMappedSpanEqual(tree, "Class Z", "b.vb", 19, 0, 19, 7, hasMappedPath:=True)
+
+            AssertEx.Equal(
+            {
+                "[|Class X" & vbCrLf & "|] -> : (0,0)-(0,9)",
+                "[|Class Y" & vbCrLf & "End Class" & vbCrLf & "|] -> a.vb: (19,0)-(20,11)",
+                "[|Class Z" & vbCrLf & "End Class" & vbCrLf & "End Class" & vbCrLf & "|] -> b.vb: (19,0)-(22,0)"
+            }, InspectLineMapping(tree))
+        End Sub
+
+        <Fact>
+        Public Sub TestLineMapping_Invalid_MissingEndDirective_LastLine()
+            Dim sampleProgram As String = "#End ExternalSource"
+            Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
+
+            Assert.Empty(InspectLineMapping(tree))
+        End Sub
+
+        <Fact>
         Public Sub TestLineMappingNoDirectives()
             Dim sampleProgram As String =
-<value>Imports System
+"Imports System
 Class X
 public x as integer
 public y as integer
 End Class
-</value>.Value
+"
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
 
             AssertMappedSpanEqual(tree, "ports Sy", "c:\goo.vb", 0, 2, 0, 10, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "x as", "c:\goo.vb", 2, 7, 2, 11, hasMappedPath:=False)
 
+            Dim text = tree.GetText()
+            Assert.Empty(tree.GetLineMappings())
         End Sub
 
         <Fact>
@@ -140,7 +262,6 @@ End Class
 Class X
 End Class
 "
-            Dim resolver = New TestSourceResolver()
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:=""), "Class X", "", 1, 0, 1, 7, hasMappedPath:=False)
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:="    "), "Class X", "    ", 1, 0, 1, 7, hasMappedPath:=False)
         End Sub

@@ -30,22 +30,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// All active statements and the corresponding exception regions in changed documents.
         /// </summary>
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> NewActiveStatements;
+        public readonly ImmutableArray<DocumentActiveStatementChanges> ActiveStatementChanges;
 
         public ProjectChanges(
             ImmutableArray<SemanticEdit> semanticEdits,
             ImmutableArray<(DocumentId, ImmutableArray<SourceLineUpdate>)> lineChanges,
             ImmutableHashSet<ISymbol> addedSymbols,
-            ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)> newActiveStatements)
+            ImmutableArray<DocumentActiveStatementChanges> activeStatementChanges)
         {
             Debug.Assert(!semanticEdits.IsDefault);
             Debug.Assert(!lineChanges.IsDefault);
-            Debug.Assert(!newActiveStatements.IsDefault);
+            Debug.Assert(!activeStatementChanges.IsDefault);
 
             SemanticEdits = semanticEdits;
             LineChanges = lineChanges;
             AddedSymbols = addedSymbols;
-            NewActiveStatements = newActiveStatements;
+            ActiveStatementChanges = activeStatementChanges;
         }
     }
 }

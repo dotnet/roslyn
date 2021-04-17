@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     internal abstract partial class LineDirectiveMap<TDirective>
         where TDirective : SyntaxNode
     {
-        protected readonly LineMappingEntry[] Entries;
+        internal readonly ImmutableArray<LineMappingEntry> Entries;
 
         // Get all active #line directives under trivia into the list, in source code order.
         protected abstract bool ShouldAddDirective(TDirective directive);
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(directives != null);
 
             // Create the entry map.
-            this.Entries = CreateEntryMap(syntaxTree, directives);
+            Entries = CreateEntryMap(syntaxTree, directives);
         }
 
         // Given a span and a default file name, return a FileLinePositionSpan that is the mapped
@@ -98,18 +99,18 @@ namespace Microsoft.CodeAnalysis
         // Find the index of the line mapped entry with the largest unmapped line number <= lineNumber.
         protected int FindEntryIndex(int lineNumber)
         {
-            int r = Array.BinarySearch(this.Entries, new LineMappingEntry(lineNumber));
+            int r = Entries.BinarySearch(new LineMappingEntry(lineNumber));
             return r >= 0 ? r : ((~r) - 1);
         }
 
         // Given the ordered list of all directives in the file, return the ordered line mapping
         // entry for the file. This always starts with the null mapped that maps line 0 to line 0.
-        private LineMappingEntry[] CreateEntryMap(SyntaxTree tree, IList<TDirective> directives)
+        private ImmutableArray<LineMappingEntry> CreateEntryMap(SyntaxTree tree, IList<TDirective> directives)
         {
-            var entries = new LineMappingEntry[directives.Count + 1];
+            var entries = new ArrayBuilder<LineMappingEntry>(directives.Count + 1);
+
             var current = InitializeFirstEntry();
-            var index = 0;
-            entries[index] = current;
+            entries.Add(current);
 
             if (directives.Count > 0)
             {
@@ -117,20 +118,105 @@ namespace Microsoft.CodeAnalysis
                 foreach (var directive in directives)
                 {
                     current = GetEntry(directive, sourceText, current);
-                    ++index;
-                    entries[index] = current;
+                    entries.Add(current);
                 }
             }
 
 #if DEBUG
             // Make sure the entries array is correctly sorted. 
-            for (int i = 0; i < entries.Length - 1; ++i)
+            for (int i = 0; i < entries.Count - 1; ++i)
             {
                 Debug.Assert(entries[i].CompareTo(entries[i + 1]) < 0);
             }
 #endif
 
-            return entries;
+            return entries.ToImmutableAndFree();
+        }
+
+        protected abstract LineVisibility GetUnknownStateVisibility(int index);
+
+        public IEnumerable<LineMapping> GetLineMappings(TextLineCollection lines)
+        {
+            Debug.Assert(Entries.Length > 1);
+
+            var current = Entries[0];
+
+            // the first entry is always initialized to unmapped:
+            Debug.Assert(
+                current.State is PositionState.Unmapped or PositionState.Unknown &&
+                current.UnmappedLine == 0 &&
+                current.MappedLine == 0 &&
+                current.MappedPathOpt == null);
+
+            LineMapping CreateCurrentEntryMapping(int unmappedEndLine, int lineLength, int currentIndex)
+            {
+                var unmapped = new LinePositionSpan(
+                    new LinePosition(current.UnmappedLine, character: 0),
+                    new LinePosition(unmappedEndLine, lineLength));
+
+                var isHidden =
+                    current.State == PositionState.Hidden ||
+                    current.State == PositionState.Unknown && GetUnknownStateVisibility(currentIndex) == LineVisibility.Hidden;
+
+                var mapped = isHidden ? default : new FileLinePositionSpan(
+                    current.MappedPathOpt ?? string.Empty,
+                    new LinePositionSpan(
+                        new LinePosition(current.MappedLine, character: 0),
+                        new LinePosition(current.MappedLine + unmappedEndLine - current.UnmappedLine, lineLength)),
+                    hasMappedPath: current.MappedPathOpt != null);
+
+                return new LineMapping(unmapped, mapped);
+            }
+
+            for (int i = 1; i < Entries.Length; i++)
+            {
+                var next = Entries[i];
+
+                int unmappedEndLine = next.UnmappedLine - 2;
+                Debug.Assert(unmappedEndLine >= current.UnmappedLine - 1);
+
+                // Skip empty spans - two consecutive #line directives or #line on the first line.
+                if (unmappedEndLine >= current.UnmappedLine)
+                {
+                    // C#: Span ends just at the start of the line containing #line directive
+                    //
+                    // #line Current "file1"
+                    // [|....\n
+                    // ...........\n|]
+                    // #line Next "file2"
+                    //
+                    // VB: Span starts at the beginning of the line following the #ExternalSource directive and ends at the start of the line preceding #End ExternalSource.
+                    // #ExternalSource("file", 1)
+                    // [|....\n
+                    // ...........\n|]
+                    // #End ExternalSource
+
+                    var endLine = lines[unmappedEndLine];
+                    int lineLength = endLine.EndIncludingLineBreak - endLine.Start;
+
+                    yield return CreateCurrentEntryMapping(unmappedEndLine, lineLength, currentIndex: i - 1);
+                }
+
+                current = next;
+            }
+
+            var lastLine = lines[^1];
+
+            // Last span (unless the last #line/#End ExternalSource is on the last line):
+            // #line Current "file1"
+            // [|....\n
+            // ...........\n|]
+            //
+            // #End ExternalSource
+            // [|....\n
+            // ...........\n|]
+            if (current.UnmappedLine <= lastLine.LineNumber)
+            {
+                int lineLength = lastLine.EndIncludingLineBreak - lastLine.Start;
+                int unmappedEndLine = lastLine.LineNumber;
+
+                yield return CreateCurrentEntryMapping(unmappedEndLine, lineLength, currentIndex: Entries.Length - 1);
+            }
         }
     }
 }

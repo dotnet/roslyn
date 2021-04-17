@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
@@ -17,12 +14,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static readonly TraceLog Log = new(256, "EnC");
 
         /// <summary>
-        /// The id of the document the results are calculated for.
+        /// The state of the document the results are calculated for.
         /// </summary>
         public DocumentId DocumentId { get; }
 
         /// <summary>
-        /// Spans of active statements in the document, or null if the document has syntax errors.
+        /// Spans of active statements in the document, or null if the document has syntax errors or has not changed.
         /// Calculated even in presence of rude edits so that the active statements can be rendered in the editor.
         /// </summary>
         public ImmutableArray<ActiveStatement> ActiveStatements { get; }
@@ -41,7 +38,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Exception regions -- spans of catch and finally handlers that surround the active statements.
         /// 
-        /// Null if the document has syntax errors or rude edits.
+        /// Null if the document has syntax errors, rude edits or has not changed.
         /// </summary>
         /// <remarks>
         /// Null if there are any rude edit diagnostics.
@@ -59,10 +56,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ///   try { } |finally { try { } catch { ... AS ... } }|
         ///   try { try { } |finally { ... AS ... }| } |catch { } catch { } finally { }|
         /// </remarks>
-        public ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions { get; }
+        public ImmutableArray<ImmutableArray<SourceFileSpan>> ExceptionRegions { get; }
 
         /// <summary>
-        /// Line edits in the document, or null if the document has syntax errors or rude edits.
+        /// Line edits in the document, or null if the document has syntax errors, rude edits or has not changed.
         /// </summary>
         /// <remarks>
         /// Sorted by <see cref="SourceLineUpdate.OldLine"/>
@@ -84,21 +81,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatement> activeStatementsOpt,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             ImmutableArray<SemanticEditInfo> semanticEditsOpt,
-            ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt,
+            ImmutableArray<ImmutableArray<SourceFileSpan>> exceptionRegionsOpt,
             ImmutableArray<SourceLineUpdate> lineEditsOpt,
             bool hasChanges,
             bool hasSyntaxErrors)
         {
             Debug.Assert(!rudeEdits.IsDefault);
 
-            if (hasSyntaxErrors)
+            if (hasSyntaxErrors || !hasChanges)
             {
                 Debug.Assert(activeStatementsOpt.IsDefault);
                 Debug.Assert(semanticEditsOpt.IsDefault);
                 Debug.Assert(exceptionRegionsOpt.IsDefault);
                 Debug.Assert(lineEditsOpt.IsDefault);
             }
-            else if (hasChanges)
+            else
             {
                 Debug.Assert(!activeStatementsOpt.IsDefault);
 
@@ -116,15 +113,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     Debug.Assert(exceptionRegionsOpt.Length == activeStatementsOpt.Length);
                 }
-            }
-            else
-            {
-                Debug.Assert(!activeStatementsOpt.IsDefault);
-                Debug.Assert(semanticEditsOpt.IsEmpty);
-                Debug.Assert(!exceptionRegionsOpt.IsDefault);
-                Debug.Assert(lineEditsOpt.IsEmpty);
-
-                Debug.Assert(exceptionRegionsOpt.Length == activeStatementsOpt.Length);
             }
 
             DocumentId = documentId;
@@ -163,14 +151,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Report unchanged document results.
         /// </summary>
-        public static DocumentAnalysisResults Unchanged(DocumentId documentId, ImmutableArray<ActiveStatement> activeStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegions)
+        public static DocumentAnalysisResults Unchanged(DocumentId documentId)
             => new(
                 documentId,
-                activeStatements,
+                activeStatementsOpt: default,
                 rudeEdits: ImmutableArray<RudeEditDiagnostic>.Empty,
-                semanticEditsOpt: ImmutableArray<SemanticEditInfo>.Empty,
-                exceptionRegions,
-                lineEditsOpt: ImmutableArray<SourceLineUpdate>.Empty,
+                semanticEditsOpt: default,
+                exceptionRegionsOpt: default,
+                lineEditsOpt: default,
                 hasChanges: false,
                 hasSyntaxErrors: false);
     }

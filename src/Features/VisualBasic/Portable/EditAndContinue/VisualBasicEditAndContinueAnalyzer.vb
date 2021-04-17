@@ -765,6 +765,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Syntax And Semantic Utils"
 
+        Protected Overrides ReadOnly Property LineDirectiveKeyword As String
+            Get
+                Return "ExternalSource"
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property LineDirectiveSyntaxKind As UShort
+            Get
+                Return SyntaxKind.ExternalSourceDirectiveTrivia
+            End Get
+        End Property
+
         Protected Overrides Function GetSyntaxSequenceEdits(oldNodes As ImmutableArray(Of SyntaxNode), newNodes As ImmutableArray(Of SyntaxNode)) As IEnumerable(Of SequenceEdit)
             Return SyntaxComparer.GetSequenceEdits(oldNodes, newNodes)
         End Function

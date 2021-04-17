@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
             }
         }
 
-        private readonly SolutionActiveStatementSpanProvider _nullSolutionActiveStatementSpanProvider = (_, _) => new(ImmutableArray<TextSpan>.Empty);
+        private readonly ActiveStatementSpanProvider _nullSolutionActiveStatementSpanProvider = (_, _, _) => new(ImmutableArray<ActiveStatementSpan>.Empty);
         private readonly IEditAndContinueWorkspaceService _workspaceService;
 
         public DotNetWatchEditAndContinueWorkspaceService(IEditAndContinueWorkspaceService workspaceService)
