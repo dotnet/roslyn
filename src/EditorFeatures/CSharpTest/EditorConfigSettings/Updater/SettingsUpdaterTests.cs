@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -88,6 +89,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 string.Empty,
                 "[*.cs]\r\ncsharp_style_throw_expression=true:suggestion",
                 (CSharpCodeStyleOptions.PreferThrowExpression, option));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestAddNewBoolVisualBasicCodeStyleOptionWithSeverityAsync()
+        {
+            var option = VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation.DefaultValue;
+            option.Value = true;
+            option.Notification = CodeStyle.NotificationOption2.Suggestion;
+            await TestAsync(
+                string.Empty,
+                string.Empty,
+                (VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, option));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
