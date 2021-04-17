@@ -70,11 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
 
-        /// <summary>
-        /// This controls what delay tagger will use to let editor know about just deleted tags.
-        /// </summary>
-        protected virtual TaggerDelay RemovedTagNotificationDelay => TaggerDelay.NearImmediate;
-
 #if DEBUG
         public readonly string StackTrace;
 #endif

@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new();
 
             public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
-            public TaggerDelay RemovedTagNotificationDelay => _dataSource.RemovedTagNotificationDelay;
 
             public TagSource(
                 ITextView textViewOpt,
