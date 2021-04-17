@@ -4,19 +4,17 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.InheritanceMargin.InheritanceMarginServiceHelper;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
+    internal abstract class AbstractInheritanceMarginService : IInheritanceMarginService
     {
         /// <summary>
         /// Given the syntax nodes to search,
@@ -44,131 +42,50 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            // Use mapping service to find correct solution & symbol.
-            var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
-            using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
 
-            // Iterate all the members symbol to find each their inheritance chain information
+            var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
+            using var _ = ArrayBuilder<(SymbolKey symbolKey, int lineNumber)>.GetInstance(out var builder);
+
+            Project? project = null;
+
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
-                if (member == null || member.IsStatic)
+                if (member == null || !CanSymbolHasInheritanceTarget(member))
                 {
                     continue;
                 }
 
+                // Use mapping service to find correct solution & symbol. (e.g. metadata symbol)
                 var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
                 if (mappingResult == null)
                 {
                     continue;
                 }
 
-                if (mappingResult.Symbol is INamedTypeSymbol namedTypeSymbol)
-                {
-                    // Find its baseTypes and subTypes.
-                    await AddInheritanceMemberItemsForNamedTypeAsync(
-                        mappingResult.Project.Solution,
-                        sourceText.Lines,
-                        memberDeclarationNode,
-                        namedTypeSymbol, builder, cancellationToken).ConfigureAwait(false);
-                }
-                else if (mappingResult.Symbol.IsOrdinaryMethod() || mappingResult.Symbol is IEventSymbol or IPropertySymbol)
-                {
-                    // Find the implementing/implemented/overridden/overriding members
-                    await AddInheritanceMemberItemsForTypeMembersAsync(
-                        mappingResult.Project.Solution,
-                        sourceText.Lines,
-                        memberDeclarationNode,
-                        mappingResult.Symbol,
-                        builder,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                // All the symbols here are declared in the same document, they should belong to the same project.
+                // So here it is enough to get the project once.
+                project ??= mappingResult.Project;
+                builder.Add((mappingResult.Symbol.GetSymbolKey(cancellationToken), sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
             }
 
-            return builder.ToImmutable();
-        }
+            var symbolKeyAndLineNumbers = builder.ToImmutable();
+            if (symbolKeyAndLineNumbers.IsEmpty || project == null)
+            {
+                return ImmutableArray<InheritanceMarginItem>.Empty;
+            }
 
-        private async Task AddInheritanceMemberItemsForNamedTypeAsync(
-            Solution solution,
-            TextLineCollection lines,
-            SyntaxNode declarationNode,
-            INamedTypeSymbol memberSymbol,
-            ArrayBuilder<InheritanceMarginItem> builder,
-            CancellationToken cancellationToken)
-        {
-            // Get all base types.
-            var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
-
-            // Filter out
-            // 1. System.Object. (otherwise margin would be shown for all classes)
-            // 2. System.ValueType. (otherwise margin would be shown for all structs)
-            // 3. System.Enum. (otherwise margin would be shown for all enum)
-            var baseSymbols = allBaseSymbols
-                .WhereAsArray(symbol => symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
-
-            // Get all derived types
-            var derivedSymbols = await GetDerivedTypesAndImplementationsAsync(
+            var solution = project.Solution;
+            var serializedInheritanceMarginItems = await GetInheritanceMemberItemAsync(
                 solution,
-                memberSymbol,
+                project.Id,
+                symbolKeyAndLineNumbers,
                 cancellationToken).ConfigureAwait(false);
-
-            if (baseSymbols.Any() || derivedSymbols.Any())
-            {
-                var identifierToken = GetDeclarationToken(declarationNode);
-                var lineNumber = lines.GetLineFromPosition(identifierToken.SpanStart).LineNumber;
-                var item = await CreateInheritanceMemberItemAsync(
-                    solution,
-                    memberSymbol,
-                    lineNumber,
-                    baseSymbols: baseSymbols.CastArray<ISymbol>(),
-                    derivedTypesSymbols: derivedSymbols.CastArray<ISymbol>(),
-                    cancellationToken).ConfigureAwait(false);
-                builder.AddIfNotNull(item);
-            }
+            return await serializedInheritanceMarginItems.SelectAsArrayAsync(
+                (serializedItem, _) => InheritanceMarginItem.ConvertAsync(solution, serializedItem, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task AddInheritanceMemberItemsForTypeMembersAsync(
-            Solution solution,
-            TextLineCollection lines,
-            SyntaxNode declarationNode,
-            ISymbol memberSymbol,
-            ArrayBuilder<InheritanceMarginItem> builder,
-            CancellationToken cancellationToken)
-        {
-            // For a given member symbol (method, property and event), its base and derived symbols are classified into 4 cases.
-            // The mapping between images
-            // Implemented : I↓
-            // Implementing : I↑
-            // Overridden: O↓
-            // Overriding: O↑
-
-            // Go down the inheritance chain to find all the overrides targets.
-            var overriddenSymbols = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            // Go up the inheritance chain to find all the implemented targets.
-            var implementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
-
-            // Go up the inheritance chain to find all overriding targets
-            var overridingSymbols = GetOverridingSymbols(memberSymbol);
-
-            // Go down the inheritance chain to find all the implementing targets.
-            var implementedSymbols = await GetImplementedSymbolsAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
-
-            if (overriddenSymbols.Any() || overridingSymbols.Any() || implementingSymbols.Any() || implementedSymbols.Any())
-            {
-                var identifierToken = GetDeclarationToken(declarationNode);
-                var lineNumber = lines.GetLineFromPosition(identifierToken.SpanStart).LineNumber;
-                var item = await CreateInheritanceMemberInfoForMemberAsync(
-                    solution,
-                    memberSymbol,
-                    lineNumber,
-                    implementingMembers: implementingSymbols,
-                    implementedMembers: implementedSymbols,
-                    overridenMembers: overriddenSymbols,
-                    overridingMembers: overridingSymbols,
-                    cancellationToken).ConfigureAwait(false);
-                builder.AddIfNotNull(item);
-            }
-        }
+        private static bool CanSymbolHasInheritanceTarget(ISymbol symbol)
+            => !symbol.IsStatic && (symbol is INamedTypeSymbol or IEventSymbol or IPropertySymbol || symbol.IsOrdinaryMethod());
     }
 }
