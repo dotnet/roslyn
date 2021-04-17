@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     internal abstract partial class LineDirectiveMap<TDirective>
         where TDirective : SyntaxNode
     {
-        protected readonly LineMappingEntry[] Entries;
+        internal readonly ImmutableArray<LineMappingEntry> Entries;
 
         // Get all active #line directives under trivia into the list, in source code order.
         protected abstract bool ShouldAddDirective(TDirective directive);
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(directives != null);
 
             // Create the entry map.
-            this.Entries = CreateEntryMap(syntaxTree, directives);
+            Entries = CreateEntryMap(syntaxTree, directives);
         }
 
         // Given a span and a default file name, return a FileLinePositionSpan that is the mapped
@@ -98,18 +99,18 @@ namespace Microsoft.CodeAnalysis
         // Find the index of the line mapped entry with the largest unmapped line number <= lineNumber.
         protected int FindEntryIndex(int lineNumber)
         {
-            int r = Array.BinarySearch(this.Entries, new LineMappingEntry(lineNumber));
+            int r = Entries.BinarySearch(new LineMappingEntry(lineNumber));
             return r >= 0 ? r : ((~r) - 1);
         }
 
         // Given the ordered list of all directives in the file, return the ordered line mapping
         // entry for the file. This always starts with the null mapped that maps line 0 to line 0.
-        private LineMappingEntry[] CreateEntryMap(SyntaxTree tree, IList<TDirective> directives)
+        private ImmutableArray<LineMappingEntry> CreateEntryMap(SyntaxTree tree, IList<TDirective> directives)
         {
-            var entries = new LineMappingEntry[directives.Count + 1];
+            var entries = new ArrayBuilder<LineMappingEntry>(directives.Count + 1);
+
             var current = InitializeFirstEntry();
-            var index = 0;
-            entries[index] = current;
+            entries.Add(current);
 
             if (directives.Count > 0)
             {
@@ -117,20 +118,19 @@ namespace Microsoft.CodeAnalysis
                 foreach (var directive in directives)
                 {
                     current = GetEntry(directive, sourceText, current);
-                    ++index;
-                    entries[index] = current;
+                    entries.Add(current);
                 }
             }
 
 #if DEBUG
             // Make sure the entries array is correctly sorted. 
-            for (int i = 0; i < entries.Length - 1; ++i)
+            for (int i = 0; i < entries.Count - 1; ++i)
             {
                 Debug.Assert(entries[i].CompareTo(entries[i + 1]) < 0);
             }
 #endif
 
-            return entries;
+            return entries.ToImmutableAndFree();
         }
     }
 }

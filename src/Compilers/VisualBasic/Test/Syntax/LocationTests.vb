@@ -116,6 +116,11 @@ End Class
             AssertMappedSpanEqual(tree, "w as", "c:\goo.vb", 9, 7, 9, 11, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "q as", "c:\goo.vb", 10, 7, 10, 11, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "a as", "c:\goo.vb", 14, 7, 14, 11, hasMappedPath:=False)
+
+            Dim text = tree.GetText()
+
+            ' TODO: https://github.com/dotnet/roslyn/issues/53024
+            Assert.Empty(tree.GetLineMappings())
         End Sub
 
         <Fact()>
@@ -132,6 +137,8 @@ End Class
             AssertMappedSpanEqual(tree, "ports Sy", "c:\goo.vb", 0, 2, 0, 10, hasMappedPath:=False)
             AssertMappedSpanEqual(tree, "x as", "c:\goo.vb", 2, 7, 2, 11, hasMappedPath:=False)
 
+            Dim text = tree.GetText()
+            Assert.Empty(tree.GetLineMappings())
         End Sub
 
         <Fact>
@@ -140,7 +147,6 @@ End Class
 Class X
 End Class
 "
-            Dim resolver = New TestSourceResolver()
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:=""), "Class X", "", 1, 0, 1, 7, hasMappedPath:=False)
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:="    "), "Class X", "    ", 1, 0, 1, 7, hasMappedPath:=False)
         End Sub

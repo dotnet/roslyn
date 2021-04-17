@@ -469,8 +469,21 @@ End Class
                 Dim oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan)
 
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-                Dim baseActiveStatements = ImmutableArray.Create(ActiveStatementsDescription.CreateActiveStatement(ActiveStatementFlags.IsLeafFrame, oldStatementSpan, DocumentId.CreateNewId(ProjectId.CreateNewId())))
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of TextSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+
+                Dim baseActiveStatements = New ActiveStatementsMap(
+                    ImmutableDictionary.CreateRange(
+                    {
+                        KeyValuePairUtil.Create("file.vb", ImmutableArray.Create(
+                            New ActiveStatement(
+                                ordinal:=0,
+                                documentOrdinal:=0,
+                                ActiveStatementFlags.IsLeafFrame,
+                                New SourceFileSpan("file.vb", oldStatementSpan),
+                                instructionId:=Nothing)))
+                    }),
+                    ActiveStatementsMap.Empty.InstructionMap)
+
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
 
                 Assert.True(result.HasChanges)
                 Dim syntaxMap = result.SemanticEdits(0).SyntaxMap
@@ -498,9 +511,9 @@ End Class
             Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_composition)
                 Dim oldProject = workspace.CurrentSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
+                Dim baseActiveStatements = ActiveStatementsMap.Empty
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray(Of TextSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -533,8 +546,8 @@ End Class
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of TextSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim baseActiveStatements = ActiveStatementsMap.Empty
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -556,9 +569,9 @@ End Class
             Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_composition)
                 Dim oldProject = workspace.CurrentSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
+                Dim baseActiveStatements = ActiveStatementsMap.Empty
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray(Of TextSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -593,8 +606,8 @@ End Class
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of TextSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim baseActiveStatements = ActiveStatementsMap.Empty
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
 
                 ' no declaration errors (error in method body is only reported when emitting)
                 Assert.False(result.HasChangesAndErrors)
@@ -626,8 +639,8 @@ End Class
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of TextSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim baseActiveStatements = ActiveStatementsMap.Empty
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
 
                 Assert.True(result.HasChanges)
 
@@ -694,10 +707,10 @@ End Class
                 Dim changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments())
 
                 Dim result = New List(Of DocumentAnalysisResults)()
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
+                Dim baseActiveStatements = ActiveStatementsMap.Empty
                 Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
                 For Each changedDocumentId In changedDocuments
-                    result.Add(Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), ImmutableArray(Of TextSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None))
+                    result.Add(Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None))
                 Next
 
                 Assert.True(result.IsSingle())

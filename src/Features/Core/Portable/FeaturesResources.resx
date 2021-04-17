@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="0_directive" xml:space="preserve">
+    <value>#{0} directive</value>
+  </data>
   <data name="Add_project_reference_to_0" xml:space="preserve">
     <value>Add project reference to '{0}'.</value>
   </data>

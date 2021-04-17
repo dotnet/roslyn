@@ -5677,13 +5677,14 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2)
-
-            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
-            active.OldStatements(1) = active.OldStatements(1).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsNonLeafFrame)
-            active.OldStatements(2) = active.OldStatements(2).WithFlags(ActiveStatementFlags.IsLeafFrame)
-            active.OldStatements(3) = active.OldStatements(3).WithFlags(ActiveStatementFlags.IsNonLeafFrame)
-            active.OldStatements(4) = active.OldStatements(4).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
+            Dim active = GetActiveStatements(src1, src2,
+            {
+                ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame,
+                ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsNonLeafFrame,
+                ActiveStatementFlags.IsLeafFrame,
+                ActiveStatementFlags.IsNonLeafFrame,
+                ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame
+            })
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10)"),
@@ -5708,9 +5709,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2)
-
-            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
+            Dim active = GetActiveStatements(src1, src2, {ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame})
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()", FeaturesResources.code))
@@ -5732,9 +5731,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2)
-
-            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
+            Dim active = GetActiveStatements(src1, src2, {ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame})
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub F()", FeaturesResources.code))

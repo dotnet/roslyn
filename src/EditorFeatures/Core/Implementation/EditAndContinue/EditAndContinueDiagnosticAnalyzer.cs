@@ -53,13 +53,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsImplAsync(Document document, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
+            var solution = document.Project.Solution;
+            var workspace = solution.Workspace;
             var proxy = new RemoteEditAndContinueServiceProxy(workspace);
 
-            var activeStatementSpanProvider = new DocumentActiveStatementSpanProvider(async cancellationToken =>
+            var activeStatementSpanProvider = new ActiveStatementSpanProvider(async (documentId, filePath, cancellationToken) =>
             {
                 var trackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
-                return await trackingService.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                return await trackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken).ConfigureAwait(false);
             });
 
             return proxy.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).AsTask();

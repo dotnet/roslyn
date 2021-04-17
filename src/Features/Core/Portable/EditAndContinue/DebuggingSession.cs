@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// MVIDs read from the assembly built for given project id.
         /// </summary>
         private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = new();
+        private readonly Dictionary<Guid, ProjectId> _moduleIds = new();
         private readonly object _projectModuleIdsGuard = new();
 
         /// <summary>
@@ -255,7 +256,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return id;
                 }
 
+                _moduleIds[newId.Mvid] = project.Id;
                 return _projectModuleIds[project.Id] = newId;
+            }
+        }
+
+        public bool TryGetProjectId(Guid moduleId, [NotNullWhen(true)] out ProjectId? projectId)
+        {
+            lock (_projectModuleIdsGuard)
+            {
+                return _moduleIds.TryGetValue(moduleId, out projectId);
             }
         }
 
