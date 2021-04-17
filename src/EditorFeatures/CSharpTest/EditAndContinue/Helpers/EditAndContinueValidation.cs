@@ -21,11 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string source,
             ActiveStatementsDescription description)
         {
+#if TODO
             new CSharpEditAndContinueTestHelpers().VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldStatements,
                 description.NewSpans,
                 description.NewRegions);
+#endif
         }
 
         internal static void VerifyRudeDiagnostics(

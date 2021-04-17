@@ -775,6 +775,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Syntax and Semantic Utils
 
+        protected override string LineDirectiveKeyword
+            => "line";
+
+        protected override ushort LineDirectiveSyntaxKind
+            => (ushort)SyntaxKind.LineDirectiveTrivia;
+
         protected override IEnumerable<SequenceEdit> GetSyntaxSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
             => SyntaxComparer.GetSequenceEdits(oldNodes, newNodes);
 

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -119,6 +120,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public Project? GetProject(ProjectId id)
             => _solution.GetProject(id);
+
+        public Project GetRequiredProject(ProjectId id)
+            => _solution.GetRequiredProject(id);
 
         public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string path)
             => _solution.GetDocumentIdsWithFilePath(path);

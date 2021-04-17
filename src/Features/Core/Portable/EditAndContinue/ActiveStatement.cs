@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
@@ -24,9 +20,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly int Ordinal;
 
         /// <summary>
-        /// Ordinal of the active statement within the primary containing document (<see cref="PrimaryDocumentId"/>).
+        /// Ordinal of the active statement within the containing document.
         /// </summary>
-        public readonly int PrimaryDocumentOrdinal;
+        public readonly int DocumentOrdinal;
 
         /// <summary>
         /// The instruction of the active statement that is being executed.
@@ -38,52 +34,53 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// The current source span.
         /// </summary>
-        public readonly LinePositionSpan Span;
-
-        /// <summary>
-        /// Document ids - multiple if the physical file is linked.
-        /// TODO: currently we associate all linked documents to the <see cref="ActiveStatement"/> regardless of whether they belong to a project that matches the AS module.
-        /// https://github.com/dotnet/roslyn/issues/24320
-        /// </summary>
-        public readonly ImmutableArray<DocumentId> DocumentIds;
+        public readonly SourceFileSpan FileSpan;
 
         /// <summary>
         /// Aggregated across all threads.
         /// </summary>
         public readonly ActiveStatementFlags Flags;
 
-        public ActiveStatement(int ordinal, int primaryDocumentOrdinal, ImmutableArray<DocumentId> documentIds, ActiveStatementFlags flags, LinePositionSpan span, ManagedInstructionId instructionId)
+        public ActiveStatement(int ordinal, int documentOrdinal, ActiveStatementFlags flags, SourceFileSpan span, ManagedInstructionId instructionId)
         {
             Debug.Assert(ordinal >= 0);
-            Debug.Assert(primaryDocumentOrdinal >= 0);
-            Debug.Assert(!documentIds.IsDefaultOrEmpty);
+            Debug.Assert(documentOrdinal >= 0);
 
             Ordinal = ordinal;
-            PrimaryDocumentOrdinal = primaryDocumentOrdinal;
-            DocumentIds = documentIds;
             Flags = flags;
-            Span = span;
+            FileSpan = span;
             InstructionId = instructionId;
+            DocumentOrdinal = documentOrdinal;
         }
+
+        public ActiveStatement WithSpan(LinePositionSpan span)
+            => WithFileSpan(FileSpan.WithSpan(span));
+
+        public ActiveStatement WithFileSpan(SourceFileSpan span)
+            => new(Ordinal, DocumentOrdinal, Flags, span, InstructionId);
+
+        public ActiveStatement WithFlags(ActiveStatementFlags flags)
+            => new(Ordinal, DocumentOrdinal, flags, FileSpan, InstructionId);
+
+        public LinePositionSpan Span
+            => FileSpan.Span;
+
+        public string FilePath
+            => FileSpan.Path;
 
         /// <summary>
         /// True if at least one of the threads whom this active statement belongs to is in a leaf frame.
         /// </summary>
-        public bool IsLeaf => (Flags & ActiveStatementFlags.IsLeafFrame) != 0;
+        public bool IsLeaf
+            => (Flags & ActiveStatementFlags.IsLeafFrame) != 0;
 
         /// <summary>
         /// True if at least one of the threads whom this active statement belongs to is in a non-leaf frame.
         /// </summary>
-        public bool IsNonLeaf => (Flags & ActiveStatementFlags.IsNonLeafFrame) != 0;
+        public bool IsNonLeaf
+            => (Flags & ActiveStatementFlags.IsNonLeafFrame) != 0;
 
-        public bool IsMethodUpToDate => (Flags & ActiveStatementFlags.MethodUpToDate) != 0;
-
-        public DocumentId PrimaryDocumentId => DocumentIds[0];
-
-        internal ActiveStatement WithSpan(LinePositionSpan span)
-            => new(Ordinal, PrimaryDocumentOrdinal, DocumentIds, Flags, span, InstructionId);
-
-        internal ActiveStatement WithFlags(ActiveStatementFlags flags)
-            => new(Ordinal, PrimaryDocumentOrdinal, DocumentIds, flags, Span, InstructionId);
+        public bool IsMethodUpToDate
+            => (Flags & ActiveStatementFlags.MethodUpToDate) != 0;
     }
 }

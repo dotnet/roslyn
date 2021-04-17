@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -120,7 +119,7 @@ int x;
             string sampleProgram = @"using System;
 class X {
 #line 20 ""banana.cs""
-int x; 
+int x;
 int y;
 #line 44
 int z;
@@ -147,6 +146,17 @@ int a;
             AssertMappedSpanEqual(syntaxTree, "w;", "goo.cs", 8, 4, 8, 6, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "q;\r\nin", "goo.cs", 10, 4, 11, 2, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "a;", "goo.cs", 15, 4, 15, 6, hasMappedPath: false);
+
+            var text = syntaxTree.GetText();
+
+            AssertEx.Equal(new[]
+            {
+                "[|using System;\r\nclass X {\r\n|] -> : (0,0)-(1,11)",
+                "[|int x;\r\nint y;\r\n|] -> banana.cs: (19,0)-(20,8)",
+                "[|int z;\r\n|] -> banana.cs: (43,0)-(43,8)",
+                "[|int w;\r\n|] -> : (8,0)-(8,8)",
+                "[|int q;\r\nint f;\r\n#if false\r\n#line 17 \"d:\\twing.cs\"\r\n#endif\r\nint a;\r\n}|] -> : (0,0)-(0,0)"
+            }, syntaxTree.GetLineMappings(default).Select(mapping => $"[|{text.GetSubText(text.Lines.GetTextSpan(mapping.Span))}|] -> {mapping.MappedSpan}"));
         }
 
         [Fact]
@@ -183,8 +193,6 @@ int v;
 #line 20
 class X {}
 ";
-            var resolver = new TestSourceResolver();
-
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path: ""), "class X {}", "", 19, 0, 19, 10, hasMappedPath: false);
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "   "), "class X {}", "   ", 19, 0, 19, 10, hasMappedPath: false);
         }
@@ -212,7 +220,7 @@ class X {
         {
             string sampleProgram = @"using System;
 class X {
-int x; 
+int x;
 }";
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\goo.cs");
 
@@ -220,6 +228,39 @@ int x;
             AssertMappedSpanEqual(syntaxTree, "class X", "c:\\goo.cs", 1, 0, 1, 7, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, $"System;{Environment.NewLine}class X", "c:\\goo.cs", 0, 6, 1, 7, hasMappedPath: false);
             AssertMappedSpanEqual(syntaxTree, "x;", "c:\\goo.cs", 2, 4, 2, 6, hasMappedPath: false);
+
+            Assert.Empty(syntaxTree.GetLineMappings(default));
+        }
+
+        [Fact]
+        public void TestLineMappingFirstAndLastLineDirectives()
+        {
+            string sampleProgram = @"#line 20
+class X {}
+#line 30";
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\goo.cs");
+
+            var text = syntaxTree.GetText();
+
+            AssertEx.Equal(new[]
+            {
+                "[|class X {}\r\n|] -> : (19,0)-(19,12)",
+            }, syntaxTree.GetLineMappings(default).Select(mapping => $"[|{text.GetSubText(text.Lines.GetTextSpan(mapping.Span))}|] -> {mapping.MappedSpan}"));
+        }
+
+        [Fact]
+        public void TestLineMappingLastLineDirectiveFollowedByEmptyLine()
+        {
+            string sampleProgram = @"#line 30
+";
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\goo.cs");
+
+            var text = syntaxTree.GetText();
+
+            AssertEx.Equal(new[]
+            {
+                "[||] -> : (29,0)-(29,0)",
+            }, syntaxTree.GetLineMappings(default).Select(mapping => $"[|{text.GetSubText(text.Lines.GetTextSpan(mapping.Span))}|] -> {mapping.MappedSpan}"));
         }
 
         [WorkItem(537005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537005")]
