@@ -2780,9 +2780,9 @@
         <summary>Arms of the switch expression.</summary>
       </Comments>
     </Property>
-    <Property Name="ReportedNotExhaustive" Type="bool">
+    <Property Name="IsExhaustive" Type="bool">
         <Comments>
-            <summary>Can be used to determine if an artificial arm needs to be generated</summary>
+            <summary>Can be used to determine if the compiler had to generate an artificial switch-expression arm.</summary>
         </Comments>
     </Property>
   </Node>

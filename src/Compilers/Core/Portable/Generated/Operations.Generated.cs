@@ -3000,9 +3000,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
         /// <summary>
-        /// Can be used to determine if an artificial arm needs to be generated
+        /// Can be used to determine if the compiler had to generate an artificial switch-expression arm.
         /// </summary>
-        bool ReportedNotExhaustive { get; }
+        bool IsExhaustive { get; }
     }
     /// <summary>
     /// Represents one arm of a switch expression.
@@ -7066,17 +7066,17 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SwitchExpressionOperation : Operation, ISwitchExpressionOperation
     {
-        internal SwitchExpressionOperation(IOperation value, ImmutableArray<ISwitchExpressionArmOperation> arms, bool reportedNotExhaustive, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal SwitchExpressionOperation(IOperation value, ImmutableArray<ISwitchExpressionArmOperation> arms, bool isExhaustive, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
             Arms = SetParentOperation(arms, this);
-            ReportedNotExhaustive = reportedNotExhaustive;
+            IsExhaustive = isExhaustive;
             Type = type;
         }
         public IOperation Value { get; }
         public ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
-        public bool ReportedNotExhaustive { get; }
+        public bool IsExhaustive { get; }
         protected override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
@@ -8093,7 +8093,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, object? argument)
         {
             var internalOperation = (SwitchExpressionOperation)operation;
-            return new SwitchExpressionOperation(Visit(internalOperation.Value), VisitArray(internalOperation.Arms), internalOperation.ReportedNotExhaustive, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new SwitchExpressionOperation(Visit(internalOperation.Value), VisitArray(internalOperation.Arms), internalOperation.IsExhaustive, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitSwitchExpressionArm(ISwitchExpressionArmOperation operation, object? argument)
         {
