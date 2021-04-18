@@ -465,8 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 posPattern = (PositionalPatternClauseSyntax)token.Parent;
             }
-            else
-            if (next.Parent.IsKind(SyntaxKind.PositionalPatternClause))
+            else if (next.Parent.IsKind(SyntaxKind.PositionalPatternClause))
             {
                 posPattern = (PositionalPatternClauseSyntax)next.Parent;
             }
