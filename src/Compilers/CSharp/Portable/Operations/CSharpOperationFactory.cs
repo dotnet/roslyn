@@ -2154,10 +2154,22 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IOperation value = Create(boundSwitchExpression.Expression);
             ImmutableArray<ISwitchExpressionArmOperation> arms = CreateFromArray<BoundSwitchExpressionArm, ISwitchExpressionArmOperation>(boundSwitchExpression.SwitchArms);
+
+            bool isExhaustive = !boundSwitchExpression.ReportedNotExhaustive;
+            if (isExhaustive && !boundSwitchExpression.HasAnyErrors)
+            {
+                var reachableLabelsCount = boundSwitchExpression.DecisionDag.ReachableLabels.Count;
+                var armsCount = arms.Length;
+                if (reachableLabelsCount == armsCount + 1)
+                {
+                    isExhaustive = false;
+                }
+            }
+
             return new SwitchExpressionOperation(
                 value,
                 arms,
-                !boundSwitchExpression.ReportedNotExhaustive,
+                isExhaustive,
                 _semanticModel,
                 boundSwitchExpression.Syntax,
                 boundSwitchExpression.GetPublicTypeSymbol(),
