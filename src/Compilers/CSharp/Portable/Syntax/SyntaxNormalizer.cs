@@ -405,8 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 propPattern = (PropertyPatternClauseSyntax)token.Parent;
             }
-            else
-            if (next.Parent.IsKind(SyntaxKind.PropertyPatternClause))
+            else if (next.Parent.IsKind(SyntaxKind.PropertyPatternClause))
             {
                 propPattern = (PropertyPatternClauseSyntax)next.Parent;
             }
