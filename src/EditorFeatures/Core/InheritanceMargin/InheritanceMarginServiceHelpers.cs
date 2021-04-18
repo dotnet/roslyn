@@ -86,8 +86,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // 1. System.Object. (otherwise margin would be shown for all classes)
             // 2. System.ValueType. (otherwise margin would be shown for all structs)
             // 3. System.Enum. (otherwise margin would be shown for all enum)
+            // 4. Error type.
+            // For example, if user has code like this,
+            // class Bar : ISomethingIsNotDone { }
+            // The interface has not been declared yet, so don't show this error type to user.
             var baseSymbols = allBaseSymbols
-                .WhereAsArray(symbol => symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
+                .WhereAsArray(symbol => !symbol.IsErrorType() && symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
 
             // Get all derived types
             var allDerivedSymbols = await GetDerivedTypesAndImplementationsAsync(
