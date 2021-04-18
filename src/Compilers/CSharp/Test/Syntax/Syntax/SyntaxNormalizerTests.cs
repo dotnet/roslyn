@@ -37,7 +37,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                 }
 }",
-                "{\r\n  object x = 1;\r\n  if (x is { })\r\n  {\r\n  }\r\n\r\n  if (x is { } t)\r\n  {\r\n  }\r\n\r\n  if (x is int { } t2)\r\n  {\r\n  }\r\n\r\n  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10 } t3)\r\n  {\r\n  }\r\n\r\n  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10, Item2: < 20 })\r\n  {\r\n  }\r\n}"
+                @"{
+  object x = 1;
+  if (x is { })
+  {
+  }
+
+  if (x is { } t)
+  {
+  }
+
+  if (x is int { } t2)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10 } t3)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10, Item2: < 20 })
+  {
+  }
+}"
             );
         }
 
@@ -46,7 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 => ""one"", 2 => ""two"", 3 => ""three"", {} => "">= 4"" };",
-                "var x = (int)1 switch\r\n{\r\n  1 => \"one\",\r\n  2 => \"two\",\r\n  3 => \"three\",\r\n  { } => \">= 4\"\r\n};"
+                @"var x = (int)1 switch
+{
+  1 => ""one"",
+  2 => ""two"",
+  3 => ""three"",
+  { } => "">= 4""
+};"
             );
         }
 
@@ -64,7 +91,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 		{ } => ""not null"",
 		null => ""null"",
 };",
-                "var x = (object)1 switch\r\n{\r\n  int { } => \"two\",\r\n  { } t when t.GetHashCode() == 42 => \"42\",\r\n  System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => \"tuple.Item2 < 20\",\r\n  System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),\r\n  System.ValueType { } => \"not null value\",\r\n  object { } i when i is not 42 => \"not 42\",\r\n  { } => \"not null\",\r\n  null => \"null\",\r\n};"
+                @"var x = (object)1 switch
+{
+  int { } => ""two"",
+  { } t when t.GetHashCode() == 42 => ""42"",
+  System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
+  System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
+  System.ValueType { } => ""not null value"",
+  object { } i when i is not 42 => ""not 42"",
+  { } => ""not null"",
+  null => ""null"",
+};"
             );
         }
 
@@ -93,7 +130,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
                 null => 0//throw new ArgumentNullException(nameof(vehicle))
             };";
-            var b = "var x = vehicle switch\r\n{\r\n  Car { Passengers: 0 } => 2.00m + 0.50m,\r\n  Car { Passengers: 1 } => 2.0m,\r\n  Car { Passengers: 2 } => 2.0m - 0.50m,\r\n  Car c => 2.00m - 1.0m,\r\n  Taxi { Fares: 0 } => 3.50m + 1.00m,\r\n  Taxi { Fares: 1 } => 3.50m,\r\n  Taxi { Fares: 2 } => 3.50m - 0.50m,\r\n  Taxi t => 3.50m - 1.00m,\r\n  Bus b when ((double)b.Riders / (double)b.Capacity) < 0.50 => 5.00m + 2.00m,\r\n  Bus b when ((double)b.Riders / (double)b.Capacity) > 0.90 => 5.00m - 1.00m,\r\n  Bus b => 5.00m,\r\n  DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,\r\n  DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,\r\n  DeliveryTruck t => 10.00m,\r\n  { } => -1, //throw new ArgumentException(message: \"Not a known vehicle type\", paramName: nameof(vehicle)),\r\n  null => 0 //throw new ArgumentNullException(nameof(vehicle))\r\n};";
+            var b = @"var x = vehicle switch
+{
+  Car { Passengers: 0 } => 2.00m + 0.50m,
+  Car { Passengers: 1 } => 2.0m,
+  Car { Passengers: 2 } => 2.0m - 0.50m,
+  Car c => 2.00m - 1.0m,
+  Taxi { Fares: 0 } => 3.50m + 1.00m,
+  Taxi { Fares: 1 } => 3.50m,
+  Taxi { Fares: 2 } => 3.50m - 0.50m,
+  Taxi t => 3.50m - 1.00m,
+  Bus b when ((double)b.Riders / (double)b.Capacity) < 0.50 => 5.00m + 2.00m,
+  Bus b when ((double)b.Riders / (double)b.Capacity) > 0.90 => 5.00m - 1.00m,
+  Bus b => 5.00m,
+  DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,
+  DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,
+  DeliveryTruck t => 10.00m,
+  { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
+  null => 0 //throw new ArgumentNullException(nameof(vehicle))
+};";
             TestNormalizeStatement(a, b);
         }
 
