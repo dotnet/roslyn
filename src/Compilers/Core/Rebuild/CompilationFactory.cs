@@ -40,9 +40,26 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
         public abstract SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText);
 
+        public Compilation CreateCompilation(IRebuildArtifactResolver resolver)
+        {
+            var tuple = OptionsReader.ResolveArtifacts(resolver, CreateSyntaxTree);
+            return CreateCompilation(tuple.SyntaxTrees, tuple.MetadataReferences);
+        }
+
         public abstract Compilation CreateCompilation(
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> metadataReferences);
+
+        public EmitResult Emit(
+            Stream rebuildPeStream,
+            Stream? rebuildPdbStream,
+            IRebuildArtifactResolver rebuildArtifactResolver,
+            CancellationToken cancellationToken)
+            => Emit(
+                rebuildPeStream,
+                rebuildPdbStream,
+                CreateCompilation(rebuildArtifactResolver),
+                cancellationToken);
 
         public EmitResult Emit(
             Stream rebuildPeStream,

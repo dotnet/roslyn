@@ -43,20 +43,60 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             Assert.Equal(expected, actualText);
         }
 
-        private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(TestLspServer testLspServer, LSP.Location location)
+        [Fact]
+        public async Task TestFormatDocumentRange_UseTabsAsync()
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentRangeFormattingName,
-                           CreateDocumentRangeFormattingParams(location), new LSP.ClientCapabilities(), null, CancellationToken.None);
+            var markup =
+@"class A
+{
+{|format:void|} M()
+{
+			int i = 1;
+	}
+}";
+            var expected =
+@"class A
+{
+	void M()
+{
+			int i = 1;
+	}
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var rangeToFormat = locations["format"].Single();
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat, insertSpaces: false, tabSize: 4);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
         }
 
-        private static LSP.DocumentRangeFormattingParams CreateDocumentRangeFormattingParams(LSP.Location location)
+        private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(
+            TestLspServer testLspServer,
+            LSP.Location location,
+            bool insertSpaces = true,
+            int tabSize = 4)
+        {
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(
+                LSP.Methods.TextDocumentRangeFormattingName,
+                CreateDocumentRangeFormattingParams(location, insertSpaces, tabSize),
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
+        }
+
+        private static LSP.DocumentRangeFormattingParams CreateDocumentRangeFormattingParams(
+            LSP.Location location,
+            bool insertSpaces,
+            int tabSize)
             => new LSP.DocumentRangeFormattingParams()
             {
                 Range = location.Range,
                 TextDocument = CreateTextDocumentIdentifier(location.Uri),
                 Options = new LSP.FormattingOptions()
                 {
-                    // TODO - Format should respect formatting options.
+                    InsertSpaces = insertSpaces,
+                    TabSize = tabSize
                 }
             };
     }

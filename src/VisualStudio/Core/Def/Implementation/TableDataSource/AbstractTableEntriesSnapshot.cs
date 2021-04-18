@@ -194,34 +194,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return TryNavigateTo(workspace, documentId, position, previewTab, activate, cancellationToken);
         }
 
-        protected static string GetFileName(string original, string mapped)
-            => mapped == null ? original : original == null ? mapped : Combine(original, mapped);
-
-        private static string Combine(string path1, string path2)
-        {
-            if (TryCombine(path1, path2, out var result))
-            {
-                return result;
-            }
-
-            return string.Empty;
-        }
-
-        public static bool TryCombine(string path1, string path2, out string result)
-        {
-            try
-            {
-                // don't throw exception when either path1 or path2 contains illegal path char
-                result = System.IO.Path.Combine(path1, path2);
-                return true;
-            }
-            catch
-            {
-                result = null;
-                return false;
-            }
-        }
-
         // we don't use these
 #pragma warning disable IDE0060 // Remove unused parameter - Implements interface method for sub-type
         public object Identity(int index)
