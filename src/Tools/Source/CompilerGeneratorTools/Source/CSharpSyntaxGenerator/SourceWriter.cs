@@ -1565,7 +1565,7 @@ namespace CSharpSyntaxGenerator
 
                         if (kinds.Count == 1)
                         {
-                            WriteLine($"if ({pname}.Kind() != SyntaxKind.{kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
+                            WriteLine($"if (!{pname}.IsKind(SyntaxKind.{kinds[0].Name})) throw new ArgumentException(nameof({pname}));");
                         }
                         else
                         {
