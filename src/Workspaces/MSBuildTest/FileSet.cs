@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -34,10 +35,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public IEnumerator<(string fileName, object content)> GetEnumerator()
         {
-            foreach (var kvp in _fileMap)
-            {
-                yield return (kvp.Key, kvp.Value);
-            }
+            foreach (var (fileName, content) in _fileMap)
+                yield return (fileName, content);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

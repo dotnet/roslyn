@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -5223,7 +5223,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
@@ -5244,7 +5244,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "System.Int32 x", null, null);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
@@ -5265,7 +5265,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 

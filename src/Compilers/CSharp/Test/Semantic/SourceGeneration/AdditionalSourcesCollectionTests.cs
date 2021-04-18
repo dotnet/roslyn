@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             asc = new AdditionalSourcesCollection(".cs");
             for (int i = 0; i < 1000; i++)
             {
-                names[i] = r.NextDouble().ToString() + ".cs";
+                names[i] = CSharpTestBase.GetUniqueName() + ".cs";
                 asc.Add(names[i], SourceText.From("", Encoding.UTF8));
             }
 

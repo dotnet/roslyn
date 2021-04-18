@@ -15,22 +15,6 @@ namespace Microsoft.CodeAnalysis.Utilities
     internal static class WorkspacePathUtilities
     {
         /// <summary>
-        /// Given a set of folders from a <see cref="Document"/> build the namespace that would match
-        /// the folder structure. If a document is located in "Bat/Bar/Baz" then the namespace could be 
-        /// "Bat.Bar.Baz"
-        /// 
-        /// Returns null if the folders contain parts that are invalid identifiers for a namespace.
-        /// </summary>
-        public static string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts)
-        {
-            var parts = folders.SelectMany(folder => folder.Split(new[] { '.' })).SelectAsArray(syntaxFacts.EscapeIdentifier);
-
-            return parts.All(syntaxFacts.IsValidIdentifier)
-                ? string.Join(".", parts)
-                : null;
-        }
-
-        /// <summary>
         /// Returns true if a type name matches a document name. We use
         /// case insensitive matching to determine this match so that files
         /// "a.cs" and "A.cs" both match a class called "A" 

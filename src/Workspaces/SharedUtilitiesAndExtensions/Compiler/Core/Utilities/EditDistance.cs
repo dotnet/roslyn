@@ -565,6 +565,7 @@ namespace Roslyn.Utilities
                     var v = matrix[i + 2, j + 2];
                     sb.Append((v == Infinity ? "∞" : v.ToString()) + " ");
                 }
+
                 sb.AppendLine();
             }
 

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -121,11 +120,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
-            ProduceTags(context, spanToTag);
-            return Task.CompletedTask;
+            return ProduceTagsAsync(context, spanToTag);
         }
 
-        private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
+        private async Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
         {
             if (!this.IsEnabled)
             {
@@ -155,13 +153,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             foreach (var bucket in buckets)
             {
-                ProduceTags(
+                await ProduceTagsAsync(
                     context, spanToTag, workspace, document,
-                    suppressedDiagnosticsSpans, bucket, cancellationToken);
+                    suppressedDiagnosticsSpans, bucket, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private void ProduceTags(
+        private async Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
             Workspace workspace, Document document,
             NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
@@ -170,11 +168,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             try
             {
                 var id = bucket.Id;
-                var diagnostics = _diagnosticService.GetPushDiagnostics(
+                var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, id,
                     includeSuppressedDiagnostics: false,
                     diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 

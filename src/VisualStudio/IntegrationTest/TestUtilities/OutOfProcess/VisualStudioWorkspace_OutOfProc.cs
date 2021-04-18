@@ -56,6 +56,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();
 
+        public void ResetOptions()
+            => _inProc.ResetOptions();
+
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
 
@@ -73,6 +76,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             SetPerLanguageOption(
                 optionName: "ShowItemsFromUnimportedNamespaces",
                 feature: "CompletionOptions",
+                language: LanguageNames.VisualBasic,
+                value: value);
+        }
+
+        public void SetArgumentCompletionSnippetsOption(bool value)
+        {
+            SetPerLanguageOption(
+                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
+                language: LanguageNames.CSharp,
+                value: value);
+
+            SetPerLanguageOption(
+                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
                 language: LanguageNames.VisualBasic,
                 value: value);
         }

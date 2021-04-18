@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Private Const s_BC50001_UnusedImportsStatement As String = "BC50001"
 
         Protected Overrides Sub GetUnusedNamespaceImports(model As SemanticModel, namespaceImports As HashSet(Of SyntaxNode), cancellationToken As CancellationToken)
-            Dim root = model.SyntaxTree.GetRoot()
+            Dim root = model.SyntaxTree.GetRoot(cancellationToken)
             Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
 
             For Each diagnostic In diagnostics

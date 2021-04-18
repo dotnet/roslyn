@@ -20,11 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TypeMap : AbstractTypeParameterMap
     {
-        public static readonly System.Func<TypeWithAnnotations, TypeSymbol> AsTypeSymbol = t => t.Type;
+        public static readonly Func<TypeWithAnnotations, TypeSymbol> AsTypeSymbol = t => t.Type;
 
         internal static ImmutableArray<TypeWithAnnotations> TypeParametersAsTypeSymbolsWithAnnotations(ImmutableArray<TypeParameterSymbol> typeParameters)
         {
-            return typeParameters.SelectAsArray((tp) => TypeWithAnnotations.Create(tp));
+            return typeParameters.SelectAsArray(static (tp) => TypeWithAnnotations.Create(tp));
+        }
+
+        internal static ImmutableArray<TypeWithAnnotations> TypeParametersAsTypeSymbolsWithIgnoredAnnotations(ImmutableArray<TypeParameterSymbol> typeParameters)
+        {
+            return typeParameters.SelectAsArray(static (tp) => TypeWithAnnotations.Create(tp, NullableAnnotation.Ignored));
         }
 
         internal static ImmutableArray<TypeSymbol> AsTypeSymbols(ImmutableArray<TypeWithAnnotations> typesOpt)

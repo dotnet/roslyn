@@ -302,6 +302,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             {
                 builder.Add(DecodeTupleElementNamesInfo(bytes, ref offset));
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -314,6 +315,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 var value = ReadUtf8String(bytes, ref offset);
                 builder.Add(string.IsNullOrEmpty(value) ? null : value);
             }
+
             var slotIndex = ReadInt32(bytes, ref offset);
             var scopeStart = ReadInt32(bytes, ref offset);
             var scopeEnd = ReadInt32(bytes, ref offset);
@@ -878,8 +880,10 @@ RETRY:
                 {
                     break;
                 }
+
                 builder.Add(b);
             }
+
             var block = builder.ToArrayAndFree();
             return Encoding.UTF8.GetString(block, 0, block.Length);
         }

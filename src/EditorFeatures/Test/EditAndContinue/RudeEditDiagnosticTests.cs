@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 RudeEditKind.ActiveStatementUpdate,
                 RudeEditKind.PartiallyExecutedActiveStatementUpdate,
-                RudeEditKind.PartiallyExecutedActiveStatementDelete,
-                RudeEditKind.DeleteActiveStatement,
                 RudeEditKind.UpdateExceptionHandlerOfActiveTry,
                 RudeEditKind.UpdateTryOrCatchWithActiveFinally,
                 RudeEditKind.UpdateCatchHandlerAroundActiveStatement,
@@ -39,7 +37,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.MethodKindUpdate,
                 RudeEditKind.DeclareLibraryUpdate,
                 RudeEditKind.DeclareAliasUpdate,
-                RudeEditKind.ChangingConstructorVisibility,
                 RudeEditKind.InsertDllImport,
                 RudeEditKind.MethodBodyAdd,
                 RudeEditKind.MethodBodyDelete,
@@ -52,6 +49,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
+                RudeEditKind.AddRecordPositionalParameter,
+                RudeEditKind.DeleteRecordPositionalParameter,
             };
 
             var arg2 = new HashSet<RudeEditKind>()

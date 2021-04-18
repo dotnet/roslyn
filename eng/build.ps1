@@ -38,12 +38,14 @@ param (
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
+  [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
   [switch]$oop64bit = $true,
+  [switch]$lspEditor = $false,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -59,8 +61,12 @@ param (
   [switch]$testVsi,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
+  [switch]$testCompilerOnly = $false,
   [switch]$testIOperation,
+  [switch]$testUsedAssemblies,
   [switch]$sequential,
+  [switch]$helix,
+  [string]$helixQueueName = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -90,8 +96,10 @@ function Print-Usage() {
   Write-Host "  -test64                   Run units tests in the 64-bit runner"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
+  Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
+  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -100,6 +108,7 @@ function Print-Usage() {
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
+  Write-Host "  -skipDocumentation        Skip generation of XML documentation files"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
@@ -176,6 +185,11 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($testVsi -and $helix) {
+    Write-Host "Cannot run integration tests on Helix"
+    exit 1
+  }
+
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
     $script:runAnalyzers = $false
@@ -231,6 +245,9 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
+  $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
+  $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -256,6 +273,8 @@ function BuildSolution() {
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
+      $generateDocumentationFile `
+      $roslynUseHardLinks `
       @properties
   }
   finally {
@@ -311,6 +330,24 @@ function GetIbcDropName() {
     return $drop.Name
 }
 
+function GetCompilerTestAssembliesIncludePaths() {
+  $assemblies = " --include '^Microsoft\.CodeAnalysis\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
+  $assemblies += " --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
+  return $assemblies
+}
+
 # Core function for running our unit / integration tests tests
 function TestUsingRunTests() {
 
@@ -331,7 +368,10 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
+  if ($testUsedAssemblies) {
+    $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
+  }
+
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
@@ -341,20 +381,28 @@ function TestUsingRunTests() {
 
   $dotnetExe = Join-Path $dotnet "dotnet.exe"
   $args += " --dotnet `"$dotnetExe`""
-  $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
     $args += " --tfm net5.0"
     $args += " --tfm netcoreapp3.1"
-    $args += " --include '\.UnitTests'"
     $args += " --timeout 90"
+    if ($testCompilerOnly) {
+      $args += GetCompilerTestAssembliesIncludePaths
+    } else {
+      $args += " --include '\.UnitTests'"
+    }
   }
-  elseif ($testDesktop -or $testIOperation) {
+  elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --tfm net472"
-    $args += " --include '\.UnitTests'"
     $args += " --timeout 90"
+
+    if ($testCompilerOnly) {
+      $args += GetCompilerTestAssembliesIncludePaths
+    } else {
+      $args += " --include '\.UnitTests'"
+    }
 
     if (-not $test32) {
       $args += " --exclude '\.InteractiveHost'"
@@ -367,6 +415,10 @@ function TestUsingRunTests() {
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
+
+    if ($lspEditor) {
+      $args += " --testfilter Editor=LanguageServerProtocol"
+    }
   }
 
   if (-not $ci -and -not $testVsi) {
@@ -390,6 +442,14 @@ function TestUsingRunTests() {
     $args += " --sequential"
   }
 
+  if ($helix) {
+    $args += " --helix"
+  }
+
+  if ($helixQueueName) {
+    $args += " --helixQueueName $helixQueueName"
+  }
+
   try {
     Write-Host "$runTests $args"
     Exec-Console $dotnetExe "$runTests $args"
@@ -399,9 +459,36 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
 
+    if ($testUsedAssemblies) {
+      Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
+    }
+
     if ($testVsi) {
-      Write-Host "Copying ServiceHub logs to $LogDir"
-      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
+      $serviceHubLogs = Join-Path $TempDir "servicehub\logs"
+      if (Test-Path $serviceHubLogs) {
+        Write-Host "Copying ServiceHub logs to $LogDir"
+        Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
+      } else {
+        Write-Host "No ServiceHub logs found to copy"
+      }
+
+      if ($lspEditor) {
+        $lspLogs = Join-Path $TempDir "VisualStudio\LSP"
+        $telemetryLog = Join-Path $TempDir "VSTelemetryLog"
+        if (Test-Path $lspLogs) {
+          Write-Host "Copying LSP logs to $LogDir"
+          Copy-Item -Path $lspLogs -Destination (Join-Path $LogDir "LSP") -Recurse
+        } else {
+          Write-Host "No LSP logs found to copy"
+        }
+
+        if (Test-Path $telemetryLog) {
+          Write-Host "Copying telemetry logs to $LogDir"
+          Copy-Item -Path $telemetryLog -Destination (Join-Path $LogDir "Telemetry") -Recurse
+        } else {
+          Write-Host "No telemetry logs found to copy"
+        }
+      }
     }
   }
 }
@@ -540,6 +627,7 @@ function Setup-IntegrationTestRun() {
   }
 
   $env:ROSLYN_OOP64BIT = "$oop64bit"
+  $env:ROSLYN_LSPEDITOR = "$lspEditor"
 }
 
 function Prepare-TempDir() {

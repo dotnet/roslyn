@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return;
             }
 
-            rules = GetFormattingRules(document, rules, span);
+            rules = document.GetFormattingRules(span, rules);
 
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
@@ -48,15 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
             }
-        }
-
-        private static IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, IEnumerable<AbstractFormattingRule>? rules, TextSpan span)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-            var position = (span.Start + span.End) / 2;
-
-            return SpecializedCollections.SingletonEnumerable(formattingRuleFactory.CreateRule(document, position)).Concat(rules ?? Formatter.GetDefaultFormattingRules(document));
         }
 
         /// <summary>

@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4087,7 +4086,8 @@ unsafe class C
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                options: TestOptions.UnsafeDebugDll);
+                options: TestOptions.UnsafeDebugDll,
+                parseOptions: TestOptions.RegularPreview);
 
             // The precise diagnostics here are not important, and may be sensitive to parser
             // adjustments. This is a test that we don't crash. The errors here are likely to
@@ -4102,9 +4102,6 @@ unsafe class C
                 // (6,19): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (int* x1, int y1) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y1").WithArguments("dynamic", "int").WithLocation(6, 19),
-                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (int* x1, int y1) = c;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int* x1, int y1)").WithLocation(6, 9),
                 // (7,10): error CS0103: The name 'var' does not exist in the current context
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 10),
@@ -4114,9 +4111,6 @@ unsafe class C
                 // (7,19): error CS0266: Cannot implicitly convert type 'dynamic' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         (var* x2, int y2) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int y2").WithArguments("dynamic", "int").WithLocation(7, 19),
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (var* x2, int y2) = c;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var* x2, int y2)").WithLocation(7, 9),
                 // (8,10): error CS0266: Cannot implicitly convert type 'dynamic' to 'int*[]'. An explicit conversion exists (are you missing a cast?)
                 //         (int*[] x3, int y3) = c;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "int*[] x3").WithArguments("dynamic", "int*[]").WithLocation(8, 10),

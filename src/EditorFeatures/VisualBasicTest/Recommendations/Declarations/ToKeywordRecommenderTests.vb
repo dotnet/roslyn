@@ -6,76 +6,76 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
     Public Class ToKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoToWithEmptyBoundInDimTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim i( |</MethodBody>, "To")
-        End Function
+        Public Sub NoToWithEmptyBoundInDimTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim i( |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ToAfterLowerBoundInDimTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim i(0 |</MethodBody>, "To")
-        End Function
+        Public Sub ToAfterLowerBoundInDimTest()
+            VerifyRecommendationsContain(<MethodBody>Dim i(0 |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoToAfterUpperBoundInDimTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim i(0 To 4 |</MethodBody>, "To")
-        End Function
+        Public Sub NoToAfterUpperBoundInDimTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim i(0 To 4 |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoToAfterCommaInDimTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim i(0 To 4, |</MethodBody>, "To")
-        End Function
+        Public Sub NoToAfterCommaInDimTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim i(0 To 4, |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ToAfterSecondLowerBoundInDimTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim i(0 To 4, 0 |</MethodBody>, "To")
-        End Function
+        Public Sub ToAfterSecondLowerBoundInDimTest()
+            VerifyRecommendationsContain(<MethodBody>Dim i(0 To 4, 0 |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoToWithEmptyBoundInReDimTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>ReDim i( |</MethodBody>, "To")
-        End Function
+        Public Sub NoToWithEmptyBoundInReDimTest()
+            VerifyRecommendationsMissing(<MethodBody>ReDim i( |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ToAfterLowerBoundInReDimTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ReDim i(0 |</MethodBody>, "To")
-        End Function
+        Public Sub ToAfterLowerBoundInReDimTest()
+            VerifyRecommendationsContain(<MethodBody>ReDim i(0 |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoToAfterUpperBoundInReDimTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>ReDim i(0 To 4 |</MethodBody>, "To")
-        End Function
+        Public Sub NoToAfterUpperBoundInReDimTest()
+            VerifyRecommendationsMissing(<MethodBody>ReDim i(0 To 4 |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoToAfterCommaInReDimTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>ReDim i(0 To 4, |</MethodBody>, "To")
-        End Function
+        Public Sub NoToAfterCommaInReDimTest()
+            VerifyRecommendationsMissing(<MethodBody>ReDim i(0 To 4, |</MethodBody>, "To")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ToAfterSecondLowerBoundInReDimTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ReDim i(0 To 4, 0 |</MethodBody>, "To")
-        End Function
+        Public Sub ToAfterSecondLowerBoundInReDimTest()
+            VerifyRecommendationsContain(<MethodBody>ReDim i(0 To 4, 0 |</MethodBody>, "To")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <MethodBody>Dim i(0 
 |</MethodBody>, "To")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <MethodBody>Dim i(0 _
 |</MethodBody>, "To")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <MethodBody>Dim i(0 _ ' Test
 |</MethodBody>, "To")
-        End Function
+        End Sub
     End Class
 End Namespace

@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -14,8 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -38,12 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// </summary>
         internal partial class TagComputer
         {
-            // This is how long we will wait after completing a parse before we tell the editor to
-            // re-classify the file. We do this, since the edit may have non-local changes, or the user
-            // may have made a change that introduced text that we didn't classify because we hadn't
-            // parsed it yet, and we want to get back to a known state.
-            private const int ReportChangeDelayInMilliseconds = TaggerConstants.ShortDelay;
-
             private readonly ITextBuffer _subjectBuffer;
             private readonly WorkspaceRegistration _workspaceRegistration;
             private readonly AsynchronousSerialWorkQueue _workQueue;
@@ -54,37 +45,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // The latest data about the document being classified that we've cached.  objects can 
             // be accessed from both threads, and must be obtained when this lock is held.
-            //
-            // Note: we cache this data once we've retrieved the actual syntax tree for a document.  This 
-            // way, when we call into the actual classification service, it should be very quick for the 
-            // it to get the tree if it needs it.
             private readonly object _gate = new();
             private ITextSnapshot _lastProcessedSnapshot;
             private Document _lastProcessedDocument;
 
+            /// <summary>
+            /// Data stored by the <see cref="IClassificationService"/> that can be computed in the bg which it will
+            /// benefit from when it is called back for classifications later.
+            /// </summary>
+            private object _lastProcessedCachedData;
+
             private Workspace _workspace;
-            private CancellationTokenSource _reportChangeCancellationSource;
+            private readonly CancellationTokenSource _reportChangeCancellationSource = new();
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly IForegroundNotificationService _notificationService;
             private readonly ClassificationTypeMap _typeMap;
             private readonly SyntacticClassificationTaggerProvider _taggerProvider;
 
+            /// <summary>
+            /// Timeout before we cancel the work to diff and return whatever we have.
+            /// </summary>
+            private readonly TimeSpan _diffTimeout;
+
             private int _taggerReferenceCount;
 
             public TagComputer(
+                SyntacticClassificationTaggerProvider taggerProvider,
                 ITextBuffer subjectBuffer,
                 IForegroundNotificationService notificationService,
                 IAsynchronousOperationListener asyncListener,
                 ClassificationTypeMap typeMap,
-                SyntacticClassificationTaggerProvider taggerProvider)
+                TimeSpan diffTimeout)
             {
                 _subjectBuffer = subjectBuffer;
                 _notificationService = notificationService;
                 _listener = asyncListener;
                 _typeMap = typeMap;
                 _taggerProvider = taggerProvider;
-
+                _diffTimeout = diffTimeout;
                 _workQueue = new AsynchronousSerialWorkQueue(taggerProvider._threadingContext, asyncListener);
                 _reportChangeCancellationSource = new CancellationTokenSource();
 
@@ -139,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 lock (_gate)
                 {
                     _lastProcessedDocument = null;
+                    _lastProcessedCachedData = null;
                 }
             }
 
@@ -188,14 +188,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private async Task EnqueueProcessSnapshotWorkerAsync(Document document, CancellationToken cancellationToken)
+            private async Task EnqueueProcessSnapshotWorkerAsync(Document currentDocument, CancellationToken cancellationToken)
             {
-                // we will enqueue new one soon, cancel pending refresh right away
-                _reportChangeCancellationSource.Cancel();
-
-                var newText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var snapshot = newText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot == null)
+                var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var currentSnapshot = currentText.FindCorrespondingEditorTextSnapshot();
+                if (currentSnapshot == null)
                 {
                     // It's possible that we're seeing a notification for an update that happened
                     // just before the file was opened, and so the document we're given is still the
@@ -203,29 +200,56 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
-                using (latencyTracker)
-                {
-                    // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
-                    // F#/typescript and other languages that doesn't support syntax tree will return null here.
-                    _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                }
+                var service = TryGetClassificationService(currentSnapshot);
+
+                // preemptively allow the classification service to compute and cache data for this file.  For
+                // example, in C# and VB we will parse the file so that are called from tagger from UI thread,
+                // we have the root of the tree ready to go.
+                var currentCachedData = service == null
+                    ? null
+                    : await service.GetDataToCacheAsync(currentDocument, cancellationToken).ConfigureAwait(false);
+
+                // Query the service to determine waht span of the document actually changed and should be
+                // reclassified in the host editor.
+                var changedSpan = await GetChangedSpanAsync(currentDocument, currentSnapshot, cancellationToken).ConfigureAwait(false);
 
                 lock (_gate)
                 {
-                    _lastProcessedSnapshot = snapshot;
-                    _lastProcessedDocument = document;
+                    _lastProcessedSnapshot = currentSnapshot;
+                    _lastProcessedDocument = currentDocument;
+                    _lastProcessedCachedData = currentCachedData;
                 }
 
-                _reportChangeCancellationSource = new CancellationTokenSource();
                 _notificationService.RegisterNotification(() =>
                     {
                         _workQueue.AssertIsForeground();
-                        ReportChangedSpan(snapshot.GetFullSpan());
+                        ReportChangedSpan(changedSpan);
                     },
-                    ReportChangeDelayInMilliseconds,
-                    _listener.BeginAsyncOperation("ReportEntireFileChanged"),
+                    _listener.BeginAsyncOperation("EnqueueProcessSnapshotWorkerAsync.ReportChangedSpan"),
                     _reportChangeCancellationSource.Token);
+            }
+
+            private async Task<SnapshotSpan> GetChangedSpanAsync(
+                Document currentDocument, ITextSnapshot currentSnapshot, CancellationToken cancellationToken)
+            {
+                // We don't need to grab _lastProcessedDocument in a lock.  We don't care which version of the previous
+                // doc we grab, just that we grab some prior version.  This is only used to narrow down the changed range we 
+                // specify, so it's ok if it's slightly larger because we read in a change from a couple of edits ago.
+                var previousDocument = _lastProcessedDocument;
+                if (previousDocument != null)
+                {
+                    var service = TryGetClassificationService(currentSnapshot);
+                    if (service != null)
+                    {
+                        var changeRange = await service.ComputeSyntacticChangeRangeAsync(
+                            previousDocument, currentDocument, _diffTimeout, cancellationToken).ConfigureAwait(false);
+                        if (changeRange != null)
+                            return currentSnapshot.GetSpan(changeRange.Value.Span.Start, changeRange.Value.NewLength);
+                    }
+                }
+
+                // Couldn't compute a narrower range.  Just the mark the entire file as changed.
+                return currentSnapshot.GetFullSpan();
             }
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)
@@ -239,6 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         return;
                     }
                 }
+
                 this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(changeSpan));
             }
 
@@ -250,30 +275,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     if (spans.Count > 0 && _workspace != null)
                     {
-                        var firstSpan = spans[0];
-                        var languageServices = _workspace.Services.GetLanguageServices(firstSpan.Snapshot.ContentType);
-                        if (languageServices != null)
-                        {
-                            var result = GetTags(spans, languageServices);
-                            if (result != null)
-                            {
-                                return result;
-                            }
-                        }
+                        var result = GetTagsWorker(spans);
+                        if (result != null)
+                            return result;
                     }
 
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
                 }
             }
 
-            private IEnumerable<ITagSpan<IClassificationTag>> GetTags(
-                NormalizedSnapshotSpanCollection spans, HostLanguageServices languageServices)
+            private IClassificationService TryGetClassificationService(ITextSnapshot snapshot)
             {
-                var classificationService = languageServices.GetService<IClassificationService>();
-                if (classificationService == null)
-                {
+                var languageServices = _workspace.Services.GetLanguageServices(snapshot.ContentType);
+                if (languageServices == null)
                     return null;
-                }
+
+                return languageServices.GetService<IClassificationService>();
+            }
+
+            private IEnumerable<ITagSpan<IClassificationTag>> GetTagsWorker(NormalizedSnapshotSpanCollection spans)
+            {
+                var classificationService = TryGetClassificationService(spans[0].Snapshot);
+                if (classificationService == null)
+                    return null;
 
                 var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
@@ -295,11 +319,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // From this point on we'll do all operations over these values.
                 ITextSnapshot lastSnapshot;
                 Document lastDocument;
+                object lastCachedData;
 
                 lock (_gate)
                 {
                     lastSnapshot = _lastProcessedSnapshot;
                     lastDocument = _lastProcessedDocument;
+                    lastCachedData = _lastProcessedCachedData;
                 }
 
                 if (lastDocument == null)
@@ -325,6 +351,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     AddClassifiedSpansForPreviousTree(
                         classificationService, span, lastSnapshot, lastDocument, classifiedSpans);
                 }
+
+                // Ensure the cached data stays alive for as long as we're calling into the classification service to do
+                // the computation.
+                GC.KeepAlive(lastCachedData);
             }
 
             private void AddClassifiedSpansForCurrentTree(

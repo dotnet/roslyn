@@ -37,17 +37,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// We need this sempahore to ensure that we aren't making concurrent
         /// modifications to data such as _id and _definitionToId.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
 
-        private readonly Dictionary<DefinitionItem, int> _definitionToId =
-            new Dictionary<DefinitionItem, int>();
+        private readonly Dictionary<DefinitionItem, int> _definitionToId = new();
 
         /// <summary>
         /// Keeps track of definitions that cannot be reported without references and which we have
         /// not yet found a reference for.
         /// </summary>
-        private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference =
-            new Dictionary<int, VSReferenceItem>();
+        private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference = new();
+
+        /// <summary>
+        /// Set of the locations we've found references at.  We may end up with multiple references
+        /// being reported for the same location.  For example, this can happen in multi-targetting 
+        /// scenarios when there are symbols in files linked into multiple projects.  Those symbols
+        /// may have references that themselves are in linked locations, leading to multiple references
+        /// found at different virtual locations that the user considers at the same physical location.
+        /// For now we filter out these duplicates to not clutter the UI.  If LSP supports the ability
+        /// to override an already reported VSReferenceItem, we could also reissue the item with the
+        /// additional information about all the projects it is found in.
+        /// </summary>
+        private readonly HashSet<(string? filePath, TextSpan span)> _referenceLocations = new();
 
         /// <summary>
         /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
@@ -122,9 +132,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 // Each reference should be associated with a definition. If this somehow isn't the
                 // case, we bail out early.
                 if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
-                {
                     return;
-                }
+
+                // If this is reference to the same physical location we've already reported, just
+                // filter this out.  it will clutter the UI to show the same places.
+                if (!_referenceLocations.Add((reference.SourceSpan.Document.FilePath, reference.SourceSpan.SourceSpan)))
+                    return;
 
                 // If the definition hasn't been reported yet, add it to our list of references to report.
                 if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
@@ -214,6 +227,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 IMetadataAsSourceFileService metadataAsSourceFileService,
                 CancellationToken cancellationToken)
             {
+                // If we have no document span, our location may be in metadata.
                 if (documentSpan != default)
                 {
                     // We do have a document span, so compute location normally.

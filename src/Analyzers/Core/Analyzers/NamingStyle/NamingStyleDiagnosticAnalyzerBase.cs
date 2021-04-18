@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
+                   EnforceOnBuildValues.NamingRule,
                    option: null,    // No unique option to configure the diagnosticId
                    s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
@@ -108,6 +109,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(symbol.Name))
+            {
+                return null;
+            }
+
+            if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsEntryPoint(compilation.TaskType(), compilation.TaskOfTType()))
             {
                 return null;
             }

@@ -3,85 +3,58 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
-    /// <summary>
-    /// Roslyn specific implementation for looking for files
-    /// in the Roslyn repo
-    /// </summary>
     internal class LocalSourceResolver
     {
-        private readonly DirectoryInfo _baseDirectory;
-        private readonly ILogger _logger;
+        internal Options Options { get; }
+        internal ImmutableArray<SourceLinkEntry> SourceLinkEntries { get; }
+        internal ILogger Logger { get; }
 
-        public LocalSourceResolver(ILoggerFactory loggerFactory)
+        public LocalSourceResolver(Options options, ImmutableArray<SourceLinkEntry> sourceLinkEntries, ILogger logger)
         {
-            _baseDirectory = GetSourceDirectory();
-            _logger = loggerFactory.CreateLogger<LocalSourceResolver>();
-
-            _logger.LogInformation($"Source Base Directory: {_baseDirectory}");
+            Options = options;
+            SourceLinkEntries = sourceLinkEntries;
+            Logger = logger;
         }
 
-        public SourceText ResolveSource(string name, Encoding encoding)
+        public SourceText ResolveSource(SourceTextInfo sourceTextInfo)
         {
-            if (!File.Exists(name))
+            var originalFilePath = sourceTextInfo.OriginalSourceFilePath;
+            string? onDiskPath = null;
+            foreach (var link in SourceLinkEntries)
             {
-                _logger.LogTrace($"{name} doesn't exist, adding base directory");
-                name = Path.Combine(_baseDirectory.FullName, name);
-            }
-            if (File.Exists(name))
-            {
-                using var fileStream = File.OpenRead(name);
-                var sourceText = SourceText.From(fileStream, encoding: encoding);
-                return sourceText;
-            }
-
-            throw new FileNotFoundException(name);
-        }
-
-        private static DirectoryInfo GetSourceDirectory()
-        {
-            var assemblyLocation = typeof(LocalSourceResolver).Assembly.Location;
-            var srcDir = Directory.GetParent(assemblyLocation);
-
-            while (srcDir != null)
-            {
-                var potentialDir = srcDir.GetDirectories().FirstOrDefault(IsSourceDirectory);
-                if (potentialDir is null)
+                if (originalFilePath.StartsWith(link.Prefix, FileNameEqualityComparer.StringComparison))
                 {
-                    srcDir = srcDir.Parent;
-                }
-                else
-                {
-                    srcDir = potentialDir;
-                    break;
+                    onDiskPath = Path.GetFullPath(Path.Combine(Options.SourcePath, originalFilePath.Substring(link.Prefix.Length)));
+                    if (File.Exists(onDiskPath))
+                    {
+                        break;
+                    }
                 }
             }
 
-            if (srcDir == null)
+            // if no source links exist to let us prefix the source path,
+            // then assume the file path in the pdb points to the on-disk location of the file.
+            onDiskPath ??= originalFilePath;
+
+            using var fileStream = File.OpenRead(onDiskPath);
+            var sourceText = SourceText.From(fileStream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
+            if (!sourceText.GetChecksum().SequenceEqual(sourceTextInfo.Hash))
             {
-                throw new Exception("Unable to find src directory");
+                throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");
             }
 
-            return srcDir;
-
-            static bool IsSourceDirectory(DirectoryInfo directoryInfo)
-            {
-                if (FileNameEqualityComparer.StringComparer.Equals(directoryInfo.Name, "src"))
-                {
-                    // Check that src/compilers exists to be more accurate about getting the correct src directory
-                    return directoryInfo.GetDirectories().Any(d => FileNameEqualityComparer.StringComparer.Equals(d.Name, "compilers"));
-                }
-
-                return false;
-            }
+            return sourceText;
         }
     }
 }

@@ -42,6 +42,9 @@
                     
                     <CheckBox x:Name="Use_64bit_analysis_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
+
+                    <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
@@ -248,6 +251,9 @@
                         <CheckBox x:Uid="ShowHintsForLambdaParameterTypes"
                                   x:Name="ShowHintsForLambdaParameterTypes"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_lambda_parameter_types}" />
+                        <CheckBox x:Uid="ShowHintsForImplicitObjectCreation"
+                                  x:Name="ShowHintsForImplicitObjectCreation"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_implicit_object_creation}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

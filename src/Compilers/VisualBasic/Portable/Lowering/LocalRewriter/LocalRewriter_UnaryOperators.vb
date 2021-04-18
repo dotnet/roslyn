@@ -32,17 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundLiteral(node.Syntax, ConstantValue.False, node.Type)
             End If
 
-            Dim whenNotNull As BoundExpression = Nothing
-            Dim whenNull As BoundExpression = Nothing
-            If IsConditionalAccess(operand, whenNotNull, whenNull) Then
-                If HasNoValue(whenNull) Then
-                    Debug.Assert(Not HasNoValue(whenNotNull))
-                    Return UpdateConditionalAccess(operand,
-                                              NullableValueOrDefault(whenNotNull),
-                                              New BoundLiteral(node.Syntax, ConstantValue.False, node.Type))
-                End If
-            End If
-
             Return NullableValueOrDefault(operand)
         End Function
 

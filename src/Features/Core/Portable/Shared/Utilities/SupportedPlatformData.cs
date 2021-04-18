@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             builder.AddLineBreak();
-            builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_context);
+            builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts);
 
             return builder;
         }

@@ -171,6 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             private readonly ReferenceCodeLensProvider _owner;
             private readonly ICodeLensCallbackService _callbackService;
 
+            private ReferenceCount? _calculatedReferenceCount;
+
             public DataPoint(
                 ReferenceCodeLensProvider owner,
                 ICodeLensCallbackService callbackService,
@@ -200,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var referenceCountOpt = await _callbackService.InvokeAsync<ReferenceCount?>(
                     _owner,
                     nameof(ICodeLensContext.GetReferenceCountAsync),
-                    new object[] { Descriptor, descriptorContext },
+                    new object?[] { Descriptor, descriptorContext, _calculatedReferenceCount },
                     cancellationToken).ConfigureAwait(false);
 
                 if (!referenceCountOpt.HasValue)
@@ -243,13 +245,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             {
                 // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
                 // raw data from Roslyn OOP such as razor find all reference results
-                var referenceLocationDescriptors = await _callbackService.InvokeAsync<ImmutableArray<ReferenceLocationDescriptor>?>(
+                var referenceLocationDescriptors = await _callbackService.InvokeAsync<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?>(
                     _owner,
                     nameof(ICodeLensContext.FindReferenceLocationsAsync),
                     new object[] { Descriptor, descriptorContext },
                     cancellationToken).ConfigureAwait(false);
 
-                var entries = referenceLocationDescriptors?.Select(referenceLocationDescriptor =>
+                // Keep track of the exact reference count
+                if (referenceLocationDescriptors.HasValue)
+                {
+                    var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, isCapped: false, version: referenceLocationDescriptors.Value.projectVersion);
+                    if (newCount != _calculatedReferenceCount)
+                    {
+                        _calculatedReferenceCount = newCount;
+                        await InvalidatedAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+                    }
+                }
+
+                var entries = referenceLocationDescriptors?.references.Select(referenceLocationDescriptor =>
                 {
                     ImageId imageId = default;
                     if (referenceLocationDescriptor.Glyph.HasValue)

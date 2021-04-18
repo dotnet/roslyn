@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveConfusingSuppression), Shared]
     internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider : CodeFixProvider
     {
         public const string RemoveOperator = nameof(RemoveOperator);
@@ -34,9 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider()
-            => new CSharpRemoveConfusingSuppressionFixAllProvider();
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -100,6 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
+
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
+                await FixAllAsync(
+                    document, diagnostics,
+                    context.CodeActionEquivalenceKey == NegateExpression,
+                    context.CancellationToken).ConfigureAwait(false));
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {

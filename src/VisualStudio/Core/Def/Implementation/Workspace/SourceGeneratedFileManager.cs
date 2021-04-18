@@ -44,7 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
 
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// The temporary directory that we'll create file names under to act as a prefix we can later recognize and use.
@@ -111,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 this);
         }
 
-        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan)
+        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             _foregroundThreadAffintizedObject.AssertIsForeground();
 
@@ -158,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // We should have the file now, so navigate to the right span
             if (_openFiles.TryGetValue(temporaryFilePath, out var openFile))
             {
-                openFile.NavigateToSpan(sourceSpan);
+                openFile.NavigateToSpan(sourceSpan, cancellationToken);
             }
         }
 
@@ -198,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (TryGetGeneratedFileInformation(moniker, out var documentId, out var generatorType, out var generatedSourceHintName))
             {
                 // Attach to the text buffer if we haven't already
-                if (!_openFiles.TryGetValue(moniker, out OpenSourceGeneratedFile openFile))
+                if (!_openFiles.TryGetValue(moniker, out var openFile))
                 {
                     openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentId, generatorType, _threadingContext);
                     _openFiles.Add(moniker, openFile);
@@ -378,8 +380,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             textDocument.Encoding = generatedSource.Encoding;
                         }
 
+                        // HACK: if we do an edit here, that'll change the dirty state of the document, which
+                        // will cause us to think a provisional tab is being edited. If we pass in the textDocument
+                        // as an edit tag, the code in Microsoft.VisualStudio.Text.Implementation.TextDocument.TextBufferChangedHandler
+                        // will think this is an edit coming from itself, and will skip the dirty update.
+
                         // We'll ask the editor to do the diffing for us so updates don't refresh the entire buffer
-                        using (var edit = _textBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
+                        using (var edit = _textBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: textDocument))
                         {
                             // TODO: make the edit in some nicer way than creating a massive string
                             edit.Replace(startPosition: 0, _textBuffer.CurrentSnapshot.Length, generatedSource.ToString());
@@ -476,10 +483,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _currentWindowFrameInfoBarElement = infoBarUI;
             }
 
-            public void NavigateToSpan(TextSpan sourceSpan)
+            public void NavigateToSpan(TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var sourceText = _textBuffer.CurrentSnapshot.AsText();
-                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan));
+                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
             }
         }
     }

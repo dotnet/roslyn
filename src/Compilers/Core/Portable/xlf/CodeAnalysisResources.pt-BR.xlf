@@ -711,11 +711,6 @@
         <target state="translated">O argumento não pode ter um elemento nulo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">O analisador tentou registrar uma ação 'async', tarefa para a qual não há suporte.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
         <target state="translated">O analisador não dá suporte ao diagnóstico relatado com ID '{0}'.</target>

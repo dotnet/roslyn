@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitFieldType(element);
-                if (!element.IsImplicitlyDeclared)
+                if (element.IsExplicitlyNamedTupleElement)
                 {
                     AddSpace();
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.TypeKind)
             {
                 case TypeKind.Class when symbol.IsRecord:
-                    return SymbolDisplayPartKind.RecordName;
+                    return SymbolDisplayPartKind.RecordClassName;
                 case TypeKind.Submission:
                 case TypeKind.Module:
                 case TypeKind.Class:

@@ -30,6 +30,7 @@ namespace Roslyn.Utilities
                         // append remaining text
                         builder.Append(text, startIndex, text.Length - startIndex);
                     }
+
                     break;
                 }
 
@@ -78,6 +79,7 @@ namespace Roslyn.Utilities
                         // append remaining text
                         builder.Append(text, startIndex, text.Length - startIndex);
                     }
+
                     break;
                 }
 

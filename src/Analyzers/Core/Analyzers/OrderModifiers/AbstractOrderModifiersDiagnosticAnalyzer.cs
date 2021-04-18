@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             AbstractOrderModifiersHelpers helpers,
             string language)
             : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,
+                   EnforceOnBuildValues.OrderModifiers,
                    option,
                    language,
                    new LocalizableResourceString(nameof(AnalyzersResources.Order_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),

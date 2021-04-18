@@ -36,9 +36,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        public override FixAllProvider GetFixAllProvider()
-            => new ConflictMarkerFixAllProvider(this);
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -289,7 +286,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         private static int GetEndIncludingLineBreak(SourceText text, int position)
             => text.Lines.GetLineFromPosition(position).SpanIncludingLineBreak.End;
 
-        private async Task<SyntaxNode> FixAllAsync(
+        private async Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             string? equivalenceKey, CancellationToken cancellationToken)
         {
@@ -343,8 +340,12 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var finalText = text.WithChanges(edits);
             var finalDoc = document.WithText(finalText);
 
-            return await finalDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return finalDoc;
         }
+
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
+                await this.FixAllAsync(document, diagnostics, context.CodeActionEquivalenceKey, context.CancellationToken).ConfigureAwait(false));
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -13,10 +15,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
     {
         internal abstract class SimpleCodeAction : CodeAction
         {
-            public SimpleCodeAction(string title, string? equivalenceKey)
+            public SimpleCodeAction(
+                string title,
+                string? equivalenceKey = null,
+                IEnumerable<string>? customTags = null)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
+
+                CustomTags = customTags.ToImmutableArrayOrEmpty();
             }
 
             public sealed override string Title { get; }
@@ -27,13 +34,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
-                : base(title, equivalenceKey)
+            public DocumentChangeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument,
+                string? equivalenceKey = null,
+                IEnumerable<string>? customTags = null)
+                : base(title, equivalenceKey, customTags)
             {
                 _createChangedDocument = createChangedDocument;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
                 => _createChangedDocument(cancellationToken);
         }
 
@@ -41,13 +52,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
-            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null)
-                : base(title, equivalenceKey)
+            public SolutionChangeAction(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                string? equivalenceKey = null,
+                IEnumerable<string>? customTags = null)
+                : base(title, equivalenceKey, customTags)
             {
                 _createChangedSolution = createChangedSolution;
             }
 
-            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 => _createChangedSolution(cancellationToken).AsNullable();
         }
     }

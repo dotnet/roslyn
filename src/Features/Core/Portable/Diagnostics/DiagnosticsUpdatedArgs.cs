@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
         {
             // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
-            if (workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Push)
+            if (workspace.IsPushDiagnostics(diagnosticMode))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
         {
             // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
-            if (workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull)
+            if (workspace.IsPullDiagnostics(diagnosticMode))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -51,6 +52,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             get
             {
+                // For source generated documents, the workspace generates the ID. Thus we won't
+                // know it until we have a workspace we can go and get the ID from. We of course could
+                // duplicate the algorithm but this lets us keep this code oblivious to the internals
+                // of the workspace implementation.
+                if (IsSourceGenerated && _id is null)
+                {
+                    var workspace = _languageServiceProvider!.WorkspaceServices.Workspace;
+                    var project = workspace.CurrentSolution.GetRequiredProject(_project!.Id);
+                    var sourceGeneratedDocuments = project.GetSourceGeneratedDocumentsAsync(CancellationToken.None).Result;
+                    _id = sourceGeneratedDocuments.Single(d => d.FilePath == this.FilePath).Id;
+                }
+
                 Contract.ThrowIfNull(_id);
                 return _id;
             }
@@ -69,14 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public SourceCodeKind SourceCodeKind { get; }
         public string? FilePath { get; }
 
-        public static bool IsGenerated
-        {
-            get
-            {
-                return false;
-            }
-        }
-
         public TextLoader Loader { get; }
         public int? CursorPosition { get; }
         public IList<TextSpan> SelectedSpans { get; } = new List<TextSpan>();
@@ -86,12 +91,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// If a file exists in ProjectA and is added to ProjectB as a link, then this returns
         /// false for the document in ProjectA and true for the document in ProjectB.
         /// </summary>
-        public bool IsLinkFile { get; internal set; }
+        public bool IsLinkFile { get; }
+
+        /// <summary>
+        /// Returns true if this will be a source generated file instead of a regular one.
+        /// </summary>
+        public bool IsSourceGenerated { get; }
 
         internal TestHostDocument(
             ExportProvider exportProvider,
             HostLanguageServices? languageServiceProvider,
             string code,
+            string name,
             string filePath,
             int? cursorPosition,
             IDictionary<string, ImmutableArray<TextSpan>> spans,
@@ -100,19 +111,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool isLinkFile = false,
             IDocumentServiceProvider? documentServiceProvider = null,
             ImmutableArray<string> roles = default,
-            ITextBuffer? textBuffer = null)
+            ITextBuffer? textBuffer = null,
+            bool isSourceGenerated = false)
         {
             Contract.ThrowIfNull(filePath);
 
             _exportProvider = exportProvider;
             _languageServiceProvider = languageServiceProvider;
             _initialText = code;
+            Name = name;
             FilePath = filePath;
             _folders = folders;
-            Name = filePath;
             this.CursorPosition = cursorPosition;
             SourceCodeKind = sourceCodeKind;
             this.IsLinkFile = isLinkFile;
+            IsSourceGenerated = isSourceGenerated;
             _documentServiceProvider = documentServiceProvider;
             _roles = roles.IsDefault ? s_defaultRoles : roles;
 
@@ -161,13 +174,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             _project = project;
 
-            if (_id == null)
+            // For generated documents, we need to fetch the IDs from the workspace later
+            if (!IsSourceGenerated)
             {
-                _id = DocumentId.CreateNewId(project.Id, this.Name);
-            }
-            else
-            {
-                Contract.ThrowIfFalse(project.Id == this.Id.ProjectId);
+                if (_id == null)
+                {
+                    _id = DocumentId.CreateNewId(project.Id, this.Name);
+                }
+                else
+                {
+                    Contract.ThrowIfFalse(project.Id == this.Id.ProjectId);
+                }
             }
 
             if (_languageServiceProvider == null)
@@ -311,6 +328,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public DocumentInfo ToDocumentInfo()
-            => DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: IsGenerated, designTimeOnly: false, _documentServiceProvider);
+        {
+            Contract.ThrowIfTrue(IsSourceGenerated, "We shouldn't be producing a DocumentInfo for a source generated document.");
+            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: false, designTimeOnly: false, _documentServiceProvider);
+        }
     }
 }

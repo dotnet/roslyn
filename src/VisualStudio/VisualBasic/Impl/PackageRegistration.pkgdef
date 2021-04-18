@@ -170,6 +170,7 @@
 "LangResID"=dword:00000000
 
 "DefaultToInsertSpaces"=dword:00000001
+"EnableAdvancedMembersOption"=dword:00000001
 "HideAdvancedMembersByDefault"=dword:00000001
 "RequestStockColors"=dword:00000001
 "ShowBraceCompletion"=dword:00000001

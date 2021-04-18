@@ -11,7 +11,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -4233,6 +4232,30 @@ class C
 
             var speculativeTypeInfo = specModel.GetTypeInfo(replacementIfStatement.Condition);
             Assert.Equal(SpecialType.System_Boolean, speculativeTypeInfo.Type.SpecialType);
+        }
+
+        [Fact, WorkItem(52013, "https://github.com/dotnet/roslyn/issues/52013")]
+        public void NameOf_ArgumentDoesNotExist()
+        {
+            var source = @"
+using System.Diagnostics;
+
+public partial class C
+{
+    [Conditional(nameof(DEBUG))]
+    void M() { }
+
+";
+            var comp = CreateCompilation(source);
+            var method = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMembers("M").Single().GetPublicSymbol();
+            var attribute = method.GetAttributes().Single();
+            Assert.Equal("DEBUG", attribute.ConstructorArguments[0].Value);
+
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+
+            var model = comp.GetSemanticModel(tree);
+            Assert.Equal("DEBUG", model.GetConstantValue(root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single()));
         }
 
         #region "regression helper"

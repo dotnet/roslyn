@@ -45,10 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
 
-        public static readonly PerLanguageOption2<bool> AutoFormattingOnCloseBrace = new(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnCloseBrace), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
-
         public static readonly PerLanguageOption2<bool> AutoFormattingOnSemicolon = new(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnSemicolon), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
@@ -84,8 +80,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
 
-        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
-            nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: false);
+        public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
+            nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(AddImportsOnPaste)}"));
+
+        public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
+            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
+
+        public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
+            nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
+
     }
 
     [ExportOptionProvider, Shared]
@@ -108,7 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
             FeatureOnOffOptions.AutoFormattingOnTyping,
-            FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,
             FeatureOnOffOptions.RenameTrackingPreview,
             FeatureOnOffOptions.RenameTracking,
@@ -116,6 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
             FeatureOnOffOptions.UseEnhancedColors,
-            FeatureOnOffOptions.AddImportsOnPaste);
+            FeatureOnOffOptions.AddImportsOnPaste,
+            FeatureOnOffOptions.OfferRemoveUnusedReferences,
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
     }
 }

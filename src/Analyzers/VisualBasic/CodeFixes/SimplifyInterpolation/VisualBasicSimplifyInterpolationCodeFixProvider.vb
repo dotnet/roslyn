@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.SimplifyInterpolation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.SimplifyInterpolation), [Shared]>
     Friend Class VisualBasicSimplifyInterpolationCodeFixProvider
         Inherits AbstractSimplifyInterpolationCodeFixProvider(Of
             InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,

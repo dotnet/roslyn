@@ -61,15 +61,13 @@ namespace Microsoft.CodeAnalysis
             {
                 var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(pathMap.Length);
 
-                foreach (var kv in pathMap)
+                foreach (var (key, value) in pathMap)
                 {
-                    var key = kv.Key;
                     if (key == null || key.Length == 0)
                     {
                         throw new ArgumentException(CodeAnalysisResources.EmptyKeyInPathMap, nameof(pathMap));
                     }
 
-                    var value = kv.Value;
                     if (value == null)
                     {
                         throw new ArgumentException(CodeAnalysisResources.NullValueInPathMap, nameof(pathMap));

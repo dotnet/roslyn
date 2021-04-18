@@ -595,8 +595,8 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                 Return False
             End If
 
-            Dim match = (TryCast(container, MethodBlockBaseSyntax)?.EndBlockStatement.EndKeyword = nextToken).GetValueOrDefault() OrElse
-                        (TryCast(container, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement.EndKeyword = nextToken).GetValueOrDefault()
+            Dim match = If(TryCast(container, MethodBlockBaseSyntax)?.EndBlockStatement.EndKeyword = nextToken, False) OrElse
+                        If(TryCast(container, MultiLineLambdaExpressionSyntax)?.EndSubOrFunctionStatement.EndKeyword = nextToken, False)
 
             If Not match Then
                 Return False

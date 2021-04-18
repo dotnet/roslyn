@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public uint SelectedItemId { get; private set; } = VSConstants.VSITEMID_NIL;
         public AnalyzersFolderItem? SelectedFolder { get; private set; }
         public ImmutableArray<AnalyzerItem> SelectedAnalyzerItems { get; private set; } = ImmutableArray<AnalyzerItem>.Empty;
-        public ImmutableArray<BaseDiagnosticItem> SelectedDiagnosticItems { get; private set; } = ImmutableArray<BaseDiagnosticItem>.Empty;
+        public ImmutableArray<DiagnosticItem> SelectedDiagnosticItems { get; private set; } = ImmutableArray<DiagnosticItem>.Empty;
 
         int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
         {
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                   .FirstOrDefault();
 
             this.SelectedDiagnosticItems = selectedObjects
-                                           .OfType<BaseDiagnosticItem.BrowseObject>()
+                                           .OfType<DiagnosticItem.BrowseObject>()
                                            .Select(b => b.DiagnosticItem)
                                            .ToImmutableArray();
 
