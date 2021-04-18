@@ -16,6 +16,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact]
+        public void SwitchExpression_NonExhaustive()
+        {
+            //null case is not handled -> not exhaustive
+            string source = @"
+namespace Tests
+{
+    public class Prog
+    {
+        static int EvalPoint((int, int)? point) => /*<bind>*/point switch
+        {
+            (0, 0) => 1,
+            var (_, _) => 2
+        }/*</bind>*/;
+
+        static void Main()
+        {
+			EvalPoint(null);
+        }
+    }
+}
+";
+            string expectedOperationTree = @"ISwitchExpressionOperation (2 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'point switc ... }')
+  Value: 
+    IParameterReferenceOperation: point (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)?) (Syntax: 'point')
+  Arms(2):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '(0, 0) => 1')
+        Pattern: 
+          IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(0, 0)') (InputType: (System.Int32, System.Int32)?, NarrowedType: (System.Int32, System.Int32), DeclaredSymbol: null, MatchedType: (System.Int32, System.Int32), DeconstructSymbol: null)
+            DeconstructionSubpatterns (2):
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '0') (InputType: System.Int32, NarrowedType: System.Int32)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '0') (InputType: System.Int32, NarrowedType: System.Int32)
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            PropertySubpatterns (0)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'var (_, _) => 2')
+        Pattern: 
+          IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(_, _)') (InputType: (System.Int32, System.Int32)?, NarrowedType: (System.Int32, System.Int32), DeclaredSymbol: null, MatchedType: (System.Int32, System.Int32), DeconstructSymbol: null)
+            DeconstructionSubpatterns (2):
+                IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+            PropertySubpatterns (0)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
         public void SwitchExpression_Basic()
         {
             string source = @"
