@@ -26,7 +26,7 @@ namespace Tests
     {
         static int EvalPoint((int, int)? point) => /*<bind>*/point switch
         {
-            (0, 0) => 1,
+            (0, int t) => t > 2 ? 3 : 4,
             var (_, _) => 2
         }/*</bind>*/;
 
@@ -41,19 +41,28 @@ namespace Tests
   Value: 
     IParameterReferenceOperation: point (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)?) (Syntax: 'point')
   Arms(2):
-      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '(0, 0) => 1')
+      ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '(0, int t)  ... > 2 ? 3 : 4')
         Pattern: 
-          IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(0, 0)') (InputType: (System.Int32, System.Int32)?, NarrowedType: (System.Int32, System.Int32), DeclaredSymbol: null, MatchedType: (System.Int32, System.Int32), DeconstructSymbol: null)
+          IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(0, int t)') (InputType: (System.Int32, System.Int32)?, NarrowedType: (System.Int32, System.Int32), DeclaredSymbol: null, MatchedType: (System.Int32, System.Int32), DeconstructSymbol: null)
             DeconstructionSubpatterns (2):
                 IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '0') (InputType: System.Int32, NarrowedType: System.Int32)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '0') (InputType: System.Int32, NarrowedType: System.Int32)
-                  Value: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int t') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 t, MatchesNull: False)
             PropertySubpatterns (0)
         Value: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 't > 2 ? 3 : 4')
+            Condition: 
+              IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 't > 2')
+                Left: 
+                  ILocalReferenceOperation: t (OperationKind.LocalReference, Type: System.Int32) (Syntax: 't')
+                Right: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            WhenTrue: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            WhenFalse: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+        Locals: Local_1: System.Int32 t
       ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: 'var (_, _) => 2')
         Pattern: 
           IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(_, _)') (InputType: (System.Int32, System.Int32)?, NarrowedType: (System.Int32, System.Int32), DeclaredSymbol: null, MatchedType: (System.Int32, System.Int32), DeconstructSymbol: null)
@@ -64,7 +73,7 @@ namespace Tests
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')";
             var expectedDiagnostics = DiagnosticDescription.None;
-
+            
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
