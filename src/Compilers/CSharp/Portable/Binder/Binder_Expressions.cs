@@ -8317,7 +8317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             considerReturnType: true,
             considerTypeConstraints: false,
             considerRefKindDifferences: true,
-            considerCallingConvention: true,
+            considerCallingConvention: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -8330,7 +8330,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? method = null;
             foreach (var m in node.Methods)
             {
-                if (!getOrUpdateMethod(ref method, m))
+                // PROTOTYPE: If explicit receiver is provided, we should ignore static methods,
+                // and if an explicit type qualifier is provided, we should ignore instance methods.
+                // Should we remove this distinct GetMethodGroupDelegateType() pass and simply
+                // try to bind all candidates including extension methods using ResolveMethodGroup(),
+                // and then use the common delegate type (if any) from all successful candidates?
+                if (!updateCandidate(ref method, m))
                 {
                     return null;
                 }
@@ -8345,7 +8350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var m in methodGroup.Methods)
                     {
                         if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
-                            !getOrUpdateMethod(ref method, reduced))
+                            !updateCandidate(ref method, reduced))
                         {
                             methodGroup.Free();
                             return null;
@@ -8369,7 +8374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return method;
 
-            static bool getOrUpdateMethod(ref MethodSymbol? method, MethodSymbol candidate)
+            static bool updateCandidate(ref MethodSymbol? method, MethodSymbol candidate)
             {
                 if (method is null)
                 {
