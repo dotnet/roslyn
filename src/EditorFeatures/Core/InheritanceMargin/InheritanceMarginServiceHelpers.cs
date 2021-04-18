@@ -90,10 +90,15 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 .WhereAsArray(symbol => symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
 
             // Get all derived types
-            var derivedSymbols = await GetDerivedTypesAndImplementationsAsync(
+            var allDerivedSymbols = await GetDerivedTypesAndImplementationsAsync(
                 solution,
                 memberSymbol,
                 cancellationToken).ConfigureAwait(false);
+
+            // Ensure the user won't be able to see symbol outside the solution for derived symbols.
+            // For example, if user is viewing 'IEnumerable interface' from metadata, we don't want to tell
+            // the user all the derived types under System.Collections
+            var derivedSymbols = allDerivedSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
 
             if (baseSymbols.Any() || derivedSymbols.Any())
             {
@@ -123,7 +128,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // Overriding: O↑
 
             // Go down the inheritance chain to find all the overrides targets.
-            var overriddenSymbols = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var allOverriddenSymbols = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // Go up the inheritance chain to find all the implemented targets.
             var implementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
@@ -132,7 +137,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var overridingSymbols = GetOverridingSymbols(memberSymbol);
 
             // Go down the inheritance chain to find all the implementing targets.
-            var implementedSymbols = await GetImplementedSymbolsAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
+            var allImplementedSymbols = await GetImplementedSymbolsAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
+
+            // For all overriden & implemented symbols, make sure it is in source.
+            // For example, if the user is viewing System.Threading.SynchronizationContext from metadata,
+            // then don't show the derived overriden & implemented method in the default implementation for System.Threading.SynchronizationContext in metadata
+            var overriddenSymbols = allOverriddenSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+            var implementedSymbols = allImplementedSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
 
             if (overriddenSymbols.Any() || overridingSymbols.Any() || implementingSymbols.Any() || implementedSymbols.Any())
             {
