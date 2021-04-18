@@ -57,13 +57,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
-            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
-            var editorFormattingService = formattingService == null ? document.GetRequiredLanguageService<IEditorFormattingService>() : null;
+            var formattingService = FormattingInteractionServiceProxy.GetRequiredService(document);
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                var changes = GetChanges();
+                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.Count == 0)
                 {
                     return;
@@ -71,17 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
                 ApplyChanges(document, changes, selectionOpt, cancellationToken);
                 transaction.Complete();
-
-                IList<TextChange> GetChanges()
-                {
-                    var changesTask = formattingService?.GetFormattingChangesAsync(document, selectionOpt, documentOptions: null, cancellationToken);
-                    if (changesTask == null)
-                    {
-                        changesTask = editorFormattingService!.GetFormattingChangesAsync(document, selectionOpt, documentOptions: null, cancellationToken);
-                    }
-
-                    return changesTask.WaitAndGetResult(cancellationToken);
-                }
             }
         }
 
@@ -152,15 +140,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var service = document.GetLanguageService<IFormattingInteractionService>();
-            IEditorFormattingService? editorService = null;
-            if (service == null)
+            if (FormattingInteractionServiceProxy.GetService(document) is not { } service)
             {
-                editorService = document.GetLanguageService<IEditorFormattingService>();
-                if (editorService == null)
-                {
-                    return;
-                }
+                return;
             }
 
             IList<TextChange>? textChanges;
@@ -168,33 +150,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             // save current caret position
             if (args is ReturnKeyCommandArgs)
             {
-                if (!(service?.SupportsFormatOnReturn ?? editorService!.SupportsFormatOnReturn))
+                if (!service.SupportsFormatOnReturn)
                 {
                     return;
                 }
 
-                var changesTask = service?.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, documentOptions: null, cancellationToken);
-                if (changesTask == null)
-                {
-                    changesTask = editorService!.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, documentOptions: null, cancellationToken);
-                }
-
-                textChanges = changesTask.WaitAndGetResult(cancellationToken);
+                textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                if (!(service?.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar) ??
-                      editorService!.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar)))
+                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
                 {
                     return;
                 }
 
-                var changesTask = service?.GetFormattingChangesAsync(document, typeCharArgs.TypedChar, caretPosition.Value, documentOptions: null, cancellationToken);
-                if (changesTask == null)
-                {
-                    changesTask = editorService!.GetFormattingChangesAsync(document, typeCharArgs.TypedChar, caretPosition.Value, documentOptions: null, cancellationToken);
-                }
-                textChanges = changesTask.WaitAndGetResult(cancellationToken);
+                textChanges = service.GetFormattingChangesAsync(document, typeCharArgs.TypedChar, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {

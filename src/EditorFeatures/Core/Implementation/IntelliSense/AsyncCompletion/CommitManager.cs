@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -267,20 +266,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // The edit updates the snapshot however other extensions may make changes there.
                     // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
-                    document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var formattingService = document?.GetLanguageService<IFormattingInteractionService>();
-                    var editorFormattingService = formattingService == null ? document?.GetLanguageService<IEditorFormattingService>() : null;
+                    var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-                    if (formattingService != null || editorFormattingService != null)
+                    if (currentDocument != null && FormattingInteractionServiceProxy.GetService(currentDocument) is { } service)
                     {
                         var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                        var changesTask = formattingService?.GetFormattingChangesAsync(document, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None);
-                        if (changesTask == null)
-                        {
-                            changesTask = editorFormattingService.GetFormattingChangesAsync(document, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None);
-                        }
-                        var changes = changesTask.WaitAndGetResult(CancellationToken.None);
-                        document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
+                        var changes = service.GetFormattingChangesAsync(currentDocument, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, CancellationToken.None);
                     }
                 }
             }

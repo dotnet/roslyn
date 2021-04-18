@@ -7,7 +7,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -73,21 +72,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
-            var editorFormattingService = document.GetLanguageService<IEditorFormattingService>();
-            if ((formattingService?.SupportsFormatOnPaste ?? editorFormattingService?.SupportsFormatOnPaste) != true)
+            var service = FormattingInteractionServiceProxy.GetService(document);
+            if (service is null or { SupportsFormatOnPaste: false })
             {
                 return;
             }
 
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
-            var changesTask = formattingService?.GetFormattingChangesOnPasteAsync(document, span, documentOptions: null, cancellationToken);
-            if (changesTask == null)
-            {
-                changesTask = editorFormattingService!.GetFormattingChangesOnPasteAsync(document, span, documentOptions: null, cancellationToken);
-            }
 
-            var changes = changesTask.WaitAndGetResult(cancellationToken);
+            var changes = service.Value.GetFormattingChangesOnPasteAsync(document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.Count == 0)
             {
                 return;
