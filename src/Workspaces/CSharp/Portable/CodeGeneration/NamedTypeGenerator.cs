@@ -198,8 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax typeDeclaration;
             if (namedType.IsRecord)
             {
-                var declarationKind = namedType.TypeKind is TypeKind.Class ? SyntaxKind.RecordDeclaration : SyntaxKind.RecordStructDeclaration;
-                typeDeclaration = SyntaxFactory.RecordDeclaration(declarationKind, SyntaxFactory.Token(SyntaxKind.RecordKeyword), namedType.Name.ToIdentifierToken());
+                var isRecordClass = namedType.TypeKind is TypeKind.Class;
+                var declarationKind = isRecordClass ? SyntaxKind.RecordDeclaration : SyntaxKind.RecordStructDeclaration;
+                var classOrStructKeyword = SyntaxFactory.Token(isRecordClass ? default : SyntaxKind.ClassKeyword);
+
+                typeDeclaration = SyntaxFactory.RecordDeclaration(kind: declarationKind, attributeLists: default, modifiers: default,
+                    SyntaxFactory.Token(SyntaxKind.RecordKeyword), classOrStructKeyword, namedType.Name.ToIdentifierToken(),
+                    typeParameterList: null, parameterList: null, baseList: null, constraintClauses: default, openBraceToken: default, members: default, closeBraceToken: default,
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
             else
             {
