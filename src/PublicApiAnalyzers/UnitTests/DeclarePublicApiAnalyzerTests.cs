@@ -610,6 +610,55 @@ C.Method() -> void
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(3329, "https://github.com/dotnet/roslyn-analyzers/issues/3329")]
+        public async Task RemovedPrefixForNonRemovedApi(bool includeInShipped)
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+    public void Method() { }
+}
+";
+
+            var shippedText = @"
+C
+C.C() -> void
+C.Field -> int
+C.Property.get -> int
+C.Property.set -> void
+";
+
+            if (includeInShipped)
+            {
+                shippedText += @"C.Method() -> void
+";
+            }
+
+            string unshippedText = $@"
+{DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+";
+
+            if (includeInShipped)
+            {
+                await VerifyCSharpAsync(source, shippedText, unshippedText,
+                    // PublicAPI.Unshipped.txt(2,1): warning RS0050: Symbol 'C.Method() -> void' is marked as removed but it isn't deleted in source code
+                    GetAdditionalFileResultAt(2, 1, DeclarePublicApiAnalyzer.UnshippedFileName, DeclarePublicApiAnalyzer.RemovedApiIsNotActuallyRemovedRule, "C.Method() -> void"));
+            }
+            else
+            {
+                await VerifyCSharpAsync(source, shippedText, unshippedText,
+                    // PublicAPI.Unshipped.txt(2,1): warning RS0050: Symbol 'C.Method() -> void' is marked as removed but it isn't deleted in source code
+                    GetAdditionalFileResultAt(2, 1, DeclarePublicApiAnalyzer.UnshippedFileName, DeclarePublicApiAnalyzer.RemovedApiIsNotActuallyRemovedRule, "C.Method() -> void"),
+                    // /0/Test0.cs(6,17): warning RS0016: Symbol 'Method' is not part of the declared API
+                    GetCSharpResultAt(6, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method")
+                    );
+            }
+        }
+
         [Fact]
         public async Task ApiFileShippedWithRemoved()
         {
@@ -837,6 +886,48 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
+        [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
+        public async Task OpenGenericTypeForwardsAreProcessed()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<>))]
+";
+
+            string shippedText = "";
+            string unshippedText = "";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+#if NETCOREAPP
+                // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule),
+#endif
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "GetEnumerator"),
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "IEnumerable<T>"));
+        }
+
+        [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
+        public async Task GenericTypeForwardsAreProcessed()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<string>))]
+";
+
+            string shippedText = "";
+            string unshippedText = "";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+#if NETCOREAPP
+                // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule),
+#endif
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "GetEnumerator"),
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "IEnumerable<String>"));
+        }
+
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
         public async Task TestAvoidMultipleOverloadsWithOptionalParameters()
         {
@@ -898,15 +989,15 @@ C.Method6<T>(int p1 = 0) -> T
                 GetCSharpResultAt(5, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method1"),
                 // Test0.cs(8,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
                 GetCSharpResultAt(8, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method1"),
-                // Test0.cs(20,17): warning RS0026: Symbol 'Method4' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(20,17): warning RS0026: Symbol 'Method4' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(20, 17, DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method4", DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
                 // Test0.cs(25,17): warning RS0016: Symbol 'Method5' is not part of the declared API.
                 GetCSharpResultAt(25, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method5"),
-                // Test0.cs(25,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(25,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(25, 17, DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
-                // Test0.cs(26,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(26,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(26, 17, DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
-                // Test0.cs(27,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(27,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(27, 17, DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri));
         }
 
@@ -974,13 +1065,13 @@ C.Method6(string p1) -> void
 ";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                // Test0.cs(21,17): warning RS0027: Symbol 'Method4' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(21,17): warning RS0027: Symbol 'Method4' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(21, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method4", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
-                // Test0.cs(26,17): warning RS0027: Symbol 'Method5' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(26,17): warning RS0027: Symbol 'Method5' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(26, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method5", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
-                // Test0.cs(31,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(31,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(31, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method6", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
-                // Test0.cs(32,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(32,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(32, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method6", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
         }
 
@@ -1528,6 +1619,45 @@ C.NewField -> int
 C.Property.get -> int
 C.Property.set -> void";
 
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Theory]
+        [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
+        [InlineData("\r\n")] // Windows line ending.
+        [InlineData("\n")] // Linux line ending.
+        public async Task TestUseExistingLineEndings(string lineEnding)
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int Field1;
+    public int Field2;
+    public int {|RS0016:Field3|}; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = $"C{lineEnding}C.Field1 -> int{lineEnding}C.Field2 -> int";
+            var fixedUnshippedText = $"C{lineEnding}C.Field1 -> int{lineEnding}C.Field2 -> int{lineEnding}C.Field3 -> int";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
+        public async Task TestUseOSLineEnding()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int {|RS0016:Field1|}; // Newly added field, not in current public API.
+}
+";
+            var shippedText = @"";
+            var unshippedText = $"C";
+            var fixedUnshippedText = $"C{Environment.NewLine}C.Field1 -> int";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
@@ -2217,7 +2347,7 @@ C2.C2() -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
-        [WindowsOnlyTheory]
+        [Theory]
         [InlineData("", "")]
         [InlineData("\r\n", "\r\n")]
         [InlineData("\r\n\r\n", "\r\n")]

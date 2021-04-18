@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         reportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, locations[0], propertyBag, errorMessageName));
                     }
 
-                    // Flag public API with optional parameters that violate backcompat requirements: https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md.
+                    // Flag public API with optional parameters that violate backcompat requirements: https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md.
                     if (method.HasOptionalParameters())
                     {
                         foreach (var overload in method.GetOverloads())
@@ -644,14 +644,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             internal void OnCompilationEnd(CompilationAnalysisContext context)
             {
                 ProcessTypeForwardedAttributes(context.Compilation, context.ReportDiagnostic, context.CancellationToken);
-                List<ApiLine> deletedApiList = GetDeletedApiList();
-                foreach (ApiLine cur in deletedApiList)
-                {
-                    LinePositionSpan linePositionSpan = cur.SourceText.Lines.GetLinePositionSpan(cur.Span);
-                    Location location = Location.Create(cur.Path, cur.Span, linePositionSpan);
-                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, cur.Text);
-                    context.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, cur.Text));
-                }
+                ReportDeletedApiList(context.ReportDiagnostic);
+                ReportMarkedAsRemovedButNotActuallyRemovedApiList(context.ReportDiagnostic);
             }
 
             private void ProcessTypeForwardedAttributes(Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
@@ -670,6 +664,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 if (attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                                 {
                                     var obsoleteAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
+                                    if (forwardedType.IsUnboundGenericType)
+                                    {
+                                        forwardedType = forwardedType.ConstructedFrom;
+                                    }
+
                                     VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, obsoleteAttribute, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
                                 }
                             }
@@ -701,12 +700,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
 
             /// <summary>
-            /// Calculated the set of APIs which have been deleted but not yet documented.
+            /// Report diagnostics to the set of APIs which have been deleted but not yet documented.
             /// </summary>
-            /// <returns></returns>
-            internal List<ApiLine> GetDeletedApiList()
+            internal void ReportDeletedApiList(Action<Diagnostic> reportDiagnostic)
             {
-                var list = new List<ApiLine>();
                 foreach (KeyValuePair<string, ApiLine> pair in _publicApiMap)
                 {
                     if (_visitedApiList.ContainsKey(pair.Key))
@@ -719,10 +716,31 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         continue;
                     }
 
-                    list.Add(pair.Value);
+                    Location location = GetLocationFromApiLine(pair.Value);
+                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, pair.Value.Text);
+                    reportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, pair.Value.Text));
                 }
+            }
 
-                return list;
+            /// <summary>
+            /// Report diagnostics to the set of APIs which have been marked with *REMOVED* but still exists in source code.
+            /// </summary>
+            internal void ReportMarkedAsRemovedButNotActuallyRemovedApiList(Action<Diagnostic> reportDiagnostic)
+            {
+                foreach (var markedAsRemoved in _unshippedData.RemovedApiList)
+                {
+                    if (_visitedApiList.ContainsKey(markedAsRemoved.Text))
+                    {
+                        Location location = GetLocationFromApiLine(markedAsRemoved.ApiLine);
+                        reportDiagnostic(Diagnostic.Create(RemovedApiIsNotActuallyRemovedRule, location, messageArgs: markedAsRemoved.Text));
+                    }
+                }
+            }
+
+            private static Location GetLocationFromApiLine(ApiLine apiLine)
+            {
+                LinePositionSpan linePositionSpan = apiLine.SourceText.Lines.GetLinePositionSpan(apiLine.Span);
+                return Location.Create(apiLine.Path, apiLine.Span, linePositionSpan);
             }
 
             private bool IsPublicAPI(ISymbol symbol)

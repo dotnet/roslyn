@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
-        <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
-        <target state="translated">Włączenie śledzenia wydań dla pakietów analizatora ułatwia śledzenie i dokumentowanie diagnostyki analizatora dostarczanej i/lub zmienianej w poszczególnych wydaniach analizatora. Zobacz szczegóły pod adresem https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
+        <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
+        <target state="translated">Włączenie śledzenia wydań dla pakietów analizatora ułatwia śledzenie i dokumentowanie diagnostyki analizatora dostarczanej i/lub zmienianej w poszczególnych wydaniach analizatora. Zobacz szczegóły pod adresem https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
@@ -259,22 +259,22 @@
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
-        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <target state="translated">Preferuj formę „syntax.IsKind(kind)” zamiast „syntax.Kind() == kind” podczas sprawdzania rodzajów składni. Kod używający elementu „IsKind” jest nieco bardziej wydajny w środowisku uruchomieniowym, więc konsekwentne używanie tej formy w stosownych przypadkach pomaga zwiększyć wydajność w złożonych scenariuszach analizy.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindFix">
         <source>Use 'IsKind' instead of 'Kind'</source>
-        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <target state="translated">Użyj elementu „IsKind” zamiast elementu „Kind”</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindMessage">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Preferuj metodę „IsKind” do sprawdzania rodzajów składni</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindTitle">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">Preferuj metodę „IsKind” do sprawdzania rodzajów składni</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
@@ -556,8 +556,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
-        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">Element CodeFixProvider powinien dostarczać obsługę elementu FixAll, aby umożliwić użytkownikom naprawienie wielu wystąpień diagnostyk bazowych za pomocą pojedynczej poprawki kodu. Zobacz dokumentację pod adresem https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md w celu uzyskania dalszych szczegółów.</target>
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="translated">Element CodeFixProvider powinien dostarczać obsługę elementu FixAll, aby umożliwić użytkownikom naprawienie wielu wystąpień diagnostyk bazowych za pomocą pojedynczej poprawki kodu. Zobacz dokumentację pod adresem https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md w celu uzyskania dalszych szczegółów.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">

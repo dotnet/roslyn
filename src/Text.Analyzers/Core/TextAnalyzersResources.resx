@@ -142,54 +142,64 @@
     <value>The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageAssembly" xml:space="preserve">
-    <value>Correct the spelling of '{0}' in assembly name {1}</value>
+    <value>Correct the spelling of '{0}' in assembly name '{1}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageNamespace" xml:space="preserve">
     <value>Correct the spelling of '{0}' in namespace name '{1}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageType" xml:space="preserve">
-    <value>Correct the spelling of '{0}' in type name {1}</value>
+    <value>Correct the spelling of '{0}' in type name '{1}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageMember" xml:space="preserve">
-    <value>Correct the spelling of '{0}' in member name {1} or remove it entirely if it represents any sort of Hungarian notation</value>
+    <value>Correct the spelling of '{0}' in member name '{1}' or remove it entirely if it represents any sort of Hungarian notation</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameter" xml:space="preserve">
-    <value>In method {0}, correct the spelling of '{1}' in parameter name {2} or remove it entirely if it represents any sort of Hungarian notation</value>
+    <value>In method '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameter" xml:space="preserve">
-    <value>In delegate {0}, correct the spelling of '{1}' in parameter name {2} or remove it entirely if it represents any sort of Hungarian notation</value>
+    <value>In delegate '{0}', correct the spelling of '{1}' in parameter name '{2}' or remove it entirely if it represents any sort of Hungarian notation</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameter" xml:space="preserve">
-    <value>On type {0}, correct the spelling of '{1}' in generic type parameter name {2}</value>
+    <value>On type '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameter" xml:space="preserve">
-    <value>On method {0}, correct the spelling of '{1}' in generic type parameter name {2}</value>
+    <value>On method '{0}', correct the spelling of '{1}' in generic type parameter name '{2}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName" xml:space="preserve">
-    <value>Consider providing a more meaningful name than assembly name {0}</value>
+    <value>Consider providing a more meaningful name than assembly name '{0}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageNamespaceMoreMeaningfulName" xml:space="preserve">
     <value>Consider providing a more meaningful name than namespace name '{0}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageTypeMoreMeaningfulName" xml:space="preserve">
-    <value>Consider providing a more meaningful name than type name {0}</value>
+    <value>Consider providing a more meaningful name than type name '{0}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageMemberMoreMeaningfulName" xml:space="preserve">
-    <value>Consider providing a more meaningful name than member name {0}</value>
+    <value>Consider providing a more meaningful name than member name '{0}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameterMoreMeaningfulName" xml:space="preserve">
-    <value>In method {0}, consider providing a more meaningful name than parameter name {1}</value>
+    <value>In method '{0}', consider providing a more meaningful name than parameter name '{1}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameterMoreMeaningfulName" xml:space="preserve">
-    <value>In delegate {0}, consider providing a more meaningful name than parameter name {1}</value>
+    <value>In delegate '{0}', consider providing a more meaningful name than parameter name '{1}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameterMoreMeaningfulName" xml:space="preserve">
-    <value>On type {0}, consider providing a more meaningful name than generic type parameter name {1}</value>
+    <value>On type '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</value>
   </data>
   <data name="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName" xml:space="preserve">
-    <value>On method {0}, consider providing a more meaningful name than generic type parameter name {1}</value>
+    <value>On method '{0}', consider providing a more meaningful name than generic type parameter name '{1}'</value>
   </data>
   <data name="CategoryNaming" xml:space="preserve">
     <value>Naming</value>
+  </data>
+  <data name="IdentifiersShouldBeSpelledCorrectlyFileParse" xml:space="preserve">
+    <value>Error parsing dictionary '{0}': {1}</value>
+  </data>
+  <data name="IdentifiersShouldBeSpelledCorrectlyMessageVariable" xml:space="preserve">
+    <value>Correct the spelling of '{0}' in variable name '{1}'</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Dictionary" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Dictionary.dic;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

@@ -164,9 +164,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.InterfaceInfos,
-                HashUtilities.Combine(this.ConcreteInfos,
-                0));
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(this.InterfaceInfos, ref hashCode);
+            HashUtilities.Combine(this.ConcreteInfos, ref hashCode);
+            return hashCode.ToHashCode();
         }
     }
 }
