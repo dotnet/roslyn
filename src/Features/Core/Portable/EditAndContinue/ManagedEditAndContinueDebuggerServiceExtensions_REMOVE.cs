@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public static ValueTask<string> GetCapabilitiesAsync(this IManagedEditAndContinueDebuggerService _1, CancellationToken _2)
         {
-            return new ValueTask<string>("Baseline");
+            return new ValueTask<string>("Baseline AddDefinitionToExistingType NewTypeDefinition");
         }
     }
 }
