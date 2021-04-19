@@ -117,5 +117,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         SourceFileTooBig = 89,
         MemberBodyTooBig = 90,
         InsertIntoGenericType = 91,
+
+        NotSupportedByRuntime = 92
     }
 }

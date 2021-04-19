@@ -524,6 +524,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return DocumentAnalysisResults.Unchanged(newDocument.Id, newActiveStatements.MoveToImmutable(), newExceptionRegions.MoveToImmutable());
                 }
 
+                // If the document has changed at all, lets make sure Edit and Continue is supported
+                if (!capabilities.HasCapability(ManagedEditAndContinueCapability.Baseline))
+                {
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
+                       new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), hasChanges);
+                }
+
                 // Disallow modification of a file with experimental features enabled.
                 // These features may not be handled well by the analysis below.
                 if (ExperimentalFeaturesEnabled(newTree))

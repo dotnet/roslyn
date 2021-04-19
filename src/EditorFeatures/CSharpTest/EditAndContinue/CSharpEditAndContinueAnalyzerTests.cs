@@ -759,5 +759,45 @@ class D
             AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
                 .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));
         }
+
+        [Fact]
+        public async Task AnalyzeDocumentAsync_NotSupportedByRuntime()
+        {
+            var source1 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+            var source2 = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
+
+            using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
+
+            var oldSolution = workspace.CurrentSolution;
+            var oldProject = oldSolution.Projects.Single();
+            var documentId = oldProject.Documents.Single().Id;
+            var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+            var newDocument = newSolution.GetDocument(documentId);
+
+            var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
+            var analyzer = new CSharpEditAndContinueAnalyzer();
+
+            var capabilities = new ManagedEditAndContinueCapabilities(ManagedEditAndContinueCapability.None);
+
+            var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<TextSpan>.Empty, capabilities, CancellationToken.None);
+
+            Assert.Equal(RudeEditKind.NotSupportedByRuntime, result.RudeEditErrors.Single().Kind);
+        }
     }
 }
