@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
             ImmutableArray<TodoCommentDescriptor> commentDescriptors,
             CancellationToken cancellationToken)
         {
+            if (commentDescriptors.IsEmpty)
+                return ImmutableArray<TodoComment>.Empty;
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // strongly hold onto text and tree

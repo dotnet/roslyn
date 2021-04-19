@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
 {
     public abstract class AbstractTodoCommentTests
     {
+        protected const string DefaultTokenList = "HACK:1|TODO:1|UNDONE:1|UnresolvedMergeConflict:0";
+
         protected abstract TestWorkspace CreateWorkspace(string codeWithMarker);
 
         protected async Task TestAsync(string codeWithMarker)
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var service = document.GetLanguageService<ITodoCommentService>();
             var todoComments = await service.GetTodoCommentsAsync(document,
-                TodoCommentDescriptor.Parse(TodoCommentOptions.TokenList.DefaultValue),
+                TodoCommentDescriptor.Parse(workspace.Options.GetOption(TodoCommentOptions.TokenList)),
                 CancellationToken.None);
 
             using var _ = ArrayBuilder<TodoCommentData>.GetInstance(out var converted);

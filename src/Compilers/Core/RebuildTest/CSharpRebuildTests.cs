@@ -5,9 +5,9 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.PortableExecutable;
-using BuildValidator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             var originalBytes = original.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
             var originalPeReader = new PEReader(originalBytes);
-            var originalPdbReader = originalPeReader.GetEmbeddedPdbMetadataReader();
+            var originalPdbReader = originalPeReader.GetEmbeddedPdbMetadataReader()!;
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("Test");
 
