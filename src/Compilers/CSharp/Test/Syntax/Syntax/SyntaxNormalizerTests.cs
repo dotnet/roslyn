@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10, Item2: < 20 })
   {
   }
-}"
+}".NormalizeLineEndings()
             );
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   2 => ""two"",
   3 => ""three"",
   { } => "">= 4""
-};"
+};".NormalizeLineEndings()
             );
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   object { } i when i is not 42 => ""not 42"",
   { } => ""not null"",
   null => ""null"",
-};"
+};".NormalizeLineEndings()
             );
         }
 
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   DeliveryTruck t => 10.00m,
   { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
   null => 0 //throw new ArgumentNullException(nameof(vehicle))
-};";
+};".NormalizeLineEndings();
             TestNormalizeStatement(a, b);
         }
 
