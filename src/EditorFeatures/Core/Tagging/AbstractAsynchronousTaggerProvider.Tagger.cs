@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // Now report them back to the UI on the main thread.
 
-                    // We ask to update UI immediately for removed tags
-                    NotifyEditors(change.Value.Removed, initialTags ? TaggerDelay.NearImmediate : _tagSource.RemovedTagNotificationDelay);
+                    // We ask to update UI immediately for removed tags, or for the very first set of tags created.
+                    NotifyEditors(change.Value.Removed, TaggerDelay.NearImmediate);
                     NotifyEditors(change.Value.Added, initialTags ? TaggerDelay.NearImmediate : _tagSource.AddedTagNotificationDelay);
                 }
             }
