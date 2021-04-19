@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var isRecordClass = namedType.TypeKind is TypeKind.Class;
                 var declarationKind = isRecordClass ? SyntaxKind.RecordDeclaration : SyntaxKind.RecordStructDeclaration;
-                var classOrStructKeyword = SyntaxFactory.Token(isRecordClass ? default : SyntaxKind.ClassKeyword);
+                var classOrStructKeyword = SyntaxFactory.Token(isRecordClass ? default : SyntaxKind.StructKeyword);
 
                 typeDeclaration = SyntaxFactory.RecordDeclaration(kind: declarationKind, attributeLists: default, modifiers: default,
                     SyntaxFactory.Token(SyntaxKind.RecordKeyword), classOrStructKeyword, namedType.Name.ToIdentifierToken(),
