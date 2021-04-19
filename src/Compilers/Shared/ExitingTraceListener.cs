@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </summary>
     internal sealed class ExitingTraceListener : TraceListener
     {
-        internal ICompilerServerLogger Logger { get; } 
+        internal ICompilerServerLogger Logger { get; }
 
         internal ExitingTraceListener(ICompilerServerLogger logger)
         {
