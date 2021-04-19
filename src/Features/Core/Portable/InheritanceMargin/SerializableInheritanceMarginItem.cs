@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     [DataContract]
-    internal class SerializableInheritanceMarginItem
+    internal readonly struct SerializableInheritanceMarginItem
     {
         [DataMember(Order = 0)]
         public readonly int LineNumber;

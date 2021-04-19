@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     [DataContract]
-    internal class SerializableInheritanceTargetItem
+    internal readonly struct SerializableInheritanceTargetItem
     {
         [DataMember(Order = 0)]
         public readonly InheritanceRelationship RelationToMember;

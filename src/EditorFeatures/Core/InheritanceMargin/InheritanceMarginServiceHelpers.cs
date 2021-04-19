@@ -60,19 +60,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
-                    await GetInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken);
+                    await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken);
                 }
 
                 if (symbol is IEventSymbol or IPropertySymbol or IMethodSymbol)
                 {
-                    await GetInheritanceMemberItemsForTypeMembersAsync(solution, symbol, lineNumber, builder, cancellationToken);
+                    await AddInheritanceMemberItemsForTypeMembersAsync(solution, symbol, lineNumber, builder, cancellationToken);
                 }
             }
 
             return builder.ToImmutable();
         }
 
-        private static async ValueTask GetInheritanceMemberItemsForNamedTypeAsync(
+        private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
             Solution solution,
             INamedTypeSymbol memberSymbol,
             int lineNumber,
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private static async ValueTask GetInheritanceMemberItemsForTypeMembersAsync(
+        private static async ValueTask AddInheritanceMemberItemsForTypeMembersAsync(
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,

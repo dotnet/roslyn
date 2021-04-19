@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
-                if (member == null || !CanSymbolHasInheritanceTarget(member))
+                if (member == null || !CanHaveInheritanceTarget(member))
                 {
                     continue;
                 }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 (serializedItem, _) => InheritanceMarginItem.ConvertAsync(solution, serializedItem, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
 
-        private static bool CanSymbolHasInheritanceTarget(ISymbol symbol)
+        private static bool CanHaveInheritanceTarget(ISymbol symbol)
             => !symbol.IsStatic && (symbol is INamedTypeSymbol or IEventSymbol or IPropertySymbol || symbol.IsOrdinaryMethod());
     }
 }
