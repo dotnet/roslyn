@@ -3735,15 +3735,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
                         }
-                        else
+                        else if (!isInherited || checkMemberNotHidden(prop, param))
                         {
                             // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
                             existingOrAddedMembers.Add(prop);
-
-                            if (isInherited)
-                            {
-                                validateNotHidden(prop, param);
-                            }
                         }
                     }
                     else
@@ -3772,12 +3767,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return existingOrAddedMembers.ToImmutableAndFree();
 
-                void validateNotHidden(Symbol symbol, ParameterSymbol param)
+                bool checkMemberNotHidden(Symbol symbol, ParameterSymbol param)
                 {
-                    if (memberNames.Contains(symbol.Name) || !this.GetTypeMembers(symbol.Name).IsEmpty)
+                    if (memberNames.Contains(symbol.Name) || this.GetTypeMembersDictionary().ContainsKey(symbol.Name))
                     {
                         diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, param.Locations[0], symbol);
+                        return false;
                     }
+                    return true;
                 }
             }
 

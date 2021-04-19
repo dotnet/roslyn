@@ -28706,10 +28706,10 @@ public record C(int I) : Base(I)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
@@ -28738,10 +28738,10 @@ public record C(int I) : Base(I)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
@@ -28759,7 +28759,7 @@ public record C(int I) : Base(I) // 1
 }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I) // 1
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21)
@@ -28786,7 +28786,7 @@ public record C(int I) : Base(I)
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (11,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(11, 21),
@@ -28824,7 +28824,7 @@ public record C(int I) : Base(I)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
@@ -28847,7 +28847,7 @@ public record C(int Item) : Base(Item)
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
             verifier.VerifyIL("C.Deconstruct", @"
@@ -28884,7 +28884,7 @@ public record C(int I) : Base(I)
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
             verifier.VerifyIL("C.Deconstruct", @"
@@ -28916,7 +28916,7 @@ public record C(int I) : Base(I)
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
@@ -28942,7 +28942,7 @@ public record C(int I) : Base(I)
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
@@ -28971,7 +28971,7 @@ public record C(int I) : Base(I)
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
@@ -28995,7 +28995,7 @@ record Derived(int I) : Base
 }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (8,16): warning CS0108: 'Derived.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
                 //     public int I() { return 0; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("Derived.I()", "Base.I").WithLocation(8, 16),
@@ -29019,7 +29019,7 @@ abstract record Derived(int I) : Base
 }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (8,16): error CS0533: 'Derived.I()' hides inherited abstract member 'Base.I'
                 //     public int I() { return 0; }
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "I").WithArguments("Derived.I()", "Base.I").WithLocation(8, 16),
