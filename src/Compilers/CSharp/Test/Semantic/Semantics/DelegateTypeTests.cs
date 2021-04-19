@@ -512,27 +512,15 @@ class Program
             yield return getData("internal void F(object x) { }", "internal static new void F(object x) { }", "base.F", "F", null, "System.Action<System.Object>"); // instance and static
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // static and instance
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "this.F", "F", null, "System.Action<System.Object>"); // static and instance
-            yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "base.F", "F",
-                new[]
-                {
-                    // (5,29): error CS0176: Member 'A.F(object)' cannot be accessed with an instance reference; qualify it with a type name instead
-                    //         System.Delegate d = base.F;
-                    Diagnostic(ErrorCode.ERR_ObjectProhibited, "base.F").WithArguments("A.F(object)").WithLocation(5, 29)
-                }); // static and instance
+            yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "base.F", "F"); // static and instance
             yield return getData("internal void F(object x) { }", "internal static void F() { }", "F", "F"); // instance and static, different number of parameters
-            // PROTOTYPE: Enable test.
-            //yield return getData("internal void F(object x) { }", "internal static void F() { }", "this.F", "F", null, "System.Action<System.Object>")); // instance and static, different number of parameters
+            yield return getData("internal void F(object x) { }", "internal static void F() { }", "B.F", "F", null, "System.Action"); // instance and static, different number of parameters
+            yield return getData("internal void F(object x) { }", "internal static void F() { }", "this.F", "F", null, "System.Action<System.Object>"); // instance and static, different number of parameters
             yield return getData("internal void F(object x) { }", "internal static void F() { }", "base.F", "F", null, "System.Action<System.Object>"); // instance and static, different number of parameters
             yield return getData("internal static void F() { }", "internal void F(object x) { }", "F", "F"); // static and instance, different number of parameters
-            // PROTOTYPE: Enable test.
-            //yield return getData("internal static void F() { }", "internal void F(object x) { }", "this.F", "F", null, "System.Action<System.Object>"); // static and instance, different number of parameters
-            yield return getData("internal static void F() { }", "internal void F(object x) { }", "base.F", "F",
-                new[]
-                {
-                    // (5,29): error CS0176: Member 'A.F()' cannot be accessed with an instance reference; qualify it with a type name instead
-                    //         System.Delegate d = base.F;
-                    Diagnostic(ErrorCode.ERR_ObjectProhibited, "base.F").WithArguments("A.F()").WithLocation(5, 29)
-                }); // static and instance, different number of parameters
+            yield return getData("internal static void F() { }", "internal void F(object x) { }", "B.F", "F", null, "System.Action"); // static and instance, different number of parameters
+            yield return getData("internal static void F() { }", "internal void F(object x) { }", "this.F", "F", null, "System.Action<System.Object>"); // static and instance, different number of parameters
+            yield return getData("internal static void F() { }", "internal void F(object x) { }", "base.F", "F"); // static and instance, different number of parameters
             yield return getData("internal static void F(object x) { }", "private static void F() { }", "F", "F"); // internal and private
             yield return getData("private static void F(object x) { }", "internal static void F() { }", "F", "F", null, "System.Action"); // internal and private
             yield return getData("internal abstract void F(object x);", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // override
@@ -1225,6 +1213,32 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int x, int* y) => { }").WithLocation(8, 13));
         }
 
+        [Fact]
+        public void GenericDelegateType()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = F<int>();
+        Console.WriteLine(d.GetDelegateTypeName());
+    }
+    unsafe static Delegate F<T>()
+    {
+        return (T t, int* p) => { };
+    }
+}";
+            // PROTOTYPE: When we synthesize delegate types, and infer a synthesized
+            // delegate type, run the program to report the actual delegate type.
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS8915: The delegate type could not be inferred.
+                //         return (T t, int* p) => { };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(T t, int* p) => { }").WithLocation(11, 16));
+        }
+
         /// <summary>
         /// Custom modifiers should not affect delegate signature.
         /// </summary>
@@ -1389,6 +1403,28 @@ class Program
         FB(delegate () { return 0; });
     }
 }";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (14,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         FA(F2);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("inferred delegate type").WithLocation(14, 12),
+                // (15,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         FB(F1);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("inferred delegate type").WithLocation(15, 12),
+                // (18,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         FA(() => 0);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 0").WithArguments("inferred delegate type").WithLocation(18, 12),
+                // (19,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         FB(() => { });
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(19, 12),
+                // (22,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         FA(delegate () { return 0; });
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { return 0; }").WithArguments("inferred delegate type").WithLocation(22, 12),
+                // (23,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         FB(delegate () { });
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { }").WithArguments("inferred delegate type").WithLocation(23, 12));
+
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
 @"FA(Action)
 FA(Delegate)
@@ -1410,6 +1446,44 @@ FB(Func<int>)
         {
             var source =
 @"using System;
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.M(Main);
+        c.M(() => { });
+    }
+}
+class C
+{
+    public void M(Delegate d) { Console.WriteLine(""C.M""); }
+}
+static class E
+{
+    public static void M(this object o, Action a) { Console.WriteLine(""E.M""); }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.M(Main);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(7, 13),
+                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.M(() => { });
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(8, 13));
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"C.M
+C.M
+");
+        }
+
+        [Fact]
+        public void OverloadResolution_03()
+        {
+            var source =
+@"using System;
 using System.Linq.Expressions;
 class Program
 {
@@ -1422,6 +1496,13 @@ class Program
         F(() => string.Empty);
     }
 }";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (11,11): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         F(() => string.Empty);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => string.Empty").WithArguments("inferred delegate type").WithLocation(11, 11));
+
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
 @"F(Expression<Func<int>>): () => 0
 F(Expression): () => String.Empty
@@ -1429,7 +1510,7 @@ F(Expression): () => String.Empty
         }
 
         [Fact]
-        public void OverloadResolution_03()
+        public void OverloadResolution_04()
         {
             var source =
 @"using System;

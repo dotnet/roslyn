@@ -8330,11 +8330,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? method = null;
             foreach (var m in node.Methods)
             {
-                // PROTOTYPE: If explicit receiver is provided, we should ignore static methods,
-                // and if an explicit type qualifier is provided, we should ignore instance methods.
-                // Should we remove this distinct GetMethodGroupDelegateType() pass and simply
-                // try to bind all candidates including extension methods using ResolveMethodGroup(),
-                // and then use the common delegate type (if any) from all successful candidates?
+                switch (node.ReceiverOpt)
+                {
+                    case BoundTypeExpression:
+                        if (!m.IsStatic) continue;
+                        break;
+                    case { WasCompilerGenerated: false }:
+                        if (m.IsStatic) continue;
+                        break;
+                }
                 if (!updateCandidate(ref method, m))
                 {
                     return null;
