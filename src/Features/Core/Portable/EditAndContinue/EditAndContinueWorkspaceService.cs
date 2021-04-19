@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // track the document, so that we can refresh or clean diagnostics at the end of edit session:
                 editSession.TrackDocumentWithReportedDiagnostics(document.Id);
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

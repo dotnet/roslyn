@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,5 +52,33 @@ namespace Microsoft.CodeAnalysis.Classification
         /// syntactic and semantic classifications for this version later.
         /// </summary>
         ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
+
+        /// <summary>
+        /// This method can be called into by hosts of the <see cref="IClassificationService"/>.  It allows instances to
+        /// pre-compute data that will be cached and preserved up through the calls to classification methods.
+        /// Implementations can use this to do things like preemptively parse the document in the background, without
+        /// concern that this might impact the UI thread later on when classifications are retrieved.  <see
+        /// langword="null"/> can be returned if not data needs to be cached.
+        /// </summary>
+        ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Determines the range of the documents that should be considered syntactically changed after an edit.  In
+        /// language systems that can reuse major parts of a document after an edit, and which would not need to
+        /// recompute classifications for those reused parts, this can speed up processing on a host by not requiring
+        /// the host to reclassify all the source in view, but only the source that could have changed.
+        /// <para>
+        /// If determining this is not possible, or potentially expensive, <see langword="null"/> can be returned to
+        /// indicate that the entire document should be considered changed and should be syntactically reclassified.
+        /// </para>
+        /// <para>
+        /// Implementations should attempt to abide by the provided timeout as much as they can, returning the best
+        /// information available at that point.  As this can be called in performance critical scenarios, it is better
+        /// to return quickly with potentially larger change span (including that of the full document) rather than
+        /// spend too much time computing a very precise result.
+        /// </para>
+        /// </summary>
+        ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
+            Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken);
     }
 }
