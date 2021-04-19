@@ -44,22 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         private partial class TagSource
         {
-            private void OnUIUpdatesPaused(object sender, EventArgs e)
-            {
-                _workQueue.AssertIsForeground();
-                _previousCachedTagTrees = CachedTagTrees;
-
-                RaisePaused();
-            }
-
-            private void OnUIUpdatesResumed(object sender, EventArgs e)
-            {
-                _workQueue.AssertIsForeground();
-                _previousCachedTagTrees = null;
-
-                RaiseResumed();
-            }
-
             private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             {
                 // First, cancel any previous requests (either still queued, or started).  We no longer
@@ -703,12 +687,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 _workQueue.AssertIsForeground();
 
-                // If we're currently pausing updates to the UI, then just use the tags we had before we
-                // were paused so that nothing changes.  
-                //
                 // We're on the UI thread, so it's safe to access these variables.
-                var map = _previousCachedTagTrees ?? this.CachedTagTrees;
-                map.TryGetValue(buffer, out var tags);
+                this.CachedTagTrees.TryGetValue(buffer, out var tags);
                 return tags;
             }
 
