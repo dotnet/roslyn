@@ -38,5 +38,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string RemoveUnusedReferences = "Roslyn.RemoveUnusedReferences";
         public const string LSPCompletion = "Roslyn.LSP.Completion";
         public const string UnnamedSymbolCompletionDisabled = "Roslyn.UnnamedSymbolCompletionDisabled";
+        public const string RazorLspEditorFeatureFlag = "Razor.LSP.Editor";
     }
 }

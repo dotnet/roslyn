@@ -16,8 +16,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         public IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
             NavigateToItemKind.Class,
+<<<<<<< HEAD
             NavigateToItemKind.Record,
             NavigateToItemKind.RecordStruct,
+=======
+>>>>>>> dotnet/main
             NavigateToItemKind.Constant,
             NavigateToItemKind.Delegate,
             NavigateToItemKind.Enum,

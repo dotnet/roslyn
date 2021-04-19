@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
                 var navigateToItem = new NavigateToItem(
                     result.Name,
-                    GetKind(result.Kind),
+                    result.Kind,
                     GetNavigateToLanguage(project.Language),
                     result.SecondarySort,
                     result,
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _callback.AddItem(navigateToItem);
             }
 
+<<<<<<< HEAD
             private static string GetKind(string kind)
                 => kind switch
                 {
@@ -110,6 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     _ => throw ExceptionUtilities.UnexpectedValue(kind)
                 };
 
+=======
+>>>>>>> dotnet/main
             private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
                 => matchKind switch
                 {

@@ -563,11 +563,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.NamespaceDeclaration:
                     return Label.NamespaceDeclaration;
 
+<<<<<<< HEAD
                 // Need to add support for records (tracked by https://github.com/dotnet/roslyn/issues/44877)
                 // Need to add support for record structs (tracked by https://github.com/dotnet/roslyn/issues/44877)
+=======
+>>>>>>> dotnet/main
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return Label.TypeDeclaration;
 
                 case SyntaxKind.MethodDeclaration:
@@ -1343,11 +1347,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.NamespaceDeclaration:
                     return ((NamespaceDeclarationSyntax)node).Name;
 
+<<<<<<< HEAD
                 // Need to add support for records (tracked by https://github.com/dotnet/roslyn/issues/44877)
                 // Need to add support for record structs (tracked by https://github.com/dotnet/roslyn/issues/44877)
+=======
+>>>>>>> dotnet/main
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return ((TypeDeclarationSyntax)node).Identifier;
 
                 case SyntaxKind.EnumDeclaration:

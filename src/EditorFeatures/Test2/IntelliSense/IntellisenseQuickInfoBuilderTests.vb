@@ -1160,11 +1160,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+<<<<<<< HEAD
         Public Async Function QuickInfoForRecordClass() As Task
+=======
+        <WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")>
+        Public Async Function QuickInfoForUnderlyingEnumTypes() As Task
+>>>>>>> dotnet/main
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
+<<<<<<< HEAD
                             public sealed record class TestRecord(int X, int Y) { }
 
                             class C
@@ -1174,6 +1180,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                     var x = new Test$$Record(1, 2);
                                 }
                             }
+=======
+                            public enum E$$ : byte { A, B }
+>>>>>>> dotnet/main
                         </Document>
                     </Project>
                 </Workspace>
@@ -1187,6 +1196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
                 New ContainerElement(
                     ContainerElementStyle.Wrapped,
+<<<<<<< HEAD
                     New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
@@ -1257,6 +1267,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.overload),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
+=======
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.EnumerationPublic)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "enum"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.EnumName, "E", navigationAction:=Sub() Return, "E"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "byte", navigationAction:=Sub() Return, "byte"))))
+>>>>>>> dotnet/main
 
             ToolTipAssert.EqualContent(expected, container)
         End Function
