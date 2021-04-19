@@ -4119,6 +4119,19 @@ class C
         }
 
         [Fact]
+        public void MethodInsert_NotSupportedByRuntime()
+        {
+            var src1 = "class C {  }";
+            var src2 = "class C { void goo() { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.Insert, "void goo()", "method"));
+        }
+
+        [Fact]
         public void PrivateMethodInsert()
         {
             var src1 = @"
@@ -9905,6 +9918,19 @@ class C
 
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")));
+        }
+
+        [Fact]
+        public void PropertyInsert_NotSupportedByRuntime()
+        {
+            var src1 = "class C { }";
+            var src2 = "class C { int P { get => 1; set { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.Insert, "int P", "auto-property"));
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
