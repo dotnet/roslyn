@@ -8436,7 +8436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 var typeParameters = delegateType.TypeParameters;
                 var substitution = new TypeMap(typeParameters, typeArguments);
-                ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
                 var result = delegateType.CheckConstraints(
                     new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
                     substitution,
