@@ -65,10 +65,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
 #pragma warning restore RS0030 // Do not used banned APIs
 
+        // Code style analyzers should not run on generated code, unless explicitly required by the analyzer.
+        protected virtual GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.None;
+
         public sealed override void Initialize(AnalysisContext context)
         {
-            // Code style analyzers should not run on generated code.
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags);
             context.EnableConcurrentExecution();
 
             InitializeWorker(context);
