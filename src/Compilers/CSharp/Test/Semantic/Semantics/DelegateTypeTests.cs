@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -140,7 +141,7 @@ static class Utils
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(9, 13));
         }
 
-        public static IEnumerable<object?[]> GetMethodGroupData()
+        private static IEnumerable<object?[]> GetMethodGroupData(Func<string, string, DiagnosticDescription[]> getExpectedDiagnostics)
         {
             yield return getData("static int F() => 0;", "Program.F", "F", "System.Func<System.Int32>");
             yield return getData("static int F() => 0;", "F", "F", "System.Func<System.Int32>");
@@ -164,13 +165,27 @@ static class Utils
             yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => null;", "F", "F", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Object>");
             yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => null;", "F", "F", null);
 
-            static object?[] getData(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType) =>
-                new object?[] { methodDeclaration, methodGroupExpression, methodGroupOnly, expectedType };
+            object?[] getData(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType) =>
+                new object?[] { methodDeclaration, methodGroupExpression, expectedType is null ? getExpectedDiagnostics(methodGroupExpression, methodGroupOnly) : null, expectedType };
+        }
+
+        public static IEnumerable<object?[]> GetMethodGroupImplicitConversionData()
+        {
+            return GetMethodGroupData((methodGroupExpression, methodGroupOnly) =>
+                {
+                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                    return new[]
+                        {
+                            // (6,29): error CS8915: The delegate type could not be inferred.
+                            //         System.Delegate d = F;
+                            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
+                        };
+                });
         }
 
         [Theory]
-        [MemberData(nameof(GetMethodGroupData))]
-        public void MethodGroup_ImplicitConversion(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType)
+        [MemberData(nameof(GetMethodGroupImplicitConversionData))]
+        public void MethodGroup_ImplicitConversion(string methodDeclaration, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedType)
         {
             var source =
 $@"class Program
@@ -183,17 +198,13 @@ $@"class Program
     }}
 }}";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            if (expectedType is null)
+            if (expectedDiagnostics is null)
             {
-                int offset = methodGroupExpression.Length - methodGroupOnly.Length;
-                comp.VerifyDiagnostics(
-                    // (6,29): error CS8915: The delegate type could not be inferred.
-                    //         System.Delegate d = F;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset));
+                CompileAndVerify(comp, expectedOutput: expectedType);
             }
             else
             {
-                CompileAndVerify(comp, expectedOutput: expectedType);
+                comp.VerifyDiagnostics(expectedDiagnostics);
             }
 
             var tree = comp.SyntaxTrees[0];
@@ -204,9 +215,23 @@ $@"class Program
             Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
         }
 
+        public static IEnumerable<object?[]> GetMethodGroupExplicitConversionData()
+        {
+            return GetMethodGroupData((methodGroupExpression, methodGroupOnly) =>
+                {
+                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                    return new[]
+                        {
+                            // (6,20): error CS0030: Cannot convert type 'method' to 'Delegate'
+                            //         object o = (System.Delegate)F;
+                            Diagnostic(ErrorCode.ERR_NoExplicitConv, $"(System.Delegate){methodGroupExpression}").WithArguments("method", "System.Delegate").WithLocation(6, 20)
+                        };
+                });
+        }
+
         [Theory]
-        [MemberData(nameof(GetMethodGroupData))]
-        public void MethodGroup_ExplicitConversion(string methodDeclaration, string methodGroupExpression, string methodGroupOnly, string? expectedType)
+        [MemberData(nameof(GetMethodGroupExplicitConversionData))]
+        public void MethodGroup_ExplicitConversion(string methodDeclaration, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedType)
         {
             var source =
 $@"class Program
@@ -219,16 +244,13 @@ $@"class Program
     }}
 }}";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            if (expectedType is null)
+            if (expectedDiagnostics is null)
             {
-                comp.VerifyDiagnostics(
-                    // (6,20): error CS0030: Cannot convert type 'method' to 'Delegate'
-                    //         object o = (System.Delegate)F;
-                    Diagnostic(ErrorCode.ERR_NoExplicitConv, $"(System.Delegate){methodGroupExpression}").WithArguments("method", "System.Delegate").WithLocation(6, 20));
+                CompileAndVerify(comp, expectedOutput: expectedType);
             }
             else
             {
-                CompileAndVerify(comp, expectedOutput: expectedType);
+                comp.VerifyDiagnostics(expectedDiagnostics);
             }
         }
 
@@ -254,6 +276,13 @@ $@"class Program
             yield return getData("static async () => { await System.Threading.Tasks.Task.Delay(0); return 0; }", "System.Func<System.Threading.Tasks.Task<System.Int32>>");
             yield return getData("() => Main", null);
             yield return getData("(int x) => x switch { _ => null }", null);
+            yield return getData("_ => { }", null);
+            yield return getData("_ => _", null);
+            yield return getData("() => throw null", null);
+            yield return getData("x => throw null", null);
+            yield return getData("(int x) => throw null", null);
+            yield return getData("() => { throw null; }", "System.Action");
+            yield return getData("(int x) => { throw null; }", "System.Action<System.Int32>");
 
             static object?[] getData(string expr, string? expectedType) =>
                 new object?[] { expr, expectedType };
