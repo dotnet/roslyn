@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => null,
             };
 
-        public static BaseParameterListSyntax? GetParameterList(this SyntaxNode declaration)
+        public static BaseParameterListSyntax? GetParameterList(this SyntaxNode? declaration)
             => declaration?.Kind() switch
             {
                 SyntaxKind.DelegateDeclaration => ((DelegateDeclarationSyntax)declaration).ParameterList,
