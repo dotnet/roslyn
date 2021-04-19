@@ -56,15 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         /// <summary>
-        /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
-        /// the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
-        /// computed tags and a current set of computed tags should be considered the same or not.
-        /// If they are the same, then the UI will not be updated.  If they are different then
-        /// the UI will be updated for sets of tags that have been removed or added.
-        /// </summary>
-        protected virtual IEqualityComparer<TTag> TagComparer => EqualityComparer<TTag>.Default;
-
-        /// <summary>
         /// Options controlling this tagger.  The tagger infrastructure will check this option
         /// against the buffer it is associated with to see if it should tag or not.
         /// 
@@ -78,11 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// This controls what delay tagger will use to let editor know about newly inserted tags
         /// </summary>
         protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
-
-        /// <summary>
-        /// This controls what delay tagger will use to let editor know about just deleted tags.
-        /// </summary>
-        protected virtual TaggerDelay RemovedTagNotificationDelay => TaggerDelay.NearImmediate;
 
 #if DEBUG
         public readonly string StackTrace;
