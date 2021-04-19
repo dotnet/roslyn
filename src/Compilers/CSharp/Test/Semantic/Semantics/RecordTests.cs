@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
             => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.Regular9);
+                parseOptions: TestOptions.RegularPreview);
 
         private CompilationVerifier CompileAndVerify(
             CSharpTestSource src,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             => base.CompileAndVerify(
                 new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
-                parseOptions: TestOptions.Regular9,
+                parseOptions: TestOptions.RegularPreview,
                 references: references,
                 // init-only is unverifiable
                 verify: Verification.Skipped);
@@ -28758,7 +28758,7 @@ public record C(int I) : Base(I) // 1
     public new void I() { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I) // 1
@@ -28785,7 +28785,7 @@ public record C(int I) : Base(I)
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (11,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
@@ -28823,7 +28823,7 @@ public record C(int I) : Base(I)
                 Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "GrandBase.I").WithLocation(12, 17)
             };
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(expected);
         }
 
@@ -28846,7 +28846,7 @@ public record C(int Item) : Base(Item)
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
@@ -28883,7 +28883,7 @@ public record C(int I) : Base(I)
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "42");
@@ -28915,7 +28915,7 @@ public record C(int I) : Base(I)
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
@@ -28941,7 +28941,7 @@ public record C(int I) : Base(I)
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
@@ -28970,7 +28970,7 @@ public record C(int I) : Base(I)
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
                 // public record C(int I) : Base(I)
@@ -28994,7 +28994,7 @@ record Derived(int I) : Base
     public int I() { return 0; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (8,16): warning CS0108: 'Derived.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
                 //     public int I() { return 0; }
@@ -29018,7 +29018,7 @@ abstract record Derived(int I) : Base
     public int I() { return 0; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (8,16): error CS0533: 'Derived.I()' hides inherited abstract member 'Base.I'
                 //     public int I() { return 0; }
