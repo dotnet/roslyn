@@ -221,9 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
             if (outliningManager == null)
-            {
                 return;
-            }
 
             if (!workspace.Options.GetOption(FeatureOnOffOptions.Outlining, this.RoslynLanguageName))
             {
@@ -235,10 +233,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     if (isOpenMetadataAsSource)
                     {
-                        // If this file is a metadata-from-source file, we want to force-collapse any implementations.
-                        // First make sure we know what all the outlining spans are.  Then ask the outlining mananger
-                        // to collapse all the implementation spans.
-                        // EnsureOutliningTagsComputed(wpfTextView);
+                        // If this file is a metadata-from-source file, we want to force-collapse any implementations
+                        // to keep the display clean and condensed.
                         outliningManager.CollapseAll(wpfTextView.TextBuffer.CurrentSnapshot.GetFullSpan(), c => c.Tag.IsImplementation);
                     }
                     else
