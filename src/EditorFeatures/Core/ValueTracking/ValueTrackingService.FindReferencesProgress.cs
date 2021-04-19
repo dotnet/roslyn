@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             public ValueTask OnCompletedAsync() => new();
 
-            public ValueTask OnDefinitionFoundAsync(ISymbol symbol) => new();
+            public ValueTask OnDefinitionFoundAsync(SymbolGroup symbolGroup) => new();
 
             public ValueTask OnFindInDocumentCompletedAsync(Document document) => new();
 
             public ValueTask OnFindInDocumentStartedAsync(Document document) => new();
 
-            public async ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
+            public async ValueTask OnReferenceFoundAsync(SymbolGroup _, ISymbol symbol, ReferenceLocation location)
             {
                 if (!location.Location.IsInSource)
                 {
