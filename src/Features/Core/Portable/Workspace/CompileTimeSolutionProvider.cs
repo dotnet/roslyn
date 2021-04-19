@@ -37,17 +37,28 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
 
         private readonly Workspace _workspace;
-        private readonly object _guard = new();
+        private readonly object _gate = new();
 
         private Solution? _lazyCompileTimeSolution;
-        private int _correspondingDesignTimeSolutionVersion;
+        private int? _correspondingDesignTimeSolutionVersion;
         private readonly bool _enabled;
 
         public CompileTimeSolutionProvider(Workspace workspace)
         {
             _workspace = workspace;
-            _correspondingDesignTimeSolutionVersion = -1;
             _enabled = workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RazorLspEditorFeatureFlag);
+
+            workspace.WorkspaceChanged += (s, e) =>
+            {
+                if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
+                {
+                    lock (_gate)
+                    {
+                        _lazyCompileTimeSolution = null;
+                        _correspondingDesignTimeSolutionVersion = null;
+                    }
+                }
+            };
         }
 
         private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)
@@ -60,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return _workspace.CurrentSolution;
             }
 
-            lock (_guard)
+            lock (_gate)
             {
                 var currentDesignTimeSolution = _workspace.CurrentSolution;
 
@@ -73,6 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
                 using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
+
+                var compileTimeSolution = currentDesignTimeSolution;
 
                 foreach (var (_, projectState) in currentDesignTimeSolution.State.ProjectStates)
                 {

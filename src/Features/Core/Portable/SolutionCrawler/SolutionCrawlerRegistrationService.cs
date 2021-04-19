@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 ProgressReporter = progressReporter;
             }
 
-            public Solution GetCurrentCompileTimeSolution()
+            public Solution GetSolutionToAnalyze()
                 => Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCurrentCompileTimeSolution();
         }
     }

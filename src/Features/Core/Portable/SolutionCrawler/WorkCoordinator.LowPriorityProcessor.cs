@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // we do have work item for this project
                         var projectId = workItem.ProjectId;
                         var processedEverything = false;
-                        var processingSolution = Processor._registration.GetCurrentCompileTimeSolution();
+                        var processingSolution = Processor._registration.GetSolutionToAnalyze();
 
                         try
                         {

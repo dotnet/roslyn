@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // using later version of solution is always fine since, as long as there is new work item in the queue,
                         // solution crawler will eventually call the last workitem with the lastest solution
                         // making everything to catch up
-                        var solution = Processor._registration.GetCurrentCompileTimeSolution();
+                        var solution = Processor._registration.GetSolutionToAnalyze();
                         try
                         {
                             using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             await Processor.RunAnalyzersAsync(
                                 Analyzers,
-                                Processor._registration.GetCurrentCompileTimeSolution(),
+                                Processor._registration.GetSolutionToAnalyze(),
                                 workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
 
                             foreach (var id in Processor.GetOpenDocumentIds())
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         bool IsSolutionChanged()
                         {
-                            var currentSolution = Processor._registration.GetCurrentCompileTimeSolution();
+                            var currentSolution = Processor._registration.GetSolutionToAnalyze();
                             var oldSolution = _lastSolution;
 
                             if (currentSolution == oldSolution)
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         base.Shutdown();
 
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor._registration.GetCurrentCompileTimeSolution(), Processor._logAggregator, Analyzers);
+                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor._registration.GetSolutionToAnalyze(), Processor._logAggregator, Analyzers);
 
                         _workItemQueue.Dispose();
 
