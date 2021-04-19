@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     internal partial class AbstractAsynchronousTaggerProvider<TTag>
     {
-        private sealed partial class Tagger : IAccurateTagger<TTag>, IDisposable
+        private sealed partial class Tagger : ITagger<TTag>, IDisposable
         {
             /// <summary>
             /// If we get more than this many differences, then we just issue it as a single change
@@ -207,32 +207,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
-                => GetTagsWorker(requestedSpans, accurate: false, cancellationToken: CancellationToken.None);
-
-            public IEnumerable<ITagSpan<TTag>> GetAllTags(NormalizedSnapshotSpanCollection requestedSpans, CancellationToken cancellationToken)
-                => GetTagsWorker(requestedSpans, accurate: true, cancellationToken: cancellationToken);
-
-            private IEnumerable<ITagSpan<TTag>> GetTagsWorker(
-                NormalizedSnapshotSpanCollection requestedSpans,
-                bool accurate,
-                CancellationToken cancellationToken)
             {
                 if (requestedSpans.Count == 0)
-                {
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-                }
 
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
-                var tags = accurate
-                    ? _tagSource.GetAccurateTagIntervalTreeForBuffer(buffer, cancellationToken)
-                    : _tagSource.TryGetTagIntervalTreeForBuffer(buffer);
+                var tags = _tagSource.TryGetTagIntervalTreeForBuffer(buffer);
 
-                if (tags == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-                }
-
-                return tags.GetIntersectingTagSpans(requestedSpans);
+                return tags == null
+                    ? SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>()
+                    : tags.GetIntersectingTagSpans(requestedSpans);
             }
         }
     }

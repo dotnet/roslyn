@@ -53,14 +53,6 @@ namespace Microsoft.CodeAnalysis.Structure
             return await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
         }
 
-        public override BlockStructure GetBlockStructure(
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            var context = CreateContextAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-            return GetBlockStructure(context, _providers);
-        }
-
         public async Task<BlockStructure> GetBlockStructureAsync(
             SyntaxTree syntaxTree,
             OptionSet options,

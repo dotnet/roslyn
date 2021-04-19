@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         // We also want to automatically collapse any region tags *on the first 
                         // load of a file* if the file contains them.  In order to not do expensive
                         // parsing, we only do this if the file contains #region in it.
-                        if (ContainsRegionTag(wpfTextView.TextSnapshot))
+                        if (AbstractStructureTaggerProvider.ContainsRegionTag(wpfTextView.TextSnapshot))
                         {
                             // Make sure we at least know what the outlining spans are.
                             // Then when we call PersistOutliningState below the editor will 
@@ -269,31 +269,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private bool ContainsRegionTag(ITextSnapshot textSnapshot)
-        {
-            foreach (var line in textSnapshot.Lines)
-            {
-                if (StartsWithRegionTag(line))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool StartsWithRegionTag(ITextSnapshotLine line)
-        {
-            var start = line.GetFirstNonWhitespacePosition();
-            if (start != null)
-            {
-                var index = start.Value;
-                return line.StartsWith(index, "#region", ignoreCase: true);
-            }
-
-            return false;
-        }
-
         private void EnsureOutliningTagsComputed(IWpfTextView wpfTextView)
         {
             // We need to get our outlining tag source to notify it to start blocking
@@ -304,7 +279,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var tagger = outliningTaggerProvider.CreateTagger<IStructureTag>(subjectBuffer);
 
             using var disposable = tagger as IDisposable;
-            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);
+            tagger.GetTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()));
         }
 
         private void InitializeLanguageDebugInfo()
