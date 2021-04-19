@@ -246,6 +246,7 @@ We've identified several first and third party candidates that would benefit fro
 - [System.CommandLine](https://github.com/dotnet/command-line-api)
 - Serializers
 - [SWIG](http://www.swig.org/)
+- [DevExpress.Mvvm.CodeGenerators](https://github.com/DevExpress/DevExpress.Mvvm.CodeGenerators)
 
 
 ## Discussion / Open Issues / TODOs:
