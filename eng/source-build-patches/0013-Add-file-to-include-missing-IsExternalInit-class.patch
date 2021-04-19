@@ -17,7 +17,7 @@ index 00000000000..291309bdfd5
 @@ -0,0 +1,4 @@
 +namespace System.Runtime.CompilerServices
 +{
-+    public class IsExternalInit{}
++    internal class IsExternalInit{}
 +}
 -- 
 2.21.3
