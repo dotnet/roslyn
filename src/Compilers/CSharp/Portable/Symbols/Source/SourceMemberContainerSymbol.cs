@@ -3542,11 +3542,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addToStringMethod(printMembers);
 
             memberSignatures.Free();
-<<<<<<< HEAD
             fieldsByName.Free();
-=======
             memberNames.Free();
->>>>>>> dotnet/main
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -3815,7 +3812,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && field.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                     {
                         Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeaturePositionalFieldsInRecords, diagnostics);
-                        existingOrAddedMembers.Add(field);
+                        if (!isInherited || checkMemberNotHidden(field, param))
+                        {
+                            existingOrAddedMembers.Add(field);
+                        }
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))

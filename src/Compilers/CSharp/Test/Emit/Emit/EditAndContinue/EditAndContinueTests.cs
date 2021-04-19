@@ -10667,13 +10667,15 @@ namespace N
                 Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default)); // R.PrintMembers
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default), // R.PrintMembers
+                Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(19, TableIndex.TypeRef),
                 Handle(20, TableIndex.TypeRef),
                 Handle(21, TableIndex.TypeRef),
                 Handle(10, TableIndex.MethodDef),
+                Handle(24, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(4, TableIndex.TypeSpec),
                 Handle(2, TableIndex.AssemblyRef));
