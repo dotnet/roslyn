@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _eventSource.Connect();
             }
 
-            public void Disconnect()
+            private void Disconnect()
             {
                 _workQueue.AssertIsForeground();
                 _workQueue.CancelCurrentWork(remainCancelled: true);
