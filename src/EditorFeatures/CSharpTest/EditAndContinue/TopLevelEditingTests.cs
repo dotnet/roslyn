@@ -1019,6 +1019,37 @@ public abstract class C<T>
         }
 
         [Fact]
+        public void ClassInsert_NotSupportedByRuntime()
+        {
+            var src1 = @"
+public class C
+{
+    void F()
+    {
+    }
+}";
+            var src2 = @"
+public class C
+{
+    void F()
+    {
+    }
+}
+
+public class D
+{
+    void M()
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.Insert, "public class D", "class"));
+        }
+
+        [Fact]
         public void InterfaceInsert()
         {
             var src1 = "";

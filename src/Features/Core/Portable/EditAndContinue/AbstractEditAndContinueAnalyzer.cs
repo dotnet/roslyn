@@ -2535,6 +2535,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // adds a new top-level type
                                     Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol);
 
+                                    if (!capabilities.HasCapability(ManagedEditAndContinueCapability.NewTypeDefinition))
+                                    {
+                                        diagnostics.Add(new RudeEditDiagnostic(
+                                            RudeEditKind.Insert,
+                                            GetDiagnosticSpan(edit.NewNode, EditKind.Insert),
+                                            edit.NewNode,
+                                            arguments: new[] { GetDisplayName(edit.NewNode, EditKind.Insert) }));
+                                    }
+
                                     oldContainingType = null;
                                     ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol, edit.NewNode, insertingIntoExistingContainingType: false);
                                 }
