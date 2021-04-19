@@ -264,6 +264,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         #region TestsForCSharp
 
         [Fact]
+        public Task TestCSharpClassWithErrorBaseType()
+        {
+            var markup = @"
+public class Bar : SomethingUnknown
+{
+}";
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.CSharp);
+        }
+
+        [Fact]
         public Task TestCSharpClassImplementingInterface()
         {
             var markup = @"
