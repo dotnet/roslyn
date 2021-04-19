@@ -243,43 +243,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         // If this file is a metadata-from-source file, we want to force-collapse any implementations.
                         // First make sure we know what all the outlining spans are.  Then ask the outlining mananger
                         // to collapse all the implementation spans.
-                        EnsureOutliningTagsComputed(wpfTextView);
+                        // EnsureOutliningTagsComputed(wpfTextView);
                         outliningManager.CollapseAll(wpfTextView.TextBuffer.CurrentSnapshot.GetFullSpan(), c => c.Tag.IsImplementation);
                     }
                     else
                     {
-                        // We also want to automatically collapse any region tags *on the first 
-                        // load of a file* if the file contains them.  In order to not do expensive
-                        // parsing, we only do this if the file contains #region in it.
-                        if (AbstractStructureTaggerProvider.ContainsRegionTag(wpfTextView.TextSnapshot))
-                        {
-                            // Make sure we at least know what the outlining spans are.
-                            // Then when we call PersistOutliningState below the editor will 
-                            // get these outlining tags and automatically collapse any 
-                            // IsDefaultCollapsed spans the first time around. 
-                            //
-                            // If it is not the first time opening a file, VS will simply use
-                            // the data stored in the SUO file.  
-                            EnsureOutliningTagsComputed(wpfTextView);
-                        }
-
+                        // Otherwise, attempt to persist any outlining state we have computed. This
+                        // ensures that any new opened files that have any IsDefaultCollapsed spans
+                        // will both have them collapsed and remembered in the SUO file.
                         viewEx.PersistOutliningState();
                     }
                 }
             }
-        }
-
-        private void EnsureOutliningTagsComputed(IWpfTextView wpfTextView)
-        {
-            // We need to get our outlining tag source to notify it to start blocking
-            var outliningTaggerProvider = this.Package.ComponentModel.GetService<AbstractStructureTaggerProvider>();
-
-            var subjectBuffer = wpfTextView.TextBuffer;
-            var snapshot = subjectBuffer.CurrentSnapshot;
-            var tagger = outliningTaggerProvider.CreateTagger<IStructureTag>(subjectBuffer);
-
-            using var disposable = tagger as IDisposable;
-            tagger.GetTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()));
         }
 
         private void InitializeLanguageDebugInfo()

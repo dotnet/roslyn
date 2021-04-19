@@ -679,14 +679,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 _workQueue.AssertIsForeground();
 
-                if (_firstGetTags &&
+                // If this is the first time we're being asked for tags, and we're a tagger that
+                // requires the initial tags be available synchronously on this call, and the 
+                // computation of tags hasn't completed yet, then force the tags to be computed
+                // now on this thread.  The singular use case for this is Outlining which needs
+                // those tags synchronously computed for things like Metadata-as-Source collapsing.
+                if (_firstTagsRequest &&
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
                     this.RecomputeTagsForeground(initialTags: true, synchronous: true);
                 }
 
-                _firstGetTags = false;
+                _firstTagsRequest = false;
 
                 // We're on the UI thread, so it's safe to access these variables.
                 this.CachedTagTrees.TryGetValue(buffer, out var tags);

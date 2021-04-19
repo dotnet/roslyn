@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         protected override bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer)
         {
+            // If we can't find this doc, or outlining is not enabled for it, no need to computed anything synchronously.
+
             var openDocument = subjectBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             if (openDocument == null)
                 return false;
@@ -63,30 +65,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (!workspace.Options.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
                 return false;
 
+            // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
+            // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
             var isMetadataAsSource = workspace.Kind == WorkspaceKind.MetadataAsSource;
             if (isMetadataAsSource)
                 return true;
 
+            // If we contain any #region sections, we want to collapse those automatically on open the first
+            // time a doc is ever opened.  So we need to compute the initial tags synchronously in order to
+            // do that.
             if (ContainsRegionTag(subjectBuffer.CurrentSnapshot))
                 return true;
 
             return false;
-        }
 
-        public static bool ContainsRegionTag(ITextSnapshot textSnapshot)
-        {
-            foreach (var line in textSnapshot.Lines)
+            static bool ContainsRegionTag(ITextSnapshot textSnapshot)
             {
-                if (StartsWithRegionTag(line))
-                    return true;
-            }
+                foreach (var line in textSnapshot.Lines)
+                {
+                    if (StartsWithRegionTag(line))
+                        return true;
+                }
 
-            return false;
+                return false;
 
-            static bool StartsWithRegionTag(ITextSnapshotLine line)
-            {
-                var start = line.GetFirstNonWhitespacePosition();
-                return start != null && line.StartsWith(start.Value, "#region", ignoreCase: true);
+                static bool StartsWithRegionTag(ITextSnapshotLine line)
+                {
+                    var start = line.GetFirstNonWhitespacePosition();
+                    return start != null && line.StartsWith(start.Value, "#region", ignoreCase: true);
+                }
             }
         }
 

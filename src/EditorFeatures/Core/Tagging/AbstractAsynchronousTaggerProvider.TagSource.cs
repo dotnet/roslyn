@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
             private object _state_doNotAccessDirecty;
 
-            private bool _firstGetTags = true;
+            private bool _firstTagsRequest = true;
 
             #endregion
 
