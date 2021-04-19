@@ -119,7 +119,7 @@ class Program
 }
 
 #endregion", composition: EditorTestCompositions.EditorFeaturesWpf);
-            WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestNotSynchronousOutlining)} creates asynchronous taggers");
+            WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 
             var tagProvider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
 
