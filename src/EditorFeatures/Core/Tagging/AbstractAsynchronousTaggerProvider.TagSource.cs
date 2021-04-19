@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
             private object _state_doNotAccessDirecty;
 
+            private bool _firstGetTags = true;
+
             #endregion
 
             public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>, bool> TagsChangedForBuffer;
@@ -111,24 +113,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                ComputeInitialTags();
-            }
-
-            private void ComputeInitialTags()
-            {
-                this.AssertIsForeground();
-
-                if (_dataSource.ComputeInitialTagsSynchronously(_subjectBuffer))
-                {
-                    RecomputeTagsForeground(initialTags: true, synchronous: true);
-                }
-                else
-                {
-                    RegisterNotification(
-                        () => RecomputeTagsForeground(initialTags: true, synchronous: false),
-                        delay: 0,
-                        cancellationToken: GetCancellationToken(initialTags: true));
-                }
+                RegisterNotification(
+                    () => RecomputeTagsForeground(initialTags: true, synchronous: false),
+                    delay: 0,
+                    cancellationToken: GetCancellationToken(initialTags: true));
             }
 
             private ITaggerEventSource CreateEventSource()

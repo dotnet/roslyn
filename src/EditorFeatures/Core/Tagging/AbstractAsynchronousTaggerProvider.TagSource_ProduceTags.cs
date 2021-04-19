@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void RecomputeTagsForeground(bool initialTags, bool synchronous)
             {
                 _workQueue.AssertIsForeground();
-                Contract.ThrowIfTrue(synchronous && !initialTags, "Computing tags can only be synchronous for the very first tags computed");
+                Contract.ThrowIfTrue(synchronous && !initialTags, "synchronous computation of tags is only allowed for the initial computation");
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
                 {
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
 
-                    if (initialTags && synchronous)
+                    if (synchronous)
                     {
                         this.ThreadingContext.JoinableTaskFactory.Run(
                             () => this.RecomputeTagsAsync(
@@ -678,6 +678,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
                 _workQueue.AssertIsForeground();
+
+                if (_firstGetTags &&
+                    _dataSource.ComputeInitialTagsSynchronously(buffer) &&
+                    !this.CachedTagTrees.TryGetValue(buffer, out _))
+                {
+                    this.RecomputeTagsForeground(initialTags: true, synchronous: true);
+                }
+
+                _firstGetTags = false;
 
                 // We're on the UI thread, so it's safe to access these variables.
                 this.CachedTagTrees.TryGetValue(buffer, out var tags);
