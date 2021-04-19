@@ -72,8 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 _tagSource.OnTaggerAdded(this);
                 _tagSource.TagsChangedForBuffer += OnTagsChangedForBuffer;
-                _tagSource.Paused += OnPaused;
-                _tagSource.Resumed += OnResumed;
 
                 // There is a many-to-one relationship between Taggers and TagSources.  i.e. one
                 // tag-source can be used by many Taggers.  As such, we may be a tagger that is 
@@ -113,17 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource.Dispose();
 
-                _tagSource.Resumed -= OnResumed;
-                _tagSource.Paused -= OnPaused;
                 _tagSource.TagsChangedForBuffer -= OnTagsChangedForBuffer;
                 _tagSource.OnTaggerDisposed(this);
             }
-
-            private void OnPaused(object sender, EventArgs e)
-                => _batchChangeNotifier.Pause();
-
-            private void OnResumed(object sender, EventArgs e)
-                => _batchChangeNotifier.Resume();
 
             private void OnTagsChangedForBuffer(
                 ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool initialTags)
@@ -144,8 +134,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // Now report them back to the UI on the main thread.
 
-                    // We ask to update UI immediately for removed tags
-                    NotifyEditors(change.Value.Removed, initialTags ? TaggerDelay.NearImmediate : _tagSource.RemovedTagNotificationDelay);
+                    // We ask to update UI immediately for removed tags, or for the very first set of tags created.
+                    NotifyEditors(change.Value.Removed, TaggerDelay.NearImmediate);
                     NotifyEditors(change.Value.Added, initialTags ? TaggerDelay.NearImmediate : _tagSource.AddedTagNotificationDelay);
                 }
             }

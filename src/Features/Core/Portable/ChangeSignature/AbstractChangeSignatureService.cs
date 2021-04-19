@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var recommendations = Recommender.GetRecommendedSymbolsAtPosition(semanticModel, position, document.Project.Solution.Workspace, options: null, cancellationToken);
+            var recommendations = await Recommender.GetRecommendedSymbolsAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, options: null, cancellationToken).ConfigureAwait(false);
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 
