@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
             private object _state_doNotAccessDirecty;
 
+            /// <summary>
+            /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
+            /// <see langword="true"/> for <see cref="AbstractAsynchronousTaggerProvider{TTag}.ComputeInitialTagsSynchronously"/>,
+            /// then we'll want to synchronously block then and only then for tags.
+            /// </summary>
             private bool _firstTagsRequest = true;
 
             #endregion
