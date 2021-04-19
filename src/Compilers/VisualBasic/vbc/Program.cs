@@ -29,12 +29,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 
         private static int MainCore(string[] args)
         {
-#if BOOTSTRAP
-            ExitingTraceListener.Install();
-#endif
-
             var requestId = Guid.NewGuid();
             using var logger = new CompilerServerLogger($"vbc {requestId}");
+
+#if BOOTSTRAP
+            ExitingTraceListener.Install(logger);
+#endif
+
             return BuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, logger, requestId);
         }
 
