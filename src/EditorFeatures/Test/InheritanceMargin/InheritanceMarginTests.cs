@@ -274,6 +274,34 @@ public class Bar : SomethingUnknown
         }
 
         [Fact]
+        public Task TestCSharpReferencingMetadata()
+        {
+            var markup = @"
+using System.Collections;
+public class Bar : IEnumerable
+{
+    public IEnumerator GetEnumerator () { return null };
+}";
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface IEnumerable",
+                        relationship: InheritanceRelationship.Implementing,
+                        inMetadata: true)));
+
+            var itemForGetEnumerator = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "IEnumerator Bar.GetEnumerator()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "IEnumerator IEnumerable.GetEnumerator()",
+                        relationship: InheritanceRelationship.Implementing,
+                        inMetadata: true)));
+
+            return VerifyInSingleDocumentAsync(markup, LanguageNames.CSharp, itemForBar, itemForGetEnumerator);
+        }
+
+        [Fact]
         public Task TestCSharpClassImplementingInterface()
         {
             var markup = @"
@@ -786,6 +814,50 @@ public class {{|target1:Bar2|}} : Bar
         #region TestsForVisualBasic
 
         [Fact]
+        public Task TestVisualBasicWithErrorBaseType()
+        {
+            var markup = @"
+Namespace MyNamespace
+    Public Class Bar
+        Implements SomethingNotExist
+    End Class
+End Namespace";
+
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.VisualBasic);
+        }
+
+        [Fact]
+        public Task TestVisualBasicReferencingMetadata()
+        {
+            var markup = @"
+Namespace MyNamespace
+    Public Class Bar
+        Implements System.Collections.IEnumerable
+        Public Function GetEnumerator() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+    End Class
+End Namespace";
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "Class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Interface IEnumerable",
+                        relationship: InheritanceRelationship.Implementing,
+                        inMetadata: true)));
+
+            var itemForGetEnumerator = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "Function Bar.GetEnumerator() As IEnumerator",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Function IEnumerable.GetEnumerator() As IEnumerator",
+                        relationship: InheritanceRelationship.Implementing,
+                        inMetadata: true)));
+
+            return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, itemForBar, itemForGetEnumerator);
+        }
+
+        [Fact]
         public Task TestVisualBasicClassImplementingInterface()
         {
             var markup = @"
@@ -1270,6 +1342,5 @@ namespace BarNs
                 new[] { itemForBar44, itemForFooInMarkup1 },
                 new[] { itemForIBar, itemForFooInMarkup2 });
         }
-
     }
 }

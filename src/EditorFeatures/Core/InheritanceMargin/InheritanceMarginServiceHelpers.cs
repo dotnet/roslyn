@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
-                    await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken);
+                    await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
                 }
 
                 if (symbol is IEventSymbol or IPropertySymbol or IMethodSymbol)
                 {
-                    await AddInheritanceMemberItemsForTypeMembersAsync(solution, symbol, lineNumber, builder, cancellationToken);
+                    await AddInheritanceMemberItemsForTypeMembersAsync(solution, symbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
                 }
             }
 
