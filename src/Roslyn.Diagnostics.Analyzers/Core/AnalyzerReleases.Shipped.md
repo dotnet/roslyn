@@ -1,6 +1,7 @@
 ## Release 2.9.8
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0001 | RoslyDiagnosticsPerformance | Warning | SpecializedEnumerableCreationAnalyzer
@@ -17,6 +18,7 @@ RS0034 | RoslyDiagnosticsReliability | Warning | ExportedPartsShouldHaveImportin
 ## Release 3.3.0
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0040 | RoslynDiagnosticsReliability | Warning | DefaultableTypeShouldHaveDefaultableFieldsAnalyzer
@@ -25,6 +27,7 @@ RS0043 | RoslynDiagnosticsMaintainability | Warning | DoNotCallGetTestAccessor
 RS0101 | RoslynDiagnosticsMaintainability | Warning | AbstractBlankLinesDiagnosticAnalyzer
 
 ### Changed Rules
+
 Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
 --------|--------------|--------------|--------------|--------------|-------
 RS0001 | RoslynDiagnosticsPerformance | Warning | RoslyDiagnosticsPerformance | Warning | SpecializedEnumerableCreationAnalyzer
@@ -38,6 +41,7 @@ RS0033 | RoslynDiagnosticsReliability | Warning | RoslyDiagnosticsReliability | 
 RS0034 | RoslynDiagnosticsReliability | Warning | RoslyDiagnosticsReliability | Warning | ExportedPartsShouldHaveImportingConstructor
 
 ### Removed Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0013 | RoslyDiagnosticsPerformance | Disabled | DiagnosticDescriptorAccessAnalyzer
