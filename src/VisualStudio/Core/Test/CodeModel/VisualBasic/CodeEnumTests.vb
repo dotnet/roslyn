@@ -313,7 +313,7 @@ End Enum
 #End Region
 
         Private Function GetGenericExtender(codeElement As EnvDTE.CodeEnum) As IVBGenericExtender
-            Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
+            Return CType(codeElement.get_Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function
 
         Protected Overrides Function GenericNameExtender_GetBaseTypesCount(codeElement As EnvDTE.CodeEnum) As Integer

@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetPrototype(codeElement As EnvDTE80.CodeDelegate2, flags As EnvDTE.vsCMPrototype) As String
-            Return codeElement.Prototype(flags)
+            Return codeElement.get_Prototype(flags)
         End Function
 
         Protected Overrides Function GetStartPointFunc(codeElement As EnvDTE80.CodeDelegate2) As Func(Of EnvDTE.vsCMPart, EnvDTE.TextPoint)
