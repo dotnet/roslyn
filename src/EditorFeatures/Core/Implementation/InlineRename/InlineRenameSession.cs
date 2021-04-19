@@ -260,20 +260,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
         }
 
-        private const string ContainedLanguageMarker = nameof(ContainedLanguageMarker);
-
         private bool TryPopulateOpenTextBufferManagerForBuffer(ITextBuffer buffer)
         {
             AssertIsForeground();
             VerifyNotDismissed();
-
-            // TS creates generated documents to back script blocks in razor generated files.
-            // These files are opened in the roslyn workspace but are not valid to rename
-            // as they are not proper buffers.  So we exclude any buffer that is marked as a contained language.
-            if (buffer.Properties.TryGetProperty<bool>(ContainedLanguageMarker, out var markerValue) && markerValue)
-            {
-                return false;
-            }
 
             if (_workspace.Kind == WorkspaceKind.Interactive)
             {
