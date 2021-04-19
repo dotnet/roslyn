@@ -4,6 +4,7 @@ Microsoft.CodeAnalysis.CodeActions.CodeAction.CustomTags.get -> System.Collectio
 Microsoft.CodeAnalysis.CodeActions.CodeAction.CustomTags.set -> void
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider() -> void
+Microsoft.CodeAnalysis.CommandLineProject
 Microsoft.CodeAnalysis.Host.IPersistentStorageService.GetStorageAsync(Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Host.IPersistentStorage>
 Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
 Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SourceGeneratedDocument>>
@@ -13,5 +14,7 @@ Microsoft.CodeAnalysis.SourceGeneratedDocument
 Microsoft.CodeAnalysis.SourceGeneratedDocument.HintName.get -> string
 override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
 override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.FixAllScope>
+static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
+static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, System.Collections.Generic.IEnumerable<string> commandLineArgs, string projectDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
 virtual Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAllTitle(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> string
 static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
