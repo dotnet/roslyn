@@ -5650,6 +5650,32 @@ class Test
         }
 
         [Fact]
+        public void MethodUpdate_Modifier_Async_Add_NotSupported()
+        {
+            var src1 = @"
+class Test
+{
+    public Task<int> WaitAsync()
+    {
+        return 1;
+    }
+}";
+            var src2 = @"
+class Test
+{
+    public async Task<int> WaitAsync()
+    {
+        await Task.Delay(1000);
+        return 1;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.MakeMethodAsync, "public async Task<int> WaitAsync()"));
+        }
+
+        [Fact]
         public void MethodUpdate_AsyncMethod0()
         {
             var src1 = @"
@@ -6390,6 +6416,19 @@ class C
             edits.VerifyRudeDiagnostics();
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
+        }
+
+        [Fact]
+        public void MethodUpdate_AddYieldReturn_NotSupported()
+        {
+            var src1 = "class C { IEnumerable<int> M() { return new[] { 1, 2, 3}; } }";
+            var src2 = "class C { IEnumerable<int> M() { yield return 2; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.MakeMethodIterator, "IEnumerable<int> M()"));
         }
 
         [Fact]

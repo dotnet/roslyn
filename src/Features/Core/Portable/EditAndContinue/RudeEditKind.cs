@@ -124,6 +124,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         DeleteRecordPositionalParameter = 95,
         ExplicitRecordMethodParameterNamesMustMatch = 96,
 
-        NotSupportedByRuntime = 97
+        NotSupportedByRuntime = 97,
+        MakeMethodAsync = 98,
+        MakeMethodIterator = 99
     }
 }

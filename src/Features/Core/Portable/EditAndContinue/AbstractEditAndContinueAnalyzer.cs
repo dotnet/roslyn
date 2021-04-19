@@ -913,6 +913,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newSymbol,
             ImmutableArray<ActiveStatement> oldActiveStatements,
             ImmutableArray<TextSpan> newActiveStatementSpans,
+            ManagedEditAndContinueCapabilities capabilities,
             [Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
             [Out] ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions,
             [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
@@ -1017,6 +1018,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     ReportStateMachineRudeEdits(oldModel.Compilation, oldSymbol, newBody, diagnostics);
                 }
+                else if (newHasStateMachineSuspensionPoint &&
+                    !capabilities.HasCapability(ManagedEditAndContinueCapability.NewTypeDefinition))
+                {
+                    // Adding a state machine, either for async or iterator, will require creating a new helper class
+                    // so is a rude edit if the runtime doesn't support it
+                    if (newSymbol is IMethodSymbol { IsAsync: true })
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.MakeMethodAsync, GetDiagnosticSpan(newDeclaration, EditKind.Insert)));
+                    }
+                    else
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.MakeMethodIterator, GetDiagnosticSpan(newDeclaration, EditKind.Insert)));
+                    }
+                }
 
                 ReportLambdaAndClosureRudeEdits(
                     oldModel,
@@ -1026,6 +1041,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newSymbol,
                     lazyActiveOrMatchedLambdas,
                     map,
+                    capabilities,
                     diagnostics,
                     out var newBodyHasLambdas,
                     cancellationToken);
@@ -2537,6 +2553,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 newSymbol,
                                                 oldActiveStatements: ImmutableArray<ActiveStatement>.Empty,
                                                 newActiveStatementSpans: ImmutableArray<TextSpan>.Empty,
+                                                capabilities: capabilities,
                                                 newActiveStatements,
                                                 newExceptionRegions,
                                                 diagnostics,
@@ -2702,6 +2719,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         newSymbol,
                                         oldActiveStatements,
                                         newActiveStatementSpans,
+                                        capabilities,
                                         newActiveStatements,
                                         newExceptionRegions,
                                         diagnostics,
@@ -3383,6 +3401,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newMember,
             IReadOnlyDictionary<SyntaxNode, LambdaInfo>? matchedLambdas,
             BidirectionalMap<SyntaxNode> map,
+            ManagedEditAndContinueCapabilities capabilities,
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool syntaxMapRequired,
             CancellationToken cancellationToken)
@@ -3576,6 +3595,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     if (!map.Reverse.ContainsKey(newLambda))
                     {
+                        if ((IsLocalFunction(newLambda) && !capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType)) ||
+                           (!IsLocalFunction(newLambda) && !capabilities.HasCapability(ManagedEditAndContinueCapability.NewTypeDefinition)))
+                        {
+                            // New local functions mean new methods in existing classes, so need to make sure the runtime supports that
+                            // New lambdas mean creating new helper classes, so need to make sure the runtime supports that
+                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Insert, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
+                        }
+
                         // TODO: https://github.com/dotnet/roslyn/issues/37128
                         // Local functions are emitted directly to the type containing the containing method.
                         // Although local functions are non-virtual the Core CLR currently does not support adding any method to an interface.

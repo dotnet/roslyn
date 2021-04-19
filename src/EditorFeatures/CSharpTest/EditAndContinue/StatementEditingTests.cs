@@ -2627,6 +2627,72 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Insert_NotSupported()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                activeStatements: ActiveStatementsDescription.Empty,
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.Insert, "a", "lambda"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_Second_NotSupported()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+        var g = new Func<int, int>(b => b);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                activeStatements: ActiveStatementsDescription.Empty,
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.Insert, "a", "lambda"));
+        }
+
+        [Fact]
         public void Lambdas_Update_CeaseCapture_This()
         {
             var src1 = @"
@@ -5482,6 +5548,40 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
+        }
+
+        [Fact]
+        public void LocalFunctions_Insert_NotSupported()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        void M()
+        {
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                activeStatements: ActiveStatementsDescription.Empty,
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.Insert, "M", "local function"));
         }
 
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
