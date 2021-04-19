@@ -267,5 +267,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
             => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;
+
+        public static string Show_inheritance_margin
+            => ServicesVSResources.Show_inheritance_margin;
+
+        public static string Inheritance_Margin_experimental
+            => ServicesVSResources.Inheritance_Margin_experimental;
     }
 }
