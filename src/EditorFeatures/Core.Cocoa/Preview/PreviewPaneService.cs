@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             if (data.Properties.TryGetValue("OptionName", out _))
             {
                 data.Properties.TryGetValue("OptionLanguage", out _);
-                throw new NotImplementedException();
             }
 
             return new PreviewPane(
