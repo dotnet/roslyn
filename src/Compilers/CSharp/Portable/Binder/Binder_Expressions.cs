@@ -8417,12 +8417,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             parameterTypes = parameterTypes.Add(returnTypeOpt);
                         }
-                        return parameterTypes.Length == 0 ? delegateType : delegateType.Construct(parameterTypes);
+                        if (parameterTypes.Length == 0)
+                        {
+                            return delegateType;
+                        }
+                        if (checkConstraints(Compilation, Conversions, delegateType, parameterTypes))
+                        {
+                            return delegateType.Construct(parameterTypes);
+                        }
                     }
                 }
             }
 
             return null;
+
+            static bool checkConstraints(CSharpCompilation compilation, ConversionsBase conversions, NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> typeArguments)
+            {
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                var typeParameters = delegateType.TypeParameters;
+                var substitution = new TypeMap(typeParameters, typeArguments);
+                ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+                var result = delegateType.CheckConstraints(
+                    new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
+                    substitution,
+                    typeParameters,
+                    typeArguments,
+                    diagnosticsBuilder,
+                    nullabilityDiagnosticsBuilderOpt: null,
+                    ref useSiteDiagnosticsBuilder);
+                diagnosticsBuilder.Free();
+                return result;
+            }
         }
 #nullable disable
 

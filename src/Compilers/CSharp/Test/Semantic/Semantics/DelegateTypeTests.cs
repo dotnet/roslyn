@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using System.Linq;
 static class Utils
 {
-    internal static string GetDelegateString(this Delegate d)
+    internal static string GetDelegateTypeName(this Delegate d)
     {
         return d.GetType().GetTypeName();
     }
@@ -179,7 +179,7 @@ $@"class Program
     static void Main()
     {{
         System.Delegate d = {methodGroupExpression};
-        System.Console.Write(d.GetDelegateString());
+        System.Console.Write(d.GetDelegateTypeName());
     }}
 }}";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
@@ -289,7 +289,7 @@ $@"class Program
     static void Main(string[] args)
     {{
         System.Delegate d = {anonymousFunction};
-        System.Console.Write(d.GetDelegateString());
+        System.Console.Write(d.GetDelegateTypeName());
     }}
 }}";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
@@ -426,8 +426,10 @@ $@"class Program
             }
         }
 
-        // Should bind and report diagnostics from anonymous method body
-        // regardless of whether the delegate type can be inferred.
+        /// <summary>
+        /// Should bind and report diagnostics from anonymous method body
+        /// regardless of whether the delegate type can be inferred.
+        /// </summary>
         [Fact]
         public void AnonymousMethodBodyErrors()
         {
@@ -502,6 +504,8 @@ class Program
                     //         System.Delegate d = base.F;
                     Diagnostic(ErrorCode.ERR_ObjectProhibited, "base.F").WithArguments("A.F()").WithLocation(5, 29)
                 }); // static and instance, different number of parameters
+            yield return getData("internal static void F(object x) { }", "private static void F() { }", "F", "F"); // internal and private
+            yield return getData("private static void F(object x) { }", "internal static void F() { }", "F", "F", null, "System.Action"); // internal and private
             yield return getData("internal abstract void F(object x);", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // override
             yield return getData("internal virtual void F(object x) { }", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // override
             yield return getData("internal void F(object x) { }", "internal void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // hiding
@@ -520,8 +524,8 @@ class Program
             yield return getData("internal ref object F() => throw null;", "internal new object F() => throw null;", "F", "F"); // different return ref kind
             yield return getData("internal void F(object x) { }", "internal new void F(dynamic x) { }", "F", "F", null, "System.Action<System.Object>"); // object/dynamic
             yield return getData("internal dynamic F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // object/dynamic
-            yield return getData("internal void F((object, int) x) { }", "internal new void F((object a, int b) x) { }", "F", "F", null, "System.Action<System.Object>"); // tuple names
-            yield return getData("internal (object a, int b) F() => throw null;", "internal new (object, int) F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // tuple names
+            yield return getData("internal void F((object, int) x) { }", "internal new void F((object a, int b) x) { }", "F", "F", null, "System.Action<System.ValueTuple<System.Object, System.Int32>>"); // tuple names
+            yield return getData("internal (object a, int b) F() => throw null;", "internal new (object, int) F() => throw null;", "F", "F", null, "System.Func<System.ValueTuple<System.Object, System.Int32>>"); // tuple names
             yield return getData("internal void F(System.IntPtr x) { }", "internal new void F(nint x) { }", "F", "F", null, "System.Action<System.IntPtr>"); // System.IntPtr/nint
             yield return getData("internal nint F() => throw null;", "internal new System.IntPtr F() => throw null;", "F", "F", null, "System.Func<System.IntPtr>"); // System.IntPtr/nint
             yield return getData("internal void F(object x) { }",
@@ -580,7 +584,7 @@ $@"partial class B
     void M()
     {{
         System.Delegate d = {methodGroupExpression};
-        System.Console.Write(d.GetDelegateString());
+        System.Console.Write(d.GetDelegateTypeName());
     }}
     static void Main()
     {{
@@ -668,7 +672,7 @@ $@"class Program
     void M()
     {{
         System.Delegate d = {methodGroupExpression};
-        System.Console.Write(d.GetDelegateString());
+        System.Console.Write(d.GetDelegateTypeName());
     }}
     static void Main()
     {{
@@ -750,7 +754,7 @@ class Program
     void M()
     {{
         System.Delegate d = {methodGroupExpression};
-        System.Console.Write(d.GetDelegateString());
+        System.Console.Write(d.GetDelegateTypeName());
     }}
     static void Main()
     {{
@@ -799,14 +803,14 @@ class Program
     {
         Delegate d1 = F1;
         Delegate d2 = this.F2;
-        Console.WriteLine(""{0}, {1}"", d1.GetType().Name, d2.GetType().Name);
+        Console.WriteLine(""{0}, {1}"", d1.GetDelegateTypeName(), d2.GetDelegateTypeName());
     }
     static void Main()
     {
         new Program().F();
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Func`1, Action`2");
+            CompileAndVerify(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, expectedOutput: "System.Func<System.Object>, System.Action<System.Object, System.Int32>");
         }
 
         [Fact]
@@ -894,6 +898,27 @@ A");
         }
 
         [Fact]
+        public void MethodGroup_Inaccessible()
+        {
+            var source =
+@"using System;
+class A
+{
+    private static void F() { }
+    internal static void F(object o) { }
+}
+class B
+{
+    static void Main()
+    {
+        Delegate d = A.F;
+        Console.WriteLine(d.GetDelegateTypeName());
+    }
+}";
+            CompileAndVerify(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, expectedOutput: "System.Action<System.Object>");
+        }
+
+        [Fact]
         public void MethodGroup_IncorrectArity()
         {
             var source =
@@ -969,11 +994,11 @@ class Program
     {
         Delegate d1 = typeof(Program).F;
         Delegate d2 = """".F;
-        Console.WriteLine(""{0}, {1}"", d1.GetType().Name, d2.GetType().Name);
+        Console.WriteLine(""{0}, {1}"", d1.GetDelegateTypeName(), d2.GetDelegateTypeName());
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "Action`1, Action");
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "System.Action<System.Int32>, System.Action");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1116,7 +1141,9 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(12, 15));
         }
 
-        // Method group with dynamic receiver does not use method group conversion.
+        /// <summary>
+        /// Method group with dynamic receiver does not use method group conversion.
+        /// </summary>
         [Fact]
         public void DynamicReceiver()
         {
@@ -1143,7 +1170,35 @@ class Program
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, references: new[] { CSharpRef }, expectedOutput: "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException");
         }
 
-        // Custom modifiers should not affect delegate signature.
+        // System.Func<> and System.Action<> cannot be used as the delegate type
+        // when the parameters or return type are not valid type arguments.
+        [Fact]
+        public void InvalidTypeArguments()
+        {
+            var source =
+@"unsafe class Program
+{
+    static int* F() => throw null;
+    static void Main()
+    {
+        System.Delegate d;
+        d = F;
+        d = (int x, int* y) => { };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8915: The delegate type could not be inferred.
+                //         d = F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(7, 13),
+                // (8,13): error CS8915: The delegate type could not be inferred.
+                //         d = (int x, int* y) => { };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int x, int* y) => { }").WithLocation(8, 13));
+        }
+
+        /// <summary>
+        /// Custom modifiers should not affect delegate signature.
+        /// </summary>
         [Fact]
         public void CustomModifiers_01()
         {
@@ -1161,7 +1216,7 @@ class B
 {
     static void Report(Delegate d)
     {
-        Console.WriteLine(d.GetType().Name);
+        Console.WriteLine(d.GetDelegateTypeName());
     }
     static void Main()
     {
@@ -1169,13 +1224,15 @@ class B
         Report(A.F2);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { sourceB, s_utils }, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
-@"Action`1
-Func`1");
+@"System.Action<System.Object>
+System.Func<System.Object>");
         }
 
-        // Custom modifiers should not affect delegate signature.
+        /// <summary>
+        /// Custom modifiers should not affect delegate signature.
+        /// </summary>
         [Fact]
         public void CustomModifiers_02()
         {
@@ -1193,7 +1250,7 @@ class B
 {
     static void Report(Delegate d)
     {
-        Console.WriteLine(d.GetType().Name);
+        Console.WriteLine(d.GetDelegateTypeName());
     }
     static void Main()
     {
@@ -1201,7 +1258,7 @@ class B
         Report(A.F2);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { sourceB, s_utils }, new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
                 //         Report(A.F1);
@@ -1209,6 +1266,68 @@ class B
                 // (11,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
                 //         Report(A.F2);
                 Diagnostic(ErrorCode.ERR_BadArgType, "A.F2").WithArguments("1", "method group", "System.Delegate").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void MissingSystemActionAndFunc()
+        {
+            var sourceA =
+@".assembly mscorlib
+{
+  .ver 0:0:0:0
+}
+.class public System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig newslot virtual instance string ToString() cil managed { ldnull throw }
+  .method public hidebysig newslot virtual instance bool Equals(object obj) cil managed { ldnull throw }
+  .method public hidebysig newslot virtual instance int32 GetHashCode() cil managed { ldnull throw }
+}
+.class public abstract System.ValueType extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.String extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Void extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Boolean extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Int32 extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Delegate extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        System.Delegate d;
+        d = Main;
+        d = () => 1;
+    }
+}";
+
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8915: The delegate type could not be inferred.
+                //         d = Main;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "Main").WithLocation(6, 13),
+                // (7,13): error CS8915: The delegate type could not be inferred.
+                //         d = () => 1;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "() => 1").WithLocation(7, 13));
         }
 
         [Fact]
