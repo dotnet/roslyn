@@ -2689,7 +2689,7 @@ class C
             edits.VerifySemanticDiagnostics(
                 activeStatements: ActiveStatementsDescription.Empty,
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "a", "lambda"));
+                Diagnostic(RudeEditKind.Insert, "b", "lambda"));
         }
 
         [Fact]
