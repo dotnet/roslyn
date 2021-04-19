@@ -27,6 +27,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (remoteClient != null)
             {
+                // Here the line number is also passed to the remote process. It is done in this way because
+                // when a set of symbols is passed to remote process, those without inheritance targets would not be returned.
+                // To match the returned inheritance targets to the line number, we need set an 'Id' when calling the remote process,
+                // however, given the line number is just an int, setting up an int 'Id' for an int is quite useless, so just passed it to the remote process.
                 var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<SerializableInheritanceMarginItem>>(
                     solution,
                     (remoteInheritanceMarginService, solutionInfo, cancellationToken) =>
@@ -262,8 +266,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 var derivedTypes = await GetDerivedTypesAndImplementationsAsync(solution, namedTypeSymbol, cancellationToken).ConfigureAwait(false);
                 return derivedTypes.CastArray<ISymbol>();
             }
-
-            if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol
+            else if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol
                  && memberSymbol.ContainingSymbol.IsInterfaceType())
             {
                 return await SymbolFinder.FindMemberImplementationsArrayAsync(
