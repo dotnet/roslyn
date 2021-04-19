@@ -4,6 +4,7 @@
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
