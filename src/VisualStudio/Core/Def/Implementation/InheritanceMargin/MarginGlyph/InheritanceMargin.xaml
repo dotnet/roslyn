@@ -49,56 +49,6 @@
             </Grid>
         </ControlTemplate>
 
-        <!-- Style used to display a single target menu item -->
-        <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
-            <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
-            <Setter Property="Header" Value="{Binding  DisplayContent}"/>
-            <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
-            <Setter Property="IsCheckable" Value="False"/>
-            <EventSetter Event="Click" Handler="TargetMenuItem_OnClick"/>
-            <Setter Property="HorizontalContentAlignment" Value="{Binding Path=HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-            <Setter Property="VerticalContentAlignment" Value="{Binding Path=VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-            <Setter Property="Background" Value="Transparent"/>
-                <!-- Style copied from editor -->
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
-            <Setter Property="DockPanel.Dock" Value="Top"/>
-            <Setter Property="Padding" Value="0,2,0,2"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type MenuItem}">
-                        <Grid SnapsToDevicePixels="true" Background="Transparent" MinHeight="22">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup"/>
-                                <ColumnDefinition Width="23" SharedSizeGroup="MenuItemExpanderColumnGroup"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="5"/>
-                            <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="{Binding Margin}" Width="16" Height="16" VerticalAlignment="Center"
-                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
-                            <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="4,1,4,1"
-                                              VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            <TextBlock Grid.Column="2" Text="{TemplateBinding MenuItem.InputGestureText}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="Icon" Value="{x:Null}">
-                                <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
-                            </Trigger>
-                            <Trigger Property="IsHighlighted" Value="true">
-                                <Setter TargetName="Bg" Property="Fill" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuItemMouseOverBrushKey}}"/>
-                                <Setter TargetName="Bg" Property="Stroke" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuItemMouseOverBorderBrushKey}}"/>
-                                <Setter Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuItemMouseOverTextBrushKey}}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Foreground" Value="{DynamicResource VsBrush.CommandBarTextInactive}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- Style used to display context menu -->
         <Style x:Key="ContextMenuStyle" TargetType="{x:Type ContextMenu}">
             <Setter Property="MaxHeight" Value="400"/>
@@ -139,6 +89,55 @@
                      ItemContainerTemplateSelector="{StaticResource TemplateSelector}"
                      UsesItemContainerTemplate="True">
             <ContextMenu.Resources>
+                <!-- Style used to display a single target menu item -->
+                <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
+                    <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
+                    <Setter Property="Header" Value="{Binding  DisplayContent}"/>
+                    <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
+                    <Setter Property="IsCheckable" Value="False"/>
+                    <EventSetter Event="Click" Handler="TargetMenuItem_OnClick"/>
+                    <Setter Property="HorizontalContentAlignment" Value="{Binding Path=HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <Setter Property="VerticalContentAlignment" Value="{Binding Path=VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                        <!-- Style copied from editor -->
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
+                    <Setter Property="DockPanel.Dock" Value="Top"/>
+                    <Setter Property="Padding" Value="0,2,0,2"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type MenuItem}">
+                                <Grid SnapsToDevicePixels="true" Background="Transparent" MinHeight="22">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup"/>
+                                        <ColumnDefinition Width="23" SharedSizeGroup="MenuItemExpanderColumnGroup"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="5"/>
+                                    <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="{Binding Margin}" Width="16" Height="16" VerticalAlignment="Center"
+                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
+                                    <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="4,1,4,1"
+                                                      VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                    <TextBlock Grid.Column="2" Text="{TemplateBinding MenuItem.InputGestureText}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Icon" Value="{x:Null}">
+                                        <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
+                                    </Trigger>
+                                    <Trigger Property="IsHighlighted" Value="true">
+                                        <Setter TargetName="Bg" Property="Fill" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuItemMouseOverBrushKey}}"/>
+                                        <Setter TargetName="Bg" Property="Stroke" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuItemMouseOverBorderBrushKey}}"/>
+                                        <Setter Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuItemMouseOverTextBrushKey}}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="false">
+                                        <Setter Property="Foreground" Value="{DynamicResource VsBrush.CommandBarTextInactive}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
 
                 <!-- Style used to display one member's information and pops up a submenu show all the targets -->
                 <Style x:Key="MemberMenuItemStyle" TargetType="{x:Type MenuItem}">
@@ -216,6 +215,7 @@
                     </Setter>
                 </Style>
 
+                <!-- Style used to show the header  -->
                 <Style x:Key="HeaderMenuItemStyle" TargetType="{x:Type MenuItem}">
                     <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
                     <Setter Property="IsEnabled" Value="False"/>

@@ -129,7 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             builder.Add(headerViewModel);
             foreach (var targetItem in targets)
             {
-                //  16 is the width of the image moniker in header.
                 builder.Add(TargetMenuItemViewModel.Create(targetItem, indent: true));
             }
 
