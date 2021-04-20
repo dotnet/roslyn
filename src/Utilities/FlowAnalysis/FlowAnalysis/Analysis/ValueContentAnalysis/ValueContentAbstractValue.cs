@@ -145,10 +145,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         public ImmutableHashSet<object?> LiteralValues { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(LiteralValues));
-            addPart(NonLiteralState.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(LiteralValues));
+            hashCode.Add(NonLiteralState.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<ValueContentAbstractValue> obj)
+        {
+            var other = (ValueContentAbstractValue)obj;
+            return HashUtilities.Combine(LiteralValues) == HashUtilities.Combine(other.LiteralValues)
+                && NonLiteralState.GetHashCode() == other.NonLiteralState.GetHashCode();
         }
 
         /// <summary>

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.DeclarePublicApiDescription), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor AnnotateApiRule = new(
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.AnnotatePublicApiDescription), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor ObliviousApiRule = new(
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.ObliviousPublicApiDescription), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor RemoveDeletedApiRule = new(
@@ -78,8 +78,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.RemoveDeletedApiDescription), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
+
+        internal static readonly DiagnosticDescriptor RemovedApiIsNotActuallyRemovedRule = new(
+           id: DiagnosticIds.RemovedApiIsNotActuallyRemovedRuleId,
+           title: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.RemovedApiIsNotActuallyRemovedTitle), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
+           messageFormat: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.RemovedApiIsNotActuallyRemovedMessage), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
+           category: "ApiDesign",
+           defaultSeverity: DiagnosticSeverity.Warning,
+           isEnabledByDefault: true,
+           helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+           customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor ExposedNoninstantiableType = new(
             id: DiagnosticIds.ExposedNoninstantiableTypeRuleId,
@@ -88,7 +98,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor PublicApiFilesInvalid = new(
@@ -98,7 +108,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor PublicApiFileMissing = new(
@@ -108,7 +118,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor DuplicateSymbolInApiFiles = new(
@@ -118,7 +128,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor AvoidMultipleOverloadsWithOptionalParameters = new(
@@ -128,7 +138,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+            helpLinkUri: @"https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor OverloadWithOptionalParametersShouldHaveMostParameters = new(
@@ -138,7 +148,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+            helpLinkUri: @"https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor ShouldAnnotateApiFilesRule = new(
@@ -149,7 +159,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: new LocalizableResourceString(nameof(PublicApiAnalyzerResources.ShouldAnnotateApiFilesDescription), PublicApiAnalyzerResources.ResourceManager, typeof(PublicApiAnalyzerResources)),
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
@@ -198,7 +208,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(DeclareNewApiRule, AnnotateApiRule, ObliviousApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType,
                 PublicApiFilesInvalid, PublicApiFileMissing, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
-                OverloadWithOptionalParametersShouldHaveMostParameters, ShouldAnnotateApiFilesRule);
+                OverloadWithOptionalParametersShouldHaveMostParameters, ShouldAnnotateApiFilesRule, RemovedApiIsNotActuallyRemovedRule);
 
         public override void Initialize(AnalysisContext context)
         {

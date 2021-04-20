@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis;
 
@@ -13,31 +14,45 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Caches by compilation.
         /// </summary>
-        private static readonly BoundedCacheWithFactory<Compilation, SymbolDisplayStringCache> s_byCompilationCache = new();
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<SymbolDisplayFormat, SymbolDisplayStringCache>> s_byCompilationCache = new();
+
+        /// <summary>
+        /// ConcurrentDictionary key for a null SymbolDisplayFormat.
+        /// </summary>
+        private static readonly SymbolDisplayFormat NullSymbolDisplayFormat = new();
 
         /// <summary>
         /// Mapping of a symbol to its ToDisplayString().
         /// </summary>
         private readonly ConcurrentDictionary<ISymbol, string> SymbolToDisplayNames = new();
 
+        private readonly SymbolDisplayFormat? Format;
+
         /// <summary>
-        /// Doesn't construct.
+        /// Privately constructs.
         /// </summary>
-        private SymbolDisplayStringCache()
+        /// <param name="format">SymbolDisplayFormat to use, or null for the default.</param>
+        private SymbolDisplayStringCache(SymbolDisplayFormat? format = null)
         {
+            this.Format = Object.ReferenceEquals(format, NullSymbolDisplayFormat) ? null : format;
         }
 
         /// <summary>
         /// Gets the symbol display string cache for the compilation.
         /// </summary>
         /// <param name="compilation">Compilation that this cache is for.</param>
+        /// <param name="format">A singleton SymbolDisplayFormat to use, or null for the default.</param>
         /// <returns>A SymbolDisplayStringCache.</returns>
-        public static SymbolDisplayStringCache GetOrCreate(Compilation compilation)
+        public static SymbolDisplayStringCache GetOrCreate(Compilation compilation, SymbolDisplayFormat? format = null)
         {
-            return s_byCompilationCache.GetOrCreateValue(compilation, CreateSymbolDisplayNameCache);
+            ConcurrentDictionary<SymbolDisplayFormat, SymbolDisplayStringCache> dict =
+                s_byCompilationCache.GetOrCreateValue(compilation, CreateConcurrentDictionary);
+            return dict.GetOrAdd(format ?? NullSymbolDisplayFormat, CreateSymbolDisplayStringCache);
 
             // Local functions
-            static SymbolDisplayStringCache CreateSymbolDisplayNameCache(Compilation compilation) => new();
+            static ConcurrentDictionary<SymbolDisplayFormat, SymbolDisplayStringCache> CreateConcurrentDictionary(Compilation compilation)
+                => new();
+            static SymbolDisplayStringCache CreateSymbolDisplayStringCache(SymbolDisplayFormat? format) => new(format);
         }
 
         /// <summary>
@@ -47,7 +62,7 @@ namespace Analyzer.Utilities
         /// <returns>The symbol's display string.</returns>
         public string GetDisplayString(ISymbol symbol)
         {
-            return this.SymbolToDisplayNames.GetOrAdd(symbol, s => s.ToDisplayString());
+            return this.SymbolToDisplayNames.GetOrAdd(symbol, s => s.ToDisplayString(this.Format));
         }
     }
 }

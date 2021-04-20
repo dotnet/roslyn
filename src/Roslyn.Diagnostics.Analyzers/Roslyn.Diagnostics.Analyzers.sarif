@@ -251,7 +251,7 @@
         "RS0042": {
           "id": "RS0042",
           "shortDescription": "Do not copy value",
-          "fullDescription": "Do not unbox non-copyable value types.",
+          "fullDescription": "Auto-properties always copy values, so they cannot be declared with non-copyable types.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
@@ -274,57 +274,6 @@
             "category": "RoslynDiagnosticsDesign",
             "isEnabledByDefault": true,
             "typeName": "CSharpAvoidOptSuffixForNullableEnableCode",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS0100": {
-          "id": "RS0100",
-          "shortDescription": "Statements must be placed on their own line",
-          "fullDescription": "Statements must be placed on their own line",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpWrapStatementsDiagnosticAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS0101": {
-          "id": "RS0101",
-          "shortDescription": "Avoid multiple blank lines",
-          "fullDescription": "Avoid multiple blank lines",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpBlankLinesDiagnosticAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS0102": {
-          "id": "RS0102",
-          "shortDescription": "Braces must not have blank lines between them",
-          "fullDescription": "Braces must not have blank lines between them",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpBracePlacementDiagnosticAnalyzer",
             "languages": [
               "C#"
             ],
@@ -414,29 +363,12 @@
         "RS0042": {
           "id": "RS0042",
           "shortDescription": "Do not copy value",
-          "fullDescription": "Do not unbox non-copyable value types.",
+          "fullDescription": "Auto-properties always copy values, so they cannot be declared with non-copyable types.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": true,
             "typeName": "VisualBasicDoNotCopyValue",
-            "languages": [
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS0101": {
-          "id": "RS0101",
-          "shortDescription": "Avoid multiple blank lines",
-          "fullDescription": "Avoid multiple blank lines",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsMaintainability",
-            "isEnabledByDefault": true,
-            "typeName": "VisualBasicBlankLinesDiagnosticAnalyzer",
             "languages": [
               "Visual Basic"
             ],

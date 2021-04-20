@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Analyzer.Utilities
 {
     /// <summary>
-    /// Copied from https://github.com/dotnet/roslyn/blob/master/src/Compilers/Core/Portable/Collections/SmallDictionary.cs
+    /// Copied from https://github.com/dotnet/roslyn/blob/main/src/Compilers/Core/Portable/Collections/SmallDictionary.cs
     /// Dictionary designed to hold small number of items.
     /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but
     /// unlike regular dictionary, this one is based on an AVL tree and as such does not require
@@ -35,7 +35,6 @@ namespace Analyzer.Utilities
         where K : notnull
     {
         private AvlNode? _root;
-
         public readonly IEqualityComparer<K> Comparer;
 
         // https://github.com/dotnet/roslyn/issues/40344
@@ -66,6 +65,114 @@ namespace Analyzer.Utilities
         private int GetHashCode(K k)
         {
             return Comparer.GetHashCode(k);
+        }
+
+        public bool IsEmpty => _root == null;
+
+        public void Remove(K key)
+        {
+            _root = Remove(_root, GetHashCode(key));
+        }
+
+        private AvlNode? Remove(AvlNode? currentNode, int hashCode)
+        {
+            if (currentNode == null)
+            {
+                return null;
+            }
+
+            var hc = currentNode.HashCode;
+
+            if (hc > hashCode)
+            {
+                currentNode.Left = Remove(currentNode.Left, hashCode);
+            }
+            else if (hc < hashCode)
+            {
+                currentNode.Right = Remove(currentNode.Right, hashCode);
+            }
+            else
+            {
+                // node with only one child or no child  
+                if ((currentNode.Left == null) || (currentNode.Right == null))
+                {
+                    AvlNode? temp = null;
+                    if (temp == currentNode.Left)
+                        temp = currentNode.Right;
+                    else
+                        temp = currentNode.Left;
+
+                    // No child case  
+                    if (temp == null)
+                    {
+                        currentNode = null;
+                    }
+                    else // One child case  
+                    {
+                        currentNode = temp;
+                    }
+                }
+                else
+                {
+                    // node with two children; get the smallest in the right subtree  
+                    AvlNode temp = MinValueNode(currentNode.Right);
+
+                    // Copy the smallest in the right successor's data to this node  
+                    currentNode.HashCode = temp.HashCode;
+                    currentNode.Value = temp.Value;
+                    currentNode.Key = temp.Key;
+
+                    // Delete the smallest in the right successor  
+                    currentNode.Right = Remove(currentNode.Right, temp.HashCode);
+                }
+            }
+
+            if (currentNode == null)
+                return null;
+
+            currentNode.Balance = (sbyte)(Height(currentNode.Left) - Height(currentNode.Right));
+
+            AvlNode rotated;
+            var balance = currentNode.Balance;
+
+            if (balance == -2)
+            {
+                rotated = currentNode.Right!.Balance < 0 ?
+                    LeftSimple(currentNode) :
+                    LeftComplex(currentNode);
+            }
+            else if (balance == 2)
+            {
+                rotated = currentNode.Left!.Balance > 0 ?
+                    RightSimple(currentNode) :
+                    RightComplex(currentNode);
+            }
+            else
+            {
+                return currentNode;
+            }
+
+            return rotated;
+        }
+
+        private static AvlNode MinValueNode(AvlNode node)
+        {
+            AvlNode current = node;
+
+            while (current.Left != null)
+                current = current.Left;
+
+            return current;
+        }
+
+        private static int Height(AvlNode? node)
+        {
+            if (node == null) return 0;
+
+            int a = Height(node.Left);
+            int b = Height(node.Right);
+
+            return 1 + Math.Max(a, b);
         }
 
         public bool TryGetValue(K key, [MaybeNullWhen(returnValue: false)] out V value)
@@ -102,7 +209,7 @@ namespace Analyzer.Utilities
 
         public bool ContainsKey(K key)
         {
-            return TryGetValue(key, out V _);
+            return TryGetValue(key, out _);
         }
 
 #pragma warning disable CA1822
@@ -116,7 +223,7 @@ namespace Analyzer.Utilities
 #pragma warning restore CA1822
         private abstract class Node
         {
-            public readonly K Key;
+            public K Key;
             public V Value;
 
             protected Node(K key, V value)
@@ -159,7 +266,7 @@ namespace Analyzer.Utilities
         // Balance is also here for better packing of AvlNode on 64bit
         private abstract class HashedNode : Node
         {
-            public readonly int HashCode;
+            public int HashCode;
             public sbyte Balance;
 
             protected HashedNode(int hashCode, K key, V value)
@@ -515,9 +622,9 @@ namespace Analyzer.Utilities
 
             public struct Enumerator
             {
-                private readonly Stack<AvlNode> _stack;
+                private readonly Stack<AvlNode>? _stack;
                 private Node? _next;
-                private Node _current;
+                private Node? _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
@@ -538,7 +645,7 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                public K Current => _current.Key;
+                public K Current => _current!.Key;
 
                 public bool MoveNext()
                 {
@@ -568,7 +675,7 @@ namespace Analyzer.Utilities
                 {
                     if (child != null)
                     {
-                        _stack.Push(child);
+                        _stack!.Push(child);
                     }
                 }
             }
@@ -631,9 +738,9 @@ namespace Analyzer.Utilities
 
             public struct Enumerator
             {
-                private readonly Stack<AvlNode> _stack;
+                private readonly Stack<AvlNode>? _stack;
                 private Node? _next;
-                private Node _current;
+                private Node? _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
@@ -656,7 +763,7 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                public V Current => _current.Value;
+                public V Current => _current!.Value;
 
                 public bool MoveNext()
                 {
@@ -686,7 +793,7 @@ namespace Analyzer.Utilities
                 {
                     if (child != null)
                     {
-                        _stack.Push(child);
+                        _stack!.Push(child);
                     }
                 }
             }
@@ -737,9 +844,9 @@ namespace Analyzer.Utilities
 
         public struct Enumerator
         {
-            private readonly Stack<AvlNode> _stack;
+            private readonly Stack<AvlNode>? _stack;
             private Node? _next;
-            private Node _current;
+            private Node? _current;
 
             public Enumerator(SmallDictionary<K, V> dict)
                 : this()
@@ -762,7 +869,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            public KeyValuePair<K, V> Current => new(_current.Key, _current.Value);
+            public KeyValuePair<K, V> Current => new(_current!.Key, _current!.Value);
 
             public bool MoveNext()
             {
@@ -792,7 +899,7 @@ namespace Analyzer.Utilities
             {
                 if (child != null)
                 {
-                    _stack.Push(child);
+                    _stack!.Push(child);
                 }
             }
         }

@@ -32,6 +32,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
         public const string MicrosoftCodeAnalysisCompilation = "Microsoft.CodeAnalysis.Compilation";
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
+        public const string MicrosoftCodeAnalysisCSharpCSharpExtensions = "Microsoft.CodeAnalysis.CSharp.CSharpExtensions";
+        public const string MicrosoftCodeAnalysisCSharpExtensions = "Microsoft.CodeAnalysis.CSharpExtensions";
         public const string MicrosoftCodeAnalysisDiagnostic = "Microsoft.CodeAnalysis.Diagnostic";
         public const string MicrosoftCodeAnalysisDiagnosticDescriptor = "Microsoft.CodeAnalysis.DiagnosticDescriptor";
         public const string MicrosoftCodeAnalysisDiagnosticsAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.AnalysisContext";
@@ -55,6 +57,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisSharedCollectionsTemporaryArrayExtensions = "Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
+        public const string MicrosoftCodeAnalysisVisualBasicVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions";
+        public const string MicrosoftCodeAnalysisVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasicExtensions";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
         public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
@@ -173,6 +177,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsDebuggerNonUserCode = "System.Diagnostics.DebuggerNonUserCodeAttribute";
         public const string SystemDiagnosticsDebuggerTypeProxyAttribute = "System.Diagnostics.DebuggerTypeProxyAttribute";
         public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
+        public const string SystemDiagnosticsProcessModule = "System.Diagnostics.ProcessModule";
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemDiagnosticsTraceListener = "System.Diagnostics.TraceListener";
         public const string SystemDiagnosticsTracingEventSource = "System.Diagnostics.Tracing.EventSource";
@@ -250,6 +255,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesCallerLineNumberAttribute = "System.Runtime.CompilerServices.CallerLineNumberAttribute";
         public const string SystemRuntimeCompilerServicesCallerMemberNameAttribute = "System.Runtime.CompilerServices.CallerMemberNameAttribute";
         public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
+        public const string SystemRuntimeCompilerServicesConfiguredAsyncDisposable = "System.Runtime.CompilerServices.ConfiguredAsyncDisposable";
         public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1 = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
         public const string SystemRuntimeCompilerServicesICriticalNotifyCompletion = "System.Runtime.CompilerServices.ICriticalNotifyCompletion";
         public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
@@ -290,6 +296,8 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeSerializationOnSerializingAttribute = "System.Runtime.Serialization.OnSerializingAttribute";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemRuntimeSerializationStreamingContext = "System.Runtime.Serialization.StreamingContext";
+        public const string SystemRuntimeVersioningSupportedOSPlatformAttribute = "System.Runtime.Versioning.SupportedOSPlatformAttribute";
+        public const string SystemRuntimeVersioningUnsupportedOSPlatformAttribute = "System.Runtime.Versioning.UnsupportedOSPlatformAttribute";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
         public const string SystemSecurityCryptographyAesCcm = "System.Security.Cryptography.AesCcm";
         public const string SystemSecurityCryptographyAesGcm = "System.Security.Cryptography.AesGcm";
@@ -521,5 +529,6 @@ namespace Analyzer.Utilities
         public const string SystemXmlXslXsltSettings = "System.Xml.Xsl.XsltSettings";
         public const string XunitAssert = "Xunit.Assert";
         public const string XunitFactAttribute = "Xunit.FactAttribute";
+        public const string XunitTraitAttribute = "Xunit.TraitAttribute";
     }
 }
