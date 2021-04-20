@@ -134,14 +134,13 @@ namespace BuildValidator
         public static unsafe CompilationDiff Create(
             AssemblyInfo assemblyInfo,
             CompilationFactory compilationFactory,
-            ImmutableArray<SyntaxTree> syntaxTrees,
-            ImmutableArray<MetadataReference> metadataReferences,
+            RebuildArtifactResolver artifactResolver,
             ILogger logger)
         {
             using var rebuildPeStream = new MemoryStream();
             var hasEmbeddedPdb = compilationFactory.OptionsReader.HasEmbeddedPdb;
             var rebuildPdbStream = hasEmbeddedPdb ? null : new MemoryStream();
-            var rebuildCompilation = compilationFactory.CreateCompilation(syntaxTrees, metadataReferences);
+            var rebuildCompilation = compilationFactory.CreateCompilation(artifactResolver);
             var emitResult = compilationFactory.Emit(
                 rebuildPeStream,
                 rebuildPdbStream,
@@ -246,14 +245,14 @@ namespace BuildValidator
                 using var writer = new StreamWriter(Path.Combine(debugPath, "references.txt"), append: false);
                 foreach (var info in _references)
                 {
-                    if (_localReferenceResolver.TryGetCachedAssemblyInfo(info.Mvid, out var assemblyInfo))
+                    if (_localReferenceResolver.TryGetCachedAssemblyInfo(info.ModuleVersionId, out var assemblyInfo))
                     {
-                        writer.WriteLine($"Found: {info.Mvid} {info.Name} at {assemblyInfo.FilePath}");
+                        writer.WriteLine($"Found: {info.ModuleVersionId} {info.FileName} at {assemblyInfo.FilePath}");
                     }
                     else
                     {
-                        writer.WriteLine($"Missing: {info.Mvid} {info.Name}");
-                        foreach (var cachedInfo in _localReferenceResolver.GetCachedAssemblyInfos(info.Name))
+                        writer.WriteLine($"Missing: {info.ModuleVersionId} {info.FileName}");
+                        foreach (var cachedInfo in _localReferenceResolver.GetCachedAssemblyInfos(info.FileName))
                         {
                             writer.WriteLine($"\t{cachedInfo.Mvid} {cachedInfo.FilePath}");
                         }
@@ -407,13 +406,12 @@ namespace BuildValidator
                 {
                     writer.WriteLine("Embedded File Info");
                     var optionsReader = new CompilationOptionsReader(EmptyLogger.Instance, pdbMetadataReader, peReader);
-                    var sourceFileInfos = optionsReader.GetSourceFileInfos(optionsReader.GetEncoding());
-                    foreach (var info in sourceFileInfos)
+                    foreach (var info in optionsReader.GetEmbeddedSourceTextInfo())
                     {
-                        if (info.EmbeddedCompressedHash is { } hash)
+                        if (!info.CompressedHash.IsDefaultOrEmpty)
                         {
-                            var hashString = BitConverter.ToString(hash).Replace("-", "");
-                            writer.WriteLine($@"\t""{Path.GetFileName(info.SourceFilePath)}"" - {hashString}");
+                            var hashString = BitConverter.ToString(info.CompressedHash.ToArray()).Replace("-", "");
+                            writer.WriteLine($@"\t""{Path.GetFileName(info.SourceTextInfo.OriginalSourceFilePath)}"" - {hashString}");
                         }
                     }
                 }

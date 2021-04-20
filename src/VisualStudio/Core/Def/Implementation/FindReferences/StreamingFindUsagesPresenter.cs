@@ -255,5 +255,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             tableControl.SetColumnStates(newColumns);
         }
+
+        protected static (Guid, string projectName, string? projectFlavor) GetGuidAndProjectInfo(Document document)
+        {
+            // The FAR system needs to know the guid for the project that a def/reference is 
+            // from (to support features like filtering).  Normally that would mean we could
+            // only support this from a VisualStudioWorkspace.  However, we want till work 
+            // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
+            // when we have another type of workspace.  This means we will show results, but
+            // certain features (like filtering) may not work in that context.
+            var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
+
+            var (projectName, projectFlavor) = document.Project.State.NameAndFlavor;
+            projectName ??= document.Project.Name;
+
+            var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
+
+            return (guid, projectName, projectFlavor);
+        }
     }
 }

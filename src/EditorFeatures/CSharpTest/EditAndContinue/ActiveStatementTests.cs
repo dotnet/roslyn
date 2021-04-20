@@ -10588,6 +10588,87 @@ class C
 
         #endregion
 
+        #region Records
+
+        [Fact]
+        public void Record()
+        {
+            var src1 = @"
+record C(int X)
+{
+    public int X { get; init; } = <AS:0>1</AS:0>;
+}";
+            var src2 = @"
+record C(int X)
+{
+    public int X { get; init; } = <AS:0>2</AS:0>;
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Record_Constructor()
+        {
+            var src1 = @"
+record C(int X)
+{
+    public int X { get; init; } = <AS:0>1</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>var x = new C(1);</AS:1>
+    }
+}";
+            var src2 = @"
+record C(int X)
+{
+    public int X { get; init; } = <AS:0>2</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>var x = new C(1);</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Record_FieldInitializer_Lambda2()
+        {
+            var src1 = @"
+record C(int X)
+{
+    Func<int, Func<int>> a = z => () => <AS:0>z + 1</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>new C(1).a(1)();</AS:1>
+    }
+}";
+            var src2 = @"
+record C(int X)
+{
+    Func<int, Func<int>> a = z => () => <AS:0>z + 2</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>new C(1).a(1)();</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
         #region Misc
 
         [Fact]
