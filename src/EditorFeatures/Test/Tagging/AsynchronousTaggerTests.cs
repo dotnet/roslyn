@@ -163,6 +163,8 @@ class Program
                 _eventSource = eventSource;
             }
 
+            protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
                 => _eventSource;
 
@@ -184,7 +186,6 @@ class Program
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource
         {
             public TestTaggerEventSource()
-                : base(delay: TaggerDelay.NearImmediate)
             {
             }
 

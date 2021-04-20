@@ -47,14 +47,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
         }
 
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             AssertIsForeground();
 
             return TaggerEventSources.Compose(
-                new EventSource(subjectBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
+                new EventSource(subjectBuffer),
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context)
