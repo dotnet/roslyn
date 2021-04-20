@@ -86,6 +86,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         }
 
         private static bool CanHaveInheritanceTarget(ISymbol symbol)
-            => !symbol.IsStatic && (symbol is INamedTypeSymbol or IEventSymbol or IPropertySymbol || symbol.IsOrdinaryMethod());
+        {
+            if (symbol.IsStatic)
+            {
+                return false;
+            }
+
+            if (symbol is INamedTypeSymbol or IEventSymbol or IPropertySymbol ||
+                symbol.IsOrdinaryMethod())
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
