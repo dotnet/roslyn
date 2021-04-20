@@ -15,7 +15,7 @@ namespace Roslyn.Test.EditorUtilities
 {
     public static class EditorFactory
     {
-        public static ITextBuffer CreateBuffer(
+        public static ITextBuffer2 CreateBuffer(
             ExportProvider exportProvider,
             params string[] lines)
         {
