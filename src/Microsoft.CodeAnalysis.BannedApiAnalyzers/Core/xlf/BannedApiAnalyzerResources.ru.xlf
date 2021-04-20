@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
-        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
-        <target state="translated">Внешний доступ к внутреннему символу "{0}" запрещен. Сборка "{1}" разрешает доступ только к внутренним символам, определенным в следующих пространствах имен: "{2}"</target>
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</source>
+        <target state="translated">Внешний доступ к внутреннему символу "{0}" запрещен. Сборка "{1}" разрешает доступ только к внутренним символам, определенным в следующих пространствах имен: "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">

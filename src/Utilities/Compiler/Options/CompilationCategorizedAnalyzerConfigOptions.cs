@@ -12,7 +12,7 @@ namespace Analyzer.Utilities
     /// <inheritdoc cref="ICategorizedAnalyzerConfigOptions"/>
     internal sealed class CompilationCategorizedAnalyzerConfigOptions : AbstractCategorizedAnalyzerConfigOptions
     {
-        public static readonly CompilationCategorizedAnalyzerConfigOptions Empty = new CompilationCategorizedAnalyzerConfigOptions(
+        public static readonly CompilationCategorizedAnalyzerConfigOptions Empty = new(
             ImmutableDictionary<string, string>.Empty,
             ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty);
 

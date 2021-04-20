@@ -11,17 +11,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
     {
         protected override bool IsNamedTypeDeclarationBlock(SyntaxNode syntax)
         {
-            switch (syntax.Kind())
+            return syntax.Kind() switch
             {
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                    return true;
-
-                default:
-                    return false;
-            }
+                SyntaxKind.ClassDeclaration
+                or SyntaxKind.StructDeclaration
+                or SyntaxKind.EnumDeclaration
+#if CODEANALYSIS_V3_OR_BETTER
+                or SyntaxKind.RecordDeclaration:
+#endif
+                or SyntaxKind.InterfaceDeclaration => true,
+                _ => false,
+            };
         }
     }
 }

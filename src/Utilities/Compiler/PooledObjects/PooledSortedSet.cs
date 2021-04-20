@@ -41,8 +41,7 @@ namespace Analyzer.Utilities.PooledObjects
 
         // global pool
         private static readonly ObjectPool<PooledSortedSet<T>> s_poolInstance = CreatePool();
-        private static readonly ConcurrentDictionary<IComparer<T>, ObjectPool<PooledSortedSet<T>>> s_poolInstancesByComparer
-            = new ConcurrentDictionary<IComparer<T>, ObjectPool<PooledSortedSet<T>>>();
+        private static readonly ConcurrentDictionary<IComparer<T>, ObjectPool<PooledSortedSet<T>>> s_poolInstancesByComparer = new();
 
         private static ObjectPool<PooledSortedSet<T>> CreatePool(IComparer<T>? comparer = null)
         {

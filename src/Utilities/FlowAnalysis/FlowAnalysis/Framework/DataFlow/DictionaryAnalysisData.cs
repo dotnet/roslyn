@@ -57,15 +57,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        public ICollection<TValue> Values
-        {
-            get
-            {
-                // "Values" might be accessed during dispose.
-                //Debug.Assert(!IsDisposed);
-                return _coreAnalysisData.Values;
-            }
-        }
+        public ICollection<TValue> Values =>
+            // "Values" might be accessed during dispose.
+            //Debug.Assert(!IsDisposed);
+            _coreAnalysisData.Values;
 
         public int Count
         {

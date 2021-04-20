@@ -103,7 +103,7 @@ public async Task TestMethodAsync() { }
         public class WarnForMissingAsyncSuffix : DiagnosticAnalyzer
         {
             [SuppressMessage("MicrosoftCodeAnalysisDesign", "RS1017:DiagnosticId for analyzers must be a non-null constant.", Justification = "For suppression test only.")]
-            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RelaxTestNamingSuppressor.Rule.SuppressedDiagnosticId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            public static readonly DiagnosticDescriptor Rule = new(RelaxTestNamingSuppressor.Rule.SuppressedDiagnosticId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

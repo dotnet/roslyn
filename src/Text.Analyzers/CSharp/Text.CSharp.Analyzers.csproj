@@ -6,4 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Text.Analyzers.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
 </Project>

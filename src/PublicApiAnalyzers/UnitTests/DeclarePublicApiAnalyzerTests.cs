@@ -21,22 +21,28 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Helpers
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(path, line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(arguments);
         }
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, params object[] arguments)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(arguments);
         }
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, params object[] arguments)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(arguments);
         }
 
@@ -604,6 +610,55 @@ C.Method() -> void
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(3329, "https://github.com/dotnet/roslyn-analyzers/issues/3329")]
+        public async Task RemovedPrefixForNonRemovedApi(bool includeInShipped)
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+    public void Method() { }
+}
+";
+
+            var shippedText = @"
+C
+C.C() -> void
+C.Field -> int
+C.Property.get -> int
+C.Property.set -> void
+";
+
+            if (includeInShipped)
+            {
+                shippedText += @"C.Method() -> void
+";
+            }
+
+            string unshippedText = $@"
+{DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+";
+
+            if (includeInShipped)
+            {
+                await VerifyCSharpAsync(source, shippedText, unshippedText,
+                    // PublicAPI.Unshipped.txt(2,1): warning RS0050: Symbol 'C.Method() -> void' is marked as removed but it isn't deleted in source code
+                    GetAdditionalFileResultAt(2, 1, DeclarePublicApiAnalyzer.UnshippedFileName, DeclarePublicApiAnalyzer.RemovedApiIsNotActuallyRemovedRule, "C.Method() -> void"));
+            }
+            else
+            {
+                await VerifyCSharpAsync(source, shippedText, unshippedText,
+                    // PublicAPI.Unshipped.txt(2,1): warning RS0050: Symbol 'C.Method() -> void' is marked as removed but it isn't deleted in source code
+                    GetAdditionalFileResultAt(2, 1, DeclarePublicApiAnalyzer.UnshippedFileName, DeclarePublicApiAnalyzer.RemovedApiIsNotActuallyRemovedRule, "C.Method() -> void"),
+                    // /0/Test0.cs(6,17): warning RS0016: Symbol 'Method' is not part of the declared API
+                    GetCSharpResultAt(6, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method")
+                    );
+            }
+        }
+
         [Fact]
         public async Task ApiFileShippedWithRemoved()
         {
@@ -652,9 +707,13 @@ C.Property.get -> int
 
             var unshippedText = @"";
 
+#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not used banned APIs
             var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.DuplicateSymbolInApiFiles)
                 .WithLocation(DeclarePublicApiAnalyzer.ShippedFileName, 6, 1)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithLocation(DeclarePublicApiAnalyzer.ShippedFileName, 4, 1)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments("C.Property.get -> int");
             await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
@@ -682,9 +741,13 @@ C.Property.set -> void
             var unshippedText = @"
 C.Property.get -> int";
 
+#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not used banned APIs
             var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.DuplicateSymbolInApiFiles)
                 .WithLocation(DeclarePublicApiAnalyzer.UnshippedFileName, 2, 1)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithLocation(DeclarePublicApiAnalyzer.ShippedFileName, 5, 1)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments("C.Property.get -> int");
             await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
@@ -823,6 +886,48 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
+        [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
+        public async Task OpenGenericTypeForwardsAreProcessed()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<>))]
+";
+
+            string shippedText = "";
+            string unshippedText = "";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+#if NETCOREAPP
+                // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule),
+#endif
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "GetEnumerator"),
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "IEnumerable<T>"));
+        }
+
+        [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
+        public async Task GenericTypeForwardsAreProcessed()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<string>))]
+";
+
+            string shippedText = "";
+            string unshippedText = "";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+#if NETCOREAPP
+                // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule),
+#endif
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "GetEnumerator"),
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "IEnumerable<String>"));
+        }
+
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
         public async Task TestAvoidMultipleOverloadsWithOptionalParameters()
         {
@@ -884,15 +989,15 @@ C.Method6<T>(int p1 = 0) -> T
                 GetCSharpResultAt(5, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method1"),
                 // Test0.cs(8,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
                 GetCSharpResultAt(8, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method1"),
-                // Test0.cs(20,17): warning RS0026: Symbol 'Method4' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(20,17): warning RS0026: Symbol 'Method4' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(20, 17, DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method4", DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
                 // Test0.cs(25,17): warning RS0016: Symbol 'Method5' is not part of the declared API.
                 GetCSharpResultAt(25, 17, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method5"),
-                // Test0.cs(25,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(25,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(25, 17, DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
-                // Test0.cs(26,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(26,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(26, 17, DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
-                // Test0.cs(27,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(27,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(27, 17, DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicApiAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri));
         }
 
@@ -960,14 +1065,64 @@ C.Method6(string p1) -> void
 ";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
-                // Test0.cs(21,17): warning RS0027: Symbol 'Method4' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(21,17): warning RS0027: Symbol 'Method4' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(21, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method4", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
-                // Test0.cs(26,17): warning RS0027: Symbol 'Method5' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(26,17): warning RS0027: Symbol 'Method5' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(26, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method5", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
-                // Test0.cs(31,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(31,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(31, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method6", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
-                // Test0.cs(32,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                // Test0.cs(32,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(32, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method6", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
+        }
+
+        [Fact, WorkItem(4766, "https://github.com/dotnet/roslyn-analyzers/issues/4766")]
+        public async Task TestObsoleteOverloadWithOptionalParameters_NoDiagnostic()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void M(int p1 = 0) { }
+
+    [Obsolete]
+    public void M(char p1, int p2) { }
+}
+";
+
+            string shippedText = string.Empty;
+            string unshippedText = @"
+C
+C.C() -> void
+
+C.M(char p1, int p2) -> void
+C.M(int p1 = 0) -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4766, "https://github.com/dotnet/roslyn-analyzers/issues/4766")]
+        public async Task TestMultipleOverloadsWithOptionalParameter_OneIsObsolete()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void M(int p1 = 0) { }
+
+    [Obsolete]
+    public void M(char p1 = '0') { }
+}
+";
+
+            string shippedText = @"C
+C.C() -> void
+C.M(char p1 = '0') -> void";
+            string unshippedText = "C.M(int p1 = 0) -> void";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
@@ -1290,11 +1445,131 @@ C<T>.Nested.Nested() -> void
                 );
         }
 
+        [Fact]
+        public async Task ImplicitContainingType_TClass()
+        {
+            var source = @"
+#nullable enable
+public class C<T> where T : class
+{
+    public struct Nested { }
+
+    public Nested field;
+    public C<T>.Nested field2;
+}
+";
+
+            var shippedText = @"#nullable enable
+C<T>
+C<T>.C() -> void
+C<T>.Nested
+C<T>.Nested.Nested() -> void
+~C<T>.field -> C<T>.Nested
+C<T>.field2 -> C<T!>.Nested";
+
+            var unshippedText = @"";
+
+            // Note: although the code is entirely nullable-enabled, the compiler uses a containing type that is
+            // `C<T~>` so there is an oblivious symbol. This only happens when the type parameter is constrained
+            // such that it could be annotated in C# 8 (`T?` would have been allowed).
+            //
+            // One recourse is to use a suppression around such APIs:
+            // #pragma warning disable RS0041 // uses oblivious reference types
+            //
+            // Another recourse is to make the containing type explicit: `C<T>.Nested`
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(7,19): warning RS0041: Symbol 'field' uses some oblivious reference types.
+                GetCSharpResultAt(7, 19, DeclarePublicApiAnalyzer.ObliviousApiRule, "field")
+                );
+        }
+
+        [Fact]
+        public async Task ImplicitContainingType_TOpen()
+        {
+            var source = @"
+#nullable enable
+public class C<T>
+{
+    public struct Nested { }
+
+    public Nested field;
+    public Nested field2;
+}
+";
+
+            var shippedText = @"#nullable enable
+C<T>
+C<T>.C() -> void
+C<T>.Nested
+C<T>.Nested.Nested() -> void
+C<T>.field -> C<T>.Nested
+C<T>.field2 -> C<T>.Nested";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
         #endregion
 
         #region Fix tests
 
         [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructor()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+}
+";
+
+            var shippedText = @"
+C";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithExplicitPrivateCtorWithParameters()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+    private C(string x) {}
+}
+";
+
+            var shippedText = @"
+C";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithOtherOverloadsAsync()
+        {
+            var source = @"
+public struct {|RS0016:C|}
+{
+    public C(int value)
+    {
+    }
+}
+";
+
+            var shippedText = @"
+C
+C.C(int value) -> void";
+            var unshippedText = string.Empty;
+            var fixedUnshippedText = "C.C() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Both_Fix()
         {
@@ -1344,6 +1619,45 @@ C.NewField -> int
 C.Property.get -> int
 C.Property.set -> void";
 
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Theory]
+        [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
+        [InlineData("\r\n")] // Windows line ending.
+        [InlineData("\n")] // Linux line ending.
+        public async Task TestUseExistingLineEndings(string lineEnding)
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int Field1;
+    public int Field2;
+    public int {|RS0016:Field3|}; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = $"C{lineEnding}C.Field1 -> int{lineEnding}C.Field2 -> int";
+            var fixedUnshippedText = $"C{lineEnding}C.Field1 -> int{lineEnding}C.Field2 -> int{lineEnding}C.Field3 -> int";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
+        public async Task TestUseOSLineEnding()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int {|RS0016:Field1|}; // Newly added field, not in current public API.
+}
+";
+            var shippedText = @"";
+            var unshippedText = $"C";
+            var fixedUnshippedText = $"C{Environment.NewLine}C.Field1 -> int";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
@@ -1526,7 +1840,7 @@ public static class C<T1, T2>
     where T1 : class
     where T2 : System.IComparable<
 #nullable disable
-        T2
+        T1
 #nullable enable
         >
 {
@@ -1696,6 +2010,35 @@ public class {|RS0016:{|RS0016:C2|}|} { }
             var unshippedText = @"";
             var fixedUnshippedText = @"C
 C.Field -> int
+C2
+C2.C2() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestMultipleMissingTypeAndMember_CaseSensitiveFix()
+        {
+            var source = @"
+public class {|RS0016:C|}
+{
+    private C() { }
+    public int {|RS0016:Field_A|};
+    public int {|RS0016:Field_b|};
+    public int {|RS0016:Field_C|};
+    public int {|RS0016:Field_d|};
+}
+
+public class {|RS0016:{|RS0016:C2|}|} { }
+";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"C
+C.Field_A -> int
+C.Field_b -> int
+C.Field_C -> int
+C.Field_d -> int
 C2
 C2.C2() -> void";
 
@@ -2028,7 +2371,11 @@ C.C() -> void
 C.NewField -> int
 C.Property.get -> int{expectedEndOfFile}";
 
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(
+                source.NormalizeLineEndings(),
+                shippedText,
+                unshippedText.NormalizeLineEndings(),
+                fixedUnshippedText.NormalizeLineEndings());
         }
 
         [Fact]

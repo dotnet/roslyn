@@ -25,9 +25,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     /// </remarks>
     internal partial class PropertySetAbstractValue
     {
-        public static readonly PropertySetAbstractValue Unknown = new PropertySetAbstractValue();
+        public static readonly PropertySetAbstractValue Unknown = new();
 
-        private static readonly ValuePool Pool = new ValuePool();
+        private static readonly ValuePool Pool = new();
 
         public static PropertySetAbstractValue GetInstance(PropertySetAbstractValueKind v1)
         {

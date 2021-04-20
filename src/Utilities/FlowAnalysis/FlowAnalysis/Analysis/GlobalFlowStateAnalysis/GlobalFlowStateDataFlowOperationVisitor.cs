@@ -169,11 +169,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         protected sealed override void UpdateValuesForAnalysisData(GlobalFlowStateAnalysisData targetAnalysisData)
             => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
         protected sealed override GlobalFlowStateAnalysisData GetClonedAnalysisData(GlobalFlowStateAnalysisData analysisData)
-            => new GlobalFlowStateAnalysisData(analysisData);
+            => new(analysisData);
         public override GlobalFlowStateAnalysisData GetEmptyAnalysisData()
-            => new GlobalFlowStateAnalysisData();
+            => new();
         protected sealed override GlobalFlowStateAnalysisData GetExitBlockOutputData(GlobalFlowStateAnalysisResult analysisResult)
-            => new GlobalFlowStateAnalysisData(analysisResult.ExitBlockOutput.Data);
+            => new(analysisResult.ExitBlockOutput.Data);
         protected sealed override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(GlobalFlowStateAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
             => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData, throwBranchWithExceptionType);
         protected sealed override bool Equals(GlobalFlowStateAnalysisData value1, GlobalFlowStateAnalysisData value2)

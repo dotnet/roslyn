@@ -49,28 +49,22 @@ namespace Analyzer.Utilities
 
         public static bool AreExceptionPathsEnabled(this DisposeAnalysisKind disposeAnalysisKind)
         {
-            switch (disposeAnalysisKind)
+            return disposeAnalysisKind switch
             {
-                case DisposeAnalysisKind.NonExceptionPaths:
-                case DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed:
-                    return false;
-
-                default:
-                    return true;
-            }
+                DisposeAnalysisKind.NonExceptionPaths
+                or DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed => false,
+                _ => true,
+            };
         }
 
         public static bool AreMayBeNotDisposedViolationsEnabled(this DisposeAnalysisKind disposeAnalysisKind)
         {
-            switch (disposeAnalysisKind)
+            return disposeAnalysisKind switch
             {
-                case DisposeAnalysisKind.AllPathsOnlyNotDisposed:
-                case DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed:
-                    return false;
-
-                default:
-                    return true;
-            }
+                DisposeAnalysisKind.AllPathsOnlyNotDisposed
+                or DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed => false,
+                _ => true,
+            };
         }
     }
 }

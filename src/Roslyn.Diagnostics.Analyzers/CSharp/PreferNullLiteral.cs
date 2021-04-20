@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Diagnostics.Analyzers;
@@ -15,7 +16,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.PreferNullLiteralMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.PreferNullLiteralDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.PreferNullLiteralRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -54,6 +55,10 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             {
                 // Pointers can use 'null'
             }
+            else if (type.TypeKind == TypeKind.Error)
+            {
+                return;
+            }
             else if (type.IsValueType)
             {
                 if (type is not INamedTypeSymbol namedType
@@ -67,7 +72,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(Rule, context.Operation.Syntax.GetLocation()));
+            context.ReportDiagnostic(context.Operation.CreateDiagnostic(Rule));
         }
     }
 }

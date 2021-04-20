@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.EnableConcurrentExecutionAnalyzer,
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.EnableConcurrentExecutionFix>;
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers.CSharpEnableConcurrentExecutionFix>;
 using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.EnableConcurrentExecutionAnalyzer,
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.EnableConcurrentExecutionFix>;
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes.BasicEnableConcurrentExecutionFix>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -140,6 +141,38 @@ End Class
 ";
 
             await VerifyVB.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact, WorkItem(2698, "https://github.com/dotnet/roslyn-analyzers/issues/2698")]
+        public async Task RS1026_ExpressionBodiedMethod()
+        {
+            var code = @"
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+class Analyzer : DiagnosticAnalyzer {
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw null;
+    public override void Initialize(AnalysisContext [|context|])
+        => context.RegisterCompilationAction(x => { });
+}
+";
+            var fixedCode = @"
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+class Analyzer : DiagnosticAnalyzer {
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw null;
+    public override void Initialize(AnalysisContext context)
+    {
+        context.EnableConcurrentExecution();
+        context.RegisterCompilationAction(x => { });
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
     }
 }

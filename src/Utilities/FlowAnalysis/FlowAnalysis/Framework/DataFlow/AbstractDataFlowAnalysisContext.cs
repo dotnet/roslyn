@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         : CacheBasedEquatable<TAnalysisContext>, IDataFlowAnalysisContext
         where TAnalysisContext : class, IDataFlowAnalysisContext
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisData : AbstractAnalysisData
     {
         protected AbstractDataFlowAnalysisContext(
             AbstractValueDomain<TAbstractAnalysisValue> valueDomain,
@@ -149,24 +150,45 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected abstract void ComputeHashCodePartsSpecific(Action<int> builder);
+        protected abstract void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode);
 
-        protected sealed override void ComputeHashCodeParts(Action<int> addPart)
+        protected abstract bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> obj);
+
+        protected sealed override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(ValueDomain.GetHashCode());
-            addPart(OwningSymbol.GetHashCode());
-            addPart(ControlFlowGraph.GetHashCode());
-            addPart(AnalyzerOptions.GetHashCode());
-            addPart(InterproceduralAnalysisConfiguration.GetHashCode());
-            addPart(PessimisticAnalysis.GetHashCode());
-            addPart(PredicateAnalysis.GetHashCode());
-            addPart(ExceptionPathsAnalysis.GetHashCode());
-            addPart(CopyAnalysisResult.GetHashCodeOrDefault());
-            addPart(PointsToAnalysisResult.GetHashCodeOrDefault());
-            addPart(ValueContentAnalysisResult.GetHashCodeOrDefault());
-            addPart(InterproceduralAnalysisData.GetHashCodeOrDefault());
-            addPart(InterproceduralAnalysisPredicate.GetHashCodeOrDefault());
-            ComputeHashCodePartsSpecific(addPart);
+            hashCode.Add(ValueDomain.GetHashCode());
+            hashCode.Add(OwningSymbol.GetHashCode());
+            hashCode.Add(ControlFlowGraph.GetHashCode());
+            hashCode.Add(AnalyzerOptions.GetHashCode());
+            hashCode.Add(InterproceduralAnalysisConfiguration.GetHashCode());
+            hashCode.Add(PessimisticAnalysis.GetHashCode());
+            hashCode.Add(PredicateAnalysis.GetHashCode());
+            hashCode.Add(ExceptionPathsAnalysis.GetHashCode());
+            hashCode.Add(CopyAnalysisResult.GetHashCodeOrDefault());
+            hashCode.Add(PointsToAnalysisResult.GetHashCodeOrDefault());
+            hashCode.Add(ValueContentAnalysisResult.GetHashCodeOrDefault());
+            hashCode.Add(InterproceduralAnalysisData.GetHashCodeOrDefault());
+            hashCode.Add(InterproceduralAnalysisPredicate.GetHashCodeOrDefault());
+            ComputeHashCodePartsSpecific(ref hashCode);
+        }
+
+        protected sealed override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<TAnalysisContext> obj)
+        {
+            var other = (AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>)obj;
+            return ValueDomain.GetHashCode() == other.ValueDomain.GetHashCode()
+                && OwningSymbol.GetHashCode() == other.OwningSymbol.GetHashCode()
+                && ControlFlowGraph.GetHashCode() == other.ControlFlowGraph.GetHashCode()
+                && AnalyzerOptions.GetHashCode() == other.AnalyzerOptions.GetHashCode()
+                && InterproceduralAnalysisConfiguration.GetHashCode() == other.InterproceduralAnalysisConfiguration.GetHashCode()
+                && PessimisticAnalysis.GetHashCode() == other.PessimisticAnalysis.GetHashCode()
+                && PredicateAnalysis.GetHashCode() == other.PredicateAnalysis.GetHashCode()
+                && ExceptionPathsAnalysis.GetHashCode() == other.ExceptionPathsAnalysis.GetHashCode()
+                && CopyAnalysisResult.GetHashCodeOrDefault() == other.CopyAnalysisResult.GetHashCodeOrDefault()
+                && PointsToAnalysisResult.GetHashCodeOrDefault() == other.PointsToAnalysisResult.GetHashCodeOrDefault()
+                && ValueContentAnalysisResult.GetHashCodeOrDefault() == other.ValueContentAnalysisResult.GetHashCodeOrDefault()
+                && InterproceduralAnalysisData.GetHashCodeOrDefault() == other.InterproceduralAnalysisData.GetHashCodeOrDefault()
+                && InterproceduralAnalysisPredicate.GetHashCodeOrDefault() == other.InterproceduralAnalysisPredicate.GetHashCodeOrDefault()
+                && ComputeEqualsByHashCodeParts(other);
         }
     }
 }

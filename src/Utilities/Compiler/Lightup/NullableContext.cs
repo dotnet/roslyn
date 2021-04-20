@@ -17,7 +17,9 @@ namespace Analyzer.Utilities.Lightup
         /// <summary>
         /// Nullable warnings and annotations are explicitly turned off at this location.
         /// </summary>
+#pragma warning disable CA1008 // Enums should have zero value - Rename zero valued field to 'None'
         Disabled = 0,
+#pragma warning restore CA1008 // Enums should have zero value
 
         /// <summary>
         /// Nullable warnings are enabled and will be reported at this file location.
@@ -40,7 +42,7 @@ namespace Analyzer.Utilities.Lightup
         /// </summary>
         /// <remarks>
         /// The project default can change depending on the file type. Generated
-        /// files have nullable off by default, regardless of of the project-level
+        /// files have nullable off by default, regardless of the project-level
         /// default setting.
         /// </remarks>
         WarningsContextInherited = 1 << 2,
@@ -50,7 +52,7 @@ namespace Analyzer.Utilities.Lightup
         /// </summary>
         /// <remarks>
         /// The project default can change depending on the file type. Generated
-        /// files have nullable off by default, regardless of of the project-level
+        /// files have nullable off by default, regardless of the project-level
         /// default setting.
         /// </remarks>
         AnnotationsContextInherited = 1 << 3,
@@ -63,7 +65,7 @@ namespace Analyzer.Utilities.Lightup
         /// This flag is set by default at the start of all files.
         ///
         /// The project default can change depending on the file type. Generated
-        /// files have nullable off by default, regardless of of the project-level
+        /// files have nullable off by default, regardless of the project-level
         /// default setting.
         /// </remarks>
         ContextInherited = WarningsContextInherited | AnnotationsContextInherited

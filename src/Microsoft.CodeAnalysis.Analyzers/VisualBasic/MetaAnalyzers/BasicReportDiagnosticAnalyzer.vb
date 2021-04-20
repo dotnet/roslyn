@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicReportDiagnosticAnalyzer
-        Inherits ReportDiagnosticAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, IdentifierNameSyntax, VariableDeclaratorSyntax)
+        Inherits ReportDiagnosticAnalyzer(Of ClassBlockSyntax, StructureBlockSyntax, InvocationExpressionSyntax, IdentifierNameSyntax, VariableDeclaratorSyntax)
 
         Protected Overrides Function GetAnalyzer(contextTypes As ImmutableHashSet(Of INamedTypeSymbol),
                                                  diagnosticType As INamedTypeSymbol,

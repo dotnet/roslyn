@@ -38,8 +38,8 @@ Namespace Global.Analyzer.Utilities
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
 
-        Public Function IsSimpleAssignmentStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleAssignmentStatement
-            Return node.IsKind(SyntaxKind.SimpleAssignmentStatement)
+        Public Function IsSimpleAssignmentStatement(statement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleAssignmentStatement
+            Return statement.IsKind(SyntaxKind.SimpleAssignmentStatement)
         End Function
 
         Public Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetVariablesOfLocalDeclarationStatement

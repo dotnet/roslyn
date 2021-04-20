@@ -81,7 +81,7 @@ Part exported with MEFv2 must be marked with the 'SharedAttribute'.
 |Category|RoslynDiagnosticsReliability|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|False|
+|CodeFix|True|
 ---
 
 ## RS0032: Test exports should not be discoverable
@@ -146,7 +146,7 @@ Defaultable types should have defaultable fields.
 
 ## RS0042: Do not copy value
 
-Do not unbox non-copyable value types.
+Auto-properties always copy values, so they cannot be declared with non-copyable types.
 
 |Item|Value|
 |-|-|
@@ -180,38 +180,14 @@ Avoid the 'Opt' suffix in a nullable-enabled code.
 |CodeFix|True|
 ---
 
-## RS0100: Statements must be placed on their own line
+## RS0049: Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable
 
-Statements must be placed on their own line
-
-|Item|Value|
-|-|-|
-|Category|RoslynDiagnosticsMaintainability|
-|Enabled|True|
-|Severity|Warning|
-|CodeFix|True|
----
-
-## RS0101: Avoid multiple blank lines
-
-Avoid multiple blank lines
+Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable.
 
 |Item|Value|
 |-|-|
-|Category|RoslynDiagnosticsMaintainability|
+|Category|RoslynDiagnosticsReliability|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
----
-
-## RS0102: Braces must not have blank lines between them
-
-Braces must not have blank lines between them
-
-|Item|Value|
-|-|-|
-|Category|RoslynDiagnosticsMaintainability|
-|Enabled|True|
-|Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---

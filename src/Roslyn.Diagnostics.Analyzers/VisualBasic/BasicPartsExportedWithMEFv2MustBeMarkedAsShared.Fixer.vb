@@ -3,6 +3,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Diagnostics.Analyzers
 
 Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
@@ -11,7 +12,6 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     ''' </summary>
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Public NotInheritable Class BasicPartsExportedWithMEFv2MustBeMarkedAsSharedFixer
-        Inherits PartsExportedWithMEFv2MustBeMarkedAsSharedFixer
-
+        Inherits PartsExportedWithMEFv2MustBeMarkedAsSharedFixer(Of TypeBlockSyntax)
     End Class
 End Namespace
