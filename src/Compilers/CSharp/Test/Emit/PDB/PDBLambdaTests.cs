@@ -1381,5 +1381,283 @@ class C
 }
 ", sequencePoints: "C+<>c.<F>b__0_0");
         }
+
+        [Fact]
+        public void WithExpression()
+        {
+            var source = MarkedSource(WithWindowsLineBreaks(@"
+using System;
+record R(int X);
+
+class Test
+{
+    public static void M(int a)
+    <M><C:0>{
+        var x = new R(1);
+        var y = x with
+        {
+            X = new Func<int>(() => <L:0.0>a)()
+        };
+    }
+}
+"), removeTags: true); // We're validating offsets so need to remove tags entirely
+
+            // Use NetCoreApp in order to use records
+            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdbLambdasAndClosures(source);
+        }
+
+        [Fact]
+        public void WithExpression_2()
+        {
+            var source = MarkedSource(WithWindowsLineBreaks(@"
+using System;
+record R(int X, int Y);
+
+class Test
+{
+    public static void M(int a)
+    <M><C:0>{
+        var x = new R(1, 2);
+        var b = 1;
+        var y = x with
+        {
+            X = new Func<int>(() => <L:0.0>a)(),
+            Y = new Func<int>(() => <L:1.0>b)()
+        };
+    }
+}
+"), removeTags: true); // We're validating offsets so need to remove tags entirely
+
+            // Use NetCoreApp in order to use records
+            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdbLambdasAndClosures(source);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/52068")]
+        public void WithExpression_3()
+        {
+            var source = MarkedSource(WithWindowsLineBreaks(@"
+using System;
+record R(int X, int Y);
+record Z(int A, R R);
+
+class Test
+{
+    public static void M(int a)
+    <M><C:0>{
+        var r = new R(1, 2);
+        var x = new Z(1, new R(2, 3));
+        var b = 1;
+        var y = x with
+        {
+            A = new Func<int>(() => <L:0.0>a)(),
+            R = r with
+            {
+                X = 4,
+                Y = new Func<int>(() => <L:1.0>b)()
+            }
+        };
+    }
+}
+"), removeTags: true); // We're validating offsets so need to remove tags entirely
+
+            // Use NetCoreApp in order to use records
+            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdbLambdasAndClosures(source);
+        }
+
+        [Fact]
+        public void Record_1()
+        {
+            var source = WithWindowsLineBreaks(@"
+using System;
+record D(int X)
+{
+    public int Y { get; set; } = new Func<int, int>(a => a + X).Invoke(1);
+}
+");
+
+            // Use NetCoreApp in order to use records
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdb(@"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""D"" name="".ctor"" parameterNames=""X"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""30"" offset=""-1"" />
+            </encLocalSlotMap>
+            <encLambdaMap>
+              <methodOrdinal>0</methodOrdinal>
+              <closure offset=""-1"" />
+              <lambda offset=""-16"" closure=""0"" />
+            </encLambdaMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0xd"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
+            <entry offset=""0x19"" startLine=""5"" startColumn=""34"" endLine=""5"" endColumn=""74"" document=""1"" />
+            <entry offset=""0x31"" startLine=""3"" startColumn=""1"" endLine=""6"" endColumn=""2"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x39"">
+            <namespace name=""System"" />
+            <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x39"" attributes=""0"" />
+          </scope>
+        </method>
+        <method containingType=""D"" name=""get_X"">
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""D"" name=""set_X"" parameterNames=""value"">
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""D"" name=""get_Y"">
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""5"" startColumn=""20"" endLine=""5"" endColumn=""24"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""D"" name=""set_Y"" parameterNames=""value"">
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""29"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""D+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__0"" parameterNames=""a"">
+          <customDebugInfo>
+            <forward declaringType=""D"" methodName="".ctor"" parameterNames=""X"" />
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""5"" startColumn=""58"" endLine=""5"" endColumn=""63"" document=""1"" />
+          </sequencePoints>
+        </method>
+      </methods>
+    </symbols>", format: CodeAnalysis.Emit.DebugInformationFormat.Pdb);
+        }
+
+        [Fact]
+        public void Record_2()
+        {
+            var source = WithWindowsLineBreaks(@"
+using System;
+record C(int X)
+{
+    public C(int x, Func<int> f)
+        : this(x)
+    {
+    }
+}
+
+record D(int X) : C(F(X, out int z), () => z)
+{
+    static int F(int x, out int p)
+    {
+        p = 1;
+        return x + 1;
+    }
+}
+");
+
+            // Use NetCoreApp in order to use records
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+
+            compilation.VerifyPdb(@"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name="".ctor"" parameterNames=""X"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
+            <entry offset=""0x7"" startLine=""3"" startColumn=""1"" endLine=""9"" endColumn=""2"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0xf"">
+            <namespace name=""System"" />
+          </scope>
+        </method>
+        <method containingType=""C"" name=""get_X"">
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""C"" name=""set_X"" parameterNames=""value"">
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""C"" name="".ctor"" parameterNames=""x, f"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName="".ctor"" parameterNames=""X"" />
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""6"" startColumn=""11"" endLine=""6"" endColumn=""18"" document=""1"" />
+            <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x9"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""D"" name="".ctor"" parameterNames=""X"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName="".ctor"" parameterNames=""X"" />
+            <encLocalSlotMap>
+              <slot kind=""30"" offset=""-1"" />
+            </encLocalSlotMap>
+            <encLambdaMap>
+              <methodOrdinal>0</methodOrdinal>
+              <closure offset=""-1"" />
+              <lambda offset=""-2"" closure=""0"" />
+            </encLambdaMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x6"" startLine=""11"" startColumn=""19"" endLine=""11"" endColumn=""46"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x26"">
+            <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x26"" attributes=""0"" />
+          </scope>
+        </method>
+        <method containingType=""D"" name=""F"" parameterNames=""x, p"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName="".ctor"" parameterNames=""X"" />
+            <encLocalSlotMap>
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""15"" document=""1"" />
+            <entry offset=""0x4"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""22"" document=""1"" />
+            <entry offset=""0xa"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""D+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__0"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName="".ctor"" parameterNames=""X"" />
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""11"" startColumn=""44"" endLine=""11"" endColumn=""45"" document=""1"" />
+          </sequencePoints>
+        </method>
+      </methods>
+    </symbols>", format: CodeAnalysis.Emit.DebugInformationFormat.Pdb);
+        }
     }
 }

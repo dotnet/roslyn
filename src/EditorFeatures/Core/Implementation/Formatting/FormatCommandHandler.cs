@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
-                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
+                var changes = formattingService.GetFormattingChangesAsync(
+                    document, selectionOpt, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.Count == 0)
                 {
                     return;
@@ -101,7 +102,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         {
             // run next handler first so that editor has chance to put the return into the buffer first.
             nextHandler();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
 
+            try
+            {
+                ExecuteReturnOrTypeCommandWorker(args, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextHandler().
+            }
+        }
+
+        private void ExecuteReturnOrTypeCommandWorker(EditorCommandArgs args, CancellationToken cancellationToken)
+        {
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
             if (!CanExecuteCommand(subjectBuffer))
@@ -137,7 +156,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     return;
                 }
 
-                textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                textChanges = service.GetFormattingChangesOnReturnAsync(
+                    document, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
@@ -146,7 +166,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     return;
                 }
 
-                textChanges = service.GetFormattingChangesAsync(document, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                textChanges = service.GetFormattingChangesAsync(
+                    document, typeCharArgs.TypedChar, caretPosition.Value, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {

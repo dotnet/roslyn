@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public SymbolKey Symbol { get; }
 
+        /// <summary>
+        /// The syntax map for nodes in the tree for this edit, which will be merged with other maps from other trees for this type.
+        /// Only available when <see cref="PartialType"/> is not null.
+        /// </summary>
         public Func<SyntaxNode, SyntaxNode?>? SyntaxMap { get; }
 
         /// <summary>

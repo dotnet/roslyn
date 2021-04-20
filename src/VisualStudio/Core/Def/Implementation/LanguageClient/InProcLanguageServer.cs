@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -100,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
             _diagnosticsWorkQueue = new AsyncBatchingWorkQueue<DocumentId>(
                 TimeSpan.FromMilliseconds(250),
-                ProcessDiagnosticUpdatedBatchAsync,
+                (ids, ct) => ProcessDiagnosticUpdatedBatchAsync(_diagnosticService, ids, ct),
                 EqualityComparer<DocumentId>.Default,
                 _listener,
                 _queue.CancellationToken);
@@ -127,7 +128,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
             var serverTypeName = languageClient.GetType().Name;
-            var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+
+            LogHubLspLogger? logger = null;
+            // In 16.10 preview 2 LogHub moved to MS.VS.Utilities and MS.VS.RpcContracts and the old assembly was removed.
+            // To allow LSP integration tests to run on 16.10 preview 1, we only setup the loghub
+            // logger if the MS.VS.Utilities assembly contains the LogHub types.
+            // FeatureFlags.IFeatureFlags is a known type in the MS.VS.Utilities assembly.
+            // Removal tracked by https://github.com/dotnet/roslyn/issues/52454
+            var traceConfigurationType = typeof(FeatureFlags.IFeatureFlags).Assembly.GetType("Microsoft.VisualStudio.LogHub.TraceConfiguration", throwOnError: false);
+            if (traceConfigurationType != null)
+            {
+                logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+            }
 
             return new InProcLanguageServer(
                 languageClient,
@@ -142,6 +154,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 logger);
         }
 
+        // Make sure this isn't inlined so these types are only loaded
+        // after the type check in CreateAsync.
+        // Removal tracked by https://github.com/dotnet/roslyn/issues/52454
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static async Task<LogHubLspLogger?> CreateLoggerAsync(
             VSShell.IAsyncServiceProvider? asyncServiceProvider,
             string serverTypeName,
@@ -592,8 +608,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// This dictionary stores the previously computed diagnostics for the published file so that we can
         /// union the currently computed diagnostics (e.g. for dA) with previously computed diagnostics (e.g. from dB).
         /// </summary>
-        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> _publishedFileToDiagnostics =
-            new();
+        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LSP.Diagnostic>>> _publishedFileToDiagnostics = new();
 
         /// <summary>
         /// Stores the mapping of a document to the uri(s) of diagnostics previously produced for this document.  When
@@ -611,9 +626,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
 
-        private async Task ProcessDiagnosticUpdatedBatchAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        // internal for testing purposes
+        internal async Task ProcessDiagnosticUpdatedBatchAsync(
+            IDiagnosticService? diagnosticService, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
-            if (_diagnosticService == null)
+            if (diagnosticService == null)
                 return;
 
             var solution = _workspace.CurrentSolution;
@@ -621,13 +638,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var document = solution.GetDocument(documentId);
+
                 if (document != null)
-                    await PublishDiagnosticsAsync(_diagnosticService, document, cancellationToken).ConfigureAwait(false);
+                {
+                    // If this is a `pull` client, and `pull` diagnostics is on, then we should not `publish` (push) the
+                    // diagnostics here. 
+                    var diagnosticMode = document.IsRazorDocument()
+                        ? InternalDiagnosticsOptions.RazorDiagnosticMode
+                        : InternalDiagnosticsOptions.NormalDiagnosticMode;
+                    if (_workspace.IsPushDiagnostics(diagnosticMode))
+                        await PublishDiagnosticsAsync(diagnosticService, document, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
-        // Internal for testing purposes.
-        internal async Task PublishDiagnosticsAsync(IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
+        private async Task PublishDiagnosticsAsync(IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
         {
             // Retrieve all diagnostics for the current document grouped by their actual file uri.
             var fileUriToDiagnostics = await GetDiagnosticsAsync(diagnosticService, document, cancellationToken).ConfigureAwait(false);

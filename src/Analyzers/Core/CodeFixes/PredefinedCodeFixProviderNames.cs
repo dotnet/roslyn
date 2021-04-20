@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveIn = nameof(RemoveIn);
         public const string SimplifyLinqExpression = nameof(SimplifyLinqExpression);
         public const string ChangeNamespaceToMatchFolder = nameof(ChangeNamespaceToMatchFolder);
+        public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
         public const string ConvertAnonymousTypeToTuple = nameof(ConvertAnonymousTypeToTuple);
         public const string AddRequiredParentheses = nameof(AddRequiredParentheses);
         public const string AddAccessibilityModifiers = nameof(AddAccessibilityModifiers);
