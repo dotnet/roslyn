@@ -1704,4 +1704,16 @@ I agree to all of the foregoing:</value>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
   </data>
+  <data name="Default_Current_Document" xml:space="preserve">
+    <value>Default (Current Document)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Entire_Solution" xml:space="preserve">
+    <value>Default (Entire Solution)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Open_Documents" xml:space="preserve">
+    <value>Default (Open Documents)</value>
+    <comment>This text is a menu command</comment>
+  </data>
 </root>
