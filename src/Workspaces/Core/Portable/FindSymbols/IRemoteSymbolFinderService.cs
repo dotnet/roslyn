@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId);
             ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId);
             ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId);
-            ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId definition);
-            ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference);
+            ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group);
+            ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference);
 
             ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count);
             ValueTask LiteralItemCompletedAsync(RemoteServiceCallbackId callbackId);

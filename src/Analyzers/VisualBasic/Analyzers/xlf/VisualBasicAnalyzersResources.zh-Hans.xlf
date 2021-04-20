@@ -17,6 +17,11 @@
         <target state="translated">Imports 语句是不需要的。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="new">Object creation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_ByVal">
         <source>'ByVal' keyword is unnecessary and can be removed.</source>
         <target state="translated">"ByVal" 关键字是不必要的，可以删除。</target>

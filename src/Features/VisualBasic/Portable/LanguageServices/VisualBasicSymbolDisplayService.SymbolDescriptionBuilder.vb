@@ -66,6 +66,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Space())
             End Sub
 
+            Protected Overrides Sub AddEnumUnderlyingTypeSeparator()
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Space(),
+                    Keyword("As"),
+                    Space())
+            End Sub
+
             Protected Overrides Function GetInitializerSourcePartsAsync(symbol As ISymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 If TypeOf symbol Is IParameterSymbol Then
                     Return GetInitializerSourcePartsAsync(DirectCast(symbol, IParameterSymbol))

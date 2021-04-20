@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Telemetry;
-using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
@@ -278,13 +277,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void ReportSessionWideTelemetry()
         {
-            PersistedVersionStampLogger.ReportTelemetry();
-            LinkedFileDiffMergingLogger.ReportTelemetry();
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
             ChangeSignatureLogger.ReportTelemetry();
-            SyntacticLspLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()

@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     internal class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditorCommandArgs>
     {
         private readonly IAsyncServiceProvider _serviceProvider;
-        private readonly SVsServiceProvider _serviceProvider1;
         private readonly IThreadingContext _threadingContext;
         private readonly ClassificationTypeMap _typeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
@@ -55,7 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IEditorFormatMapService formatMapService)
         {
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
-            _serviceProvider1 = serviceProvider;
             _threadingContext = threadingContext;
             _typeMap = typeMap;
             _classificationFormatMapService = classificationFormatMapService;
