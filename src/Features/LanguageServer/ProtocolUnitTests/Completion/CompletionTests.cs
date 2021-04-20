@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync(label: "A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A").ConfigureAwait(false);
+            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
+                request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -178,7 +178,7 @@ class A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(
-                label: "d", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, insertText: "d", sortText: "0000").ConfigureAwait(false);
+                label: "d", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, insertText: "d", sortText: "0000").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -214,7 +214,7 @@ class A
             var textEdit = GenerateTextEdit(@"\\A", startLine: 5, startChar: 19, endLine: 5, endChar: 19);
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, textEdit: textEdit,
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEdit: textEdit,
                 sortText: "0000").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -251,7 +251,7 @@ class A
             var textEdit = GenerateTextEdit(@"\A", startLine: 5, startChar: 20, endLine: 5, endChar: 21);
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, textEdit: textEdit,
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEdit: textEdit,
                 sortText: "0000").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -288,7 +288,7 @@ class A
             var textEdit = GenerateTextEdit(@"\\A", startLine: 5, startChar: 23, endLine: 5, endChar: 25);
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, textEdit: textEdit,
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEdit: textEdit,
                 sortText: "0000").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -324,37 +324,37 @@ class A
 
             // 1 item in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            var completionList = await cache.GetCachedCompletionListAsync(0, CancellationToken.None).ConfigureAwait(false);
+            var completionList = cache.GetCachedCompletionList(0).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 1);
 
             // 2 items in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            completionList = await cache.GetCachedCompletionListAsync(0, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(0).CompletionList;
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(1, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(1).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 2);
 
             // 3 items in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            completionList = await cache.GetCachedCompletionListAsync(0, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(0).CompletionList;
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(1, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(1).CompletionList;
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(2, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(2).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 3);
 
             // Maximum size of cache (3) should not be exceeded - oldest item should be ejected
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            completionList = await cache.GetCachedCompletionListAsync(0, CancellationToken.None).ConfigureAwait(false);
-            Assert.Null(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(1, CancellationToken.None).ConfigureAwait(false);
+            var cacheEntry = cache.GetCachedCompletionList(0);
+            Assert.Null(cacheEntry);
+            completionList = cache.GetCachedCompletionList(1).CompletionList;
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(2, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(2).CompletionList;
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(3, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(3).CompletionList;
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 3);
         }

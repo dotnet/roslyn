@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     hasChanges: true,
                     hasSyntaxErrors: false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 // The same behavior as if there was a syntax error - we are unable to analyze the document. 
                 // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newActiveStatements[ordinal] = oldActiveStatements[ordinal].WithSpan(newText.Lines.GetLinePositionSpan(newSpan));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 // Set the new spans of active statements overlapping the method body to match the old spans.
                 // Even though these might be now outside of the method body it's ok since we report a rude edit and don't allow to continue.
@@ -2642,7 +2642,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // The property itself is being updated. Currently we do not allow any modifiers or attributes to be updated,
                         // so the only case when this happens is in C# for a property/indexer that has an expression body.
                         // The symbol that's actually being updated is the getter.
-                        // TODO: This will need to be revisited in https://github.com/dotnet/roslyn/issues/48628
+                        // TODO: This will need to be revisited in https://github.com/dotnet/roslyn/issues/52300
                         if (newSymbol is IPropertySymbol { GetMethod: var propertyGetter and not null })
                         {
                             newSymbol = propertyGetter;
