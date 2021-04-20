@@ -66,14 +66,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 return new LSP.SemanticTokens { ResultId = newResultId, Data = newSemanticTokensData };
             }
 
-            var resultId = request.PreviousResultId;
-
             var editArray = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData);
             if (editArray.Length != 0)
             {
                 // If we have edits, generate a new ResultId. Otherwise, re-use the previous one.
-                resultId = _tokensCache.GetNextResultId();
-                var updatedTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
+                var updatedTokens = new LSP.SemanticTokens { ResultId = _tokensCache.GetNextResultId(), Data = newSemanticTokensData };
                 await _tokensCache.UpdateCacheAsync(
                     request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
             }
@@ -81,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var edits = new SemanticTokensEdits
             {
                 Edits = editArray,
-                ResultId = resultId
+                ResultId = request.PreviousResultId,
             };
 
             return edits;
