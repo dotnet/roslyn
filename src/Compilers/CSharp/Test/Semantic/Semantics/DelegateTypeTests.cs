@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1373,8 +1374,68 @@ class B
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "() => 1").WithLocation(7, 13));
         }
 
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_01()
+        {
+            var source =
+@"using System;
+ 
+class Program
+{
+    static void M<T>(T t) { Console.WriteLine(""M<T>(T t)""); }
+    static void M(Action<string> a) { Console.WriteLine(""M(Action<string> a)""); }
+    
+    static void F(object o) { }
+    
+    static void Main()
+    {
+        M(F); // C#9: M(Action<string>)
+    }
+}";
+
+            var expectedOutput = @"M(Action<string> a)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [Fact]
+        public void OverloadResolution_02()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.M(Main);      // C#9: E.M(object x, Action y)
+        c.M(() => { }); // C#9: E.M(object x, Action y)
+    }
+}
+
+class C
+{
+    public void M(object y) { Console.WriteLine(""C.M(object y)""); }
+}
+
+static class E
+{
+    public static void M(this object x, Action y) { Console.WriteLine(""E.M(object x, Action y)""); }
+}";
+
+            var expectedOutput =
+@"E.M(object x, Action y)
+E.M(object x, Action y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_03()
         {
             var source =
 @"using System;
@@ -1442,7 +1503,7 @@ FB(Func<int>)
         }
 
         [Fact]
-        public void OverloadResolution_02()
+        public void OverloadResolution_04()
         {
             var source =
 @"using System;
@@ -1480,7 +1541,7 @@ C.M
         }
 
         [Fact]
-        public void OverloadResolution_03()
+        public void OverloadResolution_05()
         {
             var source =
 @"using System;
@@ -1510,7 +1571,7 @@ F(Expression): () => String.Empty
         }
 
         [Fact]
-        public void OverloadResolution_04()
+        public void OverloadResolution_06()
         {
             var source =
 @"using System;
