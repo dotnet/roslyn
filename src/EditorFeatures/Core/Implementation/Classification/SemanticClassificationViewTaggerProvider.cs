@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _typeMap = typeMap;
         }
 
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
