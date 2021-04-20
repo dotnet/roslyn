@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             private ITextSnapshot? _viewVisualSnapshot;
 
             public event EventHandler<TaggerEventArgs>? Changed;
-            public event EventHandler UIUpdatesPaused { add { } remove { } }
-            public event EventHandler UIUpdatesResumed { add { } remove { } }
 
             public ViewSpanChangedEventSource(IThreadingContext threadingContext, ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
             {

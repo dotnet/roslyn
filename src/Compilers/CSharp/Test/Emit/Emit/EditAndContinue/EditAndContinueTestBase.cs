@@ -275,9 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
     public static class EditAndContinueTestExtensions
     {
-        internal static CSharpCompilation WithSource(this CSharpCompilation compilation, string newSource)
+        internal static CSharpCompilation WithSource(this CSharpCompilation compilation, CSharpTestSource newSource)
         {
-            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(CSharpTestBase.Parse(newSource));
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newSource.GetSyntaxTrees(TestOptions.Regular));
         }
 
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree newTree)

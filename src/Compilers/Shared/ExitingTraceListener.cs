@@ -18,6 +18,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </summary>
     internal sealed class ExitingTraceListener : TraceListener
     {
+        internal ICompilerServerLogger Logger { get; }
+
+        internal ExitingTraceListener(ICompilerServerLogger logger)
+        {
+            Logger = logger;
+        }
+
         public override void Write(string message)
         {
             Exit(message);
@@ -28,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Exit(message);
         }
 
-        internal static void Install()
+        internal static void Install(ICompilerServerLogger logger)
         {
             Trace.Listeners.Clear();
-            Trace.Listeners.Add(new ExitingTraceListener());
+            Trace.Listeners.Add(new ExitingTraceListener(logger));
         }
 
-        private static void Exit(string originalMessage)
+        private void Exit(string originalMessage)
         {
             var builder = new StringBuilder();
             builder.AppendLine($"Debug.Assert failed with message: {originalMessage}");
@@ -43,21 +50,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             builder.AppendLine(stackTrace.ToString());
 
             var message = builder.ToString();
-            var logFullName = GetLogFileFullName();
-            File.WriteAllText(logFullName, message);
-
-            Console.WriteLine(message);
-            Console.WriteLine($"Log at: {logFullName}");
+            Logger.Log(message);
 
             Environment.Exit(1);
-        }
-
-        private static string GetLogFileFullName()
-        {
-            var assembly = typeof(ExitingTraceListener).Assembly;
-            var name = $"{Path.GetFileName(assembly.Location)}.tracelog";
-            var path = Path.GetDirectoryName(assembly.Location);
-            return Path.Combine(path, name);
         }
     }
 }

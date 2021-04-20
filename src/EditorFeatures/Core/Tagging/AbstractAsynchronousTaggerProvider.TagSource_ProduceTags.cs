@@ -44,22 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         private partial class TagSource
         {
-            private void OnUIUpdatesPaused(object sender, EventArgs e)
-            {
-                _workQueue.AssertIsForeground();
-                _previousCachedTagTrees = CachedTagTrees;
-
-                RaisePaused();
-            }
-
-            private void OnUIUpdatesResumed(object sender, EventArgs e)
-            {
-                _workQueue.AssertIsForeground();
-                _previousCachedTagTrees = null;
-
-                RaiseResumed();
-            }
-
             private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             {
                 // First, cancel any previous requests (either still queued, or started).  We no longer
@@ -196,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagTree = new TagSpanIntervalTree<TTag>(
                     buffer,
                     treeForBuffer.SpanTrackingMode,
-                    allTags.Except(tagsToRemove, _tagSpanComparer));
+                    allTags.Except(tagsToRemove, comparer: this));
 
                 var snapshot = e.After;
 
@@ -443,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var tagSpansToInvalidate = new List<ITagSpan<TTag>>(
                     spansToInvalidate.SelectMany(ss => oldTagTree.GetIntersectingSpans(ss)));
 
-                return oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, _tagSpanComparer);
+                return oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, comparer: this);
             }
 
             private async Task RecomputeTagsAsync(
@@ -562,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Do this in a fire and forget manner, but ensure we notify the test harness of this so that it
                     // doesn't try to acquire tag results prior to this work finishing.
                     var asyncToken = this._asyncListener.BeginAsyncOperation(nameof(ProcessNewTagTrees));
-                    Task.Run(async () =>
+                    _ = Task.Run(async () =>
                     {
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
@@ -618,12 +602,81 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseTagsChanged(bufferToChanges, initialTags);
             }
 
-            private DiffResult ComputeDifference(
+            /// <summary>
+            /// Return all the spans that appear in only one of <paramref name="latestTree"/> or <paramref name="previousTree"/>.
+            /// </summary>
+            private static DiffResult ComputeDifference(
                 ITextSnapshot snapshot,
-                TagSpanIntervalTree<TTag> latestSpans,
-                TagSpanIntervalTree<TTag> previousSpans)
+                TagSpanIntervalTree<TTag> latestTree,
+                TagSpanIntervalTree<TTag> previousTree)
             {
-                return Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), _dataSource.TagComparer);
+                var latestSpans = latestTree.GetSpans(snapshot);
+                var previousSpans = previousTree.GetSpans(snapshot);
+
+                using var addedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
+                using var removedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
+                using var latestEnumerator = latestSpans.GetEnumerator();
+                using var previousEnumerator = previousSpans.GetEnumerator();
+
+                var added = addedPool.Object;
+                var removed = removedPool.Object;
+
+                var latest = NextOrDefault(latestEnumerator);
+                var previous = NextOrDefault(previousEnumerator);
+
+                while (latest != null && previous != null)
+                {
+                    var latestSpan = latest.Span;
+                    var previousSpan = previous.Span;
+
+                    if (latestSpan.Start < previousSpan.Start)
+                    {
+                        added.Add(latestSpan);
+                        latest = NextOrDefault(latestEnumerator);
+                    }
+                    else if (previousSpan.Start < latestSpan.Start)
+                    {
+                        removed.Add(previousSpan);
+                        previous = NextOrDefault(previousEnumerator);
+                    }
+                    else
+                    {
+                        // If the starts are the same, but the ends are different, report the larger
+                        // region to be conservative.
+                        if (previousSpan.End > latestSpan.End)
+                        {
+                            removed.Add(previousSpan);
+                            latest = NextOrDefault(latestEnumerator);
+                        }
+                        else if (latestSpan.End > previousSpan.End)
+                        {
+                            added.Add(latestSpan);
+                            previous = NextOrDefault(previousEnumerator);
+                        }
+                        else
+                        {
+                            if (!EqualityComparer<TTag>.Default.Equals(latest.Tag, previous.Tag))
+                                added.Add(latestSpan);
+
+                            latest = NextOrDefault(latestEnumerator);
+                            previous = NextOrDefault(previousEnumerator);
+                        }
+                    }
+                }
+
+                while (latest != null)
+                {
+                    added.Add(latest.Span);
+                    latest = NextOrDefault(latestEnumerator);
+                }
+
+                while (previous != null)
+                {
+                    removed.Add(previous.Span);
+                    previous = NextOrDefault(previousEnumerator);
+                }
+
+                return new DiffResult(added, removed);
             }
 
             /// <summary>
@@ -634,12 +687,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 _workQueue.AssertIsForeground();
 
-                // If we're currently pausing updates to the UI, then just use the tags we had before we
-                // were paused so that nothing changes.  
-                //
                 // We're on the UI thread, so it's safe to access these variables.
-                var map = _previousCachedTagTrees ?? this.CachedTagTrees;
-                map.TryGetValue(buffer, out var tags);
+                this.CachedTagTrees.TryGetValue(buffer, out var tags);
                 return tags;
             }
 

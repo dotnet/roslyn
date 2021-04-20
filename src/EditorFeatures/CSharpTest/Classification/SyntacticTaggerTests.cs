@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -18,11 +19,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
+    [UseExportProvider]
     public class SyntacticTaggerTests
     {
         [WorkItem(1032665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19822"), Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task TestTagsChangedForEntireFile()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestTagsChangedForPortionThatChanged()
         {
             var code =
 @"class Program2
@@ -33,13 +35,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             using var workspace = TestWorkspace.CreateCSharp(code);
             var document = workspace.Documents.First();
             var subjectBuffer = document.GetTextBuffer();
+
             var checkpoint = new Checkpoint();
+
+            var notificationService = workspace.GetService<IForegroundNotificationService>();
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
+                new SyntacticClassificationTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                    notificationService,
+                    typeMap: null,
+                    AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
-                workspace.GetService<IForegroundNotificationService>(),
+                notificationService,
                 AsynchronousOperationListenerProvider.NullListener,
-                null,
-                new SyntacticClassificationTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), null, null, null));
+                typeMap: null,
+                diffTimeout: TimeSpan.MaxValue);
 
             // Capture the expected value before the await, in case it changes.
             var expectedLength = subjectBuffer.CurrentSnapshot.Length;
@@ -55,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             };
 
             await checkpoint.Task;
-            Assert.Equal(1, actualVersionNumber);
+            Assert.Equal(0, actualVersionNumber);
             Assert.Equal(expectedLength, actualLength);
             Assert.Equal(1, callstacks.Count);
 
@@ -69,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             // assigning expected here and verifying in the event handler, because the
             // event handler can't run until we await.
             await checkpoint.Task;
-            Assert.Equal(2, actualVersionNumber);
-            Assert.Equal(expectedLength, actualLength);
+            Assert.Equal(1, actualVersionNumber);
+            Assert.Equal(37, actualLength);
             Assert.Equal(2, callstacks.Count);
         }
     }
