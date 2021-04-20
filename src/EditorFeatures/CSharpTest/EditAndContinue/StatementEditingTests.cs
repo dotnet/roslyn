@@ -5619,7 +5619,7 @@ class C
             edits.VerifySemanticDiagnostics(
                 activeStatements: ActiveStatementsDescription.Empty,
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "M", "local function"));
+                Diagnostic(RudeEditKind.Insert, "M", FeaturesResources.local_function));
         }
 
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]

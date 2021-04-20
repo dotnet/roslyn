@@ -5132,7 +5132,7 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "void goo()", "method"));
+                Diagnostic(RudeEditKind.Insert, "void goo()", FeaturesResources.method));
         }
 
         [Fact]
@@ -10517,7 +10517,7 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "a = 1", "field"));
+                Diagnostic(RudeEditKind.Insert, "a = 1", FeaturesResources.field));
         }
 
         [Fact]
@@ -11007,7 +11007,7 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "int P", "auto-property"));
+                Diagnostic(RudeEditKind.Insert, "int P", FeaturesResources.auto_property));
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
