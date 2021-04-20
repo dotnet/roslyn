@@ -2207,25 +2207,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool result = true;
 
-            if (methodOpt?.ContainingType?.IsInterface == true)
+            if (methodOpt?.ContainingType?.IsInterface == true && methodOpt.IsStatic && methodOpt.IsAbstract)
             {
-                if (methodOpt.IsStatic && methodOpt.IsAbstract)
+                if (constrainedToTypeOpt is not TypeParameterSymbol)
                 {
-                    if (constrainedToTypeOpt is not TypeParameterSymbol)
+                    Error(diagnostics, ErrorCode.ERR_BadAbstractStaticMemberAccess, node);
+                    return false;
+                }
+
+                if (Compilation.SourceModule != methodOpt.ContainingModule)
+                {
+                    result = CheckFeatureAvailability(node, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
+
+                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadAbstractStaticMemberAccess, node);
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
                         return false;
-                    }
-
-                    if (Compilation.SourceModule != methodOpt.ContainingModule)
-                    {
-                        result = CheckFeatureAvailability(node, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
-
-                        if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
-                            return false;
-                        }
                     }
                 }
             }

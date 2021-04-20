@@ -785,6 +785,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_AddressOfMethodGroupInExpressionTree, node);
                 }
+                else if (method is not null && method.IsAbstract && method.IsStatic)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                }
             }
 
             CheckReceiverIfField(node.ReceiverOpt);

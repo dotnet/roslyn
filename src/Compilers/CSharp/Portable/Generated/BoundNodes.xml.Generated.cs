@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFunctionPointerLoad : BoundExpression
     {
-        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol type, bool hasErrors)
+        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol? constrainedToTypeOpt, TypeSymbol type, bool hasErrors)
             : base(BoundKind.FunctionPointerLoad, syntax, type, hasErrors)
         {
 
@@ -1050,9 +1050,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.TargetMethod = targetMethod;
+            this.ConstrainedToTypeOpt = constrainedToTypeOpt;
         }
 
-        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol type)
+        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol? constrainedToTypeOpt, TypeSymbol type)
             : base(BoundKind.FunctionPointerLoad, syntax, type)
         {
 
@@ -1060,20 +1061,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.TargetMethod = targetMethod;
+            this.ConstrainedToTypeOpt = constrainedToTypeOpt;
         }
 
 
         public MethodSymbol TargetMethod { get; }
 
+        public TypeSymbol? ConstrainedToTypeOpt { get; }
+
         public new TypeSymbol Type => base.Type!;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitFunctionPointerLoad(this);
 
-        public BoundFunctionPointerLoad Update(MethodSymbol targetMethod, TypeSymbol type)
+        public BoundFunctionPointerLoad Update(MethodSymbol targetMethod, TypeSymbol? constrainedToTypeOpt, TypeSymbol type)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(targetMethod, this.TargetMethod) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(targetMethod, this.TargetMethod) || !TypeSymbol.Equals(constrainedToTypeOpt, this.ConstrainedToTypeOpt, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundFunctionPointerLoad(this.Syntax, targetMethod, type, this.HasErrors);
+                var result = new BoundFunctionPointerLoad(this.Syntax, targetMethod, constrainedToTypeOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9877,8 +9881,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
         {
+            TypeSymbol? constrainedToTypeOpt = this.VisitType(node.ConstrainedToTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.TargetMethod, type);
+            return node.Update(node.TargetMethod, constrainedToTypeOpt, type);
         }
         public override BoundNode? VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
@@ -11226,16 +11231,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
         {
             MethodSymbol targetMethod = GetUpdatedSymbol(node, node.TargetMethod);
+            TypeSymbol? constrainedToTypeOpt = GetUpdatedSymbol(node, node.ConstrainedToTypeOpt);
             BoundFunctionPointerLoad updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(targetMethod, infoAndType.Type!);
+                updatedNode = node.Update(targetMethod, constrainedToTypeOpt, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(targetMethod, node.Type);
+                updatedNode = node.Update(targetMethod, constrainedToTypeOpt, node.Type);
             }
             return updatedNode;
         }
@@ -13538,6 +13544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node, object? arg) => new TreeDumperNode("functionPointerLoad", null, new TreeDumperNode[]
         {
             new TreeDumperNode("targetMethod", node.TargetMethod, null),
+            new TreeDumperNode("constrainedToTypeOpt", node.ConstrainedToTypeOpt, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

@@ -333,6 +333,7 @@
   <!-- Represents a resolved AddressOf function pointer. Not used in initial binding. -->
   <Node Name="BoundFunctionPointerLoad" Base="BoundExpression">
     <Field Name="TargetMethod" Type="MethodSymbol"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
