@@ -131,5 +131,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
+    <!-- Explicit reference to avoid missing package warning -->
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
+    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
   </ItemGroup>
 </Project>

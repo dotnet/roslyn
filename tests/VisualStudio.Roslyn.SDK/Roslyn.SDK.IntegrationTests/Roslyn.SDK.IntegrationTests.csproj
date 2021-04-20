@@ -31,6 +31,9 @@
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="VsixTesting.Xunit" Version="$(VsixTestingXunitVersion)" />
+    <!-- Explicit reference to avoid missing package warning -->
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
+    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
   </ItemGroup>
 
   <ItemGroup>
