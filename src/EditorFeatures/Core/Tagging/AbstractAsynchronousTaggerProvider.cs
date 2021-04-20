@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
+        /// <summary>
+        /// How long the tagger should wait after hearing about an event before recomputing tags.
+        /// </summary>
         protected abstract TaggerDelay EventChangeDelay { get; }
 
         internal IAccurateTagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
