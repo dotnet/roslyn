@@ -25,21 +25,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 
-        internal TypeDeclarationSyntax GetSyntax()
+        internal RecordDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
-            return (TypeDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+            return (RecordDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
         protected override ParameterListSyntax GetParameterList()
         {
-            var record = (RecordDeclarationSyntax)GetSyntax();
+            var record = GetSyntax();
             return record.ParameterList!;
         }
 
         protected override CSharpSyntaxNode? GetInitializer()
         {
-            var record = (RecordDeclarationSyntax)GetSyntax();
+            var record = GetSyntax();
             return record.PrimaryConstructorBaseTypeIfClass;
         }
 

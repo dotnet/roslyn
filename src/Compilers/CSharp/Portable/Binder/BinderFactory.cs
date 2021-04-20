@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InMethodBinder GetRecordConstructorInMethodBinder(SynthesizedRecordConstructor constructor)
         {
-            var recordDecl = (RecordDeclarationSyntax)constructor.GetSyntax();
+            var recordDecl = constructor.GetSyntax();
             Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
             var extraInfo = NodeUsage.ConstructorBodyOrInitializer;

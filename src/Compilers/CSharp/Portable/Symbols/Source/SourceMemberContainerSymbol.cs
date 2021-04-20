@@ -2980,7 +2980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var compilation = DeclaringCompilation;
                     builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
-                    if (syntax is RecordDeclarationSyntax { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
+                    if (syntax is { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
                     {
                         builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
                     }
