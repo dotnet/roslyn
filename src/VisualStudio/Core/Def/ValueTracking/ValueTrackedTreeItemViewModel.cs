@@ -23,8 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     {
         private bool _childrenCalculated;
         private readonly Solution _solution;
-        private readonly IClassificationFormatMap _classificationFormatMap;
-        private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IGlyphService _glyphService;
         private readonly IValueTrackingService _valueTrackingService;
         private readonly ValueTrackedItem _trackedItem;
@@ -53,9 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _solution = solution;
             _glyphService = glyphService;
             _valueTrackingService = valueTrackingService;
-
-            _classificationFormatMap = treeViewModel.ClassificationFormatMap;
-            _classificationTypeMap = treeViewModel.ClassificationTypeMap;
 
             if (children.IsDefaultOrEmpty)
             {
