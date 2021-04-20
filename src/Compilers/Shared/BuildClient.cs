@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             _language = language;
             _compileFunc = compileFunc;
             _logger = logger;
-            _createServerFunc = createServerFunc ?? BuildServerConnection.TryCreateServerCore;
+            _createServerFunc = createServerFunc ?? BuildServerConnection.TryCreateServer;
             _timeoutOverride = timeoutOverride;
         }
 
@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths, requestId: requestId).ExitCode;
         }
-
 
         /// <summary>
         /// Run a compilation through the compiler server and print the output
@@ -226,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     buildPaths.SdkDirectory,
                     buildPaths.TempDirectory);
 
-                var buildResponseTask = BuildServerConnection.RunServerCompilationCoreAsync(
+                var buildResponseTask = BuildServerConnection.RunServerCompilationAsync(
                     requestId ?? Guid.NewGuid(),
                     _language,
                     arguments,

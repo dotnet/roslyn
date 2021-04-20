@@ -77,34 +77,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static bool IsCompilerServerSupported => GetPipeNameForPath("") is object;
 
-        public static Task<BuildResponse> RunServerCompilationAsync(
-            Guid requestId,
-            RequestLanguage language,
-            string? sharedCompilationId,
-            List<string> arguments,
-            BuildPathsAlt buildPaths,
-            string? keepAlive,
-            string? libEnvVariable,
-            ICompilerServerLogger logger,
-            CancellationToken cancellationToken)
-        {
-            var pipeNameOpt = sharedCompilationId ?? GetPipeNameForPath(buildPaths.ClientDirectory);
-
-            return RunServerCompilationCoreAsync(
-                requestId,
-                language,
-                arguments,
-                buildPaths,
-                pipeNameOpt,
-                keepAlive,
-                libEnvVariable,
-                timeoutOverride: null,
-                createServerFunc: TryCreateServerCore,
-                logger: logger,
-                cancellationToken: cancellationToken);
-        }
-
-        internal static async Task<BuildResponse> RunServerCompilationCoreAsync(
+        internal static async Task<BuildResponse> RunServerCompilationAsync(
             Guid requestId,
             RequestLanguage language,
             List<string> arguments,
@@ -423,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
         }
 
-        internal static bool TryCreateServerCore(string clientDir, string pipeName, ICompilerServerLogger logger)
+        internal static bool TryCreateServer(string clientDir, string pipeName, ICompilerServerLogger logger)
         {
             var serverInfo = GetServerProcessInfo(clientDir, pipeName);
 

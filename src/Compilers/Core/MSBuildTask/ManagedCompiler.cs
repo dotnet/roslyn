@@ -539,17 +539,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     sdkDir: null,
                     tempDir: tempDir);
 
+                var pipeName = !string.IsNullOrEmpty(SharedCompilationId)
+                    ? SharedCompilationId
+                    : BuildServerConnection.GetPipeNameForPath(buildPaths.ClientDirectory);
+
                 // Note: using ToolArguments here (the property) since
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
                 var responseTask = BuildServerConnection.RunServerCompilationAsync(
                     requestId,
                     Language,
-                    RoslynString.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
                     GetArguments(ToolArguments, responseFileCommands).ToList(),
                     buildPaths,
+                    pipeName: pipeName,
                     keepAlive: null,
-                    libEnvVariable: LibDirectoryToUse(),
+                    libDirectory: LibDirectoryToUse(),
+                    timeoutOverride: null,
+                    createServerFunc: BuildServerConnection.TryCreateServer,
                     logger: logger,
                     cancellationToken: _sharedCompileCts.Token);
 
