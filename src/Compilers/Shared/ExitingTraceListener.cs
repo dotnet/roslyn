@@ -52,7 +52,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var message = builder.ToString();
             Logger.Log(message);
 
-            Environment.Exit(1);
+            // Use FailFast so that the process fails rudely and goes through 
+            // windows error reporting (on Windows at least). This will allow our 
+            // CI environment to capture crash dumps for future investigation
+            Environment.FailFast(message);
         }
     }
 }
