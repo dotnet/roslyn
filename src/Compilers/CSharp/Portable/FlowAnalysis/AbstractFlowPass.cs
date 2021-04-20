@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        private void EnterRegionIfNeeded(BoundNode node)
+        protected void EnterRegionIfNeeded(BoundNode node)
         {
             if (TrackingRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before)
             {
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.regionPlace = RegionPlace.Inside;
         }
 
-        private void LeaveRegionIfNeeded(BoundNode node)
+        protected void LeaveRegionIfNeeded(BoundNode node)
         {
             if (TrackingRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside)
             {
@@ -2783,7 +2783,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(innerCondAccess.Receiver);
                     expr = innerCondAccess.AccessExpression;
 
-                    // PROTOTYPE(improved-definite-assignment): Add NullableWalker implementation and tests which exercises this.
                     // The savedState here represents the scenario where 0 or more of the access expressions could have been evaluated.
                     // e.g. after visiting `a?.b(x = null)?.c(x = new object())`, the "state when not null" of `x` is NotNull, but the "state when maybe null" of `x` is MaybeNull.
                     Join(ref savedState, ref State);

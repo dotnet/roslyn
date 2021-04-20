@@ -3992,6 +3992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(improved-definite-assignment): eventually, GetSlotsToMarkAsNotNullable should be removed
         private void LearnFromNonNullTest(BoundExpression expression, ref LocalState state)
         {
             if (expression.Kind == BoundKind.AwaitableValuePlaceholder)
@@ -4158,20 +4159,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression leftOperand = node.LeftOperand;
             BoundExpression rightOperand = node.RightOperand;
 
-            TypeWithState leftResult = VisitRvalueWithState(leftOperand);
-            TypeWithState rightResult;
-
+            // PROTOTYPE(improved-definite-assignment):
+            // Definite assignment has another special case for when the LHS is a non-null constant (a literal string for example).
+            // Should we replicate that here?
             if (IsConstantNull(leftOperand))
             {
-                rightResult = VisitRvalueWithState(rightOperand);
+                VisitRvalue(leftOperand);
+                Visit(rightOperand);
+                var rightUnconditionalResult = ResultType;
                 // Should be able to use rightResult for the result of the operator but
                 // binding may have generated a different result type in the case of errors.
-                SetResultType(node, TypeWithState.Create(node.Type, rightResult.State));
+                SetResultType(node, TypeWithState.Create(node.Type, rightUnconditionalResult.State));
                 return null;
             }
 
-            var whenNotNull = this.State.Clone();
-            LearnFromNonNullTest(leftOperand, ref whenNotNull);
+            VisitPossibleConditionalAccess(leftOperand, out var whenNotNull);
+            TypeWithState leftResult = ResultType;
+            Unsplit();
             LearnFromNullTest(leftOperand, ref this.State);
 
             bool leftIsConstant = leftOperand.ConstantValue != null;
@@ -4180,21 +4184,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUnreachable();
             }
 
-            rightResult = VisitRvalueWithState(rightOperand);
+            Visit(rightOperand);
+            TypeWithState rightResult = ResultType;
 
-            Join(ref this.State, ref whenNotNull);
-
-            if (rightOperand.ConstantValue?.IsBoolean ?? false)
+            if (whenNotNull.IsConditionalState)
             {
                 Split();
-                if (rightOperand.ConstantValue.BooleanValue)
-                {
-                    StateWhenFalse = whenNotNull;
-                }
-                else
-                {
-                    StateWhenTrue = whenNotNull;
-                }
+            }
+
+            if (IsConditionalState)
+            {
+                Join(ref StateWhenTrue, ref whenNotNull.IsConditionalState ? ref whenNotNull.StateWhenTrue : ref whenNotNull.State);
+                Join(ref StateWhenFalse, ref whenNotNull.IsConditionalState ? ref whenNotNull.StateWhenFalse : ref whenNotNull.State);
+            }
+            else
+            {
+                Debug.Assert(!whenNotNull.IsConditionalState);
+                Join(ref State, ref whenNotNull.State);
             }
 
             var leftResultType = leftResult.Type;
@@ -4259,12 +4265,112 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
+        // PROTOTYPE(improved-definite-assignment):
+        // this is not used outside 'VisitPossibleConditionalAccess' yet, but is expected to be used
+        // when refactoring 'VisitBinaryOperatorChildren'
+        private bool TryVisitConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
+        {
+            var (conversion, access) = node switch
+            {
+                BoundConditionalAccess ca => (null, ca),
+                BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } conv when isAcceptableConversion(ca, innerConversion) => (conv, ca),
+                _ => default
+            };
+
+            if (access is object)
+            {
+                EnterRegionIfNeeded(access);
+                Unsplit();
+                VisitConditionalAccess(access, out stateWhenNotNull);
+                if (conversion is object)
+                {
+                    var operandType = ResultType;
+                    TypeWithAnnotations explicitType = conversion.ConversionGroupOpt?.ExplicitType ?? default;
+                    bool fromExplicitCast = explicitType.HasType;
+                    TypeWithAnnotations targetType = fromExplicitCast ? explicitType : TypeWithAnnotations.Create(conversion.Type);
+                    Debug.Assert(targetType.HasType);
+                    var result = VisitConversion(conversion,
+                        access,
+                        conversion.Conversion,
+                        targetType,
+                        operandType,
+                        checkConversion: true,
+                        fromExplicitCast,
+                        useLegacyWarnings: true,
+                        assignmentKind: AssignmentKind.Assignment);
+                    SetResultType(conversion, result);
+                }
+                Debug.Assert(!IsConditionalState);
+                LeaveRegionIfNeeded(access);
+                return true;
+            }
+
+            stateWhenNotNull = default;
+            return false;
+
+            // "State when not null" cannot propagate out of a conditional access if its conversion can return null when the input is non-null.
+            bool isAcceptableConversion(BoundConditionalAccess operand, Conversion conversion)
+            {
+                if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
+                {
+                    return true;
+                }
+
+                var method = conversion.Method;
+                Debug.Assert(method is not null);
+                Debug.Assert(method.ParameterCount is 1);
+
+                // if input is not allowed to be null, then assume "state when not null" can propagate out
+                var param = method.Parameters[0];
+                var paramAnnotations = GetParameterAnnotations(param);
+                var paramType = ApplyLValueAnnotations(param.TypeWithAnnotations, paramAnnotations);
+                if ((paramAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0
+                    || paramType.ToTypeWithState().IsNotNull)
+                {
+                    return true;
+                }
+
+                if (method.ReturnNotNullIfParameterNotNull.Contains(param.Name))
+                {
+                    return true;
+                }
+
+                // if the return is allowed to be null for a non-null input, we can't propagate out the "state when not null".
+                var returnState = ApplyUnconditionalAnnotations(method.ReturnTypeWithAnnotations.ToTypeWithState(), method.ReturnTypeFlowAnalysisAnnotations);
+                return returnState.IsNotNull;
+            }
+        }
+
+        private void VisitPossibleConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
+        {
+            if (!TryVisitConditionalAccess(node, out stateWhenNotNull))
+            {
+                // in case we *didn't* have a conditional access, the only thing we learn in the "state when not null"
+                // is that the top-level expression was non-null.
+                Visit(node);
+                stateWhenNotNull = PossiblyConditionalState.Create(this);
+                var slot = MakeSlot(node);
+                if (slot > -1)
+                {
+                    if (IsConditionalState)
+                    {
+                        LearnFromNonNullTest(slot, ref stateWhenNotNull.StateWhenTrue);
+                        LearnFromNonNullTest(slot, ref stateWhenNotNull.StateWhenFalse);
+                    }
+                    else
+                    {
+                        LearnFromNonNullTest(slot, ref stateWhenNotNull.State);
+                    }
+                }
+            }
+        }
+
+        private void VisitConditionalAccess(BoundConditionalAccess node, out PossiblyConditionalState stateWhenNotNull)
         {
             Debug.Assert(!IsConditionalState);
 
             var receiver = node.Receiver;
-            _ = VisitRvalueWithState(receiver);
+            VisitRvalue(receiver);
             _currentConditionalReceiverVisitResult = _visitResult;
             var previousConditionalAccessSlot = _lastConditionalAccessSlot;
 
@@ -4279,18 +4385,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In the when-null branch, the receiver is known to be maybe-null.
                 // In the other branch, the receiver is known to be non-null.
                 LearnFromNullTest(receiver, ref receiverState);
-                LearnFromNonNullTest(receiver, ref this.State);
-                var nextConditionalAccessSlot = MakeSlot(receiver);
-                if (nextConditionalAccessSlot > 0 && receiver.Type?.IsNullableType() == true)
-                    nextConditionalAccessSlot = GetNullableOfTValueSlot(receiver.Type, nextConditionalAccessSlot, out _);
-
-                _lastConditionalAccessSlot = nextConditionalAccessSlot;
+                makeAndAdjustReceiverSlot(receiver);
             }
 
-            var accessTypeWithAnnotations = VisitLvalueWithAnnotations(node.AccessExpression);
-            TypeSymbol accessType = accessTypeWithAnnotations.Type;
+            // We want to preserve stateWhenNotNull from accesses in the same "chain":
+            // a?.b(out x)?.c(out y); // expected to preserve stateWhenNotNull from both ?.b(out x) and ?.c(out y)
+            // but not accesses in nested expressions:
+            // a?.b(out x, c?.d(out y)); // expected to preserve stateWhenNotNull from a?.b(out x, ...) but not from c?.d(out y)
+            BoundExpression expr = node.AccessExpression;
+            while (expr is BoundConditionalAccess innerCondAccess)
+            {
+                // we assume that non-conditional accesses can never contain conditional accesses from the same "chain".
+                // that is, we never have to dig through non-conditional accesses to find and handle conditional accesses.
+                VisitRvalue(innerCondAccess.Receiver);
+                _currentConditionalReceiverVisitResult = _visitResult;
+                makeAndAdjustReceiverSlot(innerCondAccess.Receiver);
+
+                // The receiverState here represents the scenario where 0 or more of the access expressions could have been evaluated.
+                // e.g. after visiting `a?.b(x = null)?.c(x = new object())`, the "state when not null" of `x` is NotNull, but the "state when maybe null" of `x` is MaybeNull.
+                Join(ref receiverState, ref State);
+
+                expr = innerCondAccess.AccessExpression;
+            }
+
+            Debug.Assert(expr is BoundExpression);
+            Visit(expr);
+
+            expr = node.AccessExpression;
+            while (expr is BoundConditionalAccess innerCondAccess)
+            {
+                // The resulting nullability of each nested conditional access is the same as the resulting nullability of the rightmost access.
+                SetAnalyzedNullability(innerCondAccess, _visitResult);
+                expr = innerCondAccess.AccessExpression;
+            }
+            Debug.Assert(expr is BoundExpression);
+            var slot = MakeSlot(expr);
+            if (slot > -1)
+            {
+                if (IsConditionalState)
+                {
+                    LearnFromNonNullTest(slot, ref StateWhenTrue);
+                    LearnFromNonNullTest(slot, ref StateWhenFalse);
+                }
+                else
+                {
+                    LearnFromNonNullTest(slot, ref State);
+                }
+            }
+
+            stateWhenNotNull = PossiblyConditionalState.Create(this);
+            Unsplit();
             Join(ref this.State, ref receiverState);
 
+            var accessTypeWithAnnotations = LvalueResultType;
+            TypeSymbol accessType = accessTypeWithAnnotations.Type;
             var oldType = node.Type;
             var resultType =
                 oldType.IsVoidType() || oldType.IsErrorType() ? oldType :
@@ -4302,6 +4450,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResultType(node, TypeWithState.Create(resultType, NullableFlowState.MaybeDefault));
             _currentConditionalReceiverVisitResult = default;
             _lastConditionalAccessSlot = previousConditionalAccessSlot;
+
+            void makeAndAdjustReceiverSlot(BoundExpression receiver)
+            {
+                var slot = MakeSlot(receiver);
+                if (slot > 0 && receiver.Type?.IsNullableType() == true)
+                    slot = GetNullableOfTValueSlot(receiver.Type, slot, out _);
+
+                _lastConditionalAccessSlot = slot;
+                if (slot > -1)
+                    LearnFromNonNullTest(slot, ref State);
+            }
+        }
+
+        public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
+        {
+            VisitConditionalAccess(node, out _);
             return null;
         }
 
