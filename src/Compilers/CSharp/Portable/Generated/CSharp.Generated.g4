@@ -550,6 +550,7 @@ pattern
   | parenthesized_pattern
   | recursive_pattern
   | relational_pattern
+  | slice_pattern
   | type_pattern
   | unary_pattern
   | var_pattern
@@ -594,7 +595,7 @@ parenthesized_pattern
   ;
 
 recursive_pattern
-  : type? positional_pattern_clause? property_pattern_clause? variable_designation?
+  : type? positional_pattern_clause? length_pattern_clause? property_pattern_clause? variable_designation?
   ;
 
 positional_pattern_clause
@@ -603,6 +604,10 @@ positional_pattern_clause
 
 subpattern
   : name_colon? pattern
+  ;
+
+length_pattern_clause
+  : '[' pattern ']'
   ;
 
 property_pattern_clause
@@ -616,6 +621,10 @@ relational_pattern
   | '==' expression
   | '>' expression
   | '>=' expression
+  ;
+
+slice_pattern
+  : '..' pattern?
   ;
 
 type_pattern

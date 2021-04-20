@@ -6708,22 +6708,32 @@ done:
                     case SyntaxKind.OpenBracketToken:
                         // Now check for arrays.
                         {
-                            var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
-                            try
+                            // We don't want to consume a sized rank specifier in patterns, we leave it out to parse it as a length pattern.
+                            bool inPattern = (nameOptions & NameOptions.PossiblePattern) != 0;
+                            if (!inPattern || isOmittedSize())
                             {
-                                while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+                                bool sawOpenBracket;
+                                var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
+                                try
                                 {
-                                    var rank = this.ParseArrayRankSpecifier(out _);
-                                    ranks.Add(rank);
+                                    do
+                                    {
+                                        ranks.Add(this.ParseArrayRankSpecifier(out _));
+                                    }
+                                    while ((sawOpenBracket = this.CurrentToken.Kind == SyntaxKind.OpenBracketToken) && (!inPattern || isOmittedSize()));
+
+                                    type = _syntaxFactory.ArrayType(type, ranks);
+                                }
+                                finally
+                                {
+                                    _pool.Free(ranks);
                                 }
 
-                                type = _syntaxFactory.ArrayType(type, ranks);
+                                // If we saw an open bracket that is not followed by an omitted size, it's possibly a length pattern.
+                                if (!sawOpenBracket)
+                                    continue;
                             }
-                            finally
-                            {
-                                _pool.Free(ranks);
-                            }
-                            continue;
+                            goto done; // token not consumed
                         }
                     default:
                         goto done; // token not consumed
@@ -6733,6 +6743,8 @@ done:;
 
             Debug.Assert(type != null);
             return type;
+
+            bool isOmittedSize() => this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBracketToken;
         }
 
         private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
