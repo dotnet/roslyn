@@ -112,7 +112,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-#Disable Warning BC40000 ' Type or member is obsolete
         <ExportLanguageService(GetType(IClassificationService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
         Private Class NoCompilationEditorClassificationService
             Implements IClassificationService
@@ -123,6 +122,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Sub
 
             Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
+            End Sub
+
+            Public Sub AddSyntacticClassifications(workspace As Workspace, root As SyntaxNode, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddSyntacticClassifications
             End Sub
 
             Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
@@ -136,12 +138,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IClassificationService.AdjustStaleClassification
             End Function
 
-            Public Function GetDataToCacheAsync(document As Document, cancellationToken As CancellationToken) As ValueTask(Of Object) Implements IClassificationService.GetDataToCacheAsync
-                Return New ValueTask(Of Object)
-            End Function
-
             Public Function ComputeSyntacticChangeRangeAsync(oldDocument As Document, newDocument As Document, timeout As TimeSpan, cancellationToken As CancellationToken) As ValueTask(Of TextChangeRange?) Implements IClassificationService.ComputeSyntacticChangeRangeAsync
                 Return New ValueTask(Of TextChangeRange?)
+            End Function
+
+            Public Function ComputeSyntacticChangeRange(workspace As Workspace, oldRoot As SyntaxNode, newRoot As SyntaxNode, timeout As TimeSpan, cancellationToken As CancellationToken) As TextChangeRange? Implements IClassificationService.ComputeSyntacticChangeRange
+                Return Nothing
             End Function
         End Class
     End Class
