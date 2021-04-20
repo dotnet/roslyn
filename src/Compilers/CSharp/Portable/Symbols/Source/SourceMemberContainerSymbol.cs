@@ -2484,17 +2484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>> StaticInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>>.GetInstance();
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>> InstanceInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>>.GetInstance();
             public bool HaveIndexers;
-
-            private TypeDeclarationSyntax? _recordDeclarationWithParameters;
-            public TypeDeclarationSyntax? RecordDeclarationWithParameters
-            {
-                get { return _recordDeclarationWithParameters; }
-                set
-                {
-                    Debug.Assert(value is RecordDeclarationSyntax);
-                    _recordDeclarationWithParameters = value;
-                }
-            }
+            public RecordDeclarationSyntax? RecordDeclarationWithParameters;
 
             public SynthesizedRecordConstructor? RecordPrimaryConstructor;
             public bool IsNullableEnabledForInstanceConstructorsAndFields;
@@ -2560,7 +2550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers;
             public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers;
             public readonly bool HaveIndexers;
-            public readonly TypeDeclarationSyntax? RecordDeclarationWithParameters;
+            public readonly RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public readonly SynthesizedRecordConstructor? RecordPrimaryConstructor;
             public readonly bool IsNullableEnabledForInstanceConstructorsAndFields;
             public readonly bool IsNullableEnabledForStaticConstructorsAndFields;
@@ -2576,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers,
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> instanceInitializers,
                 bool haveIndexers,
-                TypeDeclarationSyntax? recordDeclarationWithParameters,
+                RecordDeclarationSyntax? recordDeclarationWithParameters,
                 SynthesizedRecordConstructor? recordPrimaryConstructor,
                 bool isNullableEnabledForInstanceConstructorsAndFields,
                 bool isNullableEnabledForStaticConstructorsAndFields,
@@ -2588,7 +2578,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
                 Debug.Assert(recordDeclarationWithParameters is object == recordPrimaryConstructor is object);
-                Debug.Assert(recordDeclarationWithParameters is null or RecordDeclarationSyntax);
 
                 this.NonTypeMembers = nonTypeMembers;
                 this.StaticInitializers = staticInitializers;
@@ -2958,12 +2947,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
                         var recordDecl = (RecordDeclarationSyntax)syntax;
-                        noteRecordParameters(recordDecl, recordDecl.ParameterList, builder, diagnostics);
+                        var parameterList = recordDecl.ParameterList;
+                        noteRecordParameters(recordDecl, parameterList, builder, diagnostics);
                         AddNonTypeMembers(builder, recordDecl.Members, diagnostics);
 
                         // We will allow declaring parameterless constructors
                         // Tracking issue https://github.com/dotnet/roslyn/issues/52240
-                        var parameterList = recordDecl.ParameterList;
                         if (syntax.Kind() == SyntaxKind.RecordStructDeclaration && parameterList?.ParameterCount == 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, parameterList.Location);
@@ -2976,7 +2965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void noteRecordParameters(TypeDeclarationSyntax syntax, ParameterListSyntax? parameterList, DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
+            void noteRecordParameters(RecordDeclarationSyntax syntax, ParameterListSyntax? parameterList, DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
             {
                 if (parameterList is null)
                 {
@@ -2991,7 +2980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var compilation = DeclaringCompilation;
                     builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
-                    if (syntax is RecordDeclarationSyntax { PrimaryConstructorBaseType: { ArgumentList: { } baseParamList } })
+                    if (syntax is RecordDeclarationSyntax { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
                     {
                         builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
                     }
@@ -3448,10 +3437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            ParameterListSyntax? paramList = declaredMembersAndInitializers.RecordDeclarationWithParameters is RecordDeclarationSyntax recordDecl
-                ? recordDecl.ParameterList
-                : null;
-
+            ParameterListSyntax? paramList = declaredMembersAndInitializers.RecordDeclarationWithParameters?.ParameterList;
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
             var fieldsByName = PooledDictionary<string, Symbol>.GetInstance();
             var membersSoFar = builder.GetNonTypeMembers(declaredMembersAndInitializers);

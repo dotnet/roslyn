@@ -140,17 +140,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InMethodBinder GetRecordConstructorInMethodBinder(SynthesizedRecordConstructor constructor)
         {
-            TypeDeclarationSyntax typeDecl = constructor.GetSyntax();
-            Debug.Assert(typeDecl is RecordDeclarationSyntax);
+            var recordDecl = (RecordDeclarationSyntax)constructor.GetSyntax();
+            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
             var extraInfo = NodeUsage.ConstructorBodyOrInitializer;
-            var key = BinderFactoryVisitor.CreateBinderCacheKey(typeDecl, extraInfo);
+            var key = BinderFactoryVisitor.CreateBinderCacheKey(recordDecl, extraInfo);
 
             if (!_binderCache.TryGetValue(key, out Binder resultBinder))
             {
                 // Ctors cannot be generic
                 Debug.Assert(constructor.Arity == 0, "Generic Ctor, What to do?");
-                resultBinder = new InMethodBinder(constructor, GetInRecordBodyBinder(typeDecl));
+                resultBinder = new InMethodBinder(constructor, GetInRecordBodyBinder(recordDecl));
 
                 _binderCache.TryAdd(key, resultBinder);
             }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (InMethodBinder)resultBinder;
         }
 
-        internal Binder GetInRecordBodyBinder(TypeDeclarationSyntax typeDecl)
+        internal Binder GetInRecordBodyBinder(RecordDeclarationSyntax typeDecl)
         {
             Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration);
 

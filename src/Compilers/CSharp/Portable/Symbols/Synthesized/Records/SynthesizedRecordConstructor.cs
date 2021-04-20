@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override CSharpSyntaxNode? GetInitializer()
         {
             var record = (RecordDeclarationSyntax)GetSyntax();
-            Debug.Assert(record.Kind() == SyntaxKind.RecordDeclaration || record.PrimaryConstructorBaseType is null);
-            return record.PrimaryConstructorBaseType;
+            return record.PrimaryConstructorBaseTypeIfClass;
         }
 
         protected override bool AllowRefOrOut => false;

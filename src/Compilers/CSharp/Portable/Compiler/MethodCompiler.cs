@@ -1973,9 +1973,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is RecordDeclarationSyntax)
+                if (containerNode is RecordDeclarationSyntax recordDecl)
                 {
-                    outerBinder = binderFactory.GetInRecordBodyBinder((TypeDeclarationSyntax)containerNode);
+                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
                 }
                 else
                 {

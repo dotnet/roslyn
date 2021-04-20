@@ -671,8 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 if (node is BaseListSyntax)
                 {
-                    if (node.Parent is InterfaceDeclarationSyntax or StructDeclarationSyntax
-                        || node.Parent.Kind() == SyntaxKind.RecordStructDeclaration)
+                    if (node.Parent.IsKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
                     {
                         typeKindValue = TypeKindOptions.Interface;
                         return true;

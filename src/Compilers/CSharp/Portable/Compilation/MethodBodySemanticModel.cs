@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (MemberSymbol is SynthesizedRecordConstructor primaryCtor &&
                 primaryCtor.GetSyntax() is RecordDeclarationSyntax recordDecl &&
-                Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == recordDecl.PrimaryConstructorBaseType)
+                Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == recordDecl.PrimaryConstructorBaseTypeIfClass)
             {
                 var binder = this.GetEnclosingBinder(position);
                 if (binder != null)
