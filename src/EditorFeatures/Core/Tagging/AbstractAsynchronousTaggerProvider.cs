@@ -101,7 +101,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return null;
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            return new Tagger(ThreadingContext, AsyncListener, _notificationService, tagSource, subjectBuffer) as ITagger<T>;
+            var tagger = new Tagger(tagSource);
+            if (tagger is not ITagger<T> result)
+            {
+                tagger.Dispose();
+                return null;
+            }
+
+            return result;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
