@@ -2684,11 +2684,49 @@ class C
     }
 }
 ";
+            var capabilities = new ManagedEditAndContinueCapabilities(ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.NewTypeDefinition);
+
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
                 activeStatements: ActiveStatementsDescription.Empty,
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                capabilities,
+                Diagnostic(RudeEditKind.Insert, "b", "lambda"));
+        }
+
+        [Fact]
+        public void Lambdas_Insert_FirstInClass_NotSupported()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var g = new Func<int, int>(b => b);
+    }
+}
+";
+            var capabilities = new ManagedEditAndContinueCapabilities(ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.NewTypeDefinition);
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                activeStatements: ActiveStatementsDescription.Empty,
+                capabilities,
+                // TODO: https://github.com/dotnet/roslyn/issues/52759
+                // This is incorrect, there should be no rude edit reported
                 Diagnostic(RudeEditKind.Insert, "b", "lambda"));
         }
 

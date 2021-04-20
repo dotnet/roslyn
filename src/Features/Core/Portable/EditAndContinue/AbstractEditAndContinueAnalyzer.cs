@@ -3595,11 +3595,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     if (!map.Reverse.ContainsKey(newLambda))
                     {
-                        if ((IsLocalFunction(newLambda) && !capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType)) ||
-                           (!IsLocalFunction(newLambda) && !capabilities.HasCapability(ManagedEditAndContinueCapability.NewTypeDefinition)))
+                        if (!CanAddNewLambda(newLambda, capabilities, matchedLambdas))
                         {
-                            // New local functions mean new methods in existing classes, so need to make sure the runtime supports that
-                            // New lambdas mean creating new helper classes, so need to make sure the runtime supports that
                             diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Insert, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
                         }
 
@@ -3641,6 +3638,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             reverseCapturesMap.Free();
             newCapturesToClosureScopes.Free();
             oldCapturesToClosureScopes.Free();
+        }
+
+        private bool CanAddNewLambda(SyntaxNode newLambda, ManagedEditAndContinueCapabilities capabilities, IReadOnlyDictionary<SyntaxNode, LambdaInfo>? matchedLambdas)
+        {
+            // New local functions mean new methods in existing classes
+            if (IsLocalFunction(newLambda))
+            {
+                return capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
+            }
+
+            // New lambdas sometimes mean creating new helper classes, and sometimes mean new methods in exising helper classes
+            // Unfortunately we are limited here in what we can do here. See: https://github.com/dotnet/roslyn/issues/52759
+
+            // If there is already a lambda in the method then the new lambda would result in a new method in the existing helper class.
+            // This check is redundant with the below, once the limitation in the referenced issue is resolved
+            if (matchedLambdas is { Count: > 0 })
+            {
+                return capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
+            }
+
+            // If there is already a lambda in the class then the new lambda would result in a new method in the existing helper class.
+            // If there isn't already a lambda in the class then the new lambda would result in a new helper class.
+            // Unfortunately right now we can't determine which of these is true so we have to just check both capabilities instead.
+            return capabilities.HasCapability(ManagedEditAndContinueCapability.NewTypeDefinition) &&
+                capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
         }
 
         private void ReportMultiScopeCaptures(
