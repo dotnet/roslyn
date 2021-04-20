@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -74,8 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// accumulated text changes since last tag calculation
             /// </summary>
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
-            private object _state_doNotAccessDirecty;
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? _cachedTagTrees_doNotAccessDirectly;
+            private object? _state_doNotAccessDirecty;
 
             /// <summary>
             /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? CachedTagTrees
             {
                 get
                 {
@@ -186,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private object State
+            private object? State
             {
                 get
                 {
@@ -264,9 +262,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)),
                     initialTags: false);
             }
-
-            private static T NextOrDefault<T>(IEnumerator<T> enumerator)
-                => enumerator.MoveNext() ? enumerator.Current : default;
         }
     }
 }

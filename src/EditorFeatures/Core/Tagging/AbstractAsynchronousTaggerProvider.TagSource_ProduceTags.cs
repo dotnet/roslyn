@@ -669,6 +669,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 return new DiffResult(added, removed);
+
+                static ITagSpan<TTag> NextOrDefault(IEnumerator<ITagSpan<TTag>> enumerator)
+                    => enumerator.MoveNext() ? enumerator.Current : null;
             }
 
             /// <summary>
