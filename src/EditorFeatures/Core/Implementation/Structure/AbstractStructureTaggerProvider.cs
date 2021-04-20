@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -50,6 +53,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
 
+        protected override bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer)
+        {
+            // If we can't find this doc, or outlining is not enabled for it, no need to computed anything synchronously.
+
+            var openDocument = subjectBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            if (openDocument == null)
+                return false;
+
+            var workspace = openDocument.Project.Solution.Workspace;
+            if (!workspace.Options.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
+                return false;
+
+            // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
+            // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
+            var isMetadataAsSource = workspace.Kind == WorkspaceKind.MetadataAsSource;
+            if (isMetadataAsSource)
+                return true;
+
+            // If we contain any #region sections, we want to collapse those automatically on open the first
+            // time a doc is ever opened.  So we need to compute the initial tags synchronously in order to
+            // do that.
+            if (ContainsRegionTag(subjectBuffer.CurrentSnapshot))
+                return true;
+
+            return false;
+
+            static bool ContainsRegionTag(ITextSnapshot textSnapshot)
+            {
+                foreach (var line in textSnapshot.Lines)
+                {
+                    if (StartsWithRegionTag(line))
+                        return true;
+                }
+
+                return false;
+
+                static bool StartsWithRegionTag(ITextSnapshotLine line)
+                {
+                    var start = line.GetFirstNonWhitespacePosition();
+                    return start != null && line.StartsWith(start.Value, "#region", ignoreCase: true);
+                }
+            }
+        }
+
         protected sealed override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // We listen to the following events:
@@ -76,9 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, TaggerDelay.NearImmediate));
         }
 
-        /// <summary>
-        /// Keep this in sync with <see cref="ProduceTagsSynchronously"/>
-        /// </summary>
         protected sealed override async Task ProduceTagsAsync(
             TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
@@ -99,37 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 var blockStructure = await outliningService.GetBlockStructureAsync(
                         documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
 
-                ProcessSpans(
-                    context, documentSnapshotSpan.SnapshotSpan, outliningService,
-                    blockStructure.Spans);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        /// <summary>
-        /// Keep this in sync with <see cref="ProduceTagsAsync"/>
-        /// </summary>
-        protected sealed override void ProduceTagsSynchronously(
-            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
-        {
-            try
-            {
-                var document = documentSnapshotSpan.Document;
-                if (document == null)
-                    return;
-
-                // Let LSP handle producing tags in the cloud scenario
-                if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
-                    return;
-
-                var outliningService = BlockStructureService.GetService(document);
-                if (outliningService == null)
-                    return;
-
-                var blockStructure = outliningService.GetBlockStructure(document, context.CancellationToken);
                 ProcessSpans(
                     context, documentSnapshotSpan.SnapshotSpan, outliningService,
                     blockStructure.Spans);

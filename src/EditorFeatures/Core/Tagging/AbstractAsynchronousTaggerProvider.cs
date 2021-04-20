@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
 
+        protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
+
 #if DEBUG
         public readonly string StackTrace;
 #endif
@@ -88,15 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        internal IAccurateTagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        internal ITagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
-            {
                 return null;
-            }
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            return new Tagger(ThreadingContext, AsyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
+            return new Tagger(ThreadingContext, AsyncListener, _notificationService, tagSource, subjectBuffer) as ITagger<T>;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         /// <summary>
         /// Produce tags for the given context.
-        /// Keep in sync with <see cref="ProduceTagsSynchronously(TaggerContext{TTag})"/>
         /// </summary>
         protected virtual async Task ProduceTagsAsync(TaggerContext<TTag> context)
         {
@@ -188,21 +187,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
         }
 
-        /// <summary>
-        /// Produce tags for the given context.
-        /// Keep in sync with <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>
-        /// </summary>
-        protected void ProduceTagsSynchronously(TaggerContext<TTag> context)
-        {
-            foreach (var spanToTag in context.SpansToTag)
-            {
-                context.CancellationToken.ThrowIfCancellationRequested();
-                ProduceTagsSynchronously(
-                    context, spanToTag,
-                    GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan));
-            }
-        }
-
         private static int? GetCaretPosition(SnapshotPoint? caretPosition, SnapshotSpan snapshotSpan)
         {
             return caretPosition.HasValue && caretPosition.Value.Snapshot == snapshotSpan.Snapshot
@@ -211,21 +195,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
             => Task.CompletedTask;
-
-        protected virtual void ProduceTagsSynchronously(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
-        {
-            // By default we implement the sync version of this by blocking on the async version.
-            //
-            // The benefit of this is that all taggers can implicitly be used as IAccurateTaggers
-            // without any code changes.
-            // 
-            // However, the drawback is that it means the UI thread might be blocked waiting for 
-            // tasks to be scheduled and run on the threadpool. 
-            //
-            // Taggers that need to be called accurately should override this method to produce
-            // results quickly if possible.
-            ProduceTagsAsync(context, spanToTag, caretPosition).Wait(context.CancellationToken);
-        }
 
         internal TestAccessor GetTestAccessor()
             => new(this);

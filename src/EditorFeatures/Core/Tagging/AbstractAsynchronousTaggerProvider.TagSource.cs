@@ -68,7 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
             private object _state_doNotAccessDirecty;
-            private bool _upToDate_doNotAccessDirectly = false;
+
+            /// <summary>
+            /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
+            /// <see langword="true"/> for <see cref="AbstractAsynchronousTaggerProvider{TTag}.ComputeInitialTagsSynchronously"/>,
+            /// then we'll want to synchronously block then and only then for tags.
+            /// </summary>
+            private bool _firstTagsRequest = true;
 
             #endregion
 
@@ -91,10 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 IForegroundNotificationService notificationService)
                 : base(dataSource.ThreadingContext)
             {
+                this.AssertIsForeground();
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
-                {
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
-                }
 
                 _subjectBuffer = subjectBuffer;
                 _textViewOpt = textViewOpt;
@@ -113,17 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                ComputeInitialTags();
-            }
-
-            private void ComputeInitialTags()
-            {
-                // Note: we always kick this off to the new UI pump instead of computing tags right
-                // on this thread.  The reason for that is that we may be getting created at a time
-                // when the view itself is initializing.  As such the view is not in a state where
-                // we want code touching it.
                 RegisterNotification(
-                    () => RecomputeTagsForeground(initialTags: true),
+                    () => RecomputeTagsForeground(initialTags: true, synchronous: false),
                     delay: 0,
                     cancellationToken: GetCancellationToken(initialTags: true));
             }
@@ -190,21 +186,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     _workQueue.AssertIsForeground();
                     _state_doNotAccessDirecty = value;
-                }
-            }
-
-            private bool UpToDate
-            {
-                get
-                {
-                    _workQueue.AssertIsForeground();
-                    return _upToDate_doNotAccessDirectly;
-                }
-
-                set
-                {
-                    _workQueue.AssertIsForeground();
-                    _upToDate_doNotAccessDirectly = value;
                 }
             }
 
