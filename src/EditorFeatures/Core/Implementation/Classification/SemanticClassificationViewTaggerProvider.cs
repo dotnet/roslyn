@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext,
-                   listenerProvider.GetListener(FeatureAttribute.Classification),
-                   notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
         {
             _typeMap = typeMap;
         }
