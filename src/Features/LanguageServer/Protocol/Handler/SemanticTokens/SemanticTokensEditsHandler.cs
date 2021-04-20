@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var edits = new SemanticTokensEdits
             {
                 Edits = editArray,
-                ResultId = request.PreviousResultId,
+                ResultId = request.PreviousResultId
             };
 
             return edits;
