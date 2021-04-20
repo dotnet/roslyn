@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var editArray = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData);
             if (editArray.Length != 0)
             {
+                // If we have edits, generate a new ResultId. Otherwise, re-use the previous one.
                 resultId = _tokensCache.GetNextResultId();
                 var updatedTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
                 await _tokensCache.UpdateCacheAsync(
