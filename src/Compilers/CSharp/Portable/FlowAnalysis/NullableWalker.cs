@@ -9105,7 +9105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operand = node.Operand;
             var typeExpr = node.TargetType;
 
-            var result = base.VisitIsOperator(node);
+            VisitRvalue(operand);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
 
             Split();
@@ -9117,7 +9117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitTypeExpression(typeExpr);
             SetNotNullResult(node);
-            return result;
+            return null;
         }
 
         public override BoundNode? VisitAsOperator(BoundAsOperator node)
