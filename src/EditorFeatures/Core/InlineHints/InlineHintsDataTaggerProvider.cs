@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints);
         }
 
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
