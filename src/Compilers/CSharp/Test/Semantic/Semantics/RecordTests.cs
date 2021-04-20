@@ -21434,7 +21434,7 @@ record C : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (13,16): error CS8861: Unexpected argument list.
                 // record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21480,7 +21480,7 @@ partial record C : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (17,24): error CS8861: Unexpected argument list.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21533,10 +21533,10 @@ partial record C : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (13,24): error CS8861: Unexpected argument list.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(13, 24),
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 24),
                 // (17,24): error CS8861: Unexpected argument list.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21595,7 +21595,7 @@ partial record C : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (17,24): error CS8861: Unexpected argument list.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21684,7 +21684,7 @@ partial record C(int X, int Y) : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (13,24): error CS8861: Unexpected argument list.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(13, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X, Y)").WithLocation(13, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21883,7 +21883,7 @@ class C : Base(X)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("X", "Base.Base(int)").WithLocation(11, 7),
                 // (11,15): error CS8861: Unexpected argument list.
                 // class C : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(11, 15)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(11, 15)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21920,7 +21920,7 @@ struct C : Base(X)
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS8861: Unexpected argument list.
                 // struct C : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(8, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21957,7 +21957,7 @@ interface C : Base(X)
             comp.VerifyEmitDiagnostics(
                 // (8,19): error CS8861: Unexpected argument list.
                 // interface C : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(8, 19)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(8, 19)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -22360,7 +22360,7 @@ interface I {}
             comp.VerifyDiagnostics(
                 // (11,15): error CS8861: Unexpected argument list.
                 // class C : Base(GetInt(X, out var xx) + xx, Y), I
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(11, 15),
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 15),
                 // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
                 //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
@@ -29351,6 +29351,120 @@ record C(int P)
                 // (2,14): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'int' to match positional parameter 'P'.
                 // record C(int P)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "int", "P").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        public void InterfaceWithParameters()
+        {
+            var src = @"
+public interface I
+{
+}
+
+record R(int X) : I()
+{
+}
+
+record R2(int X) : I(X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,20): error CS8861: Unexpected argument list.
+                // record R(int X) : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 20),
+                // (10,21): error CS8861: Unexpected argument list.
+                // record R2(int X) : I(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 21),
+                // (10,21): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                // record R2(int X) : I(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(10, 21)
+                );
+        }
+
+        [Fact]
+        public void InterfaceWithParameters_RecordClass()
+        {
+            var src = @"
+public interface I
+{
+}
+
+record class R(int X) : I()
+{
+}
+
+record class R2(int X) : I(X)
+{
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (6,26): error CS8861: Unexpected argument list.
+                // record class R(int X) : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 26),
+                // (10,27): error CS8861: Unexpected argument list.
+                // record class R2(int X) : I(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 27),
+                // (10,27): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                // record class R2(int X) : I(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(10, 27)
+                );
+        }
+
+        [Fact]
+        public void InterfaceWithParameters_NoPrimaryConstructor()
+        {
+            var src = @"
+public interface I
+{
+}
+
+record R : I()
+{
+}
+
+record R2 : I(0)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS8861: Unexpected argument list.
+                // record R : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 13),
+                // (10,14): error CS8861: Unexpected argument list.
+                // record R2 : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 14)
+                );
+        }
+
+        [Fact]
+        public void InterfaceWithParameters_Class()
+        {
+            var src = @"
+public interface I
+{
+}
+
+class C : I()
+{
+}
+
+class C2 : I(0)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS8861: Unexpected argument list.
+                // class C : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 12),
+                // (10,13): error CS8861: Unexpected argument list.
+                // class C2 : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 13)
                 );
         }
     }

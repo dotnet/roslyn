@@ -1501,7 +1501,7 @@ tryAgain:
             var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
-            var baseList = this.ParseBaseList(keyword, paramList is object);
+            var baseList = this.ParseBaseList();
             _termState = saveTerm;
 
             // Parse class body
@@ -1801,7 +1801,7 @@ tryAgain:
                 || this.IsCurrentTokenWhereOfConstraintClause();
         }
 
-        private BaseListSyntax ParseBaseList(SyntaxToken typeKeyword, bool haveParameters)
+        private BaseListSyntax ParseBaseList()
         {
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
             {
@@ -1819,11 +1819,6 @@ tryAgain:
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
                 {
                     argumentList = this.ParseParenthesizedArgumentList();
-
-                    if (typeKeyword.Kind != SyntaxKind.RecordKeyword || !haveParameters)
-                    {
-                        argumentList = this.AddErrorToFirstToken(argumentList, ErrorCode.ERR_UnexpectedArgumentList);
-                    }
                 }
 
                 list.Add(argumentList is object ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList) : (BaseTypeSyntax)_syntaxFactory.SimpleBaseType(firstType));

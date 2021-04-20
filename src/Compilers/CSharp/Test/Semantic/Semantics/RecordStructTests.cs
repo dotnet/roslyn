@@ -7395,5 +7395,86 @@ record struct A(int X)
 }";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, SyntaxFactory.TypeDeclaration(SyntaxKind.RecordStructDeclaration, "Point").NormalizeWhitespace().ToString());
         }
+
+        [Fact]
+        public void InterfaceWithParameters()
+        {
+            var src = @"
+public interface I
+{
+}
+
+record struct R(int X) : I()
+{
+}
+
+record struct R2(int X) : I(X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,27): error CS8861: Unexpected argument list.
+                // record struct R(int X) : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 27),
+                // (10,28): error CS8861: Unexpected argument list.
+                // record struct R2(int X) : I(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 28)
+                );
+        }
+
+        [Fact]
+        public void InterfaceWithParameters_NoPrimaryConstructor()
+        {
+            var src = @"
+public interface I
+{
+}
+
+record struct R : I()
+{
+}
+
+record struct R2 : I(0)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,20): error CS8861: Unexpected argument list.
+                // record struct R : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 20),
+                // (10,21): error CS8861: Unexpected argument list.
+                // record struct R2 : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 21)
+                );
+        }
+
+        [Fact]
+        public void InterfaceWithParameters_Struct()
+        {
+            var src = @"
+public interface I
+{
+}
+
+struct C : I()
+{
+}
+
+struct C2 : I(0)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS8861: Unexpected argument list.
+                // struct C : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 13),
+                // (10,14): error CS8861: Unexpected argument list.
+                // struct C2 : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 14)
+                );
+        }
     }
 }
