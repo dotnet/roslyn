@@ -250,7 +250,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var oldProject = args.OldSolution.GetProject(args.ProjectId);
                 var newProject = args.NewSolution.GetProject(args.ProjectId);
 
-                // make sure in case of parse config change, we re-colorize whole document. not just edited section.
+                // In case of parse options change reclassify the doc as it may have affected things
+                // like preprocessor directives.
                 if (Equals(oldProject?.ParseOptions, newProject?.ParseOptions))
                     return;
 
