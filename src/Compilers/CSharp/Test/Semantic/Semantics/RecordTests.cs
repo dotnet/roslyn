@@ -1242,7 +1242,7 @@ record C1(object O1)
     int P3(object o) => 3;
     int P4<T>(T t) => 4;
 }";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P1'
                 // record C(object P1, object P2, object P3, object P4)
@@ -10033,7 +10033,7 @@ class Program
         ((A)b).Z = 9;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(int X, int Y, int Z) : A
@@ -10897,7 +10897,7 @@ record C(object P)
 @"record B(object P1, object P2, object P3, object P4) : A
 {
 }";
-            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            var comp = CreateCompilation(new[] { sourceA, sourceB, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property or field of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
@@ -28970,7 +28970,7 @@ record A(int X)
     public int X = X;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record A(int X)
