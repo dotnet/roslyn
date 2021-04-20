@@ -175,17 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
-            {
-                if (requestedSpans.Count == 0)
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-
-                var buffer = requestedSpans.First().Snapshot.TextBuffer;
-                var tags = _tagSource.TryGetTagIntervalTreeForBuffer(buffer);
-
-                return tags == null
-                    ? SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>()
-                    : tags.GetIntersectingTagSpans(requestedSpans);
-            }
+                => _tagSource.GetTags(requestedSpans);
         }
     }
 }
