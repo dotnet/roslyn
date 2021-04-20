@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             get
             {
-                if (ClassOrStructKeyword.Kind() is SyntaxKind.StructKeyword)
+                if (Kind() == SyntaxKind.RecordStructDeclaration)
                 {
                     return null;
                 }
