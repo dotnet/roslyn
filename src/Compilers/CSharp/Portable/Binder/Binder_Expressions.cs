@@ -8311,15 +8311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static readonly MemberSignatureComparer s_uniqueSignatureFromMethodGroupComparer = new MemberSignatureComparer(
-            considerName: false,
-            considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: true,
-            considerTypeConstraints: false,
-            considerRefKindDifferences: true,
-            considerCallingConvention: false,
-            typeComparison: TypeCompareKind.AllIgnoreOptions);
-
         /// <summary>
         /// Returns one of the methods from the method group if all methods in the method group
         /// have the same signature, ignoring parameter names and custom modifiers. The particular
@@ -8385,7 +8376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = candidate;
                     return true;
                 }
-                if (s_uniqueSignatureFromMethodGroupComparer.Equals(method, candidate))
+                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(method, candidate))
                 {
                     return true;
                 }

@@ -287,6 +287,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerRefKindDifferences: true,
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
+        /// <summary>
+        /// Compare signatures of methods from a method group.
+        /// </summary>
+        internal static readonly MemberSignatureComparer MethodGroupSignatureComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerRefKindDifferences: true,
+            considerCallingConvention: false,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
         // Compare the "unqualified" part of the member name (no explicit part)
         private readonly bool _considerName;
 
@@ -308,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Equality options for parameter types and return types (if return is considered).
         private readonly TypeCompareKind _typeComparison;
 
-        internal MemberSignatureComparer(
+        private MemberSignatureComparer(
             bool considerName,
             bool considerExplicitlyImplementedInterfaces,
             bool considerReturnType,
