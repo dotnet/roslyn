@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
+        protected abstract TaggerDelay EventChangeDelay { get; }
+
         internal IAccurateTagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))

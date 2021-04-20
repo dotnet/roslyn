@@ -140,6 +140,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 _eventSource = eventSource;
             }
 
+            protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
                 => _eventSource;
 
@@ -161,7 +163,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource
         {
             public TestTaggerEventSource()
-                : base(delay: TaggerDelay.NearImmediate)
             {
             }
 
