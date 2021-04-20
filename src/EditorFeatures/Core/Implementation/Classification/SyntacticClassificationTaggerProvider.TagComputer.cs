@@ -221,7 +221,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
             {
-                EnqueueWorkIfThisDocument(args.NewActiveContextDocumentId);
+                if (_workspace == null)
+                    return;
+
+                var documentId = args.NewActiveContextDocumentId;
+                var bufferDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
+                if (bufferDocumentId != documentId)
+                    return;
+
+                _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
@@ -244,18 +252,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 // make sure in case of parse config change, we re-colorize whole document. not just edited section.
                 if (Equals(oldProject?.ParseOptions, newProject?.ParseOptions))
-                    return;
-
-                _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-            }
-
-            private void EnqueueWorkIfThisDocument(DocumentId documentId)
-            {
-                if (_workspace == null)
-                    return;
-
-                var bufferDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-                if (bufferDocumentId != documentId)
                     return;
 
                 _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
