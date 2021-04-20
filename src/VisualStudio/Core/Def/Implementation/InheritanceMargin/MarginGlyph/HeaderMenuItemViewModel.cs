@@ -6,6 +6,15 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
+    /// <summary>
+    /// The view model used for the header of TargetMenuItemViewModel.
+    /// It is used when the context menu contains targets having multiple inheritance relationship.
+    /// In such case, this would be shown as a header for a group of targets.
+    /// e.g.
+    /// 'Implementing Members'
+    /// ----'Bar'
+    /// ----'Foo'
+    /// </summary>
     internal class HeaderMenuItemViewModel : InheritanceMenuItemViewModel
     {
         public HeaderMenuItemViewModel(string displayContent, ImageMoniker imageMoniker, string automationName)

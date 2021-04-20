@@ -8,20 +8,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
-    /// <summary>
-    /// The template selector used by inheritance margin context menu.
-    /// By default a context menu would only create MenuItem for each item. Using this selector to
-    /// let it create separator if the view model is a separator view model.
-    /// </summary>
     internal class MenuItemContainerTemplateSelector : ItemContainerTemplateSelector
     {
         public override DataTemplate SelectTemplate(object item, ItemsControl parentItemsControl)
         {
-            if (item is SeparatorViewModel)
-            {
-                return (DataTemplate)parentItemsControl.FindResource("SeparatorTemplate");
-            }
-
             if (item is HeaderMenuItemViewModel)
             {
                 return (DataTemplate)parentItemsControl.FindResource("HeaderMenuItemTemplate");
@@ -29,12 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             if (item is TargetMenuItemViewModel)
             {
-                return (DataTemplate)parentItemsControl.FindResource("TargetDataTemplate");
+                return (DataTemplate)parentItemsControl.FindResource("TargetMenuItemTemplate");
             }
 
             if (item is MemberMenuItemViewModel)
             {
-                return (DataTemplate)parentItemsControl.FindResource("MemberDataTemplate");
+                return (DataTemplate)parentItemsControl.FindResource("MemberMenuItemTemplate");
             }
 
             throw ExceptionUtilities.Unreachable;

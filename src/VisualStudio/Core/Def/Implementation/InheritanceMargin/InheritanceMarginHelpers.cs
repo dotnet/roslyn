@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
+        public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
         {
             var targetsByRelationship = targets.GroupBy(target => target.RelationToMember).ToImmutableArray();
             if (targetsByRelationship.Length == 1)
@@ -67,21 +67,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // class A : IBar { void Bar() {} }
                 // class B : IBar { void Bar() {} }
                 // for 'IBar', the margin would be I↓. So header is not needed.
-                return targets.SelectAsArray(target => TargetMenuItemViewModel.Create(target, new Thickness(0, 0, 0, 0))).CastArray<MenuItemViewModel>();
+                return targets.SelectAsArray(target => TargetMenuItemViewModel.Create(target, indent: false)).CastArray<InheritanceMenuItemViewModel>();
             }
             else
             {
                 // Otherwise, it means these targets has different relationship,
                 // these targets would be shown in group, and a header should be shown as the first item to indicate the relationship to user.
 
-                using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
+                using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
                 for (var i = 0; i < targetsByRelationship.Length; i++)
                 {
                     var (relationship, targetItems) = targetsByRelationship[i];
                     if (i != targetsByRelationship.Length - 1)
                     {
                         builder.AddRange(CreateMenuItemsWithHeader(targetItems, relationship));
-                        builder.Add(new SeparatorViewModel());
                     }
                     else
                     {
@@ -93,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members)
+        public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members)
         {
             Contract.ThrowIfTrue(members.Length <= 1);
             // For multiple members, check if all the targets have the same inheritance relationship.
@@ -104,33 +103,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 .ToImmutableHashSet();
             if (set.Count == 1)
             {
-                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithNoHeader).CastArray<MenuItemViewModel>();
+                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithNoHeader).CastArray<InheritanceMenuItemViewModel>();
             }
             else
             {
-                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeader).CastArray<MenuItemViewModel>();
+                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeader).CastArray<InheritanceMenuItemViewModel>();
             }
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithHeader(
+        public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemsWithHeader(
             IEnumerable<InheritanceTargetItem> targets,
             InheritanceRelationship relationship)
         {
-            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
+            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch
             {
-                InheritanceRelationship.Implemented => "Implemented members",
-                InheritanceRelationship.Implementing => "Implementing members",
-                InheritanceRelationship.Overriding => "Overriding members",
-                InheritanceRelationship.Overridden => "Overriden members",
+                InheritanceRelationship.Implemented => ServicesVSResources.Implemented_members,
+                InheritanceRelationship.Implementing => ServicesVSResources.Implementing_members,
+                InheritanceRelationship.Overriding => ServicesVSResources.Overriding_members,
+                InheritanceRelationship.Overridden => ServicesVSResources.Overridden_members,
                 _ => throw ExceptionUtilities.UnexpectedValue(relationship)
             };
 
-            var headerViewModel = new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship), "Test");
+            var headerViewModel = new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship), displayContent);
             builder.Add(headerViewModel);
             foreach (var targetItem in targets)
             {
-                builder.Add(TargetMenuItemViewModel.Create(targetItem, new Thickness(20, 0, 0, 0)));
+                //  16 is the width of the image moniker in header.
+                builder.Add(TargetMenuItemViewModel.Create(targetItem, indent: true));
             }
 
             return builder.ToImmutable();

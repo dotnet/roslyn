@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -21,13 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// <summary>
         /// Inheritance Targets for this member.
         /// </summary>
-        public ImmutableArray<MenuItemViewModel> Targets { get; }
+        public ImmutableArray<InheritanceMenuItemViewModel> Targets { get; }
 
         public MemberMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
             string automationName,
-            ImmutableArray<MenuItemViewModel> targets) : base(displayContent, imageMoniker, automationName)
+            ImmutableArray<InheritanceMenuItemViewModel> targets) : base(displayContent, imageMoniker, automationName)
         {
             Targets = targets;
         }
@@ -40,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 member.Glyph.GetImageMoniker(),
                 displayName,
                 member.TargetItems
-                    .SelectAsArray(item => TargetMenuItemViewModel.Create(item, new Thickness(0, 0, 0, 0)))
-                    .CastArray<MenuItemViewModel>());
+                    .SelectAsArray(item => TargetMenuItemViewModel.Create(item, indent: false))
+                    .CastArray<InheritanceMenuItemViewModel>());
         }
 
         public static MemberMenuItemViewModel CreateWithHeader(InheritanceMarginItem member)
@@ -49,14 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var displayName = member.DisplayTexts.JoinText();
             var targetsByRelationship = member.TargetItems.GroupBy(target => target.RelationToMember).ToImmutableArray();
 
-            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
+            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
             for (var i = 0; i < targetsByRelationship.Length; i++)
             {
                 var (relationship, targetItems) = targetsByRelationship[i];
                 if (i != targetsByRelationship.Length - 1)
                 {
                     builder.AddRange(InheritanceMarginHelpers.CreateMenuItemsWithHeader(targetItems, relationship));
-                    builder.Add(new SeparatorViewModel());
                 }
                 else
                 {

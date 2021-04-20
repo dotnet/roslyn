@@ -1726,4 +1726,16 @@ I agree to all of the foregoing:</value>
     <value>Multiple members are inherited on line {0}</value>
     <comment>Line number info is needed for accessibility purpose.</comment>
   </data>
+  <data name="Implemented_members" xml:space="preserve">
+    <value>Implemented members</value>
+  </data>
+  <data name="Implementing_members" xml:space="preserve">
+    <value>Implementing members</value>
+  </data>
+  <data name="Overriding_members" xml:space="preserve">
+    <value>Overriding members</value>
+  </data>
+  <data name="Overridden_members" xml:space="preserve">
+    <value>Overridden members</value>
+  </data>
 </root>

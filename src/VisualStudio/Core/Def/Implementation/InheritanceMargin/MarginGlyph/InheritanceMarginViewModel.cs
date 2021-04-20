@@ -35,22 +35,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// <summary>
         /// ViewModels for the context menu items.
         /// </summary>
-        public ImmutableArray<MenuItemViewModel> MenuItemViewModels { get; }
-
-        public bool HasMultipleMembers { get; }
+        public ImmutableArray<InheritanceMenuItemViewModel> MenuItemViewModels { get; }
 
         private InheritanceMarginViewModel(
             ImageMoniker imageMoniker,
             TextBlock toolTipTextBlock,
             string automationName,
-            ImmutableArray<MenuItemViewModel> menuItemViewModels,
-            bool hasMultipleMembers)
+            ImmutableArray<InheritanceMenuItemViewModel> menuItemViewModels)
         {
             ImageMoniker = imageMoniker;
             ToolTipTextBlock = toolTipTextBlock;
             AutomationName = automationName;
             MenuItemViewModels = menuItemViewModels;
-            HasMultipleMembers = hasMultipleMembers;
         }
 
         public static InheritanceMarginViewModel Create(
@@ -77,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
                 var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member.TargetItems);
-                return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, menuItemViewModels, false);
+                return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, menuItemViewModels);
             }
             else
             {
@@ -89,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // Same automation name can't be set for control for accessibility purpose. So add the line number info.
                 var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine);
-                return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, menuItemViewModels, true);
+                return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, menuItemViewModels);
             }
         }
     }

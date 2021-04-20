@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
-    internal abstract class InheritanceMenuItemViewModel : MenuItemViewModel
+    internal abstract class InheritanceMenuItemViewModel
     {
         /// <summary>
         /// Display content for the target.

@@ -13,7 +13,6 @@
         Click="InheritanceMargin_OnClick"
         MouseEnter="InheritanceMargin_OnMouseEnter"
         MouseLeave="InheritanceMargin_OnMouseLeave">
-
     <Button.Resources>
         <!-- The image shown in the menu item, mark this is non-shared to make sure each menu item has its own image -->
         <imaging:CrispImage x:Key="NonSharedIcon" x:Shared="False" Moniker="{Binding ImageMoniker}"/>
@@ -63,7 +62,6 @@
                 <!-- Style copied from editor -->
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
             <Setter Property="DockPanel.Dock" Value="Top"/>
-            <!-- <Setter Property="Margin" Value="{Binding Margin}" /> -->
             <Setter Property="Padding" Value="0,2,0,2"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -77,7 +75,7 @@
                             </Grid.ColumnDefinitions>
 
                             <Rectangle Name="Bg" Stroke="Transparent" Fill="Transparent" StrokeThickness="0" Grid.ColumnSpan="5"/>
-                            <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="4,1,4,1" Width="16" Height="16" VerticalAlignment="Center"
+                            <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="{Binding Margin}" Width="16" Height="16" VerticalAlignment="Center"
                                               SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
                             <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="4,1,4,1"
                                               VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
@@ -219,51 +217,36 @@
                 </Style>
 
                 <Style x:Key="HeaderMenuItemStyle" TargetType="{x:Type MenuItem}">
-                    <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
                     <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
                     <Setter Property="IsEnabled" Value="False"/>
                     <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.TitleBarInactiveBrushKey}}"/>
-                    <!-- <Setter Property="Background" Value="Transparent"/> -->
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="{x:Type MenuItem}">
-                                <Grid Background="{TemplateBinding Background}">
-                                    <StackPanel FlowDirection="LeftToRight" Orientation="Horizontal" HorizontalAlignment="Left" >
-                                        <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" Moniker="{Binding ImageMoniker}" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="{Binding DisplayContent}"
-                                               Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
-                                    </StackPanel>
-                                </Grid>
+                                <StackPanel FlowDirection="LeftToRight" Orientation="Horizontal" HorizontalAlignment="Stretch" Background="{TemplateBinding Background}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                    <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" Moniker="{Binding ImageMoniker}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding DisplayContent}" Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
                 </Style>
 
-                <!-- DataTemplate for the Separator between inheritance target groups -->
+                <!-- DataTemplate for the header of targets in the context menu -->
                 <!-- The key is referenced from code behind -->
-                <DataTemplate x:Key="SeparatorTemplate" DataType="{x:Type local:SeparatorViewModel}">
-                    <Separator>
-                        <Separator.Template>
-                            <ControlTemplate>
-                                <Rectangle Height="1" Fill="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuSeparatorBrushKey}}" />
-                            </ControlTemplate>
-                        </Separator.Template>
-                    </Separator>
-                </DataTemplate>
-
                 <DataTemplate x:Key="HeaderMenuItemTemplate" DataType="{x:Type local:HeaderMenuItemViewModel}">
                     <MenuItem Style="{StaticResource HeaderMenuItemStyle}" />
                 </DataTemplate>
 
                 <!-- DataTemplate for a member in the context menu -->
                 <!-- The key is referenced from code behind -->
-                <DataTemplate x:Key="MemberDataTemplate" DataType="{x:Type local:MemberMenuItemViewModel}">
+                <DataTemplate x:Key="MemberMenuItemTemplate" DataType="{x:Type local:MemberMenuItemViewModel}">
                     <MenuItem Style="{StaticResource MemberMenuItemStyle}"/>
                 </DataTemplate>
 
                 <!-- DataTemplate for inheritance target in the context menu -->
                 <!-- The key is referenced from code behind -->
-                <DataTemplate x:Key="TargetDataTemplate" DataType="{x:Type local:TargetMenuItemViewModel}">
+                <DataTemplate x:Key="TargetMenuItemTemplate" DataType="{x:Type local:TargetMenuItemViewModel}">
                     <MenuItem Style="{StaticResource TargetMenuItemStyle}"/>
                 </DataTemplate>
             </ContextMenu.Resources>

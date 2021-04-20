@@ -362,6 +362,16 @@
         <target state="new">Id</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implemented_members">
+        <source>Implemented members</source>
+        <target state="new">Implemented members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_members">
+        <source>Implementing members</source>
+        <target state="new">Implementing members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">Em outros operadores</target>
@@ -725,6 +735,16 @@
       <trans-unit id="Other">
         <source>Others</source>
         <target state="translated">Outros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_members">
+        <source>Overridden members</source>
+        <target state="new">Overridden members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overriding_members">
+        <source>Overriding members</source>
+        <target state="new">Overriding members</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
