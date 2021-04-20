@@ -253,12 +253,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
         {
-            var tree = await document.GetSyntaxTreeAsync();
+            var root = await document.GetSyntaxRootAsync();
 
             var service = document.GetLanguageService<ISyntaxClassificationService>();
             var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
 
-            service.AddSyntacticClassifications(tree, span, results, CancellationToken.None);
+            service.AddSyntacticClassifications(root, span, results, CancellationToken.None);
 
             return results.ToImmutableAndFree();
         }
