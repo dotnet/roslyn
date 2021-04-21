@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             public IntroduceParameterDocumentRewriter(AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> service,
                 Document originalDocument,
-                SyntaxGenerator generator,
-                ISyntaxFactsService syntaxFacts,
-                ISemanticFactsService semanticFacts,
                 TExpressionSyntax expression,
                 IMethodSymbol methodSymbol,
                 SyntaxNode containingMethod,
@@ -46,9 +43,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 _service = service;
                 _originalDocument = originalDocument;
-                _generator = generator;
-                _syntaxFacts = syntaxFacts;
-                _semanticFacts = semanticFacts;
+                _generator = SyntaxGenerator.GetGenerator(originalDocument);
+                _syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                _semanticFacts = originalDocument.GetRequiredLanguageService<ISemanticFactsService>();
                 _expression = expression;
                 _methodSymbol = methodSymbol;
                 _containerMethod = containingMethod;
