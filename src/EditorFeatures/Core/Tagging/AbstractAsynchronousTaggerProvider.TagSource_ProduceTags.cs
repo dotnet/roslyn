@@ -92,14 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
                 UpdateTagsForTextChange(e);
                 AccumulateTextChanges(e);
             }
 
             private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
                 var contentChanges = contentChanged.Changes;
                 var count = contentChanges.Count;
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags))
                 {
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private void RecomputeTagsForeground(bool initialTags, bool synchronous)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
                 Contract.ThrowIfTrue(synchronous && !initialTags, "synchronous computation of tags is only allowed for the initial computation");
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // TODO: Update to tag spans from all related documents.
 
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 object newState,
                 bool initialTags)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // Now that we're back on the UI thread, we can safely update our state with
                 // what we've computed.  There is no concern with race conditions now.  For 
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // If this is the first time we're being asked for tags, and we're a tagger that
                 // requires the initial tags be available synchronously on this call, and the 
@@ -689,6 +689,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+
+                this.AssertIsForeground();
 
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
                 var tags = this.TryGetTagIntervalTreeForBuffer(buffer);
