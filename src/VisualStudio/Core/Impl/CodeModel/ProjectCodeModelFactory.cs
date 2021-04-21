@@ -74,8 +74,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     using var _ = _listener.BeginAsyncOperation("CodeModelEvent");
-                    await Task.Delay(15).ConfigureAwait(false);
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
+                    await Task.Delay(15, cancellationToken).ConfigureAwait(false);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     FireEventsForDocument(documentId);
                 });
             }
