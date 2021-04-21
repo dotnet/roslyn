@@ -22,6 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     internal partial class AbstractAsynchronousTaggerProvider<TTag>
     {
+        /// <summary>
+        /// <para>The <see cref="TagSource"/> is the core part of our asynchronous
+        /// tagging infrastructure. It is the coordinator between <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>s,
+        /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
+        /// 
+        /// <para>The <see cref="TagSource"/> is the type that actually owns the
+        /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
+        /// the tag source starts the computation and calls <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> to build
+        /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
+        /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
+        /// <see cref="CachedTagTrees"/></para>
+        /// 
+        /// <para>There is a one-to-many relationship between <see cref="TagSource"/>s
+        /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
+        /// subject buffers at once) have their own providers and tag source derivations.</para>
+        /// </summary>
         private sealed partial class TagSource : ForegroundThreadAffinitizedObject
         {
             /// <summary>
@@ -126,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
                 else
                 {
-                    _tagsAddedWorkQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                    _normalPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                         _dataSource.AddedTagNotificationDelay.ComputeTimeDelay(),
                         ProcessTagsChangedAsync,
                         equalityComparer: null,
