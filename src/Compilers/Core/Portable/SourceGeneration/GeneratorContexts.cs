@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -17,9 +18,9 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticBag _diagnostics;
 
-        private readonly AdditionalSourcesCollection _additionalSources;
+        private readonly ArrayBuilder<GeneratedSourceText> _additionalSources;
 
-        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxReceiver = (syntaxReceiver as SyntaxContextReceiverAdaptor)?.Receiver;
             SyntaxContextReceiver = (syntaxReceiver is SyntaxContextReceiverAdaptor) ? null : syntaxReceiver;
             CancellationToken = cancellationToken;
-            _additionalSources = additionalSources;
+            _additionalSources = ArrayBuilder<GeneratedSourceText>.GetInstance();
             _diagnostics = new DiagnosticBag();
         }
 
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
-        public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
+        public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(new GeneratedSourceText(hintName, sourceText));
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation 

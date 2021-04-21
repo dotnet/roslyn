@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -50,12 +47,7 @@ namespace Microsoft.CodeAnalysis
 
                 var output = context.GenerateSource((context, contextBuilder) =>
                 {
-
-                    // PROTOTYPE(source-generators): VB extensions
-                    AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
-
-                    // PROTOTYPE(source-generators): options/additionaltexts/configoptions
-                    var oldContext = contextBuilder.ToExecutionContext(asc, context.CancellationToken);
+                    var oldContext = contextBuilder.ToExecutionContext(context.CancellationToken);
 
                     // PROTOTYPE(source-generators):If this throws, we'll wrap it in a user func as expected. We probably *should* do that for the rest of this code though
                     // So we probably need an internal version that doesn't wrap it? Maybe we can just construct the nodes manually.
@@ -73,41 +65,6 @@ namespace Microsoft.CodeAnalysis
                     }
                 });
                 ctx.RegisterOutput(output);
-
-
-                //ctx.Sources.Compilation
-
-                //// https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
-                //for (int i = 0; i < state.Generators.Length; i++)
-                //{
-                //    var generator = state.Generators[i];
-                //    var generatorState = stateBuilder[i];
-
-                //    // don't try and generate if initialization or syntax walk failed
-                //    if (generatorState.Exception is object)
-                //    {
-                //        continue;
-                //    }
-                //    Debug.Assert(generatorState.Info.Initialized);
-
-                //    //// we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
-                //    //var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver, CreateSourcesCollection(), cancellationToken);
-                //    //try
-                //    //{
-                //    //    generator.Execute(context);
-                //    //}
-                //    //catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                //    //{
-                //    //    stateBuilder[i] = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
-                //    //    context.Free();
-                //    //    continue;
-                //    //}
-
-                //    //(var sources, var diagnostics) = context.ToImmutableAndFree();
-                //    //stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.OutputNodes, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
-                //    //diagnosticsBag?.AddRange(diagnostics);
-                //}
-                //state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
             });
         }
 
@@ -121,10 +78,10 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxContextReceiver? Receiver;
 
-            public GeneratorExecutionContext ToExecutionContext(AdditionalSourcesCollection asc, CancellationToken cancellationToken)
+            public GeneratorExecutionContext ToExecutionContext(CancellationToken cancellationToken)
             {
                 Debug.Assert(Options is object && ConfigOptions is object);
-                return new GeneratorExecutionContext(Compilation, Options, AdditionalTexts, ConfigOptions, Receiver, asc, cancellationToken);
+                return new GeneratorExecutionContext(Compilation, Options, AdditionalTexts, ConfigOptions, Receiver, cancellationToken);
 
             }
 

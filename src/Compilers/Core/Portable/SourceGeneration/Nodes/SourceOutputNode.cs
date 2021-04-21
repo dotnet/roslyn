@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
-            //TODO: fault handling + all cached optimization. A lot of this seems common across all node types?
-            // yes. except for join. Thats why in the prototype we had a shared base class. Got it.
+            // PROTOTYPE(source-generators):caching, faulted etc. need to extract out the common logic 
 
             var nodeTable = new NodeStateTable<TOutput>.Builder();
 
