@@ -57,27 +57,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _typeMap = typeMap;
         }
 
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.AssertIsForeground();
-            const TaggerDelay Delay = TaggerDelay.Short;
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
             // 
-            // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way we appear
-            // semantically unclassified for a very short amount of time.
-            //
             // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
             return new CompilationAvailableTaggerEventSource(
-                subjectBuffer, Delay,
+                subjectBuffer,
                 ThreadingContext,
                 AsyncListener,
-                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)

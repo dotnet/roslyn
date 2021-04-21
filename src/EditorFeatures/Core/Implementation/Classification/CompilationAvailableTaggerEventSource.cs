@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal class CompilationAvailableTaggerEventSource : ITaggerEventSource
     {
         private readonly ITextBuffer _subjectBuffer;
-        private readonly TaggerDelay _delay;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
@@ -38,13 +37,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         public CompilationAvailableTaggerEventSource(
             ITextBuffer subjectBuffer,
-            TaggerDelay delay,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             params ITaggerEventSource[] eventSources)
         {
             _subjectBuffer = subjectBuffer;
-            _delay = delay;
             _asyncListener = asyncListener;
             _underlyingSource = TaggerEventSources.Compose(eventSources);
 
@@ -86,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _workQueue.EnqueueBackgroundTask(async c =>
                 {
                     await document.Project.GetCompilationAsync(c).ConfigureAwait(false);
-                    this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
+                    this.Changed?.Invoke(this, new TaggerEventArgs());
                 },
                 $"{nameof(CompilationAvailableTaggerEventSource)}.{nameof(OnEventSourceChanged)}",
                 500,
