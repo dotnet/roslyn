@@ -4143,7 +4143,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: Report WRN_NullReferenceReturn for a2, not for a1.
+            // https://github.com/dotnet/roslyn/issues/52827: Report WRN_NullReferenceReturn for a2, not for a1.
             comp.VerifyDiagnostics(
                 // (8,53): warning CS8603: Possible null reference return.
                 //         Func<object> a1 = [return: MaybeNull] () => null;
@@ -4166,7 +4166,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: Report nullability mismatch warning assigning lambda to a2.
+            // https://github.com/dotnet/roslyn/issues/52827: Report nullability mismatch warning assigning lambda to a2.
             comp.VerifyDiagnostics(
                 // (8,50): warning CS8602: Dereference of a possibly null reference.
                 //         Action<object> a1 = ([AllowNull] x) => { x.ToString(); };
@@ -4188,7 +4188,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, DoesNotReturnAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: Report warning that lambda expression in a1 initializer returns.
+            // https://github.com/dotnet/roslyn/issues/52827: Report warning that lambda expression in a1 initializer returns.
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -4319,7 +4319,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, NotNullWhenAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: Should report WRN_ParameterConditionallyDisallowsNull.
+            // https://github.com/dotnet/roslyn/issues/52827: Should report WRN_ParameterConditionallyDisallowsNull.
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

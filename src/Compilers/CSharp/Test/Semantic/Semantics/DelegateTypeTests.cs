@@ -469,7 +469,7 @@ class Program
 {
     static void Main()
     {
-        Delegate d0 = x0 => { _ = x0.Length; };
+        Delegate d0 = x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; };
         Delegate d1 = (object x1) => { _ = x1.Length; };
         Delegate d2 = (ref object x2) => { _ = x2.Length; };
         Delegate d3 = delegate (object x3) { _ = x3.Length; };
@@ -478,8 +478,11 @@ class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (6,23): error CS8915: The delegate type could not be inferred.
-                //         Delegate d0 = x0 => { _ = x0.Length; };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x0 => { _ = x0.Length; }").WithLocation(6, 23),
+                //         Delegate d0 = x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; }").WithLocation(6, 23),
+                // (6,68): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         Delegate d0 = x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; };
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(6, 68),
                 // (7,47): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Delegate d1 = (object x1) => { _ = x1.Length; };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(7, 47),
@@ -1465,6 +1468,94 @@ class B
                 // (10,13): error CS0648: 'Func<T>' is a type not supported by the language
                 //         d = () => 1;
                 Diagnostic(ErrorCode.ERR_BogusType, "() => 1").WithArguments("System.Func<T>").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void SystemLinqExpressionsExpression_UseSiteErrors()
+        {
+            var sourceA =
+@".assembly mscorlib
+{
+  .ver 0:0:0:0
+}
+.class public System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.ValueType extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.String extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.Type extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Void extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Boolean extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Int32 extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Delegate extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Attribute extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Runtime.CompilerServices.RequiredAttributeAttribute extends System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(class System.Type t) cil managed { ret }
+}
+.class public abstract System.MulticastDelegate extends System.Delegate
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Func`1<T> extends System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig instance !T Invoke() { ldnull throw }
+}
+.class public abstract System.Linq.Expressions.Expression extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Linq.Expressions.LambdaExpression extends System.Linq.Expressions.Expression
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Linq.Expressions.Expression`1<T> extends System.Linq.Expressions.LambdaExpression
+{
+  .custom instance void System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class System.Type) = ( 01 00 FF 00 00 ) 
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        System.Linq.Expressions.Expression e = () => 1;
+    }
+}";
+
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,48): error CS0648: 'Expression<T>' is a type not supported by the language
+                //         System.Linq.Expressions.Expression e = () => 1;
+                Diagnostic(ErrorCode.ERR_BogusType, "() => 1").WithArguments("System.Linq.Expressions.Expression<T>").WithLocation(5, 48));
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]

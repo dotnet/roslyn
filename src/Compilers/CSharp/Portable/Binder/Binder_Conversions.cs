@@ -510,8 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (destination.IsNonGenericExpressionType())
                     {
-                        // PROTOTYPE: Report use-site diagnostics.
                         delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
+                        delegateType.AddUseSiteInfo(ref useSiteInfo);
                     }
                     boundLambda = unboundLambda.Bind(delegateType);
                 }
