@@ -1,0 +1,24 @@
+From d2f8d5091838f862390d7a0580f044406e356c79 Mon Sep 17 00:00:00 2001
+From: dseefeld <dseefeld@microsoft.com>
+Date: Fri, 19 Feb 2021 16:23:52 +0000
+Subject: [PATCH] Remove reference to
+ System.Runtime.InteropServices.WindowsRuntime
+
+---
+ src/Compilers/Core/CommandLine/CompilerServerLogger.cs | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/Compilers/Core/CommandLine/CompilerServerLogger.cs b/src/Compilers/Core/CommandLine/CompilerServerLogger.cs
+index d6c76f4ffb0..900f369ad61 100644
+--- a/src/Compilers/Core/CommandLine/CompilerServerLogger.cs
++++ b/src/Compilers/Core/CommandLine/CompilerServerLogger.cs
+@@ -8,7 +8,6 @@
+ using System.Diagnostics;
+ using System.IO;
+ using System.Linq;
+-using System.Runtime.InteropServices.WindowsRuntime;
+ using System.Text;
+ 
+ namespace Microsoft.CodeAnalysis.CommandLine
+-- 
+2.25.4

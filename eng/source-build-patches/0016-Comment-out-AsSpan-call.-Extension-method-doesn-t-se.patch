@@ -1,0 +1,32 @@
+From b11eebbe5456f5316a9925e25f2813510eb92d08 Mon Sep 17 00:00:00 2001
+From: dseefeld <dseefeld@microsoft.com>
+Date: Thu, 4 Mar 2021 16:25:55 +0000
+Subject: [PATCH] Comment out AsSpan call.  Extension method doesn't seem to be
+ included
+
+---
+ src/Dependencies/Collections/SegmentedList`1.cs | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/Dependencies/Collections/SegmentedList`1.cs b/src/Dependencies/Collections/SegmentedList`1.cs
+index 17d749eaf04..5dee6208c70 100644
+--- a/src/Dependencies/Collections/SegmentedList`1.cs
++++ b/src/Dependencies/Collections/SegmentedList`1.cs
+@@ -1057,11 +1057,11 @@ public void Sort(Comparison<T> comparison)
+ 
+             if (_size > 1)
+             {
+-#if NET
+-                _items.AsSpan(0, _size).Sort(comparison);
+-#else
++// #if NET
++//                 _items.AsSpan(0, _size).Sort(comparison);
++// #else
+                 SegmentedArray.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
+-#endif
++// #endif
+             }
+             _version++;
+         }
+-- 
+2.25.4

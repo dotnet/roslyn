@@ -1,0 +1,39 @@
+From 31918e0bc0089e33a3ee16c5a32914d35e76da34 Mon Sep 17 00:00:00 2001
+From: dseefeld <dseefeld@microsoft.com>
+Date: Wed, 17 Feb 2021 17:43:59 +0000
+Subject: [PATCH] Update CSharpSyntaxGenerator.csproj to build with .NET 6.0
+
+---
+ .../CSharpSyntaxGenerator.csproj                     | 10 +++++-----
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/CSharpSyntaxGenerator.csproj b/src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/CSharpSyntaxGenerator.csproj
+index 2c0800b..73315dc 100644
+--- a/src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/CSharpSyntaxGenerator.csproj
++++ b/src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/CSharpSyntaxGenerator.csproj
+@@ -10,7 +10,7 @@
+     <!-- We build this against netcoreapp3.1 to build the console app version, and against netstandard2.0 for
+          the Source Generator version. -->
+     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+-    <OutputType Condition="'$(TargetFramework)' == 'netcoreapp3.1'">Exe</OutputType>
++    <OutputType Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))">Exe</OutputType>
+     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
+     <IsShipping>false</IsShipping>
+     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+@@ -21,10 +21,10 @@
+   </ItemGroup>
+   <ItemGroup>
+     <!-- If we're building the command line tool, we have to include some dependencies used for grammar generation -->
+-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs" Link="Grammar\WellKnownMemberNames.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+-    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Declarations\DeclarationModifiers.cs" Link="Grammar\DeclarationModifiers.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+-    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+-    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
++    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs" Link="Grammar\WellKnownMemberNames.cs" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
++    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Declarations\DeclarationModifiers.cs" Link="Grammar\DeclarationModifiers.cs" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
++    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
++    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
+
+     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+   </ItemGroup>
+-- 
+2.21.3
