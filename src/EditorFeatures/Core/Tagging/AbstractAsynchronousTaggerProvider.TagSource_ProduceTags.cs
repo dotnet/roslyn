@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -92,14 +91,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
                 UpdateTagsForTextChange(e);
                 AccumulateTextChanges(e);
             }
 
             private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
                 var contentChanges = contentChanged.Changes;
                 var count = contentChanges.Count;
 
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags))
                 {
@@ -154,12 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void RemoveTagsThatIntersectEdit(TextContentChangedEventArgs e)
             {
                 if (!e.Changes.Any())
-                {
-                    return;
-                }
-
-                // We might be able to steal the cached tags from another tag source
-                if (TryStealTagsFromRelatedTagSource(e))
                 {
                     return;
                 }
@@ -203,61 +196,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
 
-            private static bool TryStealTagsFromRelatedTagSource(TextContentChangedEventArgs e)
-            {
-                // see bug 778731
-#if INTERACTIVE
-            // If we don't have a way to find the related buffer, we're done immediately
-            if (bufferToRelatedTagSource == null)
-            {
-                return false;
-            }
-
-            // We can only steal tags if we know where the edit came from, so do we?
-            var editTag = e.EditTag as RestoreHistoryEditTag;
-
-            if (editTag == null)
-            {
-                return false;
-            }
-
-            var originalSpan = editTag.OriginalSpan;
-
-            var relatedTagSource = bufferToRelatedTagSource(originalSpan.Snapshot.TextBuffer);
-            if (relatedTagSource == null)
-            {
-                return false;
-            }
-
-            // Reading the other tag source's cached tags is safe, since this field is allowed to be
-            // accessed from multiple threads and is immutable. We still need to have a local copy
-            // though to play it safe and be a good citizen (well, as good as a citizen that's about
-            // to steal something can be...)
-            var relatedCachedTags = relatedTagSource.cachedTags;
-            TagSpanIntervalTree<TTag> relatedIntervalTree;
-
-            if (!relatedCachedTags.TryGetValue(originalSpan.Snapshot.TextBuffer, out relatedIntervalTree))
-            {
-                return false;
-            }
-
-            // Excellent! Let's build a new interval tree with these tags mapped to our buffer
-            // instead
-            var tagsForThisBuffer = from tagSpan in relatedIntervalTree.GetSpans(originalSpan.Snapshot)
-                                    where tagSpan.Span.IntersectsWith(originalSpan)
-                                    let snapshotSpan = new SnapshotSpan(e.After, tagSpan.SpanStart - originalSpan.Start, tagSpan.Span.Length)
-                                    select new TagSpan<TTag>(snapshotSpan, tagSpan.Tag);
-
-            var intervalTreeForThisBuffer = new TagSpanIntervalTree<TTag>(e.After.TextBuffer, relatedIntervalTree.SpanTrackingMode, tagsForThisBuffer);
-
-            // Update our cached tags
-            UpdateCachedTagsForBuffer(e.After, intervalTreeForThisBuffer);
-            return true;
-#else
-                return false;
-#endif
-            }
-
             /// <summary>
             /// Called on the foreground thread.  Passed a boolean to say if we're computing the
             /// initial set of tags or not.  If we're computing the initial set of tags, we lower
@@ -269,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private void RecomputeTagsForeground(bool initialTags, bool synchronous)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
                 Contract.ThrowIfTrue(synchronous && !initialTags, "synchronous computation of tags is only allowed for the initial computation");
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
@@ -322,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // TODO: Update to tag spans from all related documents.
 
@@ -568,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 object newState,
                 bool initialTags)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // Now that we're back on the UI thread, we can safely update our state with
                 // what we've computed.  There is no concern with race conditions now.  For 
@@ -677,7 +615,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             public TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // If this is the first time we're being asked for tags, and we're a tagger that
                 // requires the initial tags be available synchronously on this call, and the 
