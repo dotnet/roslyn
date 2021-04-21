@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -196,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 bool initialTags, CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
+
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
                 {
                     // Stop any existing work we're currently engaged in
