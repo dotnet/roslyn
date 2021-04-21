@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -199,12 +199,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (insert.Alignment is not null)
                     {
                         analyzedArguments.Arguments.Add(insert.Alignment);
-                        analyzedArguments.Names.Add(SyntaxFactory.IdentifierName("alignment"));
+                        analyzedArguments.Names.Add(("alignment", insert.Alignment.Syntax.Location));
                     }
                     if (insert.Format is not null)
                     {
                         analyzedArguments.Arguments.Add(insert.Format);
-                        analyzedArguments.Names.Add(SyntaxFactory.IdentifierName("format"));
+                        analyzedArguments.Names.Add(("format", insert.Format.Syntax.Location));
                     }
                 }
                 else

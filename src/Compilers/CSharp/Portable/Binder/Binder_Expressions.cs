@@ -2913,7 +2913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                result.Names.Add(nameColonSyntax.Name);
+                result.AddName(nameColonSyntax.Name);
             }
             else if (hasNames)
             {
@@ -8011,7 +8011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argIsRange
                         ? ErrorCode.ERR_ImplicitRangeIndexerWithName
                         : ErrorCode.ERR_ImplicitIndexIndexerWithName,
-                    arguments.Names[0].GetLocation());
+                    arguments.Names[0].Value.Location);
             }
             return true;
 
