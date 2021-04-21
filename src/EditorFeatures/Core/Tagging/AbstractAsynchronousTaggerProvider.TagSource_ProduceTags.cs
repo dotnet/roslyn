@@ -191,19 +191,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// complete almost immediately.  Once open though, our normal delays come into play
             /// so as to not cause a flashy experience.
             /// </summary>
-            private async Task RecomputeTagsForegroundAsync(
-                bool initialTags, CancellationToken cancellationToken)
+            private async Task RecomputeTagsForegroundAsync(bool initialTags, CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
                 {
-                    // Stop any existing work we're currently engaged in
+                    // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
+                    // thread to do the computation. Finally, once new tags have been computed, then we update our state
+                    // again on the foreground.
                     var spansToTag = GetSpansAndDocumentsToTag();
-
-                    // Make a copy of all the data we need while we're on the foreground.  Then
-                    // pass it along everywhere needed.  Finally, once new tags have been computed,
-                    // then we update our state again on the foreground.
                     var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
                     var textChangeRange = this.AccumulatedTextChanges;
                     var oldTagTrees = this.CachedTagTrees;
@@ -545,7 +542,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
-                this.AssertIsForeground();
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 
