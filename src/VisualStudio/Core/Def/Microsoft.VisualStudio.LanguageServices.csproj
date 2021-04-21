@@ -152,17 +152,12 @@
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="VsWebsite.Interop" Version="$(VsWebsiteInteropVersion)" />
     <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
+    <PackageReference Include="NuGet.VisualStudio.Contracts" Version="$(NuGetVisualStudioContractsVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
-
-    <PackageReference Include="NuGet.VisualStudio.Contracts" Version="$(NuGetVisualStudioContractsVersion)" />
     
     <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <!-- Manual exclusions for obsolete interop assemblies -->
-    <PackageReference Include="Microsoft.VisualStudio.ProjectAggregator" Version="$(MicrosoftVisualStudioProjectAggregatorVersion)" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ServicesVSResources.resx" GenerateSource="true" />
