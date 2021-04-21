@@ -224,8 +224,8 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="{x:Type MenuItem}">
                                 <StackPanel FlowDirection="LeftToRight" Orientation="Horizontal" HorizontalAlignment="Stretch" Background="{TemplateBinding Background}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                    <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" Moniker="{Binding ImageMoniker}" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{Binding DisplayContent}" Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}" Margin="{TemplateBinding MenuItem.Padding}" VerticalAlignment="Center"/>
+                                    <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" Moniker="{Binding ImageMoniker}"/>
+                                    <TextBlock Text="{Binding DisplayContent}" Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.TitleBarInactiveTextBrushKey}}" Margin="4,1,4,1"/>
                                 </StackPanel>
                             </ControlTemplate>
                         </Setter.Value>
