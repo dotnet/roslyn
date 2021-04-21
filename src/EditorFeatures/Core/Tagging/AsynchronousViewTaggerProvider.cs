@@ -13,8 +13,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>,
-        IViewTaggerProvider
+    internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, IViewTaggerProvider
         where TTag : ITag
     {
         protected AsynchronousViewTaggerProvider(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
@@ -22,13 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
         }
 
-        // TypeScript still is moving to calling the new constructor that takes an IThreadingContext. Until then, we can fetch one from another service of ours that
-        // already does. When TypeScript moves calling the new constructor, this should be deleted.
+        // TypeScript still is moving to calling the new constructor that does not take a IForegroundNotificationService.
+        // Until then, we can fetch one from another service of ours that already does. When TypeScript moves calling the
+        // new constructor, this should be deleted.
         [Obsolete("This overload exists for TypeScript compatibility only and should not be used in new code.")]
-        protected AsynchronousViewTaggerProvider(
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : this(((Implementation.ForegroundNotification.ForegroundNotificationService)notificationService).ThreadingContext, asyncListener)
+        protected AsynchronousViewTaggerProvider(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener, IForegroundNotificationService _)
+            : base(threadingContext, asyncListener)
         {
         }
 
