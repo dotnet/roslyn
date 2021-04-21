@@ -66,6 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private Task ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
+            const int MinimumDelayBetweenProcessing = 50;
+
             // Now, enqueue foreground work to actually process these documents in a serialized and incremental
             // fashion.  FireEventsForDocument will actually limit how much time it spends firing events so that it
             // doesn't saturate the UI thread.
@@ -82,12 +84,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     // As long as we have events to fire for this document, keep yielding so we don't
                     // bog down the UI thread.
                     while (FireEventsForDocument(documentId))
-                        await Task.Delay(15).ConfigureAwait(true);
+                        await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(true);
 
                     // if we've also taken a lot of time processing documents on the UI thread, yield
                     // so we don't bog things down.
-                    if (stopwatch.Elapsed.TotalMilliseconds > 50)
-                        await Task.Delay(15).ConfigureAwait(true);
+                    if (stopwatch.Elapsed.TotalMilliseconds > MinimumDelayBetweenProcessing)
+                        await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(true);
                 }
             });
 
