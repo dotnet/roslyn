@@ -303,7 +303,6 @@ namespace Microsoft.CodeAnalysis
             walkerBuilder.Free();
 
             // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
-
             var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
             driverStateBuilder.SetInputState(CommonValueSources.Compilation, NodeStateTable<Compilation>.WithSingleItem(compilation, EntryState.Added));
             driverStateBuilder.SetInputState(CommonValueSources.AnalzerConfigOptions, NodeStateTable<AnalyzerConfigOptionsProvider>.WithSingleItem(_state.OptionsProvider, EntryState.Added));
@@ -314,7 +313,6 @@ namespace Microsoft.CodeAnalysis
                 additionalBuiilder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
             }
             driverStateBuilder.SetInputState(CommonValueSources.AdditionalTexts, additionalBuiilder.ToImmutableAndFree());
-
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -347,7 +345,6 @@ namespace Microsoft.CodeAnalysis
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
                     stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.Sources, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
-                    diagnosticsBag?.AddRange(generatorDiagnostics);
                 }
                 catch (UserFunctionException ufe)
                 {

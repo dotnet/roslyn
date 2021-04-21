@@ -12,19 +12,19 @@ namespace Microsoft.CodeAnalysis
     internal static class IncrementalValueSourceExtensions
     {
         // 1 => 1 transform 
-        internal static IncrementalValueSource<U> Transform<T, U>(this IncrementalValueSource<T> source, Func<T, U> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.node, func.WrapUserFunction()));
+        internal static IncrementalValueSource<U> Transform<T, U>(this IncrementalValueSource<T> source, Func<T, U> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // 1 => many (or none) transform
-        internal static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, IEnumerable<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.node, func.WrapUserFunction()));
+        internal static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, IEnumerable<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // collection => collection
-        internal static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, U> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.node, func.WrapUserFunction()));
+        internal static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, U> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // single
-        internal static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, IEnumerable<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.node, func.WrapUserFunction()));
+        internal static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<IEnumerable<T>, IEnumerable<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // join many => many ((source1[0], source2), (source1[0], source2) ...)
-        internal static IncrementalValueSource<(T, IEnumerable<U>)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => new IncrementalValueSource<(T, IEnumerable<U>)>(new JoinNode<T, U>(source1.node, source2.node));
+        internal static IncrementalValueSource<(T, IEnumerable<U>)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => new IncrementalValueSource<(T, IEnumerable<U>)>(new JoinNode<T, U>(source1.Node, source2.Node));
 
         // helper for filtering
         internal static IncrementalValueSource<T> Filter<T>(this IncrementalValueSource<T> source, Func<T, bool> filter)
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis
         // PROTOTYPE(source-generators): naming. Does GenerateSource make it sound like you can't have multiple IncrementalGeneratorOutputs?
 
         // 1 => 1 production
-        internal static IncrementalGeneratorOutput GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => new IncrementalGeneratorOutput(new SourceOutputNode<T>(source.node, action.WrapUserAction()));
+        internal static IncrementalGeneratorOutput GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => new IncrementalGeneratorOutput(new SourceOutputNode<T>(source.Node, action.WrapUserAction()));
 
-        // single => 1 production
+        // PROTOTYPE(source-generators): single => 1 production?
         internal static IncrementalGeneratorOutput GenerateSourceBatch<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, IEnumerable<T>> action) => default;
     }
 }

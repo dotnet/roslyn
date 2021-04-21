@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal class TransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
-        private readonly UserFunc<TInput, IEnumerable<TOutput>> _func;
+        private readonly Func<TInput, IEnumerable<TOutput>> _func;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, UserFunc<TInput, TOutput> userFunc)
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, TOutput> userFunc)
             : this(sourceNode, userFunc: (i) => ImmutableArray.Create(userFunc(i)))
         {
         }
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, UserFunc<TInput, IEnumerable<TOutput>> userFunc)
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, IEnumerable<TOutput>> userFunc)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
