@@ -220,28 +220,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             var modifiedSolution = originalDocument.Project.Solution;
             var syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-            var introduceParameterState = new IntroduceParameterDocumentRewriter(this, originalDocument, expression, methodSymbol, containingMethod, selectedCodeAction, allOccurrences);
+            var rewriter = new IntroduceParameterDocumentRewriter(this, originalDocument, expression, methodSymbol, containingMethod, selectedCodeAction, allOccurrences);
 
             foreach (var (project, projectCallSites) in methodCallSites.GroupBy(kvp => kvp.Key.Project))
             {
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var (document, invocations) in projectCallSites)
                 {
-                    var newRoot = await introduceParameterState.ModifyDocumentAsync(compilation, document, invocations, cancellationToken).ConfigureAwait(false);
+                    var newRoot = await rewriter.RewriteDocumentAsync(compilation, document, invocations, cancellationToken).ConfigureAwait(false);
                     modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, newRoot);
-                    /*if (selectedCodeAction is IntroduceParameterCodeActionKind.Trampoline or IntroduceParameterCodeActionKind.Overload)
-                    {
-
-                        var newRoot = await ModifyDocumentInvocationsTrampolineOverloadAndIntroduceParameterAsync(introduceParameterState,
-                            compilation, document, invocations, insertionIndex).ConfigureAwait(false);
-                        modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, newRoot);
-                    }
-                    else
-                    {
-                        var newRoot = await ModifyDocumentInvocationsAndIntroduceParameterAsync(introduceParameterState,
-                            compilation, document, insertionIndex, invocations).ConfigureAwait(false);
-                        modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, newRoot);
-                    }*/
                 }
             }
 
