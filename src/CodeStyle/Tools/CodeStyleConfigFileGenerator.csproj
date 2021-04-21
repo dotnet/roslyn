@@ -4,7 +4,6 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <NonShipping>true</NonShipping>
     <UseAppHost>false</UseAppHost>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>  
   <ItemGroup>
     <Compile Include="..\..\Analyzers\Core\Analyzers\EnforceOnBuild.cs" Link="EnforceOnBuild.cs" />

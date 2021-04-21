@@ -5,8 +5,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
-    <!-- Automatically generate the necessary assembly binding redirects -->
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <NoWarn>$(NoWarn),CA2007</NoWarn>
   </PropertyGroup>
   <ItemGroup>
