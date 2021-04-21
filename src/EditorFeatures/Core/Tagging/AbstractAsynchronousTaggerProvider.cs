@@ -114,9 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
             {
                 tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener);
-
                 this.StoreTagSource(textViewOpt, subjectBuffer, tagSource);
-                tagSource.Disposed += (s, e) => this.RemoveTagSource(textViewOpt, subjectBuffer);
             }
 
             return tagSource;

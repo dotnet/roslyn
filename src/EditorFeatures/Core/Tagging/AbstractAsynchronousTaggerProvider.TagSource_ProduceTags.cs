@@ -44,16 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         private partial class TagSource
         {
-            private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            {
-                // First, cancel any previous requests (either still queued, or started).  We no longer
-                // want to continue it if new changes have come in.
-                _workQueue.CancelCurrentWork();
-                RegisterNotification(
-                    () => RecomputeTagsForeground(initialTags: false, synchronous: false),
-                    (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
-                    GetCancellationToken(initialTags: false));
-            }
+            private void OnEventSourceChanged(object sender, TaggerEventArgs _)
+                => _eventWorkQueue.AddWork(item: null);
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {

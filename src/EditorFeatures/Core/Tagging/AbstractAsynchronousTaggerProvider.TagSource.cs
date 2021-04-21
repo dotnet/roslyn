@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly AsyncBatchingWorkQueue<object?> _eventWorkQueue;
 
             /// <summary>
-            /// Work queue that collects requests to remove tags and kicks off the work to issue them.
+            /// Work queue that collects high priority requests to call TagsChanged with.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _tagsRemovedWorkQueue;
+            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _highPriTagsChangedQueue;
 
             /// <summary>
-            /// Work queue that collects requests to remove tags and kicks off the work to issue them.
+            /// Work queue that collects normal priority requests to call TagsChanged with.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _tagsAddedWorkQueue;
+            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
 
             #endregion
 
@@ -111,19 +111,28 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     asyncListener,
                     _disposalTokenSource.Token);
 
-                _tagsRemovedWorkQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
-                    ProcessTagsRemovedAsync,
+                    ProcessTagsChangedAsync,
                     equalityComparer: null,
                     asyncListener,
                     _disposalTokenSource.Token);
 
-                _tagsAddedWorkQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
-                    _dataSource.AddedTagNotificationDelay.ComputeTimeDelay(),
-                    ProcessTagsAddedAsync,
-                    equalityComparer: null,
-                    asyncListener,
-                    _disposalTokenSource.Token);
+                if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
+                {
+                    // if the tagger wants added tags to also be near immediate, then we can
+                    // just reuse the single change queue.
+                    _normalPriTagsChangedQueue = _highPriTagsChangedQueue;
+                }
+                else
+                {
+                    _tagsAddedWorkQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                        _dataSource.AddedTagNotificationDelay.ComputeTimeDelay(),
+                        ProcessTagsChangedAsync,
+                        equalityComparer: null,
+                        asyncListener,
+                        _disposalTokenSource.Token);
+                }
 
                 DebugRecordInitialStackTrace();
 
@@ -175,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Stop computing any initial tags if we've been asked for them.
                 _disposalTokenSource.Cancel();
                 _disposed = true;
-                this.Disposed(this, EventArgs.Empty);
+                _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);
 
                 Disconnect();
@@ -201,18 +210,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     _eventSource.Changed -= OnEventSourceChanged;
                 }
-            }
-
-            private void ComputeInitialTags()
-            {
-                // Note: we always kick this off to the new UI pump instead of computing tags right
-                // on this thread.  The reason for that is that we may be getting created at a time
-                // when the view itself is initializing.  As such the view is not in a state where
-                // we want code touching it.
-                RegisterNotification(
-                    () => RecomputeTagsForeground(initialTags: true),
-                    delay: 0,
-                    cancellationToken: GetCancellationToken(initialTags: true));
             }
 
             private ITaggerEventSource CreateEventSource()
