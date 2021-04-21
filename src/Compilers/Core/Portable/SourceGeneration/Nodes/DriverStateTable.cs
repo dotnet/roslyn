@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis
             _tables = tables;
         }
 
-        public class Builder
+        public sealed class Builder
         {
-            private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary<object, IStateTable>.Empty.ToBuilder();
+            private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
 
             private readonly DriverStateTable _previousTable;
 
@@ -51,19 +51,20 @@ namespace Microsoft.CodeAnalysis
                                                   ? (NodeStateTable<T>)_previousTable._tables[source]
                                                   : NodeStateTable<T>.Empty;
 
-                // request the node update its state based and store the new result
+                // request the node update its state based on the current driver table and store the new result
                 var newTable = source.UpdateStateTable(this, previousTable);
                 _tableBuilder[source] = newTable;
                 return newTable;
             }
 
+            // PROTOTYPE: we only test this, but it'll eventually be called as part of saving the state back to the GeneratorDriverState
             public DriverStateTable ToImmutable()
             {
                 // we can compact the tables at this point, as we'll no longer be using them to determine current state
                 var keys = _tableBuilder.Keys.ToArray();
-                for (int i = 0; i < _tableBuilder.Count; i++)
+                foreach (var key in keys)
                 {
-                    _tableBuilder[keys[i]] = _tableBuilder[keys[i]].Compact();
+                    _tableBuilder[key] = _tableBuilder[key].Compact();
                 }
 
                 return new DriverStateTable(_tableBuilder.ToImmutable());

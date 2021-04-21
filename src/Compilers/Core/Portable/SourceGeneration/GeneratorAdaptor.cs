@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     /// Adapts an ISourceGenerator to an incremental generator that
     /// by providng an execution environment that matches the old one
     /// </summary>
-    internal class SourceGeneratorAdaptor : IIncrementalGenerator
+    internal sealed class SourceGeneratorAdaptor : IIncrementalGenerator
     {
         internal ISourceGenerator SourceGenerator { get; }
 
@@ -29,16 +29,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             // executes the old generator in the new framework
 
             GeneratorInitializationContext oldContext = new GeneratorInitializationContext(context.CancellationToken);
-            try
-            {
-                SourceGenerator.Initialize(oldContext);
-            }
-            catch (Exception)
-            {
-                // PROTOTYPE(source-generators):
-                // wrap in a user func exception?
-                throw;
-            }
+            SourceGenerator.Initialize(oldContext);
 
             if (oldContext.InfoBuilder.PostInitCallback is object)
             {
@@ -47,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             context.RegisterExecutionPipeline((ctx) =>
             {
-
+                // PROTOTYPE: this is where we'll build the actual emulation pipeline
             });
         }
     }

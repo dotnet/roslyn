@@ -1124,9 +1124,9 @@ class C { }
         [Fact]
         public void User_WrappedFunc_Throw_Exceptions()
         {
-            var func = makeFunc(throwEx: false);
-            var throwsFunc = makeFunc(throwEx: true);
-            var timeoutFunc = makeFunc(throwCanceled: true);
+            Func<int, int> func = (input) => input;
+            Func<int, int> throwsFunc = (input) => throw new InvalidOperationException("user code exception");
+            Func<int, int> timeoutFunc = (input) => throw new OperationCanceledException();
 
             var userFunc = func.WrapUserFunction();
             var userThrowsFunc = throwsFunc.WrapUserFunction();
@@ -1154,25 +1154,6 @@ class C { }
             // cancellation is not wrapped, and is bubbled up
             Assert.Throws<OperationCanceledException>(() => timeoutFunc(30));
             Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30));
-
-            Func<int, int> makeFunc(bool throwEx = false, bool throwCanceled = false)
-            {
-                return (input) =>
-                {
-                    if (throwEx)
-                    {
-                        throw new InvalidOperationException("User code did something");
-                    }
-                    else if (throwCanceled)
-                    {
-                        throw new OperationCanceledException();
-                    }
-                    else
-                    {
-                        return input;
-                    }
-                };
-            }
         }
     }
 }

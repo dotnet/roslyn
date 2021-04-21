@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis
     /// are then used to create transforms over the data that creates the actual pipeline.
     /// </remarks>
     /// <typeparam name="T">The type of value that this source provides access to</typeparam>
-    public struct IncrementalValueSource<T>
+    public readonly struct IncrementalValueSource<T>
     {
-        internal readonly IIncrementalGeneratorNode<T> node;
+        internal readonly IIncrementalGeneratorNode<T> Node;
 
         internal IncrementalValueSource(IIncrementalGeneratorNode<T> node)
         {
-            this.node = node;
+            this.Node = node;
         }
     }
 }

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        public void Node_Table_Entries_Are_Flattend_When_Enumerated()
+        public void Node_Table_Entries_Are_Flattened_When_Enumerated()
         {
             var builder = new NodeStateTable<int>.Builder();
             builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
@@ -67,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             builder.AddEntries(ImmutableArray.Create(20, 21, 22), EntryState.Modified);
             builder.AddEntriesFromPreviousTable(previousTable, EntryState.Removed); //((6, EntryState.Removed))); 
             var newTable = builder.ToImmutableAndFree();
-
 
             var expected = ImmutableArray.Create((10, EntryState.Added), (11, EntryState.Added), (2, EntryState.Cached), (3, EntryState.Cached), (20, EntryState.Modified), (21, EntryState.Modified), (22, EntryState.Modified), (6, EntryState.Removed));
             AssertTableEntries(newTable, expected);
@@ -167,8 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             DriverStateTable.Builder builder2 = new DriverStateTable.Builder(builder.ToImmutable());
             builder2.GetLatestStateTableForNode(callbackNode);
 
-            Debug.Assert(passedIn is object);
-            AssertTableEntries(passedIn, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached) });
+            Assert.NotNull(passedIn);
+            AssertTableEntries(passedIn!, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached) });
         }
 
         [Fact]
@@ -198,8 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             builder2.GetLatestStateTableForNode(callbackNode);
 
             // table returned from the first instance was compacted by the builder
-            Debug.Assert(passedIn is object);
-            AssertTableEntries(passedIn, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (5, EntryState.Cached), (6, EntryState.Cached) });
+            Assert.NotNull(passedIn);
+            AssertTableEntries(passedIn!, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (5, EntryState.Cached), (6, EntryState.Cached) });
         }
 
         [Fact]

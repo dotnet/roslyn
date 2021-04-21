@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.SourceGeneration.Nodes
+namespace Microsoft.CodeAnalysis
 {
     // PROTOTYPE(source-generators): these are just internal stubs for now, that let us build the API surface up
-    static class IncrementalValueSourceExtensions
+    internal static class IncrementalValueSourceExtensions
     {
         // 1 => 1 transform 
         internal static IncrementalValueSource<U> Transform<T, U>(this IncrementalValueSource<T> source, Func<T, U> func) => default;
