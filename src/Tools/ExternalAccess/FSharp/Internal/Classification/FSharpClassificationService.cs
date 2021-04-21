@@ -47,10 +47,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             return _service.AdjustStaleClassification(text, classifiedSpan);
         }
 
-        public ValueTask<object?> GetDataToCacheAsync(Document document, CancellationToken cancellationToken)
-            => new();
+        public void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            // F# does not support syntax.
+        }
+
+        public TextChangeRange? ComputeSyntacticChangeRange(Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            // F# does not support syntax.
+            return null;
+        }
 
         public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
-            => new();
+        {
+            // not currently supported by F#.
+            return new();
+        }
     }
 }
