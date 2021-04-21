@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly LogAggregator _logAggregator;
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
-            private readonly IDocumentTrackingService? _documentTrackingService;
+            private readonly IDocumentTrackingService _documentTrackingService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
-                _documentTrackingService = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
+                _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -85,11 +85,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _optionService.OptionChanged += OnOptionChanged;
 
                 // subscribe to active document changed event for active file background analysis scope.
-                if (_documentTrackingService != null)
-                {
-                    _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.GetSolutionToAnalyze());
-                    _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
-                }
+                _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.GetSolutionToAnalyze());
+                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -107,11 +104,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
-
-                if (_documentTrackingService != null)
-                {
-                    _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
-                }
+                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;

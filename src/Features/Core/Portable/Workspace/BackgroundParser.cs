@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Host
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
             _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
-            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+            _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Host
                     CancelParse(document.Id);
 
                     if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile &&
-                        _documentTrackingService?.TryGetActiveDocument() != document.Id)
+                        _documentTrackingService.TryGetActiveDocument() != document.Id)
                     {
                         // Avoid performing any background parsing for non-active files
                         // if the user has explicitly set the background analysis scope

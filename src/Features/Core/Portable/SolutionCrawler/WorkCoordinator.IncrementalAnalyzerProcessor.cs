@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
-                private readonly IDocumentTrackingService? _documentTracker;
+                private readonly IDocumentTrackingService _documentTracker;
                 private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     // event and worker queues
-                    _documentTracker = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
+                    _documentTracker = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
                     var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             !reasons.Contains(PredefinedInvocationReasons.DocumentClosed) &&
                             !reasons.Contains(PredefinedInvocationReasons.DocumentRemoved))
                         {
-                            return item.DocumentId == _documentTracker?.TryGetActiveDocument();
+                            return item.DocumentId == _documentTracker.TryGetActiveDocument();
                         }
 
                         return true;
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 internal ProjectId? GetActiveProjectId()
-                    => _documentTracker?.TryGetActiveDocument()?.ProjectId;
+                    => _documentTracker.TryGetActiveDocument()?.ProjectId;
 
                 private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
                 {
