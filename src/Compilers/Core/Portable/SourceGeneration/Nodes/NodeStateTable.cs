@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // we have to keep empty entries
                 // we only remove all entries at once, so only need to check the first item
+                // PROTOTYPE(source-generators): doc/assert invariants required for this to be true
                 if (entry.Length == 0 || entry[0].state != EntryState.Removed)
                 {
                     compacted.Add(entry.SelectAsArray(e => (e.item, EntryState.Cached)));
@@ -118,6 +119,9 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
             {
+                // PROTOTYPE(source-generators): this doens't hold true if the node is added after an initial run. That 
+                //                               will occur in the IDE, so we'll need to make sure we support empty tables
+                //                               that see cached/removed entries upstream.
                 Debug.Assert(previousTable._states.Length > _states.Count);
                 var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
                 _states.Add(previousEntries);
