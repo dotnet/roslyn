@@ -1322,11 +1322,6 @@
         <target state="translated">Недопустимое значение</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_in_1">
-        <source>'{0}' in '{1}'</source>
-        <target state="new">'{0}' in '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_is_inherited">
         <source>'{0}' is inherited</source>
         <target state="new">'{0}' is inherited</target>
