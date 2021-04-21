@@ -56,24 +56,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             Contract.ThrowIfNull(newSemanticTokensData, "newSemanticTokensData is null.");
 
-            var resultId = _tokensCache.GetNextResultId();
-            var newSemanticTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
-
-            await _tokensCache.UpdateCacheAsync(
-                request.TextDocument.Uri, newSemanticTokens, cancellationToken).ConfigureAwait(false);
-
             // Getting the cached tokens for the document. If we don't have an applicable cached token set,
             // we can't calculate edits, so we must return all semantic tokens instead.
             var oldSemanticTokensData = await _tokensCache.GetCachedTokensDataAsync(
                 request.TextDocument.Uri, request.PreviousResultId, cancellationToken).ConfigureAwait(false);
             if (oldSemanticTokensData == null)
             {
-                return newSemanticTokens;
+                var newResultId = _tokensCache.GetNextResultId();
+                return new LSP.SemanticTokens { ResultId = newResultId, Data = newSemanticTokensData };
+            }
+
+            var resultId = request.PreviousResultId;
+            var editArray = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData);
+
+            // If we have edits, generate a new ResultId. Otherwise, re-use the previous one.
+            if (editArray.Length != 0)
+            {
+                resultId = _tokensCache.GetNextResultId();
+                var updatedTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
+                await _tokensCache.UpdateCacheAsync(
+                    request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
             }
 
             var edits = new SemanticTokensEdits
             {
-                Edits = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData),
+                Edits = editArray,
                 ResultId = resultId
             };
 
