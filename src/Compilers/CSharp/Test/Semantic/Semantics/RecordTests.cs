@@ -29741,7 +29741,7 @@ record class R2(int X) : I(X)
 {
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (6,26): error CS8861: Unexpected argument list.
                 // record class R(int X) : I()
@@ -29752,6 +29752,116 @@ record class R2(int X) : I(X)
                 // (10,27): error CS1729: 'object' does not contain a constructor that takes 1 arguments
                 // record class R2(int X) : I(X)
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(10, 27)
+                );
+        }
+
+        [Fact]
+        public void BaseErrorTypeWithParameters()
+        {
+            var src = @"
+record R2(int X) : Error(X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS0115: 'R2.ToString()': no suitable method found to override
+                // record R2(int X) : Error(X)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.ToString()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R2.EqualityContract': no suitable method found to override
+                // record R2(int X) : Error(X)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.EqualityContract").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R2.Equals(object?)': no suitable method found to override
+                // record R2(int X) : Error(X)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.Equals(object?)").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R2.GetHashCode()': no suitable method found to override
+                // record R2(int X) : Error(X)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R2.PrintMembers(StringBuilder)': no suitable method found to override
+                // record R2(int X) : Error(X)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R2").WithArguments("R2.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
+                // (2,20): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                // record R2(int X) : Error(X)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(2, 20),
+                // (2,25): error CS1729: 'Error' does not contain a constructor that takes 1 arguments
+                // record R2(int X) : Error(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("Error", "1").WithLocation(2, 25)
+                );
+        }
+
+        [Fact]
+        public void BaseDynamicTypeWithParameters()
+        {
+            var src = @"
+record R(int X) : dynamic(X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,19): error CS1965: 'R': cannot derive from the dynamic type
+                // record R(int X) : dynamic(X)
+                Diagnostic(ErrorCode.ERR_DeriveFromDynamic, "dynamic").WithArguments("R").WithLocation(2, 19),
+                // (2,26): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                // record R(int X) : dynamic(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(2, 26)
+                );
+        }
+
+        [Fact]
+        public void BaseTypeParameterTypeWithParameters()
+        {
+            var src = @"
+class C<T>
+{
+    record R(int X) : T(X)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,23): error CS0689: Cannot derive from 'T' because it is a type parameter
+                //     record R(int X) : T(X)
+                Diagnostic(ErrorCode.ERR_DerivingFromATyVar, "T").WithArguments("T").WithLocation(4, 23),
+                // (4,24): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                //     record R(int X) : T(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void BaseObjectTypeWithParameters()
+        {
+            var src = @"
+record R(int X) : object(X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,25): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                // record R(int X) : object(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(2, 25)
+                );
+        }
+
+        [Fact]
+        public void BaseValueTypeTypeWithParameters()
+        {
+            var src = @"
+record R(int X) : System.ValueType(X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,19): error CS0644: 'R' cannot derive from special class 'ValueType'
+                // record R(int X) : System.ValueType(X)
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "System.ValueType").WithArguments("R", "System.ValueType").WithLocation(2, 19),
+                // (2,35): error CS1729: 'object' does not contain a constructor that takes 1 arguments
+                // record R(int X) : System.ValueType(X)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(X)").WithArguments("object", "1").WithLocation(2, 35)
                 );
         }
 

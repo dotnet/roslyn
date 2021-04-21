@@ -7476,5 +7476,52 @@ struct C2 : I(0)
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 14)
                 );
         }
+
+        [Fact]
+        public void BaseArguments_Speculation()
+        {
+            var src = @"
+record struct R1(int X) : Error(0, 1)
+{
+}
+record struct R2(int X) : Error()
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,27): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                // record struct R1(int X) : Error(0, 1)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(2, 27),
+                // (2,32): error CS8861: Unexpected argument list.
+                // record struct R1(int X) : Error(0, 1)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0, 1)").WithLocation(2, 32),
+                // (5,27): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                // record struct R2(int X) : Error()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(5, 27),
+                // (5,32): error CS8861: Unexpected argument list.
+                // record struct R2(int X) : Error()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(5, 32)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var baseWithargs =
+                tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().First();
+            Assert.Equal("Error(0, 1)", baseWithargs.ToString());
+
+            var speculativeBase =
+                baseWithargs.WithArgumentList(baseWithargs.ArgumentList.WithArguments(baseWithargs.ArgumentList.Arguments.RemoveAt(1)));
+            Assert.Equal("Error(0)", speculativeBase.ToString());
+
+            Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBase, out _));
+
+            var baseWithoutargs =
+                tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Last();
+            Assert.Equal("Error()", baseWithoutargs.ToString());
+
+            Assert.False(model.TryGetSpeculativeSemanticModel(baseWithoutargs.ArgumentList.OpenParenToken.SpanStart, speculativeBase, out _));
+        }
     }
 }
