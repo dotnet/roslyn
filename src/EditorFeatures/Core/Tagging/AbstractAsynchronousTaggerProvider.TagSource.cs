@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
                 {
-                    // if the tagger wants added tags to also be near immediate, then we can
-                    // just reuse the single change queue.
+                    // if the tagger wants "added tags" to be reported "NearImmediate"ly, then just reuse
+                    // the "high pri" queue as that already reports things at that cadence.
                     _normalPriTagsChangedQueue = _highPriTagsChangedQueue;
                 }
                 else
