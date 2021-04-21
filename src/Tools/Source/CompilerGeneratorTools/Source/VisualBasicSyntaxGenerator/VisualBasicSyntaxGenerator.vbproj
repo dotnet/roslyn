@@ -7,7 +7,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator</RootNamespace>
     <AssemblyName>VBSyntaxGenerator</AssemblyName>
     <OptionStrict>Off</OptionStrict>
-    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>

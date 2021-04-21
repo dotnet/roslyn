@@ -4,7 +4,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpErrorFactsGenerator</RootNamespace>
-    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>

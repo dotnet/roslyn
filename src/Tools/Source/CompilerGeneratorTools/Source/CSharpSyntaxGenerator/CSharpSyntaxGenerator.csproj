@@ -6,7 +6,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Platforms>AnyCPU</Platforms>
     <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
-    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <!-- We build this against netcoreapp3.1 to build the console app version, and against netstandard2.0 for
          the Source Generator version. -->
     <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>

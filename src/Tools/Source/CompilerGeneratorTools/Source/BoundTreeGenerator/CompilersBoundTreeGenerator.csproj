@@ -5,7 +5,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.Internal.BoundTreeGenerator</RootNamespace>
     <AssemblyName>BoundTreeGenerator</AssemblyName>
-    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
