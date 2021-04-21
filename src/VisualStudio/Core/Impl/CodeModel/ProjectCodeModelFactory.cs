@@ -71,14 +71,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // Now, enqueue foreground work to actually process these documents in a serialized and incremental
                 // fashion.  FireEventsForDocument will actually limit how much time it spends firing events so that it
                 // doesn't saturate  the UI thread.
-                Task.Run(async () =>
+                _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    using var _ = _listener.BeginAsyncOperation("CodeModelEvent");
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
                     FireEventsForDocument(documentId);
-                }, cancellationToken).CompletesAsyncOperation(_listener.BeginAsyncOperation("CodeModelEvent"));
+                });
             }
 
-            return System.Threading.Tasks.Task.CompletedTask;
+            return Task.CompletedTask;
 
             bool FireEventsForDocument(DocumentId documentId)
             {
