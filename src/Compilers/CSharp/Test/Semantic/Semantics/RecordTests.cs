@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
             => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.Regular9);
+                parseOptions: TestOptions.RegularPreview);
 
         private CompilationVerifier CompileAndVerify(
             CSharpTestSource src,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             => base.CompileAndVerify(
                 new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
-                parseOptions: TestOptions.Regular9,
+                parseOptions: TestOptions.RegularPreview,
                 references: references,
                 // init-only is unverifiable
                 verify: Verification.Skipped);
@@ -1242,7 +1242,7 @@ record C1(object O1)
     int P3(object o) => 3;
     int P4<T>(T t) => 4;
 }";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P1'
                 // record C(object P1, object P2, object P3, object P4)
@@ -10033,7 +10033,7 @@ class Program
         ((A)b).Z = 9;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(int X, int Y, int Z) : A
@@ -10897,7 +10897,7 @@ record C(object P)
 @"record B(object P1, object P2, object P3, object P4) : A
 {
 }";
-            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            var comp = CreateCompilation(new[] { sourceA, sourceB, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property or field of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
@@ -28880,14 +28880,10 @@ public sealed record(";
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Property()
         {
             var source = @"
-var c = new C(0);
-c.Deconstruct(out int i);
-System.Console.Write(i);
-
 public record Base
 {
     public int I { get; set; } = 42;
@@ -28898,37 +28894,21 @@ public record C(int I) : Base(I)
     public void I() { } // hiding
 }
 ";
-            // There should be an error because we pick a hidden member as a positional member
-            // This will be fixed in 16.10. Tracked by https://github.com/dotnet/roslyn/issues/52630
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (13,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
                 //     public void I() { } // hiding
-                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(13, 17)
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(9, 17)
                 );
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "42");
-            verifier.VerifyIL("C.Deconstruct", @"
-{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""int Base.I.get""
-  IL_0007:  stind.i4
-  IL_0008:  ret
-}
-");
         }
 
-        [Fact]
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
         public void HiddenPositionalMember_Field()
         {
             var source = @"
-var c = new C(0);
-c.Deconstruct(out int i);
-System.Console.Write(i);
-
 public record Base
 {
     public int I = 42;
@@ -28939,27 +28919,40 @@ public record C(int I) : Base(I)
     public void I() { } // hiding
 }
 ";
-            // There should be an error because we pick a hidden member as a positional member
-            // This will be fixed in 16.10. Tracked by https://github.com/dotnet/roslyn/issues/52630
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (13,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
                 //     public void I() { } // hiding
-                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(13, 17)
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(9, 17)
                 );
+        }
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "42");
-            verifier.VerifyIL("C.Deconstruct", @"
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Field_HiddenWithConstant()
+        {
+            var source = @"
+public record Base
 {
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int Base.I""
-  IL_0007:  stind.i4
-  IL_0008:  ret
+    public int I = 0;
+    public Base(int ignored) { }
 }
-");
+public record C(int I) : Base(I)
+{
+    public const int I = 0;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8866: Record member 'C.I' must be a readable instance property or field of type 'int' to match positional parameter 'I'.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "I").WithArguments("C.I", "int", "I").WithLocation(7, 21),
+                // (9,22): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public const int I = 0;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 22)
+                );
         }
 
         [Fact]
@@ -28977,7 +28970,7 @@ record A(int X)
     public int X = X;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record A(int X)
@@ -29351,6 +29344,354 @@ record C(int P)
                 // (2,14): error CS8866: Record member 'C.P' must be a readable instance property or field of type 'int' to match positional parameter 'P'.
                 // record C(int P)
                 Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("C.P", "int", "P").WithLocation(2, 14)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { }
+}
+";
+            var expected = new[]
+            {
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I() { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(9, 17)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod_DeconstructInSource()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { }
+    public void Deconstruct(out int i) { i = 0; }
+}
+";
+            var expected = new[]
+            {
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I() { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(9, 17)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod_WithNew()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I) // 1
+{
+    public new void I() { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I) // 1
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithGenericMethod()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I<T>() { }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (11,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(11, 21),
+                // (13,17): warning CS0108: 'C.I<T>()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I<T>() { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I<T>()", "Base.I").WithLocation(13, 17)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_FromGrandBase()
+        {
+            var source = @"
+public record GrandBase
+{
+    public int I { get; set; } = 42;
+}
+public record Base : GrandBase
+{
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { }
+}
+";
+            var expected = new[]
+            {
+                // (10,21): error CS8913: The positional member 'GrandBase.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("GrandBase.I").WithLocation(10, 21),
+                // (12,17): warning CS0108: 'C.I()' hides inherited member 'GrandBase.I'. Use the new keyword if hiding was intended.
+                //     public void I() { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "GrandBase.I").WithLocation(12, 17)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_NotHiddenByIndexer()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int Item { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int Item) : Base(Item)
+{
+    public int this[int x] { get => throw null; }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Base.Item.get""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_NotHiddenByIndexer_WithIndexerName()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    [System.Runtime.CompilerServices.IndexerName(""I"")]
+    public int this[int x] { get => throw null; }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Base.I.get""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithType()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public class I { }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,18): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public class I { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 18)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithEvent()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public event System.Action I;
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,32): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public event System.Action I;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 32),
+                // (9,32): warning CS0067: The event 'C.I' is never used
+                //     public event System.Action I;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "I").WithArguments("C.I").WithLocation(9, 32)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithConstant()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public const string I = null;
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8866: Record member 'C.I' must be a readable instance property or field of type 'int' to match positional parameter 'I'.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "I").WithArguments("C.I", "int", "I").WithLocation(7, 21),
+                // (9,25): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public const string I = null;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 25)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_AbstractInBase()
+        {
+            var source = @"
+abstract record Base
+{
+    public abstract int I { get; init; }
+}
+record Derived(int I) : Base
+{
+    public int I() { return 0; }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (8,16): warning CS0108: 'Derived.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("Derived.I()", "Base.I").WithLocation(8, 16),
+                // (8,16): error CS0102: The type 'Derived' already contains a definition for 'I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("Derived", "I").WithLocation(8, 16)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_AbstractInBase_AbstractInDerived()
+        {
+            var source = @"
+abstract record Base
+{
+    public abstract int I { get; init; }
+}
+abstract record Derived(int I) : Base
+{
+    public int I() { return 0; }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (8,16): error CS0533: 'Derived.I()' hides inherited abstract member 'Base.I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "I").WithArguments("Derived.I()", "Base.I").WithLocation(8, 16),
+                // (8,16): error CS0102: The type 'Derived' already contains a definition for 'I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("Derived", "I").WithLocation(8, 16)
                 );
         }
 

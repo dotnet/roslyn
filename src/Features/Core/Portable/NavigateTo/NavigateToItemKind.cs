@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public const string Line = nameof(Line);
         public const string File = nameof(File);
         public const string Class = nameof(Class);
-        public const string Record = nameof(Record);
-        public const string RecordStruct = nameof(RecordStruct);
         public const string Structure = nameof(Structure);
         public const string Interface = nameof(Interface);
         public const string Delegate = nameof(Delegate);

@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </returns>
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
-            return currentNode.GetBrackets().closeBrace.IsMissing ||
+            return currentNode.GetBrackets().closeBracket.IsMissing ||
                 currentNode.GetParentheses().closeParen.IsMissing;
         }
     }

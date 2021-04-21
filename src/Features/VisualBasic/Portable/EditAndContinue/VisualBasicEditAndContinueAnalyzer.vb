@@ -946,6 +946,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node.IsKind(SyntaxKind.InterfaceBlock)
         End Function
 
+        Friend Overrides Function IsRecordDeclaration(node As SyntaxNode) As Boolean
+            ' No records in VB
+            Return False
+        End Function
+
         Friend Overrides Function TryGetContainingTypeDeclaration(node As SyntaxNode) As SyntaxNode
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
         End Function
@@ -985,6 +990,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case Else
                     Return False
             End Select
+        End Function
+
+        Friend Overrides Function IsRecordPrimaryConstructorParameter(declaration As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(declaration As SyntaxNode, newContainingType As INamedTypeSymbol, ByRef isFirstAccessor As Boolean) As Boolean
+            Return False
         End Function
 
         Private Shared Function GetInitializerExpression(equalsValue As EqualsValueSyntax, asClause As AsClauseSyntax) As ExpressionSyntax
