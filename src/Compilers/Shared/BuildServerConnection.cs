@@ -23,45 +23,6 @@ using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
-    /// <summary>
-    /// This type is functionally identical to BuildPaths. Unfortunately BuildPaths cannot be used in our MSBuild 
-    /// layer as it's defined in Microsoft.CodeAnalysis. Yet we need the same functionality in our build server 
-    /// communication layer which is shared between MSBuild and non-MSBuild components. This is the problem that 
-    /// BuildPathsAlt fixes as the type lives with the build server communication code.
-    /// </summary>
-    internal sealed class BuildPathsAlt
-    {
-        /// <summary>
-        /// The path which contains the compiler binaries and response files.
-        /// </summary>
-        internal string ClientDirectory { get; }
-
-        /// <summary>
-        /// The path in which the compilation takes place.
-        /// </summary>
-        internal string WorkingDirectory { get; }
-
-        /// <summary>
-        /// The path which contains mscorlib.  This can be null when specified by the user or running in a 
-        /// CoreClr environment.
-        /// </summary>
-        internal string? SdkDirectory { get; }
-
-        /// <summary>
-        /// The temporary directory a compilation should use instead of <see cref="Path.GetTempPath"/>.  The latter
-        /// relies on global state individual compilations should ignore.
-        /// </summary>
-        internal string? TempDirectory { get; }
-
-        internal BuildPathsAlt(string clientDir, string workingDir, string? sdkDir, string? tempDir)
-        {
-            ClientDirectory = clientDir;
-            WorkingDirectory = workingDir;
-            SdkDirectory = sdkDir;
-            TempDirectory = tempDir;
-        }
-    }
-
     internal sealed class BuildServerConnection
     {
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
