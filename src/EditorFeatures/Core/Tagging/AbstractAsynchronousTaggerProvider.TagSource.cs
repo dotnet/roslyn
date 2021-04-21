@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,15 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #region Fields that can be accessed from either thread
 
-            /// <summary>
-            /// The async worker we defer to handle foreground/background thread management for this
-            /// tagger. Note: some operations we perform on this must be uncancellable.  Specifically,
-            /// once we've updated our internal state we need to *ensure* that the UI eventually gets in
-            /// sync with it. As such, we allow cancellation of our tasks *until* we update our state.
-            /// From that point on, we must proceed and execute the tasks.
-            /// </summary>
-            private readonly AsynchronousSerialWorkQueue _workQueue;
-
             private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
 
             /// <summary>
@@ -50,10 +40,23 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly IAsynchronousOperationListener _asyncListener;
 
+            private readonly CancellationTokenSource _disposalTokenSource = new();
+
             /// <summary>
-            /// foreground notification service
+            /// Work queue that collects event notifications and kicks off the work to process them.
+            /// The actual value here is not relevant and will always be <see langword="null"/>.
             /// </summary>
-            private readonly IForegroundNotificationService _notificationService;
+            private readonly AsyncBatchingWorkQueue<object?> _eventWorkQueue;
+
+            /// <summary>
+            /// Work queue that collects requests to remove tags and kicks off the work to issue them.
+            /// </summary>
+            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _tagsRemovedWorkQueue;
+
+            /// <summary>
+            /// Work queue that collects requests to remove tags and kicks off the work to issue them.
+            /// </summary>
+            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _tagsAddedWorkQueue;
 
             #endregion
 
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// accumulated text changes since last tag calculation
             /// </summary>
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? _cachedTagTrees_doNotAccessDirectly;
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
             private object? _state_doNotAccessDirecty;
 
             /// <summary>
@@ -84,21 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #endregion
 
-            /// <summary>
-            /// A cancellation source we use for the initial tagging computation.  We only cancel
-            /// if our ref count actually reaches 0.  Otherwise, we always try to compute the initial
-            /// set of tags for our view/buffer.
-            /// </summary>
-            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new();
-
-            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
-
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
-                IAsynchronousOperationListener asyncListener,
-                IForegroundNotificationService notificationService)
+                IAsynchronousOperationListener asyncListener)
                 : base(dataSource.ThreadingContext)
             {
                 this.AssertIsForeground();
@@ -109,18 +102,29 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _textViewOpt = textViewOpt;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
-                _notificationService = notificationService;
 
-                _batchChangeTokenSource = new CancellationTokenSource();
+                _eventWorkQueue = new AsyncBatchingWorkQueue<object?>(
+                    _dataSource.EventChangeDelay.ComputeTimeDelay(),
+                    ProcessEventsAsync,
+                    EqualityComparer<object?>.Default,
+                    asyncListener,
+                    _disposalTokenSource.Token);
 
-                _batchChangeNotifier = new BatchChangeNotifier(
-                    dataSource.ThreadingContext,
-                    subjectBuffer, asyncListener, notificationService, NotifyEditorNow, _batchChangeTokenSource.Token);
+                _tagsRemovedWorkQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                    TaggerDelay.NearImmediate.ComputeTimeDelay(),
+                    ProcessTagsRemovedAsync,
+                    equalityComparer: null,
+                    asyncListener,
+                    _disposalTokenSource.Token);
+
+                _tagsAddedWorkQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                    _dataSource.AddedTagNotificationDelay.ComputeTimeDelay(),
+                    ProcessTagsAddedAsync,
+                    equalityComparer: null,
+                    asyncListener,
+                    _disposalTokenSource.Token);
 
                 DebugRecordInitialStackTrace();
-
-                _workQueue = new AsynchronousSerialWorkQueue(ThreadingContext, asyncListener);
-                this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
                 _eventSource = CreateEventSource();
 
@@ -128,10 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                RegisterNotification(
-                    () => RecomputeTagsForeground(initialTags: true, synchronous: false),
-                    delay: 0,
-                    cancellationToken: GetCancellationToken(initialTags: true));
+                _eventWorkQueue.AddWork(item: null);
             }
 
             private ITaggerEventSource CreateEventSource()
@@ -158,28 +159,28 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _accumulatedTextChanges_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _accumulatedTextChanges_doNotAccessDirectly = value;
                 }
             }
 
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? CachedTagTrees
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _cachedTagTrees_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _cachedTagTrees_doNotAccessDirectly = value;
                 }
             }
@@ -188,23 +189,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _state_doNotAccessDirecty;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _state_doNotAccessDirecty = value;
                 }
             }
 
-            public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation(typeof(TTag).Name), cancellationToken);
-
             private void Connect()
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 _eventSource.Changed += OnEventSourceChanged;
 

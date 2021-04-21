@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         private partial class TagSource
         {
-            /// <summary>
-            /// The batch change notifier that we use to throttle update to the UI.
-            /// </summary>
-            private readonly BatchChangeNotifier _batchChangeNotifier;
-            private readonly CancellationTokenSource _batchChangeTokenSource;
-
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             private void OnTagsChangedForBuffer(

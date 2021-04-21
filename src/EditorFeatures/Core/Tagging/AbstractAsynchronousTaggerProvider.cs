@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : ForegroundThreadAffinitizedObject where TTag : ITag
     {
         private readonly object _uniqueKey = new();
-        private readonly IForegroundNotificationService _notificationService;
 
         protected readonly IAsynchronousOperationListener AsyncListener;
 
@@ -65,12 +64,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual IEnumerable<Option2<bool>> Options => SpecializedCollections.EmptyEnumerable<Option2<bool>>();
         protected virtual IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
 
+        protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
+
+        /// <summary>
+        /// How long the tagger should wait after hearing about an event before recomputing tags.
+        /// </summary>
+        protected abstract TaggerDelay EventChangeDelay { get; }
+
         /// <summary>
         /// This controls what delay tagger will use to let editor know about newly inserted tags
         /// </summary>
         protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
-
-        protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
 
 #if DEBUG
         public readonly string StackTrace;
@@ -83,17 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             : base(threadingContext)
         {
             AsyncListener = asyncListener;
-            _notificationService = notificationService;
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();
 #endif
         }
-
-        /// <summary>
-        /// How long the tagger should wait after hearing about an event before recomputing tags.
-        /// </summary>
-        protected abstract TaggerDelay EventChangeDelay { get; }
 
         internal ITagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
             {
-                tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener, _notificationService);
+                tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener);
 
                 this.StoreTagSource(textViewOpt, subjectBuffer, tagSource);
                 tagSource.Disposed += (s, e) => this.RemoveTagSource(textViewOpt, subjectBuffer);
