@@ -92,14 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
                 UpdateTagsForTextChange(e);
                 AccumulateTextChanges(e);
             }
 
             private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
                 var contentChanges = contentChanged.Changes;
                 var count = contentChanges.Count;
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags))
                 {
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private void RecomputeTagsForeground(bool initialTags)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
                 {
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // TODO: Update to tag spans from all related documents.
 
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 object newState,
                 bool initialTags)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // Now that we're back on the UI thread, we can safely update our state with
                 // what we've computed.  There is no concern with race conditions now.  For 
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             public TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 // We're on the UI thread, so it's safe to access these variables.
                 this.CachedTagTrees.TryGetValue(buffer, out var tags);
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             public TagSpanIntervalTree<TTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken)
             {
-                _workQueue.AssertIsForeground();
+                this.AssertIsForeground();
 
                 if (!this.UpToDate)
                 {

@@ -36,25 +36,6 @@ StackTrace:
                 }
             }
 
-            public event EventHandler Disposed = (s, e) => { };
-
-            private void Dispose()
-            {
-                if (_disposed)
-                {
-                    Debug.Fail("Tagger already disposed");
-                    return;
-                }
-
-                // Stop computing any initial tags if we've been asked for them.
-                _initialComputationCancellationTokenSource.Cancel();
-                _disposed = true;
-                this.Disposed(this, EventArgs.Empty);
-                GC.SuppressFinalize(this);
-
-                this.Disconnect();
-            }
-
             internal void OnTaggerAdded(Tagger _)
             {
                 // this should be only called from UI thread. 
