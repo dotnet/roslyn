@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -247,6 +245,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     kind.MethodKind.HasValue ? SymbolKind.Method :
                     throw ExceptionUtilities.Unreachable;
 
+                // Suggest names from existing overloads.
+                if (symbolKind == SymbolKind.Parameter)
+                {
+                    AddNamesFromExistingOverloads(context, result, cancellationToken);
+                }
+
                 var modifiers = declarationInfo.Modifiers;
                 foreach (var rule in rules)
                 {
@@ -278,6 +282,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return result.ToImmutable();
+        }
+
+        private static void AddNamesFromExistingOverloads(CSharpSyntaxContext context, ArrayBuilder<(string name, SymbolKind kind)> result, CancellationToken cancellationToken)
+        {
+            var parameterSyntax = context.LeftToken.GetAncestor(n => n.IsKind(SyntaxKind.Parameter)) as ParameterSyntax;
+            if (parameterSyntax is not { Type: { } parameterType, Parent: { Parent: MethodDeclarationSyntax method } })
+            {
+                return;
+            }
+
+            if (method.Parent is null)
+                return;
+
+            var methodParameterType = context.SemanticModel.GetTypeInfo(parameterType, cancellationToken).Type;
+            if (methodParameterType is null)
+                return;
+
+            var siblingMethods = method.Parent.ChildNodes().OfType<MethodDeclarationSyntax>().Where(m => m != method && m.Identifier.Text == method.Identifier.Text);
+            if (!siblingMethods.Any())
+                return;
+
+            foreach (var sibling in siblingMethods)
+            {
+                foreach (var siblingParameter in sibling.ParameterList.Parameters)
+                {
+                    if (siblingParameter.Type is null)
+                        continue;
+
+                    var siblingParameterType = context.SemanticModel.GetTypeInfo(siblingParameter.Type, cancellationToken).Type;
+                    if (methodParameterType.Equals(siblingParameterType, SymbolEqualityComparer.Default))
+                    {
+                        result.Add((siblingParameter.Identifier.Text, SymbolKind.Parameter));
+                    }
+                }
+            }
         }
 
         /// <summary>

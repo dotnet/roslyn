@@ -688,6 +688,40 @@ public class C
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task SuggestParameterNamesFromExistingOverloads()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void M(CancellationToken myTok) { }
+
+    void M(CancellationToken $$
+}
+";
+            await VerifyItemExistsAsync(markup, "myTok", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestParameterNamesFromNonOverloads()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void M1(CancellationToken myTok) { }
+
+    void M2(CancellationToken $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "myTok");
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EscapeKeywords1()
