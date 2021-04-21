@@ -134,12 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     return;
                 }
 
-                // We might be able to steal the cached tags from another tag source
-                if (TryStealTagsFromRelatedTagSource(e))
-                {
-                    return;
-                }
-
                 var buffer = e.After.TextBuffer;
                 if (!this.CachedTagTrees.TryGetValue(buffer, out var treeForBuffer))
                 {
@@ -177,61 +171,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return tagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
                     ? tagTree
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
-            }
-
-            private static bool TryStealTagsFromRelatedTagSource(TextContentChangedEventArgs e)
-            {
-                // see bug 778731
-#if INTERACTIVE
-            // If we don't have a way to find the related buffer, we're done immediately
-            if (bufferToRelatedTagSource == null)
-            {
-                return false;
-            }
-
-            // We can only steal tags if we know where the edit came from, so do we?
-            var editTag = e.EditTag as RestoreHistoryEditTag;
-
-            if (editTag == null)
-            {
-                return false;
-            }
-
-            var originalSpan = editTag.OriginalSpan;
-
-            var relatedTagSource = bufferToRelatedTagSource(originalSpan.Snapshot.TextBuffer);
-            if (relatedTagSource == null)
-            {
-                return false;
-            }
-
-            // Reading the other tag source's cached tags is safe, since this field is allowed to be
-            // accessed from multiple threads and is immutable. We still need to have a local copy
-            // though to play it safe and be a good citizen (well, as good as a citizen that's about
-            // to steal something can be...)
-            var relatedCachedTags = relatedTagSource.cachedTags;
-            TagSpanIntervalTree<TTag> relatedIntervalTree;
-
-            if (!relatedCachedTags.TryGetValue(originalSpan.Snapshot.TextBuffer, out relatedIntervalTree))
-            {
-                return false;
-            }
-
-            // Excellent! Let's build a new interval tree with these tags mapped to our buffer
-            // instead
-            var tagsForThisBuffer = from tagSpan in relatedIntervalTree.GetSpans(originalSpan.Snapshot)
-                                    where tagSpan.Span.IntersectsWith(originalSpan)
-                                    let snapshotSpan = new SnapshotSpan(e.After, tagSpan.SpanStart - originalSpan.Start, tagSpan.Span.Length)
-                                    select new TagSpan<TTag>(snapshotSpan, tagSpan.Tag);
-
-            var intervalTreeForThisBuffer = new TagSpanIntervalTree<TTag>(e.After.TextBuffer, relatedIntervalTree.SpanTrackingMode, tagsForThisBuffer);
-
-            // Update our cached tags
-            UpdateCachedTagsForBuffer(e.After, intervalTreeForThisBuffer);
-            return true;
-#else
-                return false;
-#endif
             }
 
             /// <summary>
