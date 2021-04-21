@@ -2222,14 +2222,7 @@ class C(int X, int Y)
 : B" + (withBaseArguments ? "(X, Y)" : "") + @"
 " + (withBody ? "{ }" : ";");
 
-            if (!withParameters && withBaseArguments)
-            {
-                UsingTree(text);
-            }
-            else
-            {
-                UsingTree(text);
-            }
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
