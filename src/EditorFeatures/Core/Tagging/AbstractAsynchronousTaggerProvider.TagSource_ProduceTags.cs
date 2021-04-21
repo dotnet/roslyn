@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private partial class TagSource
         {
             private void OnEventSourceChanged(object sender, TaggerEventArgs _)
-                => _eventWorkQueue.AddWork(item: null);
+                => _eventWorkQueue.AddWork(/*initialTags*/ false);
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {
@@ -173,6 +174,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
 
+            private async Task ProcessEventsAsync(ImmutableArray<bool> events, CancellationToken cancellationToken)
+            {
+                // Can only have at most a single `true` and `false` value in this.
+                Contract.ThrowIfTrue(events.Length > 2);
+                var initialTags = events.Contains(true);
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+            }
+
             /// <summary>
             /// Called on the foreground thread.  Passed a boolean to say if we're computing the
             /// initial set of tags or not.  If we're computing the initial set of tags, we lower
@@ -182,17 +192,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// complete almost immediately.  Once open though, our normal delays come into play
             /// so as to not cause a flashy experience.
             /// </summary>
-            private void RecomputeTagsForeground(bool initialTags, bool synchronous)
+            private async Task RecomputeTagsForegroundAsync(
+                bool initialTags, CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
-                Contract.ThrowIfTrue(synchronous && !initialTags, "synchronous computation of tags is only allowed for the initial computation");
-
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
                 {
                     // Stop any existing work we're currently engaged in
-                    _workQueue.CancelCurrentWork();
-
-                    var cancellationToken = GetCancellationToken(initialTags);
                     var spansToTag = GetSpansAndDocumentsToTag();
 
                     // Make a copy of all the data we need while we're on the foreground.  Then
@@ -203,19 +209,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
 
-                    if (synchronous)
-                    {
-                        this.ThreadingContext.JoinableTaskFactory.Run(
-                            () => this.RecomputeTagsAsync(
-                                oldState, caretPosition, textChangeRange, spansToTag, oldTagTrees, initialTags, cancellationToken));
-                    }
-                    else
-                    {
-                        _workQueue.EnqueueBackgroundTask(
-                            ct => this.RecomputeTagsAsync(
-                                oldState, caretPosition, textChangeRange, spansToTag, oldTagTrees, initialTags, ct),
-                            GetType().Name + ".RecomputeTags", cancellationToken);
-                    }
+                    await TaskScheduler.Default;
+
+                    await this.RecomputeTagsAsync(
+                        oldState, caretPosition, textChangeRange, spansToTag,
+                        oldTagTrees, initialTags, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -349,8 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var context = new TaggerContext<TTag>(
                     oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
                 await ProduceTagsAsync(context).ConfigureAwait(false);
-
-                ProcessContext(oldTagTrees, context, initialTags);
+                await ProcessContextAsync(oldTagTrees, context, initialTags).ConfigureAwait(false);
             }
 
             private bool ShouldSkipTagProduction()
@@ -364,16 +361,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private Task ProduceTagsAsync(TaggerContext<TTag> context)
             {
-                if (ShouldSkipTagProduction())
-                {
-                    // If the feature is disabled, then just produce no tags.
-                    return Task.CompletedTask;
-                }
-
-                return _dataSource.ProduceTagsAsync(context);
+                // If the feature is disabled, then just produce no tags.
+                return ShouldSkipTagProduction()
+                    ? Task.CompletedTask
+                    : _dataSource.ProduceTagsAsync(context);
             }
 
-            private void ProcessContext(
+            private Task ProcessContextAsync(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 TaggerContext<TTag> context,
                 bool initialTags)
@@ -385,12 +379,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                                                       .ToLookup(t => t.Span.Snapshot.TextBuffer);
 
                 var newTagTrees = ConvertToTagTrees(oldTagTrees, buffersToTag, newTagsByBuffer, context._spansTagged);
-                ProcessNewTagTrees(
+                return ProcessNewTagTreesAsync(
                     context.SpansToTag, oldTagTrees, newTagTrees,
                     context.State, initialTags, context.CancellationToken);
             }
 
-            private void ProcessNewTagTrees(
+            private async Task ProcessNewTagTreesAsync(
                 ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
@@ -427,69 +421,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     }
                 }
 
-                if (_workQueue.IsForeground())
-                {
-                    // If we're on the foreground already, we can just update our internal state directly.
-                    UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
-                }
-                else if (initialTags)
-                {
-                    // If this is the initial set of tags, we fast-track a notification about whatever initial tags we
-                    // computed.  This way the UI is updated quickly for that initial set, and we don't have to wait a
-                    // potentially very long time as the foreground-thread-queue makes it way to our notification.
-                    //
-                    // Do this in a fire and forget manner, but ensure we notify the test harness of this so that it
-                    // doesn't try to acquire tag results prior to this work finishing.
-                    var asyncToken = this._asyncListener.BeginAsyncOperation(nameof(ProcessNewTagTrees));
-                    _ = Task.Run(async () =>
-                    {
-                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
-                    }, CancellationToken.None).CompletesAsyncOperation(asyncToken); // TODO: What should the cancellation behavior be here? passing CancellationToken.None for now
-                }
-                else
-                {
-                    // Otherwise report back on the foreground to update the state and let our clients know about the
-                    // change.  This will go to the end of the foreground processing queue.  This will normally process
-                    // quickly once VS is loaded, but it may take some time initially when VS is loading and the UI
-                    // thread is highly occupied.  This helps ensure that we don't oversaturate the UI during a very
-                    // contended period of time.
-                    RegisterNotification(() => UpdateStateAndReportChanges(
-                        newTagTrees, bufferToChanges, newState, initialTags),
-                        delay: 0,
-                        cancellationToken: cancellationToken);
-                }
-            }
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            private void UpdateStateAndReportChanges(
-                ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
-                Dictionary<ITextBuffer, DiffResult> bufferToChanges,
-                object newState,
-                bool initialTags)
-            {
                 this.AssertIsForeground();
 
                 // Now that we're back on the UI thread, we can safely update our state with
-                // what we've computed.  There is no concern with race conditions now.  For 
-                // example, say that another change happened between the time when we 
-                // registered for UpdateStateAndReportChanges and now.  If we processed that
-                // notification (on the UI thread) first, then our cancellation token would 
-                // have been triggered, and the foreground notification service would not 
-                // call into this method. 
-                // 
-                // If, instead, we did get called into, then we will update our instance state.
-                // Then when the foreground notification service runs RecomputeTagsForeground
-                // it will see that state and use it as the new basis on which to compute diffs
-                // and whatnot.
+                // what we've computed.
                 this.CachedTagTrees = newTagTrees;
                 this.AccumulatedTextChanges = null;
                 this.State = newState;
 
-                // Note: we're raising changes here on the UI thread.  However, this doesn't actually
-                // mean we'll be notifying the editor.  Instead, these will be batched up in the 
-                // AsynchronousTagger's BatchChangeNotifier.  If we tell it about enough changes
-                // to a file, it will coalesce them into one large change to keep chattiness with
-                // the editor down.
+                // Take all the changes we computed and enqueue them to notify the editor with in the future.
                 OnTagsChangedForBuffer(bufferToChanges, initialTags);
             }
 
@@ -590,7 +532,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    this.RecomputeTagsForeground(initialTags: true, synchronous: true);
+                    this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
                 }
 
                 _firstTagsRequest = false;

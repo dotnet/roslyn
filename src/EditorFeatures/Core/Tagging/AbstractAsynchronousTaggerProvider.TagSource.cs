@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             /// <summary>
             /// Work queue that collects event notifications and kicks off the work to process them.
-            /// The actual value here is not relevant and will always be <see langword="null"/>.
+            /// The value that is passed here tells us if this is the initial tag computation or not.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<object?> _eventWorkQueue;
+            private readonly AsyncBatchingWorkQueue<bool> _eventWorkQueue;
 
             /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
-                _eventWorkQueue = new AsyncBatchingWorkQueue<object?>(
+                _eventWorkQueue = new AsyncBatchingWorkQueue<bool>(
                     _dataSource.EventChangeDelay.ComputeTimeDelay(),
                     ProcessEventsAsync,
-                    EqualityComparer<object?>.Default,
+                    EqualityComparer<bool>.Default,
                     asyncListener,
                     _disposalTokenSource.Token);
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                _eventWorkQueue.AddWork(item: null);
+                _eventWorkQueue.AddWork(/*initialTags*/ true);
 
                 return;
 
