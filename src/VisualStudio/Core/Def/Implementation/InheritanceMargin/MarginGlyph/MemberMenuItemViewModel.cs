@@ -14,6 +14,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     /// <summary>
     /// View model used to display a member in MenuItem. Only used when there are multiple members on the same line.
+    /// e.g.
+    /// interface IBar
+    /// {
+    ///     event EventHandler e1, e2
+    /// }
+    /// public class Bar : IBar
+    /// {
+    ///    public event EventHandler e1, e2
+    /// }
+    /// And this view model is used to show the first level entry to let the user choose member.
     /// </summary>
     internal class MemberMenuItemViewModel : InheritanceMenuItemViewModel
     {
@@ -31,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             Targets = targets;
         }
 
-        public static MemberMenuItemViewModel CreateWithNoHeader(InheritanceMarginItem member)
+        public static MemberMenuItemViewModel CreateWithNoHeaderInTargets(InheritanceMarginItem member)
         {
             var displayName = member.DisplayTexts.JoinText();
             return new MemberMenuItemViewModel(
@@ -43,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     .CastArray<InheritanceMenuItemViewModel>());
         }
 
-        public static MemberMenuItemViewModel CreateWithHeader(InheritanceMarginItem member)
+        public static MemberMenuItemViewModel CreateWithHeaderInTargets(InheritanceMarginItem member)
         {
             var displayName = member.DisplayTexts.JoinText();
             var targetsByRelationship = member.TargetItems.GroupBy(target => target.RelationToMember).ToImmutableArray();

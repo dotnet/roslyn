@@ -103,10 +103,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
         {
             if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel inheritanceMarginViewModel }
-                && inheritanceMarginViewModel.MenuItemViewModels.All(vm => vm is TargetMenuItemViewModel))
+                && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
             {
-                // If the first level of the context menu are TargetMenuItemViewModel, it means there is only one member on the line,
-                // and user opens the context menu to view all its inheritance targets
+                // If the first level of the context menu contains TargetMenuItemViewModel, it means there is only one member on the line,
+                // and user is viewing the inheritance targets
                 Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
             }
         }

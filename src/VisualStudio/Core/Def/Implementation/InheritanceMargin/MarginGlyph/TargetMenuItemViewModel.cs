@@ -21,8 +21,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private static Thickness s_defaultMargin = new Thickness(4, 1, 4, 1);
 
         /// <summary>
-        /// The margin used when this target item needs to be indented. Its left margin is 20 because the width of the image
-        /// moniker is 16.
+        /// The margin used when this target item needs to be indented when the target is shown with the header.
+        /// e.g.
+        /// 'I↓ Implemented members'
+        ///       Method 'Bar'
+        /// 'I↑ Implementing members'
+        ///       Method 'Foo'
+        /// It is 20 because the default left margin is 4, and the size of the image moniker(e.g. I↑) in the header is 16.
         /// </summary>
         private static Thickness s_indentMargin = new Thickness(20, 1, 4, 1);
 

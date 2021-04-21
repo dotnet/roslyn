@@ -11,9 +11,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     /// It is used when the context menu contains targets having multiple inheritance relationship.
     /// In such case, this would be shown as a header for a group of targets.
     /// e.g.
-    /// 'Implementing Members'
-    /// ----'Bar'
-    /// ----'Foo'
+    /// 'I↓ Implemented members'
+    ///       Method 'Bar'
+    /// 'I↑ Implementing members'
+    ///       Method 'Foo'
     /// </summary>
     internal class HeaderMenuItemViewModel : InheritanceMenuItemViewModel
     {

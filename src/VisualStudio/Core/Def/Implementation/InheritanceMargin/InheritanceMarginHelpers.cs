@@ -87,23 +87,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             Contract.ThrowIfTrue(members.Length <= 1);
             // For multiple members, check if all the targets have the same inheritance relationship.
-            // If so, then don't add the separator, because it is already indicated by the margin.
-            // Otherwise, show the Header.
+            // If so, then don't add the header, because it is already indicated by the margin.
+            // Otherwise, add the Header.
             var set = members
                 .SelectMany(member => member.TargetItems.Select(item => item.RelationToMember))
                 .ToImmutableHashSet();
             if (set.Count == 1)
             {
-                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithNoHeader).CastArray<InheritanceMenuItemViewModel>();
+                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithNoHeaderInTargets).CastArray<InheritanceMenuItemViewModel>();
             }
             else
             {
-                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeader).CastArray<InheritanceMenuItemViewModel>();
+                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<InheritanceMenuItemViewModel>();
             }
         }
 
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemsWithHeader(
-            InheritanceRelationship relationship, IEnumerable<InheritanceTargetItem> targets)
+            InheritanceRelationship relationship,
+            IEnumerable<InheritanceTargetItem> targets)
         {
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch
