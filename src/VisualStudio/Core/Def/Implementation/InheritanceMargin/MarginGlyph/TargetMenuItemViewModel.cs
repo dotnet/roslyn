@@ -36,7 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public Thickness Margin { get; }
 
-        private TargetMenuItemViewModel(
+        // Internal for testing purpose
+        internal TargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
             string automationName,

@@ -73,19 +73,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 // Otherwise, it means these targets has different relationship,
                 // these targets would be shown in group, and a header should be shown as the first item to indicate the relationship to user.
-
                 using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
-                for (var i = 0; i < targetsByRelationship.Length; i++)
+                foreach (var (relationship, targetItems) in targetsByRelationship)
                 {
-                    var (relationship, targetItems) = targetsByRelationship[i];
-                    if (i != targetsByRelationship.Length - 1)
-                    {
-                        builder.AddRange(CreateMenuItemsWithHeader(targetItems, relationship));
-                    }
-                    else
-                    {
-                        builder.AddRange(CreateMenuItemsWithHeader(targetItems, relationship));
-                    }
+                    builder.AddRange(CreateMenuItemsWithHeader(relationship, targetItems));
                 }
 
                 return builder.ToImmutable();
@@ -112,8 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemsWithHeader(
-            IEnumerable<InheritanceTargetItem> targets,
-            InheritanceRelationship relationship)
+            InheritanceRelationship relationship, IEnumerable<InheritanceTargetItem> targets)
         {
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch

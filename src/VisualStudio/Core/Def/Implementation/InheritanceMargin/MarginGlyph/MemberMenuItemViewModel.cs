@@ -49,17 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var targetsByRelationship = member.TargetItems.GroupBy(target => target.RelationToMember).ToImmutableArray();
 
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
-            for (var i = 0; i < targetsByRelationship.Length; i++)
+            foreach (var (relationship, targetItems) in targetsByRelationship)
             {
-                var (relationship, targetItems) = targetsByRelationship[i];
-                if (i != targetsByRelationship.Length - 1)
-                {
-                    builder.AddRange(InheritanceMarginHelpers.CreateMenuItemsWithHeader(targetItems, relationship));
-                }
-                else
-                {
-                    builder.AddRange(InheritanceMarginHelpers.CreateMenuItemsWithHeader(targetItems, relationship));
-                }
+                builder.AddRange(InheritanceMarginHelpers.CreateMenuItemsWithHeader(relationship, targetItems));
             }
 
             return new MemberMenuItemViewModel(

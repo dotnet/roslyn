@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -103,14 +103,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
         {
             if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel inheritanceMarginViewModel }
-                && inheritanceMarginViewModel.MenuItemViewModels.IsSingle())
+                && inheritanceMarginViewModel.MenuItemViewModels.All(vm => vm is TargetMenuItemViewModel))
             {
-                // If this context menu just has one member, then if the context menu open, it means all inheritance targets are shown.
+                // If the first level of the context menu are TargetMenuItemViewModel, it means there is only one member on the line,
+                // and user opens the context menu to view all its inheritance targets
                 Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
             }
         }
 
-        private void TargetsMenu_OnOpen(object sender, RoutedEventArgs e)
+        private void TargetsSubmenu_OnOpen(object sender, RoutedEventArgs e)
         {
             Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
         }

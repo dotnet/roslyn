@@ -37,7 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public ImmutableArray<InheritanceMenuItemViewModel> MenuItemViewModels { get; }
 
-        private InheritanceMarginViewModel(
+        // Internal for testing purpose
+        internal InheritanceMarginViewModel(
             ImageMoniker imageMoniker,
             TextBlock toolTipTextBlock,
             string automationName,
