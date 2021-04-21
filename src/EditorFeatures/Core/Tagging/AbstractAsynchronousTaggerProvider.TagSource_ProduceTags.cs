@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _workQueue.CancelCurrentWork();
                 RegisterNotification(
                     () => RecomputeTagsForeground(initialTags: false, synchronous: false),
-                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
+                    (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
                     GetCancellationToken(initialTags: false));
             }
 
