@@ -501,7 +501,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
                 }
 
-                checkPrimaryConstructorBaseType(baseTypeSyntax, baseType);
+                if (i == 0)
+                { 
+                    checkPrimaryConstructorBaseType(baseTypeSyntax, baseType);
+                }
 
                 switch (baseType.TypeKind)
                 {
