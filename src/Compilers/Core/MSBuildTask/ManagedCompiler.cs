@@ -510,8 +510,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var requestId = Guid.NewGuid();
                 logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
 
-                string workingDir = CurrentDirectoryToUse();
-                string? tempDir = BuildServerConnection.GetTempPath(workingDir);
+                string workingDirectory = CurrentDirectoryToUse();
+                string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
 
                 if (!UseSharedCompilation ||
                     HasToolBeenOverridden ||
@@ -525,37 +525,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 logger.Log($"CommandLine = '{commandLineCommands}'");
                 logger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                var clientDir = Path.GetDirectoryName(PathToManagedTool);
-                if (clientDir is null || tempDir is null)
+                var clientDirectory = Path.GetDirectoryName(PathToManagedTool);
+                if (clientDirectory is null || tempDirectory is null)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client directory '{PathToManagedTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
-                var buildPaths = new BuildPathsAlt(
-                    clientDir: clientDir,
-                    workingDir: workingDir,
-                    // MSBuild doesn't need the .NET SDK directory
-                    sdkDir: null,
-                    tempDir: tempDir);
+                var buildRequest = BuildServerConnection.CreateBuildRequest(
+                    requestId,
+                    Language,
+                    GetArguments(ToolArguments, responseFileCommands).ToList(),
+                    workingDirectory: workingDirectory,
+                    tempDirectory: tempDirectory,
+                    keepAlive: null,
+                    libDirectory: LibDirectoryToUse());
 
                 var pipeName = !string.IsNullOrEmpty(SharedCompilationId)
                     ? SharedCompilationId
-                    : BuildServerConnection.GetPipeNameForPath(buildPaths.ClientDirectory);
+                    : BuildServerConnection.GetPipeNameForPath(clientDirectory);
 
                 // Note: using ToolArguments here (the property) since
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
-                var responseTask = BuildServerConnection.RunServerCompilationAsync(
-                    requestId,
-                    Language,
-                    GetArguments(ToolArguments, responseFileCommands).ToList(),
-                    buildPaths,
-                    pipeName: pipeName,
-                    keepAlive: null,
-                    libDirectory: LibDirectoryToUse(),
+                var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
+                    buildRequest,
+                    pipeName,
+                    clientDirectory,
                     timeoutOverride: null,
-                    createServerFunc: BuildServerConnection.TryCreateServer,
                     logger: logger,
                     cancellationToken: _sharedCompileCts.Token);
 

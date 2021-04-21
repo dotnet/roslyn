@@ -62,8 +62,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
     }
 
-    internal delegate bool CreateServerFunc(string clientDir, string pipeName, ICompilerServerLogger logger);
-
     internal sealed class BuildServerConnection
     {
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
@@ -77,27 +75,61 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static bool IsCompilerServerSupported => GetPipeNameForPath("") is object;
 
-        internal static async Task<BuildResponse> RunServerCompilationAsync(
+        internal static BuildRequest CreateBuildRequest(
             Guid requestId,
             RequestLanguage language,
             List<string> arguments,
-            BuildPathsAlt buildPaths,
-            string? pipeName,
+            string workingDirectory,
+            string tempDirectory,
             string? keepAlive,
-            string? libDirectory,
-            int? timeoutOverride,
-            CreateServerFunc createServerFunc,
+            string? libDirectory)
+        {
+            Debug.Assert(workingDirectory is object);
+            Debug.Assert(tempDirectory is object);
+
+            return BuildRequest.Create(
+                language,
+                arguments,
+                workingDirectory: workingDirectory,
+                tempDirectory: tempDirectory,
+                compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                requestId: requestId,
+                keepAlive: keepAlive,
+                libDirectory: libDirectory);
+        }
+
+        internal static Task<BuildResponse> RunServerCompilationAsync(
+            BuildRequest buildRequest,
+            string? pipeName,
+            string clientDirectory,
             ICompilerServerLogger logger,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default) =>
+            RunServerBuildRequestAsync(
+                buildRequest,
+                pipeName,
+                clientDirectory,
+                logger,
+                timeoutOverride: null,
+                createServerIfNotRunning: true,
+                cancellationToken);
+
+        internal static async Task<BuildResponse> RunServerBuildRequestAsync(
+            BuildRequest buildRequest,
+            string? pipeName,
+            string? clientDirectory,
+            ICompilerServerLogger logger,
+            int? timeoutOverride = null,
+            bool createServerIfNotRunning = true,
+            CancellationToken cancellationToken = default)
         {
             if (pipeName is null)
             {
                 throw new ArgumentException(nameof(pipeName));
             }
 
-            if (buildPaths.TempDirectory == null)
+            if (createServerIfNotRunning && clientDirectory is null)
             {
-                throw new ArgumentException(nameof(buildPaths));
+                throw new InvalidOperationException("Server creation requires the client directory");
             }
 
             // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
@@ -106,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new IncorrectHashBuildResponse();
             }
 
-            var pipeTask = tryConnectToServer(pipeName, buildPaths, timeoutOverride, createServerFunc, logger, cancellationToken);
+            var pipeTask = tryConnectToServer(pipeName, clientDirectory, timeoutOverride, logger, createServerIfNotRunning, cancellationToken);
             if (pipeTask is null)
             {
                 return new RejectedBuildResponse("Failed to connect to server");
@@ -120,16 +152,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 else
                 {
-                    var request = BuildRequest.Create(language,
-                                                      arguments,
-                                                      workingDirectory: buildPaths.WorkingDirectory,
-                                                      tempDirectory: buildPaths.TempDirectory,
-                                                      compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
-                                                      requestId: requestId,
-                                                      keepAlive: keepAlive,
-                                                      libDirectory: libDirectory);
-
-                    return await TryCompileAsync(pipe, request, logger, cancellationToken).ConfigureAwait(false);
+                    return await tryRunRequestAsync(pipe, buildRequest, logger, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -138,14 +161,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // invariant doesn't get invalidated in the future by an `await` being inserted. 
             static Task<NamedPipeClientStream?>? tryConnectToServer(
                 string pipeName,
-                BuildPathsAlt buildPaths,
+                string? clientDirectory,
                 int? timeoutOverride,
-                CreateServerFunc createServerFunc,
                 ICompilerServerLogger logger,
+                bool createServerIfNotRunning,
                 CancellationToken cancellationToken)
             {
                 var originalThreadId = Environment.CurrentManagedThreadId;
-                var clientDir = buildPaths.ClientDirectory;
                 var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
                 var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
                 Task<NamedPipeClientStream?>? pipeTask = null;
@@ -194,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
-                    if (wasServerRunning || createServerFunc(clientDir, pipeName, logger))
+                    if (wasServerRunning || (createServerIfNotRunning && tryCreateServer(clientDirectory!, pipeName, logger)))
                     {
                         pipeTask = TryConnectToServerAsync(pipeName, timeout, logger, cancellationToken);
                     }
@@ -215,116 +237,149 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                 }
             }
-        }
 
-        /// <summary>
-        /// Try to compile using the server. Returns a null-containing Task if a response
-        /// from the server cannot be retrieved.
-        /// </summary>
-        private static async Task<BuildResponse> TryCompileAsync(
-            NamedPipeClientStream pipeStream,
-            BuildRequest request,
-            ICompilerServerLogger logger,
-            CancellationToken cancellationToken)
-        {
-            BuildResponse response;
-            using (pipeStream)
+            static bool tryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
             {
-                // Write the request
-                try
+                var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
+
+                if (!File.Exists(serverInfo.toolFilePath))
                 {
-                    logger.Log($"Begin writing request for {request.RequestId}");
-                    await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
-                    logger.Log($"End writing request for {request.RequestId}");
-                }
-                catch (Exception e)
-                {
-                    logger.LogException(e, $"Error writing build request for {request.RequestId}");
-                    return new RejectedBuildResponse($"Error writing build request: {e.Message}");
+                    return false;
                 }
 
-                // Wait for the compilation and a monitor to detect if the server disconnects
-                var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-                logger.Log($"Begin reading response for {request.RequestId}");
-
-                var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                var monitorTask = MonitorDisconnectAsync(pipeStream, request.RequestId, logger, serverCts.Token);
-                await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
-
-                logger.Log($"End reading response for {request.RequestId}");
-
-                if (responseTask.IsCompleted)
+                if (PlatformInformation.IsWindows)
                 {
-                    // await the task to log any exceptions
-                    try
+                    // As far as I can tell, there isn't a way to use the Process class to
+                    // create a process with no stdin/stdout/stderr, so we use P/Invoke.
+                    // This code was taken from MSBuild task starting code.
+
+                    STARTUPINFO startInfo = new STARTUPINFO();
+                    startInfo.cb = Marshal.SizeOf(startInfo);
+                    startInfo.hStdError = InvalidIntPtr;
+                    startInfo.hStdInput = InvalidIntPtr;
+                    startInfo.hStdOutput = InvalidIntPtr;
+                    startInfo.dwFlags = STARTF_USESTDHANDLES;
+                    uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
+
+                    PROCESS_INFORMATION processInfo;
+
+                    logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
+
+                    var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
+
+                    bool success = CreateProcess(
+                        lpApplicationName: null,
+                        lpCommandLine: builder,
+                        lpProcessAttributes: NullPtr,
+                        lpThreadAttributes: NullPtr,
+                        bInheritHandles: false,
+                        dwCreationFlags: dwCreationFlags,
+                        lpEnvironment: NullPtr, // Inherit environment
+                        lpCurrentDirectory: clientDirectory,
+                        lpStartupInfo: ref startInfo,
+                        lpProcessInformation: out processInfo);
+
+                    if (success)
                     {
-                        response = await responseTask.ConfigureAwait(false);
+                        logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                        CloseHandle(processInfo.hProcess);
+                        CloseHandle(processInfo.hThread);
                     }
-                    catch (Exception e)
+                    else
                     {
-                        logger.LogException(e, $"Reading response for {request.RequestId}");
-                        response = new RejectedBuildResponse($"Error reading response: {e.Message}");
+                        logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
                     }
+                    return success;
                 }
                 else
                 {
-                    logger.LogError($"Client disconnect for {request.RequestId}");
-                    response = new RejectedBuildResponse($"Client disconnected");
+                    try
+                    {
+                        var startInfo = new ProcessStartInfo()
+                        {
+                            FileName = serverInfo.processFilePath,
+                            Arguments = serverInfo.commandLineArguments,
+                            UseShellExecute = false,
+                            WorkingDirectory = clientDirectory,
+                            RedirectStandardInput = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            CreateNoWindow = true
+                        };
+
+                        Process.Start(startInfo);
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
                 }
-
-                // Cancel whatever task is still around
-                serverCts.Cancel();
-                RoslynDebug.Assert(response != null);
-                return response;
             }
-        }
 
-        /// <summary>
-        /// The IsConnected property on named pipes does not detect when the client has disconnected
-        /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
-        /// which serves to check the pipe for disconnection.
-        /// </summary>
-        internal static async Task MonitorDisconnectAsync(
-            PipeStream pipeStream,
-            Guid requestId,
-            ICompilerServerLogger logger,
-            CancellationToken cancellationToken = default)
-        {
-            var buffer = Array.Empty<byte>();
-
-            while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
+            // Try to compile using the server. Returns a null-containing Task if a response
+            // from the server cannot be retrieved.
+            static async Task<BuildResponse> tryRunRequestAsync(
+                NamedPipeClientStream pipeStream,
+                BuildRequest request,
+                ICompilerServerLogger logger,
+                CancellationToken cancellationToken)
             {
-                try
+                BuildResponse response;
+                using (pipeStream)
                 {
-                    // Wait a tenth of a second before trying again
-                    await Task.Delay(millisecondsDelay: 100, cancellationToken).ConfigureAwait(false);
+                    // Write the request
+                    try
+                    {
+                        logger.Log($"Begin writing request for {request.RequestId}");
+                        await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
+                        logger.Log($"End writing request for {request.RequestId}");
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogException(e, $"Error writing build request for {request.RequestId}");
+                        return new RejectedBuildResponse($"Error writing build request: {e.Message}");
+                    }
 
-                    await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception e)
-                {
-                    // It is okay for this call to fail.  Errors will be reflected in the
-                    // IsConnected property which will be read on the next iteration of the
-                    logger.LogException(e, $"Error poking pipe {requestId}.");
+                    // Wait for the compilation and a monitor to detect if the server disconnects
+                    var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+                    logger.Log($"Begin reading response for {request.RequestId}");
+
+                    var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
+                    var monitorTask = MonitorDisconnectAsync(pipeStream, request.RequestId, logger, serverCts.Token);
+                    await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
+
+                    logger.Log($"End reading response for {request.RequestId}");
+
+                    if (responseTask.IsCompleted)
+                    {
+                        // await the task to log any exceptions
+                        try
+                        {
+                            response = await responseTask.ConfigureAwait(false);
+                        }
+                        catch (Exception e)
+                        {
+                            logger.LogException(e, $"Reading response for {request.RequestId}");
+                            response = new RejectedBuildResponse($"Error reading response: {e.Message}");
+                        }
+                    }
+                    else
+                    {
+                        logger.LogError($"Client disconnect for {request.RequestId}");
+                        response = new RejectedBuildResponse($"Client disconnected");
+                    }
+
+                    // Cancel whatever task is still around
+                    serverCts.Cancel();
+                    RoslynDebug.Assert(response != null);
+                    return response;
                 }
             }
         }
 
-        /// <summary>
-        /// Connect to the pipe for a given directory and return it.
-        /// Throws on cancellation.
-        /// </summary>
-        /// <param name="pipeName">Name of the named pipe to connect to.</param>
-        /// <param name="timeoutMs">Timeout to allow in connecting to process.</param>
-        /// <param name="cancellationToken">Cancellation token to cancel connection to server.</param>
-        /// <returns>
-        /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
-        /// </returns>
-        internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
+        public static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
             ICompilerServerLogger logger,
@@ -389,90 +444,45 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+        /// <summary>
+        /// The IsConnected property on named pipes does not detect when the client has disconnected
+        /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
+        /// which serves to check the pipe for disconnection.
+        /// </summary>
+        internal static async Task MonitorDisconnectAsync(
+            PipeStream pipeStream,
+            Guid requestId,
+            ICompilerServerLogger logger,
+            CancellationToken cancellationToken = default)
+        {
+            var buffer = Array.Empty<byte>();
+
+            while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
+            {
+                try
+                {
+                    // Wait a tenth of a second before trying again
+                    await Task.Delay(millisecondsDelay: 100, cancellationToken).ConfigureAwait(false);
+
+                    await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e)
+                {
+                    // It is okay for this call to fail.  Errors will be reflected in the
+                    // IsConnected property which will be read on the next iteration of the
+                    logger.LogException(e, $"Error poking pipe {requestId}.");
+                }
+            }
+        }
+
         internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetServerProcessInfo(string clientDir, string pipeName)
         {
             var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
             return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
-        }
-
-        internal static bool TryCreateServer(string clientDir, string pipeName, ICompilerServerLogger logger)
-        {
-            var serverInfo = GetServerProcessInfo(clientDir, pipeName);
-
-            if (!File.Exists(serverInfo.toolFilePath))
-            {
-                return false;
-            }
-
-            if (PlatformInformation.IsWindows)
-            {
-                // As far as I can tell, there isn't a way to use the Process class to
-                // create a process with no stdin/stdout/stderr, so we use P/Invoke.
-                // This code was taken from MSBuild task starting code.
-
-                STARTUPINFO startInfo = new STARTUPINFO();
-                startInfo.cb = Marshal.SizeOf(startInfo);
-                startInfo.hStdError = InvalidIntPtr;
-                startInfo.hStdInput = InvalidIntPtr;
-                startInfo.hStdOutput = InvalidIntPtr;
-                startInfo.dwFlags = STARTF_USESTDHANDLES;
-                uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
-
-                PROCESS_INFORMATION processInfo;
-
-                logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
-
-                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
-
-                bool success = CreateProcess(
-                    lpApplicationName: null,
-                    lpCommandLine: builder,
-                    lpProcessAttributes: NullPtr,
-                    lpThreadAttributes: NullPtr,
-                    bInheritHandles: false,
-                    dwCreationFlags: dwCreationFlags,
-                    lpEnvironment: NullPtr, // Inherit environment
-                    lpCurrentDirectory: clientDir,
-                    lpStartupInfo: ref startInfo,
-                    lpProcessInformation: out processInfo);
-
-                if (success)
-                {
-                    logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
-                    CloseHandle(processInfo.hProcess);
-                    CloseHandle(processInfo.hThread);
-                }
-                else
-                {
-                    logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
-                }
-                return success;
-            }
-            else
-            {
-                try
-                {
-                    var startInfo = new ProcessStartInfo()
-                    {
-                        FileName = serverInfo.processFilePath,
-                        Arguments = serverInfo.commandLineArguments,
-                        UseShellExecute = false,
-                        WorkingDirectory = clientDir,
-                        RedirectStandardInput = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    };
-
-                    Process.Start(startInfo);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
         }
 
         /// <returns>

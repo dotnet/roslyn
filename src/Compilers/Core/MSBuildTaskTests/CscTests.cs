@@ -11,6 +11,7 @@ using Moq;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Microsoft.Build.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {

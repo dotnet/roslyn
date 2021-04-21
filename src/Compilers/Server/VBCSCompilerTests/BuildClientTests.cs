@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private BuildClient CreateClient(
                 RequestLanguage? language = null,
                 CompileFunc compileFunc = null,
-                CreateServerFunc createServerFunc = null)
+                CompileOnServerFunc compileOnServerFunc = null)
             {
                 language ??= RequestLanguage.CSharpCompile;
                 compileFunc ??= delegate { return 0; };
-                createServerFunc ??= ((_, pipeName, _) => TryCreateServer(pipeName));
-                return new BuildClient(language.Value, compileFunc, _logger, createServerFunc);
+                compileOnServerFunc ??= delegate { throw new InvalidOperationException(); };
+                return new BuildClient(language.Value, compileFunc, compileOnServerFunc, _logger);
             }
 
             private ServerData CreateServer(string pipeName)

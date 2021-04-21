@@ -63,12 +63,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             ServerTask = serverTask;
         }
 
-        internal async Task<BuildResponse> SendAsync(BuildRequest request, CancellationToken cancellationToken = default)
-        {
-            using var client = await BuildServerConnection.TryConnectToServerAsync(PipeName, Timeout.Infinite, Logger, cancellationToken).ConfigureAwait(false);
-            await request.WriteAsync(client).ConfigureAwait(false);
-            return await BuildResponse.ReadAsync(client).ConfigureAwait(false);
-        }
+        internal Task<BuildResponse> SendAsync(BuildRequest request, CancellationToken cancellationToken = default) =>
+            BuildServerConnection.RunServerBuildRequestAsync(
+                request,
+                PipeName,
+                clientDirectory: null,
+                Logger,
+                timeoutOverride: Timeout.Infinite,
+                createServerIfNotRunning: false,
+                cancellationToken);
 
         internal async Task<int> SendShutdownAsync(CancellationToken cancellationToken = default)
         {
@@ -151,14 +154,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static BuildClient CreateBuildClient(
             RequestLanguage language,
-            ICompilerServerLogger logger,
-            CompileFunc compileFunc = null,
-            TextWriter textWriter = null,
-            int? timeoutOverride = null)
+            ICompilerServerLogger logger)
         {
-            compileFunc ??= GetCompileFunc(language);
-            textWriter ??= new StringWriter();
-            return new BuildClient(language, compileFunc, logger, timeoutOverride: timeoutOverride);
+            // Create a client to run the build.  Infinite timeout is used to account for the
+            // case where these tests are run under extreme load.  In high load scenarios the
+            // client will correctly drop down to a local compilation if the server doesn't respond
+            // fast enough.
+            CompileOnServerFunc compileOnServerFunc = (request, pipeName, clientDirectory, logger, cancellationToken) =>
+                BuildServerConnection.RunServerBuildRequestAsync(
+                    request,
+                    pipeName,
+                    clientDirectory,
+                    logger,
+                    timeoutOverride: Timeout.Infinite,
+                    createServerIfNotRunning: true,
+                    cancellationToken);
+
+            var compileFunc = GetCompileFunc(language);
+            return new BuildClient(language, compileFunc, compileOnServerFunc, logger);
         }
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)

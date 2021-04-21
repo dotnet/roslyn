@@ -109,11 +109,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new CompilerServerHost(clientDirectory, sdkDirectory, logger);
         }
 
-        private async Task<Stream?> ConnectForShutdownAsync(string pipeName, int timeout)
-        {
-            return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, _logger, cancellationToken: default).ConfigureAwait(false);
-        }
-
         private static string? GetDefaultPipeName()
         {
             // BaseDirectory was mistakenly marked as nullable in 3.1
@@ -199,26 +194,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var realTimeout = timeout != null
                     ? (int)timeout.Value.TotalMilliseconds
                     : Timeout.Infinite;
-                using var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false);
-                if (client is object)
-                {
-                    var request = BuildRequest.CreateShutdown();
-                    await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
-                    var response = await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
-                    var shutdownResponse = (ShutdownBuildResponse)response;
+                var request = BuildRequest.CreateShutdown();
+                var response = await BuildServerConnection.RunServerBuildRequestAsync(
+                    BuildRequest.CreateShutdown(),
+                    pipeName,
+                    clientDirectory: AppDomain.CurrentDomain.BaseDirectory!,
+                    _logger,
+                    timeoutOverride: realTimeout,
+                    createServerIfNotRunning: false,
+                    cancellationToken).ConfigureAwait(false);
 
-                    if (waitForProcess)
+                if (response is ShutdownBuildResponse shutdownBuildResponse && waitForProcess)
+                {
+                    try
                     {
-                        try
-                        {
-                            var process = Process.GetProcessById(shutdownResponse.ServerProcessId);
-                            process.WaitForExit();
-                        }
-                        catch (Exception)
-                        {
-                            // There is an inherent race here with the server process.  If it has already shutdown
-                            // by the time we try to access it then the operation has succeed.
-                        }
+                        var process = Process.GetProcessById(shutdownBuildResponse.ServerProcessId);
+                        process.WaitForExit();
+                    }
+                    catch (Exception)
+                    {
+                        // There is an inherent race here with the server process.  If it has already shutdown
+                        // by the time we try to access it then the operation has succeed.
                     }
                 }
 
