@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly IMethodSymbol _methodSymbol;
             private readonly SyntaxNode _containerMethod;
             private readonly IntroduceParameterCodeActionKind _actionKind;
-            private readonly bool AllOccurrences;
+            private readonly bool _allOccurrences;
 
             public IntroduceParameterDocumentRewriter(AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax> service,
                 Document originalDocument,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 _methodSymbol = methodSymbol;
                 _containerMethod = containingMethod;
                 _actionKind = selectedCodeAction;
-                AllOccurrences = allOccurrences;
+                _allOccurrences = allOccurrences;
             }
 
             /// <summary>
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             /// </summary>
             private async Task<IEnumerable<TExpressionSyntax>> FindMatchesAsync(CancellationToken cancellationToken)
             {
-                if (!AllOccurrences)
+                if (!_allOccurrences)
                 {
                     return SpecializedCollections.SingletonEnumerable(_expression);
                 }
