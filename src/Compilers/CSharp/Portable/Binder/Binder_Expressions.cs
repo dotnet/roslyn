@@ -8301,10 +8301,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
+        internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (GetUniqueSignatureFromMethodGroup(node, diagnostics) is { } method &&
-                GetMethodGroupOrLambdaDelegateType(method.RefKind, method.ReturnsVoid ? default : method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations, diagnostics) is { } delegateType)
+            if (GetUniqueSignatureFromMethodGroup(node) is { } method &&
+                GetMethodGroupOrLambdaDelegateType(method.RefKind, method.ReturnsVoid ? default : method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations, ref useSiteInfo) is { } delegateType)
             {
                 return delegateType;
             }
@@ -8316,7 +8316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// have the same signature, ignoring parameter names and custom modifiers. The particular
         /// method returned is not important since the caller is interested in the signature only.
         /// </summary>
-        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node, BindingDiagnosticBag diagnostics)
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
         {
             MethodSymbol? method = null;
             foreach (var m in node.Methods)
@@ -8341,7 +8341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionMethodScopes(this))
                 {
                     var methodGroup = MethodGroup.GetInstance();
-                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, diagnostics);
+                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
                     foreach (var m in methodGroup.Methods)
                     {
                         if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
@@ -8392,7 +8392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations returnTypeOpt,
             ImmutableArray<RefKind> parameterRefKinds,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
-            BindingDiagnosticBag diagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (returnRefKind == RefKind.None &&
                 (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)))
@@ -8403,23 +8403,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (wkDelegateType != WellKnownType.Unknown)
                 {
-                    // PROTOTYPE: Report use-site diagnostics.
                     var delegateType = Compilation.GetWellKnownType(wkDelegateType);
-                    if (!delegateType.HasUseSiteError)
+                    delegateType.AddUseSiteInfo(ref useSiteInfo);
+                    if (returnTypeOpt.HasType)
                     {
-                        diagnostics.AddDependencies(delegateType);
-                        if (returnTypeOpt.HasType)
-                        {
-                            parameterTypes = parameterTypes.Add(returnTypeOpt);
-                        }
-                        if (parameterTypes.Length == 0)
-                        {
-                            return delegateType;
-                        }
-                        if (checkConstraints(Compilation, Conversions, delegateType, parameterTypes))
-                        {
-                            return delegateType.Construct(parameterTypes);
-                        }
+                        parameterTypes = parameterTypes.Add(returnTypeOpt);
+                    }
+                    if (parameterTypes.Length == 0)
+                    {
+                        return delegateType;
+                    }
+                    if (checkConstraints(Compilation, Conversions, delegateType, parameterTypes))
+                    {
+                        return delegateType.Construct(parameterTypes);
                     }
                 }
             }

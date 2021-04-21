@@ -385,6 +385,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public MessageID MessageID { get { return Data.MessageID; } }
 
+        public NamedTypeSymbol? InferDelegateType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            => Data.InferDelegateType(ref useSiteInfo);
+
         public BoundLambda Bind(NamedTypeSymbol delegateType)
             => SuppressIfNeeded(Data.Bind(delegateType));
 
@@ -504,16 +507,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Returns the inferred return type, or null if none can be inferred.
         public BoundLambda Bind(NamedTypeSymbol delegateType)
         {
-            Debug.Assert(delegateType.SpecialType == SpecialType.System_Delegate ||
-                delegateType.IsDelegateType() ||
-                delegateType.IsGenericOrNonGenericExpressionType(out _));
-
             BoundLambda? result;
             if (!_bindingCache!.TryGetValue(delegateType, out result))
             {
-                result = (delegateType.SpecialType == SpecialType.System_Delegate || delegateType.IsNonGenericExpressionType()) ?
-                    ReallyBindNaturalType(delegateType) :
-                    ReallyBind(delegateType);
+                result = ReallyBind(delegateType);
                 result = ImmutableInterlocked.GetOrAdd(ref _bindingCache, delegateType, result);
             }
 
@@ -574,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private BoundLambda ReallyBindNaturalType(TypeSymbol expressionType)
+        internal NamedTypeSymbol? InferDelegateType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var compilation = Binder.Compilation;
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
@@ -610,24 +607,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasExplicitlyTypedParameterList && (inferredReturnType.TypeWithAnnotations.HasType || returnTypes.Count == 0))
             {
-                var delegateType = Binder.GetMethodGroupOrLambdaDelegateType(
+                return Binder.GetMethodGroupOrLambdaDelegateType(
                     inferredReturnType.RefKind,
                     inferredReturnType.TypeWithAnnotations,
                     parameterRefKinds,
                     parameterTypes,
-                    BindingDiagnosticBag.Discarded); // PROTOTYPE: Report use-site diagnostics.
-                if (delegateType is { })
-                {
-                    if (expressionType.IsNonGenericExpressionType())
-                    {
-                        // PROTOTYPE: Report use-site diagnostics.
-                        delegateType = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
-                    }
-                    return Bind(delegateType);
-                }
+                    ref useSiteInfo);
             }
 
-            return ReallyBindForErrorRecovery(delegateType: null, inferredReturnType, parameterTypes, parameterRefKinds);
+            return null;
         }
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType)

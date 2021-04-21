@@ -480,9 +480,6 @@ class Program
                 // (6,23): error CS8915: The delegate type could not be inferred.
                 //         Delegate d0 = x0 => { _ = x0.Length; };
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x0 => { _ = x0.Length; }").WithLocation(6, 23),
-                // (6,38): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-                //         Delegate d0 = x0 => { _ = x0.Length; };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(6, 38),
                 // (7,47): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Delegate d1 = (object x1) => { _ = x1.Length; };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(7, 47),
@@ -1313,7 +1310,7 @@ class B
         }
 
         [Fact]
-        public void MissingSystemActionAndFunc()
+        public void SystemActionAndFunc_Missing()
         {
             var sourceA =
 @".assembly mscorlib
@@ -1323,9 +1320,6 @@ class B
 .class public System.Object
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
-  .method public hidebysig newslot virtual instance string ToString() cil managed { ldnull throw }
-  .method public hidebysig newslot virtual instance bool Equals(object obj) cil managed { ldnull throw }
-  .method public hidebysig newslot virtual instance int32 GetHashCode() cil managed { ldnull throw }
 }
 .class public abstract System.ValueType extends System.Object
 {
@@ -1366,12 +1360,111 @@ class B
 
             var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
+                // (6,13): error CS0518: Predefined type 'System.Action' is not defined or imported
+                //         d = Main;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Main").WithArguments("System.Action").WithLocation(6, 13),
+                // (6,13): error CS0518: Predefined type 'System.Action' is not defined or imported
+                //         d = Main;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Main").WithArguments("System.Action").WithLocation(6, 13),
                 // (6,13): error CS8915: The delegate type could not be inferred.
                 //         d = Main;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "Main").WithLocation(6, 13),
-                // (7,13): error CS8915: The delegate type could not be inferred.
+                // (7,13): error CS0518: Predefined type 'System.Func`1' is not defined or imported
                 //         d = () => 1;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "() => 1").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => 1").WithArguments("System.Func`1").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void SystemActionAndFunc_UseSiteErrors()
+        {
+            var sourceA =
+@".assembly mscorlib
+{
+  .ver 0:0:0:0
+}
+.class public System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.ValueType extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.String extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.Type extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Void extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Boolean extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Int32 extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Delegate extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Attribute extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Runtime.CompilerServices.RequiredAttributeAttribute extends System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(class System.Type t) cil managed { ret }
+}
+.class public abstract System.MulticastDelegate extends System.Delegate
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Action`1<T> extends System.MulticastDelegate
+{
+  .custom instance void System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class System.Type) = ( 01 00 FF 00 00 ) 
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig instance void Invoke(!T t) { ret }
+}
+.class public sealed System.Func`1<T> extends System.MulticastDelegate
+{
+  .custom instance void System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class System.Type) = ( 01 00 FF 00 00 ) 
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig instance !T Invoke() { ldnull throw }
+}";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+
+            var sourceB =
+@"class Program
+{
+    static void F(object o)
+    {
+    }
+    static void Main()
+    {
+        System.Delegate d;
+        d = F;
+        d = () => 1;
+    }
+}";
+
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS0648: 'Action<T>' is a type not supported by the language
+                //         d = F;
+                Diagnostic(ErrorCode.ERR_BogusType, "F").WithArguments("System.Action<T>").WithLocation(9, 13),
+                // (9,13): error CS0648: 'Action<T>' is a type not supported by the language
+                //         d = F;
+                Diagnostic(ErrorCode.ERR_BogusType, "F").WithArguments("System.Action<T>").WithLocation(9, 13),
+                // (10,13): error CS0648: 'Func<T>' is a type not supported by the language
+                //         d = () => 1;
+                Diagnostic(ErrorCode.ERR_BogusType, "() => 1").WithArguments("System.Func<T>").WithLocation(10, 13));
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]

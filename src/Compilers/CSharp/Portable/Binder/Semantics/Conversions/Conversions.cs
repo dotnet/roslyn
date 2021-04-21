@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            var (methodSymbol, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(source, destination, BindingDiagnosticBag.Discarded); // PROTOTYPE: Report use-site diagnostics.
+            var (methodSymbol, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(source, destination, ref useSiteInfo);
             if ((object)methodSymbol == null)
             {
                 return Conversion.NoConversion;
@@ -114,7 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return the Invoke method symbol if the type is a delegate
         /// type and the Invoke method is available, otherwise null.
         /// </summary>
-        private (MethodSymbol, bool isFunctionPointer, CallingConventionInfo callingConventionInfo) GetDelegateInvokeOrFunctionPointerMethodIfAvailable(BoundMethodGroup methodGroup, TypeSymbol type, BindingDiagnosticBag diagnostics)
+        private (MethodSymbol, bool isFunctionPointer, CallingConventionInfo callingConventionInfo) GetDelegateInvokeOrFunctionPointerMethodIfAvailable(
+            BoundMethodGroup methodGroup,
+            TypeSymbol type,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (type is FunctionPointerTypeSymbol { Signature: { } signature })
             {
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var delegateType = (type.SpecialType == SpecialType.System_Delegate) ?
                 // PROTOTYPE: We're resolving the method group multiple times in the code path for a single conversion.
-                _binder.GetMethodGroupDelegateType(methodGroup, diagnostics) :
+                _binder.GetMethodGroupDelegateType(methodGroup, ref useSiteInfo) :
                 type.GetDelegateType();
 
             if ((object)delegateType == null)
@@ -142,8 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ReportDelegateOrFunctionPointerMethodGroupDiagnostics(Binder binder, BoundMethodGroup expr, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
         {
-            var (invokeMethodOpt, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(expr, targetType, diagnostics);
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+            var (invokeMethodOpt, isFunctionPointer, callingConventionInfo) = GetDelegateInvokeOrFunctionPointerMethodIfAvailable(expr, targetType, ref useSiteInfo);
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(binder, expr, invokeMethodOpt, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
             diagnostics.Add(expr.Syntax, useSiteInfo);
 

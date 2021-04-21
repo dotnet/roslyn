@@ -500,39 +500,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            var expr = createAnonymousFunctionConversion(syntax, unboundLambda, conversion, isCast, conversionGroup, destination, diagnostics);
-
             if (destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType())
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
-                diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE: Report use-site diagnostics.
-                return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
-            }
-
-            return expr;
-
-            BoundConversion createAnonymousFunctionConversion(SyntaxNode syntax, UnboundLambda unboundLambda, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
-            {
-#if DEBUG
-                // Test inferring a delegate type for all callers.
-                if (destination.SpecialType != SpecialType.System_Delegate)
+                var delegateType = unboundLambda.InferDelegateType(ref useSiteInfo);
+                BoundLambda boundLambda;
+                if (delegateType is { })
                 {
-                    _ = unboundLambda.Bind(Compilation.GetSpecialType(SpecialType.System_Delegate));
-                }
-#endif
-                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
-                diagnostics.AddRange(boundLambda.Diagnostics);
-                if (boundLambda.Type is null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_CannotInferDelegateType, syntax.GetLocation());
-                    destination = CreateErrorType();
+                    if (destination.IsNonGenericExpressionType())
+                    {
+                        // PROTOTYPE: Report use-site diagnostics.
+                        delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
+                    }
+                    boundLambda = unboundLambda.Bind(delegateType);
                 }
                 else
                 {
-                    destination = boundLambda.Type;
+                    diagnostics.Add(ErrorCode.ERR_CannotInferDelegateType, syntax.GetLocation());
+                    delegateType = CreateErrorType();
+                    boundLambda = unboundLambda.BindForErrorRecovery();
                 }
+                diagnostics.AddRange(boundLambda.Diagnostics);
+                var expr = createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, delegateType);
+                conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
+                return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
+            }
+            else
+            {
+#if DEBUG
+                // Test inferring a delegate type for all callers.
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                _ = unboundLambda.InferDelegateType(ref discardedUseSiteInfo);
+#endif
+                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
+                diagnostics.AddRange(boundLambda.Diagnostics);
+                return createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, destination);
+            }
+
+            static BoundConversion createAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, BoundLambda boundLambda, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination)
+            {
                 return new BoundConversion(
                     syntax,
                     boundLambda,
@@ -566,17 +574,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
                 // PROTOTYPE: We're resolving the method group multiple times in the code path for a single conversion.
-                var delegateType = GetMethodGroupDelegateType(group, BindingDiagnosticBag.Discarded); // PROTOTYPE: Report use-site diagnostics.
-                var expr = createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, delegateType!, hasErrors);
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var delegateType = GetMethodGroupDelegateType(group, ref useSiteInfo);
+                var expr = createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, delegateType!, hasErrors);
                 conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
-                diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE: Report use-site diagnostics.
+                diagnostics.Add(syntax, useSiteInfo);
                 return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
             }
 
 #if DEBUG
             // Test inferring a delegate type for all callers.
-            _ = GetMethodGroupDelegateType(group, BindingDiagnosticBag.Discarded);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            _ = GetMethodGroupDelegateType(group, ref discardedUseSiteInfo);
 #endif
             return createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, destination, hasErrors);
 
