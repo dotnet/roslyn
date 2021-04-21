@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (!document.SupportsSemanticModel)
                 return;
 
+            // Cancel any existing tasks that are computing the compilation and spawn a new one to compute
+            // it and notify any listening clients.
             var cancellationToken = _cancellationSeries.CreateNext();
 
             var token = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChanged));
