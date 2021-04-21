@@ -69,7 +69,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
             private object _state_doNotAccessDirecty;
-            private bool _upToDate_doNotAccessDirectly = false;
+
+            /// <summary>
+            /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
+            /// <see langword="true"/> for <see cref="AbstractAsynchronousTaggerProvider{TTag}.ComputeInitialTagsSynchronously"/>,
+            /// then we'll want to synchronously block then and only then for tags.
+            /// </summary>
+            private bool _firstTagsRequest = true;
 
             #endregion
 
@@ -92,10 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 IForegroundNotificationService notificationService)
                 : base(dataSource.ThreadingContext)
             {
+                this.AssertIsForeground();
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
-                {
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
-                }
 
                 _subjectBuffer = subjectBuffer;
                 _textViewOpt = textViewOpt;
@@ -192,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // when the view itself is initializing.  As such the view is not in a state where
                 // we want code touching it.
                 RegisterNotification(
-                    () => RecomputeTagsForeground(initialTags: true),
+                    () => RecomputeTagsForeground(initialTags: true, synchronous: false),
                     delay: 0,
                     cancellationToken: GetCancellationToken(initialTags: true));
             }
@@ -259,21 +264,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     this.AssertIsForeground();
                     _state_doNotAccessDirecty = value;
-                }
-            }
-
-            private bool UpToDate
-            {
-                get
-                {
-                    this.AssertIsForeground();
-                    return _upToDate_doNotAccessDirectly;
-                }
-
-                set
-                {
-                    this.AssertIsForeground();
-                    _upToDate_doNotAccessDirectly = value;
                 }
             }
 
