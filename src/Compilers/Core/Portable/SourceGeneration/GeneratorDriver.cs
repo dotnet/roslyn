@@ -306,6 +306,7 @@ namespace Microsoft.CodeAnalysis
             var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
             driverStateBuilder.SetInputState(CommonValueSources.Compilation, NodeStateTable<Compilation>.WithSingleItem(compilation, EntryState.Added));
             driverStateBuilder.SetInputState(CommonValueSources.AnalzerConfigOptions, NodeStateTable<AnalyzerConfigOptionsProvider>.WithSingleItem(_state.OptionsProvider, EntryState.Added));
+            driverStateBuilder.SetInputState(CommonValueSources.ParseOptions, NodeStateTable<ParseOptions>.WithSingleItem(_state.ParseOptions, EntryState.Added));
 
             var additionalBuiilder = new NodeStateTable<AdditionalText>.Builder();
             foreach (var text in _state.AdditionalTexts)

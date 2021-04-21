@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var context = ctx.Sources.Compilation
                                          .Transform(c => new GeneratorContextBuilder(c))
-                                         .Transform(c => c with { Options = c.Compilation.SyntaxTrees.First().Options }) // PROTOTYPE(source-generators): we should make an input source for the parse options
+                                         .Join(ctx.Sources.ParseOptions).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
                                          .Join(ctx.Sources.AnalyzerConfigOptions).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
                                          .Join(ctx.Sources.SyntaxReceiver).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
                                          .Join(ctx.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2.ToImmutableArray() });
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
         record GeneratorContextBuilder(Compilation Compilation)
         {
-            public ParseOptions? Options;
+            public ParseOptions? ParseOptions;
 
             public ImmutableArray<AdditionalText> AdditionalTexts;
 
@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis
 
             public GeneratorExecutionContext ToExecutionContext(CancellationToken cancellationToken)
             {
-                Debug.Assert(Options is object && ConfigOptions is object);
-                return new GeneratorExecutionContext(Compilation, Options, AdditionalTexts, ConfigOptions, Receiver, cancellationToken);
+                Debug.Assert(ParseOptions is object && ConfigOptions is object);
+                return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, cancellationToken);
 
             }
 

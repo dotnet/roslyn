@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(CommonValueSources.Compilation);
 
+        public IncrementalValueSource<ParseOptions> ParseOptions => new IncrementalValueSource<ParseOptions>(CommonValueSources.ParseOptions);
+
         public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(CommonValueSources.AdditionalTexts);
 
         public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(CommonValueSources.AnalzerConfigOptions);
@@ -26,13 +28,15 @@ namespace Microsoft.CodeAnalysis
         internal IncrementalValueSource<ISyntaxContextReceiver> SyntaxReceiver => new IncrementalValueSource<ISyntaxContextReceiver>(_generatorSourceBuilder.ReceiverNode);
     }
 
+    // PROTOTYPE(source-generators):should this be called commonInputNodes?
     /// <summary>
     /// Holds value sources that are shared between generators and always exist
     /// </summary>
     internal static class CommonValueSources
     {
-        // PROTOTYPE(source-generators):should this be called commonInputNodes?
         public static readonly InputNode<Compilation> Compilation = new InputNode<Compilation>();
+
+        public static readonly InputNode<ParseOptions> ParseOptions = new InputNode<ParseOptions>();
 
         public static readonly InputNode<AdditionalText> AdditionalTexts = new InputNode<AdditionalText>();
 
