@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 language ??= RequestLanguage.CSharpCompile;
                 compileFunc ??= delegate { return 0; };
                 compileOnServerFunc ??= delegate { throw new InvalidOperationException(); };
-                return new BuildClient(language.Value, compileFunc, compileOnServerFunc, _logger);
+                return new BuildClient(language.Value, compileFunc, compileOnServerFunc);
             }
 
             private ServerData CreateServer(string pipeName)

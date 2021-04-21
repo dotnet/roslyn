@@ -98,23 +98,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal static ICompilerServerHost CreateCompilerServerHost(ICompilerServerLogger logger)
         {
-            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
-            // location of the response files.
-            //
-            // BaseDirectory was mistakenly marked as potentially null in 3.1
-            // https://github.com/dotnet/runtime/pull/32486
-            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory!;
+            var clientDirectory = BuildClient.GetClientDirectory();
             var sdkDirectory = BuildClient.GetSystemSdkDirectory();
-
             return new CompilerServerHost(clientDirectory, sdkDirectory, logger);
         }
 
         private static string? GetDefaultPipeName()
         {
-            // BaseDirectory was mistakenly marked as nullable in 3.1
-            // https://github.com/dotnet/runtime/pull/32486
-            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory!;
-            return BuildServerConnection.GetPipeNameForPath(clientDirectory);
+            return BuildServerConnection.GetPipeNameForPath(BuildClient.GetClientDirectory());
         }
 
         internal int RunServer(

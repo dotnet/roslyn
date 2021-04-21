@@ -160,18 +160,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             // case where these tests are run under extreme load.  In high load scenarios the
             // client will correctly drop down to a local compilation if the server doesn't respond
             // fast enough.
-            CompileOnServerFunc compileOnServerFunc = (request, pipeName, clientDirectory, logger, cancellationToken) =>
+            CompileOnServerFunc compileOnServerFunc = (request, pipeName, cancellationToken) =>
                 BuildServerConnection.RunServerBuildRequestAsync(
                     request,
                     pipeName,
-                    clientDirectory,
+                    clientDirectory: null,
                     logger,
                     timeoutOverride: Timeout.Infinite,
-                    createServerIfNotRunning: true,
+                    createServerIfNotRunning: false,
                     cancellationToken);
 
             var compileFunc = GetCompileFunc(language);
-            return new BuildClient(language, compileFunc, compileOnServerFunc, logger);
+            return new BuildClient(language, compileFunc, compileOnServerFunc);
         }
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)

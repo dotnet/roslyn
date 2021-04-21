@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
             ExitingTraceListener.Install(logger);
 #endif
 
-            return BuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, BuildServerConnection.RunServerCompilationAsync, logger);
+            return BuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run, BuildClient.GetCompileOnServerFunc(logger));
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
