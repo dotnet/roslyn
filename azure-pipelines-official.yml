@@ -130,6 +130,16 @@ stages:
         ${{ if eq(variables['System.TeamProject'], 'internal') }}:
           nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
 
+    # Needed because the dnceng image we build on fails the next task without it
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        version: 6.0.100-preview.1.21103.13
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+      condition: eq(variables['System.TeamProject'], 'internal')
+
+    # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
     - task: NuGetCommand@2
       displayName: Restore internal tools
       inputs:
