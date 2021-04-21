@@ -43,12 +43,16 @@ namespace Microsoft.CodeAnalysis.Host
             _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
             _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             workspace.DocumentOpened += OnDocumentOpened;
             workspace.DocumentClosed += OnDocumentClosed;
         }
+
+        private void OnActiveDocumentChanged(object sender, DocumentId activeDocumentId)
+            => Parse(_workspace.CurrentSolution.GetDocument(activeDocumentId));
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
             => Parse(args.Document);
