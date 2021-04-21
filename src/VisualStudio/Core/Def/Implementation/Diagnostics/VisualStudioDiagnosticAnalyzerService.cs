@@ -195,8 +195,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Local functions
             static BackgroundAnalysisScope? GetBackgroundAnalysisScope(Workspace workspace)
             {
-                var csharpAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.CurrentSolution.Options, LanguageNames.CSharp);
-                var visualBasicAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.CurrentSolution.Options, LanguageNames.VisualBasic);
+                var csharpAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.CSharp);
+                var visualBasicAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.VisualBasic);
 
                 var containsCSharpProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.CSharp);
                 var containsVisualBasicProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.VisualBasic);

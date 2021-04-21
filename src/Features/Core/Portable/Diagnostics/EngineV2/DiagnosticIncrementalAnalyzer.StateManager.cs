@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly IPersistentStorageService _persistentStorageService;
+            private readonly IAnalysisScopeService _analysisScopeService;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
@@ -40,9 +43,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(IPersistentStorageService persistentStorageService, IAnalysisScopeService analysisScopeService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
                 _persistentStorageService = persistentStorageService;
+                _analysisScopeService = analysisScopeService;
                 _analyzerInfoCache = analyzerInfoCache;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
@@ -220,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var removed = false;
                 foreach (var stateSet in stateSets)
                 {
-                    removed |= await stateSet.OnDocumentClosedAsync(_persistentStorageService, document).ConfigureAwait(false);
+                    removed |= await stateSet.OnDocumentClosedAsync(_persistentStorageService, _analysisScopeService, document).ConfigureAwait(false);
                 }
 
                 return removed;

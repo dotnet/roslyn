@@ -29,10 +29,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         public static bool LowMemoryForcedMinimalBackgroundAnalysis = false;
 
-        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(Project project)
-            => GetBackgroundAnalysisScope(project.Solution.Options, project.Language);
-
-        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet options, string language)
+        public static BackgroundAnalysisScope GetBackgroundAnalysisScopeFromOptions(OptionSet options, string language)
         {
             if (LowMemoryForcedMinimalBackgroundAnalysis)
             {

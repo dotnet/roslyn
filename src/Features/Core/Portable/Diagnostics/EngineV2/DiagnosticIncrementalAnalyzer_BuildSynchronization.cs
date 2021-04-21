@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // Enqueue remaining re-analysis with normal priority on a separate task queue
                     // that will execute at the end of all the post build and error list refresh tasks.
-                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
+                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), async () =>
                     {
                         // Enqueue re-analysis of open documents.
                         AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds());
@@ -105,7 +105,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // Enqueue re-analysis of projects, if required.
                         foreach (var projectsByLanguage in solution.Projects.GroupBy(p => p.Language))
                         {
-                            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(Workspace.Options, projectsByLanguage.Key) == BackgroundAnalysisScope.FullSolution)
+                            var analysisScope = await AnalysisScopeService.GetAnalysisScopeAsync(Workspace.Options, projectsByLanguage.Key, cancellationToken).ConfigureAwait(false);
+                            if (analysisScope == BackgroundAnalysisScope.FullSolution)
                             {
                                 AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id));
                             }

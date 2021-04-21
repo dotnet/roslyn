@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly IAnalysisScopeService _analysisScopeService;
         private readonly IGlobalOperationNotificationService _notificationService;
         private readonly CancellationToken _disposalToken;
 
@@ -101,6 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             _diagnosticService = diagnosticService;
 
+            _analysisScopeService = _workspace.Services.GetRequiredService<IAnalysisScopeService>();
             _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
         }
 
@@ -325,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private async Task SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState, CancellationToken cancellationToken)
         {
             var solution = inProgressState.Solution;
-            var (allLiveErrors, pendingLiveErrorsToSync) = inProgressState.GetLiveErrors(cancellationToken);
+            var (allLiveErrors, pendingLiveErrorsToSync) = await inProgressState.GetLiveErrorsAsync(cancellationToken).ConfigureAwait(false);
 
             // Raise events for build only errors
             var buildErrors = GetBuildErrors().Except(allLiveErrors).GroupBy(k => k.DocumentId);
@@ -447,7 +449,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private async Task SetLiveErrorsForProjectAsync(ProjectId projectId, InProgressState state, CancellationToken cancellationToken)
         {
-            var diagnostics = state.GetLiveErrorsForProject(projectId);
+            var diagnostics = await state.GetLiveErrorsForProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
             await SetLiveErrorsForProjectAsync(projectId, diagnostics, cancellationToken).ConfigureAwait(false);
             state.MarkLiveErrorsReported(projectId);
         }
@@ -685,7 +687,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public ProjectId? TryGetLastProjectWithReportedErrors()
                 => _lastProjectWithReportedErrors;
 
-            public (ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync) GetLiveErrors(CancellationToken cancellationToken)
+            public async ValueTask<(ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync)> GetLiveErrorsAsync(CancellationToken cancellationToken)
             {
                 var allLiveErrorsBuilder = ImmutableArray.CreateBuilder<DiagnosticData>();
                 var pendingLiveErrorsToSyncBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<DiagnosticData>>();
@@ -693,7 +695,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var errors = GetLiveErrorsForProject(projectId);
+                    var errors = await GetLiveErrorsForProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                     allLiveErrorsBuilder.AddRange(errors);
 
                     if (!_projectsWithAllLiveErrorsReported.Contains(projectId))
@@ -714,7 +716,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
             }
 
-            public ImmutableArray<DiagnosticData> GetLiveErrorsForProject(ProjectId projectId)
+            public async ValueTask<ImmutableArray<DiagnosticData>> GetLiveErrorsForProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 var project = Solution.GetProject(projectId);
                 if (project == null)
@@ -727,7 +729,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var (diagnostic, _) in diagnostics)
                 {
-                    if (IsLive(project, diagnostic))
+                    if (await IsLiveAsync(project, diagnostic, cancellationToken).ConfigureAwait(false))
                     {
                         builder.Add(diagnostic);
                     }
@@ -748,7 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public void AddError(ProjectId key, DiagnosticData diagnostic)
                 => AddError(_projectMap, key, diagnostic);
 
-            private bool IsLive(Project project, DiagnosticData diagnosticData)
+            private async ValueTask<bool> IsLiveAsync(Project project, DiagnosticData diagnosticData, CancellationToken cancellationToken)
             {
                 // REVIEW: current design is that we special case compiler analyzer case and we accept only document level
                 //         diagnostic as live. otherwise, we let them be build errors. we changed compiler analyzer accordingly as well
@@ -760,7 +762,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return false;
                 }
 
-                if (IsSupportedLiveDiagnosticId(project, diagnosticData.Id))
+                if (await IsSupportedLiveDiagnosticIdAsync(project, diagnosticData.Id, cancellationToken).ConfigureAwait(false))
                 {
                     return true;
                 }
@@ -799,21 +801,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
             }
 
-            private bool IsSupportedLiveDiagnosticId(Project project, string id)
-                => GetOrCreateSupportedLiveDiagnostics(project).Contains(id);
-
-            private ImmutableHashSet<string> GetOrCreateSupportedLiveDiagnostics(Project project)
+            private async ValueTask<bool> IsSupportedLiveDiagnosticIdAsync(Project project, string id, CancellationToken cancellationToken)
             {
+                var supportedLiveDiagnostics = await GetOrCreateSupportedLiveDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+                return supportedLiveDiagnostics.Contains(id);
+            }
+
+            private async ValueTask<ImmutableHashSet<string>> GetOrCreateSupportedLiveDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+            {
+                var analysisScope = await _owner._analysisScopeService.GetAnalysisScopeAsync(project, cancellationToken).ConfigureAwait(false);
+                var fullSolutionAnalysis = analysisScope == BackgroundAnalysisScope.FullSolution;
+                if (!project.SupportsCompilation || fullSolutionAnalysis)
+                {
+                    return GetOrCreateSupportedDiagnosticIds(project.Id);
+                }
+
                 return GetOrCreateDiagnosticIds(project.Id, _liveDiagnosticIdMap, ComputeSupportedLiveDiagnosticIds);
 
                 ImmutableHashSet<string> ComputeSupportedLiveDiagnosticIds()
                 {
-                    var fullSolutionAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
-                    if (!project.SupportsCompilation || fullSolutionAnalysis)
-                    {
-                        return GetOrCreateSupportedDiagnosticIds(project.Id);
-                    }
-
                     // set ids set
                     var builder = ImmutableHashSet.CreateBuilder<string>();
                     var infoCache = _owner._diagnosticService.AnalyzerInfoCache;

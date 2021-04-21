@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IDocumentTrackingService? _documentTracker;
                 private readonly IProjectCacheService? _cacheService;
+                private readonly IAnalysisScopeService _analysisScopeService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _listener = listener;
                     _registration = registration;
                     _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
+                    _analysisScopeService = registration.Workspace.Services.GetRequiredService<IAnalysisScopeService>();
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
@@ -101,12 +103,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return orderedAnalyzers;
                 }
 
-                public void Enqueue(WorkItem item)
+                public async Task EnqueueAsync(WorkItem item, CancellationToken cancellationToken)
                 {
                     Contract.ThrowIfNull(item.DocumentId);
 
                     var options = _registration.Workspace.Options;
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(options, item.Language);
+                    var analysisScope = await _analysisScopeService.GetAnalysisScopeAsync(options, item.Language, cancellationToken).ConfigureAwait(false);
 
                     if (ShouldEnqueueForAllQueues(item, analysisScope))
                     {

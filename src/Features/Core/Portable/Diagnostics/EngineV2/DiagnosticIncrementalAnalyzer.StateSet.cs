@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(IPersistentStorageService persistentStorageService, TextDocument document)
+            public async Task<bool> OnDocumentClosedAsync(IPersistentStorageService persistentStorageService, IAnalysisScopeService analysisScopeService, TextDocument document)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // active file exist, put it in the project state
                 var projectState = GetOrCreateProjectState(document.Project.Id);
-                await projectState.MergeAsync(persistentStorageService, activeFileState, document).ConfigureAwait(false);
+                await projectState.MergeAsync(persistentStorageService, analysisScopeService, activeFileState, document).ConfigureAwait(false);
                 return true;
             }
 

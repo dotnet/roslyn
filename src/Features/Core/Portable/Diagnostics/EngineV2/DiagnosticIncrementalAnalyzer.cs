@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
         internal IPersistentStorageService PersistentStorageService { get; }
+        internal IAnalysisScopeService AnalysisScopeService { get; }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
@@ -52,11 +53,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             AnalyzerService = analyzerService;
             Workspace = workspace;
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
+            AnalysisScopeService = workspace.Services.GetRequiredService<IAnalysisScopeService>();
             _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(PersistentStorageService, analyzerInfoCache);
+            _stateManager = new StateManager(PersistentStorageService, AnalysisScopeService, analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 

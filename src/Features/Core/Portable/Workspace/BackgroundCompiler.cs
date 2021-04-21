@@ -152,12 +152,23 @@ namespace Microsoft.CodeAnalysis.Host
 
             var logger = Logger.LogBlock(FunctionId.BackgroundCompiler_BuildCompilationsAsync, cancellationToken);
 
+            var analysisScopeService = _workspace.Services.GetRequiredService<IAnalysisScopeService>();
+
             // Skip performing any background compilation for projects where user has explicitly
             // set the background analysis scope to only analyze active files.
             var compilationTasks = allProjectIds
                 .Select(solution.GetProject)
-                .Where(p => p != null && SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) != BackgroundAnalysisScope.ActiveFile)
-                .Select(p => p.GetCompilationAsync(cancellationToken))
+                .Select(async p =>
+                {
+                    if (p is null)
+                        return null;
+
+                    var analysisScope = await analysisScopeService.GetAnalysisScopeAsync(p, cancellationToken).ConfigureAwait(false);
+                    if (analysisScope == BackgroundAnalysisScope.ActiveFile)
+                        return null;
+
+                    return await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                })
                 .ToArray();
             return Task.WhenAll(compilationTasks).SafeContinueWith(t =>
                 {

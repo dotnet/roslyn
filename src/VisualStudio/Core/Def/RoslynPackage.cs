@@ -76,6 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private ColorSchemeApplier? _colorSchemeApplier;
         private IDisposable? _solutionEventMonitor;
 
+        private BackgroundAnalysisScope? _analysisScope;
+
         public RoslynPackage()
         {
             // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
@@ -85,7 +87,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         public bool IsDecompilerEulaAccepted { get; set; }
 
-        public BackgroundAnalysisScope? AnalysisScope { get; set; }
+        public BackgroundAnalysisScope? AnalysisScope
+        {
+            get
+            {
+                return _analysisScope;
+            }
+
+            set
+            {
+                if (_analysisScope == value)
+                    return;
+
+                _analysisScope = value;
+                AnalysisScopeChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public event EventHandler? AnalysisScopeChanged;
 
         protected override void OnLoadOptions(string key, Stream stream)
         {

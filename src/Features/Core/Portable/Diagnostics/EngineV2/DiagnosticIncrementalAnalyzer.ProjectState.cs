@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = _lastResult.Reset();
             }
 
-            public async Task MergeAsync(IPersistentStorageService persistentService, ActiveFileState state, TextDocument document)
+            public async Task MergeAsync(IPersistentStorageService persistentService, IAnalysisScopeService analysisScopeService, ActiveFileState state, TextDocument document)
             {
                 Contract.ThrowIfFalse(state.DocumentId == document.Id);
 
@@ -247,7 +247,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
 
                 // if project didn't successfully loaded, then it is same as FSA off
-                var fullAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution &&
+                var analysisScope = await analysisScopeService.GetAnalysisScopeAsync(project, CancellationToken.None).ConfigureAwait(false);
+                var fullAnalysis = analysisScope == BackgroundAnalysisScope.FullSolution &&
                                    await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // keep from build flag if full analysis is off

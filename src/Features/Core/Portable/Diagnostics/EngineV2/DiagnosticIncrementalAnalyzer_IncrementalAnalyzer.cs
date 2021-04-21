@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             // Perf optimization. check whether we want to analyze this project or not.
-            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false))
+            if (!await FullAnalysisEnabledAsync(AnalysisScopeService, project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project).ToList();
+                var stateSets = await GetStateSetsForFullSolutionAnalysisAsync(_stateManager.GetOrUpdateStateSets(project), project, cancellationToken).ConfigureAwait(false);
                 var options = project.Solution.Options;
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
                 var documentHadDiagnostics = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
-                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics, cancellationToken);
             }
         }
 
@@ -221,17 +221,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
                 var documentHadDiagnostics = StateManager.OnDocumentReset(stateSets, document);
-                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics, cancellationToken);
             }
 
             return Task.CompletedTask;
         }
 
-        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
+        private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics, CancellationToken cancellationToken)
         {
             // if there was no diagnostic reported for this document OR Full solution analysis is enabled, nothing to clean up
             if (!documentHadDiagnostics ||
-                FullAnalysisEnabled(document.Project, forceAnalyzerRun: false))
+                FullAnalysisSynchronouslyKnownEnabled(AnalysisScopeService, document.Project, cancellationToken))
             {
                 // this is Perf to reduce raising events unnecessarily.
                 return;
@@ -245,6 +245,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             RaiseDiagnosticsRemovedForDocument(document.Id, stateSets);
+
+            static bool FullAnalysisSynchronouslyKnownEnabled(IAnalysisScopeService analysisScopeService, Project project, CancellationToken cancellationToken)
+            {
+                var resultAsync = FullAnalysisEnabledAsync(analysisScopeService, project, forceAnalyzerRun: false, cancellationToken);
+                if (resultAsync.IsCompleted)
+                    return resultAsync.GetAwaiter().GetResult();
+
+                // Make sure to clean up the ValueTask
+                resultAsync.Preserve();
+
+                return false;
+            }
         }
 
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -336,12 +348,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
         /// </summary>
-        private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
+        private async ValueTask<IReadOnlyList<StateSet>> GetStateSetsForFullSolutionAnalysisAsync(IEnumerable<StateSet> stateSets, Project project, CancellationToken cancellationToken)
         {
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
             // until next build.
-            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) != BackgroundAnalysisScope.FullSolution)
+            var analysisScope = await AnalysisScopeService.GetAnalysisScopeAsync(project, cancellationToken).ConfigureAwait(false);
+            if (analysisScope != BackgroundAnalysisScope.FullSolution)
             {
                 stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
             }
@@ -349,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // include all analyzers if option is on
             if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
             {
-                return stateSets;
+                return stateSets.ToList();
             }
 
             // Compute analyzer config options for computing effective severity.
@@ -358,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, analyzerConfigOptions));
+            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, analyzerConfigOptions)).ToList();
         }
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project, AnalyzerConfigOptionsResult? analyzerConfigOptions)
