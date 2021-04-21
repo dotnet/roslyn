@@ -219,8 +219,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var methodCallSites = await FindCallSitesAsync(originalDocument, methodSymbol, cancellationToken).ConfigureAwait(false);
 
             var modifiedSolution = originalDocument.Project.Solution;
+            var generator = SyntaxGenerator.GetGenerator(originalDocument);
             var syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-            var rewriter = new IntroduceParameterDocumentRewriter(this, originalDocument, expression, methodSymbol, containingMethod, selectedCodeAction, allOccurrences);
+            var semanticFacts = originalDocument.GetRequiredLanguageService<ISemanticFactsService>();
+            var rewriter = new IntroduceParameterDocumentRewriter(this, originalDocument, generator, syntaxFacts, semanticFacts,
+                expression, methodSymbol, containingMethod, selectedCodeAction, allOccurrences);
 
             foreach (var (project, projectCallSites) in methodCallSites.GroupBy(kvp => kvp.Key.Project))
             {
