@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private async Task ProcessEventsAsync(ImmutableArray<bool> events, CancellationToken cancellationToken)
             {
-                // Can only have at most a single `true` and `false` value in this.
+                // Can only have at most a single `true` and `false` value in this as we are deduping these notification values.
                 Contract.ThrowIfTrue(events.Length > 2);
                 var initialTags = events.Contains(true);
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
