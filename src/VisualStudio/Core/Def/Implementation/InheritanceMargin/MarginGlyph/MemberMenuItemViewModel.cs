@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 member.Glyph.GetImageMoniker(),
                 displayName,
                 member.TargetItems
+                    .OrderBy(item => item.DisplayName)
                     .SelectAsArray(item => TargetMenuItemViewModel.Create(item, indent: false))
                     .CastArray<InheritanceMenuItemViewModel>());
         }
@@ -56,7 +57,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static MemberMenuItemViewModel CreateWithHeaderInTargets(InheritanceMarginItem member)
         {
             var displayName = member.DisplayTexts.JoinText();
-            var targetsByRelationship = member.TargetItems.GroupBy(target => target.RelationToMember).ToImmutableArray();
+            var targetsByRelationship = member.TargetItems
+                .OrderBy(item => item.DisplayName)
+                .GroupBy(target => target.RelationToMember).ToImmutableArray();
 
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
             foreach (var (relationship, targetItems) in targetsByRelationship)

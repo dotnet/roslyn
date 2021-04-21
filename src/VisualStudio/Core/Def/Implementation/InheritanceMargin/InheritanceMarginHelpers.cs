@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
         {
-            var targetsByRelationship = targets.GroupBy(target => target.RelationToMember).ToImmutableArray();
+            var targetsByRelationship = targets.OrderBy(target => target.DisplayName).GroupBy(target => target.RelationToMember).ToImmutableArray();
             if (targetsByRelationship.Length == 1)
             {
                 // If all targets have one relationship.
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // class A : IBar { void Bar() {} }
                 // class B : IBar { void Bar() {} }
                 // for 'IBar', the margin would be I↓. So header is not needed.
-                return targets.SelectAsArray(target => TargetMenuItemViewModel.Create(target, indent: false)).CastArray<InheritanceMenuItemViewModel>();
+                return targetsByRelationship[0].SelectAsArray(target => TargetMenuItemViewModel.Create(target, indent: false)).CastArray<InheritanceMenuItemViewModel>();
             }
             else
             {
