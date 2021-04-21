@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,6 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private sealed partial class TagSource : ForegroundThreadAffinitizedObject
         {
+            /// <summary>
+            /// If we get more than this many differences, then we just issue it as a single change
+            /// notification.  The number has been completely made up without any data to support it.
+            /// 
+            /// Internal for testing purposes.
+            /// </summary>
+            private const int CoalesceDifferenceCount = 10;
+
             #region Fields that can be accessed from either thread
 
             /// <summary>
@@ -67,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// accumulated text changes since last tag calculation
             /// </summary>
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
-            private object _state_doNotAccessDirecty;
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? _cachedTagTrees_doNotAccessDirectly;
+            private object? _state_doNotAccessDirecty;
 
             /// <summary>
             /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
@@ -78,8 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private bool _firstTagsRequest = true;
 
             #endregion
-
-            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>, bool> TagsChangedForBuffer;
 
             /// <summary>
             /// A cancellation source we use for the initial tagging computation.  We only cancel
@@ -107,6 +111,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
                 _notificationService = notificationService;
+
+                _batchChangeTokenSource = new CancellationTokenSource();
+
+                _batchChangeNotifier = new BatchChangeNotifier(
+                    dataSource.ThreadingContext,
+                    subjectBuffer, asyncListener, notificationService, NotifyEditorNow, _batchChangeTokenSource.Token);
 
                 DebugRecordInitialStackTrace();
 
@@ -237,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? CachedTagTrees
             {
                 get
                 {
@@ -252,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private object State
+            private object? State
             {
                 get
                 {
@@ -279,19 +289,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     return;
                 }
 
-                RaiseTagsChanged(SpecializedCollections.SingletonCollection(
+                OnTagsChangedForBuffer(SpecializedCollections.SingletonCollection(
                     new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)),
                     initialTags: false);
             }
-
-            private void RaiseTagsChanged(
-                ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection, bool initialTags)
-            {
-                TagsChangedForBuffer?.Invoke(collection, initialTags);
-            }
-
-            private static T NextOrDefault<T>(IEnumerator<T> enumerator)
-                => enumerator.MoveNext() ? enumerator.Current : default;
         }
     }
 }

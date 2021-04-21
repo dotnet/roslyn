@@ -65,12 +65,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual IEnumerable<Option2<bool>> Options => SpecializedCollections.EmptyEnumerable<Option2<bool>>();
         protected virtual IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
 
+        protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
+
+        /// <summary>
+        /// How long the tagger should wait after hearing about an event before recomputing tags.
+        /// </summary>
+        protected abstract TaggerDelay EventChangeDelay { get; }
+
         /// <summary>
         /// This controls what delay tagger will use to let editor know about newly inserted tags
         /// </summary>
         protected virtual TaggerDelay AddedTagNotificationDelay => TaggerDelay.NearImmediate;
-
-        protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
 
 #if DEBUG
         public readonly string StackTrace;
@@ -90,18 +95,24 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        /// <summary>
-        /// How long the tagger should wait after hearing about an event before recomputing tags.
-        /// </summary>
-        protected abstract TaggerDelay EventChangeDelay { get; }
-
-        internal ITagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        protected ITagger<T>? CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
                 return null;
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            return new Tagger(ThreadingContext, AsyncListener, _notificationService, tagSource, subjectBuffer) as ITagger<T>;
+            var tagger = new Tagger(tagSource);
+
+            // If we're not able to convert the tagger we instantiated to the type the caller wants, then make sure we
+            // dispose of it now.  The tagger will have added a ref to the underlying tagsource, and we have to make
+            // sure we return that to the property starting value.
+            if (tagger is not ITagger<T> result)
+            {
+                tagger.Dispose();
+                return null;
+            }
+
+            return result;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)

@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // AsynchronousTagger's BatchChangeNotifier.  If we tell it about enough changes
                 // to a file, it will coalesce them into one large change to keep chattiness with
                 // the editor down.
-                RaiseTagsChanged(bufferToChanges, initialTags);
+                OnTagsChangedForBuffer(bufferToChanges, initialTags);
             }
 
             /// <summary>
@@ -607,13 +607,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 return new DiffResult(added, removed);
+
+                static ITagSpan<TTag> NextOrDefault(IEnumerator<ITagSpan<TTag>> enumerator)
+                    => enumerator.MoveNext() ? enumerator.Current : null;
             }
 
             /// <summary>
             /// Returns the TagSpanIntervalTree containing the tags for the given buffer. If no tags
             /// exist for the buffer at all, null is returned.
             /// </summary>
-            public TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
+            private TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
                 this.AssertIsForeground();
 
@@ -634,6 +637,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // We're on the UI thread, so it's safe to access these variables.
                 this.CachedTagTrees.TryGetValue(buffer, out var tags);
                 return tags;
+            }
+
+            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
+            {
+                this.AssertIsForeground();
+                if (requestedSpans.Count == 0)
+                    return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+
+                var buffer = requestedSpans.First().Snapshot.TextBuffer;
+                var tags = this.TryGetTagIntervalTreeForBuffer(buffer);
+
+                return tags == null
+                    ? SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>()
+                    : tags.GetIntersectingTagSpans(requestedSpans);
             }
         }
     }
