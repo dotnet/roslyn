@@ -36,8 +36,6 @@ StackTrace:
                 }
             }
 
-            public event EventHandler Disposed = (s, e) => { };
-
             internal void OnTaggerAdded(Tagger _)
             {
                 // this should be only called from UI thread. 
