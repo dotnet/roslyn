@@ -13,10 +13,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
@@ -24,7 +26,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                     Before = PredefinedCodeRefactoringProviderNames.GenerateOverrides)]
-    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    [IntentProvider(WellKnownIntents.AddConstructorParameter, LanguageNames.CSharp)]
+    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider, IIntentProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -150,6 +153,36 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 return new AddConstructorParametersCodeAction(
                     document, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
             }
+        }
+
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, string serializedIntentData, CancellationToken cancellationToken)
+        {
+            var actions = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
+            if (actions.IsEmpty)
+            {
+                return ImmutableArray<IntentProcessorResult>.Empty;
+            }
+
+            // This provider generates nested actions, so we need to flatten them before we compute the edits.
+            actions = actions.SelectMany(a => GetNestedActions(a)).ToImmutableArray();
+
+            using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+
+            foreach (var action in actions)
+            {
+                // This provider only returns CodeActions with a single ApplyChangesOperation
+                var operations = await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                var applyChangesOperation = operations.Single() as ApplyChangesOperation;
+                Contract.ThrowIfNull(applyChangesOperation);
+
+                var intent = new IntentProcessorResult(applyChangesOperation.ChangedSolution, action.Title, action.GetType().Name);
+                results.Add(intent);
+            }
+
+            return results.ToImmutable();
+
+            ImmutableArray<CodeAction> GetNestedActions(CodeAction action)
+                => action.NestedCodeActions.IsEmpty ? ImmutableArray.Create(action) : action.NestedCodeActions;
         }
     }
 }
