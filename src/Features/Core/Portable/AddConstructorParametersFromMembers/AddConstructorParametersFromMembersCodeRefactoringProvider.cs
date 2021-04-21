@@ -170,12 +170,14 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             foreach (var action in actions)
             {
+                var addParamAction = (AddConstructorParametersCodeAction)action;
+
                 // This provider only returns CodeActions with a single ApplyChangesOperation
-                var operations = await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                var operations = await addParamAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 var applyChangesOperation = operations.Single() as ApplyChangesOperation;
                 Contract.ThrowIfNull(applyChangesOperation);
 
-                var intent = new IntentProcessorResult(applyChangesOperation.ChangedSolution, action.Title, action.GetType().Name);
+                var intent = new IntentProcessorResult(applyChangesOperation.ChangedSolution, addParamAction.Title, addParamAction.ActionName);
                 results.Add(intent);
             }
 
