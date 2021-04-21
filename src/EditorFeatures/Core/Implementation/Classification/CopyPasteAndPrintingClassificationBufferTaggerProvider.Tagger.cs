@@ -107,8 +107,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _owner.ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     using var _ = _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider");
-
-                    await Task.Delay(15, _cancellationTokenSource.Token).ConfigureAwait(false);
                     await _owner.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_cancellationTokenSource.Token);
                     OnEventSourceChanged_OnForeground();
                 });
