@@ -17,11 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         IViewTaggerProvider
         where TTag : ITag
     {
-        protected AsynchronousViewTaggerProvider(
-            IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : base(threadingContext, asyncListener, notificationService)
+        protected AsynchronousViewTaggerProvider(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, asyncListener)
         {
         }
 
@@ -31,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected AsynchronousViewTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
-                : this(((Implementation.ForegroundNotification.ForegroundNotificationService)notificationService).ThreadingContext, asyncListener, notificationService)
+                : this(((Implementation.ForegroundNotification.ForegroundNotificationService)notificationService).ThreadingContext, asyncListener)
         {
         }
 

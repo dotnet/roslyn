@@ -80,10 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public readonly string StackTrace;
 #endif
 
-        protected AbstractAsynchronousTaggerProvider(
-            IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
+        protected AbstractAsynchronousTaggerProvider(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
             AsyncListener = asyncListener;
