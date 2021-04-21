@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             return _states.SelectMany(s => s).GetEnumerator();
         }
 
-        public IStateTable Compact()
+        public NodeStateTable<T> Compact()
         {
             if (_isCompacted)
                 return this;
@@ -95,6 +95,8 @@ namespace Microsoft.CodeAnalysis
             }
             return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true, _exception);
         }
+
+        IStateTable IStateTable.Compact() => Compact();
 
         // PROTOTYPE: this will be called to allow exceptions to flow through the graph
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)

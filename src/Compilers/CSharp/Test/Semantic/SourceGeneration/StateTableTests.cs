@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added), (4, EntryState.Removed), (5, EntryState.Removed), (6, EntryState.Removed), (7, EntryState.Added), (8, EntryState.Added), (9, EntryState.Added));
             AssertTableEntries(table, expected);
 
-            var compactedTable = (NodeStateTable<int>)table.Compact();
+            var compactedTable = table.Compact();
             expected = ImmutableArray.Create((1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (7, EntryState.Cached), (8, EntryState.Cached), (9, EntryState.Cached));
             AssertTableEntries(compactedTable, expected);
         }
@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added), (4, EntryState.Removed), (5, EntryState.Removed), (6, EntryState.Removed), (7, EntryState.Added), (8, EntryState.Added), (9, EntryState.Added));
             AssertTableEntries(table, expected);
 
-            var compactedTable = (NodeStateTable<int>)table.Compact();
+            var compactedTable = table.Compact();
             expected = ImmutableArray.Create((1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (7, EntryState.Cached), (8, EntryState.Cached), (9, EntryState.Cached));
             AssertTableEntries(compactedTable, expected);
 
             // calling compact a second time just returns the same instance
-            var compactedTable2 = (NodeStateTable<int>)compactedTable.Compact();
+            var compactedTable2 = compactedTable.Compact();
             Assert.Same(compactedTable, compactedTable2);
         }
 
