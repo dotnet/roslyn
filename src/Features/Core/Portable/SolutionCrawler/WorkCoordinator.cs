@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly IncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
             private readonly SemanticChangeProcessor _semanticChangeProcessor;
 
-            private Document? _lastActiveDocument;
-
             public WorkCoordinator(
                  IAsynchronousOperationListener listener,
                  IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
@@ -85,7 +83,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _optionService.OptionChanged += OnOptionChanged;
 
                 // subscribe to active document changed event for active file background analysis scope.
-                _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.GetSolutionToAnalyze());
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
             }
 
@@ -214,33 +211,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private void OnActiveDocumentChanged(object? sender, DocumentId activeDocumentId)
             {
                 var solution = _registration.GetSolutionToAnalyze();
+                if (solution.GetProject(activeDocumentId.ProjectId) is not { } activeProject)
+                    return;
 
-                // Check if we are only performing backgroung analysis for active file.
-                if (activeDocumentId != null)
+                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
+                if (analysisScope == BackgroundAnalysisScope.ActiveFile)
                 {
-                    // Change to active document needs to trigger following events in active file analysis scope:
-                    //  1. Request analysis for newly active file, similar to a newly opened file.
-                    //  2. Clear analysis data for prior active file, similar to a closed file.
-                    // Note that if 'activeDocumentId' is null, i.e. user navigated to a non-source file,
-                    // we are treating it as a no-op here.
-                    // As soon as user switches to a source document, we will perform the appropriate analysis callbacks
-                    // on the next active document changed event.
-                    var activeDocument = solution.GetDocument(activeDocumentId);
-                    if (activeDocument != null &&
-                        SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeDocument.Project) == BackgroundAnalysisScope.ActiveFile)
-                    {
-                        lock (_gate)
-                        {
-                            if (_lastActiveDocument != null)
-                            {
-                                EnqueueEvent(_lastActiveDocument.Project.Solution, _lastActiveDocument.Id, InvocationReasons.DocumentClosed, "OnDocumentClosed");
-                            }
-
-                            _lastActiveDocument = activeDocument;
-                        }
-
-                        EnqueueEvent(activeDocument.Project.Solution, activeDocument.Id, InvocationReasons.DocumentOpened, "OnDocumentOpened");
-                    }
+                    // When the active document changes and we are only analyzing the active file, trigger a document
+                    // changed event to reanalyze the newly-active file.
+                    EnqueueEvent(solution, activeDocumentId, InvocationReasons.DocumentChanged, nameof(OnActiveDocumentChanged));
                 }
             }
 
