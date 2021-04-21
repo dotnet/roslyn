@@ -31,7 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly IThreadingContext _threadingContext;
 
-        private readonly IForegroundNotificationService _notificationService;
         private readonly IAsynchronousOperationListener _listener;
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
@@ -41,14 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
 
-            _notificationService = notificationService;
             _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
             // Queue up notifications we hear about docs changing.  that way we don't have to fire events multiple times
@@ -66,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        private System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
+        private Task ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             foreach (var documentId in documentIds)
@@ -74,10 +71,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // Now, enqueue foreground work to actually process these documents in a serialized and incremental
                 // fashion.  FireEventsForDocument will actually limit how much time it spends firing events so that it
                 // doesn't saturate  the UI thread.
-                _notificationService.RegisterNotification(
-                    () => FireEventsForDocument(documentId),
-                    _listener.BeginAsyncOperation("CodeModelEvent"),
-                    cancellationToken);
+                Task.Run(async () =>
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    FireEventsForDocument(documentId);
+                }, cancellationToken).CompletesAsyncOperation(_listener.BeginAsyncOperation("CodeModelEvent"));
             }
 
             return System.Threading.Tasks.Task.CompletedTask;
