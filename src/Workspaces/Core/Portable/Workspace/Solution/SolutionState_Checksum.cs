@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionState
     {
-        public bool TryGetStateChecksums(out SolutionStateChecksums stateChecksums)
+        public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
             => _lazyChecksums.TryGetValue(out stateChecksums);
 
         public Task<SolutionStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                                                                 .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
                                                                 .Select(s => s.GetChecksumAsync(cancellationToken));
 
-                    var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
+                    var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
                     var optionsChecksum = serializer.CreateChecksum(Options, cancellationToken);
 

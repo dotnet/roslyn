@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -153,11 +152,13 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(CompilationOptions))
             {
+                Contract.ThrowIfNull(state.CompilationOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
                 result[CompilationOptions] = state.CompilationOptions;
             }
 
             if (searchingChecksumsLeft.Remove(ParseOptions))
             {
+                Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
                 result[ParseOptions] = state.ParseOptions;
             }
 
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public static IReadOnlyList<T> GetOrCreate<T>(IReadOnlyList<T> unorderedList, ConditionalWeakTable<object, object>.CreateValueCallback orderedListGetter)
             => (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
 
-        public static bool TryGetValue(object value, out Checksum checksum)
+        public static bool TryGetValue(object value, [NotNullWhen(true)] out Checksum? checksum)
         {
             // same key should always return same checksum
             if (!s_cache.TryGetValue(value, out var result))
