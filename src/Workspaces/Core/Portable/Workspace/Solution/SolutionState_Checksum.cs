@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis
                                                                 .Select(s => s.GetChecksumAsync(cancellationToken));
 
                     var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
-                    var infoChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
+                    var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
                     var optionsChecksum = serializer.CreateChecksum(Options, cancellationToken);
 
                     var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<AnalyzerReferenceChecksumCollection>(AnalyzerReferences,
                         _ => new AnalyzerReferenceChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
 
                     var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    return new SolutionStateChecksums(infoChecksum, optionsChecksum, new ProjectChecksumCollection(projectChecksums), analyzerReferenceChecksums);
+                    return new SolutionStateChecksums(attributesChecksum, optionsChecksum, new ProjectChecksumCollection(projectChecksums), analyzerReferenceChecksums);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
