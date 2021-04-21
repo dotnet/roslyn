@@ -51,32 +51,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 foreach (var collection in snapshotSpans)
                 {
-                    var coalesced = CoalesceSpans(collection);
-                    if (coalesced.Count == 0)
+                    if (collection.Count == 0)
                         continue;
+
+                    var snapshot = collection.First().Snapshot;
+
+                    // Coalesce the spans if there are a lot of them.
+                    var coalesced = collection.Count > CoalesceDifferenceCount
+                        ? new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(collection.First().Start, collection.Last().End))
+                        : collection;
 
                     foreach (var span in coalesced)
                         tagsChanged(this, new SnapshotSpanEventArgs(span));
                 }
 
                 return Task.CompletedTask;
-            }
-
-            internal static NormalizedSnapshotSpanCollection CoalesceSpans(NormalizedSnapshotSpanCollection normalizedSpans)
-            {
-                var snapshot = normalizedSpans.First().Snapshot;
-
-                // Coalesce the spans if there are a lot of them.
-                if (normalizedSpans.Count > CoalesceDifferenceCount)
-                {
-                    // Spans are normalized.  So to find the whole span we just go from the
-                    // start of the first span to the end of the last span.
-                    normalizedSpans = new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(
-                        normalizedSpans.First().Start,
-                        normalizedSpans.Last().End));
-                }
-
-                return normalizedSpans;
             }
         }
     }
