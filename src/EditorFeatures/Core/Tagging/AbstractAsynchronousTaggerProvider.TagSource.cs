@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -114,6 +115,74 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
                 ComputeInitialTags();
+
+                return;
+
+                void Connect()
+                {
+                    this.AssertIsForeground();
+
+                    _eventSource.Changed += OnEventSourceChanged;
+
+                    if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                    {
+                        _subjectBuffer.Changed += OnSubjectBufferChanged;
+                    }
+
+                    if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
+                    {
+                        if (_textViewOpt == null)
+                        {
+                            throw new ArgumentException(
+                                nameof(_dataSource.CaretChangeBehavior) + " can only be specified for an " + nameof(IViewTaggerProvider));
+                        }
+
+                        _textViewOpt.Caret.PositionChanged += OnCaretPositionChanged;
+                    }
+
+                    // Tell the interaction object to start issuing events.
+                    _eventSource.Connect();
+                }
+            }
+
+            private void Dispose()
+            {
+                if (_disposed)
+                {
+                    Debug.Fail("Tagger already disposed");
+                    return;
+                }
+
+                // Stop computing any initial tags if we've been asked for them.
+                _initialComputationCancellationTokenSource.Cancel();
+                _disposed = true;
+                this.Disposed(this, EventArgs.Empty);
+                GC.SuppressFinalize(this);
+
+                Disconnect();
+
+                return;
+
+                void Disconnect()
+                {
+                    this.AssertIsForeground();
+                    _workQueue.CancelCurrentWork(remainCancelled: true);
+
+                    // Tell the interaction object to stop issuing events.
+                    _eventSource.Disconnect();
+
+                    if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
+                    {
+                        _textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
+                    }
+
+                    if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                    {
+                        _subjectBuffer.Changed -= OnSubjectBufferChanged;
+                    }
+
+                    _eventSource.Changed -= OnEventSourceChanged;
+                }
             }
 
             private void ComputeInitialTags()
@@ -152,13 +221,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _accumulatedTextChanges_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _accumulatedTextChanges_doNotAccessDirectly = value;
                 }
             }
@@ -167,13 +236,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _cachedTagTrees_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _cachedTagTrees_doNotAccessDirectly = value;
                 }
             }
@@ -182,13 +251,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _state_doNotAccessDirecty;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _state_doNotAccessDirecty = value;
                 }
             }
@@ -197,66 +266,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _upToDate_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _upToDate_doNotAccessDirectly = value;
                 }
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
                 => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation(typeof(TTag).Name), cancellationToken);
-
-            private void Connect()
-            {
-                _workQueue.AssertIsForeground();
-
-                _eventSource.Changed += OnEventSourceChanged;
-
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
-                {
-                    _subjectBuffer.Changed += OnSubjectBufferChanged;
-                }
-
-                if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
-                {
-                    if (_textViewOpt == null)
-                    {
-                        throw new ArgumentException(
-                            nameof(_dataSource.CaretChangeBehavior) + " can only be specified for an " + nameof(IViewTaggerProvider));
-                    }
-
-                    _textViewOpt.Caret.PositionChanged += OnCaretPositionChanged;
-                }
-
-                // Tell the interaction object to start issuing events.
-                _eventSource.Connect();
-            }
-
-            private void Disconnect()
-            {
-                _workQueue.AssertIsForeground();
-                _workQueue.CancelCurrentWork(remainCancelled: true);
-
-                // Tell the interaction object to stop issuing events.
-                _eventSource.Disconnect();
-
-                if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
-                {
-                    _textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
-                }
-
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
-                {
-                    _subjectBuffer.Changed -= OnSubjectBufferChanged;
-                }
-
-                _eventSource.Changed -= OnEventSourceChanged;
-            }
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
