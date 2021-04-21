@@ -3463,8 +3463,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var fieldsByName = PooledDictionary<string, Symbol>.GetInstance();
             var membersSoFar = builder.GetNonTypeMembers(declaredMembersAndInitializers);
             var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
+            var memberNames = PooledHashSet<string>.GetInstance();
             foreach (var member in membersSoFar)
             {
+                memberNames.Add(member.Name);
+
                 switch (member)
                 {
                     case EventSymbol:
@@ -3540,6 +3543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             memberSignatures.Free();
             fieldsByName.Free();
+            memberNames.Free();
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -3808,7 +3812,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && field.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                     {
                         Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeaturePositionalFieldsInRecords, diagnostics);
-                        existingOrAddedMembers.Add(field);
+                        if (!isInherited || checkMemberNotHidden(field, param))
+                        {
+                            existingOrAddedMembers.Add(field);
+                        }
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
@@ -3818,7 +3825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
                         }
-                        else
+                        else if (!isInherited || checkMemberNotHidden(prop, param))
                         {
                             // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
                             existingOrAddedMembers.Add(prop);
@@ -3849,6 +3856,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return existingOrAddedMembers.ToImmutableAndFree();
+
+                bool checkMemberNotHidden(Symbol symbol, ParameterSymbol param)
+                {
+                    if (memberNames.Contains(symbol.Name) || this.GetTypeMembersDictionary().ContainsKey(symbol.Name))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, param.Locations[0], symbol);
+                        return false;
+                    }
+                    return true;
+                }
             }
 
             void addObjectEquals(MethodSymbol thisEquals)

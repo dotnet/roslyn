@@ -237,18 +237,21 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask OnFindInDocumentCompletedAsync(Document document)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentCompletedAsync(_callbackId, document.Id), _cancellationToken);
 
-            public ValueTask OnDefinitionFoundAsync(ISymbol definition)
+            public ValueTask OnDefinitionFoundAsync(SymbolGroup group)
             {
-                var dehydratedDefinition = SerializableSymbolAndProjectId.Dehydrate(_solution, definition, _cancellationToken);
-                return _callback.InvokeAsync((callback, cancellationToken) => callback.OnDefinitionFoundAsync(_callbackId, dehydratedDefinition), _cancellationToken);
+                var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, _cancellationToken);
+                return _callback.InvokeAsync(
+                    (callback, cancellationToken) => callback.OnDefinitionFoundAsync(_callbackId, dehydratedGroup), _cancellationToken);
             }
 
-            public ValueTask OnReferenceFoundAsync(ISymbol definition, ReferenceLocation reference)
+            public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation reference)
             {
+                var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, _cancellationToken);
                 var dehydratedDefinition = SerializableSymbolAndProjectId.Dehydrate(_solution, definition, _cancellationToken);
                 var dehydratedReference = SerializableReferenceLocation.Dehydrate(reference, _cancellationToken);
 
-                return _callback.InvokeAsync((callback, cancellationToken) => callback.OnReferenceFoundAsync(_callbackId, dehydratedDefinition, dehydratedReference), _cancellationToken);
+                return _callback.InvokeAsync(
+                    (callback, cancellationToken) => callback.OnReferenceFoundAsync(_callbackId, dehydratedGroup, dehydratedDefinition, dehydratedReference), _cancellationToken);
             }
 
             public ValueTask AddItemsAsync(int count)
