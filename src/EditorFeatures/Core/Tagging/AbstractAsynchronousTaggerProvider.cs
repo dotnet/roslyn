@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : ForegroundThreadAffinitizedObject where TTag : ITag
     {
         private readonly object _uniqueKey = new();
-        private readonly IForegroundNotificationService _notificationService;
 
         protected readonly IAsynchronousOperationListener AsyncListener;
 
@@ -83,12 +82,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected AbstractAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
+            IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
             AsyncListener = asyncListener;
-            _notificationService = notificationService;
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();
@@ -119,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
             {
-                tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener, _notificationService);
+                tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener);
                 this.StoreTagSource(textViewOpt, subjectBuffer, tagSource);
             }
 
