@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal partial class InProcLanguageServer
+    internal abstract partial class AbstractInProcLanguageClient
     {
         private class LogHubLspLogger : ILspLogger
         {
