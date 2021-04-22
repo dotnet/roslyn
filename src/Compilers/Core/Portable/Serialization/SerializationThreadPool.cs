@@ -32,21 +32,21 @@ namespace Roslyn.Utilities
             private static readonly TimeSpan s_idleTimeout = TimeSpan.FromSeconds(1);
 
             /// <summary>The queue of work items. Also used as a lock to protect all relevant state.</summary>
-            private static readonly Queue<(Delegate, object?, TaskCompletionSource<object?>)> s_queue = new();
+            private static readonly Queue<(Delegate function, object? state, TaskCompletionSource<object?> tcs)> s_queue = new();
 
             /// <summary>The number of threads currently waiting in <c>tryDequeue</c> for work to arrive.</summary>
             private static int s_availableThreads = 0;
 
             /// <summary>
-            /// Queues an <see cref="Action"/> delegate to be executed immediately on another thread,
+            /// Queues a <see cref="Func{TResult}"/> delegate to be executed immediately on another thread,
             /// and returns a <see cref="Task"/> that represents its eventual completion. The task will
             /// always end in the <see cref="TaskStatus.RanToCompletion"/> state; if the delegate throws
             /// an exception, it'll be allowed to propagate on the thread, crashing the process.
             /// </summary>
-            public static Task<object?> QueueAsync(Func<object?> threadStart) => QueueAsync((Delegate)threadStart, null);
+            public static Task<object?> QueueAsync(Func<object?> threadStart) => QueueAsync((Delegate)threadStart, state: null);
 
             /// <summary>
-            /// Queues an <see cref="Action{Object}"/> delegate and associated state to be executed immediately on
+            /// Queues a <see cref="Func{T, TResult}"/> delegate and associated state to be executed immediately on
             /// another thread, and returns a <see cref="Task"/> that represents its eventual completion.
             /// </summary>
             public static Task<object?> QueueAsync(Func<object?, object?> threadStart, object? state) => QueueAsync((Delegate)threadStart, state);
@@ -74,13 +74,13 @@ namespace Roslyn.Utilities
                         {
                             try
                             {
-                                if (item.action is Func<object?, object?> callbackWithState)
+                                if (item.function is Func<object?, object?> callbackWithState)
                                 {
                                     item.tcs.SetResult(callbackWithState(item.state));
                                 }
                                 else
                                 {
-                                    item.tcs.SetResult(((Func<object?>)item.action)());
+                                    item.tcs.SetResult(((Func<object?>)item.function)());
                                 }
                             }
                             catch (OperationCanceledException ex)
@@ -97,7 +97,7 @@ namespace Roslyn.Utilities
                     t.Start();
                 }
 
-                static void enqueue((Delegate, object?, TaskCompletionSource<object?>) item)
+                static void enqueue((Delegate function, object? state, TaskCompletionSource<object?> tcs) item)
                 {
                     // Enqueue the work. If there are currently fewer threads waiting
                     // for work than there are work items in the queue, create another
@@ -121,7 +121,7 @@ namespace Roslyn.Utilities
                     createThread();
                 }
 
-                static bool tryDequeue(out (Delegate action, object? state, TaskCompletionSource<object?> tcs) item)
+                static bool tryDequeue(out (Delegate function, object? state, TaskCompletionSource<object?> tcs) item)
                 {
                     // Dequeues the next item if one is available. Before checking,
                     // the available thread count is increased, so that enqueuers can
