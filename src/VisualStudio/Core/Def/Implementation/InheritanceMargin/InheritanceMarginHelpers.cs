@@ -78,7 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
         {
             var targetsByRelationship = targets.OrderBy(target => target.DisplayName).GroupBy(target => target.RelationToMember)
-                .ToImmutableDictionary(keySelector: g => g.Key, elementSelector: g => g);
+                .ToImmutableDictionary(
+                    keySelector: grouping => grouping.Key,
+                    elementSelector: grouping => grouping);
             if (targetsByRelationship.Count == 1)
             {
                 // If all targets have one relationship.
