@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Pipelines;
@@ -39,6 +40,12 @@ namespace Microsoft.CodeAnalysis.Remote
             public void Dispose()
                 => _proxyRental.Dispose();
         }
+
+        /// <summary>
+        /// Set features that we've already shown an error message for.  This preventsspamming the UI with many 
+        /// messages about the issue which can be highly annoying.
+        /// </summary>
+        private static readonly HashSet<string> s_featuresWithShownErrorMessages = new();
 
         private readonly IErrorReportingService? _errorReportingService;
         private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
@@ -405,10 +412,19 @@ namespace Microsoft.CodeAnalysis.Remote
             // Currently, ConnectionLostException is also throw when the result of the RPC method fails to serialize 
             // (see https://github.com/microsoft/vs-streamjsonrpc/issues/549)
 
-            string message;
-            Exception? internalException = null;
             var featureName = _serviceDescriptor.GetFeatureDisplayName();
 
+            // Only pass through the first error we encounter per feature.  Note that all errors will
+            // have already been reported to us an NFW, so we'll still get any data we need, even if 
+            // we're not showing subsequent errors about that feature to the user.
+            lock (s_featuresWithShownErrorMessages)
+            {
+                if (!s_featuresWithShownErrorMessages.Add(featureName))
+                    return;
+            }
+
+            string message;
+            Exception? internalException = null;
             if (IsRemoteIOException(exception))
             {
                 message = string.Format(RemoteWorkspacesResources.Feature_0_is_currently_unavailable_due_to_an_intermittent_error, featureName, exception.Message);
