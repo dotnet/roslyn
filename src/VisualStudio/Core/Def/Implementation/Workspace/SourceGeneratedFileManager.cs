@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -68,6 +70,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         /// <remarks>All accesses should be on the UI thread.</remarks>
         private readonly Dictionary<Guid, SourceGeneratedDocumentIdentity> _directoryInfoOnDiskByContainingDirectoryId = new();
+
+        /// <summary>
+        /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
+        /// surprised by this and we want some time to work through those issues.
+        /// </summary>
+        internal static readonly Option2<bool?> EnableOpeningInWorkspace =
+            new(nameof(SourceGeneratedFileManager), nameof(EnableOpeningInWorkspace), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -381,7 +391,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // If the file isn't already open, open it now. We may transition between opening and closing
                         // if the file is repeatedly appearing and disappearing.
-                        if (!_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
+                        var connectToWorkspace = _workspace.Options.GetOption(EnableOpeningInWorkspace) ?? false;
+
+                        if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         {
                             _workspace.OnSourceGeneratedDocumentOpened(_documentIdentity, _textBuffer.AsTextContainer());
                         }
@@ -486,6 +498,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var sourceText = _textBuffer.CurrentSnapshot.AsText();
                 _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
             }
+        }
+
+        [Export(typeof(IOptionProvider))]
+        private class OptionProvider : IOptionProvider
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public OptionProvider()
+            {
+            }
+
+            public ImmutableArray<IOption> Options => ImmutableArray.Create<IOption>(EnableOpeningInWorkspace);
         }
     }
 }

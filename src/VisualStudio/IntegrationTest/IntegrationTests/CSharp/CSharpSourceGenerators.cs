@@ -71,6 +71,7 @@ internal static class Program
 
             if (invokeFromSourceGeneratedFile)
             {
+                VisualStudio.Workspace.SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(true);
                 VisualStudio.Editor.GoToDefinition($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}");
             }
 
