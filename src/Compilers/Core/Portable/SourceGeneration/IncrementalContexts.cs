@@ -51,4 +51,12 @@ namespace Microsoft.CodeAnalysis
             // PROTOTYPE(source-generators): public api stub
         }
     }
+
+    /// <summary>
+    /// Context passed to the callback provided as part of producing sources
+    /// </summary>
+    public readonly struct SourceProductionContext
+    {
+        public void AddSource(string name, string content) { }
+    }
 }
