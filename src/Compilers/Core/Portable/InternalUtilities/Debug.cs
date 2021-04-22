@@ -30,10 +30,10 @@ namespace Roslyn.Utilities
         /// only invariants in our code. When it triggers that providse a nice stack trace for 
         /// investigation. Generally that is enough.
         /// 
-        /// There are cases for which a stack is not enough and we need a full heap dump to 
+        /// <para>There are cases for which a stack is not enough and we need a full heap dump to 
         /// investigate the failure. This method takes care of that. The behavior is that when running
         /// in our CI environment if the assert triggers we will rudely crash the process and 
-        /// produce a heap dump for investigation.
+        /// produce a heap dump for investigation.</para>
         /// </summary>
         [Conditional("DEBUG")]
         internal static void AssertOrFailFast([DoesNotReturnIf(false)] bool condition, string? message = null)
