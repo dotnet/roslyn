@@ -501,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Debug.Assert(node IsNot Nothing)
 
             While node IsNot declarationBody AndAlso
-                  Not StatementSyntaxComparer.HasLabel(node) AndAlso
+                  Not SyntaxComparer.Statement.HasLabel(node) AndAlso
                   Not LambdaUtilities.IsLambdaBodyStatementOrExpression(node)
 
                 node = node.Parent
@@ -620,7 +620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function ComputeTopLevelMatch(oldCompilationUnit As SyntaxNode, newCompilationUnit As SyntaxNode) As Match(Of SyntaxNode)
-            Return TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit)
+            Return SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit)
         End Function
 
         Protected Overrides Function ComputeTopLevelDeclarationMatch(oldDeclaration As SyntaxNode, newDeclaration As SyntaxNode) As Match(Of SyntaxNode)
@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 newDeclaration = newDeclaration.Parent
             End If
 
-            Dim comparer = New TopSyntaxComparer(oldDeclaration.Parent, newDeclaration.Parent, {oldDeclaration}, {newDeclaration})
+            Dim comparer = New SyntaxComparer(oldDeclaration.Parent, newDeclaration.Parent, {oldDeclaration}, {newDeclaration})
             Return comparer.ComputeMatch(oldDeclaration.Parent, newDeclaration.Parent)
         End Function
 
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             If TypeOf oldBody.Parent Is LambdaExpressionSyntax Then
                 ' The root is a single/multi line sub/function lambda.
-                Return New StatementSyntaxComparer(oldBody.Parent, oldBody.Parent.ChildNodes(), newBody.Parent, newBody.Parent.ChildNodes(), matchingLambdas:=True).
+                Return New SyntaxComparer(oldBody.Parent, newBody.Parent, oldBody.Parent.ChildNodes(), newBody.Parent.ChildNodes(), matchingLambdas:=True, compareStatementSyntax:=True).
                        ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
@@ -658,13 +658,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' Dim a As <NewExpression>
                 ' Dim a, b, c As <NewExpression>
                 ' Queries: The root is a query clause, the body is the expression.
-                Return New StatementSyntaxComparer(oldBody.Parent, {oldBody}, newBody.Parent, {newBody}, matchingLambdas:=False).
+                Return New SyntaxComparer(oldBody.Parent, newBody.Parent, {oldBody}, {newBody}, matchingLambdas:=False, compareStatementSyntax:=True).
                        ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches)
             End If
 
             ' Method, accessor, operator, etc. bodies are represented by the declaring block, which is also the root.
             ' The body of an array initialized fields is an ArgumentListSyntax, which is the match root.
-            Return StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody, knownMatches)
+            Return SyntaxComparer.Statement.ComputeMatch(oldBody, newBody, knownMatches)
         End Function
 
         Protected Overrides Function TryMatchActiveStatement(oldStatement As SyntaxNode,
@@ -781,7 +781,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function StatementLabelEquals(node1 As SyntaxNode, node2 As SyntaxNode) As Boolean
-            Return StatementSyntaxComparer.GetLabelImpl(node1) = StatementSyntaxComparer.GetLabelImpl(node2)
+            Return SyntaxComparer.Statement.GetLabelImpl(node1) = SyntaxComparer.Statement.GetLabelImpl(node2)
         End Function
 
         Private Shared Function GetItemIndexByPosition(Of TNode As SyntaxNode)(list As SeparatedSyntaxList(Of TNode), position As Integer) As Integer
@@ -946,6 +946,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node.IsKind(SyntaxKind.InterfaceBlock)
         End Function
 
+        Friend Overrides Function IsRecordDeclaration(node As SyntaxNode) As Boolean
+            ' No records in VB
+            Return False
+        End Function
+
         Friend Overrides Function TryGetContainingTypeDeclaration(node As SyntaxNode) As SyntaxNode
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
         End Function
@@ -985,6 +990,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case Else
                     Return False
             End Select
+        End Function
+
+        Friend Overrides Function IsRecordPrimaryConstructorParameter(declaration As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function IsPropertyAccessorDeclarationMatchingPrimaryConstructorParameter(declaration As SyntaxNode, newContainingType As INamedTypeSymbol, ByRef isFirstAccessor As Boolean) As Boolean
+            Return False
         End Function
 
         Private Shared Function GetInitializerExpression(equalsValue As EqualsValueSyntax, asClause As AsClauseSyntax) As ExpressionSyntax
@@ -2081,9 +2094,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyInsert(node As SyntaxNode)
                 Select Case node.Kind
                     Case SyntaxKind.OptionStatement,
-                         SyntaxKind.ImportsStatement,
                          SyntaxKind.NamespaceBlock
                         ReportError(RudeEditKind.Insert)
+                        Return
+
+                    Case SyntaxKind.ImportsStatement
+                        ' We don't report rude edits for new imports, though note we don't currently report edits
+                        ' for semantic changes they cause either
                         Return
 
                     Case SyntaxKind.ClassBlock,
@@ -2160,10 +2177,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyDelete(oldNode As SyntaxNode)
                 Select Case oldNode.Kind
                     Case SyntaxKind.OptionStatement,
-                         SyntaxKind.ImportsStatement,
                          SyntaxKind.NamespaceBlock,
                          SyntaxKind.AttributesStatement
                         ReportError(RudeEditKind.Delete)
+                        Return
+
+                    Case SyntaxKind.ImportsStatement
+                        ' We don't report rude edits for deleting imports, though note we don't currently report edits
+                        ' for semantic changes they cause either
                         Return
 
                     Case SyntaxKind.ClassBlock,
@@ -2251,7 +2272,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.ImportsStatement
-                        ReportError(RudeEditKind.Update)
+                        ' We don't report rude edits for updating imports, though note we don't currently report edits
+                        ' for semantic changes they cause either
                         Return
 
                     Case SyntaxKind.NamespaceBlock

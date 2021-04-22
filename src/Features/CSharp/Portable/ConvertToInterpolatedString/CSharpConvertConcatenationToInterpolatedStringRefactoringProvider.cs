@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString), Shared]
     internal class CSharpConvertConcatenationToInterpolatedStringRefactoringProvider :
         AbstractConvertConcatenationToInterpolatedStringRefactoringProvider<ExpressionSyntax>
     {

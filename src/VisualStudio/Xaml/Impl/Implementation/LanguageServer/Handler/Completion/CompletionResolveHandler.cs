@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            int offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
+            var offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
             var symbol = await completionService.GetSymbolAsync(new XamlCompletionContext(document, offset), completionItem.Label, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await symbol.GetDescriptionAsync(document, offset, cancellationToken).ConfigureAwait(false);
+            var description = await symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
             var vsCompletionItem = CloneVSCompletionItem(completionItem);
             vsCompletionItem.Description = new ClassifiedTextElement(description.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));

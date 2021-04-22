@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
@@ -21,9 +22,9 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Telemetry;
-using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
@@ -113,7 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             Assumes.Present(_componentModel);
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
-            _componentModel.GetExtensions<IOptionPersister>();
+            foreach (var provider in await GetOptionPersistersAsync(_componentModel, cancellationToken).ConfigureAwait(true))
+            {
+                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+            }
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
@@ -136,6 +140,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
+
+            var settingsEditorFactory = _componentModel.GetService<SettingsEditorFactory>();
+            RegisterEditorFactory(settingsEditorFactory);
+
+            static async Task<ImmutableArray<IOptionPersisterProvider>> GetOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
+            {
+                // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
+                // InitializeAsync.
+                await TaskScheduler.Default;
+
+                return componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
+            }
         }
 
         private void InitializeColors()
@@ -250,13 +266,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void ReportSessionWideTelemetry()
         {
-            PersistedVersionStampLogger.ReportTelemetry();
-            LinkedFileDiffMergingLogger.ReportTelemetry();
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
             ChangeSignatureLogger.ReportTelemetry();
-            SyntacticLspLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()

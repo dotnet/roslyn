@@ -3,17 +3,31 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
-    public record SyntaxTreeInfo(
-        string FilePath,
-        SourceText SourceText)
-    {
-        public static SyntaxTreeInfo Create(SyntaxTree syntaxTree, CancellationToken cancellationToken = default) =>
-            new SyntaxTreeInfo(syntaxTree.FilePath, syntaxTree.GetText(cancellationToken));
-    }
+    public sealed record EmbeddedSourceTextInfo(
+        SourceTextInfo SourceTextInfo,
+        SourceText SourceText,
+        ImmutableArray<byte> CompressedHash);
+
+    public sealed record SourceTextInfo(
+        string OriginalSourceFilePath,
+        SourceHashAlgorithm HashAlgorithm,
+        ImmutableArray<byte> Hash,
+        Encoding SourceTextEncoding);
+
+    public sealed record MetadataReferenceInfo(
+        string FileName,
+        Guid ModuleVersionId,
+        string? ExternAlias,
+        MetadataImageKind ImageKind,
+        bool EmbedInteropTypes,
+        int Timestamp,
+        int ImageSize);
 }

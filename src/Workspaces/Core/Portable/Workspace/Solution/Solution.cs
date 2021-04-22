@@ -1644,7 +1644,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken = default)
         {
             // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
-            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution), logSessionInfo: solutionChanges != null);
+            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
 
             return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
         }

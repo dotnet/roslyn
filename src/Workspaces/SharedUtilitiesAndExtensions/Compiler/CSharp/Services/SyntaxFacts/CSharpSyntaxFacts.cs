@@ -393,6 +393,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.LessThanLessThanEqualsToken:
                     return PredefinedOperator.LeftShift;
 
+                case SyntaxKind.LessThanToken:
+                    return PredefinedOperator.LessThan;
+
                 case SyntaxKind.LessThanEqualsToken:
                     return PredefinedOperator.LessThanOrEqual;
 

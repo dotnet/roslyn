@@ -99,7 +99,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
             {
                 var documentSpan = definition.SourceSpans[0];
-                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document).ConfigureAwait(false);
+                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
+                var sourceText = await documentSpan.Document.GetTextAsync(CancellationToken).ConfigureAwait(false);
 
                 var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);

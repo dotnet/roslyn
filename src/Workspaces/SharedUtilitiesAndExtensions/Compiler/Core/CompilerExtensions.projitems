@@ -55,6 +55,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
       <Link>Collections\ArrayBuilderExtensions.cs</Link>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\DictionaryExtensions.cs">
+      <Link>Collections\DictionaryExtensions.cs</Link>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\Boxes.cs">
       <Link>Collections\Boxes.cs</Link>
     </Compile>
@@ -276,7 +279,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\IFormattingResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ListPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\AbstractFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\BaseIndentationFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\CompatAbstractFormattingRule.cs" />

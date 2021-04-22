@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 Loop
 
                 Return typesAndDeclarations.Select(Function(kvp) Tuple.Create(kvp.Key, kvp.Value)).OrderBy(Function(t) t.Item1.Name)
-            Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
+            Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken)
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function

@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder)>>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void ValidateProjectToDocumentMap(
             ProjectToDocumentMap projectToDocumentMap)
         {
-            var set = new HashSet<(ISymbol symbol, IReferenceFinder finder)>();
+            var set = new HashSet<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder)>();
 
             foreach (var documentMap in projectToDocumentMap.Values)
             {
@@ -119,15 +119,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     set.Clear();
 
-                    foreach (var finder in documentToFinderList.Value)
-                    {
-                        Debug.Assert(set.Add(finder));
-                    }
+                    foreach (var tuple in documentToFinderList.Value)
+                        Debug.Assert(set.Add(tuple));
                 }
             }
         }
 
-        private ValueTask HandleLocationAsync(ISymbol symbol, ReferenceLocation location)
-            => _progress.OnReferenceFoundAsync(symbol, location);
+        private ValueTask HandleLocationAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location)
+            => _progress.OnReferenceFoundAsync(group, symbol, location);
     }
 }

@@ -27,15 +27,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
         ValueTask<bool> HasChangesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, string? sourceFilePath, CancellationToken cancellationToken);
+        ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
 
-        ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
-
-        ValueTask CommitSolutionUpdateAsync(CancellationToken cancellationToken);
+        /// <summary>
+        /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
+        /// </summary>
+        ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(CancellationToken cancellationToken);
         ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken);
 
-        ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<DocumentId>> StartEditSessionAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<DocumentId>> EndEditSessionAsync(CancellationToken cancellationToken);
+        ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, bool captureMatchingDocuments, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
+        /// </summary>
+        ValueTask<ImmutableArray<DocumentId>> BreakStateEnteredAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
+        /// </summary>
         ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(CancellationToken cancellationToken);
 
         ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);

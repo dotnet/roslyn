@@ -34,3 +34,17 @@
         return a ?? (b ? 1 : 2);
     }
     ```
+
+3. https://github.com/dotnet/roslyn/issues/52630 In C# 9 (.NET 5, Visual Studio 16.9), it is possible that a record uses a hidden member from a base type as a positional member. In Visual Studio 16.10, this is now an error:
+```csharp
+record Base
+{
+    public int I { get; init; }
+}
+record Derived(int I) // The positional member 'Base.I' found corresponding to this parameter is hidden.
+    : Base
+{
+    public int I() { return 0; }
+}
+```
+

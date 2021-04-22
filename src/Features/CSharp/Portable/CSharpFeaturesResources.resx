@@ -622,4 +622,7 @@
     <value>Make container 'async'</value>
     <comment>{Locked="async"} "async" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="record_" xml:space="preserve">
+    <value>record</value>
+  </data>
 </root>
