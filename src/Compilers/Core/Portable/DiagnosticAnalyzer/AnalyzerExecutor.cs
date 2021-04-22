@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Diagnostic, bool> isSupportedDiagnostic,
             OperationAnalyzerStateData? analyzerState)
         {
-            Debug.Assert(analyzerState == null || analyzerState.CurrentOperation == operation);
+            Debug.Assert(analyzerState == null || analyzerState.CurrentOperation == operation, getAssertMessage(analyzerState?.CurrentOperation, operation));
             Debug.Assert(!IsAnalyzerSuppressedForTree(operationAction.Analyzer, semanticModel.SyntaxTree));
 
             if (ShouldExecuteAction(analyzerState, operationAction))
@@ -947,6 +947,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     new AnalysisContextInfo(Compilation, operation));
 
                 analyzerState?.ProcessedActions.Add(operationAction);
+            }
+
+            static string? getAssertMessage(IOperation? actualOperation, IOperation expectedOperation)
+            {
+                string messagePrefix = actualOperation == null
+                    ? "'ActualOperation' is null"
+                    : $"'ActualOperationKind' : '{actualOperation.Kind}' | 'ActualSyntax' : '{actualOperation.Syntax}'";
+                var messageSuffix = $"'ExpectedOperationKind' : '{expectedOperation.Kind}' | 'ExpectedSyntax' : '{expectedOperation.Syntax}'";
+
+                return $"{messagePrefix} || {messageSuffix}";
             }
         }
 
