@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var oldTagTree = GetTagTree(snapshot, oldTagTrees);
 
                 // everything from old tree is removed.
-                RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSpans(snapshot).Select(s => s.Span)));
+                RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: new(oldTagTree.GetSpans(snapshot).Select(s => s.Span))));
             }
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         else
                         {
                             // It's a new buffer, so report all spans are changed
-                            bufferToChanges[latestBuffer] = new DiffResult(added: latestSpans.GetSpans(snapshot).Select(t => t.Span), removed: null);
+                            bufferToChanges[latestBuffer] = new DiffResult(added: new(latestSpans.GetSpans(snapshot).Select(t => t.Span)), removed: null);
                         }
                     }
 
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         if (!newTagTrees.ContainsKey(oldBuffer))
                         {
                             // This buffer disappeared, so let's notify that the old tags are gone
-                            bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span));
+                            bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: new(previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span)));
                         }
                     }
                 }
@@ -438,13 +438,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var latestSpans = latestTree.GetSpans(snapshot);
                 var previousSpans = previousTree.GetSpans(snapshot);
 
-                using var addedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
-                using var removedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
+                using var _1 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
+                using var _2 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
                 using var latestEnumerator = latestSpans.GetEnumerator();
                 using var previousEnumerator = previousSpans.GetEnumerator();
-
-                var added = addedPool.Object;
-                var removed = removedPool.Object;
 
                 var latest = NextOrDefault(latestEnumerator);
                 var previous = NextOrDefault(previousEnumerator);
@@ -501,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     previous = NextOrDefault(previousEnumerator);
                 }
 
-                return new DiffResult(added, removed);
+                return new DiffResult(new(added), new(removed));
 
                 static ITagSpan<TTag> NextOrDefault(IEnumerator<ITagSpan<TTag>> enumerator)
                     => enumerator.MoveNext() ? enumerator.Current : null;
