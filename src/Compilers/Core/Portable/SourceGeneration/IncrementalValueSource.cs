@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     /// <remarks>
     /// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
-    /// will receive a set of value sources when constructing it's execution pipeline. A set of extension methods
+    /// will receive a set of value sources when constructing its execution pipeline. A set of extension methods
     /// are then used to create transforms over the data that creates the actual pipeline.
     /// </remarks>
     /// <typeparam name="T">The type of value that this source provides access to</typeparam>
