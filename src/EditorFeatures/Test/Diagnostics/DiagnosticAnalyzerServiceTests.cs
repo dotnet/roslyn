@@ -647,8 +647,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var expectedCount = (analysisScope, testMultiple) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 0,
+                (BackgroundAnalysisScope.ActiveFile, _) => 0,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, false) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
