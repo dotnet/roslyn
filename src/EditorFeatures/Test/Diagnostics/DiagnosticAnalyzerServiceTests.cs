@@ -647,8 +647,8 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var expectedCount = (analysisScope, testMultiple) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 1,
-                (BackgroundAnalysisScope.ActiveFile, true) => 2,
+                (BackgroundAnalysisScope.ActiveFile, false) => 0,
+                (BackgroundAnalysisScope.ActiveFile, true) => 0,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, false) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
@@ -665,7 +665,11 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     var applicableDiagnostics = diagnostics.Where(
                         d => d.Id == analyzer.Descriptor.Id && d.DataLocation.OriginalFilePath == additionalDoc.FilePath);
 
-                    if (analysisScope != BackgroundAnalysisScope.FullSolution &&
+                    if (analysisScope == BackgroundAnalysisScope.ActiveFile)
+                    {
+                        Assert.Empty(applicableDiagnostics);
+                    }
+                    else if (analysisScope == BackgroundAnalysisScope.OpenFilesAndProjects &&
                         firstAdditionalDocument != additionalDoc)
                     {
                         Assert.Empty(applicableDiagnostics);

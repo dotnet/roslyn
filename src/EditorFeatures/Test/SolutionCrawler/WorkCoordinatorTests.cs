@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = analysisScope switch
             {
-                BackgroundAnalysisScope.ActiveFile => 0,
+                BackgroundAnalysisScope.ActiveFile => 1,
                 BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution => 1,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = analysisScope switch
             {
-                BackgroundAnalysisScope.ActiveFile => 0,
+                BackgroundAnalysisScope.ActiveFile => 10,
                 BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution => 10,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -173,14 +173,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = analysisScope switch
             {
-                BackgroundAnalysisScope.ActiveFile => 0,
+                BackgroundAnalysisScope.ActiveFile => 10,
                 BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution => 10,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
             var expectedProjectEvents = analysisScope switch
             {
-                BackgroundAnalysisScope.ActiveFile => 0,
+                BackgroundAnalysisScope.ActiveFile => 2,
                 BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution => 2,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = analysisScope switch
             {
-                BackgroundAnalysisScope.ActiveFile => 0,
+                BackgroundAnalysisScope.ActiveFile => 1,
                 BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution => 1,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = analysisScope switch
             {
-                BackgroundAnalysisScope.ActiveFile => 0,
+                BackgroundAnalysisScope.ActiveFile => 2,
                 BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution => 2,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -310,8 +310,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -343,8 +343,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -376,8 +376,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -409,8 +409,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -442,8 +442,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -475,8 +475,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -513,8 +513,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -553,9 +553,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));
 
             Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
-            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-            Assert.Equal(1, worker.DocumentIds.Count);
-            Assert.Equal(1, worker.ProjectIds.Count);
+            Assert.Equal(10, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(10, worker.DocumentIds.Count);
+            Assert.Equal(2, worker.ProjectIds.Count);
         }
 
         [Fact]
@@ -590,14 +590,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = analysisScope switch
             {
-                BackgroundAnalysisScope.ActiveFile => 0,
+                BackgroundAnalysisScope.ActiveFile => 5,
                 BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
             var expectedProjectEvents = analysisScope switch
             {
-                BackgroundAnalysisScope.ActiveFile => 0,
+                BackgroundAnalysisScope.ActiveFile => 1,
                 BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution => 1,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSyntaxEvents = (analysisScope, activeDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
+                (BackgroundAnalysisScope.ActiveFile, false) => 1,
                 (BackgroundAnalysisScope.ActiveFile, true) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 1,
                 _ => throw ExceptionUtilities.Unreachable,
@@ -644,8 +644,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSemanticEvents = (analysisScope, activeDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 6,
+                (BackgroundAnalysisScope.ActiveFile, true) => 6,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 6,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -692,8 +692,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSemanticEvents = (analysisScope, removeActiveDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 0,
+                (BackgroundAnalysisScope.ActiveFile, false) => 4,
+                (BackgroundAnalysisScope.ActiveFile, true) => 4,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 4,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedReanalyzeSyntaxDocumentCount = (analysisScope, reanalyzeActiveDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
+                (BackgroundAnalysisScope.ActiveFile, false) => 1,
                 (BackgroundAnalysisScope.ActiveFile, true) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 1,
                 _ => throw ExceptionUtilities.Unreachable,
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedReanalyzeDocumentCount = (analysisScope, reanalyzeActiveDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
+                (BackgroundAnalysisScope.ActiveFile, false) => 1,
                 (BackgroundAnalysisScope.ActiveFile, true) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 1,
                 _ => throw ExceptionUtilities.Unreachable,
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentEvents = (analysisScope, changeActiveDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
+                (BackgroundAnalysisScope.ActiveFile, false) => 1,
                 (BackgroundAnalysisScope.ActiveFile, true) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 1,
                 _ => throw ExceptionUtilities.Unreachable,
@@ -838,16 +838,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSyntaxEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
             var expectedDocumentSemanticEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -889,16 +889,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSyntaxEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
             var expectedDocumentSemanticEvents = (analysisScope, firstDocumentActive) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSyntaxEvents = (analysisScope, activeDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
+                (BackgroundAnalysisScope.ActiveFile, false) => 1,
                 (BackgroundAnalysisScope.ActiveFile, true) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 1,
                 _ => throw ExceptionUtilities.Unreachable,
@@ -958,8 +958,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSemanticEvents = (analysisScope, activeDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSyntaxEvents = (analysisScope, activeDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
+                (BackgroundAnalysisScope.ActiveFile, false) => 1,
                 (BackgroundAnalysisScope.ActiveFile, true) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 1,
                 _ => throw ExceptionUtilities.Unreachable,
@@ -1007,8 +1007,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedDocumentSemanticEvents = (analysisScope, activeDocument) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 0,
-                (BackgroundAnalysisScope.ActiveFile, true) => 1,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 5,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -1114,15 +1114,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var expectedSourceSwitchSyntaxDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
                 (BackgroundAnalysisScope.ActiveFile, false) => 1,
-                (BackgroundAnalysisScope.ActiveFile, true) => 2,
+                (BackgroundAnalysisScope.ActiveFile, true) => 1,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
             var expectedSourceSwitchDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, false) => 1,
-                (BackgroundAnalysisScope.ActiveFile, true) => 2,
+                (BackgroundAnalysisScope.ActiveFile, false) => 5,
+                (BackgroundAnalysisScope.ActiveFile, true) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var expectedNonSourceSwitchDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, _) => 1,
+                (BackgroundAnalysisScope.ActiveFile, _) => 5,
                 (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable,
             };
