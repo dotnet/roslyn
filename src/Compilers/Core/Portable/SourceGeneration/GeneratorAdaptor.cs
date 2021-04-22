@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 {
     /// <summary>
     /// Adapts an ISourceGenerator to an incremental generator that
-    /// by providng an execution environment that matches the old one
+    /// by providing an execution environment that matches the old one
     /// </summary>
     internal sealed class SourceGeneratorAdaptor : IIncrementalGenerator
     {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
             context.RegisterExecutionPipeline((ctx) =>
             {
-                // PROTOTYPE: this is where we'll build the actual emulation pipeline
+                // PROTOTYPE(source-generators): this is where we'll build the actual emulation pipeline
             });
         }
     }
