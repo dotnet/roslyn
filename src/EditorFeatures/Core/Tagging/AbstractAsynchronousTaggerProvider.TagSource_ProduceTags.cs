@@ -443,8 +443,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 using var latestEnumerator = latestSpans.GetEnumerator();
                 using var previousEnumerator = previousSpans.GetEnumerator();
 
-                var latest = NextOrDefault(latestEnumerator);
-                var previous = NextOrDefault(previousEnumerator);
+                var latest = NextOrNull(latestEnumerator);
+                var previous = NextOrNull(previousEnumerator);
 
                 while (latest != null && previous != null)
                 {
@@ -454,12 +454,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     if (latestSpan.Start < previousSpan.Start)
                     {
                         added.Add(latestSpan);
-                        latest = NextOrDefault(latestEnumerator);
+                        latest = NextOrNull(latestEnumerator);
                     }
                     else if (previousSpan.Start < latestSpan.Start)
                     {
                         removed.Add(previousSpan);
-                        previous = NextOrDefault(previousEnumerator);
+                        previous = NextOrNull(previousEnumerator);
                     }
                     else
                     {
@@ -468,20 +468,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         if (previousSpan.End > latestSpan.End)
                         {
                             removed.Add(previousSpan);
-                            latest = NextOrDefault(latestEnumerator);
+                            latest = NextOrNull(latestEnumerator);
                         }
                         else if (latestSpan.End > previousSpan.End)
                         {
                             added.Add(latestSpan);
-                            previous = NextOrDefault(previousEnumerator);
+                            previous = NextOrNull(previousEnumerator);
                         }
                         else
                         {
                             if (!EqualityComparer<TTag>.Default.Equals(latest.Tag, previous.Tag))
                                 added.Add(latestSpan);
 
-                            latest = NextOrDefault(latestEnumerator);
-                            previous = NextOrDefault(previousEnumerator);
+                            latest = NextOrNull(latestEnumerator);
+                            previous = NextOrNull(previousEnumerator);
                         }
                     }
                 }
@@ -489,18 +489,18 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 while (latest != null)
                 {
                     added.Add(latest.Span);
-                    latest = NextOrDefault(latestEnumerator);
+                    latest = NextOrNull(latestEnumerator);
                 }
 
                 while (previous != null)
                 {
                     removed.Add(previous.Span);
-                    previous = NextOrDefault(previousEnumerator);
+                    previous = NextOrNull(previousEnumerator);
                 }
 
                 return new DiffResult(new(added), new(removed));
 
-                static ITagSpan<TTag> NextOrDefault(IEnumerator<ITagSpan<TTag>> enumerator)
+                static ITagSpan<TTag> NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
                     => enumerator.MoveNext() ? enumerator.Current : null;
             }
 
