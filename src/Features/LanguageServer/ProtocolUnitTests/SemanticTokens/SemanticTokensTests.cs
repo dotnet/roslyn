@@ -116,7 +116,11 @@ static class C { }
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensEdits)editResults).Edits.First());
             Assert.Equal("3", ((LSP.SemanticTokensEdits)editResults).ResultId);
 
-            // 4. Re-request whole document handler (may happen if LSP runs into an error)
+            // 4. Edits handler - no changes (ResultId should remain same)
+            var editResultsNoChange = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "3");
+            Assert.Equal("3", ((LSP.SemanticTokensEdits)editResultsNoChange).ResultId);
+
+            // 5. Re-request whole document handler (may happen if LSP runs into an error)
             var wholeDocResults2 = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
             var expectedWholeDocResults2 = new LSP.SemanticTokens
             {

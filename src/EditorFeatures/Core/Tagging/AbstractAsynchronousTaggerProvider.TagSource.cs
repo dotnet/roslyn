@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -26,6 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private sealed partial class TagSource : ForegroundThreadAffinitizedObject
         {
+            /// <summary>
+            /// If we get more than this many differences, then we just issue it as a single change
+            /// notification.  The number has been completely made up without any data to support it.
+            /// 
+            /// Internal for testing purposes.
+            /// </summary>
+            private const int CoalesceDifferenceCount = 10;
+
             #region Fields that can be accessed from either thread
 
             /// <summary>
@@ -66,13 +73,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// accumulated text changes since last tag calculation
             /// </summary>
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
-            private object _state_doNotAccessDirecty;
-            private bool _upToDate_doNotAccessDirectly = false;
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? _cachedTagTrees_doNotAccessDirectly;
+            private object? _state_doNotAccessDirecty;
+
+            /// <summary>
+            /// Keep track of if we are processing the first <see cref="ITagger{T}.GetTags"/> request.  If our provider returns 
+            /// <see langword="true"/> for <see cref="AbstractAsynchronousTaggerProvider{TTag}.ComputeInitialTagsSynchronously"/>,
+            /// then we'll want to synchronously block then and only then for tags.
+            /// </summary>
+            private bool _firstTagsRequest = true;
 
             #endregion
-
-            public event Action<ICollection<KeyValuePair<ITextBuffer, DiffResult>>, bool> TagsChangedForBuffer;
 
             /// <summary>
             /// A cancellation source we use for the initial tagging computation.  We only cancel
@@ -91,16 +102,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 IForegroundNotificationService notificationService)
                 : base(dataSource.ThreadingContext)
             {
+                this.AssertIsForeground();
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
-                {
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
-                }
 
                 _subjectBuffer = subjectBuffer;
                 _textViewOpt = textViewOpt;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
                 _notificationService = notificationService;
+
+                _batchChangeTokenSource = new CancellationTokenSource();
+
+                _batchChangeNotifier = new BatchChangeNotifier(
+                    dataSource.ThreadingContext,
+                    subjectBuffer, asyncListener, notificationService, NotifyEditorNow, _batchChangeTokenSource.Token);
 
                 DebugRecordInitialStackTrace();
 
@@ -114,6 +130,74 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
                 ComputeInitialTags();
+
+                return;
+
+                void Connect()
+                {
+                    this.AssertIsForeground();
+
+                    _eventSource.Changed += OnEventSourceChanged;
+
+                    if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                    {
+                        _subjectBuffer.Changed += OnSubjectBufferChanged;
+                    }
+
+                    if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
+                    {
+                        if (_textViewOpt == null)
+                        {
+                            throw new ArgumentException(
+                                nameof(_dataSource.CaretChangeBehavior) + " can only be specified for an " + nameof(IViewTaggerProvider));
+                        }
+
+                        _textViewOpt.Caret.PositionChanged += OnCaretPositionChanged;
+                    }
+
+                    // Tell the interaction object to start issuing events.
+                    _eventSource.Connect();
+                }
+            }
+
+            private void Dispose()
+            {
+                if (_disposed)
+                {
+                    Debug.Fail("Tagger already disposed");
+                    return;
+                }
+
+                // Stop computing any initial tags if we've been asked for them.
+                _initialComputationCancellationTokenSource.Cancel();
+                _disposed = true;
+                _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
+                GC.SuppressFinalize(this);
+
+                Disconnect();
+
+                return;
+
+                void Disconnect()
+                {
+                    this.AssertIsForeground();
+                    _workQueue.CancelCurrentWork(remainCancelled: true);
+
+                    // Tell the interaction object to stop issuing events.
+                    _eventSource.Disconnect();
+
+                    if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
+                    {
+                        _textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
+                    }
+
+                    if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+                    {
+                        _subjectBuffer.Changed -= OnSubjectBufferChanged;
+                    }
+
+                    _eventSource.Changed -= OnEventSourceChanged;
+                }
             }
 
             private void ComputeInitialTags()
@@ -123,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // when the view itself is initializing.  As such the view is not in a state where
                 // we want code touching it.
                 RegisterNotification(
-                    () => RecomputeTagsForeground(initialTags: true),
+                    () => RecomputeTagsForeground(initialTags: true, synchronous: false),
                     delay: 0,
                     cancellationToken: GetCancellationToken(initialTags: true));
             }
@@ -136,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // notifications for when those options change.
                 var optionChangedEventSources =
                     _dataSource.Options.Concat<IOption>(_dataSource.PerLanguageOptions)
-                        .Select(o => TaggerEventSources.OnOptionChanged(_subjectBuffer, o, TaggerDelay.NearImmediate)).ToList();
+                        .Select(o => TaggerEventSources.OnOptionChanged(_subjectBuffer, o)).ToList();
 
                 if (optionChangedEventSources.Count == 0)
                 {
@@ -152,111 +236,49 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _accumulatedTextChanges_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _accumulatedTextChanges_doNotAccessDirectly = value;
                 }
             }
 
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? CachedTagTrees
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _cachedTagTrees_doNotAccessDirectly;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _cachedTagTrees_doNotAccessDirectly = value;
                 }
             }
 
-            private object State
+            private object? State
             {
                 get
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     return _state_doNotAccessDirecty;
                 }
 
                 set
                 {
-                    _workQueue.AssertIsForeground();
+                    this.AssertIsForeground();
                     _state_doNotAccessDirecty = value;
-                }
-            }
-
-            private bool UpToDate
-            {
-                get
-                {
-                    _workQueue.AssertIsForeground();
-                    return _upToDate_doNotAccessDirectly;
-                }
-
-                set
-                {
-                    _workQueue.AssertIsForeground();
-                    _upToDate_doNotAccessDirectly = value;
                 }
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
                 => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation(typeof(TTag).Name), cancellationToken);
-
-            private void Connect()
-            {
-                _workQueue.AssertIsForeground();
-
-                _eventSource.Changed += OnEventSourceChanged;
-
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
-                {
-                    _subjectBuffer.Changed += OnSubjectBufferChanged;
-                }
-
-                if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
-                {
-                    if (_textViewOpt == null)
-                    {
-                        throw new ArgumentException(
-                            nameof(_dataSource.CaretChangeBehavior) + " can only be specified for an " + nameof(IViewTaggerProvider));
-                    }
-
-                    _textViewOpt.Caret.PositionChanged += OnCaretPositionChanged;
-                }
-
-                // Tell the interaction object to start issuing events.
-                _eventSource.Connect();
-            }
-
-            private void Disconnect()
-            {
-                _workQueue.AssertIsForeground();
-                _workQueue.CancelCurrentWork(remainCancelled: true);
-
-                // Tell the interaction object to stop issuing events.
-                _eventSource.Disconnect();
-
-                if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
-                {
-                    _textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
-                }
-
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
-                {
-                    _subjectBuffer.Changed -= OnSubjectBufferChanged;
-                }
-
-                _eventSource.Changed -= OnEventSourceChanged;
-            }
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
@@ -267,19 +289,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     return;
                 }
 
-                RaiseTagsChanged(SpecializedCollections.SingletonCollection(
+                OnTagsChangedForBuffer(SpecializedCollections.SingletonCollection(
                     new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)),
                     initialTags: false);
             }
-
-            private void RaiseTagsChanged(
-                ICollection<KeyValuePair<ITextBuffer, DiffResult>> collection, bool initialTags)
-            {
-                TagsChangedForBuffer?.Invoke(collection, initialTags);
-            }
-
-            private static T NextOrDefault<T>(IEnumerator<T> enumerator)
-                => enumerator.MoveNext() ? enumerator.Current : default;
         }
     }
 }

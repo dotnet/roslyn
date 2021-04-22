@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
@@ -26,38 +24,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 // mutating state
                 private SnapshotSpan _span;
-                private List<ClassifiedSpan> _classifications;
+                private readonly ArrayBuilder<ClassifiedSpan> _classifications = new();
 
                 public LastLineCache(IThreadingContext threadingContext) : base(threadingContext)
-                    => this.Clear();
+                {
+                }
 
                 private void Clear()
                 {
                     this.AssertIsForeground();
 
                     _span = default;
-                    ClassificationUtilities.ReturnClassifiedSpanList(_classifications);
-                    _classifications = null;
+                    _classifications.Clear();
                 }
 
-                public bool TryUseCache(SnapshotSpan span, out List<ClassifiedSpan> classifications)
+                public bool TryUseCache(SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifications)
                 {
                     this.AssertIsForeground();
 
                     // currently, it is using SnapshotSpan even though holding onto it could be
                     // expensive. reason being it should be very soon sync-ed to latest snapshot.
-                    if (_classifications != null && _span.Equals(span))
+                    if (_span.Equals(span))
                     {
-                        classifications = _classifications;
+                        classifications.AddRange(_classifications);
                         return true;
                     }
 
                     this.Clear();
-                    classifications = null;
                     return false;
                 }
 
-                public void Update(SnapshotSpan span, List<ClassifiedSpan> classifications)
+                public void Update(SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifications)
                 {
                     this.AssertIsForeground();
                     this.Clear();
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     if (classifications.Count < MaxClassificationNumber)
                     {
                         _span = span;
-                        _classifications = classifications;
+                        _classifications.AddRange(classifications);
                     }
                 }
             }

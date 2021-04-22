@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal abstract class AbstractClassificationService : IClassificationService
     {
-        public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
+        public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
         public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
-        public async Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public async Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var classificationService = document.GetLanguageService<ISyntaxClassificationService>();
             if (classificationService == null)
@@ -52,16 +52,12 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 // if the remote call fails do nothing (error has already been reported)
                 if (classifiedSpans.HasValue)
-                {
                     classifiedSpans.Value.Rehydrate(result);
-                }
             }
             else
             {
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
                 await AddSemanticClassificationsInCurrentProcessAsync(
-                    document, textSpan, temp, cancellationToken).ConfigureAwait(false);
-                AddRange(temp, result);
+                    document, textSpan, result, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -78,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Classification
             await classificationService.AddSemanticClassificationsAsync(document, textSpan, getNodeClassifiers, getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             AddSyntacticClassifications(document.Project.Solution.Workspace, root, textSpan, result, cancellationToken);
         }
 
         public void AddSyntacticClassifications(
-            Workspace workspace, SyntaxNode? root, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+            Workspace workspace, SyntaxNode? root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (root == null)
                 return;
@@ -94,9 +90,7 @@ namespace Microsoft.CodeAnalysis.Classification
             if (classificationService == null)
                 return;
 
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-            classificationService.AddSyntacticClassifications(root, textSpan, temp, cancellationToken);
-            AddRange(temp, result);
+            classificationService.AddSyntacticClassifications(root, textSpan, result, cancellationToken);
         }
 
         /// <summary>
