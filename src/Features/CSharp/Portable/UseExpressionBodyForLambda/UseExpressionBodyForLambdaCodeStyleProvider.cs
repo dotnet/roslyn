@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             : base(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
                    LanguageNames.CSharp,
                    IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForLambdaExpressions,
                    UseExpressionBodyTitle,
                    UseExpressionBodyTitle)
         {
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
     // Stub classes needed only for exporting purposes.
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExpressionBodyForLambda), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
     {
         [ImportingConstructor]
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         }
     }
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBodyForLambda), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
     {
         [ImportingConstructor]

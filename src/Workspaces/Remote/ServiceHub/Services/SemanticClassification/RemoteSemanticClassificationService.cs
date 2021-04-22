@@ -32,18 +32,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(document);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(document);
 
-                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
-                    await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
-                        document, span, temp, cancellationToken).ConfigureAwait(false);
+                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
+                await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(
+                    document, span, temp, cancellationToken).ConfigureAwait(false);
 
-                    return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
-                }
+                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());
             }, cancellationToken);
         }
     }

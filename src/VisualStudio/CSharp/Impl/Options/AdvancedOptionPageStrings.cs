@@ -73,6 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_lambda_parameter_types
             => ServicesVSResources.Show_hints_for_lambda_parameter_types;
 
+        public static string Option_Show_hints_for_implicit_object_creation
+            => ServicesVSResources.Show_hints_for_implicit_object_creation;
+
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 
@@ -261,5 +264,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static SchemeName Color_Scheme_VisualStudio2017_Tag
             => SchemeName.VisualStudio2017;
+
+        public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
+            => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;
     }
 }

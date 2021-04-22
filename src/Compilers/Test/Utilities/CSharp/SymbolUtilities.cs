@@ -6,11 +6,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Test.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -120,9 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return symbols.Select(s => s.ToTestDisplayString()).ToArray();
         }
 
-        public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols)
+        public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols, SymbolDisplayFormat format = null)
         {
-            return symbols.Select(s => s.ToTestDisplayString()).ToArray();
+            format ??= SymbolDisplayFormat.TestFormat;
+            return symbols.Select(s => s.ToDisplayString(format)).ToArray();
         }
 
         public static string ToTestDisplayString(this ISymbol symbol, bool includeNonNullable)

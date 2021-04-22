@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -230,7 +231,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(33505, "https://github.com/dotnet/roslyn/pull/33505")]
-        public void RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
+        public async Task RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
         {
             var ruleSetSource =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -243,7 +244,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             using var environment = new TestEnvironment();
             if (useCpsProject)
             {
-                CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null, $"/ruleset:\"{ruleSetFile.Path}\"");
+                await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: null, $"/ruleset:\"{ruleSetFile.Path}\"");
             }
             else
             {

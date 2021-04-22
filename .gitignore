@@ -6,6 +6,7 @@
 *.user
 *.userprefs
 *.sln.docstates
+*.svclog
 .vs/
 
 # Build results

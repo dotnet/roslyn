@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             private DiagnosticAnalyzer(TCodeStyleProvider codeStyleProvider, bool isUnnecessary, bool configurable)
                 : base(codeStyleProvider._descriptorId,
+                       codeStyleProvider._enforceOnBuild,
                        codeStyleProvider._option,
                        codeStyleProvider._language,
                        codeStyleProvider._title,

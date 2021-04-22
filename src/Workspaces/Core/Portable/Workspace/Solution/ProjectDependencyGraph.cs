@@ -196,13 +196,10 @@ namespace Microsoft.CodeAnalysis
         {
             var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
 
-            foreach (var kvp in _referencesMap)
+            foreach (var (projectId, references) in _referencesMap)
             {
-                var references = kvp.Value;
                 foreach (var referencedId in references)
-                {
-                    reverseReferencesMap.MultiAdd(referencedId, kvp.Key);
-                }
+                    reverseReferencesMap.MultiAdd(referencedId, projectId);
             }
 
             return reverseReferencesMap

@@ -19,7 +19,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => _supportsFixAll = supportsFixAll;
 
         public sealed override FixAllProvider? GetFixAllProvider()
-            => _supportsFixAll ? new SyntaxEditorBasedFixAllProvider(this) : null;
+        {
+            if (!_supportsFixAll)
+                return null;
+
+            return FixAllProvider.Create(
+                async (fixAllContext, document, diagnostics) =>
+                {
+                    var model = await document.GetRequiredSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
+
+                    // Ensure that diagnostics for this document are always in document location order.  This provides a
+                    // consistent and deterministic order for fixers that want to update a document.
+                    //
+                    // Also ensure that we do not pass in duplicates by invoking Distinct.  See
+                    // https://github.com/dotnet/roslyn/issues/31381, that seems to be causing duplicate diagnostics.
+                    var filteredDiagnostics = diagnostics.Distinct()
+                                                         .WhereAsArray(d => this.IncludeDiagnosticDuringFixAll(d, document, model, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
+                                                         .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
+
+                    if (filteredDiagnostics.Length == 0)
+                        return document;
+
+                    return await this.FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
+                });
+        }
 
         protected Task<Document> FixAsync(
             Document document, Diagnostic diagnostic, CancellationToken cancellationToken)

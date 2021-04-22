@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 out var fixAllSuggestedActions);
             foreach (var scope in supportedScopes)
             {
-                var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
+                var fixAllStateForScope = fixAllState.With(scope: scope, codeActionEquivalenceKey: action.EquivalenceKey);
                 var fixAllSuggestedAction = new UnifiedFixAllSuggestedAction(
                     workspace, action, action.Priority, fixAllStateForScope, firstDiagnostic);
 

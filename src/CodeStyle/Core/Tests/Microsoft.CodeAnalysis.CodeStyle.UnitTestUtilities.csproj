@@ -9,6 +9,7 @@
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\AnalyzerProperty.cs" Link="AnalyzerProperty.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CodeFixVerifierHelper.cs" Link="CodeFixVerifierHelper.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2+Test.cs" Link="CSharpCodeFixVerifier`2+Test.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2.cs" Link="CSharpCodeFixVerifier`2.cs" />

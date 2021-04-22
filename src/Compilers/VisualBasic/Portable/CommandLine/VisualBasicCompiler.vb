@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim content = TryReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
-                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger)
+                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger, compilation:=Nothing)
                 fileReadDiagnostics.Clear()
                 hadErrors = True
                 Return Nothing
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
             Dim resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, referenceDirectiveResolver)
 
-            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger) Then
+            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation:=Nothing) Then
                 Return Nothing
             End If
 

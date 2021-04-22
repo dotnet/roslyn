@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             RoslynDebug.Assert(additionalDocumentId != null);
                             result.AddExternalSyntaxDiagnostics(additionalDocumentId, diagnostics);
                         }
+
                         break;
 
                     case AnalysisKind.Semantic:

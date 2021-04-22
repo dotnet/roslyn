@@ -24,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class VisualStudioInfoBarService : ForegroundThreadAffinitizedObject, IInfoBarService
     {
         private readonly SVsServiceProvider _serviceProvider;
-        private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
@@ -32,12 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public VisualStudioInfoBarService(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
-            IForegroundNotificationService foregroundNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
-            _foregroundNotificationService = foregroundNotificationService;
             _listener = listenerProvider.GetListener(FeatureAttribute.InfoBar);
         }
 
@@ -46,13 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ThisCanBeCalledOnAnyThread();
 
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
-            _foregroundNotificationService.RegisterNotification(() =>
+            this.ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
+                using var _ = _listener.BeginAsyncOperation(nameof(ShowInfoBar));
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
                 if (TryGetInfoBarData(out var infoBarHost))
-                {
                     CreateInfoBar(infoBarHost, message, items);
-                }
-            }, _listener.BeginAsyncOperation(nameof(ShowInfoBar)), ThreadingContext.DisposalToken);
+            });
         }
 
         private bool TryGetInfoBarData(out IVsInfoBarHost infoBarHost)

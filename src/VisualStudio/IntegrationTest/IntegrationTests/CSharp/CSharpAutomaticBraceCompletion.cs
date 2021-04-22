@@ -766,5 +766,44 @@ class Program
             VisualStudio.Editor.SendKeys(";");
             VisualStudio.Editor.Verify.CurrentLineText("Main(args);$$", assertCaretPosition: true);
         }
+
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_InsertionOnNewLine(bool showCompletionInArgumentLists)
+        {
+            SetUpEditor(@"
+class C {
+    void Goo() {
+        $$
+    }
+}");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
+            VisualStudio.Editor.SendKeys("if (true)",
+                VirtualKey.Enter,
+                "{");
+            VisualStudio.Editor.Verify.CurrentLineText("{ $$}", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
+class C {
+    void Goo() {
+        if (true)
+        {
+
+        }
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("}");
+            VisualStudio.Editor.Verify.TextContains(@"
+class C {
+    void Goo() {
+        if (true)
+        {
+        }$$
+    }
+}", assertCaretPosition: true);
+        }
     }
 }

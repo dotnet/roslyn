@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
-                switch (argumentOperation.Parameter.RefKind)
+                switch (argumentOperation.Parameter?.RefKind)
                 {
                     case RefKind.RefReadOnly:
                         return ValueUsageInfo.ReadableReference;
@@ -246,21 +246,21 @@ namespace Microsoft.CodeAnalysis
             deconstructionAssignment = null;
 
             var previousOperation = operation;
-            operation = operation.Parent;
+            var current = operation.Parent;
 
-            while (operation != null)
+            while (current != null)
             {
-                switch (operation.Kind)
+                switch (current.Kind)
                 {
                     case OperationKind.DeconstructionAssignment:
-                        deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
+                        deconstructionAssignment = (IDeconstructionAssignmentOperation)current;
                         return deconstructionAssignment.Target == previousOperation;
 
                     case OperationKind.Tuple:
                     case OperationKind.Conversion:
                     case OperationKind.Parenthesized:
-                        previousOperation = operation;
-                        operation = operation.Parent;
+                        previousOperation = current;
+                        current = current.Parent;
                         continue;
 
                     default:

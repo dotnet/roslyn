@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
             [NotNullWhen(true)] out IOperation trueStatement,
-            [NotNullWhen(true)] out IOperation falseStatement,
+            [NotNullWhen(true)] out IOperation? falseStatement,
             out ISimpleAssignmentOperation? trueAssignment,
             out ISimpleAssignmentOperation? falseAssignment)
         {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         private static bool TryGetAssignmentOrThrow(
-            IOperation statement,
+            [NotNullWhen(true)] IOperation? statement,
             out ISimpleAssignmentOperation? assignment,
             out IThrowOperation? throwOperation)
         {

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(pipeName).ToArray(), cancellationToken);
 
                 // if invoke throws an exception, make sure we raise cancellation.
-                RaiseCancellationIfInvokeFailed(task, readerCancellationSource);
+                readerCancellationSource.CancelOnAbnormalCompletion(task);
 
                 var task2 = Task.Run(async () =>
                 {
@@ -306,26 +306,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken.ThrowIfCancellationRequested();
                 await Task.Delay(connectRetryInterval, cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource linkedCancellationSource)
-        {
-            // if invoke throws an exception, make sure we raise cancellation
-            _ = task.ContinueWith(p =>
-            {
-                try
-                {
-                    // now, we allow user to kill OOP process, when that happen, 
-                    // just raise cancellation. 
-                    // otherwise, stream.WaitForDirectConnectionAsync can stuck there forever since
-                    // cancellation from user won't be raised
-                    linkedCancellationSource.Cancel();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // merged cancellation is already disposed
-                }
-            }, CancellationToken.None, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
         private static bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)

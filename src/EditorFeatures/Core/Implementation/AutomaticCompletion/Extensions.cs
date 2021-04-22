@@ -22,15 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
     internal static class Extensions
     {
         /// <summary>
-        /// format span
-        /// </summary>
-        public static void Format(this ITextBuffer buffer, TextSpan span, IEnumerable<AbstractFormattingRule> rules)
-        {
-            var snapshot = buffer.CurrentSnapshot;
-            snapshot.FormatAndApplyToBuffer(span, rules, CancellationToken.None);
-        }
-
-        /// <summary>
         /// create caret preserving edit transaction with automatic code change undo merging policy
         /// </summary>
         public static CaretPreservingEditTransaction CreateEditTransaction(
@@ -107,12 +98,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             return new SnapshotSpan(open, close);
         }
-
-        public static int GetValueInValidRange(this int value, int smallest, int largest)
-            => Math.Max(smallest, Math.Min(value, largest));
-
-        public static bool PositionInSnapshot(this int position, ITextSnapshot snapshot)
-            => position.GetValueInValidRange(0, Math.Max(0, snapshot.Length - 1)) == position;
 
         public static SnapshotPoint? GetCaretPosition(this IBraceCompletionSession session)
             => GetCaretPoint(session, session.SubjectBuffer);

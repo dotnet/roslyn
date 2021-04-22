@@ -274,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = DeriveUseSiteErrorInfoFromParameter(Me, HighestPriorityUseSiteError)
+                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me, HighestPriorityUseSiteError).DiagnosticInfo
                 Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedType1
             End Get
         End Property
@@ -348,6 +348,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.OriginalDefinition
             End Get
         End Property
+
+        Private ReadOnly Property IParameterSymbol_AssociatedSymbol As ISymbol Implements IParameterSymbol.AssociatedSymbol
 
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitParameter(Me)

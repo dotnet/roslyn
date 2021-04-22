@@ -749,5 +749,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
             => symbol.Name.StartsWith("_") &&
                (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+
+        /// <summary>
+        /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
+        public static bool IsObsolete(this ISymbol symbol)
+            => symbol.GetAttributes().Any(x => x.AttributeClass is
+            {
+                MetadataName: nameof(ObsoleteAttribute),
+                ContainingNamespace: { Name: nameof(System) },
+            });
     }
 }

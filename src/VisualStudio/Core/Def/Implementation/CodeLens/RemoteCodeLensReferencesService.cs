@@ -29,6 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         {
         }
 
+        public ValueTask<VersionStamp> GetProjectCodeLensVersionAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken)
+        {
+            // This value is more efficient to calculate in the current process
+            return CodeLensReferencesServiceFactory.Instance.GetProjectCodeLensVersionAsync(solution, projectId, cancellationToken);
+        }
+
         public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode, int maxSearchResults,
             CancellationToken cancellationToken)
         {

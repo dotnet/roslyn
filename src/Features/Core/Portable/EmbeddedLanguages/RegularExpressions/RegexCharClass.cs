@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     using static FeaturesResources;
 
     /// <summary>
-    /// Minimal copy of https://github.com/dotnet/corefx/blob/master/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
+    /// Minimal copy of https://github.com/dotnet/corefx/blob/main/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
     /// Used to accurately determine if something is a WordChar according to the .NET regex engine.
     /// </summary>
     internal static class RegexCharClass
@@ -315,6 +315,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                             continue;
                         }
                     }
+
                     --curcat;
 
                     if (chcategory == (UnicodeCategory)curcat)
@@ -343,8 +344,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (chcategory != (UnicodeCategory)curcat)
                         return true;
                 }
+
                 i++;
             }
+
             return false;
         }
 
@@ -370,9 +373,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         if (chcategory == (UnicodeCategory)curcat)
                             answer = true;
                     }
+
                     i++;
                     curcat = (short)category[i];
                 }
+
                 return answer;
             }
             else
@@ -390,9 +395,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         if (chcategory == (UnicodeCategory)curcat)
                             answer = false;
                     }
+
                     i++;
                     curcat = unchecked((short)category[i]);
                 }
+
                 return answer;
             }
         }

@@ -1692,5 +1692,101 @@ class Program
         E.C }
 }");
         }
+
+        [WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        public async Task TestWithLeftShift_Long()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void Main()
+    {
+        Color.[|Blue|];
+    }
+}
+
+enum Color : long
+{
+    Green = 1L << 0
+}",
+@"class Program
+{
+    void Main()
+    {
+        Color.Blue;
+    }
+}
+
+enum Color : long
+{
+    Green = 1L << 0,
+    Blue = 1L << 1
+}");
+        }
+
+        [WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        public async Task TestWithLeftShift_UInt()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void Main()
+    {
+        Color.[|Blue|];
+    }
+}
+
+enum Color : uint
+{
+    Green = 1u << 0
+}",
+@"class Program
+{
+    void Main()
+    {
+        Color.Blue;
+    }
+}
+
+enum Color : uint
+{
+    Green = 1u << 0,
+    Blue = 1u << 1
+}");
+        }
+
+        [WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        public async Task TestWithLeftShift_ULong()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void Main()
+    {
+        Color.[|Blue|];
+    }
+}
+
+enum Color : ulong
+{
+    Green = 1UL << 0
+}",
+@"class Program
+{
+    void Main()
+    {
+        Color.Blue;
+    }
+}
+
+enum Color : ulong
+{
+    Green = 1UL << 0,
+    Blue = 1UL << 1
+}");
+        }
     }
 }

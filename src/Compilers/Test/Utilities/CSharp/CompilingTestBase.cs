@@ -5,11 +5,9 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
@@ -38,31 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var block = MethodCompiler.BindMethodBody(method, compilationState, diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, compilationState, new BindingDiagnosticBag(diagnostics));
             diagnostics.Free();
             return block;
-        }
-
-        public static string DumpDiagnostic(Diagnostic diagnostic)
-        {
-            return string.Format("'{0}' {1}",
-                diagnostic.Location.SourceTree.GetText().ToString(diagnostic.Location.SourceSpan),
-                DiagnosticFormatter.Instance.Format(diagnostic.WithLocation(Location.None), EnsureEnglishUICulture.PreferredOrNull));
-        }
-
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public static void TestDiagnostics(IEnumerable<Diagnostic> diagnostics, params string[] diagStrings)
-        {
-            AssertEx.SetEqual(diagStrings, diagnostics.Select(DumpDiagnostic));
-        }
-
-        // Do a full compilation and check all the errors.
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public void TestAllErrors(string code, params string[] errors)
-        {
-            var compilation = CreateCompilation(code);
-            var diagnostics = compilation.GetDiagnostics();
-            AssertEx.SetEqual(errors, diagnostics.Select(DumpDiagnostic));
         }
 
         public const string LINQ =

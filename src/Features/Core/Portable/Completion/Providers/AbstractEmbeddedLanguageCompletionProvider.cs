@@ -31,12 +31,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private ImmutableArray<IEmbeddedLanguage> _languageProviders;
 
-        private readonly ImmutableHashSet<char> _triggerCharacters;
-
         protected AbstractEmbeddedLanguageCompletionProvider(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices, string languageName)
         {
             var embeddedLanguageServiceType = typeof(IEmbeddedLanguagesProvider).AssemblyQualifiedName;
-            _triggerCharacters = languageServices
+            TriggerCharacters = languageServices
                 .Where(lazyLanguageService => IsEmbeddedLanguageProvider(lazyLanguageService, languageName, embeddedLanguageServiceType))
                 .SelectMany(lazyLanguageService => ((IEmbeddedLanguagesProvider)lazyLanguageService.Value).Languages)
                 .SelectMany(GetTriggerCharactersForEmbeddedLanguage)
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _languageProviders;
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters => _triggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; }
 
         internal override bool ShouldTriggerCompletion(HostLanguageServices? languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {

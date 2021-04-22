@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 exitCallExpr = BoundCall.Synthesized(
                     lockSyntax,
-                    null,
+                    receiverOpt: null,
                     exitMethod,
                     boundLockTemp);
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     BoundCall.Synthesized(
                         lockSyntax,
-                        null,
+                        receiverOpt: null,
                         enterMethod,
                         boundLockTemp,
                         boundLockTakenTemp));
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     enterCallExpr = BoundCall.Synthesized(
                         lockSyntax,
-                        null,
+                        receiverOpt: null,
                         enterMethod,
                         boundLockTemp);
                 }

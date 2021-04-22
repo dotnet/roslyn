@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -46,16 +45,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 case StorageDatabase.SQLite:
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
                     if (locationService != null)
-                    {
-                        if (UseInMemoryWriteCache(workspaceServices))
-                        {
-                            return new SQLite.v2.SQLitePersistentStorageService(_connectionPoolService, locationService);
-                        }
-                        else
-                        {
-                            return new SQLite.v1.SQLitePersistentStorageService(locationService);
-                        }
-                    }
+                        return new SQLite.v2.SQLitePersistentStorageService(_connectionPoolService, locationService);
 
                     break;
             }
@@ -63,9 +53,5 @@ namespace Microsoft.CodeAnalysis.Storage
 
             return NoOpPersistentStorageService.Instance;
         }
-
-        private static bool UseInMemoryWriteCache(HostWorkspaceServices workspaceServices)
-            => workspaceServices.Workspace.Options.GetOption(StorageOptions.SQLiteInMemoryWriteCache) ||
-               workspaceServices.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.SQLiteInMemoryWriteCache2) == true;
     }
 }

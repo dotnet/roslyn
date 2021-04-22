@@ -977,7 +977,7 @@ tryAgain:
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
                 // TypeDefOrRefOrSpec encoded
-                // From the PortablePDB spec: https://github.com/dotnet/runtime/blob/master/src/libraries/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#localconstant-table-0x34
+                // From the PortablePDB spec: https://github.com/dotnet/runtime/blob/main/src/libraries/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#localconstant-table-0x34
                 // The encoding of the GeneralValue is determined based upon the type expressed by TypeDefOrRefOrSpecEncoded
                 // specified in GeneralConstant. GeneralValue for special types listed in the table below has to be present
                 // and is encoded as specified.

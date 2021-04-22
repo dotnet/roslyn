@@ -41,6 +41,6 @@ namespace Microsoft.CodeAnalysis.Editing
         AddAccessor,
         RemoveAccessor,
         RaiseAccessor,
-        Record,
+        RecordClass,
     }
 }
