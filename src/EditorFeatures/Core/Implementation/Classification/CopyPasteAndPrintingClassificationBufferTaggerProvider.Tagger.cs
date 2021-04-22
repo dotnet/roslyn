@@ -108,10 +108,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void OnEventSourceChanged(object sender, TaggerEventArgs _)
             {
-                _owner._notificationService.RegisterNotification(
-                    OnEventSourceChanged_OnForeground,
-                    _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider"),
-                    _cancellationTokenSource.Token);
+                _owner.ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    using var _ = _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider");
+                    await _owner.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_cancellationTokenSource.Token);
+                    OnEventSourceChanged_OnForeground();
+                });
             }
 
             private void OnEventSourceChanged_OnForeground()
