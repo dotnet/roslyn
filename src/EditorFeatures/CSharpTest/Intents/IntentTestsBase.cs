@@ -54,7 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 
             // Determine the edits to rewind to the prior snapshot by removing the changes in the annotated span.
             var rewindTextChange = new TextChange(typedSpan, "");
-            var priorSelection = document.AnnotatedSpans["priorSelection"].Single();
+            var priorSelection = TextSpan.FromBounds(rewindTextChange.Span.Start, rewindTextChange.Span.Start);
+            if (document.AnnotatedSpans.ContainsKey("priorSelection"))
+            {
+                priorSelection = document.AnnotatedSpans["priorSelection"].Single();
+            }
 
             var intentContext = new IntentRequestContext(
                 intentName,
