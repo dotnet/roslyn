@@ -35,17 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
         }
 
-        public IAccurateTagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {
             if (textView == null)
-            {
                 throw new ArgumentNullException(nameof(subjectBuffer));
-            }
 
             if (subjectBuffer == null)
-            {
                 throw new ArgumentNullException(nameof(subjectBuffer));
-            }
 
             return this.CreateTaggerWorker<T>(textView, subjectBuffer);
         }

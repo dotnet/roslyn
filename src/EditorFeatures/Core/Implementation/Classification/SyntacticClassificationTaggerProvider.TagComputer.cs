@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -220,7 +221,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
             {
-                EnqueueWorkIfThisDocument(args.NewActiveContextDocumentId);
+                if (_workspace == null)
+                    return;
+
+                var documentId = args.NewActiveContextDocumentId;
+                var bufferDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
+                if (bufferDocumentId != documentId)
+                    return;
+
+                _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
@@ -241,20 +250,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var oldProject = args.OldSolution.GetProject(args.ProjectId);
                 var newProject = args.NewSolution.GetProject(args.ProjectId);
 
-                // make sure in case of parse config change, we re-colorize whole document. not just edited section.
+                // In case of parse options change reclassify the doc as it may have affected things
+                // like preprocessor directives.
                 if (Equals(oldProject?.ParseOptions, newProject?.ParseOptions))
-                    return;
-
-                _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
-            }
-
-            private void EnqueueWorkIfThisDocument(DocumentId documentId)
-            {
-                if (_workspace == null)
-                    return;
-
-                var bufferDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-                if (bufferDocumentId != documentId)
                     return;
 
                 _workQueue.AddWork(_subjectBuffer.CurrentSnapshot);
@@ -365,18 +363,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (classificationService == null)
                     return null;
 
-                var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
                 foreach (var span in spans)
                     AddClassifications(span);
 
-                return ClassificationUtilities.ConvertAndReturnList(_typeMap, snapshot, classifiedSpans);
+                return ClassificationUtilities.Convert(_typeMap, snapshot, classifiedSpans);
 
                 void AddClassifications(SnapshotSpan span)
                 {
                     this.AssertIsForeground();
 
-                    // First, get the tree and snapshot that we'll be operating over.  
+                    // First, get the tree and snapshot that we'll be operating over.
                     var (lastProcessedSnapshot, lastProcessedDocument, lastProcessedRoot) = GetLastProcessedData();
 
                     if (lastProcessedDocument == null)
@@ -405,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, List<ClassifiedSpan> classifiedSpans)
+            private void AddLexicalClassifications(IClassificationService classificationService, SnapshotSpan span, ArrayBuilder<ClassifiedSpan> classifiedSpans)
             {
                 this.AssertIsForeground();
 
@@ -415,34 +413,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void AddSyntacticClassificationsForDocument(
                 IClassificationService classificationService, SnapshotSpan span,
-                Document document, SyntaxNode? root, List<ClassifiedSpan> classifiedSpans)
+                Document document, SyntaxNode? root, ArrayBuilder<ClassifiedSpan> classifiedSpans)
             {
                 this.AssertIsForeground();
                 var cancellationToken = CancellationToken.None;
 
-                if (!_lastLineCache.TryUseCache(span, out var tempList))
-                {
-                    tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                if (_lastLineCache.TryUseCache(span, classifiedSpans))
+                    return;
 
-                    // If we have a syntax root ready, use the direct, non-async/non-blocking approach to getting classifications.
-                    if (root == null)
-                        classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
-                    else
-                        classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
 
-                    _lastLineCache.Update(span, tempList);
-                }
+                // If we have a syntax root ready, use the direct, non-async/non-blocking approach to getting classifications.
+                if (root == null)
+                    classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
+                else
+                    classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
 
-                // simple case.  They're asking for the classifications for a tree that we already have.
-                // Just get the results from the tree and return them.
-
+                _lastLineCache.Update(span, tempList);
                 classifiedSpans.AddRange(tempList);
             }
 
             private void AddClassifiedSpansForPreviousDocument(
                 IClassificationService classificationService, SnapshotSpan span,
                 ITextSnapshot lastProcessedSnapshot, Document lastProcessedDocument, SyntaxNode? lastProcessedRoot,
-                List<ClassifiedSpan> classifiedSpans)
+                ArrayBuilder<ClassifiedSpan> classifiedSpans)
             {
                 this.AssertIsForeground();
 
@@ -465,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
                 else
                 {
-                    var tempList = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
                     AddSyntacticClassificationsForDocument(classificationService, span, lastProcessedDocument, lastProcessedRoot, tempList);
 
                     var currentSnapshot = span.Snapshot;
@@ -486,8 +480,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                         classifiedSpans.Add(currentClassifiedSpan);
                     }
-
-                    ClassificationUtilities.ReturnClassifiedSpanList(tempList);
                 }
             }
         }
