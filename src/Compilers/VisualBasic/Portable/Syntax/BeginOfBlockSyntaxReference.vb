@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Function Translate(reference As SyntaxReference, cancellationToken As CancellationToken) As SyntaxNode
-            Return SyntaxFacts.BeginOfBlockStatementIfAny(reference.GetSyntax())
+            Return SyntaxFacts.BeginOfBlockStatementIfAny(reference.GetSyntax(cancellationToken))
         End Function
     End Class
 End Namespace

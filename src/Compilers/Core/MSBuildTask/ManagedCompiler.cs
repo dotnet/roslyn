@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private enum CompilationKind
         {
             /// <summary>
-            /// Commpilation occurred using the command line tool by normal processes, typically because 
+            /// Compilation occurred using the command line tool by normal processes, typically because 
             /// the customer opted out of the compiler server
             /// </summary>
             Tool,

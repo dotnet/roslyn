@@ -482,6 +482,11 @@
         <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach przydzielanych dynamicznie.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
+        <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
+        <target state="new">Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">Metody dostępu „init” nie można oznaczyć jako „tylko do odczytu”. Zamiast tego oznacz jako tylko do odczytu element „{0}”.</target>
@@ -515,6 +520,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Nieprawidłowa nazwa algorytmu wyznaczania wartości skrótu: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -965,6 +975,11 @@
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">tworzenie obiektu z typem docelowym</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="new">sealed ToString in record</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -10815,11 +10830,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">Element „{0}” nie może implementować składowej interfejsu „{1}” w typie „{2}”, ponieważ docelowe środowisko uruchomieniowe nie obsługuje domyślnej implementacji interfejsu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">Modyfikator „{0}” nie jest prawidłowy dla tego elementu w języku C# {1}. Użyj wersji języka „{2}” lub nowszej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

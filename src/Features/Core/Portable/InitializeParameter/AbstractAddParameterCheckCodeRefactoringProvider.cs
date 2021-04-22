@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract bool CanOffer(SyntaxNode body);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
         protected abstract string EscapeResourceString(string input);
+        protected abstract TStatementSyntax CreateParameterCheckIfStatement(DocumentOptionSet options, TExpressionSyntax condition, TStatementSyntax ifTrueStatement);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -319,9 +320,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // If we can't, then just offer to add an "if (s == null)" statement.
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return await AddNullCheckStatementAsync(
                 document, parameter, functionDeclaration, method, blockStatementOpt,
-                (s, g) => CreateNullCheckStatement(s, g, parameter),
+                (s, g) => CreateNullCheckStatement(optionSet, s, g, parameter),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -334,9 +336,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             string methodName,
             CancellationToken cancellationToken)
         {
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return await AddNullCheckStatementAsync(
                 document, parameter, functionDeclaration, method, blockStatementOpt,
-                (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodName),
+                (s, g) => CreateStringCheckStatement(optionSet, s.Compilation, g, parameter, methodName),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -373,25 +376,27 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
-            => (TStatementSyntax)generator.CreateNullCheckAndThrowStatement(semanticModel, parameter);
+        private TStatementSyntax CreateNullCheckStatement(DocumentOptionSet optionSet, SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
+            => CreateParameterCheckIfStatement(
+                optionSet,
+                (TExpressionSyntax)generator.CreateNullCheckExpression(semanticModel, parameter.Name),
+                (TStatementSyntax)generator.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter));
 
         private TStatementSyntax CreateStringCheckStatement(
-            Compilation compilation, SyntaxGenerator generator,
+            DocumentOptionSet optionSet, Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
 
             // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
-            return (TStatementSyntax)generator.IfStatement(
-                generator.InvocationExpression(
-                    generator.MemberAccessExpression(
-                        generator.TypeExpression(stringType),
-                        generator.IdentifierName(methodName)),
-                    generator.Argument(generator.IdentifierName(parameter.Name))),
-                SpecializedCollections.SingletonEnumerable(
-                    generator.ThrowStatement(
-                        CreateArgumentException(compilation, generator, parameter, methodName))));
+            var condition = (TExpressionSyntax)generator.InvocationExpression(
+                                generator.MemberAccessExpression(
+                                    generator.TypeExpression(stringType),
+                                    generator.IdentifierName(methodName)),
+                                generator.Argument(generator.IdentifierName(parameter.Name)));
+            var throwStatement = (TStatementSyntax)generator.ThrowStatement(CreateArgumentException(compilation, generator, parameter, methodName));
+
+            return CreateParameterCheckIfStatement(optionSet, condition, throwStatement);
         }
 
         private static SyntaxNode GetStatementToAddNullCheckAfter(

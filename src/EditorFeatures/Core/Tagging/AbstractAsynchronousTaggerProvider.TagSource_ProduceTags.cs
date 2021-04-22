@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
         /// 
         /// <para>The <see cref="TagSource"/> is the type that actually owns the
-        /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
+        /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be recomputed,
         /// the tag source starts the computation and calls <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> to build
         /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
         /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     {
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
-                    }).CompletesAsyncOperation(asyncToken);
+                    }, CancellationToken.None).CompletesAsyncOperation(asyncToken); // TODO: What should the cancellation behavior be here? passing CancellationToken.None for now
                 }
                 else
                 {

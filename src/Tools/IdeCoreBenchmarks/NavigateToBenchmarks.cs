@@ -115,7 +115,7 @@ namespace IdeCoreBenchmarks
                         results.Add(r);
 
                     return Task.CompletedTask;
-                }, CancellationToken.None);
+                }, isFullyLoaded: true, CancellationToken.None);
 
             return results.Count;
         }

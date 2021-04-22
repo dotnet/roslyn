@@ -6064,7 +6064,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</value>
   </data>
-  <data name="ERR_DefaultInterfaceImplementationModifier" xml:space="preserve">
+  <data name="ERR_InvalidModifierForLanguageVersion" xml:space="preserve">
     <value>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</value>
   </data>
   <data name="ERR_ImplicitImplementationOfNonPublicInterfaceMember" xml:space="preserve">
@@ -6599,5 +6599,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
+  </data>
+  <data name="IDS_FeatureSealedToStringInRecord" xml:space="preserve">
+    <value>sealed ToString in record</value>
+  </data>
+  <data name="ERR_InheritingFromRecordWithSealedToString" xml:space="preserve">
+    <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</value>
   </data>
 </root>

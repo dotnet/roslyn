@@ -33,7 +33,7 @@
     <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true"/>
+    <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
     <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
@@ -155,6 +155,9 @@
     <PackageReference Include="NuGet.VisualStudio.Contracts" Version="$(NuGetVisualStudioContractsVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
+    <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
+
+    <PackageReference Include="NuGet.VisualStudio.Contracts" Version="$(NuGetVisualStudioContractsVersion)" />
     
     <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsVersion)" />
@@ -180,8 +183,7 @@
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 
-  <Target Name="GeneratePkgDefServiceRegistrations"
-          BeforeTargets="GeneratePkgDef">
+  <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
     <ItemGroup>
       <!-- Add registrations for 32-bit, 64-bit, and 64-bit Server GC -->
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
