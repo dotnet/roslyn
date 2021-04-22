@@ -58,14 +58,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Conversions involving interpolated strings require a Binder.
             throw ExceptionUtilities.Unreachable;
         }
-
-#nullable  enable
-        public override bool IsApplicableInterpolatedStringBuilderType(BoundUnconvertedInterpolatedString source, TypeSymbol builderType,
-            BindingDiagnosticBag diagnostics,
-            [NotNullWhen(true)] out ImmutableArray<MethodArgumentInfo> builderArguments)
-        {
-            // Determining whether a builder type is applicable to an interpolated string requires a binder
-            throw ExceptionUtilities.Unreachable;
-        }
     }
 }

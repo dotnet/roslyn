@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BindingDiagnosticBag applicableDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
-                if (!Conversions.IsApplicableInterpolatedStringBuilderType(unconvertedInterpolatedString, interpolatedStringBuilderType, applicableDiagnostics, out var builderArguments))
+                if (!IsApplicableInterpolatedStringBuilderType(unconvertedInterpolatedString, interpolatedStringBuilderType, applicableDiagnostics, out var builderArguments))
                 {
                     applicableDiagnostics.Free();
                     return false;
@@ -389,6 +389,232 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return partsBuilder?.ToImmutableAndFree() ?? unconvertedInterpolatedString.Parts;
+        }
+
+        private bool IsApplicableInterpolatedStringBuilderType(BoundUnconvertedInterpolatedString source, TypeSymbol builderType, BindingDiagnosticBag diagnostics, out ImmutableArray<MethodArgumentInfo> builderArguments)
+        {
+            // SPEC:
+            // A type is said to be an _applicable_interpolated_string_builder_type_ if, given an _interpolated_string_literal_ `S`, the following is true:
+            //  * Overload resolution with an identifier of `TryFormatBaseString` and a parameter type of `string` succeeds, and contains a single instance method that returns a `bool` or `void`.
+            //  * For every _regular_balanced_text_ component of `S` (`Si`) without an _interpolation_format_ component or _constant_expression_ (alignment) component, overload resolution
+            //    with an identifier of `TryFormatInterpolationHole` and parameter of the type of `Si` and succeeds, and contains a single instance method that returns a `bool` or `void`.
+            //  * For every _regular_balanced_text_ component of `S` (`Si`) with an _interpolation_format_ component and no _constant_expression_ (alignment) component, overload resolution
+            //    with an identifier of `TryFormatInterpolationHole` and parameter types of `Si` and `string` with name `format` (in that order) succeeds, and contains a single instance
+            //    method that returns a `bool` or `void`.
+            //  * For every _regular_balanced_text_ component of `S` (`Si`) with a _constant_expression_ (alignment) component and no _interpolation_format_ component, overload resolution
+            //    with an identifier of `TryFormatInterpolationHole and parameter types of `Si` and `int` with name `alignment` (in that order) succeeds, and contains a single instance
+            //    method that returns a `bool` or `void`.
+            //  * For every _regular_balanced_text_ component of `S` (`Si`) with an _interpolation_format_ component and a _constant_expression_ (alignment) component, overload resolution
+            //    with an identifier of `TryFormatInterpolationHole` and parameter types of `Si`, `int` with name `alignment`, and `string` with name `format` (in that order) succeeds, and
+            //    contains a single instance method that returns a `bool` or `void`.
+            // Additionally, all resolved method calls must return the same type. `TryFormat` calls that mix `bool` and `void` are not permitted.
+
+            // If the type is applicable, we'll add these to the given info at the end.
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+            // All builder types have to at least have a `TryFormatBaseString` that takes a single string argument and returns either bool or void.
+            if (!tryGetCandidateMethods("TryFormatBaseString", ref useSiteInfo, out ArrayBuilder<MethodSymbol>? baseStringCandidates))
+            {
+                // PROTOTYPE(interp-strings): We'll want to have a specific error for when we're converting to a non-string type
+                builderArguments = default;
+                diagnostics.AddDiagnostics(source.Syntax, useSiteInfo);
+                return false;
+            }
+
+            var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            var implicitBuilderReceiver = new BoundImplicitReceiver(source.Syntax, builderType);
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
+            var stringType = GetSpecialType(SpecialType.System_String, diagnostics, source.Syntax);
+            analyzedArguments.Arguments.Add(new BoundLiteral(CSharpSyntaxTree.Dummy.GetRoot(), constantValueOpt: null, stringType));
+            OverloadResolution.MethodInvocationOverloadResolution(
+                baseStringCandidates,
+                typeArguments,
+                implicitBuilderReceiver,
+                analyzedArguments,
+                overloadResolutionResult,
+                ref useSiteInfo);
+
+            if (!overloadResolutionResult.Succeeded || overloadResolutionResult.ValidResult.Member.CallsAreOmitted(source.SyntaxTree))
+            {
+                // PROTOTYPE(interp-strings): We'll want to have a specific error for when we're converting to a non-string type
+                free();
+                builderArguments = default;
+                return false;
+            }
+
+            Debug.Assert(!overloadResolutionResult.ValidResult.Member.IsStatic);
+
+            // All TryFormat... calls must have the same return type, and it must be either bool or void.
+            bool usesBoolReturn;
+            switch (overloadResolutionResult.ValidResult.Member.ReturnType.SpecialType)
+            {
+                case SpecialType.System_Void:
+                    usesBoolReturn = false;
+                    break;
+                case SpecialType.System_Boolean:
+                    usesBoolReturn = true;
+                    break;
+                default:
+                    free();
+                    builderArguments = default;
+                    return false;
+            }
+
+            // We at least have an invocable, applicable TryFormatBaseString method on the type. We can proceed with finding the correct overloads for
+            // each component.
+
+            if (source.Parts.Length == 0)
+            {
+                free();
+                diagnostics.AddDiagnostics(source.Syntax, useSiteInfo);
+                builderArguments = ImmutableArray<MethodArgumentInfo>.Empty;
+                return true;
+            }
+
+            ArrayBuilder<MethodSymbol>? interpolationHoleCandidates = null;
+            var builderFormatCalls = ArrayBuilder<MethodArgumentInfo>.GetInstance(source.Parts.Length);
+
+            foreach (var part in source.Parts)
+            {
+                Debug.Assert(typeArguments.IsEmpty());
+                Debug.Assert(part is BoundLiteral or BoundStringInsert);
+                analyzedArguments.Clear();
+                overloadResolutionResult.Clear();
+
+                ArrayBuilder<MethodSymbol> candidateMethods;
+                if (part is BoundStringInsert insert)
+                {
+                    if (interpolationHoleCandidates is null && !tryGetCandidateMethods("TryFormatInterpolationHole", ref useSiteInfo, out interpolationHoleCandidates))
+                    {
+                        // PROTOTYPE(interp-string): We'll likely want to continue attempting to bind for errors when we're not directly being converted to a string
+                        free();
+                        builderFormatCalls.Free();
+                        builderArguments = default;
+                        return false;
+                    }
+
+                    candidateMethods = interpolationHoleCandidates;
+                    analyzedArguments.Arguments.Add(insert.Value);
+                    analyzedArguments.Names.Add(null);
+
+                    if (insert.Alignment is not null)
+                    {
+                        analyzedArguments.Arguments.Add(insert.Alignment);
+                        analyzedArguments.Names.Add(("alignment", insert.Alignment.Syntax.Location));
+                    }
+                    if (insert.Format is not null)
+                    {
+                        analyzedArguments.Arguments.Add(insert.Format);
+                        analyzedArguments.Names.Add(("format", insert.Format.Syntax.Location));
+                    }
+                }
+                else
+                {
+                    candidateMethods = baseStringCandidates;
+                    analyzedArguments.Arguments.Add(part);
+                }
+
+                OverloadResolution.MethodInvocationOverloadResolution(
+                    candidateMethods,
+                    typeArguments,
+                    implicitBuilderReceiver,
+                    analyzedArguments,
+                    overloadResolutionResult,
+                    ref useSiteInfo);
+
+                if (!overloadResolutionResult.Succeeded
+                    || overloadResolutionResult.ValidResult.Member.CallsAreOmitted(source.SyntaxTree)
+                    || !returnTypeMatches(overloadResolutionResult.ValidResult.Member, usesBoolReturn))
+                {
+                    // PROTOTYPE(interp-string): We'll likely want to continue attempting to bind for errors when we're not directly being converted to a string
+                    free();
+                    builderFormatCalls.Free();
+                    interpolationHoleCandidates?.Free();
+                    builderArguments = default;
+                    return false;
+                }
+
+                var argsToParam = overloadResolutionResult.ValidResult.Result.ArgsToParamsOpt;
+
+                CoerceArguments(overloadResolutionResult.ValidResult, analyzedArguments.Arguments, diagnostics);
+
+                bool expanded = overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+                BindDefaultArguments(
+                    source.Syntax,
+                    overloadResolutionResult.ValidResult.Member.Parameters,
+                    analyzedArguments.Arguments,
+                    analyzedArguments.RefKinds,
+                    ref argsToParam,
+                    out BitVector defaultArguments,
+                    expanded,
+                    enableCallerInfo: true,
+                    diagnostics);
+
+                builderFormatCalls.Add(new MethodArgumentInfo(overloadResolutionResult.ValidResult.Member, analyzedArguments.Arguments.ToImmutable(), argsToParam, defaultArguments, expanded));
+            }
+
+            free();
+            diagnostics.AddDiagnostics(source.Syntax, useSiteInfo);
+            builderArguments = builderFormatCalls.ToImmutableAndFree();
+            interpolationHoleCandidates?.Free();
+            return true;
+
+            bool tryGetCandidateMethods(string methodName, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, [NotNullWhen(true)] out ArrayBuilder<MethodSymbol>? candidateMethods)
+            {
+                var lookupResult = LookupResult.GetInstance();
+                LookupSymbolsSimpleName(lookupResult,
+                    builderType,
+                    methodName,
+                    arity: 0,
+                    basesBeingResolved: null,
+                    options: LookupOptions.AllMethodsOnArityZero | LookupOptions.MustBeInstance | LookupOptions.MustBeInvocableIfMember,
+                    diagnose: true,
+                    ref useSiteInfo);
+
+                if (!lookupResult.IsMultiViable)
+                {
+                    candidateMethods = null;
+                    lookupResult.Free();
+                    return false;
+                }
+
+                Debug.Assert(lookupResult.Symbols.Count > 0);
+                candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance(lookupResult.Symbols.Count);
+
+                foreach (var symbol in lookupResult.Symbols)
+                {
+                    if (symbol is not MethodSymbol method)
+                    {
+                        // PROTOTYPE(interp-strings): We'll want to have a specific error for when we're converting to a non-string type
+                        candidateMethods.Free();
+                        lookupResult.Free();
+                        candidateMethods = null;
+                        return false;
+                    }
+
+                    candidateMethods.Add(method);
+                }
+
+                lookupResult.Free();
+                return true;
+            }
+
+            void free()
+            {
+                typeArguments.Free();
+                analyzedArguments.Free();
+                overloadResolutionResult.Free();
+                baseStringCandidates.Free();
+            }
+
+            static bool returnTypeMatches(MethodSymbol symbol, bool expectedBoolReturn)
+                => symbol.ReturnType.SpecialType switch
+                {
+                    SpecialType.System_Boolean => expectedBoolReturn,
+                    SpecialType.System_Void => !expectedBoolReturn,
+                    _ => false
+                };
         }
     }
 }

@@ -2958,7 +2958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return argument;
         }
 
-        internal void CoerceArguments<TMember>(
+        private void CoerceArguments<TMember>(
             MemberResolutionResult<TMember> methodResult,
             ArrayBuilder<BoundExpression> arguments,
             BindingDiagnosticBag diagnostics)

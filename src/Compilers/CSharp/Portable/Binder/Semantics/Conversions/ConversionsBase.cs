@@ -73,10 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
-#nullable  enable
-        public abstract bool IsApplicableInterpolatedStringBuilderType(BoundUnconvertedInterpolatedString source, TypeSymbol builderType, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out ImmutableArray<MethodArgumentInfo> builderArguments);
-#nullable disable
-
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
         /// <summary>
