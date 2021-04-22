@@ -80,6 +80,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 
             Assert.Equal(expectedText, textBuffer.CurrentSnapshot.GetText());
         }
-
     }
 }
