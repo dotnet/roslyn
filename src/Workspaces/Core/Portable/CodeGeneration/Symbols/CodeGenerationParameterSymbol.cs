@@ -66,5 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray.Create<CustomModifier>();
 
         public bool IsDiscard => false;
+
+        public ISymbol AssociatedSymbol => null;
     }
 }
