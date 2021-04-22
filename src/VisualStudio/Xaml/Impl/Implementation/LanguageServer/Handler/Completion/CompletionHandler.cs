@@ -28,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     {
         public override string Method => Methods.TextDocumentCompletionName;
         private const string CreateEventHandlerCommandTitle = "Create Event Handler";
+        private const string RetriggerCompletionCommandTitle = "Re-trigger completions";
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -42,6 +43,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public override async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            if (request.Context is VSCompletionContext completionContext)
+            {
+                if (completionContext.InvokeKind == VSCompletionInvokeKind.Deletion)
+                {
+                    // Don't trigger completions on backspace.
+                    return null;
+                }
+            }
+
             var document = context.Document;
             if (document == null)
             {
@@ -69,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             var item = new VSCompletionItem
             {
                 Label = xamlCompletion.DisplayText,
-                CommitCharacters = xamlCompletion.CommitCharacters,
+                VsCommitCharacters = GetCommitCharacters(xamlCompletion),
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
                 Preselect = xamlCompletion.Preselect.GetValueOrDefault(),
@@ -99,8 +109,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                     Title = CreateEventHandlerCommandTitle
                 };
             }
+            else if (xamlCompletion.RetriggerCompletion)
+            {
+                // Retriger completion after commit
+                item.Command = new Command()
+                {
+                    CommandIdentifier = StringConstants.RetriggerCompletionCommand,
+                    Title = RetriggerCompletionCommandTitle
+                };
+            }
 
             return item;
+        }
+
+        private static SumType<string[], CommitCharacter[]> GetCommitCharacters(XamlCompletionItem completionItem)
+        {
+            if(completionItem.XamlCommitCharacters == null)
+            {
+                return completionItem.CommitCharacters;
+            }
+
+            return completionItem.XamlCommitCharacters.Select(c => new CommitCharacter() { Character = c.Character.ToString(), Insert = c.Insert }).ToArray();
         }
 
         private static CompletionItemKind GetItemKind(XamlCompletionKind kind)
