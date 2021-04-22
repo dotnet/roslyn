@@ -129,22 +129,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RemoveTagsThatIntersectEdit(TextContentChangedEventArgs e)
             {
-                if (!e.Changes.Any())
-                {
+                if (e.Changes.Count == 0)
                     return;
-                }
 
                 var buffer = e.After.TextBuffer;
                 if (!this.CachedTagTrees.TryGetValue(buffer, out var treeForBuffer))
-                {
                     return;
-                }
 
                 var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(e.After, c.NewSpan)));
                 if (!tagsToRemove.Any())
-                {
                     return;
-                }
 
                 var allTags = treeForBuffer.GetSpans(e.After).ToList();
                 var newTagTree = new TagSpanIntervalTree<TTag>(
