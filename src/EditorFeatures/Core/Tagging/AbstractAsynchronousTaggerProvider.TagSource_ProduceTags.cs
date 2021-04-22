@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -97,15 +98,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         break;
 
                     default:
-                        var textChangeRanges = new TextChangeRange[count];
-                        for (var i = 0; i < count; i++)
                         {
-                            var c = contentChanges[i];
-                            textChangeRanges[i] = new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength);
-                        }
+                            using var _ = ArrayBuilder<TextChangeRange>.GetInstance(count, out var textChangeRanges);
+                            foreach (var c in contentChanges)
+                                textChangeRanges.Add(new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength));
 
-                        this.AccumulatedTextChanges = this.AccumulatedTextChanges.Accumulate(textChangeRanges);
-                        break;
+                            this.AccumulatedTextChanges = this.AccumulatedTextChanges.Accumulate(textChangeRanges);
+                            break;
+                        }
                 }
             }
 
