@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         await progressCollector.TryReportAsync(solution, location, symbol, cancellationToken).ConfigureAwait(false);
                     }
 
-                    await TrackVariableSymbolAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                    await TrackVariableReferencesAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                 }
                 // The selection is not on a declaration, check that the node
                 // is on the left side of an assignment. If so, populate so we can
@@ -114,8 +114,9 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 case IPropertySymbol:
                 case IFieldSymbol:
                     {
-                        // The "output" is a variable assignment, track places where it gets assigned
-                        await TrackVariableSymbolAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        // The "output" is a variable assignment, track places where it gets assigned and defined
+                        await TrackVariableDefinitionsAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackVariableReferencesAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
                     break;
 
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         var isRefOrOut = parameterSymbol.IsRefOrOut();
 
                         // Always track the parameter assignments as variables, in case they are assigned anywhere in the method
-                        await TrackVariableSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackVariableReferencesAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
 
                         var trackMethod = !(isParameterForPreviousTrackedMethod || isRefOrOut);
                         if (trackMethod)
@@ -159,7 +160,44 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             }
         }
 
-        private static async Task TrackVariableSymbolAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
+        private static async Task TrackVariableDefinitionsAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
+        {
+            foreach (var definitionLocation in symbol.Locations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (definitionLocation is not { SourceTree: not null })
+                {
+                    continue;
+                }
+
+                var node = definitionLocation.FindNode(cancellationToken);
+                var document = collector.Solution.GetRequiredDocument(node.SyntaxTree);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var operation = semanticModel.GetOperation(node, cancellationToken);
+
+                var declarators = operation switch
+                {
+                    IVariableDeclaratorOperation variableDeclarator => ImmutableArray.Create(variableDeclarator),
+                    IVariableDeclarationOperation variableDeclaration => variableDeclaration.Declarators,
+                    _ => ImmutableArray<IVariableDeclaratorOperation>.Empty
+                };
+
+                foreach (var declarator in declarators)
+                {
+                    var initializer = declarator.GetVariableInitializer();
+                    if (initializer is null)
+                    {
+                        continue;
+                    }
+
+                    await collector.VisitAsync(initializer, cancellationToken).ConfigureAwait(false); ;
+                }
+            }
+        }
+
+        private static async Task TrackVariableReferencesAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
         {
             var findReferenceProgressCollector = new FindReferencesProgress(collector, cancellationToken: cancellationToken);
             await SymbolFinder.FindReferencesAsync(
@@ -257,7 +295,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         continue;
                     }
 
-                    await TrackVariableSymbolAsync(outOrRefParam, collector, cancellationToken).ConfigureAwait(false);
+                    await TrackVariableReferencesAsync(outOrRefParam, collector, cancellationToken).ConfigureAwait(false);
                 }
             }
 

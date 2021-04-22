@@ -643,6 +643,7 @@ class C
             //    |> i = [|2|] [Code.cs:24]
             //    |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
             //      |> if (int.TryParse(o.ToString(), out [|i|])) [Code.cs:5]
+            //    |> int i = 0 [Code.cs:15]
             using var workspace = TestWorkspace.CreateCSharp(code);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
@@ -658,6 +659,7 @@ class C
                 {
                     (24, "2"), // |> i = [|2|] [Code.cs:24]
                     (18, "i"), // |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
+                    (15, "0"), // |> int i = 0 [Code.cs:15]
                 });
 
             // |> i = [|2|] [Code.cs:24]
@@ -673,6 +675,130 @@ class C
                 });
 
             await ValidateChildrenEmptyAsync(workspace, children.Single());
+        }
+
+        [Fact]
+        public async Task TestVariableReferenceStart()
+        {
+            var code =
+@"
+class Test
+{
+    public static void M()
+    {
+        int x = GetM();
+        Console.Write(x);
+        var y = $$x + 1;
+    }
+
+    public static int GetM()
+    {
+        var x = 0;
+        return x;
+    }
+}";
+
+            //
+            //  |> var y = x + 1; [Code.cs:7]
+            //    |> int x = GetM() [Code.cs:5]
+            //      |> return x; [Code.cs:13]
+            //        |> var x = 0; [Code.cs:12]
+            using var workspace = TestWorkspace.CreateCSharp(code);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (7, "x") // |> var y = [|x|] + 1; [Code.cs:7]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (5, "GetM()") // |> int x = [|GetM()|] [Code.cs:5]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (13, "x") // |> return [|x|]; [Code.cs:13]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (12, "0") // |> var x = [|0|]; [Code.cs:12]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, items.Single());
+        }
+
+        [Fact]
+        public async Task TestVariableReferenceStart2()
+        {
+            var code =
+@"
+class Test
+{
+    public static void M()
+    {
+        int x = GetM();
+        Console.Write($$x);
+        var y = x + 1;
+    }
+
+    public static int GetM()
+    {
+        var x = 0;
+        return x;
+    }
+}";
+
+            //
+            //  |> Console.Write(x); [Code.cs:6]
+            //    |> int x = GetM() [Code.cs:5]
+            //      |> return x; [Code.cs:13]
+            //        |> var x = 0; [Code.cs:12]
+            using var workspace = TestWorkspace.CreateCSharp(code);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (6, "x") // |> Console.Write([|x|]); [Code.cs:7]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (5, "GetM()") // |> int x = [|GetM()|] [Code.cs:5]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (13, "x") // |> return [|x|]; [Code.cs:13]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (12, "0") // |> var x = [|0|]; [Code.cs:12]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
     }
 }
