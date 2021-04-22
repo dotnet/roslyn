@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _ruleSetManager._threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     using var _ = _ruleSetManager._listener.BeginAsyncOperation("IncludeUpdated");
-                    await _ruleSetManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_disposalToken);
+                    await _ruleSetManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _disposalToken);
                     IncludeUpdateCore();
                 });
             }

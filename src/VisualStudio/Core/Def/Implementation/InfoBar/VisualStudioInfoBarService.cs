@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             this.ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 using var _ = _listener.BeginAsyncOperation(nameof(ShowInfoBar));
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, ThreadingContext.DisposalToken);
                 if (TryGetInfoBarData(out var infoBarHost))
                     CreateInfoBar(infoBarHost, message, items);
             });
