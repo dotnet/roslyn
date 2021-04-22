@@ -3262,7 +3262,7 @@ End Class
         End Sub
 
         Private Function GetGenericExtender(codeElement As EnvDTE80.CodeClass2) As IVBGenericExtender
-            Return CType(codeElement.get_Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
+            Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function
 
         Protected Overrides Function GenericNameExtender_GetBaseTypesCount(codeElement As EnvDTE80.CodeClass2) As Integer

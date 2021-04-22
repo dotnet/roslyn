@@ -66,7 +66,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function GetPrototype(codeElement As EnvDTE80.CodeEvent, flags As EnvDTE.vsCMPrototype) As String
-            Return codeElement.get_Prototype(flags)
+            Return codeElement.Prototype(flags)
         End Function
 
         Protected Overrides Function GetTypeProp(codeElement As EnvDTE80.CodeEvent) As EnvDTE.CodeTypeRef

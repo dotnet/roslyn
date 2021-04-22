@@ -1547,7 +1547,7 @@ End Class
 #End Region
 
         Private Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As IVBAutoPropertyExtender
-            Return CType(codeElement.get_Extender(ExtenderNames.VBAutoPropertyExtender), IVBAutoPropertyExtender)
+            Return CType(codeElement.Extender(ExtenderNames.VBAutoPropertyExtender), IVBAutoPropertyExtender)
         End Function
 
         Protected Overrides Function AutoImplementedPropertyExtender_GetIsAutoImplemented(codeElement As EnvDTE80.CodeProperty2) As Boolean
