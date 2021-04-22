@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// The maximum size of a request supported by the compiler server.
         /// </summary>
         /// <remarks>
-        /// Currently this limit is 1MB.
+        /// Currently this limit is 5MB.
         /// </remarks>
-        private const int MaximumRequestSize = 0x100000;
+        private const int MaximumRequestSize = 0x500000;
 
         public readonly Guid RequestId;
         public readonly RequestLanguage Language;
