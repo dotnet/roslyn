@@ -202,9 +202,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // again on the foreground.
                     var spansToTag = GetSpansAndDocumentsToTag();
                     var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
-                    var textChangeRange = this.AccumulatedTextChanges;
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
+
+                    var textChangeRange = this.AccumulatedTextChanges;
+                    this.AccumulatedTextChanges = null;
 
                     await TaskScheduler.Default;
 
@@ -425,7 +427,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Now that we're back on the UI thread, we can safely update our state with
                 // what we've computed.
                 this.CachedTagTrees = newTagTrees;
-                this.AccumulatedTextChanges = null;
                 this.State = newState;
 
                 // Take all the changes we computed and enqueue them to notify the editor with in the future.
