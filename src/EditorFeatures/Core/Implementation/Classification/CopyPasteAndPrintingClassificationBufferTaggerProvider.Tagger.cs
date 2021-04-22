@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 ConnectToEventSource();
             }
 
+            // Explicitly a no-op.  This classifier does not support change notifications. See comment in
+            // OnEventSourceChanged_OnForeground for more details.
+            public event EventHandler<SnapshotSpanEventArgs> TagsChanged { add { } remove { } }
+
             public void Dispose()
             {
                 this.AssertIsForeground();
@@ -104,10 +108,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void OnEventSourceChanged(object sender, TaggerEventArgs _)
             {
-                _owner._notificationService.RegisterNotification(
-                    OnEventSourceChanged_OnForeground,
-                    _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider"),
-                    _cancellationTokenSource.Token);
+                _owner.ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    using var _ = _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider");
+                    await _owner.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_cancellationTokenSource.Token);
+                    OnEventSourceChanged_OnForeground();
+                });
             }
 
             private void OnEventSourceChanged_OnForeground()
@@ -118,11 +124,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.CachedTags = null;
                 this.CachedTaggedSpan = null;
 
-                // And notify any concerned parties that we have new tags.
-                this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
+                // Note: we explicitly do *not* call into TagsChanged here.  This type exists only for the copy/paste
+                // scenario, and in the case the editor always calls into us for the span in question, ignoring
+                // TagsChanged, as per DPugh:
+                //
+                //    For rich text copy, we always call the buffer classifier to get the classifications of the copied
+                //    text. It ignores any tags changed events.
+                //
+                // It's important that we do not call TagsChanged here as the only thing we could do is notify that the
+                // entire doc is changed, and that incurs a heavy cost for the editor reacting to that notification.
             }
-
-            public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
