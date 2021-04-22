@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
         /// produce a heap dump for investigation.
         /// </summary>
         [Conditional("DEBUG")]
-        internal static void AssertOrFailFast(bool condition, string? message = null)
+        internal static void AssertOrFailFast([DoesNotReturnIf(false)] bool condition, string? message = null)
         {
 #if NET20
             Debug.Assert(false);
