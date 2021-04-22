@@ -66,31 +66,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindBaseSymbolsAsync));
 
-                var context = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                cancellationToken = combinedCancellationToken;
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                    context.CancellationToken))
+                    cancellationToken))
                 {
                     try
                     {
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+                        var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                         var overriddenSymbol = relevantSymbol?.symbol.GetOverriddenMember();
 
                         while (overriddenSymbol != null)
                         {
-                            if (context.CancellationToken.IsCancellationRequested)
+                            if (cancellationToken.IsCancellationRequested)
                             {
                                 return;
                             }
 
                             var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await context.OnDefinitionFoundAsync(definitionItem);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                             // try getting the next one
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     }
                     finally
                     {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
-        protected override Task FindActionAsync(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContext context)
-            => service.FindBasesAsync(document, caretPosition, context);
+        protected override Task FindActionAsync(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken)
+            => service.FindBasesAsync(document, caretPosition, context, cancellationToken);
     }
 }

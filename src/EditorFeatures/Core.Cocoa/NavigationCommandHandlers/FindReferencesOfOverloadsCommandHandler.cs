@@ -105,12 +105,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
-                var context = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
+                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
+                cancellationToken = combinedCancellationToken;
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                    context.CancellationToken))
+                    cancellationToken))
                 {
                     var symbolsToLookup = new List<ISymbol>();
 
@@ -124,11 +125,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             continue;
                         }
 
-                        foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, context.CancellationToken))
+                        foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, cancellationToken))
                         {
                             // assumption here is, that FindSimilarSymbols returns symbols inside same project
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, context.CancellationToken);
+                            var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                             symbolsToLookup.AddRange(symbolsToAdd);
                         }
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     foreach (var candidate in symbolsToLookup)
                     {
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project);
+                        await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                     }
 
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     // that means that a new search has started.  We don't care about telling the
                     // context it has completed.  In the latter case something wrong has happened
                     // and we don't want to run any more code in this particular context.
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

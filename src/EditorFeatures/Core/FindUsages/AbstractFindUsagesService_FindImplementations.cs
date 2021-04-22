@@ -18,29 +18,27 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
-        public async Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
+        public async Task FindImplementationsAsync(
+            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
-
             // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
             if (symbolAndProjectOpt == null)
             {
                 await context.ReportMessageAsync(
-                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
+                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             var symbolAndProject = symbolAndProjectOpt.Value;
             await FindImplementationsAsync(
-                symbolAndProject.symbol, symbolAndProject.project, context).ConfigureAwait(false);
+                symbolAndProject.symbol, symbolAndProject.project, context, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task FindImplementationsAsync(
-            ISymbol symbol, Project project, IFindUsagesContext context)
+            ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
@@ -61,35 +59,34 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 // Couldn't effectively search in OOP. Perform the search in-process.
                 await FindImplementationsInCurrentProcessAsync(
-                    symbol, project, context).ConfigureAwait(false);
+                    symbol, project, context, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private static async Task FindImplementationsInCurrentProcessAsync(
-            ISymbol symbol, Project project, IFindUsagesContext context)
+            ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
-
             var solution = project.Solution;
             var (implementations, message) = await FindSourceImplementationsAsync(
                 solution, symbol, cancellationToken).ConfigureAwait(false);
 
             if (message != null)
             {
-                await context.ReportMessageAsync(message).ConfigureAwait(false);
+                await context.ReportMessageAsync(message, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_implementations,
-                FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
+                FindUsagesHelpers.GetDisplayName(symbol)),
+                cancellationToken).ConfigureAwait(false);
 
             foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
                     solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
-                await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+                await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             }
         }
 

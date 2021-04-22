@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// items in isolation.</param>
         /// <param name="cancellationToken">External cancellation token controlling whether finding shoudl be canceled
         /// or not.  This will be combined with a cancellation token owned by the <see cref="FindUsagesContext"/>.
-        /// Callers should consider <see cref="FindUsagesContext.CancellationToken"/> to be the source of truth for
+        /// Callers should consider the cancellation token returned to be the source of truth for
         /// cancellation from that point on.</param>
-        FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken);
+        (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken);
 
         /// <summary>
         /// Call this method to display the Containing Type, Containing Member, or Kind columns
         /// </summary>
-        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken);
+        (FindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken);
 
         /// <summary>
         /// Clears all the items from the presenter.
@@ -103,15 +103,16 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // We have multiple definitions, or we have definitions with multiple locations. Present this to the
                 // user so they can decide where they want to go to.  If we cancel this will trigger the context to
                 // cancel as well.
-                var context = presenter.StartSearch(title, supportsReferences: false, cancellationToken);
+                var (context, combinedCancellationToken) = presenter.StartSearch(title, supportsReferences: false, cancellationToken);
+                cancellationToken = combinedCancellationToken;
                 try
                 {
                     foreach (var definition in nonExternalItems)
-                        await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                        await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 

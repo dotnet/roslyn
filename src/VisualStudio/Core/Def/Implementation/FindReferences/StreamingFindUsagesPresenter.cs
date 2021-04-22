@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// <param name="title"></param>
         /// <param name="supportsReferences"></param>
         /// <returns></returns>
-        public FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken)
+        public (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns: false, includeKindColumn: false, cancellationToken);
@@ -147,13 +147,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // no longer being displayed, VS will dispose it and it will remove itself from
             // this set.
             _currentContexts.Add(context);
-            return context;
+            return (context, context.CancellationTokenSource!.Token);
         }
 
         /// <summary>
         /// Start a search that may include Containing Type, Containing Member, or Kind information about the reference
         /// </summary>
-        public FindUsagesContext StartSearchWithCustomColumns(
+        public (FindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(
             string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // no longer being displayed, VS will dispose it and it will remove itself from
             // this set.
             _currentContexts.Add(context);
-            return context;
+            return (context, context.CancellationTokenSource!.Token);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWorker(

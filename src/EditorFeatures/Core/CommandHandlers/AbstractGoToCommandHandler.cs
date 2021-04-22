@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public abstract string DisplayName { get; }
         protected abstract string ScopeDescription { get; }
         protected abstract FunctionId FunctionId { get; }
-        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
+        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(TCommandArgs args)
         {
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             // the individual TLanguageService.  Once we get the results back we'll then decide 
             // what to do with them.  If we get only a single result back, then we'll just go 
             // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
-            var context = new SimpleFindUsagesContext(cancellationToken);
+            var context = new SimpleFindUsagesContext();
 
-            await FindActionAsync(service, document, caretPosition, context).ConfigureAwait(false);
+            await FindActionAsync(service, document, caretPosition, context, cancellationToken).ConfigureAwait(false);
             if (context.Message != null)
                 return context.Message;
 

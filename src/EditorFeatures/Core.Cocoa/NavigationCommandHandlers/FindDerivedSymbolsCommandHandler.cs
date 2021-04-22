@@ -91,37 +91,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindDerivedSymbolsAsync));
 
-                var context = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                cancellationToken = combinedCancellationToken;
                 try
                 {
                     using (Logger.LogBlock(
                         FunctionId.CommandHandler_FindAllReference,
                         KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                        context.CancellationToken))
+                        cancellationToken))
                     {
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                         if (candidateSymbolProjectPair?.symbol == null)
                             return;
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                         var candidates = await GatherSymbolsAsync(candidateSymbolProjectPair.Value.symbol,
-                            document.Project.Solution, context.CancellationToken);
+                            document.Project.Solution, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                         foreach (var candidate in candidates)
                         {
                             var definitionItem = candidate.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await context.OnDefinitionFoundAsync(definitionItem);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                         }
                     }
                 }
                 finally
                 {
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

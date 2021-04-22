@@ -220,10 +220,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     documents: null,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
                     streamingProgress,
-                    FindReferencesSearchOptions.Default,
-                    cancellationToken);
+                    FindReferencesSearchOptions.Default);
 
-                await engine.FindReferencesAsync(symbol).ConfigureAwait(false);
+                await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
                 return streamingProgress.GetReferencedSymbols();
             }
         }

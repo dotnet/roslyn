@@ -69,17 +69,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 // Let the presented know we're starting a search.  We pass in no cancellation token here as this
                 // operation itself is fire-and-forget and the user won't cancel the operation through us (though
                 // the window itself can cancel the operation if it is taken over for another find operation.
-                var context = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                cancellationToken = combinedCancellationToken;
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                    context.CancellationToken))
+                    cancellationToken))
                 {
                     try
                     {
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+                        var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                         var interfaceSymbol = relevantSymbol?.symbol as INamedTypeSymbol;
@@ -118,20 +119,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                         // we can search for implementations of the interface, within this type
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        await InspectInterfaceAsync(context, interfaceSymbol, namedTypeSymbol, document.Project);
+                        await InspectInterfaceAsync(context, interfaceSymbol, namedTypeSymbol, document.Project, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                         // now, we iterate on interfaces of our interfaces
                         foreach (var iFace in interfaceSymbol.AllInterfaces)
                         {
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await InspectInterfaceAsync(context, iFace, namedTypeSymbol, document.Project);
+                            await InspectInterfaceAsync(context, iFace, namedTypeSymbol, document.Project, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                         }
                     }
                     finally
                     {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -143,11 +144,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             }
         }
 
-        private static async Task InspectInterfaceAsync(IFindUsagesContext context, INamedTypeSymbol interfaceSymbol, INamedTypeSymbol namedTypeSymbol, Project project)
+        private static async Task InspectInterfaceAsync(
+            IFindUsagesContext context, INamedTypeSymbol interfaceSymbol, INamedTypeSymbol namedTypeSymbol, Project project, CancellationToken cancellationToken)
         {
             foreach (var interfaceMember in interfaceSymbol.GetMembers())
             {
-                if (context.CancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
                     return;
 
                 var impl = namedTypeSymbol.FindImplementationForInterfaceMember(interfaceMember);
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                 var definitionItem = impl.ToNonClassifiedDefinitionItem(project.Solution, true);
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                await context.OnDefinitionFoundAsync(definitionItem);
+                await context.OnDefinitionFoundAsync(definitionItem, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
             }
         }

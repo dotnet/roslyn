@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 // Let the presented know we're starting a search.  It will give us back the context object that the FAR
                 // service will push results into. This operation is not externally cancellable.  Instead, the find refs
                 // window will cancel it if another request is made to use it.
-                var context = presenter.StartSearchWithCustomColumns(
+                var (context, cancellationToken) = presenter.StartSearchWithCustomColumns(
                     EditorFeaturesResources.Find_References,
                     supportsReferences: true,
                     includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
@@ -127,15 +127,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                    context.CancellationToken))
+                    cancellationToken))
                 {
                     try
                     {
-                        await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+                        await findUsagesService.FindReferencesAsync(document, caretPosition, context, cancellationToken).ConfigureAwait(false);
                     }
                     finally
                     {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

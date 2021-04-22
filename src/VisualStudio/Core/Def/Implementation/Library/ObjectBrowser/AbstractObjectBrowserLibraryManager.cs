@@ -512,7 +512,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 // Let the presented know we're starting a search.  It will give us back the context object that the FAR
                 // service will push results into.
-                var context = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
+                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
+                cancellationToken = combinedCancellationToken;
 
                 try
                 {
@@ -521,12 +522,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     // thread.
                     await Task.Run(async () =>
                     {
-                        await FindReferencesAsync(symbolListItem, project, context).ConfigureAwait(false);
+                        await FindReferencesAsync(symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
                     }, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
@@ -537,12 +538,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private static async Task FindReferencesAsync(SymbolListItem symbolListItem, Project project, CodeAnalysis.FindUsages.FindUsagesContext context)
+        private static async Task FindReferencesAsync(
+            SymbolListItem symbolListItem, Project project,
+            CodeAnalysis.FindUsages.FindUsagesContext context, CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = symbolListItem.ResolveSymbol(compilation);
             if (symbol != null)
-                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project).ConfigureAwait(false);
+                await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project, cancellationToken).ConfigureAwait(false);
         }
     }
 }
