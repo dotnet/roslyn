@@ -1141,5 +1141,72 @@ public class C
                 },
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task RS1024_GetHashCodeOnInt64()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using Microsoft.CodeAnalysis;
+
+static class HashCodeHelper
+{
+    public static Int32 GetHashCode(Int64 x) => 0;
+    public static Int32 GetHashCode(ISymbol symbol) => [|symbol.GetHashCode()|];
+}
+
+public class C
+{
+    public int GetHashCode(Int64 obj)
+    {
+        return HashCodeHelper.GetHashCode(obj);
+    }
+
+    public int GetHashCode(ISymbol symbol)
+    {
+        return HashCodeHelper.GetHashCode(symbol);
+    }
+
+    public int GetHashCode(object o)
+    {
+        if (o is ISymbol symbol)
+        {
+            return [|HashCode.Combine(symbol)|];
+        }
+
+        return HashCode.Combine(o);
+    }
+
+    public int GetHashCode(object o1, object o2)
+    {
+        if (o1 is ISymbol symbol1 && o2 is ISymbol symbol2)
+        {
+            return [|HashCode.Combine(symbol1, symbol2)|];
+        }
+
+        if (o1 is ISymbol symbolFirst)
+        {
+            return [|HashCode.Combine(symbolFirst, o2)|];
+        }
+
+        if (o2 is ISymbol symbolSecond)
+        {
+            return [|HashCode.Combine(o1, symbolSecond)|];
+        }
+
+        return HashCode.Combine(o1, o2);
+    }
+}"
+                        , SymbolEqualityComparerStubCSharp
+                   },
+                },
+            }.RunAsync();
+        }
     }
 }

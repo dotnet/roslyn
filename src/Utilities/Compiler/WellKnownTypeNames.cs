@@ -193,6 +193,7 @@ namespace Analyzer.Utilities
         public const string SystemGC = "System.GC";
         public const string SystemGlobalizationCultureInfo = "System.Globalization.CultureInfo";
         public const string SystemGuid = "System.Guid";
+        public const string SystemHashCode = "System.HashCode";
         public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
         public const string SystemIComparable = "System.IComparable";
         public const string SystemIComparable1 = "System.IComparable`1";
