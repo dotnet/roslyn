@@ -39,7 +39,7 @@ namespace Roslyn.Utilities
         internal static void AssertOrFailFast([DoesNotReturnIf(false)] bool condition, string? message = null)
         {
 #if NET20
-            Debug.Assert(false);
+            Debug.Assert(condition);
 #else
             if (!condition)
             {
@@ -57,7 +57,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    Debug.Assert(false);
+                    Debug.Assert(false, message);
                 }
             }
 #endif
