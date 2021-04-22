@@ -1657,75 +1657,94 @@ class C
 {
     static void Main()
     {
-        System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
+        System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(6, 65),
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x => x").WithArguments("inferred delegate type").WithLocation(6, 65),
+                // (6,65): error CS8915: The delegate type could not be inferred.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
                 // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(6, 65),
-                // (6,76): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 76),
-                // (6,76): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 76),
-                // (6,82): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 82),
-                // (6,82): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 82)
-                );
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x => x").WithArguments("inferred delegate type").WithLocation(6, 65),
+                // (6,65): error CS8915: The delegate type could not be inferred.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
+                // (6,73): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 73),
+                // (6,73): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 73),
+                // (6,79): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 79),
+                // (6,79): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 79));
+            verify(comp);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,65): error CS8915: The delegate type could not be inferred.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
+                // (6,65): error CS8915: The delegate type could not be inferred.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65));
+            verify(comp);
 
-            // check tuple on the left
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
-            Assert.Equal("(null, null, null, null)", tuple1.ToString());
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
 
-            var tupleType1 = model.GetTypeInfo(tuple1);
-            Assert.Null(tupleType1.Type);
-            Assert.Null(tupleType1.ConvertedType);
+                // check tuple on the left
+                var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+                Assert.Equal("(null, null, null, null)", tuple1.ToString());
 
-            // check tuple on the right ...
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            Assert.Equal("(null, () => { }, Main, (int i) => { int j = 0; return i + j; })", tuple2.ToString());
+                var tupleType1 = model.GetTypeInfo(tuple1);
+                Assert.Null(tupleType1.Type);
+                Assert.Null(tupleType1.ConvertedType);
 
-            var tupleType2 = model.GetTypeInfo(tuple2);
-            Assert.Null(tupleType2.Type);
-            Assert.Null(tupleType2.ConvertedType);
+                // check tuple on the right ...
+                var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal("(null, x => x, Main, (int i) => { int j = 0; return i + j; })", tuple2.ToString());
 
-            // ... its first lambda ...
-            var firstLambda = tuple2.Arguments[1].Expression;
-            Assert.Equal("System.Action", model.GetTypeInfo(firstLambda).Type.ToTestDisplayString());
-            Assert.Equal("System.Delegate", model.GetTypeInfo(firstLambda).ConvertedType.ToTestDisplayString());
+                var tupleType2 = model.GetTypeInfo(tuple2);
+                Assert.Null(tupleType2.Type);
+                Assert.Null(tupleType2.ConvertedType);
 
-            // ... its method group ...
-            var methodGroup = tuple2.Arguments[2].Expression;
-            Assert.Null(model.GetTypeInfo(methodGroup).Type);
-            Assert.Equal("System.Delegate", model.GetTypeInfo(methodGroup).ConvertedType.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(methodGroup).Symbol);
-            Assert.Equal(new[] { "void C.Main()" }, model.GetSymbolInfo(methodGroup).CandidateSymbols.Select(s => s.ToTestDisplayString()));
+                // ... its first lambda ...
+                var firstLambda = tuple2.Arguments[1].Expression;
+                Assert.Null(model.GetTypeInfo(firstLambda).Type);
+                Assert.Equal("System.Delegate", model.GetTypeInfo(firstLambda).ConvertedType.ToTestDisplayString());
 
-            // ... its second lambda and the symbols it uses
-            var secondLambda = tuple2.Arguments[3].Expression;
-            Assert.Equal("System.Func<System.Int32, System.Int32>", model.GetTypeInfo(secondLambda).Type.ToTestDisplayString());
-            Assert.Equal("System.Delegate", model.GetTypeInfo(secondLambda).ConvertedType.ToTestDisplayString());
+                // ... its method group ...
+                var methodGroup = tuple2.Arguments[2].Expression;
+                Assert.Null(model.GetTypeInfo(methodGroup).Type);
+                Assert.Equal("System.Delegate", model.GetTypeInfo(methodGroup).ConvertedType.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(methodGroup).Symbol);
+                Assert.Equal(new[] { "void C.Main()" }, model.GetSymbolInfo(methodGroup).CandidateSymbols.Select(s => s.ToTestDisplayString()));
 
-            var addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
-            Assert.Equal("i + j", addition.ToString());
+                // ... its second lambda and the symbols it uses
+                var secondLambda = tuple2.Arguments[3].Expression;
+                Assert.Equal("System.Func<System.Int32, System.Int32>", model.GetTypeInfo(secondLambda).Type.ToTestDisplayString());
+                Assert.Equal("System.Delegate", model.GetTypeInfo(secondLambda).ConvertedType.ToTestDisplayString());
 
-            var i = addition.Left;
-            Assert.Equal("System.Int32 i", model.GetSymbolInfo(i).Symbol.ToTestDisplayString());
+                var addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+                Assert.Equal("i + j", addition.ToString());
 
-            var j = addition.Right;
-            Assert.Equal("System.Int32 j", model.GetSymbolInfo(j).Symbol.ToTestDisplayString());
+                var i = addition.Left;
+                Assert.Equal("System.Int32 i", model.GetSymbolInfo(i).Symbol.ToTestDisplayString());
+
+                var j = addition.Right;
+                Assert.Equal("System.Int32 j", model.GetSymbolInfo(j).Symbol.ToTestDisplayString());
+            }
         }
 
         [Fact]

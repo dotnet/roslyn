@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType as NamedTypeSymbol;
             if (delegateReturnType?.IsVoidType() == false)
             {
-                if (delegateReturnType.IsCustomTaskType(out _))
+                if (delegateReturnType.IsCustomTaskType(builderArgument: out _))
                 {
                     taskType = delegateReturnType.ConstructedFrom;
                 }
@@ -573,6 +573,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal NamedTypeSymbol? InferDelegateType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(Binder.ContainingMemberOrLambda is { });
+
             var compilation = Binder.Compilation;
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
@@ -587,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambdaSymbol = new LambdaSymbol(
                 Binder,
                 compilation,
-                Binder.ContainingMemberOrLambda!,
+                Binder.ContainingMemberOrLambda,
                 _unboundLambda,
                 parameterTypes,
                 parameterRefKinds,
@@ -620,6 +622,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType)
         {
+            Debug.Assert(Binder.ContainingMemberOrLambda is { });
+
             var invokeMethod = DelegateInvokeMethod(delegateType);
             var returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out RefKind refKind);
 
@@ -649,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda!, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind);
+                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind);
                 lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
