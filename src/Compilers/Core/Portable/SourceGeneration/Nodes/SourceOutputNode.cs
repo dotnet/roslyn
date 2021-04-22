@@ -78,9 +78,16 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var text in sources)
                     {
-                        //PROTOTYPE(source-generators): we should update the error messages to be specific about *which* file errored as it now won't happen
-                        //                              at the same time the file is added.
-                        context.Sources.Add(text.HintName, text.Text);
+                        try
+                        {
+                            context.Sources.Add(text.HintName, text.Text);
+                        }
+                        catch (ArgumentException e)
+                        {
+                            //PROTOTYPE(source-generators): we should update the error messages to be specific about *which* file errored as it now won't happen
+                            //                              at the same time the file is added.
+                            throw new UserFunctionException(e);
+                        }
                     }
                     context.Diagnostics.AddRange(diagnostics);
                 }
