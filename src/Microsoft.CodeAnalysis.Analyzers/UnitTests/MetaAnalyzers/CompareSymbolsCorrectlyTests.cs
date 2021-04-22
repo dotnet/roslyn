@@ -1142,6 +1142,32 @@ public class C
             }.RunAsync();
         }
 
+        [Fact, WorkItem(4956, "https://github.com/dotnet/roslyn-analyzers/issues/4956")]
+        public async Task RS1024_StringGetHashCode()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        ReadOnlySpan<char> testROS = default;
+        int hashCode = string.GetHashCode(testROS, StringComparison.OrdinalIgnoreCase);
+    }
+}"
+                        , SymbolEqualityComparerStubCSharp
+                    }
+                }
+            }.RunAsync();
+        }
+
         [Fact]
         public async Task RS1024_GetHashCodeOnInt64()
         {
