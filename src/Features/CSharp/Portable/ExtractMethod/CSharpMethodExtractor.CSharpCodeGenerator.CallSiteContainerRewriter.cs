@@ -386,16 +386,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return GetUpdatedTypeDeclaration(node);
                 }
 
-                public override SyntaxNode VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
-                {
-                    if (node != ContainerOfStatementsOrFieldToReplace)
-                    {
-                        return base.VisitRecordStructDeclaration(node);
-                    }
-
-                    return GetUpdatedTypeDeclaration(node);
-                }
-
                 public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
                 {
                     if (node != ContainerOfStatementsOrFieldToReplace)

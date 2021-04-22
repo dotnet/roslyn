@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case AccessorDeclarationSyntax accessor:
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
                     break;
-                case RecordDeclarationSyntax { ParameterList: { }, PrimaryConstructorBaseType: { } } recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor:
+                case RecordDeclarationSyntax { ParameterList: { }, PrimaryConstructorBaseTypeIfClass: { } } recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor:
                     model = GetOrAddModel(recordDeclaration);
                     break;
                 default:
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                var argumentList = recordDecl.PrimaryConstructorBaseType?.ArgumentList;
+                                var argumentList = recordDecl.PrimaryConstructorBaseTypeIfClass?.ArgumentList;
                                 outsideMemberDecl = argumentList is null || !LookupPosition.IsBetweenTokens(position, argumentList.OpenParenToken, argumentList.CloseParenToken);
                             }
                         }
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var recordDecl = (RecordDeclarationSyntax)memberDecl;
                             return recordDecl.ParameterList is object &&
-                                   recordDecl.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments &&
+                                   recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments &&
                                    (node == baseWithArguments || baseWithArguments.ArgumentList.FullSpan.Contains(span)) ? GetOrAddModel(memberDecl) : null;
                         }
 
@@ -1255,9 +1255,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private SynthesizedRecordConstructor TryGetSynthesizedRecordConstructor(TypeDeclarationSyntax node)
+        private SynthesizedRecordConstructor TryGetSynthesizedRecordConstructor(RecordDeclarationSyntax node)
         {
-            Debug.Assert(node is RecordDeclarationSyntax or RecordStructDeclarationSyntax);
             NamedTypeSymbol recordType = GetDeclaredType(node);
             var symbol = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
 
@@ -2027,10 +2026,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 method = TryGetSynthesizedRecordConstructor(recordDecl);
             }
-            else if (memberDecl is RecordStructDeclarationSyntax recordStructDecl && recordStructDecl.ParameterList == paramList)
-            {
-                method = TryGetSynthesizedRecordConstructor(recordStructDecl);
-            }
             else
             {
                 method = (GetDeclaredSymbol(memberDecl, cancellationToken) as IMethodSymbol).GetSymbol();
@@ -2400,70 +2395,73 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case RecordDeclarationSyntax recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
-                    switch (declaredSymbol.Kind)
+                    if (recordDeclaration.IsKind(SyntaxKind.RecordDeclaration))
                     {
-                        case SymbolKind.Method:
-                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
-                            return (node) =>
-                                   {
-                                       // Accept only nodes that either match, or above/below of a 'parameter list'/'base arguments list'.
-                                       if (node.Parent == recordDeclaration)
+                        switch (declaredSymbol.Kind)
+                        {
+                            case SymbolKind.Method:
+                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
+                                return (node) =>
                                        {
-                                           return node == recordDeclaration.ParameterList || node == recordDeclaration.BaseList;
-                                       }
-                                       else if (node.Parent is BaseListSyntax baseList)
-                                       {
-                                           return node == recordDeclaration.PrimaryConstructorBaseType;
-                                       }
-                                       else if (node.Parent is PrimaryConstructorBaseTypeSyntax baseType && baseType == recordDeclaration.PrimaryConstructorBaseType)
-                                       {
-                                           return node == baseType.ArgumentList;
-                                       }
+                                           // Accept only nodes that either match, or above/below of a 'parameter list'/'base arguments list'.
+                                           if (node.Parent == recordDeclaration)
+                                           {
+                                               return node == recordDeclaration.ParameterList || node == recordDeclaration.BaseList;
+                                           }
+                                           else if (node.Parent is BaseListSyntax baseList)
+                                           {
+                                               return node == recordDeclaration.PrimaryConstructorBaseTypeIfClass;
+                                           }
+                                           else if (node.Parent is PrimaryConstructorBaseTypeSyntax baseType && baseType == recordDeclaration.PrimaryConstructorBaseTypeIfClass)
+                                           {
+                                               return node == baseType.ArgumentList;
+                                           }
 
-                                       return true;
-                                   };
+                                           return true;
+                                       };
 
-                        case SymbolKind.NamedType:
-                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
-                            // Accept nodes that do not match a 'parameter list'/'base arguments list'.
-                            return (node) => node != recordDeclaration.ParameterList &&
-                                             !(node.Kind() == SyntaxKind.ArgumentList && node == recordDeclaration.PrimaryConstructorBaseType?.ArgumentList);
+                            case SymbolKind.NamedType:
+                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
+                                // Accept nodes that do not match a 'parameter list'/'base arguments list'.
+                                return (node) => node != recordDeclaration.ParameterList &&
+                                                 !(node.Kind() == SyntaxKind.ArgumentList && node == recordDeclaration.PrimaryConstructorBaseTypeIfClass?.ArgumentList);
 
-                        default:
-                            ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
-                            break;
+                            default:
+                                ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
+                                break;
+                        }
                     }
-                    break;
-
-                case RecordStructDeclarationSyntax recordStructDeclaration when TryGetSynthesizedRecordConstructor(recordStructDeclaration) is SynthesizedRecordConstructor ctor:
-                    switch (declaredSymbol.Kind)
+                    else
                     {
-                        case SymbolKind.Method:
-                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
-                            return (node) =>
-                            {
-                                // Accept only nodes that either match, or above/below of a 'parameter list'.
-                                if (node.Parent == recordStructDeclaration)
+                        switch (declaredSymbol.Kind)
+                        {
+                            case SymbolKind.Method:
+                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor);
+                                return (node) =>
                                 {
-                                    return node == recordStructDeclaration.ParameterList;
-                                }
+                                    // Accept only nodes that either match, or above/below of a 'parameter list'.
+                                    if (node.Parent == recordDeclaration)
+                                    {
+                                        return node == recordDeclaration.ParameterList;
+                                    }
 
-                                return true;
-                            };
+                                    return true;
+                                };
 
-                        case SymbolKind.NamedType:
-                            Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
-                            // Accept nodes that do not match a 'parameter list'.
-                            return (node) => node != recordStructDeclaration.ParameterList;
+                            case SymbolKind.NamedType:
+                                Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
+                                // Accept nodes that do not match a 'parameter list'.
+                                return (node) => node != recordDeclaration.ParameterList;
 
-                        default:
-                            ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
-                            break;
+                            default:
+                                ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
+                                break;
+                        }
                     }
                     break;
 
                 case PrimaryConstructorBaseTypeSyntax { Parent: BaseListSyntax { Parent: RecordDeclarationSyntax recordDeclaration } } baseType
-                        when recordDeclaration.PrimaryConstructorBaseType == declaredNode && TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
+                        when recordDeclaration.PrimaryConstructorBaseTypeIfClass == declaredNode && TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor ctor:
                     if ((object)declaredSymbol.GetSymbol() == (object)ctor)
                     {
                         // Only 'base arguments list' or nodes below it
@@ -2472,10 +2470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ParameterSyntax param when declaredSymbol.Kind == SymbolKind.Property && param.Parent?.Parent is RecordDeclarationSyntax recordDeclaration && recordDeclaration.ParameterList == param.Parent:
-                    Debug.Assert(declaredSymbol.GetSymbol() is SynthesizedRecordPropertySymbol);
-                    return (node) => false;
-
-                case ParameterSyntax param when declaredSymbol.Kind == SymbolKind.Property && param.Parent?.Parent is RecordStructDeclarationSyntax recordStructDeclaration && recordStructDeclaration.ParameterList == param.Parent:
                     Debug.Assert(declaredSymbol.GetSymbol() is SynthesizedRecordPropertySymbol);
                     return (node) => false;
             }

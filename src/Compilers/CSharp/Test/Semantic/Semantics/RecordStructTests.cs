@@ -2384,7 +2384,7 @@ record struct C(int X)
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
 
-            var recordDeclaration = tree.GetRoot().DescendantNodes().OfType<RecordStructDeclarationSyntax>().Single();
+            var recordDeclaration = tree.GetRoot().DescendantNodes().OfType<RecordDeclarationSyntax>().Single();
             Assert.Equal("C", recordDeclaration.Identifier.ValueText);
             Assert.Null(model.GetOperation(recordDeclaration));
         }
@@ -5587,7 +5587,8 @@ class Attr1 : System.Attribute {}
 
             protected void Handle6(SyntaxNodeAnalysisContext context)
             {
-                var record = (RecordStructDeclarationSyntax)context.Node;
+                var record = (RecordDeclarationSyntax)context.Node;
+                Assert.Equal(SyntaxKind.RecordStructDeclaration, record.Kind());
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
@@ -6121,7 +6122,7 @@ interface I1 {}
 
                         switch (context.CodeBlock)
                         {
-                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
                                 Interlocked.Increment(ref FireCount1);
                                 break;
                             default:
@@ -6214,7 +6215,7 @@ interface I1 {}
                     case "A..ctor([System.Int32 X = 0])":
                         switch (context.CodeBlock)
                         {
-                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
                                 Interlocked.Increment(ref FireCount100);
                                 break;
                             default:
@@ -6272,7 +6273,7 @@ interface I1 {}
 
                         switch (context.CodeBlock)
                         {
-                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                            case RecordDeclarationSyntax { Identifier: { ValueText: "A" } }:
                                 Interlocked.Increment(ref FireCount1000);
                                 break;
                             default:
@@ -7393,6 +7394,145 @@ record struct A(int X)
 {
 }";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, SyntaxFactory.TypeDeclaration(SyntaxKind.RecordStructDeclaration, "Point").NormalizeWhitespace().ToString());
+        }
+
+        [Fact]
+        public void InterfaceWithParameters()
+        {
+            var src = @"
+public interface I
+{
+}
+
+record struct R(int X) : I()
+{
+}
+
+record struct R2(int X) : I(X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,27): error CS8861: Unexpected argument list.
+                // record struct R(int X) : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 27),
+                // (10,28): error CS8861: Unexpected argument list.
+                // record struct R2(int X) : I(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 28)
+                );
+        }
+
+        [Fact]
+        public void InterfaceWithParameters_NoPrimaryConstructor()
+        {
+            var src = @"
+public interface I
+{
+}
+
+record struct R : I()
+{
+}
+
+record struct R2 : I(0)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,20): error CS8861: Unexpected argument list.
+                // record struct R : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 20),
+                // (10,21): error CS8861: Unexpected argument list.
+                // record struct R2 : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 21)
+                );
+        }
+
+        [Fact]
+        public void InterfaceWithParameters_Struct()
+        {
+            var src = @"
+public interface I
+{
+}
+
+struct C : I()
+{
+}
+
+struct C2 : I(0)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS8861: Unexpected argument list.
+                // struct C : I()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 13),
+                // (10,14): error CS8861: Unexpected argument list.
+                // struct C2 : I(0)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 14)
+                );
+        }
+
+        [Fact]
+        public void BaseArguments_Speculation()
+        {
+            var src = @"
+record struct R1(int X) : Error1(0, 1)
+{
+}
+record struct R2(int X) : Error2()
+{
+}
+record struct R3(int X) : Error3
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,27): error CS0246: The type or namespace name 'Error1' could not be found (are you missing a using directive or an assembly reference?)
+                // record struct R1(int X) : Error1(0, 1)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error1").WithArguments("Error1").WithLocation(2, 27),
+                // (2,33): error CS8861: Unexpected argument list.
+                // record struct R1(int X) : Error1(0, 1)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0, 1)").WithLocation(2, 33),
+                // (5,27): error CS0246: The type or namespace name 'Error2' could not be found (are you missing a using directive or an assembly reference?)
+                // record struct R2(int X) : Error2()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error2").WithArguments("Error2").WithLocation(5, 27),
+                // (5,33): error CS8861: Unexpected argument list.
+                // record struct R2(int X) : Error2()
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(5, 33),
+                // (8,27): error CS0246: The type or namespace name 'Error3' could not be found (are you missing a using directive or an assembly reference?)
+                // record struct R3(int X) : Error3
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error3").WithArguments("Error3").WithLocation(8, 27)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var baseWithargs =
+                tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().First();
+            Assert.Equal("Error1(0, 1)", baseWithargs.ToString());
+
+            var speculativeBase =
+                baseWithargs.WithArgumentList(baseWithargs.ArgumentList.WithArguments(baseWithargs.ArgumentList.Arguments.RemoveAt(1)));
+            Assert.Equal("Error1(0)", speculativeBase.ToString());
+
+            Assert.False(model.TryGetSpeculativeSemanticModel(baseWithargs.ArgumentList.OpenParenToken.SpanStart, speculativeBase, out _));
+
+            var baseWithoutargs =
+                tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Skip(1).First();
+            Assert.Equal("Error2()", baseWithoutargs.ToString());
+
+            Assert.False(model.TryGetSpeculativeSemanticModel(baseWithoutargs.ArgumentList.OpenParenToken.SpanStart, speculativeBase, out _));
+
+            var baseWithoutParens = tree.GetRoot().DescendantNodes().OfType<SimpleBaseTypeSyntax>().Single();
+            Assert.Equal("Error3", baseWithoutParens.ToString());
+
+            Assert.False(model.TryGetSpeculativeSemanticModel(baseWithoutParens.SpanStart + 2, speculativeBase, out _));
         }
     }
 }

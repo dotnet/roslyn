@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                 syntax.AttributeLists,
                 ModifiersOrganizer.Organize(syntax.Modifiers),
                 syntax.Keyword,
-                syntax.ClassKeyword,
+                syntax.ClassOrStructKeyword,
                 syntax.Identifier,
                 syntax.TypeParameterList,
                 syntax.ParameterList,

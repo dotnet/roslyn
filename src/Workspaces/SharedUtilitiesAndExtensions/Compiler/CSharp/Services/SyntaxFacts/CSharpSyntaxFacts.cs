@@ -1139,9 +1139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     case StructDeclarationSyntax @struct:
                         AppendConstructors(@struct.Members, constructors, cancellationToken);
                         break;
-                    case RecordStructDeclarationSyntax recordStruct:
-                        AppendConstructors(recordStruct.Members, constructors, cancellationToken);
-                        break;
                 }
             }
         }

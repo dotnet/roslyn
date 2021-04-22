@@ -492,12 +492,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var info = diagnostics.Add(ErrorCode.ERR_StaticDerivedFromNonObject, location, this, localBase);
                             localBase = new ExtendedErrorTypeSymbol(localBase, LookupResultKind.NotReferencable, info);
                         }
+                        checkPrimaryConstructorBaseType(baseTypeSyntax, localBase);
                         continue;
                     }
                 }
                 else
                 {
                     baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
+                }
+
+                if (i == 0)
+                {
+                    checkPrimaryConstructorBaseType(baseTypeSyntax, baseType);
                 }
 
                 switch (baseType.TypeKind)
@@ -582,6 +588,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(localBase, localInterfaces.ToImmutableAndFree());
+
+            void checkPrimaryConstructorBaseType(BaseTypeSyntax baseTypeSyntax, TypeSymbol baseType)
+            {
+                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType &&
+                    (!IsRecord || TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface || ((RecordDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null))
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                }
+            }
         }
 
         /// <summary>

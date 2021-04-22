@@ -380,10 +380,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitRecordDeclaration(RecordDeclarationSyntax node)
-            => VisitTypeDeclaration(node, DeclarationKind.Record);
+        {
+            var declarationKind = node.Kind() switch
+            {
+                SyntaxKind.RecordDeclaration => DeclarationKind.Record,
+                SyntaxKind.RecordStructDeclaration => DeclarationKind.RecordStruct,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
+            };
 
-        public override SingleNamespaceOrTypeDeclaration VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
-            => VisitTypeDeclaration(node, DeclarationKind.RecordStruct);
+            return VisitTypeDeclaration(node, declarationKind);
+        }
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
@@ -407,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // A record with parameters at least has a primary constructor
             if (((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0) &&
-                node is RecordDeclarationSyntax { ParameterList: { } } or RecordStructDeclarationSyntax { ParameterList: { } })
+                node is RecordDeclarationSyntax { ParameterList: { } })
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }

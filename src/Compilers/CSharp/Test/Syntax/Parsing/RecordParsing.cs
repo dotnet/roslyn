@@ -2222,18 +2222,7 @@ class C(int X, int Y)
 : B" + (withBaseArguments ? "(X, Y)" : "") + @"
 " + (withBody ? "{ }" : ";");
 
-            if (!withParameters && withBaseArguments)
-            {
-                UsingTree(text,
-                    // (2,4): error CS8861: Unexpected argument list.
-                    // : B(X, Y)
-                    Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(2, 4)
-                    );
-            }
-            else
-            {
-                UsingTree(text);
-            }
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2550,9 +2539,6 @@ class C(int X, int Y)
         {
             var text = "interface C : B(X, Y);";
             UsingTree(text,
-                // (1,16): error CS8861: Unexpected argument list.
-                // interface C : B(X, Y);
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(1, 16),
                 // (1,22): error CS1003: Syntax error, ',' expected
                 // interface C : B(X, Y);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(1, 22),
@@ -3897,11 +3883,7 @@ class C(int X, int Y)
         public void RecordStructParsing_BaseListWithParens()
         {
             var text = "record struct S : Base(1);";
-            UsingTree(text, options: TestOptions.RegularPreview,
-                // (1,23): error CS8861: Unexpected argument list.
-                // record struct S : Base(1);
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(1, 23)
-                );
+            UsingTree(text, options: TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {

@@ -1918,7 +1918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
-            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax or RecordStructDeclarationSyntax
+            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax
                 || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.
@@ -1973,9 +1973,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is RecordDeclarationSyntax)
+                if (containerNode is RecordDeclarationSyntax recordDecl)
                 {
-                    outerBinder = binderFactory.GetInRecordBodyBinder((TypeDeclarationSyntax)containerNode);
+                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
                 }
                 else
                 {

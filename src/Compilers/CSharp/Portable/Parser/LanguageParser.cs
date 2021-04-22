@@ -1501,7 +1501,7 @@ tryAgain:
             var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
-            var baseList = this.ParseBaseList(keyword, paramList is object);
+            var baseList = this.ParseBaseList();
             _termState = saveTerm;
 
             // Parse class body
@@ -1681,43 +1681,25 @@ tryAgain:
                             semicolon);
 
                     case SyntaxKind.RecordKeyword:
-                        if (recordModifier?.Kind == SyntaxKind.StructKeyword)
-                        {
-                            // record struct ...
-                            return syntaxFactory.RecordStructDeclaration(
-                                attributes,
-                                modifiers.ToList(),
-                                keyword,
-                                structKeyword: recordModifier,
-                                name,
-                                typeParameters,
-                                paramList,
-                                baseList,
-                                constraints,
-                                openBrace,
-                                members,
-                                closeBrace,
-                                semicolon);
-                        }
-                        else
-                        {
-                            // record ...
-                            // record class ...
-                            return syntaxFactory.RecordDeclaration(
-                                attributes,
-                                modifiers.ToList(),
-                                keyword,
-                                classKeyword: recordModifier,
-                                name,
-                                typeParameters,
-                                paramList,
-                                baseList,
-                                constraints,
-                                openBrace,
-                                members,
-                                closeBrace,
-                                semicolon);
-                        }
+                        // record struct ...
+                        // record ...
+                        // record class ...
+                        SyntaxKind declarationKind = recordModifier?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
+                        return syntaxFactory.RecordDeclaration(
+                            declarationKind,
+                            attributes,
+                            modifiers.ToList(),
+                            keyword,
+                            classOrStructKeyword: recordModifier,
+                            name,
+                            typeParameters,
+                            paramList,
+                            baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(keyword.Kind);
@@ -1819,7 +1801,7 @@ tryAgain:
                 || this.IsCurrentTokenWhereOfConstraintClause();
         }
 
-        private BaseListSyntax ParseBaseList(SyntaxToken typeKeyword, bool haveParameters)
+        private BaseListSyntax ParseBaseList()
         {
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
             {
@@ -1837,11 +1819,6 @@ tryAgain:
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
                 {
                     argumentList = this.ParseParenthesizedArgumentList();
-
-                    if (typeKeyword.Kind != SyntaxKind.RecordKeyword || !haveParameters)
-                    {
-                        argumentList = this.AddErrorToFirstToken(argumentList, ErrorCode.ERR_UnexpectedArgumentList);
-                    }
                 }
 
                 list.Add(argumentList is object ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList) : (BaseTypeSyntax)_syntaxFactory.SimpleBaseType(firstType));
